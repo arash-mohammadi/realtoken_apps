@@ -29,7 +29,7 @@
     "tokens": "Tokens",
     "totalTokens": "Total de Tokens",
     "rents": "Aluguéis",
-    "annualYield": "Rendimento Anual",
+    "annualYield": "Rendimento líquido",
     "daily": "Diário",
     "weekly": "Semanal",
     "monthly": "Mensal",
@@ -188,6 +188,36 @@
     "hours": "Horas",
     "days": "Dias",
     "weeks": "Semanas",
-    "period": "Período"
-  }
+    "period": "Período",
+    "miscellaneousCosts": "Custos Diversos",
+    "renovationReserve": "Reserva de Renovação",
+    "realtListingFee": "Taxa de Listagem Realt",
+    "totalExpenses": "Despesas Totais",
+    "propertyMaintenanceMonthly": "Manutenção da propriedade (mensal)",
+  "propertyManagement": "Gestão de propriedades",
+  "realtPlatform": "Plataforma RealT",
+  "insurance": "Seguro",
+  "propertyTaxes": "Impostos sobre a propriedade",
+  
+  "@propertyMaintenanceMonthly": {
+    "description": "Despesas mensais de manutenção da propriedade"
+  },
+  "@propertyManagement": {
+    "description": "Taxas de serviços de gestão de propriedade"
+  },
+  "@realtPlatform": {
+    "description": "Taxas de uso da plataforma RealT"
+  },
+  "@insurance": {
+    "description": "Custos de seguro para a propriedade"
+  },
+  "@propertyTaxes": {
+    "description": "Impostos associados à propriedade"
+  },
+  "bedroomBath": "Quarto/Banheiro",
+  "@bedroomBath": {
+    "description": "Rótulo para informações de quarto e banheiro"
+  },
+  "netApyHelp": "O rendimento líquido é calculado ponderando os rendimentos das carteiras (wallet/RMM) e os saldos de depósitos/empréstimos com as suas respetivas taxas."
+}
   

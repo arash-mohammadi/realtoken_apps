@@ -1,7 +1,7 @@
 import 'package:realtokens_apps/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart'; // Importer pour le copier dans le presse-papiers
-import 'dart:io'; // Importer pour détecter la plateforme
+// Importer pour détecter la plateforme
 import 'package:provider/provider.dart'; // Pour accéder à AppState
 import 'package:realtokens_apps/generated/l10n.dart'; // Importer pour les traductions
 import 'package:realtokens_apps/app_state.dart'; // Importer pour accéder à l'offset de texte

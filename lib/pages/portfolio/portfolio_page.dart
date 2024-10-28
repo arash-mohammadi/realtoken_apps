@@ -67,7 +67,6 @@ void initState() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) { // Vérifie que le widget est toujours monté
         setState(() {
-          _searchQuery = prefs.getString('searchQuery') ?? '';
           _sortOption = prefs.getString('sortOption') ?? S.of(context).sortByInitialLaunchDate;
           _isAscending = prefs.getBool('isAscending') ?? false;  // Charger l'état de tri
           _selectedCity = prefs.getString('selectedCity')?.isEmpty ?? true ? null : prefs.getString('selectedCity');
@@ -80,7 +79,6 @@ void initState() {
   // Sauvegarder les filtres et tri dans SharedPreferences
   Future<void> _saveFilterPreferences() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setString('searchQuery', _searchQuery);
     await prefs.setString('sortOption', _sortOption);
     await prefs.setBool('isAscending', _isAscending);
     await prefs.setString('selectedCity', _selectedCity ?? ''); // Sauvegarder la ville sélectionnée
@@ -92,7 +90,6 @@ void initState() {
     setState(() {
       _searchQuery = value;
     });
-    _saveFilterPreferences(); // Sauvegarde
   }
 
   void _updateSortOption(String value) {

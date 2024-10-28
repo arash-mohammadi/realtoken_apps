@@ -18,10 +18,8 @@ class ServiceStatusPage extends StatelessWidget {
     for (var key in box.keys) {
       if (key.toString().startsWith('lastExecutionTime_')) {
         String? executionTime = box.get(key); // Récupérer la dernière exécution
-        if (executionTime != null) {
-          executionTimesMap[key.toString()] = executionTime;
-        }
-      }
+        executionTimesMap[key.toString()] = executionTime!;
+            }
     }
 
     // Variable pour suivre l'état des services

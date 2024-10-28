@@ -29,7 +29,7 @@
   "tokens": "Tokens",
   "totalTokens": "Total Tokens",
   "rents": "Rents",
-  "annualYield": "Annual Yield",
+  "annualYield": "Net Yield",
   "daily": "Daily",
   "weekly": "Weekly",
   "monthly": "Monthly",
@@ -188,5 +188,38 @@
   "hours": "Hours",
   "days": "Days",
   "weeks": "Weeks",
-  "period": "Period"
+  "period": "Period",
+  "miscellaneousCosts": "Miscellaneous Costs",
+  "renovationReserve": "Renovation Reserve",
+  "realtListingFee": "Realt Listing Fee",
+  "totalExpenses": "Total Expenses",
+  "propertyMaintenanceMonthly": "Property Maintenance (Monthly)",
+  "propertyManagement": "Property Management",
+  "realtPlatform": "RealT Platform",
+  "insurance": "Insurance",
+  "propertyTaxes": "Property Taxes",
+  "@propertyMaintenanceMonthly": {
+    "description": "Monthly maintenance expenses for the property"
+  },
+  "@propertyManagement": {
+    "description": "Fees for property management services"
+  },
+  "@realtPlatform": {
+    "description": "Fees for using the RealT platform"
+  },
+  "@insurance": {
+    "description": "Insurance costs for the property"
+  },
+  "@propertyTaxes": {
+    "description": "Taxes associated with the property"
+  },
+  "bedroomBath": "Bedroom/Bath",
+  "@bedroomBath": {
+    "description": "Label for bedroom and bath information"
+  },
+  "netApyHelp": "The net yield is calculated by weighting the yields of the portfolios (wallet/RMM) and the deposit/borrow balances with their respective rates."
+
 }
+
+
+

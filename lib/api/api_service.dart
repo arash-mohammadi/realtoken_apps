@@ -18,9 +18,9 @@ class ApiService {
     final DateTime now = DateTime.now();
 
     final prefs = await SharedPreferences.getInstance();
-    List<String>? evmAddresses = prefs.getStringList('evmAddresses');
+    List<String> evmAddresses = prefs.getStringList('evmAddresses') ?? [];
 
-    if (evmAddresses == null || evmAddresses.isEmpty) {
+    if (evmAddresses.isEmpty) {
       logger.i("apiService: fetchTokensFromUrl -> wallet non renseigné");
       return [];
     }
@@ -93,9 +93,9 @@ class ApiService {
     final DateTime now = DateTime.now();
 
     final prefs = await SharedPreferences.getInstance();
-    List<String>? evmAddresses = prefs.getStringList('evmAddresses');
+    List<String> evmAddresses = prefs.getStringList('evmAddresses') ?? [];
 
-    if (evmAddresses == null || evmAddresses.isEmpty) {
+    if (evmAddresses.isEmpty) {
       logger.i("apiService: fetchRMMTokens -> wallet non renseigné");
       return [];
     }
@@ -408,9 +408,9 @@ class ApiService {
 
   static Future<List<Map<String, dynamic>>> fetchRmmBalances({bool forceFetch = false}) async {
     final prefs = await SharedPreferences.getInstance();
-    List<String>? evmAddresses = prefs.getStringList('evmAddresses');
+    List<String> evmAddresses = prefs.getStringList('evmAddresses') ?? [];
 
-    if (evmAddresses == null || evmAddresses.isEmpty) {
+    if (evmAddresses.isEmpty) {
       logger.i("apiService: fetchRMMBalances-> wallet non renseigné");
       return [];
     }

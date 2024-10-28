@@ -29,7 +29,7 @@
     "tokens": "代币",
     "totalTokens": "代币总数",
     "rents": "租金",
-    "annualYield": "年收益率",
+    "annualYield": "净收益率",
     "daily": "每日",
     "weekly": "每周",
     "monthly": "每月",
@@ -188,6 +188,36 @@
     "hours": "小时",
     "days": "天",
     "weeks": "周",
-    "period": "时间段"
+    "period": "时间段",
+    "miscellaneousCosts": "杂项费用",
+    "renovationReserve": "装修储备金",
+    "realtListingFee": "Realt上市费",
+    "totalExpenses": "总支出",
+    "propertyMaintenanceMonthly": "物业维护（每月）",
+    "propertyManagement": "物业管理",
+    "realtPlatform": "RealT 平台",
+    "insurance": "保险",
+    "propertyTaxes": "物业税",
+    
+    "@propertyMaintenanceMonthly": {
+      "description": "物业的每月维护费用"
+    },
+    "@propertyManagement": {
+      "description": "物业管理服务费用"
+    },
+    "@realtPlatform": {
+      "description": "使用 RealT 平台的费用"
+    },
+    "@insurance": {
+      "description": "物业保险费用"
+    },
+    "@propertyTaxes": {
+      "description": "与物业相关的税费"
+    },
+    "bedroomBath": "卧室/浴室",
+  "@bedroomBath": {
+    "description": "卧室和浴室信息的标签"
+  },
+  "netApyHelp": "净收益通过根据各自的利率对投资组合（钱包/RMM）和存款/借款余额的收益进行加权计算。"
   }
   

@@ -29,7 +29,7 @@
   "tokens": "Tokens",
   "totalTokens": "Total de tokens",
   "rents": "Alquileres",
-  "annualYield": "Rendimiento anual",
+  "annualYield": "Rendimiento neto",
   "daily": "Diario",
   "weekly": "Semanal",
   "monthly": "Mensual",
@@ -188,5 +188,36 @@
   "hours": "Horas",
   "days": "Días",
   "weeks": "Semanas",
-  "period": "Período"
+  "period": "Período",
+  "miscellaneousCosts": "Gastos Diversos",
+  "renovationReserve": "Reserva de Renovación",
+  "realtListingFee": "Tarifa de Listado Realt",
+  "totalExpenses": "Gastos Totales",
+  "propertyMaintenanceMonthly": "Mantenimiento de la propiedad (mensual)",
+  "propertyManagement": "Gestión de la propiedad",
+  "realtPlatform": "Plataforma RealT",
+  "insurance": "Seguro",
+  "propertyTaxes": "Impuestos sobre la propiedad",
+  
+  "@propertyMaintenanceMonthly": {
+    "description": "Gastos mensuales de mantenimiento de la propiedad"
+  },
+  "@propertyManagement": {
+    "description": "Honorarios por servicios de gestión de la propiedad"
+  },
+  "@realtPlatform": {
+    "description": "Tarifas por usar la plataforma RealT"
+  },
+  "@insurance": {
+    "description": "Costos de seguro para la propiedad"
+  },
+  "@propertyTaxes": {
+    "description": "Impuestos asociados con la propiedad"
+  },
+  "bedroomBath": "Dormitorio/Baño",
+  "@bedroomBath": {
+    "description": "Etiqueta para la información de dormitorio y baño"
+  },
+  "netApyHelp": "El rendimiento neto se calcula ponderando los rendimientos de las carteras (billetera/RMM) y los saldos de depósitos/préstamos con sus tasas respectivas."
+
 }

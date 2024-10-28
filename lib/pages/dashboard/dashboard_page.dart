@@ -280,152 +280,152 @@ class DashboardPageState extends State<DashboardPage> {
   }
 
     // Méthode pour créer un mini graphique pour la carte Rendement
- Widget _buildMiniGraphForRendement(List<double> data, BuildContext context, DataManager dataManager) {
-  return Align(
-    alignment: Alignment.center,
-    child: SizedBox(
-      height: 70,
-      width: 120,
-      child: LineChart(
-        LineChartData(
-          gridData: FlGridData(show: false),
-          titlesData: FlTitlesData(show: false),
-          borderData: FlBorderData(show: false),
-          minX: 0,
-          maxX: data.length.toDouble() - 1,
-          minY: data.reduce((a, b) => a < b ? a : b),
-          maxY: data.reduce((a, b) => a > b ? a : b),
-          lineBarsData: [
-            LineChartBarData(
-              spots: List.generate(data.length, (index) {
-                double roundedValue = double.parse(data[index].toStringAsFixed(2));
-                return FlSpot(index.toDouble(), roundedValue);
-              }),
-              isCurved: true,
-              barWidth: 2,
-              color: Colors.blue,
-              dotData: FlDotData(
-                show: true,
-                getDotPainter: (spot, percent, barData, index) =>
-                    FlDotCirclePainter(
-                  radius: 2,
-                  color: Colors.blue,
-                  strokeWidth: 0,
+  Widget _buildMiniGraphForRendement(List<double> data, BuildContext context, DataManager dataManager) {
+    return Align(
+      alignment: Alignment.center,
+      child: SizedBox(
+        height: 70,
+        width: 120,
+        child: LineChart(
+          LineChartData(
+            gridData: FlGridData(show: false),
+            titlesData: FlTitlesData(show: false),
+            borderData: FlBorderData(show: false),
+            minX: 0,
+            maxX: data.length.toDouble() - 1,
+            minY: data.reduce((a, b) => a < b ? a : b),
+            maxY: data.reduce((a, b) => a > b ? a : b),
+            lineBarsData: [
+              LineChartBarData(
+                spots: List.generate(data.length, (index) {
+                  double roundedValue = double.parse(dataManager.convert(data[index]).toStringAsFixed(2));
+                  return FlSpot(index.toDouble(), roundedValue);
+                }),
+                isCurved: true,
+                barWidth: 2,
+                color: Colors.blue,
+                dotData: FlDotData(
+                  show: true,
+                  getDotPainter: (spot, percent, barData, index) =>
+                      FlDotCirclePainter(
+                    radius: 2,
+                    color: Colors.blue,
+                    strokeWidth: 0,
+                  ),
+                ),
+                belowBarData: BarAreaData(
+                  show: true,
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.blue.withOpacity(0.4), // Couleur plus opaque en haut
+                      Colors.blue.withOpacity(0), // Couleur plus transparente en bas
+                    ],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                  ),
                 ),
               ),
-              belowBarData: BarAreaData(
-                show: true,
-                gradient: LinearGradient(
-                  colors: [
-                    Colors.blue.withOpacity(0.4), // Couleur plus opaque en haut
-                    Colors.blue.withOpacity(0), // Couleur plus transparente en bas
-                  ],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                ),
+            ],
+            // Ajout de LineTouchData pour le tooltip
+            lineTouchData: LineTouchData(
+              touchTooltipData: LineTouchTooltipData(
+                getTooltipItems: (List<LineBarSpot> touchedSpots) {
+                  return touchedSpots.map((touchedSpot) {
+                    final flSpot = touchedSpot;
+                    return LineTooltipItem(
+                      '${flSpot.y.toStringAsFixed(2)} ${dataManager.currencySymbol}', // Utiliser currencySymbol de dataManager
+                      const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    );
+                  }).toList();
+                },
               ),
+              handleBuiltInTouches: true,
             ),
-          ],
-          // Ajout de LineTouchData pour le tooltip
-          lineTouchData: LineTouchData(
-            touchTooltipData: LineTouchTooltipData(
-              getTooltipItems: (List<LineBarSpot> touchedSpots) {
-                return touchedSpots.map((touchedSpot) {
-                  final flSpot = touchedSpot;
-                  return LineTooltipItem(
-                    '${flSpot.y.toStringAsFixed(2)} ${dataManager.currencySymbol}', // Utiliser currencySymbol de dataManager
-                    const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  );
-                }).toList();
-              },
-            ),
-            handleBuiltInTouches: true,
           ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   // Construction des cartes du Dashboard
-Widget _buildCard(
-  String title,
-  IconData icon,
-  Widget firstChild,
-  List<Widget> otherChildren,
-  DataManager dataManager,
-  BuildContext context, {
-  bool hasGraph = false,
-  Widget? rightWidget, // Ajout du widget pour le graphique
-}) {
-  final appState = Provider.of<AppState>(context);
-  return Card(
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(12),
-    ),
-    elevation: 0,
-    color: Theme.of(context).cardColor,
-    child: Padding(
-      padding: const EdgeInsets.all(12.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(
-                    icon,
-                    size: 24 + appState.getTextSizeOffset(),
-                    color: _getIconColor(title, context), // Appelle une fonction pour déterminer la couleur
-                  ),
-                  const SizedBox(width: 8), // Espacement entre l'icône et le texte
-                  Text(
-                    title,
-                    style: TextStyle(
-                      fontSize: 19 + appState.getTextSizeOffset(),
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).textTheme.bodyLarge?.color,
+  Widget _buildCard(
+    String title,
+    IconData icon,
+    Widget firstChild,
+    List<Widget> otherChildren,
+    DataManager dataManager,
+    BuildContext context, {
+    bool hasGraph = false,
+    Widget? rightWidget, // Ajout du widget pour le graphique
+  }) {
+    final appState = Provider.of<AppState>(context);
+    return Card(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      elevation: 0,
+      color: Theme.of(context).cardColor,
+      child: Padding(
+        padding: const EdgeInsets.all(12.0),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      icon,
+                      size: 24 + appState.getTextSizeOffset(),
+                      color: _getIconColor(title, context), // Appelle une fonction pour déterminer la couleur
                     ),
-                  ),
-                  const SizedBox(width: 12), // Espacement entre le texte et l'icône
-                  if (title == S.of(context).rents)
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => const DashboardRentsDetailsPage(),
-                          ),
-                        );
-                      },
-                      child: Icon(
-                        Icons.arrow_forward,
-                        size: 24, // Taille de l'icône
-                        color: Colors.grey, // Couleur de l'icône
+                    const SizedBox(width: 8), // Espacement entre l'icône et le texte
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 19 + appState.getTextSizeOffset(),
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).textTheme.bodyLarge?.color,
                       ),
                     ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              firstChild,
-              const SizedBox(height: 3),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: otherChildren,
-              ),
-            ],
-          ),
-          const Spacer(),
-          if (hasGraph && rightWidget != null) rightWidget, // Affiche le graphique
-        ],
+                    const SizedBox(width: 12), // Espacement entre le texte et l'icône
+                    if (title == S.of(context).rents)
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => const DashboardRentsDetailsPage(),
+                            ),
+                          );
+                        },
+                        child: Icon(
+                          Icons.arrow_forward,
+                          size: 24, // Taille de l'icône
+                          color: Colors.grey, // Couleur de l'icône
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                firstChild,
+                const SizedBox(height: 3),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: otherChildren,
+                ),
+              ],
+            ),
+            const Spacer(),
+            if (hasGraph && rightWidget != null) rightWidget, // Affiche le graphique
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   // Construction d'une ligne pour afficher la valeur avant le texte
   Widget _buildValueBeforeText(String value, String text) {
@@ -512,7 +512,12 @@ Widget _buildCard(
 
       final lastRentReceived = _getLastRentReceived(dataManager);
       final totalRentReceived = Utils.getFormattedAmount(dataManager.convert(dataManager.getTotalRentReceived()), dataManager.currencySymbol, _showAmounts);
-
+      final netAPY = (
+          ((dataManager.averageAnnualYield * (dataManager.walletValue + dataManager.rmmValue))
+        + (dataManager.totalUsdcDepositBalance * dataManager.usdcDepositApy + dataManager.totalXdaiDepositBalance * dataManager.xdaiDepositApy)
+        - (dataManager.totalUsdcBorrowBalance * dataManager.usdcBorrowApy + dataManager.totalXdaiBorrowBalance * dataManager.xdaiBorrowApy))
+        / (dataManager.walletValue + dataManager.rmmValue + dataManager.totalUsdcDepositBalance + dataManager.totalXdaiDepositBalance + dataManager.totalUsdcBorrowBalance + dataManager.totalXdaiBorrowBalance )
+        );
       return Scaffold(
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         body: Stack(
@@ -653,7 +658,7 @@ Widget _buildCard(
                                 '   ${S.of(context).rmm}: ${dataManager.rmmTokenCount.toInt()}',
                                 style: TextStyle(fontSize: 13 + appState.getTextSizeOffset(), color:Theme.of(context).textTheme.bodyMedium?.color),
                               ),
-                              SizedBox(width: 4),
+                              SizedBox(width: 6),
                               GestureDetector(
                                 onTap: () {
                                   showDialog(
@@ -677,7 +682,7 @@ Widget _buildCard(
                                     },
                                   );
                                 },
-                                child: Icon(Icons.info_outline, size: 16), // Icône sans padding implicite
+                                child: Icon(Icons.info_outline, size: 15), // Icône sans padding implicite
                               ),
                             ],
                           ),
@@ -731,8 +736,43 @@ Widget _buildCard(
                       _buildCard(
                         S.of(context).rents,
                         Icons.attach_money,
-                        _buildValueBeforeText('${dataManager.averageAnnualYield.toStringAsFixed(2)}%', S.of(context).annualYield),
+                        Row(
+                            children: [
+                              _buildValueBeforeText('${netAPY.toStringAsFixed(2)}%', S.of(context).annualYield),
+                              SizedBox(width: 6),
+                              GestureDetector(
+                                onTap: () {
+                                  showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return AlertDialog(
+                                        title: Text(S.of(context).apy), // Titre de la popup
+                                        content: Text(
+                                          S.of(context).netApyHelp, // Contenu de la popup
+                                          style: TextStyle(fontSize: 13 + appState.getTextSizeOffset()),
+                                        ),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () {
+                                              Navigator.of(context).pop(); // Fermer la popup
+                                            },
+                                            child: Text(S.of(context).close), // Bouton de fermeture
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  );
+                                },
+                                child: Icon(Icons.info_outline, size: 15), // Icône sans padding implicite
+                              ),
+                            ],
+                          ),
                         [
+                           Text(
+                            'APY brut: ${dataManager.averageAnnualYield.toStringAsFixed(2)} %',
+                            style: TextStyle(fontSize: 13 + appState.getTextSizeOffset(), color:Theme.of(context).textTheme.bodyMedium?.color),
+                          ),
+                           const SizedBox(height: 10),
                           Text(
                             '${S.of(context).daily}: ${Utils.getFormattedAmount(dataManager.convert(dataManager.dailyRent), dataManager.currencySymbol, _showAmounts)}',
                             style: TextStyle(fontSize: 13 + appState.getTextSizeOffset(), color:Theme.of(context).textTheme.bodyMedium?.color),
@@ -765,7 +805,6 @@ Widget _buildCard(
                           context,
                         ),
 
-
                       const SizedBox(height: 80),
                     ],
                   ),
@@ -780,6 +819,7 @@ Widget _buildCard(
   Widget _buildCumulativeRentList(DataManager dataManager) {
     final cumulativeRentEvolution = dataManager.getCumulativeRentEvolution();
     DateTime today = DateTime.now();
+    final appState = Provider.of<AppState>(context);
 
     // Filtrer pour n'afficher que les dates futures
     final futureRentEvolution = cumulativeRentEvolution.where((entry) {
@@ -809,10 +849,10 @@ Widget _buildCard(
 
           // Afficher la date et le loyer cumulé
           return Padding(
-            padding: const EdgeInsets.symmetric(vertical: 4.0),
+            padding: const EdgeInsets.symmetric(vertical: 0),
             child: Text(
-      '$displayDate: ${Utils.getFormattedAmount(entry['cumulativeRent'], dataManager.currencySymbol, _showAmounts)}',
-              style: TextStyle(fontSize: 14, color:Theme.of(context).textTheme.bodyMedium?.color),
+      '$displayDate: ${Utils.getFormattedAmount(dataManager.convert(entry['cumulativeRent']), dataManager.currencySymbol, _showAmounts)}',
+              style: TextStyle(fontSize: 13 + appState.getTextSizeOffset() , color:Theme.of(context).textTheme.bodyMedium?.color),
             ),
           );
         }
@@ -856,21 +896,21 @@ Widget _buildCard(
     );
   }
 
-// Fonction pour obtenir la couleur en fonction du titre traduit
-Color _getIconColor(String title, BuildContext context) {
-  final String translatedTitle = title.trim(); // Supprime les espaces éventuels
+  // Fonction pour obtenir la couleur en fonction du titre traduit
+  Color _getIconColor(String title, BuildContext context) {
+    final String translatedTitle = title.trim(); // Supprime les espaces éventuels
 
-  if (translatedTitle == S.of(context).rents) {
-    return Colors.green;
-  } else if (translatedTitle == S.of(context).tokens) {
-    return Colors.orange;
-  } else if (translatedTitle == S.of(context).properties) {
-    return Colors.blue;
-  } else if (translatedTitle == S.of(context).portfolio) {
-    return Colors.black;
-  } else {
-    return Colors.blue; // Couleur par défaut
+    if (translatedTitle == S.of(context).rents) {
+      return Colors.green;
+    } else if (translatedTitle == S.of(context).tokens) {
+      return Colors.orange;
+    } else if (translatedTitle == S.of(context).properties) {
+      return Colors.blue;
+    } else if (translatedTitle == S.of(context).portfolio) {
+      return Colors.black;
+    } else {
+      return Colors.blue; // Couleur par défaut
+    }
   }
-}
 
 }

@@ -340,10 +340,10 @@ class S {
     );
   }
 
-  /// `Annual Yield`
+  /// `Net Yield`
   String get annualYield {
     return Intl.message(
-      'Annual Yield',
+      'Net Yield',
       name: 'annualYield',
       desc: '',
       args: [],
@@ -1935,6 +1935,116 @@ class S {
     return Intl.message(
       'Period',
       name: 'period',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Miscellaneous Costs`
+  String get miscellaneousCosts {
+    return Intl.message(
+      'Miscellaneous Costs',
+      name: 'miscellaneousCosts',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Renovation Reserve`
+  String get renovationReserve {
+    return Intl.message(
+      'Renovation Reserve',
+      name: 'renovationReserve',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Realt Listing Fee`
+  String get realtListingFee {
+    return Intl.message(
+      'Realt Listing Fee',
+      name: 'realtListingFee',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Total Expenses`
+  String get totalExpenses {
+    return Intl.message(
+      'Total Expenses',
+      name: 'totalExpenses',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Property Maintenance (Monthly)`
+  String get propertyMaintenanceMonthly {
+    return Intl.message(
+      'Property Maintenance (Monthly)',
+      name: 'propertyMaintenanceMonthly',
+      desc: 'Monthly maintenance expenses for the property',
+      args: [],
+    );
+  }
+
+  /// `Property Management`
+  String get propertyManagement {
+    return Intl.message(
+      'Property Management',
+      name: 'propertyManagement',
+      desc: 'Fees for property management services',
+      args: [],
+    );
+  }
+
+  /// `RealT Platform`
+  String get realtPlatform {
+    return Intl.message(
+      'RealT Platform',
+      name: 'realtPlatform',
+      desc: 'Fees for using the RealT platform',
+      args: [],
+    );
+  }
+
+  /// `Insurance`
+  String get insurance {
+    return Intl.message(
+      'Insurance',
+      name: 'insurance',
+      desc: 'Insurance costs for the property',
+      args: [],
+    );
+  }
+
+  /// `Property Taxes`
+  String get propertyTaxes {
+    return Intl.message(
+      'Property Taxes',
+      name: 'propertyTaxes',
+      desc: 'Taxes associated with the property',
+      args: [],
+    );
+  }
+
+  /// `Bedroom/Bath`
+  String get bedroomBath {
+    return Intl.message(
+      'Bedroom/Bath',
+      name: 'bedroomBath',
+      desc: 'Label for bedroom and bath information',
+      args: [],
+    );
+  }
+
+  /// `The net yield is calculated by weighting the yields of the portfolios (wallet/RMM) and the deposit/borrow balances with their respective rates.`
+  String get netApyHelp {
+    return Intl.message(
+      'The net yield is calculated by weighting the yields of the portfolios (wallet/RMM) and the deposit/borrow balances with their respective rates.',
+      name: 'netApyHelp',
       desc: '',
       args: [],
     );

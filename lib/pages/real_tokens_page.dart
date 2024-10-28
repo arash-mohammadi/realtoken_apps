@@ -1,9 +1,11 @@
+import 'package:realtokens_apps/generated/l10n.dart';
 import 'package:realtokens_apps/utils/utils.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart'; // Importer provider
+import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:realtokens_apps/api/data_manager.dart';
-import 'token_bottom_sheet.dart'; // Import du modal bottom sheet
+import 'package:shared_preferences/shared_preferences.dart';
+import 'token_bottom_sheet.dart';
 
 class RealTokensPage extends StatefulWidget {
   const RealTokensPage({super.key});
@@ -21,9 +23,24 @@ class RealTokensPageState extends State<RealTokensPage> {
   @override
   void initState() {
     super.initState();
+    _loadSortPreferences();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<DataManager>(context, listen: false).fetchAndStoreAllTokens();
     });
+  }
+
+  Future<void> _loadSortPreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _sortOption = prefs.getString('sortOption') ?? 'recentlyAdded';
+      _isAscending = prefs.getBool('isAscending') ?? true;
+    });
+  }
+
+  Future<void> _saveSortPreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setString('sortOption', _sortOption);
+    prefs.setBool('isAscending', _isAscending);
   }
 
   // Méthode pour filtrer et trier la liste des tokens
@@ -38,15 +55,19 @@ class RealTokensPageState extends State<RealTokensPage> {
     }).toList();
 
     // Tri des tokens
-    if (_sortOption == 'name') {
+    if (_sortOption == S.of(context).sortByName) {
       filteredTokens.sort((a, b) => _isAscending
           ? a['shortName'].compareTo(b['shortName'])
           : b['shortName'].compareTo(a['shortName']));
-    } else if (_sortOption == 'price') {
+    } else if (_sortOption == S.of(context).sortByValue) {
       filteredTokens.sort((a, b) => _isAscending
-          ? a['tokenPrice'].compareTo(b['tokenPrice'])
-          : b['tokenPrice'].compareTo(a['tokenPrice']));
-    } else if (_sortOption == 'recentlyAdded') {
+          ? a['totalValue'].compareTo(b['totalValue'])
+          : b['totalValue'].compareTo(a['totalValue']));
+    } else if (_sortOption == S.of(context).sortByAPY) {
+      filteredTokens.sort((a, b) => _isAscending
+          ? a['annualPercentageYield'].compareTo(b['annualPercentageYield'])
+          : b['annualPercentageYield'].compareTo(a['annualPercentageYield']));
+    } else if (_sortOption == S.of(context).sortByInitialLaunchDate) {
       filteredTokens.sort((a, b) => _isAscending
           ? a['initialLaunchDate'].compareTo(b['initialLaunchDate'])
           : b['initialLaunchDate'].compareTo(a['initialLaunchDate']));
@@ -110,46 +131,52 @@ class RealTokensPageState extends State<RealTokensPage> {
                     ),
                     const SizedBox(width: 8.0),
                     PopupMenuButton<String>(
-                    icon: const Icon(Icons.sort),
-                    onSelected: (value) {
-                      setState(() {
-                        if (value == 'asc' || value == 'desc') {
-                          _isAscending = value == 'asc';
-                        } else {
-                          _sortOption = value;
-                        }
-                      });
-                    },
-                    itemBuilder: (context) => [
-                      CheckedPopupMenuItem(
-                        value: 'name',
-                        checked: _sortOption == 'name',
-                        child: const Text('Sort by Name'),
-                      ),
-                      CheckedPopupMenuItem(
-                        value: 'price',
-                        checked: _sortOption == 'price',
-                        child: const Text('Sort by Price'),
-                      ),
-                      CheckedPopupMenuItem(
-                        value: 'recentlyAdded',
-                        checked: _sortOption == 'recentlyAdded',
-                        child: const Text('Sort by Recently Added'),
-                      ),
-                      const PopupMenuDivider(),
-                      CheckedPopupMenuItem(
-                        value: 'asc',
-                        checked: _isAscending,
-                        child: const Text('Ascending'),
-                      ),
-                      CheckedPopupMenuItem(
-                        value: 'desc',
-                        checked: !_isAscending,
-                        child: const Text('Descending'),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(width: 8.0),
+                      icon: const Icon(Icons.sort),
+                      onSelected: (value) {
+                        setState(() {
+                          if (value == 'asc' || value == 'desc') {
+                            _isAscending = value == 'asc';
+                          } else {
+                            _sortOption = value;
+                          }
+                          _saveSortPreferences();
+                        });
+                      },
+                      itemBuilder: (context) => [
+                        CheckedPopupMenuItem(
+                          value: S.of(context).sortByName,
+                          checked: _sortOption == S.of(context).sortByName,
+                          child: Text(S.of(context).sortByName),
+                        ),
+                        CheckedPopupMenuItem(
+                          value: S.of(context).sortByValue,
+                          checked: _sortOption == S.of(context).sortByValue,
+                          child: Text(S.of(context).sortByValue),
+                        ),
+                        CheckedPopupMenuItem(
+                          value: S.of(context).sortByAPY,
+                          checked: _sortOption == S.of(context).sortByAPY,
+                          child: Text(S.of(context).sortByAPY),
+                        ),
+                        CheckedPopupMenuItem(
+                          value: S.of(context).sortByInitialLaunchDate,
+                          checked: _sortOption == S.of(context).sortByInitialLaunchDate,
+                          child: Text(S.of(context).sortByInitialLaunchDate),
+                        ),
+                        const PopupMenuDivider(),
+                        CheckedPopupMenuItem(
+                          value: 'asc',
+                          checked: _isAscending,
+                          child: Text(S.of(context).ascending),
+                        ),
+                        CheckedPopupMenuItem(
+                          value: 'desc',
+                          checked: !_isAscending,
+                          child: Text(S.of(context).descending),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(width: 8.0),
                     PopupMenuButton<String>(
                       icon: const Icon(Icons.location_city),
                       onSelected: (String value) {
@@ -199,7 +226,8 @@ class RealTokensPageState extends State<RealTokensPage> {
                                       imageUrl: token['imageLink'][0] ?? '',
                                       width: 150,
                                       fit: BoxFit.cover,
-                                      errorWidget: (context, url, error) => const Icon(Icons.error),
+                                      errorWidget: (context, url, error) =>
+                                          const Icon(Icons.error),
                                     ),
                                   ),
                                   Expanded(
@@ -216,17 +244,13 @@ class RealTokensPageState extends State<RealTokensPage> {
                                       child: Padding(
                                         padding: const EdgeInsets.all(8.0),
                                         child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
+                                          crossAxisAlignment: CrossAxisAlignment.start,
                                           children: [
                                             Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment
-                                                      .spaceBetween,
+                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                               children: [
                                                 Text(
-                                                  token['shortName'] ??
-                                                      'Nom indisponible',
+                                                  token['shortName'] ?? 'Nom indisponible',
                                                   style: const TextStyle(
                                                     fontWeight: FontWeight.bold,
                                                     fontSize: 15,

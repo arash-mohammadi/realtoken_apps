@@ -39,8 +39,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "amount": MessageLookupByLibrary.simpleMessage("Cantidad"),
         "annualPercentageYield":
             MessageLookupByLibrary.simpleMessage("Rendimiento anual"),
-        "annualYield":
-            MessageLookupByLibrary.simpleMessage("Rendimiento anual"),
+        "annualYield": MessageLookupByLibrary.simpleMessage("Rendimiento neto"),
         "annually": MessageLookupByLibrary.simpleMessage("Anual"),
         "appDescription": MessageLookupByLibrary.simpleMessage(
             "Aplicación móvil para la comunidad"),
@@ -53,6 +52,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "author": MessageLookupByLibrary.simpleMessage("Autor"),
         "averageApy":
             MessageLookupByLibrary.simpleMessage("APY promedio global"),
+        "bedroomBath": MessageLookupByLibrary.simpleMessage("Dormitorio/Baño"),
         "blockchain": MessageLookupByLibrary.simpleMessage("Blockchain"),
         "borrowBalance": MessageLookupByLibrary.simpleMessage("Préstamos"),
         "cancel": MessageLookupByLibrary.simpleMessage("Cancelar"),
@@ -128,6 +128,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "initialMaintenanceReserve": MessageLookupByLibrary.simpleMessage(
             "Reserva de mantenimiento inicial"),
         "insights": MessageLookupByLibrary.simpleMessage("Información"),
+        "insurance": MessageLookupByLibrary.simpleMessage("Seguro"),
         "italian": MessageLookupByLibrary.simpleMessage("Italiano"),
         "language": MessageLookupByLibrary.simpleMessage("Idioma"),
         "languageUpdated": m0,
@@ -143,6 +144,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Gestionar monederos"),
         "maps": MessageLookupByLibrary.simpleMessage("Mapas"),
         "mfrPortfolio": MessageLookupByLibrary.simpleMessage("Cartera MFR"),
+        "miscellaneousCosts":
+            MessageLookupByLibrary.simpleMessage("Gastos Diversos"),
         "mixedUse": MessageLookupByLibrary.simpleMessage("Uso mixto"),
         "month": MessageLookupByLibrary.simpleMessage("Mes"),
         "monthly": MessageLookupByLibrary.simpleMessage("Mensual"),
@@ -151,6 +154,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Nombre no disponible"),
         "netAnnualRent":
             MessageLookupByLibrary.simpleMessage("Alquiler neto anual"),
+        "netApyHelp": MessageLookupByLibrary.simpleMessage(
+            "El rendimiento neto se calcula ponderando los rendimientos de las carteras (billetera/RMM) y los saldos de depósitos/préstamos con sus tasas respectivas."),
         "netRentMonth":
             MessageLookupByLibrary.simpleMessage("Alquiler neto por mes"),
         "network": MessageLookupByLibrary.simpleMessage("Red"),
@@ -187,17 +192,29 @@ class MessageLookup extends MessageLookupByLibrary {
         "priceEvolutionPercentage":
             MessageLookupByLibrary.simpleMessage("Evolución del precio:"),
         "properties": MessageLookupByLibrary.simpleMessage("Propiedades"),
+        "propertyMaintenanceMonthly": MessageLookupByLibrary.simpleMessage(
+            "Mantenimiento de la propiedad (mensual)"),
+        "propertyManagement":
+            MessageLookupByLibrary.simpleMessage("Gestión de la propiedad"),
         "propertyStories":
             MessageLookupByLibrary.simpleMessage("Número de pisos"),
+        "propertyTaxes": MessageLookupByLibrary.simpleMessage(
+            "Impuestos sobre la propiedad"),
         "realTPerformance":
             MessageLookupByLibrary.simpleMessage("Rendimiento de RealT"),
         "realTTitle": MessageLookupByLibrary.simpleMessage("RealT"),
         "realTokensList":
             MessageLookupByLibrary.simpleMessage("Lista de RealTokens"),
+        "realtListingFee":
+            MessageLookupByLibrary.simpleMessage("Tarifa de Listado Realt"),
+        "realtPlatform":
+            MessageLookupByLibrary.simpleMessage("Plataforma RealT"),
         "recentChanges":
             MessageLookupByLibrary.simpleMessage("Cambios recientes"),
         "recentUpdatesTitle":
             MessageLookupByLibrary.simpleMessage("Últimos 30 días"),
+        "renovationReserve":
+            MessageLookupByLibrary.simpleMessage("Reserva de Renovación"),
         "rentGraph": MessageLookupByLibrary.simpleMessage(
             "Gráfico de alquileres recibidos"),
         "rentStartDate":
@@ -271,6 +288,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "tokenSymbol":
             MessageLookupByLibrary.simpleMessage("Símbolo del token"),
         "tokens": MessageLookupByLibrary.simpleMessage("Tokens"),
+        "totalExpenses": MessageLookupByLibrary.simpleMessage("Gastos Totales"),
         "totalInvestment":
             MessageLookupByLibrary.simpleMessage("Inversión total"),
         "totalPortfolio":

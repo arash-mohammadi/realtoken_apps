@@ -8,6 +8,7 @@ import 'package:realtokens_apps/api/data_manager.dart';
 import 'package:realtokens_apps/api/api_service.dart';
 import 'package:realtokens_apps/app_state.dart'; // Import pour accéder à AppState
 
+
 class ManageEvmAddressesPage extends StatefulWidget {
   const ManageEvmAddressesPage({super.key});
 

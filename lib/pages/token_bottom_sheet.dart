@@ -15,8 +15,7 @@ import 'package:realtokens_apps/app_state.dart';
 
 // Fonction modifiée pour formater la monnaie avec le taux de conversion et le symbole
 String formatCurrency(BuildContext context, double value) {
-  final dataManager =
-      Provider.of<DataManager>(context, listen: false); // Récupérer DataManager
+  final dataManager = Provider.of<DataManager>(context, listen: false); // Récupérer DataManager
   final NumberFormat formatter = NumberFormat.currency(
     locale: 'fr_FR', // Vous pouvez adapter la locale selon vos besoins
     symbol: dataManager.currencySymbol, // Utilise le symbole de la devise
@@ -128,6 +127,21 @@ Future<void> showTokenDetails( BuildContext context, Map<String, dynamic> token)
   final prefs = await SharedPreferences.getInstance();
   bool convertToSquareMeters = prefs.getBool('convertToSquareMeters') ?? false;
   final appState = Provider.of<AppState>(context, listen: false);
+final ValueNotifier<bool> _showDetailsNotifier = ValueNotifier<bool>(false);
+final ValueNotifier<bool> _showRentDetailsNotifier = ValueNotifier<bool>(false);
+
+// Calculate the total for the selected fields
+double totalCosts = (token['realtListingFee']?.toDouble() ?? 0.0) +
+                    (token['initialMaintenanceReserve']?.toDouble() ?? 0.0) +
+                    (token['renovationReserve']?.toDouble() ?? 0.0) +
+                    (token['miscellaneousCosts']?.toDouble() ?? 0.0);
+
+double totalRentCosts = (token['propertyMaintenanceMonthly']?.toDouble() ?? 0.0) +
+                        (token['propertyManagement']?.toDouble() ?? 0.0) +
+                        (token['realtPlatform']?.toDouble() ?? 0.0) +
+                        (token['insurance']?.toDouble() ?? 0.0) +
+                        (token['propertyTaxes']?.toDouble() ?? 0.0);
+
 
   showModalBottomSheet(
     backgroundColor: Theme.of(context).cardColor,
@@ -227,6 +241,7 @@ Future<void> showTokenDetails( BuildContext context, Map<String, dynamic> token)
                   height: MediaQuery.of(context).size.height * 0.35,
                   child: TabBarView(
                     children: [
+
                       // Onglet Propriétés
                       SingleChildScrollView(
                         child: Column(
@@ -278,6 +293,10 @@ Future<void> showTokenDetails( BuildContext context, Map<String, dynamic> token)
                                 token['totalUnits']?.toString() ??
                                     S.of(context).notSpecified),
                             _buildDetailRow(context,
+                                S.of(context).bedroomBath,
+                                token['bedroomBath']?.toString() ??
+                                    S.of(context).notSpecified),
+                            _buildDetailRow(context,
                               S.of(context).lotSize,
                               _formatSquareFeet(
                                 token['lotSize']?.toDouble() ?? 0,
@@ -312,33 +331,198 @@ Future<void> showTokenDetails( BuildContext context, Map<String, dynamic> token)
                       SingleChildScrollView(
                         child: Column(
                           children: [
-                            _buildDetailRow(context,
+                             _buildDetailRow(context,
                                 S.of(context).totalInvestment,
                                 formatCurrency(context, token['totalInvestment'] ?? 0)),
+
+                            // Total row with tap to show/hide details
+                           GestureDetector(
+                                onTap: () => _showDetailsNotifier.value = !_showDetailsNotifier.value,
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Text(
+                                          S.of(context).totalExpenses, // Label pour le texte
+                                          style: TextStyle( fontSize: 13 + appState.getTextSizeOffset(), fontWeight: FontWeight.bold), // Optional styling
+                                        ),
+                                        ValueListenableBuilder<bool>(
+                                          valueListenable: _showDetailsNotifier,
+                                          builder: (context, showDetails, child) {
+                                            return Icon(
+                                              showDetails ? Icons.expand_less : Icons.expand_more,
+                                              color: Colors.grey, // Optionnel : couleur de l'icône
+                                            );
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                    Text(
+                                      '- ${formatCurrency(context, token['totalInvestment'] - token['underlyingAssetPrice'])}', // Affichage du montant total
+                                      style: TextStyle(color: Colors.red),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              // Details rows wrapped in ValueListenableBuilder
+                            ValueListenableBuilder<bool>(
+                              valueListenable: _showDetailsNotifier,
+                              builder: (context, showDetails, child) {
+                                return Visibility(
+                                  visible: showDetails,
+                                  child: Column(
+                                    children: [
+                                      _buildDetailRow(
+                                        context,
+                                        ' - ${S.of(context).realtListingFee}',
+                                        formatCurrency(context, token['realtListingFee'] ?? 0),
+                                        isNegative: true,
+                                      ),
+                                      _buildDetailRow(
+                                        context,
+                                        ' - ${S.of(context).initialMaintenanceReserve}',
+                                        formatCurrency(context, token['initialMaintenanceReserve'] ?? 0),
+                                        isNegative: true,
+                                      ),
+                                      _buildDetailRow(
+                                        context,
+                                        ' - ${S.of(context).renovationReserve}',
+                                        formatCurrency(context, token['renovationReserve'] ?? 0),
+                                        isNegative: true,
+                                      ),
+                                      _buildDetailRow(
+                                        context,
+                                        ' - ${S.of(context).miscellaneousCosts}',
+                                        formatCurrency(context, token['miscellaneousCosts'] ?? 0),
+                                        isNegative: true,
+                                      ),
+                                       _buildDetailRow(
+                                        context,
+                                        ' - ${S.of(context).others}',
+                                        formatCurrency(context, token['totalInvestment'] - token['underlyingAssetPrice'] - totalCosts ?? 0),
+                                        isNegative: true,
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            ),
+
                             _buildDetailRow(context,
                                 S.of(context).underlyingAssetPrice,
                                 formatCurrency(context,token['underlyingAssetPrice'] ?? 0)),
-                            _buildDetailRow(context,
-                                S.of(context).initialMaintenanceReserve,
-                                formatCurrency(context,token['initialMaintenanceReserve'] ?? 0)),
-                            _buildDetailRow(context,
+
+                            Divider(),
+
+
+                            _buildDetailRow(
+                                context,
                                 S.of(context).grossRentMonth,
                                 formatCurrency(context, token['grossRentMonth'] ?? 0)),
-                            _buildDetailRow(context,
+                                                        // Total row with tap to show/hide details
+                           GestureDetector(
+                                onTap: () => _showRentDetailsNotifier.value = !_showRentDetailsNotifier.value,
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Text(
+                                          S.of(context).totalExpenses, // Label pour le texte
+                                          style: TextStyle( fontSize: 13 + appState.getTextSizeOffset(), fontWeight: FontWeight.bold), // Optional styling
+                                        ),
+                                        ValueListenableBuilder<bool>(
+                                          valueListenable: _showRentDetailsNotifier,
+                                          builder: (context, showDetails, child) {
+                                            return Icon(
+                                              showDetails ? Icons.expand_less : Icons.expand_more,
+                                              color: Colors.grey, // Optionnel : couleur de l'icône
+                                            );
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                    Text(
+                                      '- ${formatCurrency(context, token['grossRentMonth'] - token['netRentMonth'] )}', // Affichage du montant total
+                                      style: TextStyle(color: Colors.red),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              // Details rows wrapped in ValueListenableBuilder
+                            ValueListenableBuilder<bool>(
+                              valueListenable: _showRentDetailsNotifier,
+                              builder: (context, showDetails, child) {
+                                return Visibility(
+                                  visible: showDetails,
+                                  child: Column(
+                                    children: [
+                                      _buildDetailRow(
+                                        context,
+                                        ' - ${S.of(context).propertyMaintenanceMonthly}',
+                                        formatCurrency(context, token['propertyMaintenanceMonthly'] ?? 0),
+                                        isNegative: true,
+                                      ),
+                                      _buildDetailRow(
+                                        context,
+                                        ' - ${S.of(context).propertyManagement}',
+                                        formatCurrency(context, token['propertyManagement'] ?? 0),
+                                        isNegative: true,
+                                      ),
+                                      _buildDetailRow(
+                                        context,
+                                        ' - ${S.of(context).realtPlatform}',
+                                        formatCurrency(context, token['realtPlatform'] ?? 0),
+                                        isNegative: true,
+                                      ),
+                                      _buildDetailRow(
+                                        context,
+                                        ' - ${S.of(context).insurance}',
+                                        formatCurrency(context, token['insurance'] ?? 0),
+                                        isNegative: true,
+                                      ),
+                                      _buildDetailRow(
+                                        context,
+                                        ' - ${S.of(context).propertyTaxes}',
+                                        formatCurrency(context, token['propertyTaxes'] ?? 0),
+                                        isNegative: true,
+                                      ),
+                                      _buildDetailRow(
+                                        context,
+                                        ' - ${S.of(context).others}',
+                                        formatCurrency(context, token['grossRentMonth'] - token['netRentMonth'] - totalRentCosts ?? 0),
+                                        isNegative: true,
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            ),
+
+                            _buildDetailRow(
+                                context,
                                 S.of(context).netRentMonth,
                                 formatCurrency(context, token['netRentMonth'] ?? 0)),
-                            _buildDetailRow(context,
-                                S.of(context).annualPercentageYield,'${token['annualPercentageYield']?.toStringAsFixed(2) ?? S.of(context).notSpecified} %'),
-                            _buildDetailRow(context,
+
+                            Divider(),
+
+                            _buildDetailRow(
+                                context,
+                                S.of(context).annualPercentageYield,
+                                '${token['annualPercentageYield']?.toStringAsFixed(2) ?? S.of(context).notSpecified} %'),
+                            _buildDetailRow(
+                                context,
                                 S.of(context).totalRentReceived,
                                 formatCurrency(context, token['totalRentReceived'] ?? 0)),
-                            _buildDetailRow(context,
+                            _buildDetailRow(
+                                context,
                                 S.of(context).roiPerProperties,
                                 "${(token['totalRentReceived'] / token['totalValue'] * 100 ).toStringAsFixed(2)} %"),
                           ],
                         ),
                       ),
-
+                      
                       // Onglet Autres avec section Blockchain uniquement
                       SingleChildScrollView(
                         child: Column(
@@ -436,64 +620,64 @@ Future<void> showTokenDetails( BuildContext context, Map<String, dynamic> token)
 
                       // Onglet Insights
                      SingleChildScrollView(
-  child: Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      // Graphique du rendement (Yield)
-      Text(
-        S.of(context).yieldEvolution, // Utilisation de la traduction
-        style: TextStyle(
-          fontWeight: FontWeight.bold,
-          fontSize: 15 + appState.getTextSizeOffset(), // Réduction de la taille du texte pour Android
-        ),
-      ),
-      const SizedBox(height: 10),
-      _buildYieldChartOrMessage(
-          context,
-          token['historic']?['yields'] ?? [],
-          token['historic']?['init_yield']),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Graphique du rendement (Yield)
+                          Text(
+                            S.of(context).yieldEvolution, // Utilisation de la traduction
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15 + appState.getTextSizeOffset(), // Réduction de la taille du texte pour Android
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          _buildYieldChartOrMessage(
+                              context,
+                              token['historic']?['yields'] ?? [],
+                              token['historic']?['init_yield']),
 
-      const SizedBox(height: 20),
+                          const SizedBox(height: 20),
 
-      // Jauge verticale du ROI de la propriété
-      Row(
-  children: [
-    Text(
-      S.of(context).roiPerProperties, // Titre de la jauge
-      style: TextStyle(
-        fontWeight: FontWeight.bold,
-        fontSize: 15 + appState.getTextSizeOffset(),
-      ),
-    ),
-    const SizedBox(width: 8), // Espace entre le texte et l'icône
-    GestureDetector(
-      onTap: () {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: Text(S.of(context).roiPerProperties), // Titre du popup
-              content: Text(S.of(context).roiAlertInfo), // Texte du popup
-              actions: <Widget>[
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop(); // Fermer le popup
-                  },
-                  child: Text('OK'),
-                ),
-              ],
-            );
-          },
-        );
-      },
-      child: Icon(
-        Icons.help_outline, // Icône "?"
-        color: Colors.grey,
-        size: 20 + appState.getTextSizeOffset(), // Ajustez la taille en fonction du texte
-      ),
-    ),
-  ],
-),
+                          // Jauge verticale du ROI de la propriété
+                          Row(
+                      children: [
+                        Text(
+                          S.of(context).roiPerProperties, // Titre de la jauge
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15 + appState.getTextSizeOffset(),
+                          ),
+                        ),
+                        const SizedBox(width: 8), // Espace entre le texte et l'icône
+                        GestureDetector(
+                          onTap: () {
+                            showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                  title: Text(S.of(context).roiPerProperties), // Titre du popup
+                                  content: Text(S.of(context).roiAlertInfo), // Texte du popup
+                                  actions: <Widget>[
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.of(context).pop(); // Fermer le popup
+                                      },
+                                      child: Text('OK'),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                          },
+                          child: Icon(
+                            Icons.help_outline, // Icône "?"
+                            color: Colors.grey,
+                            size: 20 + appState.getTextSizeOffset(), // Ajustez la taille en fonction du texte
+                          ),
+                        ),
+                      ],
+                    ),
 
       const SizedBox(height: 10),
       _buildGaugeForROI(
@@ -633,8 +817,16 @@ Widget _buildGaugeForROI(double roiValue, BuildContext context) {
 }
 
 // Méthode pour construire les lignes de détails
-Widget _buildDetailRow(BuildContext context, String label, String value) {
-    final appState = Provider.of<AppState>(context, listen: false);
+Widget _buildDetailRow(BuildContext context, String label, String value, {bool isNegative = false}) {
+  final appState = Provider.of<AppState>(context, listen: false);
+
+  // Ajout du signe "-" et de la couleur rouge si isNegative est true
+  final displayValue = isNegative ? '-$value' : value;
+  final valueStyle = TextStyle(
+    fontSize: 13 + appState.getTextSizeOffset(),
+    color: isNegative ? Colors.red : Theme.of(context).textTheme.bodyMedium?.color, // couleur rouge si isNegative
+  );
+
   return Padding(
     padding: const EdgeInsets.symmetric(vertical: 4.0),
     child: Row(
@@ -644,9 +836,7 @@ Widget _buildDetailRow(BuildContext context, String label, String value) {
             style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 13 + appState.getTextSizeOffset())), // Réduction pour Android
-        Text(value,
-            style: TextStyle(
-                fontSize: 13 + appState.getTextSizeOffset())), // Réduction pour Android
+        Text(displayValue, style: valueStyle), // Texte avec style conditionnel
       ],
     ),
   );

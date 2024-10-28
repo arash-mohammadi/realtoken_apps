@@ -8,12 +8,11 @@ class UpdatesPage extends StatefulWidget {
   const UpdatesPage({super.key});
 
   @override
-   createState() => UpdatesPageState();
+  _UpdatesPageState createState() => _UpdatesPageState();
 }
 
-class UpdatesPageState extends State<UpdatesPage> {
+class _UpdatesPageState extends State<UpdatesPage> {
   bool showUserTokensOnly = false; // Ajout du booléen pour le switch
-  Map<String, Map<String, List<Map<String, dynamic>>>> groupedUpdates = {};
 
   @override
   void initState() {
@@ -50,6 +49,7 @@ class UpdatesPageState extends State<UpdatesPage> {
         : dataManager.recentUpdates;
 
     // Regrouper les mises à jour par date puis par token
+    Map<String, Map<String, List<Map<String, dynamic>>>> groupedUpdates = {};
     for (var update in recentUpdatesToShow) {
       final String dateKey = DateTime.parse(update['timsync'])
           .toLocal()
@@ -72,44 +72,40 @@ class UpdatesPageState extends State<UpdatesPage> {
     }
 
     return Scaffold(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        title: Text(S.of(context).recentUpdatesTitle), // Utilisation des traductions
+        title: Text(S.of(context).recentUpdatesTitle), // Garde le titre dans l'AppBar fixe
       ),
       body: NestedScrollView(
         headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
           return <Widget>[
             SliverAppBar(
-              backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-              floating: true, // Rend l'AppBar rétractable
-              snap: true, // Permet de faire réapparaître l'AppBar automatiquement
-              expandedHeight: kToolbarHeight, // Hauteur étendue si besoin
               automaticallyImplyLeading: false,
+              floating: true,
+              snap: true,
+              toolbarHeight: 56.0,
+              titleSpacing: 0.0,
               flexibleSpace: FlexibleSpaceBar(
                 background: Container(
+                  alignment: Alignment.centerLeft,
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   color: Theme.of(context).cardColor,
-                  child: Padding(
-                    padding: const EdgeInsets.all(2.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(S.of(context).portfolio),
-                        Transform.scale(
-                          scale: 0.8, // Appliquer le scale
-                          child: Switch(
-                            value: showUserTokensOnly,
-                            onChanged: (value) {
-                              setState(() {
-                                showUserTokensOnly = value;
-                              });
-                            },
-                            activeColor: Colors.blue, // Couleur du bouton actif
-                            activeTrackColor: Colors.blue[200], // Couleur de la piste active
-                          ),
+                  child: Row(
+                    children: [
+                      Text(S.of(context).portfolio),
+                      Transform.scale(
+                        scale: 0.7,
+                        child: Switch(
+                          value: showUserTokensOnly,
+                          onChanged: (value) {
+                            setState(() {
+                              showUserTokensOnly = value;
+                            });
+                          },
+                          activeColor: Colors.blue,
+                          activeTrackColor: Colors.blue[200],
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
               ),

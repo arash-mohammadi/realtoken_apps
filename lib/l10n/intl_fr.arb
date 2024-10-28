@@ -29,14 +29,14 @@
   "tokens": "Jetons",
   "totalTokens": "Jetons totaux",
   "rents": "Loyers",
-  "annualYield": "Rendement annuel",
+  "annualYield": "Rendement net",
   "daily": "Quotidien",
   "weekly": "Hebdomadaire",
   "monthly": "Mensuel",
   "annually": "Annuel",
   "noRentReceived": "Aucun loyer reçu",
   "finances": "Finances",
-  "othersTitle":"'Détails de la section Autres'",
+  "othersTitle":"Détails de la section Autres",
   "others": "Autres",
   "insights": "Aperçus",
   "characteristics": "Caractéristiques",
@@ -74,7 +74,7 @@
   "other": "Autre",
   "totalValue": "Valeur totale",
   "amount": "Montant",
-  "apy": "Rendement annuel",
+  "apy": "Rendement net",
   "averageApy": "APY moyen global",
   "revenue": "Revenu",
   "day": "Jour",
@@ -168,15 +168,13 @@
   "realTTitle": "RealT",
   "netAnnualRent": "Loyer net annuel",
   "realTPerformance": "Performance de RealT",
-  "annualYield": "Rendement annuel",
   "textSize": "Taille du texte",
   "convertSqft": "Convertir les sqft en m²",
   "rentStartFuture": "Loyer non démarré",
   "confirmAction": "Confirmer l'action",
-  "areYouSureClearData": "Êtes-vous sûr de vouloir effacer le cache et les données ?",
+  "areYouSureClearData": "Êtes-vous sûr de vouloir effacer le cache et les données ?",
   "cancel": "Annuler",
   "confirm": "Confirmer",
-  "clearCacheData": "Effacer le cache et les données",
   "exportData": "Exporter les données",
   "importData": "Importer les données",
   "exportSuccess": "Données exportées avec succès",
@@ -190,5 +188,35 @@
   "hours": "Heures",
   "days": "Jours",
   "weeks": "Semaines",
-  "period": "Période"
+  "period": "Période",
+  "miscellaneousCosts": "Frais Divers",
+  "renovationReserve": "Réserve pour Rénovation",
+  "realtListingFee": "Frais d'Inscription Realt",
+  "totalExpenses": "Total des dépenses",
+  "propertyMaintenanceMonthly": "Entretien de la propriété (mensuel)",
+  "propertyManagement": "Gestion de la propriété",
+  "realtPlatform": "Plateforme RealT",
+  "insurance": "Assurance",
+  "propertyTaxes": "Taxes foncières",
+  
+  "@propertyMaintenanceMonthly": {
+    "description": "Dépenses mensuelles d'entretien de la propriété"
+  },
+  "@propertyManagement": {
+    "description": "Frais de gestion de la propriété"
+  },
+  "@realtPlatform": {
+    "description": "Frais d'utilisation de la plateforme RealT"
+  },
+  "@insurance": {
+    "description": "Coûts d'assurance pour la propriété"
+  },
+  "@propertyTaxes": {
+    "description": "Taxes associées à la propriété"
+  },
+  "bedroomBath": "Chambre/Salle de bain",
+  "@bedroomBath": {
+    "description": "Libellé pour les informations de chambre et salle de bain"
+  },
+  "netApyHelp":"Le rendement net est calculé en ponderant le rendement des portfeuilles (wallet/RMM) et les balances de déposits/borrows avec leurs taux respectifs."
 }

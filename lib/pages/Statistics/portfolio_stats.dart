@@ -1,3 +1,4 @@
+import 'package:realtokens_apps/pages/Statistics/Modal_others_pie.dart';
 import 'package:realtokens_apps/utils/parameters.dart';
 import 'package:realtokens_apps/utils/utils.dart';
 import 'package:flutter/material.dart';
@@ -584,7 +585,7 @@ return Scaffold(
 
                       if (event is FlTapUpEvent) {  // Gérer uniquement les événements de tap final
                         if (section!.title.contains(S.of(context).others)) {
-                          _showOtherDetailsModal(dataManager, othersDetails, 'region'); // Passer les détails de "Autres"
+                          showOtherDetailsModal(context, dataManager, othersDetails, 'region'); // Passer les détails de "Autres"
                         }
                       }
                     }
@@ -638,7 +639,7 @@ return Scaffold(
 
                         if (event is FlTapUpEvent) {  // Gérer uniquement les événements de tap final
                           if (section!.title.contains(S.of(context).others)) {
-                            _showOtherDetailsModal(dataManager, othersDetails, 'city'); // Passer les détails de "Autres"
+                            showOtherDetailsModal(context, dataManager, othersDetails, 'city'); // Passer les détails de "Autres"
                           }
                         }
                       }
@@ -822,7 +823,7 @@ return Scaffold(
 
     // Créer une map pour les couleurs, basée sur les mêmes couleurs que le donut
     Map<String, Color> regionColors = {};
-    final List<Color> colorPalette = Colors.accents; // Choisir une palette de couleurs
+    final List<Color> colorPalette = Colors.primaries; // Choisir une palette de couleurs
     for (int i = 0; i < sortedEntries.length; i++) {
       regionColors[sortedEntries[i].key] = colorPalette[i % colorPalette.length];
     }
@@ -1063,7 +1064,7 @@ return Scaffold(
 
     // Créer une map pour les couleurs
     Map<String, Color> regionColors = {};
-    final List<Color> colorPalette = Colors.accents; // Choisir une palette de couleurs
+    final List<Color> colorPalette = Colors.primaries; // Choisir une palette de couleurs
     for (int i = 0; i < sortedEntries.length; i++) {
       regionColors[sortedEntries[i].key] = colorPalette[i % colorPalette.length];
     }
@@ -1189,107 +1190,6 @@ return Scaffold(
     }
 
     return sections;
-  }
-
-  void _showOtherDetailsModal(DataManager dataManager, List<Map<String, dynamic>> othersDetails, String key) {
-    showModalBottomSheet(
-      context: context,
-      builder: (BuildContext context) {
-        return Container(
-          height: 500,
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            children: [
-              Text(
-                S.of(context).othersTitle,
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 20),
-              SizedBox(
-                height: 200,
-                child: PieChart(
-                  PieChartData(
-                    sections: _buildOtherDetailsDonutData(othersDetails, key),
-                    centerSpaceRadius: 50,
-                    sectionsSpace: 2,
-                    borderData: FlBorderData(show: false),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              // Ajout de la légende en dessous du donut
-              _buildLegendForModal(othersDetails, key),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  List<PieChartSectionData> _buildOtherDetailsDonutData(List<Map<String, dynamic>> othersDetails, String key) {
-    final List<Color> sectionColors = Colors.primaries; // Utilisez une palette de couleurs
-
-    // Utiliser un Set pour éviter les doublons
-    final Set<String> uniqueEntries = {};
-    
-    return othersDetails.asMap().entries.map((entry) {
-      final int index = entry.key;
-      final String entryName = entry.value[key] ?? 'Unknown';
-
-      // Ajouter uniquement les entrées uniques
-      if (uniqueEntries.add(entryName)) {
-        final double percentage = (entry.value['count'] / othersDetails.fold<double>(0.0, (sum, e) => sum + e['count'])) * 100;
-
-        return PieChartSectionData(
-          value: entry.value['count'].toDouble(),
-          title: '${percentage.toStringAsFixed(1)}%', // Afficher uniquement le pourcentage
-          color: sectionColors[index % sectionColors.length], // Couleurs uniques pour chaque section
-          radius: 50,
-          titleStyle: const TextStyle(
-            fontSize: 10,
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-          ),
-        );
-      } else {
-        return null;  // Ignorer les doublons
-      }
-    }).where((section) => section != null).toList().cast<PieChartSectionData>();
-  }
-
-  Widget _buildLegendForModal(List<Map<String, dynamic>> othersDetails, String key) {
-    final List<Color> sectionColors = Colors.primaries; // Utiliser une palette de couleurs
-    final Set<String> uniqueEntries = {}; // Utiliser un Set pour éviter les doublons
-
-    return Wrap(
-      spacing: 8.0,
-      runSpacing: 4.0,
-      children: othersDetails.asMap().entries.map((entry) {
-        final int index = entry.key;
-        final String name = entry.value[key] ?? 'Unknown';
-
-        // Ajouter uniquement les entrées uniques
-        if (uniqueEntries.add(name)) {
-          return Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 16,
-                height: 16,
-                color: sectionColors[index % sectionColors.length], // Couleur identique au donut
-              ),
-              const SizedBox(width: 4),
-              Text(
-                name,
-                style: const TextStyle(fontSize: 12),
-              ),
-            ],
-          );
-        } else {
-          return Container(); // Ignorer les doublons
-        }
-      }).toList(),
-    );
   }
 
   Color _getPropertyColor(int propertyType) {
