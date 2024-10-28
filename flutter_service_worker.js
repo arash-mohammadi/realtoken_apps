@@ -4,7 +4,7 @@ const TEMP = 'flutter-temp-cache';
 const CACHE_NAME = 'flutter-app-cache';
 
 const RESOURCES = {"flutter.js": "f393d3c16b631f36852323de8e583132",
-"main.dart.js": "bd16a78b2616d3367acb38fd1f08167a",
+"main.dart.js": "3dfa80b37598090839e560c294fbb885",
 "splash/img/light-3x.png": "8ed442050222137de57bbf773061bcf9",
 "splash/img/light-1x.png": "aaf07518960b8e9109050fd1bc2d0c71",
 "splash/img/light-2x.png": "e9dda3f2a82741f0351930be5a1c258c",
@@ -15,7 +15,7 @@ const RESOURCES = {"flutter.js": "f393d3c16b631f36852323de8e583132",
 "splash/img/dark-2x.png": "e9dda3f2a82741f0351930be5a1c258c",
 "assets/FontManifest.json": "dc3d03800ccca4601324923c0b1d6d57",
 "assets/AssetManifest.bin": "70e7862b6d3022fdca362cfeef6c7f46",
-"assets/fonts/MaterialIcons-Regular.otf": "09e4fbc9684918e078c00a1d971c026d",
+"assets/fonts/MaterialIcons-Regular.otf": "d32979f12f790a646dfac6bd5c239845",
 "assets/packages/cupertino_icons/assets/CupertinoIcons.ttf": "e986ebe42ef785b27164c36a9abc7818",
 "assets/packages/flutter_map/lib/assets/flutter_map_logo.png": "208d63cc917af9713fc9572bd5c09362",
 "assets/assets/RealT_Logo.png": "3ae1de374ab525a406da82e9c43e569d",
@@ -44,8 +44,8 @@ const RESOURCES = {"flutter.js": "f393d3c16b631f36852323de8e583132",
 "icons/Icon-512.png": "d34268d94ec05d81288a75264791e95c",
 "icons/Icon-maskable-512.png": "d34268d94ec05d81288a75264791e95c",
 "favicon.png": "acd5d190724a191b1961ca494ca3214f",
-"version.json": "c27a731793cc588474575a32604f40be",
-"flutter_bootstrap.js": "681da4e581e8337150acf98265e6a2ee"};
+"version.json": "1567153bec82b14ac76f161ff929c33d",
+"flutter_bootstrap.js": "3b504e6335a66d8cd6d421e9483215a8"};
 // The application shell files that are downloaded before a service worker can
 // start.
 const CORE = ["main.dart.js",
