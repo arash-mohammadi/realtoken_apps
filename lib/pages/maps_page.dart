@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
 import 'package:realtokens_apps/app_state.dart';
 import 'package:realtokens_apps/pages/token_bottom_sheet.dart';
@@ -183,7 +184,7 @@ class MapsPageState extends State<MapsPage> {
                 initialZoom: 8.0,
                 onTap: (_, __) => _popupController.hideAllPopups(),
                 interactionOptions: const InteractionOptions(
-                    flags: InteractiveFlag.pinchZoom | InteractiveFlag.drag),
+                    flags: InteractiveFlag.pinchZoom | InteractiveFlag.drag | InteractiveFlag.scrollWheelZoom),
               ),
               children: [
                 TileLayer(
@@ -194,9 +195,10 @@ class MapsPageState extends State<MapsPage> {
                           ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
                           : 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                   subdomains: ['a', 'b', 'c'],
-                  tileProvider: FMTCStore('mapStore')
-                      .getTileProvider(), // Utilise le store 'mapStore'
-                  userAgentPackageName: 'com.byackee.app',
+              tileProvider: kIsWeb 
+                    ? NetworkTileProvider() // Utilisé uniquement pour le web
+                    : FMTCStore('mapStore').getTileProvider(), // Utilisé pour iOS, Android, etc.
+                   userAgentPackageName: 'com.byackee.app',
                   retinaMode: true,
                 ),
                 MarkerClusterLayerWidget(

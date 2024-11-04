@@ -1,7 +1,8 @@
-import 'package:realtokens_apps/structure/home_page.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
+import 'package:realtokens_apps/structure/home_page.dart';
 import 'api/data_manager.dart';
 import 'settings/theme.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -19,19 +20,23 @@ void main() async {
   await Future.wait([
     Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform),
     Hive.initFlutter(),
-    FMTCObjectBoxBackend().initialise(),
   ]);
+
+  // Conditionner le chargement de FMTC uniquement si l'application n'est pas exécutée sur le Web
+  if (!kIsWeb) {
+    await FMTCObjectBoxBackend().initialise();
+    await FMTCStore('mapStore').manage.create();
+  }
 
   await Future.wait([
     Hive.openBox('realTokens'),
     Hive.openBox('balanceHistory'),
     Hive.openBox('walletValueArchive'),
-    FMTCStore('mapStore').manage.create(),
   ]);
 
   // Initialisation de SharedPreferences et DataManager
   final dataManager = DataManager();
-// Charger les premières opérations en parallèle
+  // Charger les premières opérations en parallèle
   await Future.wait([
     dataManager.updateGlobalVariables(),
     dataManager.loadSelectedCurrency(),
@@ -39,7 +44,7 @@ void main() async {
   ]);
   FlutterNativeSplash.remove(); // Supprimer le splash screen natif après l'initialisation
 
-// Ensuite, exécuter fetchAndCalculateData une fois que les précédentes sont terminées
+  // Ensuite, exécuter fetchAndCalculateData une fois que les précédentes sont terminées
   await dataManager.fetchAndCalculateData();
   runApp(
     MultiProvider(
