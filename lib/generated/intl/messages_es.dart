@@ -52,6 +52,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "author": MessageLookupByLibrary.simpleMessage("Autor"),
         "averageApy":
             MessageLookupByLibrary.simpleMessage("APY promedio global"),
+        "balance": MessageLookupByLibrary.simpleMessage("Saldo"),
         "bedroomBath": MessageLookupByLibrary.simpleMessage("Dormitorio/Baño"),
         "blockchain": MessageLookupByLibrary.simpleMessage("Blockchain"),
         "borrowBalance": MessageLookupByLibrary.simpleMessage("Préstamos"),
@@ -96,6 +97,9 @@ class MessageLookup extends MessageLookupByLibrary {
             "Propiedades presentes en varias carteras/RMM"),
         "duplicate_title":
             MessageLookupByLibrary.simpleMessage("Propiedades duplicadas"),
+        "edit": MessageLookupByLibrary.simpleMessage("Editar"),
+        "editWalletBalance":
+            MessageLookupByLibrary.simpleMessage("Editar Historial del Wallet"),
         "english": MessageLookupByLibrary.simpleMessage("English"),
         "ethereumContract":
             MessageLookupByLibrary.simpleMessage("Contrato de Ethereum"),
@@ -243,6 +247,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "roiPerProperties":
             MessageLookupByLibrary.simpleMessage("ROI de la propiedad"),
         "rwaHoldings": MessageLookupByLibrary.simpleMessage("RWA Holdings SA"),
+        "save": MessageLookupByLibrary.simpleMessage("Guardar"),
         "searchHint": MessageLookupByLibrary.simpleMessage("Buscar..."),
         "sendDonations": MessageLookupByLibrary.simpleMessage(
             "Envía tus donaciones a la siguiente dirección:"),
@@ -314,8 +319,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "viewOnMap": MessageLookupByLibrary.simpleMessage("Ver en el mapa"),
         "viewOnRealT": MessageLookupByLibrary.simpleMessage("Ver en RealT"),
         "wallet": MessageLookupByLibrary.simpleMessage("Monedero"),
-        "walletBalanceHistory":
-            MessageLookupByLibrary.simpleMessage("Evolución del portafolio"),
+        "walletBalanceHistory": MessageLookupByLibrary.simpleMessage(
+            "Historial de Saldo del Wallet"),
         "week": MessageLookupByLibrary.simpleMessage("Semana"),
         "weekly": MessageLookupByLibrary.simpleMessage("Semanal"),
         "weeks": MessageLookupByLibrary.simpleMessage("Semanas"),

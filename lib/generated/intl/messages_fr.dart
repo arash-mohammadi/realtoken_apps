@@ -47,10 +47,11 @@ class MessageLookup extends MessageLookupByLibrary {
         "application": MessageLookupByLibrary.simpleMessage("Application"),
         "apy": MessageLookupByLibrary.simpleMessage("Rendement net"),
         "areYouSureClearData": MessageLookupByLibrary.simpleMessage(
-            "Êtes-vous sûr de vouloir effacer le cache et les données ?"),
+            "Êtes-vous sûr de vouloir effacer le cache et les données ?"),
         "ascending": MessageLookupByLibrary.simpleMessage("Ascendant"),
         "author": MessageLookupByLibrary.simpleMessage("Auteur"),
         "averageApy": MessageLookupByLibrary.simpleMessage("APY moyen global"),
+        "balance": MessageLookupByLibrary.simpleMessage("Balance"),
         "bedroomBath":
             MessageLookupByLibrary.simpleMessage("Chambre/Salle de bain"),
         "blockchain": MessageLookupByLibrary.simpleMessage("Blockchain"),
@@ -60,7 +61,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Caractéristiques"),
         "chinese": MessageLookupByLibrary.simpleMessage("中文"),
         "clearCacheData": MessageLookupByLibrary.simpleMessage(
-            "Effacer le cache et les données"),
+            "Effacer le cache/les données"),
         "close": MessageLookupByLibrary.simpleMessage("Fermer"),
         "commercial": MessageLookupByLibrary.simpleMessage("Commercial"),
         "condominium": MessageLookupByLibrary.simpleMessage("Condominium"),
@@ -95,6 +96,9 @@ class MessageLookup extends MessageLookupByLibrary {
             "Propriétés présentes sur plusieurs portefeuilles/RMM"),
         "duplicate_title":
             MessageLookupByLibrary.simpleMessage("Propriétés en doublons"),
+        "edit": MessageLookupByLibrary.simpleMessage("Éditer"),
+        "editWalletBalance": MessageLookupByLibrary.simpleMessage(
+            "Éditer l\'historique du wallet"),
         "english": MessageLookupByLibrary.simpleMessage("English"),
         "ethereumContract":
             MessageLookupByLibrary.simpleMessage("Contrat Ethereum"),
@@ -184,7 +188,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "other": MessageLookupByLibrary.simpleMessage("Autre"),
         "others": MessageLookupByLibrary.simpleMessage("Autres"),
         "othersTitle": MessageLookupByLibrary.simpleMessage(
-            "\'Détails de la section Autres\'"),
+            "Détails de la section Autres"),
         "paypal": MessageLookupByLibrary.simpleMessage("PayPal"),
         "period": MessageLookupByLibrary.simpleMessage("Période"),
         "portfolio": MessageLookupByLibrary.simpleMessage("Portefeuille"),
@@ -244,6 +248,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "roiPerProperties":
             MessageLookupByLibrary.simpleMessage("ROI de la propriété"),
         "rwaHoldings": MessageLookupByLibrary.simpleMessage("RWA Holdings SA"),
+        "save": MessageLookupByLibrary.simpleMessage("Enregistrer"),
         "searchHint": MessageLookupByLibrary.simpleMessage("Rechercher..."),
         "sendDonations": MessageLookupByLibrary.simpleMessage(
             "Envoyez vos dons à l\'adresse suivante :"),
@@ -314,7 +319,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "viewOnRealT": MessageLookupByLibrary.simpleMessage("Voir sur RealT"),
         "wallet": MessageLookupByLibrary.simpleMessage("Portefeuille"),
         "walletBalanceHistory":
-            MessageLookupByLibrary.simpleMessage("Évolution du portefeuille"),
+            MessageLookupByLibrary.simpleMessage("Historique du Wallet"),
         "week": MessageLookupByLibrary.simpleMessage("Semaine"),
         "weekly": MessageLookupByLibrary.simpleMessage("Hebdomadaire"),
         "weeks": MessageLookupByLibrary.simpleMessage("Semaines"),

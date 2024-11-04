@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:realtokens_apps/pages/Statistics/Modal_others_pie.dart';
 import 'package:realtokens_apps/utils/parameters.dart';
 import 'package:realtokens_apps/utils/utils.dart';
@@ -307,121 +308,227 @@ return Scaffold(
     );
   }
 
-  Widget _buildWalletBalanceCard(DataManager dataManager) {
-    final appState = Provider.of<AppState>(context);
+ Widget _buildWalletBalanceCard(DataManager dataManager) {
+  final appState = Provider.of<AppState>(context);
 
-    // Récupérer les données de l'historique des balances du wallet
-    List<FlSpot> walletBalanceData = _buildWalletBalanceChartData(dataManager);
+  // Récupérer les données de l'historique des balances du wallet
+  List<FlSpot> walletBalanceData = _buildWalletBalanceChartData(dataManager);
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: Card(
-        elevation: 0,
-        color: Theme.of(context).cardColor,
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                S.of(context).walletBalanceHistory, // Ajouter une clé de traduction pour "Historique du Wallet"
-                style: TextStyle(
-                  fontSize: 20 + appState.getTextSizeOffset(),
-                  fontWeight: FontWeight.bold,
+  return Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+    child: Card(
+      elevation: 0,
+      color: Theme.of(context).cardColor,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Text(
+                  S.of(context).walletBalanceHistory, // Clé de traduction pour "Historique du Wallet"
+                  style: TextStyle(
+                    fontSize: 20 + appState.getTextSizeOffset(),
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 20),
-              SizedBox(
-                height: 250,
-                child: LineChart(
-                  LineChartData(
-                    gridData: FlGridData(show: true, drawVerticalLine: false),
-                    titlesData: FlTitlesData(
-                      topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                      leftTitles: AxisTitles(
-                        sideTitles: SideTitles(
-                          showTitles: true,
-                          reservedSize: 55,
-                          interval: _calculateWalletBalanceLeftInterval(walletBalanceData),
-                          getTitlesWidget: (value, meta) {
-                            return Text(
-                              Utils.formatCurrency(value, dataManager.currencySymbol),
-                              style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
-                            );
-                          },
-                        ),
-                      ),
-                      bottomTitles: AxisTitles(
-                        sideTitles: SideTitles(
-                          showTitles: true,
-                          interval: _calculateBottomInterval(walletBalanceData.cast<Map<String, dynamic>>()),
-                          getTitlesWidget: (value, meta) {
-                            // Labels bas pour les dates du graphique des balances
-                            List<String> labels = _buildDateLabelsForWallet(dataManager);
-                            if (value.toInt() >= 0 && value.toInt() < labels.length) {
-                              return Transform.rotate(
-                                angle: -0.5,
-                                child: Text(
-                                  labels[value.toInt()],
-                                  style: TextStyle(fontSize: 8 + appState.getTextSizeOffset()),
-                                ),
-                              );
-                            } else {
-                              return const Text('');
-                            }
-                          },
-                        ),
-                      ),
-                      rightTitles: AxisTitles(
-                        sideTitles: SideTitles(showTitles: false),
-                      ),
-                    ),
-                    borderData: FlBorderData(show: false),
-                    minX: 0,
-                    maxX: (walletBalanceData.length - 1).toDouble(),
-                    lineBarsData: [
-                      LineChartBarData(
-                        spots: walletBalanceData,
-                        isCurved: false,
-                        barWidth: 2,
-                        color: Colors.purple,
-                        dotData: FlDotData(show: false), // Cache les points par défaut
-                        belowBarData: BarAreaData(
-                          show: true,
-                          gradient: LinearGradient(
-                            colors: [
-                              Colors.purple.withOpacity(0.4),
-                              Colors.purple.withOpacity(0),
-                            ],
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                          ),
-                        ),
-                      ),
-                    ],
-                                      lineTouchData: LineTouchData(
-                      touchTooltipData: LineTouchTooltipData(
-                        getTooltipItems: (List<LineBarSpot> touchedSpots) {
-                          return touchedSpots.map((touchedSpot) {
-                            final value = touchedSpot.y;
-                            return LineTooltipItem(
-                              '${Utils.formatCurrency(dataManager.convert(value),dataManager.currencySymbol)} ', // Formater avec 2 chiffres après la virgule
-                              const TextStyle(color: Colors.white),
-                            );
-                          }).toList();
+                Spacer(),
+                IconButton(
+                  icon: Icon(Icons.edit),
+                  iconSize: 16.0, // Réduisez la taille ici
+                  onPressed: () => _showEditModal(context, dataManager),
+                  tooltip: S.of(context).edit, // Clé de traduction pour "Éditer"
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              height: 250,
+              child: LineChart(
+                LineChartData(
+                  gridData: FlGridData(show: true, drawVerticalLine: false),
+                  titlesData: FlTitlesData(
+                    topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    leftTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        reservedSize: 55,
+                        interval: _calculateWalletBalanceLeftInterval(walletBalanceData),
+                        getTitlesWidget: (value, meta) {
+                          return Text(
+                            Utils.formatCurrency(value, dataManager.currencySymbol),
+                            style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
+                          );
                         },
                       ),
                     ),
-                  
+                    bottomTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        interval: _calculateBottomInterval(walletBalanceData.cast<Map<String, dynamic>>()),
+                        getTitlesWidget: (value, meta) {
+                          List<String> labels = _buildDateLabelsForWallet(dataManager);
+                          if (value.toInt() >= 0 && value.toInt() < labels.length) {
+                            return Transform.rotate(
+                              angle: -0.5,
+                              child: Text(
+                                labels[value.toInt()],
+                                style: TextStyle(fontSize: 8 + appState.getTextSizeOffset()),
+                              ),
+                            );
+                          } else {
+                            return const Text('');
+                          }
+                        },
+                      ),
+                    ),
+                    rightTitles: AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
+                    ),
+                  ),
+                  borderData: FlBorderData(show: false),
+                  minX: 0,
+                  maxX: (walletBalanceData.length - 1).toDouble(),
+                  minY: 0, // Définit la valeur minimale de l'axe de gauche à 0
+                  lineBarsData: [
+                    LineChartBarData(
+                      spots: walletBalanceData,
+                      isCurved: false,
+                      barWidth: 2,
+                      color: Colors.purple,
+                      dotData: FlDotData(show: false),
+                      belowBarData: BarAreaData(
+                        show: true,
+                        gradient: LinearGradient(
+                          colors: [
+                            Colors.purple.withOpacity(0.4),
+                            Colors.purple.withOpacity(0),
+                          ],
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                        ),
+                      ),
+                    ),
+                  ],
+                  lineTouchData: LineTouchData(
+                    touchTooltipData: LineTouchTooltipData(
+                      getTooltipItems: (List<LineBarSpot> touchedSpots) {
+                        return touchedSpots.map((touchedSpot) {
+                          final value = touchedSpot.y;
+                          return LineTooltipItem(
+                            '${Utils.formatCurrency(dataManager.convert(value), dataManager.currencySymbol)}',
+                            const TextStyle(color: Colors.white),
+                          );
+                        }).toList();
+                      },
+                    ),
                   ),
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
+
+
+void _showEditModal(BuildContext context, DataManager dataManager) {
+  showModalBottomSheet(
+    context: context,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    ),
+    isScrollControlled: true,
+    builder: (BuildContext context) {
+      final screenHeight = MediaQuery.of(context).size.height;
+      return Container(
+        height: screenHeight * 0.7,
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              S.of(context).editWalletBalance,
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            Expanded(
+              child: ListView.builder(
+                itemCount: dataManager.walletBalanceHistory.length,
+                itemBuilder: (context, index) {
+                  BalanceRecord record = dataManager.walletBalanceHistory[index];
+                  TextEditingController valueController = TextEditingController(text: record.balance.toString());
+
+                  return ListTile(
+                    title: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          DateFormat('yyyy-MM-dd HH:mm:ss').format(record.timestamp),
+                          style: TextStyle(fontSize: 14), // Taille de texte réduite pour la date
+                        ),
+                        SizedBox(width: 8),
+                        Expanded(
+                          child: TextField(
+                            controller: valueController,
+                            keyboardType: TextInputType.text,
+                            textInputAction: TextInputAction.done,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                            ],
+                            style: TextStyle(fontSize: 14), // Taille de texte réduite pour la valeur
+                            decoration: InputDecoration(
+                              labelText: S.of(context).balance,
+                              labelStyle: TextStyle(fontSize: 12), // Taille du label réduite
+                            ),
+                            onSubmitted: (value) {
+                              double? newValue = double.tryParse(value);
+                              if (newValue != null) {
+                                record.balance = newValue;
+                                dataManager.saveWalletBalanceHistory();
+                                FocusScope.of(context).unfocus();
+                              }
+                            },
+                          ),
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.delete, color: Colors.red),
+                          iconSize: 20, // Réduction de la taille de l'icône
+                          onPressed: () {
+                            _deleteBalanceRecord(dataManager, index);
+                            Navigator.pop(context);
+                            _showEditModal(context, dataManager);
+                          },
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                dataManager.saveWalletBalanceHistory();
+                Navigator.pop(context);
+              },
+              child: Text(S.of(context).save),
+            ),
+          ],
+        ),
+      );
+    },
+  );
+}
+
+
+void _deleteBalanceRecord(DataManager dataManager, int index) {
+  dataManager.walletBalanceHistory.removeAt(index);
+  dataManager.saveWalletBalanceHistory(); // Sauvegarder la mise à jour dans Hive
+  dataManager.notifyListeners();
+}
 
   List<FlSpot> _buildWalletBalanceChartData(DataManager dataManager) {
     List<FlSpot> spots = [];

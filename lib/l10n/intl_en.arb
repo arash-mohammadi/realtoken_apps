@@ -198,6 +198,11 @@
   "realtPlatform": "RealT Platform",
   "insurance": "Insurance",
   "propertyTaxes": "Property Taxes",
+  "walletBalanceHistory": "Wallet Balance History",
+  "edit": "Edit",
+  "balance": "Balance",
+  "save": "Save",
+  "editWalletBalance": "Edit Wallet Balance History",
   "@propertyMaintenanceMonthly": {
     "description": "Monthly maintenance expenses for the property"
   },

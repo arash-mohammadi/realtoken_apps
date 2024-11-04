@@ -198,7 +198,11 @@
     "realtPlatform": "RealT 平台",
     "insurance": "保险",
     "propertyTaxes": "物业税",
-    
+    "walletBalanceHistory": "钱包余额历史",
+  "edit": "编辑",
+  "balance": "余额",
+  "save": "保存",
+  "editWalletBalance": "编辑钱包余额历史",
     "@propertyMaintenanceMonthly": {
       "description": "物业的每月维护费用"
     },

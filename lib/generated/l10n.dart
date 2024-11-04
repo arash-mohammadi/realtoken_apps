@@ -2030,6 +2030,46 @@ class S {
     );
   }
 
+  /// `Edit`
+  String get edit {
+    return Intl.message(
+      'Edit',
+      name: 'edit',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Balance`
+  String get balance {
+    return Intl.message(
+      'Balance',
+      name: 'balance',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Save`
+  String get save {
+    return Intl.message(
+      'Save',
+      name: 'save',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Edit Wallet Balance History`
+  String get editWalletBalance {
+    return Intl.message(
+      'Edit Wallet Balance History',
+      name: 'editWalletBalance',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Bedroom/Bath`
   String get bedroomBath {
     return Intl.message(

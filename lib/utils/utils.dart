@@ -2,7 +2,6 @@
 import 'package:realtokens_apps/api/data_manager.dart';
 import 'package:realtokens_apps/generated/l10n.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -12,24 +11,32 @@ import 'package:logger/logger.dart';
 class Utils {
   static final logger = Logger();  // Initialiser une instance de logger
 
-  static double getAppBarHeight(BuildContext context) {
-    double screenHeight = MediaQuery.of(context).size.height;
+static double getAppBarHeight(BuildContext context) {
+  double screenHeight = MediaQuery.of(context).size.height;
+  double screenWidth = MediaQuery.of(context).size.width;
 
-      if (screenHeight > 800) {
-        // Appareils avec grands écrans (par exemple iPhone 15 Pro Max)
-        return kToolbarHeight + 40;
-      } else {
-        // Appareils avec petits écrans (par exemple iPhone SE)
-        return kToolbarHeight + 10;
-      }
-
+  if (screenWidth >= 768) {
+    // Dimensions spécifiques pour iPad
+    return kToolbarHeight + 10;
+  } else if (screenHeight > 800) {
+    // Appareils avec grands écrans (par exemple iPhone 15 Pro Max)
+    return kToolbarHeight + 40;
+  } else {
+    // Appareils avec petits écrans (par exemple iPhone SE)
+    return kToolbarHeight + 10;
   }
+}
+
 
 static double getSliverAppBarHeight(BuildContext context) {
   double screenHeight = MediaQuery.of(context).size.height;
+  double screenWidth = MediaQuery.of(context).size.width;
   bool isPortrait = MediaQuery.of(context).orientation == Orientation.portrait;
 
-  if (isPortrait) {
+  if (screenWidth >= 768) {
+    // Hauteur spécifique pour les iPads
+    return isPortrait ? getAppBarHeight(context) + 30 : getAppBarHeight(context) + 30;
+  } else if (isPortrait) {
     // Utiliser une hauteur normale pour les appareils en mode portrait
     return screenHeight > 800 ? getAppBarHeight(context) : getAppBarHeight(context) + 25;
   } else {
@@ -37,6 +44,7 @@ static double getSliverAppBarHeight(BuildContext context) {
     return getAppBarHeight(context) + 45; // Ajustez cette valeur si nécessaire
   }
 }
+
 
 
   static Future<void> loadData(BuildContext context) async {

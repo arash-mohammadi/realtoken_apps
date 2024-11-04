@@ -10,6 +10,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart'; // Import du package pour le splashscreen
 import 'app_state.dart'; // Import the global AppState
+import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
 
 void main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
@@ -23,6 +24,12 @@ void main() async {
   await Hive.openBox('realTokens');
   await Hive.openBox('balanceHistory');
   await Hive.openBox('walletValueArchive');
+
+// Initialisation de FMTC avec ObjectBox
+    await FMTCObjectBoxBackend().initialise();
+
+    // Créez un store appelé 'mapStore' pour stocker les tuiles
+    await FMTCStore('mapStore').manage.create();
 
 
   // Initialisation de SharedPreferences et DataManager

@@ -127,8 +127,8 @@ Future<void> showTokenDetails( BuildContext context, Map<String, dynamic> token)
   final prefs = await SharedPreferences.getInstance();
   bool convertToSquareMeters = prefs.getBool('convertToSquareMeters') ?? false;
   final appState = Provider.of<AppState>(context, listen: false);
-final ValueNotifier<bool> _showDetailsNotifier = ValueNotifier<bool>(false);
-final ValueNotifier<bool> _showRentDetailsNotifier = ValueNotifier<bool>(false);
+final ValueNotifier<bool> showDetailsNotifier = ValueNotifier<bool>(false);
+final ValueNotifier<bool> showRentDetailsNotifier = ValueNotifier<bool>(false);
 
 // Calculate the total for the selected fields
 double totalCosts = (token['realtListingFee']?.toDouble() ?? 0.0) +
@@ -337,7 +337,7 @@ double totalRentCosts = (token['propertyMaintenanceMonthly']?.toDouble() ?? 0.0)
 
                             // Total row with tap to show/hide details
                            GestureDetector(
-                                onTap: () => _showDetailsNotifier.value = !_showDetailsNotifier.value,
+                                onTap: () => showDetailsNotifier.value = !showDetailsNotifier.value,
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
@@ -348,7 +348,7 @@ double totalRentCosts = (token['propertyMaintenanceMonthly']?.toDouble() ?? 0.0)
                                           style: TextStyle( fontSize: 13 + appState.getTextSizeOffset(), fontWeight: FontWeight.bold), // Optional styling
                                         ),
                                         ValueListenableBuilder<bool>(
-                                          valueListenable: _showDetailsNotifier,
+                                          valueListenable: showDetailsNotifier,
                                           builder: (context, showDetails, child) {
                                             return Icon(
                                               showDetails ? Icons.expand_less : Icons.expand_more,
@@ -367,7 +367,7 @@ double totalRentCosts = (token['propertyMaintenanceMonthly']?.toDouble() ?? 0.0)
                               ),
                               // Details rows wrapped in ValueListenableBuilder
                             ValueListenableBuilder<bool>(
-                              valueListenable: _showDetailsNotifier,
+                              valueListenable: showDetailsNotifier,
                               builder: (context, showDetails, child) {
                                 return Visibility(
                                   visible: showDetails,
@@ -422,7 +422,7 @@ double totalRentCosts = (token['propertyMaintenanceMonthly']?.toDouble() ?? 0.0)
                                 formatCurrency(context, token['grossRentMonth'] ?? 0)),
                                                         // Total row with tap to show/hide details
                            GestureDetector(
-                                onTap: () => _showRentDetailsNotifier.value = !_showRentDetailsNotifier.value,
+                                onTap: () => showRentDetailsNotifier.value = !showRentDetailsNotifier.value,
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
@@ -433,7 +433,7 @@ double totalRentCosts = (token['propertyMaintenanceMonthly']?.toDouble() ?? 0.0)
                                           style: TextStyle( fontSize: 13 + appState.getTextSizeOffset(), fontWeight: FontWeight.bold), // Optional styling
                                         ),
                                         ValueListenableBuilder<bool>(
-                                          valueListenable: _showRentDetailsNotifier,
+                                          valueListenable: showRentDetailsNotifier,
                                           builder: (context, showDetails, child) {
                                             return Icon(
                                               showDetails ? Icons.expand_less : Icons.expand_more,
@@ -452,7 +452,7 @@ double totalRentCosts = (token['propertyMaintenanceMonthly']?.toDouble() ?? 0.0)
                               ),
                               // Details rows wrapped in ValueListenableBuilder
                             ValueListenableBuilder<bool>(
-                              valueListenable: _showRentDetailsNotifier,
+                              valueListenable: showRentDetailsNotifier,
                               builder: (context, showDetails, child) {
                                 return Visibility(
                                   visible: showDetails,

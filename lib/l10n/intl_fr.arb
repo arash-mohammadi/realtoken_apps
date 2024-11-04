@@ -198,6 +198,11 @@
   "realtPlatform": "Plateforme RealT",
   "insurance": "Assurance",
   "propertyTaxes": "Taxes foncières",
+  "walletBalanceHistory": "Historique du Wallet",
+  "edit": "Éditer",
+  "balance": "Balance",
+  "save": "Enregistrer",
+  "editWalletBalance": "Éditer l'historique du wallet",
   
   "@propertyMaintenanceMonthly": {
     "description": "Dépenses mensuelles d'entretien de la propriété"

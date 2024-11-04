@@ -51,6 +51,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "ascending": MessageLookupByLibrary.simpleMessage("Ascending"),
         "author": MessageLookupByLibrary.simpleMessage("Author"),
         "averageApy": MessageLookupByLibrary.simpleMessage("average APY"),
+        "balance": MessageLookupByLibrary.simpleMessage("Balance"),
         "bedroomBath": MessageLookupByLibrary.simpleMessage("Bedroom/Bath"),
         "blockchain": MessageLookupByLibrary.simpleMessage("Blockchain"),
         "borrowBalance": MessageLookupByLibrary.simpleMessage("Borrows"),
@@ -93,6 +94,9 @@ class MessageLookup extends MessageLookupByLibrary {
             "Properties present in multiple wallets/RMM"),
         "duplicate_title":
             MessageLookupByLibrary.simpleMessage("Duplicate properties"),
+        "edit": MessageLookupByLibrary.simpleMessage("Edit"),
+        "editWalletBalance":
+            MessageLookupByLibrary.simpleMessage("Edit Wallet Balance History"),
         "english": MessageLookupByLibrary.simpleMessage("English"),
         "ethereumContract":
             MessageLookupByLibrary.simpleMessage("Ethereum contract"),
@@ -230,6 +234,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "roiPerProperties":
             MessageLookupByLibrary.simpleMessage("Property ROI"),
         "rwaHoldings": MessageLookupByLibrary.simpleMessage("RWA Holdings SA"),
+        "save": MessageLookupByLibrary.simpleMessage("Save"),
         "searchHint": MessageLookupByLibrary.simpleMessage("Search..."),
         "sendDonations": MessageLookupByLibrary.simpleMessage(
             "Send your donations to the following address:"),

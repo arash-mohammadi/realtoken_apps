@@ -7,7 +7,7 @@ import 'package:logger/logger.dart';
 
 class BalanceRecord {
   final String tokenType;
-  final double balance;
+  late final double balance;
   final DateTime timestamp;
 
   BalanceRecord({
@@ -204,6 +204,14 @@ Future<void> loadWalletBalanceHistory() async {
 
 }
 
+ // Sauvegarde l'historique des balances dans Hive
+  Future<void> saveWalletBalanceHistory() async {
+    var box = Hive.box('walletValueArchive');
+    List<Map<String, dynamic>> balanceHistoryJson = walletBalanceHistory.map((record) => record.toJson()).toList();
+    await box.put('balanceHistory_totalWalletValue', balanceHistoryJson);
+    notifyListeners(); // Notifier les listeners de tout changement
+  }
+
  Future<void> updatedDetailRentVariables({bool forceFetch = false}) async {
   var box = Hive.box('realTokens'); // Ouvrir la boîte Hive pour le cache
   
@@ -343,7 +351,7 @@ Future<void> fetchAndStoreAllTokens() async {
           'yearlyIncome': realToken['netRentYearPerToken'] * realToken['totalTokens'],
           'initialLaunchDate': realToken['initialLaunchDate']?['date'],
           'totalInvestment': realToken['totalInvestment'],
-          'underlyingAssetPrice': realToken['underlyingAssetPrice'],
+          'underlyingAssetPrice': realToken['underlyingAssetPrice'] ?? 0.0,
           'initialMaintenanceReserve': realToken['initialMaintenanceReserve'],
           'rentalType': realToken['rentalType'],
           'rentStartDate': realToken['rentStartDate']?['date'],
@@ -484,15 +492,15 @@ Future<void> fetchAndStoreAllTokens() async {
 
 
     // Variables temporaires pour calculer les valeurs
-    double walletValueSum = 0;
-    double rmmValueSum = 0;
-    double rwaValue = 0;
-    double walletTokensSum = 0;
-    double rmmTokensSum = 0;
-    double annualYieldSum = 0;
-    double dailyRentSum = 0;
-    double monthlyRentSum = 0;
-    double yearlyRentSum = 0;
+    double walletValueSum = 0.0;
+    double rmmValueSum = 0.0;
+    double rwaValue = 0.0;
+    double walletTokensSum = 0.0;
+    double rmmTokensSum = 0.0;
+    double annualYieldSum = 0.0;
+    double dailyRentSum = 0.0;
+    double monthlyRentSum = 0.0;
+    double yearlyRentSum = 0.0;
     int yieldCount = 0;
     List<Map<String, dynamic>> newPortfolio = [];
 
@@ -501,7 +509,7 @@ Future<void> fetchAndStoreAllTokens() async {
     rmmTokenCount = 0;
     rentedUnits = 0;
     totalUnits = 0;
-
+    
     // Utilisation des ensembles pour stocker les adresses uniques
     Set<String> uniqueWalletTokens = {};
     Set<String> uniqueRmmTokens = {};
@@ -589,8 +597,8 @@ Future<void> fetchAndStoreAllTokens() async {
             'bedroomBath': matchingRealToken['bedroomBath'],
      
             // financials details
-            'totalInvestment': matchingRealToken['totalInvestment'],
-            'underlyingAssetPrice': matchingRealToken['underlyingAssetPrice'],
+            'totalInvestment': matchingRealToken['totalInvestment'] ?? 0.0,
+            'underlyingAssetPrice': matchingRealToken['underlyingAssetPrice'] ?? 0.0,
             'realtListingFee': matchingRealToken['realtListingFee'],
             'initialMaintenanceReserve': matchingRealToken['initialMaintenanceReserve'],
             'renovationReserve': matchingRealToken['renovationReserve'],
@@ -714,8 +722,8 @@ Future<void> fetchAndStoreAllTokens() async {
           'bedroomBath': matchingRealToken['bedroomBath'],
 
            // financials details
-          'totalInvestment': matchingRealToken['totalInvestment'],
-          'underlyingAssetPrice': matchingRealToken['underlyingAssetPrice'],
+          'totalInvestment': matchingRealToken['totalInvestment'] ?? 0.0,
+          'underlyingAssetPrice': matchingRealToken['underlyingAssetPrice'] ?? 0.0,
           'realtListingFee': matchingRealToken['realtListingFee'],
           'initialMaintenanceReserve': matchingRealToken['initialMaintenanceReserve'],
           'renovationReserve': matchingRealToken['renovationReserve'],

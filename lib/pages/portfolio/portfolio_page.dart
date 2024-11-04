@@ -232,6 +232,7 @@ void initState() {
               SliverAppBar(
                 floating: true,
                 snap: true,
+                automaticallyImplyLeading: false,
                 expandedHeight: Utils.getSliverAppBarHeight(context), // Hauteur étendue
                 flexibleSpace: FlexibleSpaceBar(
                   background: Container(

@@ -1,3 +1,4 @@
+import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
 import 'package:realtokens_apps/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -11,7 +12,8 @@ class MapsPage extends StatefulWidget {
   const MapsPage({super.key});
 
   @override
-  MapsPageState createState() => MapsPageState(); // Remplacer _MapsPageState par MapsPageState
+  MapsPageState createState() =>
+      MapsPageState(); // Remplacer _MapsPageState par MapsPageState
 }
 
 class MapsPageState extends State<MapsPage> {
@@ -35,18 +37,21 @@ class MapsPageState extends State<MapsPage> {
   Future<void> _loadThemePreference() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
-      _forceLightMode = prefs.getBool('forceLightMode') ?? false; // Charger le mode forcé
+      _forceLightMode =
+          prefs.getBool('forceLightMode') ?? false; // Charger le mode forcé
     });
   }
 
   // Sauvegarder la préférence du mode dans SharedPreferences
   Future<void> _saveThemePreference() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('forceLightMode', _forceLightMode); // Sauvegarder le mode forcé
+    await prefs.setBool(
+        'forceLightMode', _forceLightMode); // Sauvegarder le mode forcé
   }
 
   // Méthode pour filtrer et trier les tokens (même approche que PortfolioPage)
-  List<Map<String, dynamic>> _filterAndSortTokens(List<Map<String, dynamic>> tokens) {
+  List<Map<String, dynamic>> _filterAndSortTokens(
+      List<Map<String, dynamic>> tokens) {
     List<Map<String, dynamic>> filteredTokens = tokens
         .where((token) => token['fullName']
             .toLowerCase()
@@ -143,13 +148,15 @@ class MapsPageState extends State<MapsPage> {
       body: Stack(
         children: [
           Container(
-            color: Theme.of(context).scaffoldBackgroundColor, // Définit la couleur de fond pour la carte
+            color: Theme.of(context)
+                .scaffoldBackgroundColor, // Définit la couleur de fond pour la carte
             child: FlutterMap(
               options: MapOptions(
                 initialCenter: LatLng(42.367476, -83.130921),
                 initialZoom: 10.0,
                 onTap: (_, __) => _popupController.hideAllPopups(),
-                interactionOptions: const InteractionOptions(flags: InteractiveFlag.pinchZoom | InteractiveFlag.drag),
+                interactionOptions: const InteractionOptions(
+                    flags: InteractiveFlag.pinchZoom | InteractiveFlag.drag),
               ),
               children: [
                 TileLayer(
@@ -160,6 +167,8 @@ class MapsPageState extends State<MapsPage> {
                           ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
                           : 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                   subdomains: ['a', 'b', 'c'],
+                  tileProvider: FMTCStore('mapStore')
+                      .getTileProvider(), // Utilise le store 'mapStore'
                   userAgentPackageName: 'com.byackee.app',
                   retinaMode: true,
                 ),
@@ -213,7 +222,8 @@ class MapsPageState extends State<MapsPage> {
                     value: _forceLightMode,
                     onChanged: (value) {
                       setState(() {
-                        _forceLightMode = value; // Mettre à jour le switch pour forcer le mode clair
+                        _forceLightMode =
+                            value; // Mettre à jour le switch pour forcer le mode clair
                       });
                       _saveThemePreference(); // Sauvegarder la préférence
                     },
@@ -227,7 +237,8 @@ class MapsPageState extends State<MapsPage> {
           ),
           // Switch en haut à gauche pour basculer entre les tokens du portefeuille et tous les tokens
           Positioned(
-            top: Utils.getAppBarHeight(context), // Positionner juste en dessous de l'AppBar
+            top: Utils.getAppBarHeight(
+                context), // Positionner juste en dessous de l'AppBar
             left: 16,
             child: Row(
               children: [
@@ -240,8 +251,10 @@ class MapsPageState extends State<MapsPage> {
                         _showAllTokens = value;
                       });
                     },
-                    activeColor: Colors.blue, // Couleur du bouton en mode activé
-                    inactiveThumbColor: Colors.grey, // Couleur du bouton en mode désactivé
+                    activeColor:
+                        Colors.blue, // Couleur du bouton en mode activé
+                    inactiveThumbColor:
+                        Colors.grey, // Couleur du bouton en mode désactivé
                   ),
                 ),
                 Text(_showAllTokens ? 'All Tokens' : 'Portfolio'),
@@ -250,7 +263,8 @@ class MapsPageState extends State<MapsPage> {
           ),
           // Légende en bas à gauche
           Positioned(
-            bottom: 90, // Remonter la légende pour la placer au-dessus de la BottomBar
+            bottom:
+                90, // Remonter la légende pour la placer au-dessus de la BottomBar
             left: 16,
             child: Container(
               padding: const EdgeInsets.all(8),
