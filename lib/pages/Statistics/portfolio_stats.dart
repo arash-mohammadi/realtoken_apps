@@ -461,28 +461,51 @@ void _showEditModal(BuildContext context, DataManager dataManager) {
                 itemBuilder: (context, index) {
                   BalanceRecord record = dataManager.walletBalanceHistory[index];
                   TextEditingController valueController = TextEditingController(text: record.balance.toString());
+                  TextEditingController dateController = TextEditingController(
+                    text: DateFormat('yyyy-MM-dd HH:mm:ss').format(record.timestamp),
+                  );
 
                   return ListTile(
                     title: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          DateFormat('yyyy-MM-dd HH:mm:ss').format(record.timestamp),
-                          style: TextStyle(fontSize: 14), // Taille de texte réduite pour la date
+                        // Editable date field
+                        Expanded(
+                          child: TextField(
+                            controller: dateController,
+                            keyboardType: TextInputType.datetime,
+                            textInputAction: TextInputAction.done,
+                            style: TextStyle(fontSize: 12),
+                            decoration: InputDecoration(
+                              labelText: S.of(context).date,
+                              labelStyle: TextStyle(fontSize: 14),
+                            ),
+                            onSubmitted: (value) {
+                              try {
+                                DateTime newDate = DateFormat('yyyy-MM-dd HH:mm:ss').parse(value);
+                                record.timestamp = newDate;
+                                dataManager.saveWalletBalanceHistory();
+                              } catch (e) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('invalidDateFormat')),
+                                );
+                              }
+                            },
+                          ),
                         ),
-                        SizedBox(width: 8),
+                        const SizedBox(width: 8),
                         Expanded(
                           child: TextField(
                             controller: valueController,
-                            keyboardType: TextInputType.text,
+                            keyboardType: TextInputType.numberWithOptions(decimal: true),
                             textInputAction: TextInputAction.done,
                             inputFormatters: [
                               FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
                             ],
-                            style: TextStyle(fontSize: 14), // Taille de texte réduite pour la valeur
+                            style: TextStyle(fontSize: 12),
                             decoration: InputDecoration(
                               labelText: S.of(context).balance,
-                              labelStyle: TextStyle(fontSize: 12), // Taille du label réduite
+                              labelStyle: TextStyle(fontSize: 14),
                             ),
                             onSubmitted: (value) {
                               double? newValue = double.tryParse(value);
@@ -494,14 +517,20 @@ void _showEditModal(BuildContext context, DataManager dataManager) {
                             },
                           ),
                         ),
-                        IconButton(
-                          icon: Icon(Icons.delete, color: Colors.red),
-                          iconSize: 20, // Réduction de la taille de l'icône
-                          onPressed: () {
-                            _deleteBalanceRecord(dataManager, index);
-                            Navigator.pop(context);
-                            _showEditModal(context, dataManager);
-                          },
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: SizedBox(
+                            width: 20,
+                            child: IconButton(
+                              icon: Icon(Icons.delete, color: Colors.red),
+                              iconSize: 18,
+                              onPressed: () {
+                                _deleteBalanceRecord(dataManager, index);
+                                Navigator.pop(context);
+                                _showEditModal(context, dataManager);
+                              },
+                            ),
+                          ),
                         ),
                       ],
                     ),

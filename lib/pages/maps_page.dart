@@ -1,4 +1,7 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
+import 'package:realtokens_apps/app_state.dart';
+import 'package:realtokens_apps/pages/token_bottom_sheet.dart';
 import 'package:realtokens_apps/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -78,6 +81,7 @@ class MapsPageState extends State<MapsPage> {
   @override
   Widget build(BuildContext context) {
     final dataManager = Provider.of<DataManager>(context);
+    final appState = Provider.of<AppState>(context); // Accéder à AppState
 
     final tokensToShow = _showAllTokens
         ? _filterAndSortTokens(dataManager.allTokens)
@@ -104,10 +108,32 @@ class MapsPageState extends State<MapsPage> {
           point: LatLng(lat, lng),
           child: GestureDetector(
             onTap: () => _showMarkerPopup(context, matchingToken),
-            child: Icon(
-              Icons.location_on,
-              color: Utils.getRentalStatusColor(rentedUnits, totalUnits),
-              size: 40.0,
+            child: Container(
+              width: 50.0,
+              height: 50.0,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: Utils.getRentalStatusColor(rentedUnits, totalUnits),
+                   width: 3.0),
+              ),
+              child: ClipOval(
+                child: matchingToken['imageLink'] != null
+                    ? CachedNetworkImage(
+                        imageUrl: matchingToken['imageLink'][0],
+                        fit: BoxFit.cover,
+                        placeholder: (context, url) => CircularProgressIndicator(),
+                        errorWidget: (context, url, error) => Icon(
+                          Icons.error,
+                          color: Colors.red,
+                        ),
+                      )
+                    : Icon(
+                        Icons.location_on,
+                        color: color,
+                        size: 40.0,
+                      ),
+              ),
             ),
           ),
           key: ValueKey(matchingToken),
@@ -119,6 +145,7 @@ class MapsPageState extends State<MapsPage> {
         );
       }
     }
+
 
     for (var token in tokensToShow) {
       final isWallet = token['source'] == 'Wallet';
@@ -153,7 +180,7 @@ class MapsPageState extends State<MapsPage> {
             child: FlutterMap(
               options: MapOptions(
                 initialCenter: LatLng(42.367476, -83.130921),
-                initialZoom: 10.0,
+                initialZoom: 8.0,
                 onTap: (_, __) => _popupController.hideAllPopups(),
                 interactionOptions: const InteractionOptions(
                     flags: InteractiveFlag.pinchZoom | InteractiveFlag.drag),
@@ -356,83 +383,92 @@ class MapsPageState extends State<MapsPage> {
     }
   }
 
-  void _showMarkerPopup(BuildContext context, dynamic matchingToken) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        final rentedUnits = matchingToken['rentedUnits'] ?? 0;
-        final totalUnits = matchingToken['totalUnits'] ?? 1;
-        final lat = double.tryParse(matchingToken['lat']) ?? 0.0;
-        final lng = double.tryParse(matchingToken['lng']) ?? 0.0;
+void _showMarkerPopup(BuildContext context, dynamic matchingToken) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      final rentedUnits = matchingToken['rentedUnits'] ?? 0;
+      final totalUnits = matchingToken['totalUnits'] ?? 1;
+      final lat = double.tryParse(matchingToken['lat']) ?? 0.0;
+      final lng = double.tryParse(matchingToken['lng']) ?? 0.0;
 
-        return AlertDialog(
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              if (matchingToken['imageLink'] != null)
-                Image.network(
-                  matchingToken['imageLink'][0],
+      return AlertDialog(
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            if (matchingToken['imageLink'] != null)
+              GestureDetector(
+                onTap: () => showTokenDetails(context, matchingToken),
+                child: CachedNetworkImage(
+                  imageUrl: matchingToken['imageLink'][0],
                   width: 200,
                   fit: BoxFit.cover,
-                ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Text(
-                  matchingToken['shortName'],
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
+                  placeholder: (context, url) => CircularProgressIndicator(),
+                  errorWidget: (context, url, error) => Icon(
+                    Icons.error,
+                    color: Colors.red,
                   ),
-                  textAlign: TextAlign.center,
                 ),
               ),
-              const SizedBox(height: 8.0),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Token Price: ',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  Text('${matchingToken['tokenPrice'] ?? 'N/A'}'),
-                ],
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                matchingToken['shortName'],
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
               ),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Token Yield: ',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  Text(
-                      '${matchingToken['annualPercentageYield'] != null ? matchingToken['annualPercentageYield'].toStringAsFixed(2) : 'N/A'}'),
-                ],
-              ),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Units Rented: ',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  Text('$rentedUnits / $totalUnits'),
-                ],
-              ),
-              const SizedBox(height: 16.0),
-              IconButton(
-                icon: const Icon(Icons.streetview, color: Colors.blue),
-                onPressed: () {
-                  final googleStreetViewUrl =
-                      'https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=$lat,$lng';
-                  Utils.launchURL(googleStreetViewUrl);
-                },
-              ),
-              const Text('View in Street View'),
-            ],
-          ),
-        );
-      },
-    );
-  }
+            ),
+            const SizedBox(height: 8.0),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Token Price: ',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                Text('${matchingToken['tokenPrice'] ?? 'N/A'}'),
+              ],
+            ),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Token Yield: ',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                Text(
+                    '${matchingToken['annualPercentageYield'] != null ? matchingToken['annualPercentageYield'].toStringAsFixed(2) : 'N/A'}'),
+              ],
+            ),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Units Rented: ',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                Text('$rentedUnits / $totalUnits'),
+              ],
+            ),
+            const SizedBox(height: 16.0),
+            IconButton(
+              icon: const Icon(Icons.streetview, color: Colors.blue),
+              onPressed: () {
+                final googleStreetViewUrl =
+                    'https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=$lat,$lng';
+                Utils.launchURL(googleStreetViewUrl);
+              },
+            ),
+            const Text('View in Street View'),
+          ],
+        ),
+      );
+    },
+  );
+}
+
 }

@@ -2070,6 +2070,16 @@ class S {
     );
   }
 
+  /// `Date`
+  String get date {
+    return Intl.message(
+      'Date',
+      name: 'date',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Bedroom/Bath`
   String get bedroomBath {
     return Intl.message(

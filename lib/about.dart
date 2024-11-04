@@ -62,21 +62,11 @@ class AboutPage extends StatelessWidget {
                   ListTile(
                     leading: const Icon(Icons.link),
                     title: Text(
-                      'LinkedIn',
+                      'linktree',
                       style: TextStyle(
                           fontSize: 15 + appState.getTextSizeOffset()),
                     ),
-                    onTap: () => Utils.launchURL('https://www.linkedin.com/in/vincent-fresnel/'),
-                    visualDensity: const VisualDensity(vertical: -4), // Réduction de l'espace vertical
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.code),
-                    title: Text(
-                      'GitHub',
-                      style: TextStyle(
-                          fontSize: 15 + appState.getTextSizeOffset()),
-                    ),
-                    onTap: () => Utils.launchURL('https://github.com/byackee'),
+                    onTap: () => Utils.launchURL('https://linktr.ee/byackee'),
                     visualDensity: const VisualDensity(vertical: -4), // Réduction de l'espace vertical
                   ),
                 ],

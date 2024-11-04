@@ -73,6 +73,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "dark": MessageLookupByLibrary.simpleMessage("深色"),
         "darkTheme": MessageLookupByLibrary.simpleMessage("深色主题"),
         "dashboard": MessageLookupByLibrary.simpleMessage("仪表板"),
+        "date": MessageLookupByLibrary.simpleMessage("日期"),
         "day": MessageLookupByLibrary.simpleMessage("天"),
         "days": MessageLookupByLibrary.simpleMessage("天"),
         "depositBalance": MessageLookupByLibrary.simpleMessage("存款"),

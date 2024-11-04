@@ -200,6 +200,7 @@
     "propertyTaxes": "物业税",
     "walletBalanceHistory": "钱包余额历史",
   "edit": "编辑",
+  "date": "日期",
   "balance": "余额",
   "save": "保存",
   "editWalletBalance": "编辑钱包余额历史",

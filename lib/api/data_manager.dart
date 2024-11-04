@@ -7,8 +7,8 @@ import 'package:logger/logger.dart';
 
 class BalanceRecord {
   final String tokenType;
-  late final double balance;
-  final DateTime timestamp;
+  double balance;
+  DateTime timestamp;
 
   BalanceRecord({
     required this.tokenType,
@@ -784,11 +784,11 @@ Future<void> fetchAndStoreAllTokens() async {
         totalXdaiBorrowBalance;
     archiveTotalWalletValue(totalWalletValue);
 
-    walletValue = walletValueSum;
-    rmmValue = rmmValueSum;
-    rwaHoldingsValue = rwaValue;
-    walletTokensSums = walletTokensSum;
-    rmmTokensSums = rmmTokensSum;
+    walletValue = double.parse(walletValueSum.toStringAsFixed(3));
+    rmmValue = double.parse(rmmValueSum.toStringAsFixed(3));
+    rwaHoldingsValue = double.parse(rwaValue.toStringAsFixed(3));
+    walletTokensSums = double.parse(walletTokensSum.toStringAsFixed(3));
+    rmmTokensSums = double.parse(rmmTokensSum.toStringAsFixed(3));
     totalTokens = (walletTokensSum + rmmTokensSum);
     averageAnnualYield = yieldCount > 0 ? annualYieldSum / yieldCount : 0;
     dailyRent = dailyRentSum;
@@ -1239,7 +1239,7 @@ Future<void> archiveTotalWalletValue(double totalWalletValue) async {
   // Ajouter le nouvel enregistrement à l'historique
   BalanceRecord newRecord = BalanceRecord(
     tokenType: 'totalWalletValue',
-    balance: totalWalletValue,
+    balance: double.parse(totalWalletValue.toStringAsFixed(3)),
     timestamp: DateTime.now(),
   );
   balanceHistory.add(newRecord);

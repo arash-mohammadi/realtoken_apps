@@ -203,6 +203,7 @@
   "balance": "Saldo",
   "save": "Salvar",
   "editWalletBalance": "Editar Histórico do Wallet",
+  "date": "Data",
   "@propertyMaintenanceMonthly": {
     "description": "Despesas mensais de manutenção da propriedade"
   },

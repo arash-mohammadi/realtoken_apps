@@ -82,6 +82,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "dark": MessageLookupByLibrary.simpleMessage("Dark"),
         "darkTheme": MessageLookupByLibrary.simpleMessage("Dark Theme"),
         "dashboard": MessageLookupByLibrary.simpleMessage("Dashboard"),
+        "date": MessageLookupByLibrary.simpleMessage("Date"),
         "day": MessageLookupByLibrary.simpleMessage("Day"),
         "days": MessageLookupByLibrary.simpleMessage("Days"),
         "depositBalance": MessageLookupByLibrary.simpleMessage("Deposits"),

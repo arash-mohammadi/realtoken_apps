@@ -16,31 +16,31 @@ void main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding); // Préserver le splash screen natif
 
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Future.wait([
+    Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform),
+    Hive.initFlutter(),
+    FMTCObjectBoxBackend().initialise(),
+  ]);
 
-  await Hive.initFlutter();
-  await Hive.openBox('realTokens');
-  await Hive.openBox('balanceHistory');
-  await Hive.openBox('walletValueArchive');
-
-// Initialisation de FMTC avec ObjectBox
-    await FMTCObjectBoxBackend().initialise();
-
-    // Créez un store appelé 'mapStore' pour stocker les tuiles
-    await FMTCStore('mapStore').manage.create();
-
+  await Future.wait([
+    Hive.openBox('realTokens'),
+    Hive.openBox('balanceHistory'),
+    Hive.openBox('walletValueArchive'),
+    FMTCStore('mapStore').manage.create(),
+  ]);
 
   // Initialisation de SharedPreferences et DataManager
   final dataManager = DataManager();
-  await Future.delayed(Duration(seconds: 1));
+// Charger les premières opérations en parallèle
+  await Future.wait([
+    dataManager.updateGlobalVariables(),
+    dataManager.loadSelectedCurrency(),
+    dataManager.loadUserIdToAddresses(),
+  ]);
   FlutterNativeSplash.remove(); // Supprimer le splash screen natif après l'initialisation
-  await dataManager.updateGlobalVariables();
-  await dataManager.loadSelectedCurrency(); // Charger la devise sélectionnée
-  await dataManager.loadUserIdToAddresses(); // Charger les userIds et adresses
-  await dataManager.fetchAndCalculateData();
 
+// Ensuite, exécuter fetchAndCalculateData une fois que les précédentes sont terminées
+  await dataManager.fetchAndCalculateData();
   runApp(
     MultiProvider(
       providers: [
@@ -52,8 +52,48 @@ void main() async {
   );
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  _MyAppState createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
+  late DataManager dataManager;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+
+    // Initialiser le DataManager ou le récupérer via Provider si déjà initialisé
+    dataManager = Provider.of<DataManager>(context, listen: false);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // L'application est revenue au premier plan
+      _reloadData();
+    }
+  }
+
+  void _reloadData() async {
+    // Recharger les données nécessaires
+    await Future.wait([
+      dataManager.updateGlobalVariables(),
+      dataManager.loadSelectedCurrency(),
+      dataManager.loadUserIdToAddresses(),
+    ]);
+    await dataManager.fetchAndCalculateData();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -61,18 +101,18 @@ class MyApp extends StatelessWidget {
       builder: (context, appState, child) {
         return MaterialApp(
           title: 'RealToken mobile app',
-          locale: Locale(appState.selectedLanguage), // Use the global locale from AppState
-          supportedLocales: S.delegate.supportedLocales, // Support des langues
+          locale: Locale(appState.selectedLanguage),
+          supportedLocales: S.delegate.supportedLocales,
           localizationsDelegates: const [
-            S.delegate, // Générateur de localisation
+            S.delegate,
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
           ],
           theme: lightTheme,
           darkTheme: darkTheme,
-          themeMode: appState.isDarkTheme ? ThemeMode.dark : ThemeMode.light, // Switch between light and dark mode
-          home: const MyHomePage(), // No need to pass onThemeChanged anymore
+          themeMode: appState.isDarkTheme ? ThemeMode.dark : ThemeMode.light,
+          home: const MyHomePage(),
         );
       },
     );
