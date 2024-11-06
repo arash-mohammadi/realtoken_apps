@@ -101,6 +101,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "editWalletBalance":
             MessageLookupByLibrary.simpleMessage("Editar Histórico do Wallet"),
         "english": MessageLookupByLibrary.simpleMessage("English"),
+        "enterValidNumber": MessageLookupByLibrary.simpleMessage(
+            "Por favor, insira um número válido"),
         "ethereumContract":
             MessageLookupByLibrary.simpleMessage("Contrato Ethereum"),
         "exportData": MessageLookupByLibrary.simpleMessage("Exportar Dados"),
@@ -130,6 +132,12 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Data de Lançamento Inicial"),
         "initialMaintenanceReserve": MessageLookupByLibrary.simpleMessage(
             "Reserva de Manutenção Inicial"),
+        "initialPrice":
+            MessageLookupByLibrary.simpleMessage("Preço médio de compra"),
+        "initialPriceRemoved": MessageLookupByLibrary.simpleMessage(
+            "Preço médio de compra removido"),
+        "initialPriceUpdated": MessageLookupByLibrary.simpleMessage(
+            "Preço médio de compra atualizado"),
         "insights": MessageLookupByLibrary.simpleMessage("Insights"),
         "insurance": MessageLookupByLibrary.simpleMessage("Seguro"),
         "italian": MessageLookupByLibrary.simpleMessage("Italiano"),
@@ -145,6 +153,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Adicionar carteira"),
         "manageEvmAddresses":
             MessageLookupByLibrary.simpleMessage("Gerenciar Carteiras"),
+        "manualEdit": MessageLookupByLibrary.simpleMessage("Edição Manual"),
         "maps": MessageLookupByLibrary.simpleMessage("Mapas"),
         "mfrPortfolio": MessageLookupByLibrary.simpleMessage("Portfólio MFR"),
         "miscellaneousCosts":

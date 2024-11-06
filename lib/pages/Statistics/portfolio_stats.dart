@@ -436,6 +436,7 @@ return Scaffold(
 
 
 void _showEditModal(BuildContext context, DataManager dataManager) {
+      final appState = Provider.of<AppState>(context, listen: false);
   showModalBottomSheet(
     context: context,
     shape: RoundedRectangleBorder(
@@ -475,10 +476,10 @@ void _showEditModal(BuildContext context, DataManager dataManager) {
                             controller: dateController,
                             keyboardType: TextInputType.datetime,
                             textInputAction: TextInputAction.done,
-                            style: TextStyle(fontSize: 12),
+                            style: TextStyle(fontSize: 12 + appState.getTextSizeOffset()),
                             decoration: InputDecoration(
                               labelText: S.of(context).date,
-                              labelStyle: TextStyle(fontSize: 14),
+                              labelStyle: TextStyle(fontSize: 14 + appState.getTextSizeOffset()),
                             ),
                             onSubmitted: (value) {
                               try {
@@ -502,10 +503,10 @@ void _showEditModal(BuildContext context, DataManager dataManager) {
                             inputFormatters: [
                               FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
                             ],
-                            style: TextStyle(fontSize: 12),
+                            style: TextStyle(fontSize: 12 + appState.getTextSizeOffset()),
                             decoration: InputDecoration(
                               labelText: S.of(context).balance,
-                              labelStyle: TextStyle(fontSize: 14),
+                              labelStyle: TextStyle(fontSize: 14 + appState.getTextSizeOffset()),
                             ),
                             onSubmitted: (value) {
                               double? newValue = double.tryParse(value);
@@ -523,7 +524,7 @@ void _showEditModal(BuildContext context, DataManager dataManager) {
                             width: 20,
                             child: IconButton(
                               icon: Icon(Icons.delete, color: Colors.red),
-                              iconSize: 18,
+                              iconSize: 18 + appState.getTextSizeOffset(),
                               onPressed: () {
                                 _deleteBalanceRecord(dataManager, index);
                                 Navigator.pop(context);
@@ -894,216 +895,202 @@ void _deleteBalanceRecord(DataManager dataManager, int index) {
   }
 
   Widget _buildLegendByCountry(DataManager dataManager) {
-    Map<String, int> countryCount = {};
-    final appState = Provider.of<AppState>(context);
+  Map<String, int> countryCount = {};
+  final appState = Provider.of<AppState>(context);
 
-    for (var token in dataManager.portfolio) {
-      String fullName = token['fullName'];
-      List<String> parts = fullName.split(',');
-      String country = '';
+  // Compter les occurrences par pays
+  for (var token in dataManager.portfolio) {
+    String fullName = token['fullName'];
+    List<String> parts = fullName.split(',');
+    String country = parts.length == 4 ? parts[3].trim() : 'United States';
 
-      if (parts.length == 4) {
-        country = parts[3].trim();
-      } else {
-        country = 'United States';
-      }
-
-      countryCount[country] = (countryCount[country] ?? 0) + 1;
-    }
-
-    return Wrap(
-      spacing: 8.0,
-      runSpacing: 4.0,
-      children: countryCount.entries.map((entry) {
-        return Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 16,
-              height: 16,
-              color: Colors.cyan[100 *
-                      (countryCount.keys.toList().indexOf(entry.key) % 9)] ??
-                  Colors.cyan,
-            ),
-            const SizedBox(width: 4),
-            Text(
-              '${entry.key}: ${entry.value}',
-              style: TextStyle(fontSize: 13 + appState.getTextSizeOffset()),
-            ),
-          ],
-        );
-      }).toList(),
-    );
+    countryCount[country] = (countryCount[country] ?? 0) + 1;
   }
+
+  // Utiliser le même tri que pour le graphique
+  final sortedCountries = countryCount.keys.toList()..sort();
+
+  return Wrap(
+    spacing: 8.0,
+    runSpacing: 4.0,
+    children: sortedCountries.map((country) {
+      final int index = sortedCountries.indexOf(country);
+      final color = generateColor(index);
+
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 16,
+            height: 16,
+            color: color,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            '$country: ${countryCount[country]}',
+            style: TextStyle(fontSize: 13 + appState.getTextSizeOffset()),
+          ),
+        ],
+      );
+    }).toList(),
+  );
+}
 
   Widget _buildLegendByRegion(DataManager dataManager, List<Map<String, dynamic>> othersDetails) {
-    Map<String, int> regionCount = {};
-    final appState = Provider.of<AppState>(context);
+  Map<String, int> regionCount = {};
+  final appState = Provider.of<AppState>(context);
 
-    // Remplir le dictionnaire avec les counts par région
-    for (var token in dataManager.portfolio) {
-      String fullName = token['fullName'];
-      List<String> parts = fullName.split(',');
-      String regionCode = parts.length >= 3
-          ? parts[2].trim().substring(0, 2)
-          : S.of(context).unknown;
+  // Remplir le dictionnaire avec les counts par région
+  for (var token in dataManager.portfolio) {
+    String fullName = token['fullName'];
+    List<String> parts = fullName.split(',');
+    String regionCode = parts.length >= 3
+        ? parts[2].trim().substring(0, 2)
+        : S.of(context).unknown;
 
-      String regionName = Parameters.usStateAbbreviations[regionCode] ?? regionCode;
+    String regionName = Parameters.usStateAbbreviations[regionCode] ?? regionCode;
+    regionCount[regionName] = (regionCount[regionName] ?? 0) + 1;
+  }
 
-      regionCount[regionName] = (regionCount[regionName] ?? 0) + 1;
-    }
+  // Liste triée pour un index cohérent entre les légendes et le graphique
+  final sortedRegions = regionCount.keys.toList()..sort();
 
-    // Trier les régions par nombre croissant de tokens
-    var sortedEntries = regionCount.entries.toList()
-      ..sort((a, b) => a.value.compareTo(b.value));
+  List<Widget> legendItems = [];
+  int othersValue = 0;
 
-    // Créer une map pour les couleurs, basée sur les mêmes couleurs que le donut
-    Map<String, Color> regionColors = {};
-    final List<Color> colorPalette = Colors.primaries; // Choisir une palette de couleurs
-    for (int i = 0; i < sortedEntries.length; i++) {
-      regionColors[sortedEntries[i].key] = colorPalette[i % colorPalette.length];
-    }
+  for (var region in sortedRegions) {
+    final value = regionCount[region]!;
+    final double percentage = (value / regionCount.values.fold(0, (sum, v) => sum + v)) * 100;
+    final color = generateColor(sortedRegions.indexOf(region));
 
-    List<Widget> legendItems = [];
-    int othersValue = 0;
-
-    // Parcourir les régions et regrouper celles avec < 2%
-    for (var entry in sortedEntries) {
-      final double percentage = (entry.value / regionCount.values.fold(0, (sum, value) => sum + value)) * 100;
-
-      if (percentage < 2) {
-        // Ajouter aux "Autres" si < 2%
-        othersValue += entry.value;
-        othersDetails.add({'region': entry.key, 'count': entry.value}); // Stocker les détails de "Autres"
-      } else {
-        // Ajouter un élément de légende pour cette région
-        legendItems.add(Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 16,
-              height: 16,
-              color: regionColors[entry.key], // Utiliser la couleur attribuée à cette région
-            ),
-            const SizedBox(width: 4),
-            Text(
-              '${entry.key}: ${entry.value}',
-              style: TextStyle(fontSize: 13 + appState.getTextSizeOffset()),
-            ),
-          ],
-        ));
-      }
-    }
-
-    // Ajouter une légende pour "Autres" si nécessaire
-    if (othersValue > 0) {
+    if (percentage < 2) {
+      // Ajouter aux "Autres" si < 2%
+      othersValue += value;
+      othersDetails.add({'region': region, 'count': value});
+    } else {
+      // Ajouter un élément de légende pour cette région
       legendItems.add(Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
             width: 16,
             height: 16,
-            color: Colors.grey,
+            color: color,
           ),
           const SizedBox(width: 4),
           Text(
-            '${S.of(context).others}: $othersValue',
+            '$region: $value',
             style: TextStyle(fontSize: 13 + appState.getTextSizeOffset()),
           ),
         ],
       ));
     }
-
-    return Wrap(
-      spacing: 8.0,
-      runSpacing: 4.0,
-      children: legendItems,
-    );
   }
+
+  // Ajouter une légende pour "Autres" si nécessaire
+  if (othersValue > 0) {
+    legendItems.add(Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 16,
+          height: 16,
+          color: Colors.grey,
+        ),
+        const SizedBox(width: 4),
+        Text(
+          '${S.of(context).others}: $othersValue',
+          style: TextStyle(fontSize: 13 + appState.getTextSizeOffset()),
+        ),
+      ],
+    ));
+  }
+
+  return Wrap(
+    spacing: 8.0,
+    runSpacing: 4.0,
+    children: legendItems,
+  );
+}
 
   Widget _buildLegendByCity(DataManager dataManager, List<Map<String, dynamic>> othersDetails) {
-    Map<String, int> cityCount = {};
-    final appState = Provider.of<AppState>(context);
+  Map<String, int> cityCount = {};
+  final appState = Provider.of<AppState>(context);
 
-    // Remplir le dictionnaire avec les counts par ville
-    for (var token in dataManager.portfolio) {
-      String fullName = token['fullName'];
-      List<String> parts = fullName.split(',');
-      String city = parts.length >= 2 ? parts[1].trim() : 'Unknown City';
+  // Remplir le dictionnaire avec les counts par ville
+  for (var token in dataManager.portfolio) {
+    String fullName = token['fullName'];
+    List<String> parts = fullName.split(',');
+    String city = parts.length >= 2 ? parts[1].trim() : 'Unknown City';
 
-      cityCount[city] = (cityCount[city] ?? 0) + 1;
-    }
+    cityCount[city] = (cityCount[city] ?? 0) + 1;
+  }
 
-    // Calculer le total des tokens
-    int totalCount = cityCount.values.fold(0, (sum, value) => sum + value);
+  // Calculer le total des tokens
+  int totalCount = cityCount.values.fold(0, (sum, value) => sum + value);
 
-    // Trier les villes par nombre croissant de tokens
-    var sortedEntries = cityCount.entries.toList()
-      ..sort((a, b) => a.value.compareTo(b.value));
+  // Trier les villes par ordre alphabétique pour un index constant
+  final sortedCities = cityCount.keys.toList()..sort();
 
-    // Créer une map pour les couleurs, basée sur les mêmes couleurs que le donut
-    Map<String, Color> cityColors = {};
-    final List<Color> colorPalette = Colors.primaries; // Choisir une palette de couleurs
-    for (int i = 0; i < sortedEntries.length; i++) {
-      cityColors[sortedEntries[i].key] = colorPalette[i % colorPalette.length];
-    }
+  List<Widget> legendItems = [];
+  int othersValue = 0;
 
-    List<Widget> legendItems = [];
-    int othersValue = 0;
+  // Parcourir les villes et regrouper celles avec < 2%
+  for (var city in sortedCities) {
+    final value = cityCount[city]!;
+    final double percentage = (value / totalCount) * 100;
+    final color = generateColor(sortedCities.indexOf(city)); // Appliquer la couleur générée
 
-    // Parcourir les villes et regrouper celles avec < 2%
-    for (var entry in sortedEntries) {
-      final double percentage = (entry.value / totalCount) * 100;
-
-      if (percentage < 2) {
-        // Ajouter aux "Autres" si < 2%
-        othersValue += entry.value;
-        othersDetails.add({'city': entry.key, 'count': entry.value}); // Stocker les détails de "Autres"
-      } else {
-        // Ajouter un élément de légende pour cette ville
-        legendItems.add(Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 16,
-              height: 16,
-              color: cityColors[entry.key], // Utiliser la couleur attribuée à cette ville
-            ),
-            const SizedBox(width: 4),
-            Text(
-              '${entry.key}: ${entry.value}',
-              style: TextStyle(fontSize: 13 + appState.getTextSizeOffset()),
-            ),
-          ],
-        ));
-      }
-    }
-
-    // Ajouter une légende pour "Autres" si nécessaire
-    if (othersValue > 0) {
+    if (percentage < 2) {
+      // Ajouter aux "Autres" si < 2%
+      othersValue += value;
+      othersDetails.add({'city': city, 'count': value}); // Stocker les détails de "Autres"
+    } else {
+      // Ajouter un élément de légende pour cette ville
       legendItems.add(Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
             width: 16,
             height: 16,
-            color: Colors.grey,
+            color: color,
           ),
           const SizedBox(width: 4),
           Text(
-            '${S.of(context).others}: $othersValue',
+            '$city: $value',
             style: TextStyle(fontSize: 13 + appState.getTextSizeOffset()),
           ),
         ],
       ));
     }
-
-    return Wrap(
-      spacing: 8.0,
-      runSpacing: 4.0,
-      children: legendItems,
-    );
   }
+
+  // Ajouter une légende pour "Autres" si nécessaire
+  if (othersValue > 0) {
+    legendItems.add(Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 16,
+          height: 16,
+          color: Colors.grey,
+        ),
+        const SizedBox(width: 4),
+        Text(
+          '${S.of(context).others}: $othersValue',
+          style: TextStyle(fontSize: 13 + appState.getTextSizeOffset()),
+        ),
+      ],
+    ));
+  }
+
+  return Wrap(
+    spacing: 8.0,
+    runSpacing: 4.0,
+    children: legendItems,
+  );
+}
+
 
   List<FlSpot> _buildCumulativeChartData(List<Map<String, dynamic>> data) {
     List<FlSpot> spots = [];
@@ -1117,205 +1104,89 @@ void _deleteBalanceRecord(DataManager dataManager, int index) {
   }
 
   List<PieChartSectionData> _buildDonutChartDataByCountry(DataManager dataManager) {
-    Map<String, int> countryCount = {};
-    final appState = Provider.of<AppState>(context);
+  Map<String, int> countryCount = {};
+  final appState = Provider.of<AppState>(context);
 
-    // Remplir le dictionnaire avec les counts par pays
-    for (var token in dataManager.portfolio) {
-      String fullName = token['fullName'];
-      List<String> parts = fullName.split(',');
-      String country = parts.length == 4 ? parts[3].trim() : 'United States';
+  // Remplir le dictionnaire avec les counts par pays
+  for (var token in dataManager.portfolio) {
+    String fullName = token['fullName'];
+    List<String> parts = fullName.split(',');
+    String country = parts.length == 4 ? parts[3].trim() : 'United States';
 
-      countryCount[country] = (countryCount[country] ?? 0) + 1;
-    }
-
-    // Trier les pays par nombre croissant de tokens
-    var sortedEntries = countryCount.entries.toList()
-      ..sort((a, b) => a.value.compareTo(b.value));
-
-    // Créer les sections du graphique à secteurs avec des gradients
-    return sortedEntries.map((entry) {
-      final double percentage = (entry.value /
-              sortedEntries.fold(0, (sum, value) => sum + value.value)) *
-          100;
-
-      // Obtenir un index unique pour chaque pays
-      final int index = sortedEntries.indexOf(entry);
-      final Color baseColor = Colors.cyan[100 * (index % 9)] ?? Colors.cyan;
-
-      // Créer des nuances pour le gradient
-      final Color lighterColor = Utils.shadeColor(baseColor, 1); // Nuance plus claire
-      final Color darkerColor = Utils.shadeColor(baseColor, 0.7);  // Nuance plus foncée
-
-      return PieChartSectionData(
-        value: entry.value.toDouble(),
-        // Conditionner l'affichage du texte selon le pourcentage
-        title: percentage < 1 ? '' : '${percentage.toStringAsFixed(1)}%',
-        // Appliquer un gradient en fonction de la couleur de base
-        gradient: LinearGradient(
-          colors: [lighterColor, darkerColor],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        radius: 50,
-        titleStyle: TextStyle(
-          fontSize: 10 + appState.getTextSizeOffset(),
-          color: Colors.white,
-          fontWeight: FontWeight.bold
-        ),
-      );
-    }).toList();
+    countryCount[country] = (countryCount[country] ?? 0) + 1;
   }
+
+  // Trier les pays par ordre alphabétique pour garantir un ordre constant
+  final sortedCountries = countryCount.keys.toList()..sort();
+
+  // Créer les sections du graphique à secteurs avec des gradients
+  return sortedCountries.map((country) {
+    final int value = countryCount[country]!;
+    final double percentage = (value /
+            countryCount.values.reduce((a, b) => a + b)) *
+        100;
+
+    // Utiliser `generateColor` avec l'index dans `sortedCountries`
+    final int index = sortedCountries.indexOf(country);
+    final Color baseColor = generateColor(index);
+
+    // Créer des nuances pour le gradient
+    final Color lighterColor = Utils.shadeColor(baseColor, 1);
+    final Color darkerColor = Utils.shadeColor(baseColor, 0.7);
+
+    return PieChartSectionData(
+      value: value.toDouble(),
+      title: percentage < 1 ? '' : '${percentage.toStringAsFixed(1)}%',
+      gradient: LinearGradient(
+        colors: [lighterColor, darkerColor],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      ),
+      radius: 50,
+      titleStyle: TextStyle(
+        fontSize: 10 + appState.getTextSizeOffset(),
+        color: Colors.white,
+        fontWeight: FontWeight.bold
+      ),
+    );
+  }).toList();
+}
 
   List<PieChartSectionData> _buildDonutChartDataByRegion(DataManager dataManager, List<Map<String, dynamic>> othersDetails) {
-    Map<String, int> regionCount = {};
-    final appState = Provider.of<AppState>(context);
+  Map<String, int> regionCount = {};
+  final appState = Provider.of<AppState>(context);
 
-    // Remplir le dictionnaire avec les counts par région
-    for (var token in dataManager.portfolio) {
-      String fullName = token['fullName'];
-      List<String> parts = fullName.split(',');
-      String region = '';
+  // Remplir le dictionnaire avec les counts par région
+  for (var token in dataManager.portfolio) {
+    String fullName = token['fullName'];
+    List<String> parts = fullName.split(',');
+    String regionCode = parts.length >= 3 ? parts[2].trim().substring(0, 2) : S.of(context).unknown;
 
-      if (parts.length >= 3 &&
-          RegExp(r'^[A-Z]{2}\s\d{5}$').hasMatch(parts[2].trim())) {
-        region = parts[2].trim().substring(0, 2);
-      } else if (parts.length >= 3) {
-        region = parts[2].trim();
-      }
-
-      if (Parameters.usStateAbbreviations.containsKey(region)) {
-        region = Parameters.usStateAbbreviations[region]!;
-      }
-
-      regionCount[region] = (regionCount[region] ?? 0) + 1;
-    }
-
-    // Calculer le total des tokens
-    int totalCount = regionCount.values.fold(0, (sum, value) => sum + value);
-
-    // Trier les régions par nombre croissant de tokens
-    var sortedEntries = regionCount.entries.toList()
-      ..sort((a, b) => a.value.compareTo(b.value));
-
-    // Créer une map pour les couleurs
-    Map<String, Color> regionColors = {};
-    final List<Color> colorPalette = Colors.primaries; // Choisir une palette de couleurs
-    for (int i = 0; i < sortedEntries.length; i++) {
-      regionColors[sortedEntries[i].key] = colorPalette[i % colorPalette.length];
-    }
-
-    // Initialiser les sections pour les régions et une section pour "Autres"
-    List<PieChartSectionData> sections = [];
-    othersDetails.clear(); // Clear previous details of "Autres"
-    int othersValue = 0;
-
-    // Parcourir les régions et regrouper celles avec < 2%
-    for (var entry in sortedEntries) {
-      final double percentage = (entry.value / totalCount) * 100;
-
-      if (percentage < 2) {
-        // Ajouter aux "Autres" si < 2%
-        othersValue += entry.value;
-        othersDetails.add({'region': entry.key, 'count': entry.value}); // Stocker les détails de "Autres"
-      } else {
-        // Ajouter une section pour cette région
-        sections.add(PieChartSectionData(
-          value: entry.value.toDouble(),
-          title: '${percentage.toStringAsFixed(1)}%',
-          color: regionColors[entry.key], // Utiliser la couleur attribuée à cette région
-          radius: 50,
-          titleStyle: TextStyle(
-            fontSize: 10 + appState.getTextSizeOffset(),
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-          ),
-        ));
-      }
-    }
-
-    // Ajouter la section "Autres" si nécessaire
-    if (othersValue > 0) {
-      final double othersPercentage = (othersValue / totalCount) * 100;
-      sections.add(PieChartSectionData(
-        value: othersValue.toDouble(),
-        title: '${S.of(context).others} ${othersPercentage.toStringAsFixed(1)}%',
-        color: Colors.grey,
-        radius: 50,
-        titleStyle: TextStyle(
-          fontSize: 10 + appState.getTextSizeOffset(),
-          color: Colors.white,
-          fontWeight: FontWeight.bold,
-        ),
-      ));
-    }
-
-    return sections;
+    String regionName = Parameters.usStateAbbreviations[regionCode] ?? regionCode;
+    regionCount[regionName] = (regionCount[regionName] ?? 0) + 1;
   }
 
-  List<PieChartSectionData> _buildDonutChartDataByCity(DataManager dataManager, List<Map<String, dynamic>> othersDetails) {
-    Map<String, int> cityCount = {};
-    final appState = Provider.of<AppState>(context);
+  // Calculer le total des tokens
+  int totalCount = regionCount.values.fold(0, (sum, value) => sum + value);
+  final sortedRegions = regionCount.keys.toList()..sort();
 
-    // Remplir le dictionnaire avec les counts par ville
-    for (var token in dataManager.portfolio) {
-      String fullName = token['fullName'];
-      List<String> parts = fullName.split(',');
-      String city = parts.length >= 2 ? parts[1].trim() : 'Unknown City';
+  List<PieChartSectionData> sections = [];
+  othersDetails.clear();
+  int othersValue = 0;
 
-      cityCount[city] = (cityCount[city] ?? 0) + 1;
-    }
+  for (var region in sortedRegions) {
+    final value = regionCount[region]!;
+    final double percentage = (value / totalCount) * 100;
+    final color = generateColor(sortedRegions.indexOf(region));
 
-    // Calculer le total des tokens
-    int totalCount = cityCount.values.fold(0, (sum, value) => sum + value);
-
-    // Trier les villes par nombre croissant de tokens
-    var sortedEntries = cityCount.entries.toList()
-      ..sort((a, b) => a.value.compareTo(b.value));
-
-    // Créer une map pour les couleurs
-    Map<String, Color> cityColors = {};
-    final List<Color> colorPalette = Colors.primaries; // Choisir une palette de couleurs
-    for (int i = 0; i < sortedEntries.length; i++) {
-      cityColors[sortedEntries[i].key] = colorPalette[i % colorPalette.length];
-    }
-
-    // Initialiser les sections pour les villes et une section pour "Autres"
-    List<PieChartSectionData> sections = [];
-    othersDetails.clear(); // Clear previous details of "Autres"
-    int othersValue = 0;
-
-    // Parcourir les villes et regrouper celles avec < 2%
-    for (var entry in sortedEntries) {
-      final double percentage = (entry.value / totalCount) * 100;
-
-      if (percentage < 2) {
-        // Ajouter aux "Autres" si < 2%
-        othersValue += entry.value;
-        othersDetails.add({'city': entry.key, 'count': entry.value}); // Stocker les détails de "Autres"
-      } else {
-        // Ajouter une section pour cette ville
-        sections.add(PieChartSectionData(
-          value: entry.value.toDouble(),
-          title: '${percentage.toStringAsFixed(1)}%',
-          color: cityColors[entry.key], // Utiliser la couleur attribuée à cette ville
-          radius: 50,
-          titleStyle: TextStyle(
-            fontSize: 10 + appState.getTextSizeOffset(),
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-          ),
-        ));
-      }
-    }
-
-    // Ajouter la section "Autres" si nécessaire
-    if (othersValue > 0) {
-      final double othersPercentage = (othersValue / totalCount) * 100;
+    if (percentage < 2) {
+      othersValue += value;
+      othersDetails.add({'region': region, 'count': value});
+    } else {
       sections.add(PieChartSectionData(
-        value: othersValue.toDouble(),
-        title: '${S.of(context).others} ${othersPercentage.toStringAsFixed(1)}%',
-        color: Colors.grey,
+        value: value.toDouble(),
+        title: '${percentage.toStringAsFixed(1)}%',
+        color: color,
         radius: 50,
         titleStyle: TextStyle(
           fontSize: 10 + appState.getTextSizeOffset(),
@@ -1324,8 +1195,98 @@ void _deleteBalanceRecord(DataManager dataManager, int index) {
         ),
       ));
     }
+  }
 
-    return sections;
+  // Ajouter la section "Autres" si nécessaire
+  if (othersValue > 0) {
+    final double othersPercentage = (othersValue / totalCount) * 100;
+    sections.add(PieChartSectionData(
+      value: othersValue.toDouble(),
+      title: '${S.of(context).others} ${othersPercentage.toStringAsFixed(1)}%',
+      color: Colors.grey,
+      radius: 50,
+      titleStyle: TextStyle(
+        fontSize: 10 + appState.getTextSizeOffset(),
+        color: Colors.white,
+        fontWeight: FontWeight.bold,
+      ),
+    ));
+  }
+
+  return sections;
+}
+
+  List<PieChartSectionData> _buildDonutChartDataByCity(DataManager dataManager, List<Map<String, dynamic>> othersDetails) {
+  Map<String, int> cityCount = {};
+  final appState = Provider.of<AppState>(context);
+
+  // Remplir le dictionnaire avec les counts par ville
+  for (var token in dataManager.portfolio) {
+    String fullName = token['fullName'];
+    List<String> parts = fullName.split(',');
+    String city = parts.length >= 2 ? parts[1].trim() : 'Unknown City';
+
+    cityCount[city] = (cityCount[city] ?? 0) + 1;
+  }
+
+  // Calculer le total des tokens
+  int totalCount = cityCount.values.fold(0, (sum, value) => sum + value);
+
+  // Trier les villes par ordre alphabétique pour un index constant
+  final sortedCities = cityCount.keys.toList()..sort();
+
+  List<PieChartSectionData> sections = [];
+  othersDetails.clear(); // Clear previous details of "Autres"
+  int othersValue = 0;
+
+  // Parcourir les villes et regrouper celles avec < 2%
+  for (var city in sortedCities) {
+    final value = cityCount[city]!;
+    final double percentage = (value / totalCount) * 100;
+    final color = generateColor(sortedCities.indexOf(city)); // Appliquer la couleur générée
+
+    if (percentage < 2) {
+      othersValue += value;
+      othersDetails.add({'city': city, 'count': value}); // Stocker les détails de "Autres"
+    } else {
+      sections.add(PieChartSectionData(
+        value: value.toDouble(),
+        title: '${percentage.toStringAsFixed(1)}%',
+        color: color,
+        radius: 50,
+        titleStyle: TextStyle(
+          fontSize: 10 + appState.getTextSizeOffset(),
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+        ),
+      ));
+    }
+  }
+
+  // Ajouter la section "Autres" si nécessaire
+  if (othersValue > 0) {
+    final double othersPercentage = (othersValue / totalCount) * 100;
+    sections.add(PieChartSectionData(
+      value: othersValue.toDouble(),
+      title: '${S.of(context).others} ${othersPercentage.toStringAsFixed(1)}%',
+      color: Colors.grey,
+      radius: 50,
+      titleStyle: TextStyle(
+        fontSize: 10 + appState.getTextSizeOffset(),
+        color: Colors.white,
+        fontWeight: FontWeight.bold,
+      ),
+    ));
+  }
+
+  return sections;
+}
+
+  Color generateColor(int index) {
+    final hue = ((index * 57) + 193 * (index % 3)) % 360; // Alterne entre plusieurs intervalles de teinte
+    final saturation = (0.7 + (index % 5) * 0.06).clamp(0.4, 0.7); // Variation de la saturation
+    final brightness = (0.8 + (index % 3) * 0.2).clamp(0.6, 0.9);  // Variation de la luminosité
+    return HSVColor.fromAHSV(1.0, hue.toDouble(), saturation, brightness).toColor();
   }
 
   Color _getPropertyColor(int propertyType) {

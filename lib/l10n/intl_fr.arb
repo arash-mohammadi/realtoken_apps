@@ -204,7 +204,11 @@
   "save": "Enregistrer",
   "editWalletBalance": "Éditer l'historique du wallet",
   "date": "Date",
-  
+  "initialPriceRemoved": "Prix moyen d'achat supprimé",
+  "enterValidNumber": "Veuillez entrer un nombre valide",
+  "initialPriceUpdated": "Prix moyen d'achat mis à jour",
+  "initialPrice": "Prix moyen d'achat",
+  "manualEdit": "Édition Manuelle",
   "@propertyMaintenanceMonthly": {
     "description": "Dépenses mensuelles d'entretien de la propriété"
   },

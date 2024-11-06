@@ -18,6 +18,49 @@ class PortfolioDisplay2 extends StatefulWidget {
 
 class PortfolioDisplay2State extends State<PortfolioDisplay2> {
 
+ Widget _buildGaugeForRent(double rentValue, BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 5),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            double maxWidth = constraints.maxWidth;
+            return Stack(
+              children: [
+                Container(
+                  height: 15,
+                  width: maxWidth,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                ),
+                Container(
+                  height: 14,
+                  width: rentValue.clamp(0, 100) / 100 * maxWidth,
+                  decoration: BoxDecoration(
+                    color: Colors.blue,
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+        const SizedBox(height: 5),
+        Text(
+          "ROI: ${rentValue.toStringAsFixed(1)} %",
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: Colors.blue,
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context); // Accéder à AppState
@@ -83,6 +126,12 @@ class PortfolioDisplay2State extends State<PortfolioDisplay2> {
                       // Vérifier si la date de 'rent_start' est dans le futur en utilisant le bon format
                       final rentStartDate = DateTime.tryParse(token['rentStartDate'] ?? '');
                       final bool isFutureRentStart = rentStartDate != null && rentStartDate.isAfter(DateTime.now());
+
+                      final rentPercentage = (token['totalRentReceived'] != null &&
+                          token['initialTotalValue'] != null &&
+                          token['initialTotalValue'] != 0)
+                      ? (token['totalRentReceived'] / token['initialTotalValue']) * 100
+                      : 0.5;
 
                       return Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
@@ -205,6 +254,10 @@ class PortfolioDisplay2State extends State<PortfolioDisplay2> {
                                         ),
                                       ),
                                       const SizedBox(height: 8),
+                                      // Appel à la jauge pour le pourcentage de rentabilité
+                                      _buildGaugeForRent(rentPercentage, context),
+                                      const SizedBox(height: 8),
+                                      
                                       Text(
                                         '${S.of(context).totalValue}: ${formatCurrency(context, token['totalValue'])}',
                                         style: TextStyle(

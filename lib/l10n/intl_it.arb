@@ -204,6 +204,11 @@
   "save": "Salva",
   "editWalletBalance": "Modifica Storico del Wallet",
   "date": "Data",
+  "initialPriceRemoved": "Prezzo medio d'acquisto rimosso",
+  "enterValidNumber": "Per favore, inserisci un numero valido",
+  "initialPriceUpdated": "Prezzo medio d'acquisto aggiornato",
+  "initialPrice": "Prezzo medio d'acquisto",
+  "manualEdit": "Modifica Manuale",
   "@propertyMaintenanceMonthly": {
     "description": "Spese mensili di manutenzione della proprietà"
   },

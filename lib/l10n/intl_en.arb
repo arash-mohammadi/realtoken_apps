@@ -204,6 +204,12 @@
   "save": "Save",
   "editWalletBalance": "Edit Wallet Balance History",
   "date": "Date",
+  "initialPriceRemoved": "Average purchase price removed",
+  "enterValidNumber": "Please enter a valid number",
+  "initialPriceUpdated": "Average purchase price updated",
+  "initialPrice": "Average purchase price",
+  "manualEdit": "Manual Edit",
+  
   "@propertyMaintenanceMonthly": {
     "description": "Monthly maintenance expenses for the property"
   },

@@ -99,6 +99,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "editWalletBalance":
             MessageLookupByLibrary.simpleMessage("Edit Wallet Balance History"),
         "english": MessageLookupByLibrary.simpleMessage("English"),
+        "enterValidNumber":
+            MessageLookupByLibrary.simpleMessage("Please enter a valid number"),
         "ethereumContract":
             MessageLookupByLibrary.simpleMessage("Ethereum contract"),
         "exportData": MessageLookupByLibrary.simpleMessage("Export Data"),
@@ -128,6 +130,12 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Initial launch date"),
         "initialMaintenanceReserve":
             MessageLookupByLibrary.simpleMessage("Maintenance reserve"),
+        "initialPrice":
+            MessageLookupByLibrary.simpleMessage("Average purchase price"),
+        "initialPriceRemoved": MessageLookupByLibrary.simpleMessage(
+            "Average purchase price removed"),
+        "initialPriceUpdated": MessageLookupByLibrary.simpleMessage(
+            "Average purchase price updated"),
         "insights": MessageLookupByLibrary.simpleMessage("Insights"),
         "insurance": MessageLookupByLibrary.simpleMessage("Insurance"),
         "italian": MessageLookupByLibrary.simpleMessage("Italiano"),
@@ -141,6 +149,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "manageAddresses": MessageLookupByLibrary.simpleMessage("Add wallet"),
         "manageEvmAddresses":
             MessageLookupByLibrary.simpleMessage("Manage Wallets"),
+        "manualEdit": MessageLookupByLibrary.simpleMessage("Manual Edit"),
         "maps": MessageLookupByLibrary.simpleMessage("Maps"),
         "mfrPortfolio": MessageLookupByLibrary.simpleMessage("MFR Portfolio"),
         "miscellaneousCosts":

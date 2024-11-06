@@ -129,6 +129,7 @@ Future<void> showTokenDetails( BuildContext context, Map<String, dynamic> token)
   final appState = Provider.of<AppState>(context, listen: false);
 final ValueNotifier<bool> showDetailsNotifier = ValueNotifier<bool>(false);
 final ValueNotifier<bool> showRentDetailsNotifier = ValueNotifier<bool>(false);
+  final ValueNotifier<bool> showTextField = ValueNotifier<bool>(false); // Contrôle de la visibilité
 
 // Calculate the total for the selected fields
 double totalCosts = (token['realtListingFee']?.toDouble() ?? 0.0) +
@@ -141,9 +142,13 @@ double totalRentCosts = (token['propertyMaintenanceMonthly']?.toDouble() ?? 0.0)
                         (token['realtPlatform']?.toDouble() ?? 0.0) +
                         (token['insurance']?.toDouble() ?? 0.0) +
                         (token['propertyTaxes']?.toDouble() ?? 0.0);
+                        
+// Variable pour stocker la valeur modifiable du prix initial
+final TextEditingController initPriceController = TextEditingController(
+  text: token['initPrice']?.toString() ?? '0.00',
+);
 
-
-  showModalBottomSheet(
+  showModalBottomSheet( 
     backgroundColor: Theme.of(context).cardColor,
     context: context,
     isScrollControlled: true,
@@ -335,7 +340,6 @@ double totalRentCosts = (token['propertyMaintenanceMonthly']?.toDouble() ?? 0.0)
                                 S.of(context).totalInvestment,
                                 formatCurrency(context, token['totalInvestment'] ?? 0)),
 
-                            // Total row with tap to show/hide details
                            GestureDetector(
                                 onTap: () => showDetailsNotifier.value = !showDetailsNotifier.value,
                                 child: Row(
@@ -518,8 +522,93 @@ double totalRentCosts = (token['propertyMaintenanceMonthly']?.toDouble() ?? 0.0)
                             _buildDetailRow(
                                 context,
                                 S.of(context).roiPerProperties,
-                                "${(token['totalRentReceived'] / token['totalValue'] * 100 ).toStringAsFixed(2)} %"),
+                                "${(token['totalRentReceived'] / token['initialTotalValue'] * 100 ).toStringAsFixed(2)} %"),
+                            Divider(), // Réduisez la hauteur pour minimiser l’espace
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start, // Aligne le texte et l'icône à gauche
+                              children: [
+                                Row(
+                                  children: [
+                                    Text(
+                                      S.of(context).manualEdit,
+                                      style: TextStyle(
+                                        fontSize: 12, // Taille de police ajustée
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    IconButton(
+                                      padding: EdgeInsets.zero, // Retire l'espacement interne de l'icône
+                                      icon: Icon(Icons.edit, color: Colors.grey, size: 18 + appState.getTextSizeOffset() ), // Icône crayon plus petite et grise
+                                      onPressed: () {
+                                        showTextField.value = !showTextField.value; // Bascule la visibilité
+                                      },
+                                    ),
+                                  ],
+                                ),
+
+                                // Bloc TextFormField et boutons en dessous
+                                ValueListenableBuilder<bool>(
+                                  valueListenable: showTextField,
+                                  builder: (context, isVisible, child) {
+                                    return Visibility(
+                                      visible: isVisible,
+                                      child: Padding(
+                                        padding: const EdgeInsets.only(top: 8.0), // Espace entre le texte/icone et le bloc
+                                        child: Row(
+                                          children: [
+                                            Expanded(
+                                              child: TextFormField(
+                                                controller: initPriceController,
+                                                keyboardType: TextInputType.number,
+                                                decoration: InputDecoration(
+                                                  labelText: S.of(context).initialPrice,
+                                                  border: OutlineInputBorder(),
+                                                  contentPadding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0), // Réduire le padding interne
+                                                  isDense: true, // Compacte le champ
+                                                ),
+                                              ),
+                                            ),
+                                            IconButton(
+                                              icon: Icon(Icons.check, color: Colors.green),
+                                              onPressed: () {
+                                                final newPrice = double.tryParse(initPriceController.text);
+                                                if (newPrice != null) {
+                                                  Provider.of<DataManager>(context, listen: false)
+                                                      .setCustomInitPrice(token['uuid'], newPrice);
+                                                  showTextField.value = false; // Masque le champ et les icônes
+                                                  ScaffoldMessenger.of(context).showSnackBar(
+                                                    SnackBar(content: Text(S.of(context).initialPriceUpdated)),
+                                                  );
+                                                } else {
+                                                  ScaffoldMessenger.of(context).showSnackBar(
+                                                    SnackBar(content: Text(S.of(context).enterValidNumber)),
+                                                  );
+                                                }
+                                              },
+                                            ),
+                                            IconButton(
+                                              icon: Icon(Icons.delete, color: Colors.red),
+                                              onPressed: () {
+                                                Provider.of<DataManager>(context, listen: false)
+                                                    .removeCustomInitPrice(token['uuid']);
+                                                initPriceController.clear(); // Efface le champ de texte
+                                                showTextField.value = false; // Masque le champ et les icônes
+                                                ScaffoldMessenger.of(context).showSnackBar(
+                                                  SnackBar(content: Text(S.of(context).initialPriceRemoved)),
+                                                );
+                                              },
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ],
+                            ),
                           ],
+                          
                         ),
                       ),
                       
@@ -681,7 +770,7 @@ double totalRentCosts = (token['propertyMaintenanceMonthly']?.toDouble() ?? 0.0)
 
       const SizedBox(height: 10),
       _buildGaugeForROI(
-        token['totalRentReceived'] / token['totalValue'] * 100, // Calcul du ROI
+        token['totalRentReceived'] / token['initialTotalValue'] * 100, // Calcul du ROI
         context,
       ),
 
@@ -699,7 +788,7 @@ double totalRentCosts = (token['propertyMaintenanceMonthly']?.toDouble() ?? 0.0)
       _buildPriceChartOrMessage(
           context,
           token['historic']?['prices'] ?? [],
-          token['historic']?['init_price']),
+          token['initPrice']),
     ],
   ),
 ),

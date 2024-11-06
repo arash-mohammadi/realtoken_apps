@@ -106,12 +106,12 @@ class MapsPageState extends State<MapsPage> {
 
       if (lat != null && lng != null) {
         return Marker(
+          width: 40.0, // Augmentez cette valeur pour une image plus grande
+          height: 40.0, // Augmentez cette valeur pour une image plus grande
           point: LatLng(lat, lng),
           child: GestureDetector(
             onTap: () => _showMarkerPopup(context, matchingToken),
             child: Container(
-              width: 50.0,
-              height: 50.0,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
@@ -122,7 +122,7 @@ class MapsPageState extends State<MapsPage> {
                 child: matchingToken['imageLink'] != null
                     ? CachedNetworkImage(
                         imageUrl: matchingToken['imageLink'][0],
-                        fit: BoxFit.cover,
+                        fit: BoxFit.cover, // Cette propriété remplit tout l'espace
                         placeholder: (context, url) => CircularProgressIndicator(),
                         errorWidget: (context, url, error) => Icon(
                           Icons.error,
@@ -203,15 +203,15 @@ class MapsPageState extends State<MapsPage> {
                 ),
                 MarkerClusterLayerWidget(
                   options: MarkerClusterLayerOptions(
-                    maxClusterRadius: 70,
-                    disableClusteringAtZoom: 15,
+                    maxClusterRadius: 40,
+                    disableClusteringAtZoom: 14,
                     size: const Size(40, 40),
                     markers: markers,
                     builder: (context, clusterMarkers) {
                       Color clusterColor = _getClusterColor(clusterMarkers);
                       return Container(
-                        width: 50,
-                        height: 50,
+                        width: 40,
+                        height: 40,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           gradient: RadialGradient(
@@ -292,8 +292,7 @@ class MapsPageState extends State<MapsPage> {
           ),
           // Légende en bas à gauche
           Positioned(
-            bottom:
-                90, // Remonter la légende pour la placer au-dessus de la BottomBar
+            bottom: 90, // Remonter la légende pour la placer au-dessus de la BottomBar
             left: 16,
             child: Container(
               padding: const EdgeInsets.all(8),

@@ -87,6 +87,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "edit": MessageLookupByLibrary.simpleMessage("编辑"),
         "editWalletBalance": MessageLookupByLibrary.simpleMessage("编辑钱包余额历史"),
         "english": MessageLookupByLibrary.simpleMessage("English"),
+        "enterValidNumber": MessageLookupByLibrary.simpleMessage("请输入有效的数字"),
         "ethereumContract": MessageLookupByLibrary.simpleMessage("以太坊合约"),
         "exportData": MessageLookupByLibrary.simpleMessage("导出数据"),
         "exportFailed": MessageLookupByLibrary.simpleMessage("数据导出失败"),
@@ -108,6 +109,11 @@ class MessageLookup extends MessageLookupByLibrary {
         "initialLaunchDate": MessageLookupByLibrary.simpleMessage("初始推出日期"),
         "initialMaintenanceReserve":
             MessageLookupByLibrary.simpleMessage("维护储备金"),
+        "initialPrice": MessageLookupByLibrary.simpleMessage("平均购买价格"),
+        "initialPriceRemoved":
+            MessageLookupByLibrary.simpleMessage("平均购买价格已删除"),
+        "initialPriceUpdated":
+            MessageLookupByLibrary.simpleMessage("平均购买价格已更新"),
         "insights": MessageLookupByLibrary.simpleMessage("见解"),
         "insurance": MessageLookupByLibrary.simpleMessage("保险"),
         "italian": MessageLookupByLibrary.simpleMessage("Italiano"),
@@ -119,6 +125,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "lotSize": MessageLookupByLibrary.simpleMessage("地块面积"),
         "manageAddresses": MessageLookupByLibrary.simpleMessage("添加钱包"),
         "manageEvmAddresses": MessageLookupByLibrary.simpleMessage("管理钱包"),
+        "manualEdit": MessageLookupByLibrary.simpleMessage("手动编辑"),
         "maps": MessageLookupByLibrary.simpleMessage("地图"),
         "mfrPortfolio": MessageLookupByLibrary.simpleMessage("MFR 投资组合"),
         "miscellaneousCosts": MessageLookupByLibrary.simpleMessage("杂项费用"),

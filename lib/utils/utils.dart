@@ -14,10 +14,11 @@ class Utils {
 static double getAppBarHeight(BuildContext context) {
   double screenHeight = MediaQuery.of(context).size.height;
   double screenWidth = MediaQuery.of(context).size.width;
+  bool isPortrait = MediaQuery.of(context).orientation == Orientation.portrait;
 
   if (screenWidth >= 768) {
     // Dimensions spécifiques pour iPad
-    return kToolbarHeight + 10;
+        return isPortrait ? kToolbarHeight + 10 : kToolbarHeight + 10;
   } else if (screenHeight > 800) {
     // Appareils avec grands écrans (par exemple iPhone 15 Pro Max)
     return kToolbarHeight + 40;
@@ -35,10 +36,10 @@ static double getSliverAppBarHeight(BuildContext context) {
 
   if (screenWidth >= 768) {
     // Hauteur spécifique pour les iPads
-    return isPortrait ? getAppBarHeight(context) + 30 : getAppBarHeight(context) + 30;
+    return isPortrait ? getAppBarHeight(context) + 30 : getAppBarHeight(context) + 45;
   } else if (isPortrait) {
     // Utiliser une hauteur normale pour les appareils en mode portrait
-    return screenHeight > 800 ? getAppBarHeight(context) : getAppBarHeight(context) + 25;
+    return screenHeight > 800 ? getAppBarHeight(context) - 10 : getAppBarHeight(context) + 25;
   } else {
     // Réduire la hauteur en mode paysage
     return getAppBarHeight(context) + 45; // Ajustez cette valeur si nécessaire

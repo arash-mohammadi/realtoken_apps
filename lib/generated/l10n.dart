@@ -2080,6 +2080,56 @@ class S {
     );
   }
 
+  /// `Average purchase price removed`
+  String get initialPriceRemoved {
+    return Intl.message(
+      'Average purchase price removed',
+      name: 'initialPriceRemoved',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Please enter a valid number`
+  String get enterValidNumber {
+    return Intl.message(
+      'Please enter a valid number',
+      name: 'enterValidNumber',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Average purchase price updated`
+  String get initialPriceUpdated {
+    return Intl.message(
+      'Average purchase price updated',
+      name: 'initialPriceUpdated',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Average purchase price`
+  String get initialPrice {
+    return Intl.message(
+      'Average purchase price',
+      name: 'initialPrice',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Manual Edit`
+  String get manualEdit {
+    return Intl.message(
+      'Manual Edit',
+      name: 'manualEdit',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Bedroom/Bath`
   String get bedroomBath {
     return Intl.message(

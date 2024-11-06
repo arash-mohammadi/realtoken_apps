@@ -92,11 +92,15 @@ class DataManager extends ChangeNotifier {
   List<Map<String, dynamic>> tempRentData = [];
   List<BalanceRecord> balanceHistory = [];
   List<BalanceRecord> walletBalanceHistory = [];
+  Map<String, double> customInitPrices = {};
 
   final String rwaTokenAddress = '0x0675e8f4a52ea6c845cb6427af03616a2af42170';
 
-DateTime? lastArchiveTime; // Variable pour stocker le dernier archivage
+  DateTime? lastArchiveTime; // Variable pour stocker le dernier archivage
 
+DataManager() {
+    loadCustomInitPrices(); // Charger les prix personnalisés lors de l'initialisation
+  }
 
   Future<void> updateGlobalVariables({bool forceFetch = false}) async {
   var box = Hive.box('realTokens'); // Ouvrir la boîte Hive pour le cache
@@ -335,8 +339,15 @@ Future<void> fetchAndStoreAllTokens() async {
     _recentUpdates = _extractRecentUpdates(realTokens);
     for (var realToken in realTokens.cast<Map<String, dynamic>>()) {
       // Vérification: Ne pas ajouter si totalTokens est 0 ou si fullName commence par "OLD-"
+       // Récupérer la valeur customisée de initPrice si elle existe
+        String tokenUuid = realToken['uuid'].toLowerCase();
+       
       if (realToken['totalTokens'] != null && realToken['totalTokens'] > 0 && realToken['fullName'] != null && !realToken['fullName'].startsWith('OLD-') && realToken['uuid'].toLowerCase() != rwaTokenAddress) {
+        double? customInitPrice = customInitPrices[tokenUuid];
+        double initPrice = customInitPrice ?? (realToken['historic']['init_price'] as num?)?.toDouble() ?? 0.0;
+
         allTokensList.add({
+          'uuid': tokenUuid,
           'shortName': realToken['shortName'],
           'fullName': realToken['fullName'],
           'imageLink': realToken['imageLink'],
@@ -368,6 +379,7 @@ Future<void> fetchAndStoreAllTokens() async {
           'historic': realToken['historic'],
           'ethereumContract': realToken['ethereumContract'],
           'gnosisContract': realToken['gnosisContract'],
+          'initPrice': initPrice,
           'totalRentReceived': 0.0, // Ajout du loyer total reçu
         });
 
@@ -379,7 +391,6 @@ Future<void> fetchAndStoreAllTokens() async {
       // Gérer le cas où tokenPrice est soit un num soit une liste
         dynamic tokenPriceData = realToken['tokenPrice'];
         double? tokenPrice;
-        double? initPrice = (realToken['historic']['init_price'] as num?)?.toDouble();
         int totalTokens = (realToken['totalTokens'] as num).toInt();
         
         if (tokenPriceData is List && tokenPriceData.isNotEmpty) {
@@ -388,10 +399,8 @@ Future<void> fetchAndStoreAllTokens() async {
           tokenPrice = tokenPriceData.toDouble(); // Utiliser directement si c'est un num
         }
 
-        if (initPrice != null) {
-          tempInitialPrice += initPrice * totalTokens;
-        }
-
+        tempInitialPrice += initPrice * totalTokens;
+      
         if (tokenPrice != null) {
           tempActualPrice += tokenPrice * totalTokens;
         }
@@ -534,7 +543,6 @@ Future<void> fetchAndStoreAllTokens() async {
           final double tokenPrice = matchingRealToken['tokenPrice'] ?? 0.0;
           final double tokenValue = (double.parse(walletToken['amount']) * tokenPrice);
 
-          initialTotalValue += double.parse(walletToken['amount']) * (matchingRealToken['historic']['init_price'] as num?)!.toDouble();
 
           // Compter les unités louées et totales si elles n'ont pas déjà été comptées
           if (!uniqueRentedUnitAddresses.contains(tokenAddress)) {
@@ -574,11 +582,15 @@ Future<void> fetchAndStoreAllTokens() async {
           
           }
            double totalRentReceived = 0.0;
-        final tokenContractAddress = matchingRealToken['uuid'] ?? ''; // Utiliser l'adresse du contrat du token
-       
+          final tokenContractAddress = matchingRealToken['uuid'] ?? ''; // Utiliser l'adresse du contrat du token
+          
+          double? customInitPrice = customInitPrices[tokenContractAddress];
+          double initPrice = customInitPrice ?? (matchingRealToken['historic']['init_price'] as num?)?.toDouble() ?? 0.0;
+
           // Ajouter au Portfolio
           newPortfolio.add({
             'id': matchingRealToken['id'],
+            'uuid': tokenContractAddress,
             'shortName': matchingRealToken['shortName'],
             'fullName': matchingRealToken['fullName'],
             'imageLink': matchingRealToken['imageLink'],
@@ -589,6 +601,7 @@ Future<void> fetchAndStoreAllTokens() async {
             'source': 'Wallet',
             'tokenPrice': tokenPrice,
             'totalValue': tokenValue,
+            'initialTotalValue': double.parse(walletToken['amount']) * initPrice,
             'annualPercentageYield': matchingRealToken['annualPercentageYield'],
             'dailyIncome': matchingRealToken['netRentDayPerToken'] * double.parse(walletToken['amount']),
             'monthlyIncome': matchingRealToken['netRentMonthPerToken'] * double.parse(walletToken['amount']),
@@ -626,7 +639,10 @@ Future<void> fetchAndStoreAllTokens() async {
             'ethereumContract': matchingRealToken['ethereumContract'],
             'gnosisContract': matchingRealToken['gnosisContract'],
             'totalRentReceived': totalRentReceived, // Ajout du loyer total reçu
+            'initPrice': initPrice,
           });
+
+          initialTotalValue += double.parse(walletToken['amount']) * initPrice;
 
          if (tokenContractAddress.isNotEmpty) {
            // Récupérer les informations de loyer pour ce token
@@ -666,7 +682,6 @@ Future<void> fetchAndStoreAllTokens() async {
         final double tokenPrice = matchingRealToken['tokenPrice'];
         rmmValueSum += amount * tokenPrice;
         rmmTokensSum += amount;
-        initialTotalValue += amount * (matchingRealToken['historic']['init_price'] as num?)!.toDouble();
 
         // Compter les unités louées et totales si elles n'ont pas déjà été comptées
         if (!uniqueRentedUnitAddresses.contains(tokenAddress)) {
@@ -698,11 +713,15 @@ Future<void> fetchAndStoreAllTokens() async {
         }
 
         double totalRentReceived = 0.0;
-        final tokenContractAddress = matchingRealToken['uuid'] ?? ''; // Utiliser l'adresse du contrat du token
+        final tokenContractAddress = matchingRealToken['uuid'].toLowerCase() ?? ''; // Utiliser l'adresse du contrat du token
+
+          double? customInitPrice = customInitPrices[tokenContractAddress];
+          double initPrice = customInitPrice ?? (matchingRealToken['historic']['init_price'] as num?)?.toDouble() ?? 0.0;
 
         // Ajouter au Portfolio
         newPortfolio.add({
           'id': matchingRealToken['id'],
+          'uuid': tokenContractAddress,
           'shortName': matchingRealToken['shortName'],
           'fullName': matchingRealToken['fullName'],
           'imageLink': matchingRealToken['imageLink'],
@@ -714,6 +733,7 @@ Future<void> fetchAndStoreAllTokens() async {
           'source': 'RMM',
           'tokenPrice': tokenPrice,
           'totalValue': amount * tokenPrice,
+          'initialTotalValue': amount * initPrice,
           'annualPercentageYield': matchingRealToken['annualPercentageYield'],
           'dailyIncome': matchingRealToken['netRentDayPerToken'] * amount,
           'monthlyIncome': matchingRealToken['netRentMonthPerToken'] * amount,
@@ -751,8 +771,11 @@ Future<void> fetchAndStoreAllTokens() async {
           'ethereumContract': matchingRealToken['ethereumContract'],
           'gnosisContract': matchingRealToken['gnosisContract'],
           'totalRentReceived': totalRentReceived, // Ajout du loyer total reçu
+          'initPrice': initPrice,
         });
         
+         initialTotalValue += amount * initPrice;
+
          if (tokenContractAddress.isNotEmpty) {
            // Récupérer les informations de loyer pour ce token
         double? rentDetails = getRentDetailsForToken(tokenContractAddress);
@@ -1391,4 +1414,38 @@ double getRentDetailsForToken(String token) {
 
     return totalRent;
   }
+
+  // Méthode pour charger les valeurs définies manuellement depuis SharedPreferences
+  Future<void> loadCustomInitPrices() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedData = prefs.getString('customInitPrices');
+    
+    if (savedData != null) {
+      final decodedMap = Map<String, dynamic>.from(jsonDecode(savedData));
+      customInitPrices = decodedMap.map((key, value) => MapEntry(key, value as double));
+    }
+    notifyListeners();
+  }
+
+  // Méthode pour sauvegarder les valeurs manuelles dans SharedPreferences
+  Future<void> saveCustomInitPrices() async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setString('customInitPrices', jsonEncode(customInitPrices));
+  }
+
+  // Méthode pour définir une valeur initPrice personnalisée
+  void setCustomInitPrice(String tokenUuid, double initPrice) {
+    customInitPrices[tokenUuid] = initPrice;
+    logger.i("token: $tokenUuid et prix: $initPrice");
+    saveCustomInitPrices(); // Sauvegarder après modification
+    notifyListeners();
+  }
+
+  void removeCustomInitPrice(String tokenUuid) {
+  customInitPrices.remove(tokenUuid);
+  saveCustomInitPrices(); // Sauvegarde les changements dans SharedPreferences
+  notifyListeners();
+}
+
+
 }
