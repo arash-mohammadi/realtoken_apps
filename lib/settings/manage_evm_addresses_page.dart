@@ -8,7 +8,6 @@ import 'package:realtokens_apps/api/data_manager.dart';
 import 'package:realtokens_apps/api/api_service.dart';
 import 'package:realtokens_apps/app_state.dart'; // Import pour accéder à AppState
 
-
 class ManageEvmAddressesPage extends StatefulWidget {
   const ManageEvmAddressesPage({super.key});
 
@@ -130,21 +129,17 @@ class ManageEthAddressesPageState extends State<ManageEvmAddressesPage> {
     final appState = Provider.of<AppState>(context); // Récupérer AppState pour le texte
 
     // Récupérer toutes les adresses liées à un userId
-    final List linkedAddresses = dataManager
-        .getAllUserIds()
-        .expand((userId) => dataManager.getAddressesForUserId(userId) ?? [])
-        .toList();
+    final List linkedAddresses = dataManager.getAllUserIds().expand((userId) => dataManager.getAddressesForUserId(userId) ?? []).toList();
 
     // Filtrer les adresses non liées
-    final unlinkedAddresses =
-        ethAddresses.where((address) => !linkedAddresses.contains(address)).toList();
+    final unlinkedAddresses = ethAddresses.where((address) => !linkedAddresses.contains(address)).toList();
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Manage Wallets'),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(8.0),
         child: Column(
           children: <Widget>[
             Row(
@@ -192,7 +187,6 @@ class ManageEthAddressesPageState extends State<ManageEvmAddressesPage> {
               ),
             ),
             const SizedBox(height: 20),
-
             if (unlinkedAddresses.isNotEmpty) ...[
               Text(
                 'Unlinked Wallet Addresses',
@@ -247,9 +241,7 @@ class ManageEthAddressesPageState extends State<ManageEvmAddressesPage> {
                 ),
               ),
             ],
-
             const SizedBox(height: 20),
-
             if (dataManager.getAllUserIds().isNotEmpty) ...[
               Text(
                 'User Linked Wallet Addresses',

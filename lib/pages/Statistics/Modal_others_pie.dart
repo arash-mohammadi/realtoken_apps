@@ -10,7 +10,7 @@ void showOtherDetailsModal(BuildContext context, dataManager, List<Map<String, d
       return FractionallySizedBox(
         heightFactor: 0.8, // Définit la hauteur de la modale à 70% de l'écran
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(8.0),
           child: Column(
             children: [
               Text(
@@ -43,29 +43,35 @@ void showOtherDetailsModal(BuildContext context, dataManager, List<Map<String, d
 List<PieChartSectionData> _buildOtherDetailsDonutData(List<Map<String, dynamic>> othersDetails, String key) {
   final List<Color> sectionColors = Colors.primaries; // Utilisez une palette de couleurs
   final Set<String> uniqueEntries = {};
-  
-  return othersDetails.asMap().entries.map((entry) {
-    final int index = entry.key;
-    final String entryName = entry.value[key] ?? 'Unknown';
 
-    if (uniqueEntries.add(entryName)) {
-      final double percentage = (entry.value['count'] / othersDetails.fold<double>(0.0, (sum, e) => sum + e['count'])) * 100;
+  return othersDetails
+      .asMap()
+      .entries
+      .map((entry) {
+        final int index = entry.key;
+        final String entryName = entry.value[key] ?? 'Unknown';
 
-      return PieChartSectionData(
-        value: entry.value['count'].toDouble(),
-        title: '${percentage.toStringAsFixed(1)}%',
-        color: sectionColors[index % sectionColors.length],
-        radius: 50,
-        titleStyle: const TextStyle(
-          fontSize: 10,
-          color: Colors.white,
-          fontWeight: FontWeight.bold,
-        ),
-      );
-    } else {
-      return null;
-    }
-  }).where((section) => section != null).toList().cast<PieChartSectionData>();
+        if (uniqueEntries.add(entryName)) {
+          final double percentage = (entry.value['count'] / othersDetails.fold<double>(0.0, (sum, e) => sum + e['count'])) * 100;
+
+          return PieChartSectionData(
+            value: entry.value['count'].toDouble(),
+            title: '${percentage.toStringAsFixed(1)}%',
+            color: sectionColors[index % sectionColors.length],
+            radius: 50,
+            titleStyle: const TextStyle(
+              fontSize: 10,
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          );
+        } else {
+          return null;
+        }
+      })
+      .where((section) => section != null)
+      .toList()
+      .cast<PieChartSectionData>();
 }
 
 Widget _buildLegendForModal(List<Map<String, dynamic>> othersDetails, String key) {

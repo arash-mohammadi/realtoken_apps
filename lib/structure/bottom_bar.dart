@@ -25,7 +25,7 @@ class CustomBottomNavigationBar extends StatelessWidget {
           label: S.of(context).dashboard, // Traduction pour "Dashboard"
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.pie_chart, size: 24.0 + textSizeOffset), // Ajuster la taille de l'icône
+          icon: Icon(Icons.account_balance_wallet, size: 24.0 + textSizeOffset), // Ajuster la taille de l'icône
           label: S.of(context).portfolio, // Traduction pour "Portfolio"
         ),
         BottomNavigationBarItem(

@@ -78,34 +78,37 @@ class _SettingsPageState extends State<SettingsPage> {
 
   // Fonction pour vider le cache et les données
   Future<void> _clearCacheAndData() async {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.clear(); // Réinitialiser toutes les préférences
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear(); // Réinitialiser toutes les préférences
 
-      var box = await Hive.openBox('dashboardTokens');
-      await box.clear(); // Effacer toutes les données de la boîte
+    var box = await Hive.openBox('dashboardTokens');
+    await box.clear(); // Effacer toutes les données de la boîte
 
-      final dataManager = DataManager();
-      await dataManager.resetData();
-      dataManager.rentData = []; // Vider rentData
+    final dataManager = DataManager();
+    await dataManager.resetData();
+    dataManager.rentData = []; // Vider rentData
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Cache and data cleared')),
-      );
-    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Cache and data cleared')),
+    );
+  }
 
   Future<void> shareZippedHiveData() async {
     try {
       // Ouvrir les deux boîtes Hive
       var balanceHistoryBox = await Hive.openBox('balanceHistory');
       var walletValueArchiveBox = await Hive.openBox('walletValueArchive');
+      var customInitPricesBox = await Hive.openBox('customInitPrices');
 
       // Récupérer les données de chaque boîte Hive
       Map balanceHistoryData = balanceHistoryBox.toMap();
       Map walletValueArchiveData = walletValueArchiveBox.toMap();
+      Map customInitPricesData = customInitPricesBox.toMap();
 
       // Convertir les données en JSON
       String balanceHistoryJson = jsonEncode(balanceHistoryData);
       String walletValueArchiveJson = jsonEncode(walletValueArchiveData);
+      String customInitPricesJson = jsonEncode(customInitPricesData);
 
       // Obtenir les données des SharedPreferences
       final prefs = await SharedPreferences.getInstance();
@@ -131,15 +134,18 @@ class _SettingsPageState extends State<SettingsPage> {
       // Créer des fichiers JSON dans ce répertoire pour chaque boîte et les préférences
       String balanceHistoryFilePath = path.join(directory.path, 'balanceHistoryBackup.json');
       String walletValueArchiveFilePath = path.join(directory.path, 'walletValueArchiveBackup.json');
+      String customInitPricesFilePath = path.join(directory.path, 'customInitPricesBackup.json');
       String preferencesFilePath = path.join(directory.path, 'preferencesBackup.json');
 
       File balanceHistoryFile = File(balanceHistoryFilePath);
       File walletValueArchiveFile = File(walletValueArchiveFilePath);
+      File customInitPricesFile = File(customInitPricesFilePath);
       File preferencesFile = File(preferencesFilePath);
 
       // Écrire les données JSON dans les fichiers
       await balanceHistoryFile.writeAsString(balanceHistoryJson);
       await walletValueArchiveFile.writeAsString(walletValueArchiveJson);
+      await customInitPricesFile.writeAsString(customInitPricesJson);
       await preferencesFile.writeAsString(preferencesJson);
 
       // Créer un fichier ZIP dans le même répertoire
@@ -151,12 +157,13 @@ class _SettingsPageState extends State<SettingsPage> {
       // Ajouter chaque fichier JSON à l'archive
       archive.addFile(ArchiveFile('balanceHistoryBackup.json', balanceHistoryFile.lengthSync(), balanceHistoryFile.readAsBytesSync()));
       archive.addFile(ArchiveFile('walletValueArchiveBackup.json', walletValueArchiveFile.lengthSync(), walletValueArchiveFile.readAsBytesSync()));
+      archive.addFile(ArchiveFile('customInitPricesBackup.json', customInitPricesFile.lengthSync(), customInitPricesFile.readAsBytesSync()));
       archive.addFile(ArchiveFile('preferencesBackup.json', preferencesFile.lengthSync(), preferencesFile.readAsBytesSync()));
 
       // Écrire le fichier zip
       final zipEncoder = ZipFileEncoder();
       zipEncoder.create(zipFilePath);
-      for (var file in [balanceHistoryFile, walletValueArchiveFile, preferencesFile]) {
+      for (var file in [balanceHistoryFile, walletValueArchiveFile, customInitPricesFile, preferencesFile]) {
         zipEncoder.addFile(file);
       }
       zipEncoder.close();
@@ -173,7 +180,6 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Future<void> importZippedHiveData() async {
-
     try {
       // Utiliser file_picker pour permettre à l'utilisateur de sélectionner un fichier ZIP
       FilePickerResult? result = await FilePicker.platform.pickFiles(
@@ -204,6 +210,11 @@ class _SettingsPageState extends State<SettingsPage> {
             Map<String, dynamic> walletValueArchiveData = jsonDecode(jsonContent);
             var walletValueArchiveBox = await Hive.openBox('walletValueArchive');
             await walletValueArchiveBox.putAll(walletValueArchiveData);
+          } else if (file.name == 'customInitPricesBackup.json') {
+            // Décoder et insérer les données dans la boîte 'walletValueArchive'
+            Map<String, dynamic> customInitPricesData = jsonDecode(jsonContent);
+            var customInitPricesBox = await Hive.openBox('customInitPrices');
+            await customInitPricesBox.putAll(customInitPricesData);
           } else if (file.name == 'preferencesBackup.json') {
             // Décoder et insérer les préférences dans SharedPreferences
             Map<String, dynamic> preferencesData = jsonDecode(jsonContent);
@@ -235,7 +246,7 @@ class _SettingsPageState extends State<SettingsPage> {
       );
       print('Erreur lors de l\'importation des données Hive depuis le fichier ZIP : $e');
     }
-        Utils.loadData(context);
+    Utils.loadData(context);
   }
 
   @override
@@ -248,104 +259,107 @@ class _SettingsPageState extends State<SettingsPage> {
         title: Text(S.of(context).settingsTitle), // Utilisation de la traduction
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(8.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             // Paramètre pour le thème sombre
-           ListTile(
-  title: Text(
-    S.of(context).darkTheme,
-    style: TextStyle(fontSize: 16.0 + appState.getTextSizeOffset()),
-  ),
-  trailing: DropdownButton<String>(
-    value: appState.themeMode, // Utilisez themeMode ici
-    items: [
-      DropdownMenuItem(value: 'light', child: Text(S.of(context).light)),
-      DropdownMenuItem(value: 'dark', child: Text(S.of(context).dark)),
-      DropdownMenuItem(value: 'auto', child: Text('auto')), // Option auto
-    ],
-    onChanged: (String? newValue) {
-      if (newValue != null) {
-        appState.updateThemeMode(newValue); // Mettez à jour le mode
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(S.of(context).themeUpdated(
-              newValue == 'dark' ? S.of(context).dark : newValue == 'auto' ? 'auto' : S.of(context).light)),
-          ),
-        );
-      }
-    },
-  ),
-),
- const Divider(),
+            ListTile(
+              title: Text(
+                S.of(context).darkTheme,
+                style: TextStyle(fontSize: 16.0 + appState.getTextSizeOffset()),
+              ),
+              trailing: DropdownButton<String>(
+                value: appState.themeMode, // Utilisez themeMode ici
+                items: [
+                  DropdownMenuItem(value: 'light', child: Text(S.of(context).light)),
+                  DropdownMenuItem(value: 'dark', child: Text(S.of(context).dark)),
+                  DropdownMenuItem(value: 'auto', child: Text('auto')), // Option auto
+                ],
+                onChanged: (String? newValue) {
+                  if (newValue != null) {
+                    appState.updateThemeMode(newValue); // Mettez à jour le mode
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(S.of(context).themeUpdated(newValue == 'dark'
+                            ? S.of(context).dark
+                            : newValue == 'auto'
+                                ? 'auto'
+                                : S.of(context).light)),
+                      ),
+                    );
+                  }
+                },
+              ),
+            ),
+            const Divider(),
 
             // Paramètre pour la langue
-          ListTile(
-  title: Text(
-    S.of(context).language,
-    style: TextStyle(fontSize: 16.0 + appState.getTextSizeOffset()),
-  ),
-  trailing: DropdownButton<String>(
-    value: appState.selectedLanguage,
-    items: Parameters.languages.map((String languageCode) {
-      return DropdownMenuItem<String>(
-        value: languageCode,
-        child: Text(
-          languageCode == 'en'
-              ? S.of(context).english
-              : languageCode == 'fr'
-                  ? S.of(context).french
-                  : languageCode == 'es'
-                      ? S.of(context).spanish
-                      : languageCode == 'it'
-                          ? S.of(context).italian
-                          : languageCode == 'pt'
-                              ? S.of(context).portuguese
-                              : languageCode == 'zh'
-                                  ? S.of(context).chinese
-                                  : S.of(context).english, // Par défaut, anglais
-          style: TextStyle(fontSize: 15.0 + appState.getTextSizeOffset()),
-        ),
-      );
-    }).toList(),
-    onChanged: (String? newValue) {
-      if (newValue != null) {
-        appState.updateLanguage(newValue); // Utiliser AppState pour changer la langue
-        String languageName;
+            ListTile(
+              title: Text(
+                S.of(context).language,
+                style: TextStyle(fontSize: 16.0 + appState.getTextSizeOffset()),
+              ),
+              trailing: DropdownButton<String>(
+                value: appState.selectedLanguage,
+                items: Parameters.languages.map((String languageCode) {
+                  return DropdownMenuItem<String>(
+                    value: languageCode,
+                    child: Text(
+                      languageCode == 'en'
+                          ? S.of(context).english
+                          : languageCode == 'fr'
+                              ? S.of(context).french
+                              : languageCode == 'es'
+                                  ? S.of(context).spanish
+                                  : languageCode == 'it'
+                                      ? S.of(context).italian
+                                      : languageCode == 'pt'
+                                          ? S.of(context).portuguese
+                                          : languageCode == 'zh'
+                                              ? S.of(context).chinese
+                                              : S.of(context).english, // Par défaut, anglais
+                      style: TextStyle(fontSize: 15.0 + appState.getTextSizeOffset()),
+                    ),
+                  );
+                }).toList(),
+                onChanged: (String? newValue) {
+                  if (newValue != null) {
+                    appState.updateLanguage(newValue); // Utiliser AppState pour changer la langue
+                    String languageName;
 
-        switch (newValue) {
-          case 'en':
-            languageName = S.of(context).english;
-            break;
-          case 'fr':
-            languageName = S.of(context).french;
-            break;
-          case 'es':
-            languageName = S.of(context).spanish;
-            break;
-          case 'it':
-            languageName = S.of(context).italian;
-            break;
-          case 'pt':
-            languageName = S.of(context).portuguese;
-            break;
-          case 'zh':
-            languageName = S.of(context).chinese;
-            break;
-          default:
-            languageName = S.of(context).english; // Par défaut, anglais
-            break;
-        }
+                    switch (newValue) {
+                      case 'en':
+                        languageName = S.of(context).english;
+                        break;
+                      case 'fr':
+                        languageName = S.of(context).french;
+                        break;
+                      case 'es':
+                        languageName = S.of(context).spanish;
+                        break;
+                      case 'it':
+                        languageName = S.of(context).italian;
+                        break;
+                      case 'pt':
+                        languageName = S.of(context).portuguese;
+                        break;
+                      case 'zh':
+                        languageName = S.of(context).chinese;
+                        break;
+                      default:
+                        languageName = S.of(context).english; // Par défaut, anglais
+                        break;
+                    }
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(S.of(context).languageUpdated(languageName))),
-        );
-      }
-    },
-  ),
-),
- const Divider(),
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(S.of(context).languageUpdated(languageName))),
+                    );
+                  }
+                },
+              ),
+            ),
+            const Divider(),
 
             // Paramètre pour la taille du texte
             ListTile(
@@ -421,7 +435,6 @@ class _SettingsPageState extends State<SettingsPage> {
                   inactiveThumbColor: Colors.grey, // Couleur du bouton en mode désactivé
                 ),
               ),
-
             ),
             const Divider(),
             Row(
@@ -433,10 +446,10 @@ class _SettingsPageState extends State<SettingsPage> {
                     fontSize: 16.0 + appState.getTextSizeOffset(),
                   ),
                 ),
-                
+
                 // Un espace entre le texte et l'icône
                 SizedBox(width: 8.0),
-                
+
                 // L'icône cliquable
                 IconButton(
                   icon: Icon(Icons.info_outline), // Icône d'information
@@ -495,52 +508,48 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
             const Divider(),
 
-
-
-
             const Spacer(),
 
             // Bouton pour vider le cache et les données
-Center(
-  child: ElevatedButton(
-    onPressed: () {
-      // Afficher le modal de confirmation
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: Text(S.of(context).confirmAction), // Titre du modal
-            content: Text(S.of(context).areYouSureClearData), // Message de confirmation
-            actions: <Widget>[
-              TextButton(
+            Center(
+              child: ElevatedButton(
                 onPressed: () {
-                  Navigator.of(context).pop(); // Fermer le modal sans rien faire
+                  // Afficher le modal de confirmation
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: Text(S.of(context).confirmAction), // Titre du modal
+                        content: Text(S.of(context).areYouSureClearData), // Message de confirmation
+                        actions: <Widget>[
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop(); // Fermer le modal sans rien faire
+                            },
+                            child: Text(S.of(context).cancel), // Texte du bouton "Annuler"
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop(); // Fermer le modal
+                              _clearCacheAndData(); // Exécuter l'action une fois confirmé
+                            },
+                            child: Text(S.of(context).confirm), // Texte du bouton "Confirmer"
+                          ),
+                        ],
+                      );
+                    },
+                  );
                 },
-                child: Text(S.of(context).cancel), // Texte du bouton "Annuler"
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  textStyle: TextStyle(fontSize: 15.0 + appState.getTextSizeOffset()),
+                ),
+                child: Text(
+                  S.of(context).clearCacheData,
+                  style: const TextStyle(color: Colors.white),
+                ),
               ),
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop(); // Fermer le modal
-                  _clearCacheAndData(); // Exécuter l'action une fois confirmé
-                },
-                child: Text(S.of(context).confirm), // Texte du bouton "Confirmer"
-              ),
-            ],
-          );
-        },
-      );
-    },
-    style: ElevatedButton.styleFrom(
-      backgroundColor: Colors.red,
-      textStyle: TextStyle(fontSize: 15.0 + appState.getTextSizeOffset()),
-    ),
-    child: Text(
-      S.of(context).clearCacheData,
-      style: const TextStyle(color: Colors.white),
-    ),
-  ),
-),
-
+            ),
           ],
         ),
       ),

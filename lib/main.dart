@@ -32,6 +32,8 @@ void main() async {
     Hive.openBox('realTokens'),
     Hive.openBox('balanceHistory'),
     Hive.openBox('walletValueArchive'),
+    Hive.openBox('customInitPrices'),
+    Hive.openBox('YamMarket'),
   ]);
 
   // Initialisation de SharedPreferences et DataManager
@@ -45,6 +47,7 @@ void main() async {
   FlutterNativeSplash.remove(); // Supprimer le splash screen natif après l'initialisation
 
   // Ensuite, exécuter fetchAndCalculateData une fois que les précédentes sont terminées
+  dataManager.fetchAndStorePropertiesForSale();
   await dataManager.fetchAndCalculateData();
   runApp(
     MultiProvider(

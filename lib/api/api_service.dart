@@ -7,7 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:logger/logger.dart';
 
 class ApiService {
-  static final logger = Logger();  // Initialiser une instance de logger
+  static final logger = Logger(); // Initialiser une instance de logger
 
   // Méthode factorisée pour fetch les tokens depuis The Graph
   static Future<List<dynamic>> fetchTokensFromUrl(String url, String cacheKey, {bool forceFetch = false}) async {
@@ -86,7 +86,7 @@ class ApiService {
 
   // Récupérer les tokens sur le RealToken Marketplace (RMM)
   static Future<List<dynamic>> fetchRMMTokens({bool forceFetch = false}) async {
-        logger.i("apiService: fetchRMMTokens -> Lancement de la requete");
+    logger.i("apiService: fetchRMMTokens -> Lancement de la requete");
 
     var box = Hive.box('realTokens');
     final lastFetchTime = box.get('lastRMMFetchTime');
@@ -149,9 +149,7 @@ class ApiService {
         logger.i("apiService: fetchRMMTokens -> requete lancée avec succes");
 
         final decodedResponse = json.decode(response.body);
-        if (decodedResponse['data'] != null &&
-            decodedResponse['data']['users'] != null &&
-            decodedResponse['data']['users'].isNotEmpty) {
+        if (decodedResponse['data'] != null && decodedResponse['data']['users'] != null && decodedResponse['data']['users'].isNotEmpty) {
           final data = decodedResponse['data']['users'][0]['balances'];
           allBalances.addAll(data);
         }
@@ -162,7 +160,7 @@ class ApiService {
 
     box.put('cachedRMMData', json.encode(allBalances));
     box.put('lastRMMFetchTime', now.toIso8601String());
-      box.put('lastExecutionTime_RMM', now.toIso8601String());
+    box.put('lastExecutionTime_RMM', now.toIso8601String());
 
     return allBalances;
   }
@@ -196,7 +194,7 @@ class ApiService {
       final DateTime lastUpdateDate = DateTime.parse(lastUpdateDateString);
 
       // Comparaison entre la date de la dernière mise à jour et la date stockée localement
-      if (lastUpdateTime != null && cachedData != null ) {
+      if (lastUpdateTime != null && cachedData != null) {
         final DateTime lastExecutionDate = DateTime.parse(lastUpdateTime);
         if (lastExecutionDate.isAtSameMomentAs(lastUpdateDate)) {
           logger.i("apiService: fetchRealTokens -> Requête annulée, données déjà à jour");
@@ -225,90 +223,147 @@ class ApiService {
     }
   }
 
-  // Récupérer les données de loyer pour chaque wallet et les fusionner avec cache
-  static Future<List<Map<String, dynamic>>> fetchRentData({bool forceFetch = false}) async {
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  List<String> wallets = prefs.getStringList('evmAddresses') ?? [];
+  // Récupérer la liste complète des RealTokens depuis l'API pitswap
+  static Future<List<dynamic>> fetchYamMarket({bool forceFetch = false}) async {
+    logger.i("apiService: fetchYamMarket -> Lancement de la requête");
 
-  if (wallets.isEmpty) {
-    return []; // Ne pas exécuter si la liste des wallets est vide
-  }
+    var box = Hive.box('realTokens');
+    final lastFetchTime = box.get('yamlastFetchTime');
+    final lastUpdateTime = box.get('lastUpdateTime_YamMarket');
+    final cachedData = box.get('cachedYamMarket');
+    final DateTime now = DateTime.now();
 
-  var box = Hive.box('realTokens');
-  final DateTime now = DateTime.now();
-
-  // Vérifier si une réponse 429 a été reçue récemment
-  final last429Time = box.get('lastRent429Time');
-  if (last429Time != null) {
-    final DateTime last429 = DateTime.parse(last429Time);
-    // Si on est dans la période d'attente de 3 minutes
-    if (now.difference(last429) < Duration(minutes: 3)) {
-      logger.i('apiService: ehpst -> 429 reçu, attente avant nouvelle requête.');
-      return []; // Si pas de cache, on retourne une liste vide
-    }
-  }
-
-  // Vérification du cache
-  final lastFetchTime = box.get('lastRentFetchTime');
-  if (!forceFetch && lastFetchTime != null) {
-    final DateTime lastFetch = DateTime.parse(lastFetchTime);
-    if (now.difference(lastFetch) < Parameters.apiCacheDuration) {
-      final cachedData = box.get('cachedRentData');
-      if (cachedData != null) {
-          logger.i("apiService: fetchRentData -> Requete annulée, temps minimum pas atteint");
+    // Si lastFetchTime est déjà défini et que le temps minimum n'est pas atteint, on vérifie d'abord la validité du cache
+    if (!forceFetch && lastFetchTime != null) {
+      final DateTime lastFetch = DateTime.parse(lastFetchTime);
+      if (now.difference(lastFetch) < Parameters.apiCacheDuration) {
+        if (cachedData != null) {
+          logger.i("apiService: fetchYamMarket -> Requête annulée, temps minimum pas atteint");
           return [];
-      }
-    }
-  }
-
-  // Sinon, on effectue la requête API
-  List<Map<String, dynamic>> mergedRentData = [];
-
-  for (String wallet in wallets) {
-    final url = '${Parameters.rentTrackerUrl}/rent_holder/$wallet';
-    final response = await http.get(Uri.parse(url));
-
-    // Si on reçoit un code 429, sauvegarder l'heure et arrêter
-    if (response.statusCode == 429) {
-      logger.i('apiService: ehpst -> 429 Too Many Requests');
-      // Sauvegarder le temps où la réponse 429 a été reçue
-      box.put('lastRent429Time', now.toIso8601String());
-      break; // Sortir de la boucle et arrêter la méthode
-    }
-
-    if (response.statusCode == 200) {
-      logger.i("apiService: ehpst -> RentTracker, requete lancée");
-
-      List<Map<String, dynamic>> rentData = List<Map<String, dynamic>>.from(json.decode(response.body));
-      for (var rentEntry in rentData) {
-        final existingEntry = mergedRentData.firstWhere(
-          (entry) => entry['date'] == rentEntry['date'],
-          orElse: () => <String, dynamic>{},
-        );
-
-        if (existingEntry.isNotEmpty) {
-          existingEntry['rent'] =
-              (existingEntry['rent'] ?? 0) + (rentEntry['rent'] ?? 0);
-        } else {
-          mergedRentData.add({
-            'date': rentEntry['date'],
-            'rent': rentEntry['rent'] ?? 0,
-          });
         }
       }
+    }
+
+    // Vérification de la dernière mise à jour sur le serveur
+    final lastUpdateResponse = await http.get(Uri.parse('${Parameters.realTokensUrl}/last_update_yam_offers'));
+
+    if (lastUpdateResponse.statusCode == 200) {
+      final String lastUpdateDateString = json.decode(lastUpdateResponse.body);
+      final DateTime lastUpdateDate = DateTime.parse(lastUpdateDateString);
+
+      // Comparaison entre la date de la dernière mise à jour et la date stockée localement
+      if (lastUpdateTime != null && cachedData != null) {
+        final DateTime lastExecutionDate = DateTime.parse(lastUpdateTime);
+        if (lastExecutionDate.isAtSameMomentAs(lastUpdateDate)) {
+          logger.i("apiService: fetchYamMarket -> Requête annulée, données déjà à jour");
+          return [];
+        }
+      }
+
+      // Si les dates sont différentes ou pas de cache, on continue avec la requête réseau
+      final response = await http.get(Uri.parse('${Parameters.realTokensUrl}/get_yam_offers'));
+
+      if (response.statusCode == 200) {
+        logger.i("apiService: fetchYamMarket -> Requête lancée avec succès");
+
+        final data = json.decode(response.body);
+        box.put('cachedYamMarket', json.encode(data));
+        box.put('yamlastFetchTime', now.toIso8601String());
+        // Enregistrer la nouvelle date de mise à jour renvoyée par l'API
+        box.put('lastUpdateTime_YamMarket', lastUpdateDateString);
+
+        return data;
+      } else {
+        throw Exception('apiService: fetchYamMarket -> Failed to fetch RealTokens');
+      }
     } else {
-      throw Exception('ehpst -> RentTracker, Failed to load rent data for wallet: $wallet');
+      throw Exception('apiService: fetchYamMarket -> Failed to fetch last update date');
     }
   }
 
-  mergedRentData.sort((a, b) => a['date'].compareTo(b['date']));
+  // Récupérer les données de loyer pour chaque wallet et les fusionner avec cache
+  static Future<List<Map<String, dynamic>>> fetchRentData({bool forceFetch = false}) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String> wallets = prefs.getStringList('evmAddresses') ?? [];
 
-  // Mise à jour du cache après la récupération des données
-  box.put('lastRentFetchTime', now.toIso8601String());
-      box.put('lastExecutionTime_Rents', now.toIso8601String());
+    if (wallets.isEmpty) {
+      return []; // Ne pas exécuter si la liste des wallets est vide
+    }
 
-  return mergedRentData;
-}
+    var box = Hive.box('realTokens');
+    final DateTime now = DateTime.now();
+
+    // Vérifier si une réponse 429 a été reçue récemment
+    final last429Time = box.get('lastRent429Time');
+    if (last429Time != null) {
+      final DateTime last429 = DateTime.parse(last429Time);
+      // Si on est dans la période d'attente de 3 minutes
+      if (now.difference(last429) < Duration(minutes: 3)) {
+        logger.i('apiService: ehpst -> 429 reçu, attente avant nouvelle requête.');
+        return []; // Si pas de cache, on retourne une liste vide
+      }
+    }
+
+    // Vérification du cache
+    final lastFetchTime = box.get('lastRentFetchTime');
+    if (!forceFetch && lastFetchTime != null) {
+      final DateTime lastFetch = DateTime.parse(lastFetchTime);
+      if (now.difference(lastFetch) < Parameters.apiCacheDuration) {
+        final cachedData = box.get('cachedRentData');
+        if (cachedData != null) {
+          logger.i("apiService: fetchRentData -> Requete annulée, temps minimum pas atteint");
+          return [];
+        }
+      }
+    }
+
+    // Sinon, on effectue la requête API
+    List<Map<String, dynamic>> mergedRentData = [];
+
+    for (String wallet in wallets) {
+      final url = '${Parameters.rentTrackerUrl}/rent_holder/$wallet';
+      final response = await http.get(Uri.parse(url));
+
+      // Si on reçoit un code 429, sauvegarder l'heure et arrêter
+      if (response.statusCode == 429) {
+        logger.i('apiService: ehpst -> 429 Too Many Requests');
+        // Sauvegarder le temps où la réponse 429 a été reçue
+        box.put('lastRent429Time', now.toIso8601String());
+        break; // Sortir de la boucle et arrêter la méthode
+      }
+
+      if (response.statusCode == 200) {
+        logger.i("apiService: ehpst -> RentTracker, requete lancée");
+
+        List<Map<String, dynamic>> rentData = List<Map<String, dynamic>>.from(json.decode(response.body));
+        for (var rentEntry in rentData) {
+          final existingEntry = mergedRentData.firstWhere(
+            (entry) => entry['date'] == rentEntry['date'],
+            orElse: () => <String, dynamic>{},
+          );
+
+          if (existingEntry.isNotEmpty) {
+            existingEntry['rent'] = (existingEntry['rent'] ?? 0) + (rentEntry['rent'] ?? 0);
+          } else {
+            mergedRentData.add({
+              'date': rentEntry['date'],
+              'rent': rentEntry['rent'] ?? 0,
+            });
+          }
+        }
+      } else {
+        throw Exception('ehpst -> RentTracker, Failed to load rent data for wallet: $wallet');
+      }
+    }
+
+    mergedRentData.sort((a, b) => a['date'].compareTo(b['date']));
+
+    // Mise à jour du cache après la récupération des données
+    box.put('lastRentFetchTime', now.toIso8601String());
+    box.put('lastExecutionTime_Rents', now.toIso8601String());
+
+    return mergedRentData;
+  }
 
   static Future<Map<String, dynamic>> fetchCurrencies() async {
     final prefs = await SharedPreferences.getInstance();
@@ -332,8 +387,7 @@ class ApiService {
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-      final currencies =
-          data['market_data']['current_price'] as Map<String, dynamic>;
+      final currencies = data['market_data']['current_price'] as Map<String, dynamic>;
 
       // Stocker les devises en cache
       await prefs.setString('cachedCurrencies', jsonEncode(currencies));
@@ -393,7 +447,7 @@ class ApiService {
     );
 
     if (response.statusCode == 200) {
-            logger.i("apiService: theGraph -> requete lancée");
+      logger.i("apiService: theGraph -> requete lancée");
       final data = json.decode(response.body);
       final accounts = data['data']['accounts'];
       if (accounts != null && accounts.isNotEmpty) {
@@ -401,7 +455,6 @@ class ApiService {
       }
     } else {
       logger.i("apiService: theGraph -> echec requete");
-
     }
     return [];
   }
@@ -430,13 +483,13 @@ class ApiService {
 
       // Requête pour le dépôt et l'emprunt de XDAI
       final xdaiDepositResponse = await _fetchBalance(xdaiDepositContract, address, forceFetch: forceFetch);
-      final xdaiBorrowResponse = await _fetchBalance(xdaiBorrowContract, address, );
+      final xdaiBorrowResponse = await _fetchBalance(
+        xdaiBorrowContract,
+        address,
+      );
 
       // Traitement des réponses
-      if (usdcDepositResponse != null &&
-          usdcBorrowResponse != null &&
-          xdaiDepositResponse != null &&
-          xdaiBorrowResponse != null) {
+      if (usdcDepositResponse != null && usdcBorrowResponse != null && xdaiDepositResponse != null && xdaiBorrowResponse != null) {
         final timestamp = DateTime.now().toIso8601String();
 
         // Conversion des balances en int après division par 1e6 pour USDC et 1e18 pour xDAI
@@ -458,7 +511,7 @@ class ApiService {
         throw Exception('Failed to fetch balances for address: $address');
       }
     }
-    return allBalances; 
+    return allBalances;
   }
 
 // Méthode pour simplifier la récupération des balances
@@ -491,10 +544,7 @@ class ApiService {
         "jsonrpc": "2.0",
         "method": "eth_call",
         "params": [
-          {
-            "to": contract,
-            "data": "0x70a08231000000000000000000000000${address.substring(2)}"
-          },
+          {"to": contract, "data": "0x70a08231000000000000000000000000${address.substring(2)}"},
           "latest"
         ],
         "id": 1
@@ -508,7 +558,7 @@ class ApiService {
 
       if (result != null && result != "0x") {
         final balance = BigInt.parse(result.substring(2), radix: 16);
-        
+
         // Sauvegarder le résultat dans le cache
         await box.put(cacheKey, balance.toString());
         await box.put('lastFetchTime_$cacheKey', now.toIso8601String());
@@ -526,76 +576,100 @@ class ApiService {
   }
 
   // Nouvelle méthode pour récupérer les détails des loyers
-static Future<List<Map<String, dynamic>>> fetchDetailedRentDataForAllWallets({bool forceFetch = false}) async {
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  List<String> evmAddresses = prefs.getStringList('evmAddresses') ?? []; // Récupérer les adresses de tous les wallets
+  static Future<List<Map<String, dynamic>>> fetchDetailedRentDataForAllWallets({bool forceFetch = false}) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String> evmAddresses = prefs.getStringList('evmAddresses') ?? []; // Récupérer les adresses de tous les wallets
 
-  if (evmAddresses.isEmpty) {
-    logger.i("apiService: fetchDetailedRentDataForAllWallets -> wallet non renseigné");
-    return []; // Ne pas exécuter si la liste des wallets est vide
-  }
-
-  // Ouvrir la boîte Hive pour stocker en cache
-  var box = await Hive.openBox('detailedRentData');
-  final DateTime now = DateTime.now();
-
-  // Initialiser une liste pour stocker les données brutes
-  List<Map<String, dynamic>> allRentData = [];
-
-  // Boucle pour chaque adresse de wallet
-  for (var walletAddress in evmAddresses) {
-    final lastFetchTime = box.get('lastDetailedRentFetchTime_$walletAddress');
-
-    // Si forceFetch est false, vérifier si c'est mardi ou si le dernier fetch est un mardi de plus de 7 jours
-    if (!forceFetch && lastFetchTime != null) {
-      final DateTime lastFetch = DateTime.parse(lastFetchTime);
-
-      // Si aujourd'hui n'est pas mardi, et le dernier fetch un mardi est de moins de 7 jours, renvoyer une liste vide
-      if (now.weekday != DateTime.tuesday || (lastFetch.weekday == DateTime.tuesday && now.difference(lastFetch).inDays <= 7)) {
-        logger.i('apiService: ehpst -> Pas de fetch car aujourd\'hui n\'est pas mardi ou le dernier fetch mardi est de moins de 7 jours');
-        return [];
-      }
+    if (evmAddresses.isEmpty) {
+      logger.i("apiService: fetchDetailedRentDataForAllWallets -> wallet non renseigné");
+      return []; // Ne pas exécuter si la liste des wallets est vide
     }
 
-    // Si on est mardi ou si le dernier fetch d'un mardi date de plus de 7 jours, effectuer la requête HTTP avec un timeout de 2 minutes
-    final url = '${Parameters.rentTrackerUrl}/detailed_rent_holder/$walletAddress';
-    try {
-      final response = await http.get(Uri.parse(url)).timeout(Duration(minutes: 2), onTimeout: () {
-        // Gérer le timeout ici
-        throw TimeoutException('La requête a expiré après 2 minutes');
-      });
+    // Ouvrir la boîte Hive pour stocker en cache
+    var box = await Hive.openBox('detailedRentData');
+    final DateTime now = DateTime.now();
 
-      // Si on reçoit un code 429, sauvegarder l'heure et arrêter
-      if (response.statusCode == 429) {
-        logger.i('apiService: ehpst -> 429 Too Many Requests');
-        break; // Sortir de la boucle et arrêter la méthode
+    // Initialiser une liste pour stocker les données brutes
+    List<Map<String, dynamic>> allRentData = [];
+
+    // Boucle pour chaque adresse de wallet
+    for (var walletAddress in evmAddresses) {
+      final lastFetchTime = box.get('lastDetailedRentFetchTime_$walletAddress');
+
+      // Si forceFetch est false, vérifier si c'est mardi ou si le dernier fetch est un mardi de plus de 7 jours
+      if (!forceFetch && lastFetchTime != null) {
+        final DateTime lastFetch = DateTime.parse(lastFetchTime);
+
+        // Si aujourd'hui n'est pas mardi, et le dernier fetch un mardi est de moins de 7 jours, renvoyer une liste vide
+        if (now.weekday != DateTime.tuesday || (lastFetch.weekday == DateTime.tuesday && now.difference(lastFetch).inDays <= 7)) {
+          logger.i('apiService: ehpst -> Pas de fetch car aujourd\'hui n\'est pas mardi ou le dernier fetch mardi est de moins de 7 jours');
+          return [];
+        }
       }
 
-      // Si la requête réussit avec un code 200, traiter les données
-      if (response.statusCode == 200) {
-        final List<Map<String, dynamic>> rentData = List<Map<String, dynamic>>.from(json.decode(response.body));
-      
-        // Sauvegarder dans le cache
-        box.put('cachedDetailedRentData_$walletAddress', json.encode(rentData));
-        box.put('lastDetailedRentFetchTime_$walletAddress', now.toIso8601String());
-        logger.i("apiService: ehpst -> detailRent, requête lancée");
+      // Si on est mardi ou si le dernier fetch d'un mardi date de plus de 7 jours, effectuer la requête HTTP avec un timeout de 2 minutes
+      final url = '${Parameters.rentTrackerUrl}/detailed_rent_holder/$walletAddress';
+      try {
+        final response = await http.get(Uri.parse(url)).timeout(Duration(minutes: 2), onTimeout: () {
+          // Gérer le timeout ici
+          throw TimeoutException('La requête a expiré après 2 minutes');
+        });
 
-        // Ajouter les données brutes au tableau
-        allRentData.addAll(rentData);
+        // Si on reçoit un code 429, sauvegarder l'heure et arrêter
+        if (response.statusCode == 429) {
+          logger.i('apiService: ehpst -> 429 Too Many Requests');
+          break; // Sortir de la boucle et arrêter la méthode
+        }
+
+        // Si la requête réussit avec un code 200, traiter les données
+        if (response.statusCode == 200) {
+          final List<Map<String, dynamic>> rentData = List<Map<String, dynamic>>.from(json.decode(response.body));
+
+          // Sauvegarder dans le cache
+          box.put('cachedDetailedRentData_$walletAddress', json.encode(rentData));
+          box.put('lastDetailedRentFetchTime_$walletAddress', now.toIso8601String());
+          logger.i("apiService: ehpst -> detailRent, requête lancée");
+
+          // Ajouter les données brutes au tableau
+          allRentData.addAll(rentData);
+        } else {
+          throw Exception('apiService: ehpst -> detailRent, Failed to fetch detailed rent data for wallet: $walletAddress');
+        }
+      } catch (e) {
+        logger.i('Erreur lors de la requête HTTP : $e');
+        // Vous pouvez gérer les exceptions ici (timeout ou autres erreurs)
+      }
+    }
+    box.put('lastExecutionTime_Rents', now.toIso8601String());
+
+    // Retourner les données brutes pour traitement dans DataManager
+    return allRentData;
+  }
+
+  // Nouvelle méthode pour récupérer les propriétés en cours de vente
+  static Future<List<Map<String, dynamic>>> fetchPropertiesForSale() async {
+    const url = 'https://realt.co/wp-json/realt/v1/products/for_sale';
+
+    try {
+      // Envoie de la requête GET
+      final response = await http.get(Uri.parse(url));
+
+      if (response.statusCode == 200) {
+        logger.i("apiService: fetchPropertiesForSale -> Requête lancée avec succès");
+
+        // Décoder la réponse JSON
+        final data = json.decode(response.body);
+
+        // Extraire la liste de produits
+        final List<Map<String, dynamic>> properties = List<Map<String, dynamic>>.from(data['products']);
+
+        return properties;
       } else {
-        throw Exception('apiService: ehpst -> detailRent, Failed to fetch detailed rent data for wallet: $walletAddress');
+        throw Exception('apiService: fetchPropertiesForSale -> Échec de la requête. Code: ${response.statusCode}');
       }
     } catch (e) {
-      logger.i('Erreur lors de la requête HTTP : $e');
-      // Vous pouvez gérer les exceptions ici (timeout ou autres erreurs)
+      logger.e("apiService: fetchPropertiesForSale -> Erreur lors de la requête: $e");
+      return [];
     }
-
   }
-  box.put('lastExecutionTime_Rents', now.toIso8601String());
-
-  // Retourner les données brutes pour traitement dans DataManager
-  return allRentData;
-}
-
-
 }

@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:realtokens_apps/api/data_manager.dart';
+import 'package:realtokens_apps/utils/utils.dart';
+import 'package:realtokens_apps/app_state.dart'; // Import AppState
 
 class RmmStats extends StatefulWidget {
   const RmmStats({super.key});
@@ -18,272 +20,108 @@ class RmmStatsState extends State<RmmStats> {
   Widget build(BuildContext context) {
     final dataManager = Provider.of<DataManager>(context);
     final screenHeight = MediaQuery.of(context).size.height;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final double fixedCardHeight = 380; // Hauteur fixe pour toutes les cartes
 
-    // Récupérer les valeurs APY depuis le dataManager
-    final usdcDepositApy = dataManager.usdcDepositApy;
-    final usdcBorrowApy = dataManager.usdcBorrowApy;
-    final xdaiDepositApy = dataManager.xdaiDepositApy;
-    final xdaiBorrowApy = dataManager.xdaiBorrowApy;
-    final apyAverage = dataManager.apyAverage; // APY moyen global
+    final appState = Provider.of<AppState>(context);
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0), // Padding général
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Carte pour les APY
-              Card(
-                elevation: 0,
-                color: Theme.of(context).cardColor,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    children: [
-                      Row(
-                        children: [
-                          GestureDetector(
-                            onTap: () {
-                              showDialog(
-                                context: context,
-                                builder: (BuildContext context) {
-                                  return AlertDialog(
-                                    title: const Text('Explication APY Moyen'), // Titre du popup
-                                    content: const Text(
-                                      'L’APY moyen est calculé en moyenne sur les variations de balance entre plusieurs paires de données. '
-                                      'Les valeurs avec des variations anormales (dépôts ou retraits) sont écartées.',
-                                    ), // Texte explicatif
-                                    actions: <Widget>[
-                                      TextButton(
-                                        onPressed: () {
-                                          Navigator.of(context).pop(); // Fermer le popup
-                                        },
-                                        child: const Text('OK'),
-                                      ),
-                                    ],
-                                  );
-                                },
-                              );
-                            },
-                            child: Row(
-                              children: [
-                                Text(
-                                  '${S.of(context).averageApy} ${apyAverage.toStringAsFixed(2)}%', // Affichage de l'APY moyen
-                                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                                ),
-                                const SizedBox(width: 5), // Un petit espace entre le texte et l'icône
-                                const Icon(
-                                  Icons.info_outline, // Icône à afficher
-                                  size: 20, // Taille de l'icône
-                                  color: Colors.blue, // Couleur de l'icône
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
-                      Table(
-                        border: TableBorder(
-                          horizontalInside: BorderSide(
-                            color: Colors.grey.shade300, // Couleur claire pour les lignes horizontales
-                            width: 1, // Épaisseur des lignes
-                          ),
-                          top: BorderSide.none,
-                          bottom: BorderSide.none,
-                          left: BorderSide.none,
-                          right: BorderSide.none,
-                        ),
-                        columnWidths: const {
-                          0: FlexColumnWidth(1), // Colonne pour les titres (Deposit/Borrow)
-                          1: FlexColumnWidth(1), // Colonne pour les valeurs USDC
-                          2: FlexColumnWidth(1), // Colonne pour les valeurs xDAI
-                        },
-                        children: [
-                          // Ligne d'en-tête
-                          TableRow(
-                            children: [
-                              const Padding(
-                                padding: EdgeInsets.all(8.0),
-                                child: Text(''), // Cellule vide pour l'en-tête des lignes
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Center(
-                                  child: Image.asset('assets/icons/usdc.png', width: 24, height: 24), // Image pour USDC
-                                ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Center(
-                                  child: Image.asset('assets/icons/xdai.png', width: 24, height: 24), // Image pour xDAI
-                                ),
-                              ),
-                            ],
-                          ),
-                          // Ligne Deposit
-                          TableRow(
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Text('Deposit', style: TextStyle(fontWeight: FontWeight.bold)),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Center(
-                                  child: Text('${usdcDepositApy.toStringAsFixed(2)}%'),
-                                ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Center(
-                                  child: Text('${xdaiDepositApy.toStringAsFixed(2)}%'),
-                                ),
-                              ),
-                            ],
-                          ),
-                          // Ligne Borrow
-                          TableRow(
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Text('Borrow', style: TextStyle(fontWeight: FontWeight.bold)),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Center(
-                                  child: Text('${usdcBorrowApy.toStringAsFixed(2)}%'),
-                                ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Center(
-                                  child: Text('${xdaiBorrowApy.toStringAsFixed(2)}%'),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      )
+      body: CustomScrollView(
+        slivers: [
+          // Carte APY en pleine largeur en haut
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: _buildApyCard(dataManager, screenWidth),
+            ),
+          ),
 
-                    ],
-                  ),
-                ),
+          // Grille des autres cartes
+          SliverPadding(
+            padding: const EdgeInsets.only(top: 8, left: 8, right: 8, bottom: 80),
+            sliver: SliverGrid(
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: screenWidth > 700 ? 2 : 1,
+                crossAxisSpacing: 8,
+                mainAxisSpacing: 8,
+                mainAxisExtent: fixedCardHeight, // Hauteur fixe pour chaque carte
               ),
+              delegate: SliverChildBuilderDelegate(
+                (BuildContext context, int index) {
+                  switch (index) {
+                    case 0:
+                      return _buildDepositBalanceCard(dataManager, 380);
+                    case 1:
+                      return _buildBorrowBalanceCard(dataManager, 380);
+                    default:
+                      return Container();
+                  }
+                },
+                childCount: 2, // Nombre total de cartes dans la grille
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
-              const SizedBox(height: 20),
+// Fonction pour créer la carte APY en pleine largeur
+  Widget _buildApyCard(DataManager dataManager, double screenWidth) {
+    final double cardHeight = screenWidth > 700 ? 200 : 200;
+
+    return SizedBox(
+      height: cardHeight,
+      width: double.infinity,
+      child: Card(
+        elevation: 0,
+        color: Theme.of(context).cardColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            children: [
               Row(
                 children: [
-                  Text(
-                    S.of(context).period, // Traduction pour "Période"
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(width: 20),
-                  DropdownButton<String>(
-                    value: selectedPeriod,
-                    items: [
-                      DropdownMenuItem(
-                        value: 'hour',
-                        child: Text(S.of(context).hours), // Traduction pour "Heures"
-                      ),
-                      DropdownMenuItem(
-                        value: 'day',
-                        child: Text(S.of(context).days), // Traduction pour "Jours"
-                      ),
-                      DropdownMenuItem(
-                        value: 'week',
-                        child: Text(S.of(context).weeks), // Traduction pour "Semaines"
-                      ),
-                    ],
-                    onChanged: (value) {
-                      setState(() {
-                        selectedPeriod = value!;
-                      });
+                  GestureDetector(
+                    onTap: () {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: const Text('Explication APY Moyen'),
+                            content: const Text(
+                              'L’APY moyen est calculé en moyenne sur les variations de balance entre plusieurs paires de données. '
+                              'Les valeurs avec des variations anormales (dépôts ou retraits) sont écartées.',
+                            ),
+                            actions: <Widget>[
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                                child: const Text('OK'),
+                              ),
+                            ],
+                          );
+                        },
+                      );
                     },
+                    child: Row(
+                      children: [
+                        Text(
+                          '${S.of(context).averageApy} ${dataManager.apyAverage.toStringAsFixed(2)}%',
+                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(width: 5),
+                        const Icon(Icons.info_outline, size: 20, color: Colors.blue),
+                      ],
+                    ),
                   ),
                 ],
               ),
-              // Carte pour le graphique des dépôts
-              Card(
-                elevation: 0,
-                color: Theme.of(context).cardColor,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        S.of(context).depositBalance,
-                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 10),
-                      SizedBox(
-                        height: screenHeight * 0.3, // Limite le graphique à 30% de la taille de l'écran
-                        child: FutureBuilder<Map<String, List<BalanceRecord>>>(
-                          future: _fetchAndAggregateBalanceHistories(dataManager),
-                          builder: (context, snapshot) {
-                            if (snapshot.connectionState == ConnectionState.waiting) {
-                              return const CircularProgressIndicator();
-                            } else if (snapshot.hasError) {
-                              return Text('Erreur: ${snapshot.error}');
-                            } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                              return const Text('Pas de données disponibles.');
-                            } else {
-                              final allHistories = snapshot.data!;
-                              return LineChart(_buildDepositChart(allHistories));
-                            }
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
               const SizedBox(height: 20),
-
-              // Carte pour le graphique des emprunts
-              Card(
-                elevation: 0,
-                color: Theme.of(context).cardColor,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        S.of(context).borrowBalance,
-                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 10),
-                      SizedBox(
-                        height: screenHeight * 0.3, // Limite le graphique à 30% de la taille de l'écran
-                        child: FutureBuilder<Map<String, List<BalanceRecord>>>(
-                          future: _fetchAndAggregateBalanceHistories(dataManager),
-                          builder: (context, snapshot) {
-                            if (snapshot.connectionState == ConnectionState.waiting) {
-                              return const CircularProgressIndicator();
-                            } else if (snapshot.hasError) {
-                              return Text('Erreur: ${snapshot.error}');
-                            } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                              return const Text('Pas de données disponibles.');
-                            } else {
-                              final allHistories = snapshot.data!;
-                              return LineChart(_buildBorrowChart(allHistories));
-                            }
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 80),
+              _buildApyTable(dataManager),
             ],
           ),
         ),
@@ -291,14 +129,177 @@ class RmmStatsState extends State<RmmStats> {
     );
   }
 
+// Fonction pour créer la carte de dépôt (Deposit Balance Card)
+  Widget _buildDepositBalanceCard(DataManager dataManager, double screenHeight) {
+    return SizedBox(
+      height: screenHeight,
+      child: Card(
+        elevation: 0,
+        color: Theme.of(context).cardColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                S.of(context).depositBalance,
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 10),
+              Expanded(
+                child: FutureBuilder<Map<String, List<BalanceRecord>>>(
+                  future: _fetchAndAggregateBalanceHistories(dataManager),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const CircularProgressIndicator();
+                    } else if (snapshot.hasError) {
+                      return Text('Erreur: ${snapshot.error}');
+                    } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                      return const Text('Pas de données disponibles.');
+                    } else {
+                      final allHistories = snapshot.data!;
+                      return LineChart(_buildDepositChart(allHistories));
+                    }
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+// Fonction pour créer la carte d'emprunt (Borrow Balance Card)
+  Widget _buildBorrowBalanceCard(DataManager dataManager, double screenHeight) {
+    return SizedBox(
+      height: screenHeight,
+      child: Card(
+        elevation: 0,
+        color: Theme.of(context).cardColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                S.of(context).borrowBalance,
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 10),
+              Expanded(
+                child: FutureBuilder<Map<String, List<BalanceRecord>>>(
+                  future: _fetchAndAggregateBalanceHistories(dataManager),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const CircularProgressIndicator();
+                    } else if (snapshot.hasError) {
+                      return Text('Erreur: ${snapshot.error}');
+                    } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                      return const Text('Pas de données disponibles.');
+                    } else {
+                      final allHistories = snapshot.data!;
+                      return LineChart(_buildBorrowChart(allHistories));
+                    }
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+// Fonction pour créer le tableau APY (peut être personnalisée selon les données à afficher)
+  Widget _buildApyTable(DataManager dataManager) {
+    return Table(
+      border: TableBorder(
+        horizontalInside: BorderSide(
+                  color: Colors.black.withOpacity(0.3), // Couleur du fond grisé
+          width: 1,
+        ),
+      ),
+      columnWidths: const {
+        0: FlexColumnWidth(1),
+        1: FlexColumnWidth(1),
+        2: FlexColumnWidth(1),
+      },
+      children: [
+        TableRow(
+          children: [
+            const Padding(
+              padding: EdgeInsets.all(8.0),
+              child: Text(''),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Center(
+                child: Image.asset('assets/icons/usdc.png', width: 24, height: 24),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Center(
+                child: Image.asset('assets/icons/xdai.png', width: 24, height: 24),
+              ),
+            ),
+          ],
+        ),
+        TableRow(
+          children: [
+            const Padding(
+              padding: EdgeInsets.all(8.0),
+              child: Text('Deposit', style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Center(
+                child: Text('${dataManager.usdcDepositApy.toStringAsFixed(2)}%'),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Center(
+                child: Text('${dataManager.xdaiDepositApy.toStringAsFixed(2)}%'),
+              ),
+            ),
+          ],
+        ),
+        TableRow(
+          children: [
+            const Padding(
+              padding: EdgeInsets.all(8.0),
+              child: Text('Borrow', style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Center(
+                child: Text('${dataManager.usdcBorrowApy.toStringAsFixed(2)}%'),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Center(
+                child: Text('${dataManager.xdaiBorrowApy.toStringAsFixed(2)}%'),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
   // Fonction pour créer le graphique des dépôts (Deposits)
   LineChartData _buildDepositChart(Map<String, List<BalanceRecord>> allHistories) {
+    final dataManager = Provider.of<DataManager>(context);
+    final appState = Provider.of<AppState>(context);
+
     final maxY = _getMaxY(allHistories, ['usdcDeposit', 'xdaiDeposit']);
     final maxX = allHistories.values.expand((e) => e).map((e) => e.timestamp.millisecondsSinceEpoch.toDouble()).reduce((a, b) => a > b ? a : b);
     final minX = allHistories.values.expand((e) => e).map((e) => e.timestamp.millisecondsSinceEpoch.toDouble()).reduce((a, b) => a < b ? a : b);
-
-    // Intervalle dynamique pour l'axe X, avec une valeur par défaut si l'intervalle est trop petit
-    final intervalX = (maxX - minX) > 0 ? (maxX - minX) / 6 : 86400000.0; // 1 jour en millisecondes
 
     return LineChartData(
       gridData: FlGridData(show: true, drawVerticalLine: false),
@@ -306,20 +307,40 @@ class RmmStatsState extends State<RmmStats> {
         bottomTitles: AxisTitles(
           sideTitles: SideTitles(
             showTitles: true,
-            interval: intervalX, // Utiliser l'intervalle dynamique pour l'axe X
             getTitlesWidget: (value, meta) {
               final date = DateTime.fromMillisecondsSinceEpoch(value.toInt());
-              return Text('${date.month}/${date.day}');
+              return Transform.rotate(
+                angle: -0.5,
+                child: Text(
+                  '${date.month}/${date.day}',
+                  style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
+                ),
+              );
             },
           ),
         ),
         leftTitles: AxisTitles(
           sideTitles: SideTitles(
             showTitles: true,
-            interval: maxY > 0 ? maxY / 5 : 1, // Rétablir l'intervalle correct pour l'axe Y (vertical)
-            reservedSize: 60,
+            reservedSize: 45,
             getTitlesWidget: (value, meta) {
-              return Text(value.toStringAsFixed(2));
+              // Déterminer la valeur la plus élevée dans les données de l'axe Y
+              if (value == maxY) {
+                return const SizedBox.shrink(); // Ne pas afficher la valeur la plus élevée
+              }
+
+              // Formater la valeur en "k" si elle est supérieure ou égale à 1000
+              final displayValue = value >= 1000
+                  ? '${(value / 1000).toStringAsFixed(1)} k${dataManager.currencySymbol}'
+                  : '${value.toStringAsFixed(2)}${dataManager.currencySymbol}';
+
+              return Transform.rotate(
+                angle: -0.5,
+                child: Text(
+                  displayValue,
+                  style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
+                ),
+              );
             },
           ),
         ),
@@ -344,12 +365,12 @@ class RmmStatsState extends State<RmmStats> {
 
   // Fonction pour créer le graphique des emprunts (Borrows)
   LineChartData _buildBorrowChart(Map<String, List<BalanceRecord>> allHistories) {
+    final dataManager = Provider.of<DataManager>(context);
+    final appState = Provider.of<AppState>(context);
+
     final maxY = _getMaxY(allHistories, ['usdcBorrow', 'xdaiBorrow']);
     final maxX = allHistories.values.expand((e) => e).map((e) => e.timestamp.millisecondsSinceEpoch.toDouble()).reduce((a, b) => a > b ? a : b);
     final minX = allHistories.values.expand((e) => e).map((e) => e.timestamp.millisecondsSinceEpoch.toDouble()).reduce((a, b) => a < b ? a : b);
-
-    // Intervalle dynamique pour l'axe X, avec une valeur par défaut si l'intervalle est trop petit
-    final intervalX = (maxX - minX) > 0 ? (maxX - minX) / 6 : 86400000.0; // 1 jour en millisecondes
 
     return LineChartData(
       gridData: FlGridData(show: true, drawVerticalLine: false),
@@ -357,20 +378,40 @@ class RmmStatsState extends State<RmmStats> {
         bottomTitles: AxisTitles(
           sideTitles: SideTitles(
             showTitles: true,
-            interval: intervalX, // Utiliser l'intervalle dynamique pour l'axe X
             getTitlesWidget: (value, meta) {
               final date = DateTime.fromMillisecondsSinceEpoch(value.toInt());
-              return Text('${date.month}/${date.day}');
+              return Transform.rotate(
+                angle: -0.5,
+                child: Text(
+                  '${date.month}/${date.day}',
+                  style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
+                ),
+              );
             },
           ),
         ),
         leftTitles: AxisTitles(
           sideTitles: SideTitles(
             showTitles: true,
-            interval: maxY > 0 ? maxY / 5 : 1, // Rétablir l'intervalle correct pour l'axe Y (vertical)
-            reservedSize: 60,
+            reservedSize: 45,
             getTitlesWidget: (value, meta) {
-              return Text(value.toStringAsFixed(2));
+              // Déterminer la valeur la plus élevée dans les données de l'axe Y
+              if (value == maxY) {
+                return const SizedBox.shrink(); // Ne pas afficher la valeur la plus élevée
+              }
+
+              // Formater la valeur en "k" si elle est supérieure ou égale à 1000
+              final displayValue = value >= 1000
+                  ? '${(value / 1000).toStringAsFixed(1)} k${dataManager.currencySymbol}'
+                  : '${value.toStringAsFixed(2)}${dataManager.currencySymbol}';
+
+              return Transform.rotate(
+                angle: -0.5,
+                child: Text(
+                  displayValue,
+                  style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
+                ),
+              );
             },
           ),
         ),
@@ -395,10 +436,7 @@ class RmmStatsState extends State<RmmStats> {
 
   // Fonction pour calculer un intervalle adapté à l'axe vertical gauche
   double _getMaxY(Map<String, List<BalanceRecord>> allHistories, List<String> types) {
-    double maxY = types
-        .expand((type) => allHistories[type] ?? [])
-        .map((record) => record.balance)
-        .reduce((a, b) => a > b ? a : b);
+    double maxY = types.expand((type) => allHistories[type] ?? []).map((record) => record.balance).reduce((a, b) => a > b ? a : b);
     return maxY > 0 ? maxY * 1.2 : 10; // Ajouter 20% de marge ou fixer une valeur par défaut si tout est à 0
   }
 
@@ -413,10 +451,20 @@ class RmmStatsState extends State<RmmStats> {
           .toList(),
       isCurved: true,
       dotData: FlDotData(show: false), // Afficher les points sur chaque valeur
-      belowBarData: BarAreaData(show: false),
       barWidth: 2,
       isStrokeCapRound: true,
       color: color,
+      belowBarData: BarAreaData(
+        show: true,
+        gradient: LinearGradient(
+          colors: [
+            color.withOpacity(0.2),
+            color.withOpacity(0),
+          ],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        ),
+      ),
     );
   }
 

@@ -15,7 +15,7 @@ class DashboardRentsDetailsPage extends StatelessWidget {
         title: const Text('Rents Details'),
       ),
       body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0), // Padding général
+        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0), // Padding général
         child: dataManager.rentData.isEmpty
             ? Center(
                 child: Text(
@@ -67,10 +67,7 @@ class DashboardRentsDetailsPage extends StatelessWidget {
                               ),
                               Text(
                                 rentAmount,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyLarge
-                                    ?.copyWith(
+                                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                                       fontWeight: FontWeight.bold,
                                     ),
                               ),

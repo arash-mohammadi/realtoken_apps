@@ -1,4 +1,3 @@
-
 import 'package:realtokens_apps/api/data_manager.dart';
 import 'package:realtokens_apps/generated/l10n.dart';
 import 'package:flutter/material.dart';
@@ -9,44 +8,41 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:logger/logger.dart';
 
 class Utils {
-  static final logger = Logger();  // Initialiser une instance de logger
+  static final logger = Logger(); // Initialiser une instance de logger
 
-static double getAppBarHeight(BuildContext context) {
-  double screenHeight = MediaQuery.of(context).size.height;
-  double screenWidth = MediaQuery.of(context).size.width;
-  bool isPortrait = MediaQuery.of(context).orientation == Orientation.portrait;
+  static double getAppBarHeight(BuildContext context) {
+    double screenHeight = MediaQuery.of(context).size.height;
+    double screenWidth = MediaQuery.of(context).size.width;
+    bool isPortrait = MediaQuery.of(context).orientation == Orientation.portrait;
 
-  if (screenWidth >= 768) {
-    // Dimensions spécifiques pour iPad
-        return isPortrait ? kToolbarHeight + 10 : kToolbarHeight + 10;
-  } else if (screenHeight > 800) {
-    // Appareils avec grands écrans (par exemple iPhone 15 Pro Max)
-    return kToolbarHeight + 40;
-  } else {
-    // Appareils avec petits écrans (par exemple iPhone SE)
-    return kToolbarHeight + 10;
+    if (screenWidth >= 768) {
+      // Dimensions spécifiques pour iPad
+      return isPortrait ? kToolbarHeight + 10 : kToolbarHeight + 10;
+    } else if (screenHeight > 800) {
+      // Appareils avec grands écrans (par exemple iPhone 15 Pro Max)
+      return kToolbarHeight + 40;
+    } else {
+      // Appareils avec petits écrans (par exemple iPhone SE)
+      return kToolbarHeight + 10;
+    }
   }
-}
 
+  static double getSliverAppBarHeight(BuildContext context) {
+    double screenHeight = MediaQuery.of(context).size.height;
+    double screenWidth = MediaQuery.of(context).size.width;
+    bool isPortrait = MediaQuery.of(context).orientation == Orientation.portrait;
 
-static double getSliverAppBarHeight(BuildContext context) {
-  double screenHeight = MediaQuery.of(context).size.height;
-  double screenWidth = MediaQuery.of(context).size.width;
-  bool isPortrait = MediaQuery.of(context).orientation == Orientation.portrait;
-
-  if (screenWidth >= 768) {
-    // Hauteur spécifique pour les iPads
-    return isPortrait ? getAppBarHeight(context) + 30 : getAppBarHeight(context) + 45;
-  } else if (isPortrait) {
-    // Utiliser une hauteur normale pour les appareils en mode portrait
-    return screenHeight > 800 ? getAppBarHeight(context) - 10 : getAppBarHeight(context) + 25;
-  } else {
-    // Réduire la hauteur en mode paysage
-    return getAppBarHeight(context) + 45; // Ajustez cette valeur si nécessaire
+    if (screenWidth >= 768) {
+      // Hauteur spécifique pour les iPads
+      return isPortrait ? getAppBarHeight(context) + 30 : getAppBarHeight(context) + 45;
+    } else if (isPortrait) {
+      // Utiliser une hauteur normale pour les appareils en mode portrait
+      return screenHeight > 800 ? getAppBarHeight(context) - 10 : getAppBarHeight(context) + 25;
+    } else {
+      // Réduire la hauteur en mode paysage
+      return getAppBarHeight(context) + 45; // Ajustez cette valeur si nécessaire
+    }
   }
-}
-
-
 
   static Future<void> loadData(BuildContext context) async {
     final dataManager = Provider.of<DataManager>(context, listen: false);
@@ -54,6 +50,9 @@ static double getSliverAppBarHeight(BuildContext context) {
     dataManager.fetchRentData(); //f Charger les données de loyer
     dataManager.fetchAndCalculateData(); // Charger les données du portefeuille
     dataManager.updatedDetailRentVariables();
+    dataManager.fetchAndStoreAllTokens();
+    dataManager.fetchAndStoreYamMarketData();
+    dataManager.fetchAndStorePropertiesForSale();
   }
 
   static Future<void> refreshData(BuildContext context) async {
@@ -63,9 +62,10 @@ static double getSliverAppBarHeight(BuildContext context) {
     await dataManager.fetchRentData(forceFetch: true);
     await dataManager.fetchAndCalculateData(forceFetch: true);
     await dataManager.updatedDetailRentVariables(forceFetch: true);
-
+    await dataManager.fetchAndStoreAllTokens();
+    await dataManager.fetchAndStoreYamMarketData();
+    await dataManager.fetchAndStorePropertiesForSale();
   }
-
 
   // Méthode pour formater une date en une chaîne compréhensible
   static String formatReadableDate(String dateString) {
@@ -83,114 +83,112 @@ static double getSliverAppBarHeight(BuildContext context) {
     }
   }
 
-    // Fonction utilitaire pour formater la date et le montant
+  // Fonction utilitaire pour formater la date et le montant
   static String formatDate(String date) {
     DateTime parsedDate = DateTime.parse(date);
     return DateFormat('dd/MM/yyyy').format(parsedDate);
   }
 
   static String formatReadableDateWithTime(String dateString) {
-  try {
-    // Parse la date depuis le format donné
-    DateTime parsedDate = DateTime.parse(dateString);
+    try {
+      // Parse la date en UTC
+      DateTime parsedDate = DateTime.parse(dateString).toUtc();
+      // Convertit en heure locale
+      DateTime localDate = parsedDate.toLocal();
 
-    // Formater la date avec l'heure dans un format lisible: 1 Dec 2024 14:30:45
-    String formattedDate = DateFormat('d MMM yyyy HH:mm:ss').format(parsedDate);
+      // Formate la date avec l'heure dans un format lisible: 1 Dec 2024 14:30:45
+      String formattedDate = DateFormat('d MMM yyyy HH:mm:ss').format(localDate);
 
-    return formattedDate;
-  } catch (e) {
-    // Si une erreur survient, retourne la date d'origine
-    return dateString;
+      return formattedDate;
+    } catch (e) {
+      // Si une erreur survient, retourne la date d'origine
+      return dateString;
+    }
   }
-}
+
+
 
   static Future<void> launchURL(String url) async {
-  logger.i('Tentative d\'ouverture de l\'URL: $url'); // Log pour capturer l'URL
-  final Uri uri = Uri.parse(url);
-  try {
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(
-        uri,
-        mode: LaunchMode.inAppBrowserView, // Ouvre dans un navigateur externe
-      );
-    } else {
-      throw 'Impossible de lancer l\'URL : $url';
+    logger.i('Tentative d\'ouverture de l\'URL: $url'); // Log pour capturer l'URL
+    final Uri uri = Uri.parse(url);
+    try {
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(
+          uri,
+          mode: LaunchMode.inAppBrowserView, // Ouvre dans un navigateur externe
+        );
+      } else {
+        throw 'Impossible de lancer l\'URL : $url';
+      }
+    } catch (e) {
+      logger.i('Erreur lors du lancement de l\'URL: $e');
     }
-  } catch (e) {
-    logger.i('Erreur lors du lancement de l\'URL: $e');
   }
-}
 
 // Fonction pour obtenir un offset de taille de texte à partir des préférences
-static Future<double> getTextSizeOffset() async {
-  final prefs = await SharedPreferences.getInstance();
-  String selectedTextSize = prefs.getString('selectedTextSize') ?? 'normal'; // 'normal' par défaut
+  static Future<double> getTextSizeOffset() async {
+    final prefs = await SharedPreferences.getInstance();
+    String selectedTextSize = prefs.getString('selectedTextSize') ?? 'normal'; // 'normal' par défaut
 
-  switch (selectedTextSize) {
-    case 'petit':
-      return -2.0; // Réduire la taille de 2
-    case 'grand':
-      return 2.0;  // Augmenter la taille de 2
-    default:
-      return 0.0;  // Taille normale
+    switch (selectedTextSize) {
+      case 'petit':
+        return -2.0; // Réduire la taille de 2
+      case 'grand':
+        return 2.0; // Augmenter la taille de 2
+      default:
+        return 0.0; // Taille normale
+    }
   }
-}
 
 // Fonction de formatage des valeurs monétaires avec des espaces pour les milliers
-static String formatCurrency(double value, String symbol) {
-  final NumberFormat formatter = NumberFormat.currency(
-    locale: 'fr_FR',
-    symbol: symbol, // Utilisation du symbole sélectionné
-    decimalDigits: 2,
-  );
-  return formatter.format(value);
-}
+  static String formatCurrency(double value, String symbol) {
+    final NumberFormat formatter = NumberFormat.currency(
+      locale: 'fr_FR',
+      symbol: symbol, // Utilisation du symbole sélectionné
+      decimalDigits: 2,
+    );
+    return formatter.format(value);
+  }
 
   // Méthode pour formater ou masquer les montants en série de ****
   static String getFormattedAmount(double value, String symbol, bool showAmount) {
     if (showAmount) {
-      return Utils.formatCurrency(
-          value, symbol); // Affiche le montant formaté si visible
+      return Utils.formatCurrency(value, symbol); // Affiche le montant formaté si visible
     } else {
       String formattedValue = Utils.formatCurrency(value, symbol); // Format le montant normalement
-      return '*' *
-          formattedValue
-              .length; // Retourne une série d'astérisques de la même longueur
+      return '*' * formattedValue.length; // Retourne une série d'astérisques de la même longueur
     }
   }
 
 // Fonction pour extraire le nom de la ville à partir du fullName
-static String extractCity(String fullName) {
-  List<String> parts = fullName.split(',');
-  return parts.length >= 2
-      ? parts[1].trim()
-      : S.current.unknownCity; // Traduction pour "Ville inconnue"
-}
+  static String extractCity(String fullName) {
+    List<String> parts = fullName.split(',');
+    return parts.length >= 2 ? parts[1].trim() : S.current.unknownCity; // Traduction pour "Ville inconnue"
+  }
 
   static Color shadeColor(Color color, double factor) {
-  return Color.fromRGBO(
-    (color.red * factor).round(),
-    (color.green * factor).round(),
-    (color.blue * factor).round(),
-    1,
-  );
-}
+    return Color.fromRGBO(
+      (color.red * factor).round(),
+      (color.green * factor).round(),
+      (color.blue * factor).round(),
+      1,
+    );
+  }
 
   static int weekNumber(DateTime date) {
     int dayOfYear = int.parse(DateFormat("D").format(date));
-    int weekNumber = ((dayOfYear - date.weekday + 10) / 7 ).floor();
+    int weekNumber = ((dayOfYear - date.weekday + 10) / 7).floor();
     return weekNumber;
   }
 
 // Méthode pour déterminer la couleur de la pastille en fonction du taux de location
-static Color getRentalStatusColor(int rentedUnits, int totalUnits) {
-  if (rentedUnits == 0) {
-    return Colors.red; // Aucun logement loué
-  } else if (rentedUnits == totalUnits) {
-    return Colors.green; // Tous les logements sont loués
-  } else {
-    return Colors.orange; // Partiellement loué
+  static Color getRentalStatusColor(int rentedUnits, int totalUnits) {
+    if (rentedUnits == 0) {
+      return Colors.red; // Aucun logement loué
+    } else if (rentedUnits == totalUnits) {
+      return Colors.green; // Tous les logements sont loués
+    } else {
+      return Colors.orange; // Partiellement loué
+    }
   }
-}
-
 }

@@ -1,3 +1,4 @@
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:realtokens_apps/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -17,8 +18,7 @@ class PortfolioDisplay2 extends StatefulWidget {
 }
 
 class PortfolioDisplay2State extends State<PortfolioDisplay2> {
-
- Widget _buildGaugeForRent(double rentValue, BuildContext context) {
+  Widget _buildGaugeForRent(double rentValue, BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -32,7 +32,7 @@ class PortfolioDisplay2State extends State<PortfolioDisplay2> {
                   height: 15,
                   width: maxWidth,
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
+                  color: const Color.fromARGB(255, 78, 78, 78).withOpacity(0.3), // Couleur du fond grisé
                     borderRadius: BorderRadius.circular(5),
                   ),
                 ),
@@ -65,7 +65,7 @@ class PortfolioDisplay2State extends State<PortfolioDisplay2> {
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context); // Accéder à AppState
     final filteredPortfolio = widget.portfolio;
-
+    final widthScreen = MediaQuery.of(context).size.width;
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Column(
@@ -75,7 +75,7 @@ class PortfolioDisplay2State extends State<PortfolioDisplay2> {
               ? Expanded(
                   child: Center(
                     child: Padding(
-                      padding: const EdgeInsets.all(16.0),
+                      padding: const EdgeInsets.all(8.0),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -114,8 +114,10 @@ class PortfolioDisplay2State extends State<PortfolioDisplay2> {
                   ),
                 )
               : Expanded(
-                  child: ListView.builder(
+                  child: AlignedGridView.count(
                     padding: const EdgeInsets.only(top: 20, bottom: 80),
+                    crossAxisCount: widthScreen > 700 ? 2 : 1, // Nombre de colonnes basé sur la largeur de l'écran
+              
                     itemCount: filteredPortfolio.length,
                     itemBuilder: (context, index) {
                       final token = filteredPortfolio[index];
@@ -127,14 +129,12 @@ class PortfolioDisplay2State extends State<PortfolioDisplay2> {
                       final rentStartDate = DateTime.tryParse(token['rentStartDate'] ?? '');
                       final bool isFutureRentStart = rentStartDate != null && rentStartDate.isAfter(DateTime.now());
 
-                      final rentPercentage = (token['totalRentReceived'] != null &&
-                          token['initialTotalValue'] != null &&
-                          token['initialTotalValue'] != 0)
-                      ? (token['totalRentReceived'] / token['initialTotalValue']) * 100
-                      : 0.5;
+                      final rentPercentage = (token['totalRentReceived'] != null && token['initialTotalValue'] != null && token['initialTotalValue'] != 0)
+                          ? (token['totalRentReceived'] / token['initialTotalValue']) * 100
+                          : 0.5;
 
                       return Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
+                  padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
                         child: GestureDetector(
                           onTap: () => showTokenDetails(context, token),
                           child: Card(
@@ -198,12 +198,28 @@ class PortfolioDisplay2State extends State<PortfolioDisplay2> {
                                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                         children: [
                                           Expanded(
-                                            child: Text(
-                                              token['shortName'] ?? S.of(context).nameUnavailable,
-                                              style: TextStyle(
-                                                fontSize: 18 + appState.getTextSizeOffset(),
-                                                fontWeight: FontWeight.bold,
-                                              ),
+                                            child: Row(
+                                              children: [
+                                                if (token['country'] != null) // Vérifie si le pays est disponible
+                                                  Padding(
+                                                    padding: const EdgeInsets.only(right: 8.0), // Espacement entre l'image et le texte
+                                                    child: Image.asset(
+                                                      'assets/country/${token['country'].toLowerCase()}.png',
+                                                      width: 24,
+                                                      height: 24,
+                                                      errorBuilder: (context, error, stackTrace) {
+                                                        return const Icon(Icons.flag, size: 24); // Affiche une icône par défaut si l'image est introuvable
+                                                      },
+                                                    ),
+                                                  ),
+                                                Text(
+                                                  token['shortName'] ?? S.of(context).nameUnavailable,
+                                                  style: TextStyle(
+                                                    fontSize: 18 + appState.getTextSizeOffset(),
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ],
                                             ),
                                           ),
                                           Row(
@@ -257,7 +273,7 @@ class PortfolioDisplay2State extends State<PortfolioDisplay2> {
                                       // Appel à la jauge pour le pourcentage de rentabilité
                                       _buildGaugeForRent(rentPercentage, context),
                                       const SizedBox(height: 8),
-                                      
+
                                       Text(
                                         '${S.of(context).totalValue}: ${formatCurrency(context, token['totalValue'])}',
                                         style: TextStyle(
@@ -277,7 +293,8 @@ class PortfolioDisplay2State extends State<PortfolioDisplay2> {
                                         ),
                                       ),
                                       const SizedBox(height: 8),
-                                      Text('${S.of(context).revenue}:',
+                                      Text(
+                                        '${S.of(context).revenue}:',
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
                                           fontSize: 16 + appState.getTextSizeOffset(),

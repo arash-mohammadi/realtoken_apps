@@ -19,7 +19,7 @@ class ServiceStatusPage extends StatelessWidget {
       if (key.toString().startsWith('lastExecutionTime_')) {
         String? executionTime = box.get(key); // Récupérer la dernière exécution
         executionTimesMap[key.toString()] = executionTime!;
-            }
+      }
     }
 
     // Variable pour suivre l'état des services
@@ -51,9 +51,7 @@ class ServiceStatusPage extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: Text(
-                    allAreUpToDate
-                        ? S.of(context).allWorkCorrectly
-                        : S.of(context).somethingWrong,
+                    allAreUpToDate ? S.of(context).allWorkCorrectly : S.of(context).somethingWrong,
                     style: TextStyle(
                       fontSize: 18 + appState.getTextSizeOffset(),
                       fontWeight: FontWeight.bold,
@@ -104,11 +102,12 @@ class ServiceStatusPage extends StatelessWidget {
                           ),
                         ),
                         subtitle: Text(
-                            '${S.of(context).lastExecution} : ${Utils.formatReadableDateWithTime(time)}',
-                            style: TextStyle(
-                              fontSize: 14 + appState.getTextSizeOffset(), // Ajuste cette taille selon tes besoins
-                            ),
-                          ),                      );
+                          '${S.of(context).lastExecution} : ${Utils.formatReadableDateWithTime(time)}',
+                          style: TextStyle(
+                            fontSize: 14 + appState.getTextSizeOffset(), // Ajuste cette taille selon tes besoins
+                          ),
+                        ),
+                      );
                     },
                   ),
                 ),

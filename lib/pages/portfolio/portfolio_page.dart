@@ -22,23 +22,24 @@ class PortfolioPageState extends State<PortfolioPage> {
   String? _selectedCity;
   String _rentalStatusFilter = 'All'; // Nouveau filtre pour le statut de location
 
-@override
-void initState() {
-  super.initState();
-  WidgetsBinding.instance.addPostFrameCallback((_) async {
-    Utils.loadData(context);
-    _loadDisplayPreference();
-    _loadFilterPreferences();
-  });
-}
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      Utils.loadData(context);
+      _loadDisplayPreference();
+      _loadFilterPreferences();
+    });
+  }
 
   // Charger les préférences d'affichage
   Future<void> _loadDisplayPreference() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    
+
     // Assurez-vous d'utiliser addPostFrameCallback même ici
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) { // Vérifie que le widget est toujours monté
+      if (mounted) {
+        // Vérifie que le widget est toujours monté
         setState(() {
           _isDisplay1 = prefs.getBool('isDisplay1') ?? true;
         });
@@ -62,13 +63,14 @@ void initState() {
   // Charger les filtres et tri depuis SharedPreferences
   Future<void> _loadFilterPreferences() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    
+
     // Assurez-vous d'utiliser addPostFrameCallback même ici
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) { // Vérifie que le widget est toujours monté
+      if (mounted) {
+        // Vérifie que le widget est toujours monté
         setState(() {
           _sortOption = prefs.getString('sortOption') ?? S.of(context).sortByInitialLaunchDate;
-          _isAscending = prefs.getBool('isAscending') ?? false;  // Charger l'état de tri
+          _isAscending = prefs.getBool('isAscending') ?? false; // Charger l'état de tri
           _selectedCity = prefs.getString('selectedCity')?.isEmpty ?? true ? null : prefs.getString('selectedCity');
           _rentalStatusFilter = prefs.getString('rentalStatusFilter') ?? 'All';
         });
@@ -168,18 +170,14 @@ void initState() {
         .toList();
 
     if (_sortOption == S.of(context).sortByName) {
-      filteredPortfolio.sort((a, b) => _isAscending
-          ? a['shortName'].compareTo(b['shortName'])
-          : b['shortName'].compareTo(a['shortName']));
+      filteredPortfolio.sort((a, b) => _isAscending ? a['shortName'].compareTo(b['shortName']) : b['shortName'].compareTo(a['shortName']));
     } else if (_sortOption == S.of(context).sortByValue) {
-      filteredPortfolio.sort((a, b) => _isAscending
-          ? a['totalValue'].compareTo(b['totalValue'])
-          : b['totalValue'].compareTo(a['totalValue']));
+      filteredPortfolio.sort((a, b) => _isAscending ? a['totalValue'].compareTo(b['totalValue']) : b['totalValue'].compareTo(a['totalValue']));
     } else if (_sortOption == S.of(context).sortByAPY) {
-      filteredPortfolio.sort((a, b) => _isAscending
-          ? a['annualPercentageYield'].compareTo(b['annualPercentageYield'])
-          : b['annualPercentageYield'].compareTo(a['annualPercentageYield']));
-    }  else if (_sortOption == S.of(context).sortByInitialLaunchDate) {  // Nouveau tri par initialLaunchDate
+      filteredPortfolio.sort((a, b) =>
+          _isAscending ? a['annualPercentageYield'].compareTo(b['annualPercentageYield']) : b['annualPercentageYield'].compareTo(a['annualPercentageYield']));
+    } else if (_sortOption == S.of(context).sortByInitialLaunchDate) {
+      // Nouveau tri par initialLaunchDate
       filteredPortfolio.sort((a, b) => _isAscending
           ? DateTime.parse(a['initialLaunchDate']).compareTo(DateTime.parse(b['initialLaunchDate']))
           : DateTime.parse(b['initialLaunchDate']).compareTo(DateTime.parse(a['initialLaunchDate'])));
@@ -229,151 +227,149 @@ void initState() {
             child: NestedScrollView(
               headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
                 return <Widget>[
-              SliverAppBar(
-                floating: true,
-                snap: true,
-                automaticallyImplyLeading: false,
-                expandedHeight: Utils.getSliverAppBarHeight(context), // Hauteur étendue
-                flexibleSpace: FlexibleSpaceBar(
-                  background: Container(
-                    color: Theme.of(context).cardColor,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.end, // Aligne les éléments vers le bas
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.all(0.0), // Ajustez les marges si nécessaire
-                          child: Row(
-                            children: [
-                              Expanded(
-                                flex: 3,
-                                child: TextField(
-                                  onChanged: (value) {
-                                    _updateSearchQuery(value);
-                                  },
-                                  decoration: InputDecoration(
-                                    hintText: S.of(context).searchHint, // "Search..."
-                                    prefixIcon: const Icon(Icons.search),
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(30.0),
-                                      borderSide: BorderSide.none,
+                  SliverAppBar(
+                    floating: true,
+                    snap: true,
+                    automaticallyImplyLeading: false,
+                    expandedHeight: Utils.getSliverAppBarHeight(context), // Hauteur étendue
+                    flexibleSpace: FlexibleSpaceBar(
+                      background: Container(
+                        color: Theme.of(context).cardColor,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.end, // Aligne les éléments vers le bas
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.all(0.0), // Ajustez les marges si nécessaire
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    flex: 3,
+                                    child: TextField(
+                                      onChanged: (value) {
+                                        _updateSearchQuery(value);
+                                      },
+                                      decoration: InputDecoration(
+                                        hintText: S.of(context).searchHint, // "Search..."
+                                        prefixIcon: const Icon(Icons.search),
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(30.0),
+                                          borderSide: BorderSide.none,
+                                        ),
+                                      ),
                                     ),
                                   ),
-                                ),
+                                  const SizedBox(width: 8.0),
+                                  IconButton(
+                                    icon: Icon(_isDisplay1 ? Icons.view_module : Icons.view_list),
+                                    onPressed: _toggleDisplay,
+                                  ),
+                                  const SizedBox(width: 8.0),
+                                  PopupMenuButton<String>(
+                                    icon: const Icon(Icons.location_city),
+                                    onSelected: (String value) {
+                                      _updateCityFilter(value == S.of(context).allCities ? null : value);
+                                    },
+                                    itemBuilder: (BuildContext context) {
+                                      return [
+                                        PopupMenuItem(
+                                          value: S.of(context).allCities,
+                                          child: Text(S.of(context).allCities),
+                                        ),
+                                        ...uniqueCities.map((city) => PopupMenuItem(
+                                              value: city,
+                                              child: Text(city),
+                                            )),
+                                      ];
+                                    },
+                                  ),
+                                  const SizedBox(width: 8.0),
+                                  PopupMenuButton<String>(
+                                    icon: const Icon(Icons.filter_alt),
+                                    onSelected: (String value) {
+                                      _updateRentalStatusFilter(value);
+                                    },
+                                    itemBuilder: (BuildContext context) {
+                                      return [
+                                        PopupMenuItem(
+                                          value: S.of(context).rentalStatusAll,
+                                          child: Text(S.of(context).rentalStatusAll),
+                                        ),
+                                        PopupMenuItem(
+                                          value: S.of(context).rentalStatusRented,
+                                          child: Text(S.of(context).rentalStatusRented),
+                                        ),
+                                        PopupMenuItem(
+                                          value: S.of(context).rentalStatusPartiallyRented,
+                                          child: Text(S.of(context).rentalStatusPartiallyRented),
+                                        ),
+                                        PopupMenuItem(
+                                          value: S.of(context).rentalStatusNotRented,
+                                          child: Text(S.of(context).rentalStatusNotRented),
+                                        ),
+                                      ];
+                                    },
+                                  ),
+                                  const SizedBox(width: 8.0),
+                                  PopupMenuButton<String>(
+                                    icon: const Icon(Icons.sort),
+                                    onSelected: (String value) {
+                                      if (value == 'asc' || value == 'desc') {
+                                        setState(() {
+                                          _isAscending = (value == 'asc');
+                                        });
+                                        _saveFilterPreferences(); // Sauvegarder après la modification
+                                      } else {
+                                        _updateSortOption(value);
+                                      }
+                                    },
+                                    itemBuilder: (BuildContext context) {
+                                      return [
+                                        CheckedPopupMenuItem(
+                                          value: S.of(context).sortByName,
+                                          checked: _sortOption == S.of(context).sortByName,
+                                          child: Text(S.of(context).sortByName),
+                                        ),
+                                        CheckedPopupMenuItem(
+                                          value: S.of(context).sortByValue,
+                                          checked: _sortOption == S.of(context).sortByValue,
+                                          child: Text(S.of(context).sortByValue),
+                                        ),
+                                        CheckedPopupMenuItem(
+                                          value: S.of(context).sortByAPY,
+                                          checked: _sortOption == S.of(context).sortByAPY,
+                                          child: Text(S.of(context).sortByAPY),
+                                        ),
+                                        CheckedPopupMenuItem(
+                                          value: S.of(context).sortByInitialLaunchDate,
+                                          checked: _sortOption == S.of(context).sortByInitialLaunchDate,
+                                          child: Text(S.of(context).sortByInitialLaunchDate),
+                                        ),
+                                        const PopupMenuDivider(),
+                                        CheckedPopupMenuItem(
+                                          value: 'asc',
+                                          checked: _isAscending,
+                                          child: Text(S.of(context).ascending),
+                                        ),
+                                        CheckedPopupMenuItem(
+                                          value: 'desc',
+                                          checked: !_isAscending,
+                                          child: Text(S.of(context).descending),
+                                        ),
+                                      ];
+                                    },
+                                  ),
+                                ],
                               ),
-                              const SizedBox(width: 8.0),
-                              IconButton(
-                                icon: Icon(_isDisplay1 ? Icons.view_module : Icons.view_list),
-                                onPressed: _toggleDisplay,
-                              ),
-                              const SizedBox(width: 8.0),
-                              PopupMenuButton<String>(
-                                icon: const Icon(Icons.location_city),
-                                onSelected: (String value) {
-                                  _updateCityFilter(value == S.of(context).allCities ? null : value);
-                                },
-                                itemBuilder: (BuildContext context) {
-                                  return [
-                                    PopupMenuItem(
-                                      value: S.of(context).allCities,
-                                      child: Text(S.of(context).allCities),
-                                    ),
-                                    ...uniqueCities.map((city) => PopupMenuItem(
-                                          value: city,
-                                          child: Text(city),
-                                        )),
-                                  ];
-                                },
-                              ),
-                              const SizedBox(width: 8.0),
-                              PopupMenuButton<String>(
-                                icon: const Icon(Icons.filter_alt),
-                                onSelected: (String value) {
-                                  _updateRentalStatusFilter(value);
-                                },
-                                itemBuilder: (BuildContext context) {
-                                  return [
-                                    PopupMenuItem(
-                                      value: S.of(context).rentalStatusAll,
-                                      child: Text(S.of(context).rentalStatusAll),
-                                    ),
-                                    PopupMenuItem(
-                                      value: S.of(context).rentalStatusRented,
-                                      child: Text(S.of(context).rentalStatusRented),
-                                    ),
-                                    PopupMenuItem(
-                                      value: S.of(context).rentalStatusPartiallyRented,
-                                      child: Text(S.of(context).rentalStatusPartiallyRented),
-                                    ),
-                                    PopupMenuItem(
-                                      value: S.of(context).rentalStatusNotRented,
-                                      child: Text(S.of(context).rentalStatusNotRented),
-                                    ),
-                                  ];
-                                },
-                              ),
-                              const SizedBox(width: 8.0),
-                              PopupMenuButton<String>(
-                                icon: const Icon(Icons.sort),
-                                onSelected: (String value) {
-                                  if (value == 'asc' || value == 'desc') {
-                                    setState(() {
-                                      _isAscending = (value == 'asc');
-                                    });
-                                    _saveFilterPreferences(); // Sauvegarder après la modification
-                                  } else {
-                                    _updateSortOption(value);
-                                  }
-                                },
-                                itemBuilder: (BuildContext context) {
-                                  return [
-                                    CheckedPopupMenuItem(
-                                      value: S.of(context).sortByName,
-                                      checked: _sortOption == S.of(context).sortByName,
-                                      child: Text(S.of(context).sortByName),
-                                    ),
-                                    CheckedPopupMenuItem(
-                                      value: S.of(context).sortByValue,
-                                      checked: _sortOption == S.of(context).sortByValue,
-                                      child: Text(S.of(context).sortByValue),
-                                    ),
-                                    CheckedPopupMenuItem(
-                                      value: S.of(context).sortByAPY,
-                                      checked: _sortOption == S.of(context).sortByAPY,
-                                      child: Text(S.of(context).sortByAPY),
-                                    ),
-                                    CheckedPopupMenuItem(
-                                      value: S.of(context).sortByInitialLaunchDate,
-                                      checked: _sortOption == S.of(context).sortByInitialLaunchDate,
-                                      child: Text(S.of(context).sortByInitialLaunchDate),
-                                    ),
-                                    const PopupMenuDivider(),
-                                    CheckedPopupMenuItem(
-                                      value: 'asc',
-                                      checked: _isAscending,
-                                      child: Text(S.of(context).ascending),
-                                    ),
-                                    CheckedPopupMenuItem(
-                                      value: 'desc',
-                                      checked: !_isAscending,
-                                      child: Text(S.of(context).descending),
-                                    ),
-                                  ];
-                                },
-                              ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
-                  ),
-                ),
-              )
-              ];
+                  )
+                ];
               },
-              body: _isDisplay1
-                  ? PortfolioDisplay1(portfolio: sortedFilteredPortfolio)
-                  : PortfolioDisplay2(portfolio: sortedFilteredPortfolio),
+              body: _isDisplay1 ? PortfolioDisplay1(portfolio: sortedFilteredPortfolio) : PortfolioDisplay2(portfolio: sortedFilteredPortfolio),
             ),
           );
         },

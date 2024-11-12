@@ -18,17 +18,14 @@ class S {
   static S? _current;
 
   static S get current {
-    assert(_current != null,
-        'No instance of S was loaded. Try to initialize the S delegate before accessing S.current.');
+    assert(_current != null, 'No instance of S was loaded. Try to initialize the S delegate before accessing S.current.');
     return _current!;
   }
 
   static const AppLocalizationDelegate delegate = AppLocalizationDelegate();
 
   static Future<S> load(Locale locale) {
-    final name = (locale.countryCode?.isEmpty ?? false)
-        ? locale.languageCode
-        : locale.toString();
+    final name = (locale.countryCode?.isEmpty ?? false) ? locale.languageCode : locale.toString();
     final localeName = Intl.canonicalizedLocale(name);
     return initializeMessages(localeName).then((_) {
       Intl.defaultLocale = localeName;
@@ -41,8 +38,7 @@ class S {
 
   static S of(BuildContext context) {
     final instance = S.maybeOf(context);
-    assert(instance != null,
-        'No instance of S present in the widget tree. Did you add S.delegate in localizationsDelegates?');
+    assert(instance != null, 'No instance of S present in the widget tree. Did you add S.delegate in localizationsDelegates?');
     return instance!;
   }
 
@@ -2125,6 +2121,176 @@ class S {
     return Intl.message(
       'Manual Edit',
       name: 'manualEdit',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Property Type`
+  String get propertyType {
+    return Intl.message(
+      'Property Type',
+      name: 'propertyType',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Section 8`
+  String get section8paid {
+    return Intl.message(
+      'Section 8',
+      name: 'section8paid',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Properties for Sale`
+  String get propertiesForSale {
+    return Intl.message(
+      'Properties for Sale',
+      name: 'propertiesForSale',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No properties for sale`
+  String get noPropertiesForSale {
+    return Intl.message(
+      'No properties for sale',
+      name: 'noPropertiesForSale',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Unknown country`
+  String get unknownCountry {
+    return Intl.message(
+      'Unknown country',
+      name: 'unknownCountry',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No market offers available`
+  String get no_market_offers_available {
+    return Intl.message(
+      'No market offers available',
+      name: 'no_market_offers_available',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Offer ID`
+  String get offer_id {
+    return Intl.message(
+      'Offer ID',
+      name: 'offer_id',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Token Amount`
+  String get token_amount {
+    return Intl.message(
+      'Token Amount',
+      name: 'token_amount',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Token Value`
+  String get token_value {
+    return Intl.message(
+      'Token Value',
+      name: 'token_value',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Delta Price`
+  String get delta_price {
+    return Intl.message(
+      'Delta Price',
+      name: 'delta_price',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Creation Date`
+  String get creation_date {
+    return Intl.message(
+      'Creation Date',
+      name: 'creation_date',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Buy`
+  String get buy_token {
+    return Intl.message(
+      'Buy',
+      name: 'buy_token',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `YAMM offers related to token`
+  String get secondary_offers_related_to_token {
+    return Intl.message(
+      'YAMM offers related to token',
+      name: 'secondary_offers_related_to_token',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Error: {error}`
+  String error_occurred(Object error) {
+    return Intl.message(
+      'Error: $error',
+      name: 'error_occurred',
+      desc: '',
+      args: [error],
+    );
+  }
+
+  /// `Properties For Sale`
+  String get properties_for_sale {
+    return Intl.message(
+      'Properties For Sale',
+      name: 'properties_for_sale',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `RealT`
+  String get realt {
+    return Intl.message(
+      'RealT',
+      name: 'realt',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Secondary`
+  String get secondary {
+    return Intl.message(
+      'Secondary',
+      name: 'secondary',
       desc: '',
       args: [],
     );

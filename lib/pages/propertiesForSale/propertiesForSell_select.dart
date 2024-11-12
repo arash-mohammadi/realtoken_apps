@@ -1,40 +1,44 @@
-import 'package:realtokens_apps/utils/utils.dart';
 import 'package:flutter/material.dart';
-import 'package:realtokens_apps/pages/Statistics/rmm_stats.dart';
-import 'package:realtokens_apps/pages/Statistics/portfolio_stats.dart'; // Assurez-vous que ces pages existent dans votre projet
 import 'package:provider/provider.dart';
 import 'package:realtokens_apps/app_state.dart';
+import 'package:realtokens_apps/pages/propertiesForSale/PropertiesForSaleRealt.dart';
+import 'package:realtokens_apps/pages/propertiesForSale/PropertiesForSaleSecondary.dart';
+import 'package:realtokens_apps/utils/utils.dart';
+import 'package:realtokens_apps/generated/l10n.dart';
 
-class StatsSelectorPage extends StatefulWidget {
-  const StatsSelectorPage({super.key});
+class PropertiesForSalePage extends StatefulWidget {
+  const PropertiesForSalePage({Key? key}) : super(key: key);
 
   @override
-  StatsSelectorPageState createState() => StatsSelectorPageState();
+  _PropertiesForSalePageState createState() => _PropertiesForSalePageState();
 }
 
-class StatsSelectorPageState extends State<StatsSelectorPage> {
-  String _selectedStats = 'PortfolioStats'; // Valeur par défaut
+class _PropertiesForSalePageState extends State<PropertiesForSalePage> {
+  String _selectedPage = 'RealT'; // Valeur par défaut
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: Text(S.of(context).properties_for_sale), // Titre de la page
+      ),
       body: NestedScrollView(
         headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
           return <Widget>[
             SliverAppBar(
-              floating: true, // Rend l'AppBar rétractable
-              snap: true, // Permet de faire réapparaître l'AppBar automatiquement
-              expandedHeight: Utils.getSliverAppBarHeight(context), // Hauteur étendue si besoin
+              floating: true,
+              snap: true,
+              expandedHeight: Utils.getSliverAppBarHeight(context) - 40,
+              automaticallyImplyLeading: false, // Supprime la flèche de retour
               flexibleSpace: FlexibleSpaceBar(
                 background: Container(
                   color: Theme.of(context).cardColor,
                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment.end, // Aligne les éléments vers le bas
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       Padding(
-                        padding: const EdgeInsets.all(8.0), // Ajustez les marges si nécessaire
-                        child: _buildStatsSelector(), // Place votre sélecteur ici
+                        padding: const EdgeInsets.all(8.0),
+                        child: _buildPageSelector(),
                       ),
                     ],
                   ),
@@ -43,32 +47,34 @@ class StatsSelectorPageState extends State<StatsSelectorPage> {
             ),
           ];
         },
-        body: _selectedStats == 'PortfolioStats' ? const PortfolioStats() : const RmmStats(),
+        body: _selectedPage == 'RealT' ? const PropertiesForSaleRealt() : const PropertiesForSaleSecondary(),
       ),
     );
   }
 
-  Widget _buildStatsSelector() {
+  Widget _buildPageSelector() {
+    final appState = Provider.of<AppState>(context);
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0),
       child: Row(
         children: [
-          _buildStatsButton('PortfolioStats', 'Portfolio Stats', isFirst: true),
-          _buildStatsButton('RMMStats', 'RMM Stats', isLast: true),
+          _buildPageButton('RealT', S.of(context).realt, isFirst: true),
+          _buildPageButton('Secondary', S.of(context).secondary, isLast: true),
         ],
       ),
     );
   }
 
-  Widget _buildStatsButton(String value, String label, {bool isFirst = false, bool isLast = false}) {
-    bool isSelected = _selectedStats == value;
+  Widget _buildPageButton(String value, String label, {bool isFirst = false, bool isLast = false}) {
     final appState = Provider.of<AppState>(context);
 
+    final isSelected = _selectedPage == value;
     return Expanded(
       child: GestureDetector(
         onTap: () {
           setState(() {
-            _selectedStats = value;
+            _selectedPage = value;
           });
         },
         child: Container(
@@ -79,7 +85,7 @@ class StatsSelectorPageState extends State<StatsSelectorPage> {
               right: isLast ? const Radius.circular(8) : Radius.zero,
             ),
           ),
-          padding: const EdgeInsets.symmetric(vertical: 4),
+          padding: const EdgeInsets.symmetric(vertical: 8),
           alignment: Alignment.center,
           child: Text(
             label,

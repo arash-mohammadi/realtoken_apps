@@ -35,8 +35,8 @@ class FullScreenCarousel extends StatelessWidget {
           items: imageLinks.map<Widget>((imageUrl) {
             return InteractiveViewer(
               panEnabled: true, // Permet de déplacer l'image
-              minScale: 0.8,    // Zoom minimal
-              maxScale: 4.0,    // Zoom maximal
+              minScale: 0.8, // Zoom minimal
+              maxScale: 4.0, // Zoom maximal
               child: CachedNetworkImage(
                 imageUrl: imageUrl,
                 width: double.infinity,

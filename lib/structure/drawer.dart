@@ -1,4 +1,6 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:realtokens_apps/pages/propertiesForSale/propertiesForSell_select.dart';
 import 'package:realtokens_apps/settings/service_status.dart';
 import 'package:realtokens_apps/utils/utils.dart';
 import 'package:flutter/material.dart';
@@ -25,7 +27,8 @@ class CustomDrawer extends StatelessWidget {
     try {
       // Vérifie si l'API de notation est disponible
       final isAvailable = await inAppReview.isAvailable();
-      if (isAvailable && !Platform.isAndroid) { // L'API fonctionne en mode release
+      if (isAvailable && !Platform.isAndroid) {
+        // L'API fonctionne en mode release
         await inAppReview.requestReview();
         isReviewRequested = true;
       }
@@ -40,7 +43,7 @@ class CustomDrawer extends StatelessWidget {
     }
   }
 
-void _showDonationModal(BuildContext context, double textSizeOffset) {
+  void _showDonationModal(BuildContext context, double textSizeOffset) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -251,6 +254,23 @@ void _showDonationModal(BuildContext context, double textSizeOffset) {
                 ),
                 const Divider(),
                 ListTile(
+                  leading: const Icon(Icons.home_work),
+                  title: Text(
+                    S.of(context).propertiesForSale,
+                    style: TextStyle(fontSize: 15 + appState.getTextSizeOffset()),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const PropertiesForSalePage(),
+                      ),
+                    );
+                  },
+                ),
+
+                ListTile(
                   leading: const Icon(Icons.list),
                   title: Text(
                     S.of(context).realTokensList,
@@ -325,18 +345,19 @@ void _showDonationModal(BuildContext context, double textSizeOffset) {
                   },
                 ),
                 const Divider(),
-                 // Ajout de l'item pour les donations
-                ListTile(
-                  leading: const Icon(Icons.monetization_on, color: Colors.blue),
-                  title: Text(
-                    S.of(context).donate,
-                    style: TextStyle(fontSize: 15 + appState.getTextSizeOffset(), color: Colors.blue),
+                // Ajout de l'item pour les donations
+                if (!kIsWeb && !Platform.isIOS)
+                  ListTile(
+                    leading: const Icon(Icons.monetization_on, color: Colors.blue),
+                    title: Text(
+                      S.of(context).donate,
+                      style: TextStyle(fontSize: 15 + appState.getTextSizeOffset(), color: Colors.blue),
+                    ),
+                    onTap: () {
+                      Navigator.pop(context);
+                      _showDonationModal(context, appState.getTextSizeOffset());
+                    },
                   ),
-                  onTap: () {
-                    Navigator.pop(context);
-                    _showDonationModal(context, appState.getTextSizeOffset());
-                  },
-                ),
                 // Item pour la notation de l'application
                 ListTile(
                   leading: const Icon(Icons.star),
@@ -391,7 +412,7 @@ void _showDonationModal(BuildContext context, double textSizeOffset) {
                     Utils.launchURL('https://github.com/RealToken-Community/realtoken-apps/issues');
                   },
                 ),
-                
+
                 const SizedBox(height: 20),
               ],
             ),

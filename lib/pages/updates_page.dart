@@ -51,10 +51,7 @@ class _UpdatesPageState extends State<UpdatesPage> {
     // Regrouper les mises à jour par date puis par token
     Map<String, Map<String, List<Map<String, dynamic>>>> groupedUpdates = {};
     for (var update in recentUpdatesToShow) {
-      final String dateKey = DateTime.parse(update['timsync'])
-          .toLocal()
-          .toString()
-          .split(' ')[0]; // Date sans l'heure
+      final String dateKey = DateTime.parse(update['timsync']).toLocal().toString().split(' ')[0]; // Date sans l'heure
       final String tokenKey = update['shortName'] ?? S.of(context).unknownTokenName;
 
       // Si la date n'existe pas, on la crée
@@ -87,7 +84,7 @@ class _UpdatesPageState extends State<UpdatesPage> {
               flexibleSpace: FlexibleSpaceBar(
                 background: Container(
                   alignment: Alignment.centerLeft,
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
                   color: Theme.of(context).cardColor,
                   child: Row(
                     children: [
@@ -125,8 +122,7 @@ class _UpdatesPageState extends State<UpdatesPage> {
                   padding: const EdgeInsets.all(8.0),
                   child: Text(
                     dateKey, // Afficher la date en gras
-                    style: TextStyle(
-                        fontSize: 18 + appState.getTextSizeOffset(), fontWeight: FontWeight.bold),
+                    style: TextStyle(fontSize: 18 + appState.getTextSizeOffset(), fontWeight: FontWeight.bold),
                   ),
                 ),
                 // Afficher les tokens et leurs infos regroupées
@@ -138,10 +134,10 @@ class _UpdatesPageState extends State<UpdatesPage> {
                   final String imageUrl = updatesForToken.first['imageLink'] ?? S.of(context).noImageAvailable;
 
                   return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
                     child: Container(
                       width: double.infinity, // Faire en sorte que la carte prenne toute la largeur disponible
-                      padding: const EdgeInsets.all(16.0),
+                      padding: const EdgeInsets.all(8.0),
                       decoration: BoxDecoration(
                         color: Theme.of(context).cardColor, // Utiliser la couleur du thème
                         borderRadius: BorderRadius.circular(8), // Ajout de coins arrondis
@@ -161,8 +157,7 @@ class _UpdatesPageState extends State<UpdatesPage> {
                           // Afficher le nom du token
                           Text(
                             tokenName,
-                            style: TextStyle(
-                                fontSize: 16 + appState.getTextSizeOffset(), fontWeight: FontWeight.bold),
+                            style: TextStyle(fontSize: 16 + appState.getTextSizeOffset(), fontWeight: FontWeight.bold),
                           ),
                           const SizedBox(height: 4),
                           // Afficher les informations formatées pour ce token

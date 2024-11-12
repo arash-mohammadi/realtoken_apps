@@ -20,13 +20,13 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   int _selectedIndex = 0;
 
-double _getContainerHeight(BuildContext context) {
-  // Récupère le padding en bas de l'écran, qui est non nul pour les appareils avec un bouton virtuel
-  double bottomPadding = MediaQuery.of(context).viewPadding.bottom;
-  
-  // Si bottomPadding > 0, il y a un bouton virtuel (barre d'accueil), sinon bouton physique
-  return bottomPadding > 0 ? 75 : 60;
-}
+  double _getContainerHeight(BuildContext context) {
+    // Récupère le padding en bas de l'écran, qui est non nul pour les appareils avec un bouton virtuel
+    double bottomPadding = MediaQuery.of(context).viewPadding.bottom;
+
+    // Si bottomPadding > 0, il y a un bouton virtuel (barre d'accueil), sinon bouton physique
+    return bottomPadding > 0 ? 75 : 60;
+  }
 
   static const List<Widget> _pages = <Widget>[
     DashboardPage(),
@@ -60,10 +60,8 @@ double _getContainerHeight(BuildContext context) {
               child: BackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                 child: Container(
-                height: Utils.getAppBarHeight(context),
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? Colors.black.withOpacity(0.3)
-                      : Colors.white.withOpacity(0.3),
+                  height: Utils.getAppBarHeight(context),
+                  color: Theme.of(context).brightness == Brightness.dark ? Colors.black.withOpacity(0.3) : Colors.white.withOpacity(0.3),
                   child: AppBar(
                     forceMaterialTransparency: true,
                     backgroundColor: Colors.transparent,
@@ -83,9 +81,7 @@ double _getContainerHeight(BuildContext context) {
                 filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                 child: Container(
                   height: _getContainerHeight(context), // Adjust height for blur
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? Colors.black.withOpacity(0.3)
-                      : Colors.white.withOpacity(0.3),
+                  color: Theme.of(context).brightness == Brightness.dark ? Colors.black.withOpacity(0.3) : Colors.white.withOpacity(0.3),
                   child: SafeArea(
                     top: false, // Disable top SafeArea
                     child: CustomBottomNavigationBar(

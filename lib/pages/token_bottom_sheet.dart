@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:realtokens_apps/utils/parameters.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -13,16 +14,22 @@ import 'portfolio/FullScreenCarousel.dart';
 import 'package:realtokens_apps/utils/utils.dart';
 import 'package:realtokens_apps/app_state.dart';
 
+Future<List<Map<String, dynamic>>> _getFilteredOffers(DataManager dataManager, String tokenUuid) async {
+  return dataManager.yamMarket
+      .where((offer) => offer['token_to_sell'] == tokenUuid.toLowerCase() || offer['token_to_buy'] == tokenUuid.toLowerCase())
+      .take(20) // Limite initiale pour les performances (à ajuster selon besoin)
+      .toList();
+}
+
 // Fonction modifiée pour formater la monnaie avec le taux de conversion et le symbole
 String formatCurrency(BuildContext context, double value) {
-  final dataManager = Provider.of<DataManager>(context, listen: false); // Récupérer DataManager
+  final dataManager = Provider.of<DataManager>(context); // Récupérer DataManager
   final NumberFormat formatter = NumberFormat.currency(
     locale: 'fr_FR', // Vous pouvez adapter la locale selon vos besoins
     symbol: dataManager.currencySymbol, // Utilise le symbole de la devise
     decimalDigits: 2,
   );
-  return formatter.format(
-      dataManager.convert(value)); // Conversion selon la devise sélectionnée
+  return formatter.format(dataManager.convert(value)); // Conversion selon la devise sélectionnée
 }
 
 void _openMapModal(BuildContext context, dynamic lat, dynamic lng) {
@@ -43,7 +50,7 @@ void _openMapModal(BuildContext context, dynamic lat, dynamic lng) {
     isScrollControlled: true,
     builder: (BuildContext context) {
       return FractionallySizedBox(
-        heightFactor: 0.7, // Ajuste la hauteur de la modale
+        heightFactor: 0.85, // Ajuste la hauteur de la modale
         child: Scaffold(
           appBar: AppBar(
             title: Text(S.of(context).viewOnMap), // Titre de la carte
@@ -61,14 +68,12 @@ void _openMapModal(BuildContext context, dynamic lat, dynamic lng) {
             children: [
               FlutterMap(
                 options: MapOptions(
-                  initialCenter:
-                      LatLng(latitude, longitude), // Utilise les valeurs converties
+                  initialCenter: LatLng(latitude, longitude), // Utilise les valeurs converties
                   initialZoom: 10.0,
                 ),
                 children: [
                   TileLayer(
-                    urlTemplate:
-                        'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                    urlTemplate: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
                     subdomains: ['a', 'b', 'c'],
                   ),
                   MarkerLayer(
@@ -93,8 +98,7 @@ void _openMapModal(BuildContext context, dynamic lat, dynamic lng) {
                 child: FloatingActionButton(
                   onPressed: () {
                     // Lancer Google Street View
-                    final googleStreetViewUrl =
-                        'https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=$latitude,$longitude';
+                    final googleStreetViewUrl = 'https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=$latitude,$longitude';
                     Utils.launchURL(googleStreetViewUrl);
                   },
                   backgroundColor: Colors.blue,
@@ -123,41 +127,48 @@ String _formatSquareFeet(double sqft, bool convertToSquareMeters) {
 }
 
 // Fonction réutilisable pour afficher la BottomModalSheet avec les détails du token
-Future<void> showTokenDetails( BuildContext context, Map<String, dynamic> token) async {
+Future<void> showTokenDetails(BuildContext context, Map<String, dynamic> token) async {
+  final dataManager = Provider.of<DataManager>(context, listen: false);
+
   final prefs = await SharedPreferences.getInstance();
   bool convertToSquareMeters = prefs.getBool('convertToSquareMeters') ?? false;
   final appState = Provider.of<AppState>(context, listen: false);
-final ValueNotifier<bool> showDetailsNotifier = ValueNotifier<bool>(false);
-final ValueNotifier<bool> showRentDetailsNotifier = ValueNotifier<bool>(false);
+  final ValueNotifier<bool> showDetailsNotifier = ValueNotifier<bool>(false);
+  final ValueNotifier<bool> showRentDetailsNotifier = ValueNotifier<bool>(false);
   final ValueNotifier<bool> showTextField = ValueNotifier<bool>(false); // Contrôle de la visibilité
+  final Color listingFeeColor = Colors.red;
+  final Color maintenanceReserveColor = Colors.orange;
+  final Color renovationReserveColor = Colors.purple;
+  final Color miscellaneousCostsColor = Colors.amber;
+  final Color othersColor = Colors.grey;
 
 // Calculate the total for the selected fields
-double totalCosts = (token['realtListingFee']?.toDouble() ?? 0.0) +
-                    (token['initialMaintenanceReserve']?.toDouble() ?? 0.0) +
-                    (token['renovationReserve']?.toDouble() ?? 0.0) +
-                    (token['miscellaneousCosts']?.toDouble() ?? 0.0);
+  double totalCosts = (token['realtListingFee']?.toDouble() ?? 0.0) +
+      (token['initialMaintenanceReserve']?.toDouble() ?? 0.0) +
+      (token['renovationReserve']?.toDouble() ?? 0.0) +
+      (token['miscellaneousCosts']?.toDouble() ?? 0.0);
 
-double totalRentCosts = (token['propertyMaintenanceMonthly']?.toDouble() ?? 0.0) +
-                        (token['propertyManagement']?.toDouble() ?? 0.0) +
-                        (token['realtPlatform']?.toDouble() ?? 0.0) +
-                        (token['insurance']?.toDouble() ?? 0.0) +
-                        (token['propertyTaxes']?.toDouble() ?? 0.0);
-                        
+  double totalRentCosts = (token['propertyMaintenanceMonthly']?.toDouble() ?? 0.0) +
+      (token['propertyManagement']?.toDouble() ?? 0.0) +
+      (token['realtPlatform']?.toDouble() ?? 0.0) +
+      (token['insurance']?.toDouble() ?? 0.0) +
+      (token['propertyTaxes']?.toDouble() ?? 0.0);
+
 // Variable pour stocker la valeur modifiable du prix initial
-final TextEditingController initPriceController = TextEditingController(
-  text: token['initPrice']?.toString() ?? '0.00',
-);
+  final TextEditingController initPriceController = TextEditingController(
+    text: token['initPrice']?.toString() ?? '0.00',
+  );
 
-  showModalBottomSheet( 
+  showModalBottomSheet(
     backgroundColor: Theme.of(context).cardColor,
     context: context,
     isScrollControlled: true,
     builder: (BuildContext context) {
       return DefaultTabController(
-        length: 4, // Quatre onglets
+        length: 5, // Quatre onglets
         child: SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(8.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -166,13 +177,9 @@ final TextEditingController initPriceController = TextEditingController(
                     ? GestureDetector(
                         onTap: () {
                           // Vérifier si c'est une chaîne ou une liste
-                          final List<String> imageLinks = token['imageLink']
-                                  is String
-                              ? [
-                                  token['imageLink']
-                                ] // Convertir en liste si c'est une chaîne
-                              : List<String>.from(token[
-                                  'imageLink']); // Garder la liste si c'est déjà une liste
+                          final List<String> imageLinks = token['imageLink'] is String
+                              ? [token['imageLink']] // Convertir en liste si c'est une chaîne
+                              : List<String>.from(token['imageLink']); // Garder la liste si c'est déjà une liste
 
                           Navigator.of(context).push(
                             MaterialPageRoute(
@@ -189,11 +196,8 @@ final TextEditingController initPriceController = TextEditingController(
                             enlargeCenterPage: true,
                           ),
                           items: (token['imageLink'] is String
-                                  ? [
-                                      token['imageLink']
-                                    ] // Convertir en liste si c'est une chaîne
-                                  : List<String>.from(token[
-                                      'imageLink'])) // Utiliser la liste directement
+                                  ? [token['imageLink']] // Convertir en liste si c'est une chaîne
+                                  : List<String>.from(token['imageLink'])) // Utiliser la liste directement
                               .map<Widget>((imageUrl) {
                             return CachedNetworkImage(
                               imageUrl: imageUrl,
@@ -222,20 +226,49 @@ final TextEditingController initPriceController = TextEditingController(
                     ),
                   ),
                 ),
+                token['amount'] != null
+                    ? Center(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              '${S.of(context).amount}: ${token['amount']?.toStringAsFixed(2)}',
+                              style: TextStyle(
+                                fontWeight: FontWeight.normal,
+                                color: Colors.grey,
+                                fontSize: 13 + appState.getTextSizeOffset(),
+                              ),
+                            ),
+                            const SizedBox(width: 8), // Espace entre les deux éléments
+                            Text(
+                              formatCurrency(context, token['totalValue']),
+                              style: TextStyle(
+                                fontWeight: FontWeight.normal,
+                                color: Colors.grey,
+                                fontSize: 13 + appState.getTextSizeOffset(),
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    : SizedBox.shrink(),
+
                 const SizedBox(height: 5),
 
                 // TabBar pour les différents onglets
                 TabBar(
-                  labelColor: Theme.of(context).primaryColor,
+                  labelColor: Colors.blue,
+                  indicatorColor: Colors.blue, // Couleur de l'indicateur sous l'onglet sélectionné
+
                   unselectedLabelColor: Colors.grey,
-                  labelStyle: TextStyle(fontSize: 13 + appState.getTextSizeOffset(),fontWeight: FontWeight.bold), // Taille du texte des onglets sélectionnés
-                  unselectedLabelStyle: TextStyle(fontSize: 13 + appState.getTextSizeOffset() ), // Taille du texte des onglets non sélectionnés
-                  labelPadding: EdgeInsets.symmetric(horizontal: 2.0), // Ajustez cette valeur selon vos besoins
+                  labelStyle: TextStyle(fontSize: 13 + appState.getTextSizeOffset(), fontWeight: FontWeight.bold), // Taille du texte des onglets sélectionnés
+                  unselectedLabelStyle: TextStyle(fontSize: 13 + appState.getTextSizeOffset()), // Taille du texte des onglets non sélectionnés
                   tabs: [
-                    Tab(text: S.of(context).properties),
-                    Tab(text: S.of(context).finances),
-                    Tab(text: S.of(context).others),
-                    Tab(text: S.of(context).insights),
+                    Tab(icon: Icon(Icons.home)), // Propriétés
+                    Tab(icon: Icon(Icons.attach_money)), // Finances
+                    Tab(icon: Icon(Icons.store)), // Market
+                    Tab(icon: Icon(Icons.info)), // Autres (icône d'information)
+                    Tab(icon: Icon(Icons.insights)), // Insights
                   ],
                 ),
 
@@ -246,37 +279,11 @@ final TextEditingController initPriceController = TextEditingController(
                   height: MediaQuery.of(context).size.height * 0.35,
                   child: TabBarView(
                     children: [
-
                       // Onglet Propriétés
                       SingleChildScrollView(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Row(
-                              children: [
-                                // Pastille de couleur en fonction du statut de location
-                                Container(
-                                  width: 16,
-                                  height: 16,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: Utils.getRentalStatusColor(
-                                      token['rentedUnits'] ??
-                                          0, // Nombre de logements loués
-                                      token['totalUnits'] ??
-                                          1, // Nombre total de logements
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 10),
-                                Text(
-                                  '${S.of(context).rentedUnits} : ${token['rentedUnits'] ?? S.of(context).notSpecified} / ${token['totalUnits'] ?? S.of(context).notSpecified}',
-                                  style: TextStyle(
-                                      fontSize: 13 + appState.getTextSizeOffset()), // Réduction de la taille du texte pour Android
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 20),
                             Text(
                               S.of(context).characteristics,
                               style: TextStyle(
@@ -285,35 +292,47 @@ final TextEditingController initPriceController = TextEditingController(
                               ),
                             ),
                             const SizedBox(height: 10),
-                            _buildDetailRow(context,
-                                S.of(context).constructionYear,
-                                token['constructionYear']?.toString() ??
-                                    S.of(context).notSpecified),
-                            _buildDetailRow(context,
-                                S.of(context).rentalType,
-                                token['rentalType']?.toString() ??
-                                    S.of(context).notSpecified),
-                            _buildDetailRow(context,
-                                S.of(context).totalUnits,
-                                token['totalUnits']?.toString() ??
-                                    S.of(context).notSpecified),
-                            _buildDetailRow(context,
-                                S.of(context).bedroomBath,
-                                token['bedroomBath']?.toString() ??
-                                    S.of(context).notSpecified),
-                            _buildDetailRow(context,
+                            _buildDetailRow(
+                              context,
+                              S.of(context).constructionYear,
+                              token['constructionYear']?.toString() ?? S.of(context).notSpecified,
+                              icon: Icons.calendar_today, // Icône pour l'année de construction
+                            ),
+                            _buildDetailRow(
+  context,
+  S.of(context).propertyType,
+  Parameters.getPropertyTypeName(token['propertyType'] ?? -1, context),
+  icon: Icons.home,
+),
+                            _buildDetailRow(
+                              context,
+                              S.of(context).rentalType,
+                              token['rentalType']?.toString() ?? S.of(context).notSpecified,
+                              icon: Icons.assignment, // Icône pour le type de location
+                            ),
+                            _buildDetailRow(
+                              context,
+                              S.of(context).bedroomBath,
+                              token['bedroomBath']?.toString() ?? S.of(context).notSpecified,
+                              icon: Icons.bed, // Icône pour les chambres et les salles de bain
+                            ),
+                            _buildDetailRow(
+                              context,
                               S.of(context).lotSize,
                               _formatSquareFeet(
                                 token['lotSize']?.toDouble() ?? 0,
                                 convertToSquareMeters,
                               ),
+                              icon: Icons.landscape, // Icône pour la taille du terrain
                             ),
-                            _buildDetailRow(context,
+                            _buildDetailRow(
+                              context,
                               S.of(context).squareFeet,
                               _formatSquareFeet(
                                 token['squareFeet']?.toDouble() ?? 0,
                                 convertToSquareMeters,
                               ),
+                              icon: Icons.square_foot, // Icône pour la surface en pieds carrés
                             ),
                             const SizedBox(height: 10),
                             Text(
@@ -324,52 +343,132 @@ final TextEditingController initPriceController = TextEditingController(
                               ),
                             ),
                             const SizedBox(height: 10),
-                            _buildDetailRow(context,
-                                S.of(context).rentStartDate,
-                                Utils.formatReadableDate(
-                                    token['rentStartDate']))
+                            Row(
+                              children: [
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.apartment, // Choisissez une icône appropriée pour les unités louées
+                                      size: 18, // Taille de l'icône
+                                      color: Colors.blueGrey, // Couleur en fonction du thème
+                                    ),
+                                    const SizedBox(width: 8), // Espacement entre l'icône et le texte
+                                    Text(
+                                      ' ${S.of(context).rentedUnits}',
+                                      style: TextStyle(
+                                        fontSize: 13 + appState.getTextSizeOffset(),
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(width: 10),
+                                Spacer(),
+                                Text(
+                                  '${token['rentedUnits'] ?? 0.0} / ${token['totalUnits'] ?? 0.0}',
+                                  style: TextStyle(fontSize: 13 + appState.getTextSizeOffset()),
+                                ),
+                                const SizedBox(width: 10),
+                                Container(
+                                  width: 12,
+                                  height: 12,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Utils.getRentalStatusColor(
+                                      token['rentedUnits'] ?? 0,
+                                      token['totalUnits'] ?? 1,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 6),
+                            Row(
+                              children: [
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.date_range, // Icône pour représenter la date de début de location
+                                      size: 18, // Taille de l'icône
+                                      color: Colors.blueGrey, // Couleur bleue pour l'icône // Couleur basée sur le thème
+                                    ),
+                                    const SizedBox(width: 8), // Espacement entre l'icône et le texte
+                                    Text(
+                                      ' ${S.of(context).rentStartDate}',
+                                      style: TextStyle(
+                                        fontSize: 13 + appState.getTextSizeOffset(),
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(width: 10),
+                                Spacer(),
+                                Text(
+                                  Utils.formatReadableDate(token['rentStartDate'] ?? ''),
+                                  style: TextStyle(
+                                    fontSize: 13 + appState.getTextSizeOffset(),
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Container(
+                                  width: 12,
+                                  height: 12,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: DateTime.parse(token['rentStartDate'] ?? '').isBefore(DateTime.now()) ? Colors.green : Colors.red,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 6),
+                            _buildDetailRow(
+                              context,
+                              S.of(context).section8paid,
+                              '${(token['section8paid'] ?? 0.0 / token['grossRentMonth'] ?? 0.0 * 100).toStringAsFixed(2)}%',
+                              icon: Icons.attach_money, // Icône pour le montant payé par Section 8
+                            ),
                           ],
                         ),
                       ),
 
-                      // Onglet Finances
+               // Onglet Finances
                       SingleChildScrollView(
                         child: Column(
                           children: [
-                             _buildDetailRow(context,
-                                S.of(context).totalInvestment,
-                                formatCurrency(context, token['totalInvestment'] ?? 0)),
+                            _buildDetailRow(context, S.of(context).totalInvestment, formatCurrency(context, token['totalInvestment'] ?? 0),
+                                icon: Icons.monetization_on),
 
-                           GestureDetector(
-                                onTap: () => showDetailsNotifier.value = !showDetailsNotifier.value,
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Text(
-                                          S.of(context).totalExpenses, // Label pour le texte
-                                          style: TextStyle( fontSize: 13 + appState.getTextSizeOffset(), fontWeight: FontWeight.bold), // Optional styling
-                                        ),
-                                        ValueListenableBuilder<bool>(
-                                          valueListenable: showDetailsNotifier,
-                                          builder: (context, showDetails, child) {
-                                            return Icon(
-                                              showDetails ? Icons.expand_less : Icons.expand_more,
-                                              color: Colors.grey, // Optionnel : couleur de l'icône
-                                            );
-                                          },
-                                        ),
-                                      ],
-                                    ),
-                                    Text(
-                                      '- ${formatCurrency(context, token['totalInvestment'] - token['underlyingAssetPrice'])}', // Affichage du montant total
-                                      style: TextStyle(color: Colors.red),
-                                    ),
-                                  ],
-                                ),
+                            GestureDetector(
+                              onTap: () => showDetailsNotifier.value = !showDetailsNotifier.value,
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Text(
+                                        S.of(context).totalExpenses, // Label pour le texte
+                                        style: TextStyle(fontSize: 13 + appState.getTextSizeOffset(), fontWeight: FontWeight.bold), // Optional styling
+                                      ),
+                                      ValueListenableBuilder<bool>(
+                                        valueListenable: showDetailsNotifier,
+                                        builder: (context, showDetails, child) {
+                                          return Icon(
+                                            showDetails ? Icons.expand_less : Icons.expand_more,
+                                            color: Colors.grey, // Optionnel : couleur de l'icône
+                                          );
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                  Text(
+                                    '- ${formatCurrency(context, token['totalInvestment'] - token['underlyingAssetPrice'])}', // Affichage du montant total
+                                    style: TextStyle(color: Colors.red),
+                                  ),
+                                ],
                               ),
-                              // Details rows wrapped in ValueListenableBuilder
+                            ),
+                            // Details rows wrapped in ValueListenableBuilder
                             ValueListenableBuilder<bool>(
                               valueListenable: showDetailsNotifier,
                               builder: (context, showDetails, child) {
@@ -379,33 +478,39 @@ final TextEditingController initPriceController = TextEditingController(
                                     children: [
                                       _buildDetailRow(
                                         context,
-                                        ' - ${S.of(context).realtListingFee}',
+                                        S.of(context).realtListingFee,
                                         formatCurrency(context, token['realtListingFee'] ?? 0),
                                         isNegative: true,
+                                        color: listingFeeColor, // Couleur spécifique
                                       ),
                                       _buildDetailRow(
                                         context,
-                                        ' - ${S.of(context).initialMaintenanceReserve}',
+                                        S.of(context).initialMaintenanceReserve,
                                         formatCurrency(context, token['initialMaintenanceReserve'] ?? 0),
+
                                         isNegative: true,
+                                        color: maintenanceReserveColor, // Couleur spécifique
                                       ),
                                       _buildDetailRow(
                                         context,
-                                        ' - ${S.of(context).renovationReserve}',
+                                        S.of(context).renovationReserve,
                                         formatCurrency(context, token['renovationReserve'] ?? 0),
                                         isNegative: true,
+                                        color: renovationReserveColor, // Couleur spécifique
                                       ),
                                       _buildDetailRow(
                                         context,
-                                        ' - ${S.of(context).miscellaneousCosts}',
+                                        S.of(context).miscellaneousCosts,
                                         formatCurrency(context, token['miscellaneousCosts'] ?? 0),
                                         isNegative: true,
+                                        color: miscellaneousCostsColor, // Couleur spécifique
                                       ),
-                                       _buildDetailRow(
+                                      _buildDetailRow(
                                         context,
-                                        ' - ${S.of(context).others}',
+                                        S.of(context).others,
                                         formatCurrency(context, token['totalInvestment'] - token['underlyingAssetPrice'] - totalCosts ?? 0),
                                         isNegative: true,
+                                        color: othersColor, // Couleur spécifique
                                       ),
                                     ],
                                   ),
@@ -413,48 +518,103 @@ final TextEditingController initPriceController = TextEditingController(
                               },
                             ),
 
-                            _buildDetailRow(context,
-                                S.of(context).underlyingAssetPrice,
-                                formatCurrency(context,token['underlyingAssetPrice'] ?? 0)),
+                            // Ajouter la jauge horizontale pour la répartition des coûts
+                            Row(
+                              children: totalCosts > 0
+                                  ? [
+                                      // Listing Fee
+                                      Expanded(
+                                        flex: ((token['realtListingFee'] ?? 0) / totalCosts * 100).round(),
+                                        child: Container(
+                                          height: 10,
+                                          color: listingFeeColor, // Couleur représentant le coût de 'realtListingFee'
+                                        ),
+                                      ),
+                                      // Maintenance Reserve
+                                      Expanded(
+                                        flex: ((token['initialMaintenanceReserve'] ?? 0) / totalCosts * 100).round(),
+                                        child: Container(
+                                          height: 10,
+                                          color: maintenanceReserveColor, // Couleur représentant le coût de 'initialMaintenanceReserve'
+                                        ),
+                                      ),
+                                      // Renovation Reserve
+                                      Expanded(
+                                        flex: ((token['renovationReserve'] ?? 0) / totalCosts * 100).round(),
+                                        child: Container(
+                                          height: 10,
+                                          color: renovationReserveColor, // Couleur représentant le coût de 'renovationReserve'
+                                        ),
+                                      ),
+                                      // Miscellaneous Costs
+                                      Expanded(
+                                        flex: ((token['miscellaneousCosts'] ?? 0) / totalCosts * 100).round(),
+                                        child: Container(
+                                          height: 10,
+                                          color: miscellaneousCostsColor, // Couleur représentant le coût de 'miscellaneousCosts'
+                                        ),
+                                      ),
+                                      // Autres
+                                      Expanded(
+                                        flex:
+                                            (((token['totalInvestment'] ?? 0) - (token['underlyingAssetPrice'] ?? 0) - totalCosts) / totalCosts * 100).round(),
+                                        child: Container(
+                                          height: 10,
+                                          color: Colors.grey, // Couleur pour les coûts restants
+                                        ),
+                                      ),
+                                    ]
+                                  : [
+                                      // Barre grise unique en cas de totalCosts égal à zéro
+                                      Expanded(
+                                        flex: 1,
+                                        child: Container(
+                                          height: 10,
+                                          color: Colors.grey, // Couleur grise pour indiquer qu'il n'y a pas de coût
+                                        ),
+                                      ),
+                                    ],
+                            ),
+
+                            SizedBox(height: 2), // Espace sous la jauge pour séparatio
+                            _buildDetailRow(context, S.of(context).underlyingAssetPrice, formatCurrency(context, token['underlyingAssetPrice'] ?? 0)),
+                            SizedBox(height: 2), // Espace sous la jauge pour séparatio
 
                             Divider(),
 
-
-                            _buildDetailRow(
-                                context,
-                                S.of(context).grossRentMonth,
-                                formatCurrency(context, token['grossRentMonth'] ?? 0)),
-                                                        // Total row with tap to show/hide details
-                           GestureDetector(
-                                onTap: () => showRentDetailsNotifier.value = !showRentDetailsNotifier.value,
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Text(
-                                          S.of(context).totalExpenses, // Label pour le texte
-                                          style: TextStyle( fontSize: 13 + appState.getTextSizeOffset(), fontWeight: FontWeight.bold), // Optional styling
-                                        ),
-                                        ValueListenableBuilder<bool>(
-                                          valueListenable: showRentDetailsNotifier,
-                                          builder: (context, showDetails, child) {
-                                            return Icon(
-                                              showDetails ? Icons.expand_less : Icons.expand_more,
-                                              color: Colors.grey, // Optionnel : couleur de l'icône
-                                            );
-                                          },
-                                        ),
-                                      ],
-                                    ),
-                                    Text(
-                                      '- ${formatCurrency(context, token['grossRentMonth'] - token['netRentMonth'] )}', // Affichage du montant total
-                                      style: TextStyle(color: Colors.red),
-                                    ),
-                                  ],
-                                ),
+                            _buildDetailRow(context, S.of(context).grossRentMonth, formatCurrency(context, token['grossRentMonth'] ?? 0),
+                                icon: Icons.attach_money),
+                            // Total row with tap to show/hide details
+                            GestureDetector(
+                              onTap: () => showRentDetailsNotifier.value = !showRentDetailsNotifier.value,
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Text(
+                                        S.of(context).totalExpenses, // Label pour le texte
+                                        style: TextStyle(fontSize: 13 + appState.getTextSizeOffset(), fontWeight: FontWeight.bold), // Optional styling
+                                      ),
+                                      ValueListenableBuilder<bool>(
+                                        valueListenable: showRentDetailsNotifier,
+                                        builder: (context, showDetails, child) {
+                                          return Icon(
+                                            showDetails ? Icons.expand_less : Icons.expand_more,
+                                            color: Colors.grey, // Optionnel : couleur de l'icône
+                                          );
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                  Text(
+                                    '- ${formatCurrency(context, token['grossRentMonth'] - token['netRentMonth'])}', // Affichage du montant total
+                                    style: TextStyle(color: Colors.red),
+                                  ),
+                                ],
                               ),
-                              // Details rows wrapped in ValueListenableBuilder
+                            ),
+                            // Details rows wrapped in ValueListenableBuilder
                             ValueListenableBuilder<bool>(
                               valueListenable: showRentDetailsNotifier,
                               builder: (context, showDetails, child) {
@@ -463,66 +623,350 @@ final TextEditingController initPriceController = TextEditingController(
                                   child: Column(
                                     children: [
                                       _buildDetailRow(
-                                        context,
-                                        ' - ${S.of(context).propertyMaintenanceMonthly}',
-                                        formatCurrency(context, token['propertyMaintenanceMonthly'] ?? 0),
-                                        isNegative: true,
-                                      ),
-                                      _buildDetailRow(
-                                        context,
-                                        ' - ${S.of(context).propertyManagement}',
-                                        formatCurrency(context, token['propertyManagement'] ?? 0),
-                                        isNegative: true,
-                                      ),
-                                      _buildDetailRow(
-                                        context,
-                                        ' - ${S.of(context).realtPlatform}',
-                                        formatCurrency(context, token['realtPlatform'] ?? 0),
-                                        isNegative: true,
-                                      ),
-                                      _buildDetailRow(
-                                        context,
-                                        ' - ${S.of(context).insurance}',
-                                        formatCurrency(context, token['insurance'] ?? 0),
-                                        isNegative: true,
-                                      ),
-                                      _buildDetailRow(
-                                        context,
-                                        ' - ${S.of(context).propertyTaxes}',
-                                        formatCurrency(context, token['propertyTaxes'] ?? 0),
-                                        isNegative: true,
-                                      ),
-                                      _buildDetailRow(
-                                        context,
-                                        ' - ${S.of(context).others}',
-                                        formatCurrency(context, token['grossRentMonth'] - token['netRentMonth'] - totalRentCosts ?? 0),
-                                        isNegative: true,
-                                      ),
+                                          context, S.of(context).propertyMaintenanceMonthly, formatCurrency(context, token['propertyMaintenanceMonthly'] ?? 0),
+                                          isNegative: true, color: Colors.deepOrange),
+                                      _buildDetailRow(context, S.of(context).propertyManagement, formatCurrency(context, token['propertyManagement'] ?? 0),
+                                          isNegative: true, color: Colors.amber),
+                                      _buildDetailRow(context, S.of(context).realtPlatform, formatCurrency(context, token['realtPlatform'] ?? 0),
+                                          isNegative: true, color: Colors.orange),
+                                      _buildDetailRow(context, S.of(context).insurance, formatCurrency(context, token['insurance'] ?? 0),
+                                          isNegative: true, color: Colors.purple),
+                                      _buildDetailRow(context, S.of(context).propertyTaxes, formatCurrency(context, token['propertyTaxes'] ?? 0),
+                                          isNegative: true, color: Colors.red),
+                                      _buildDetailRow(context, S.of(context).others,
+                                          formatCurrency(context, token['grossRentMonth'] - token['netRentMonth'] - totalRentCosts ?? 0),
+                                          isNegative: true, color: Colors.grey),
                                     ],
                                   ),
                                 );
                               },
                             ),
+                            // Ajouter une jauge pour afficher la répartition des coûts
+                            SizedBox(height: 2), // Espace entre les éléments
+                           Row(
+  children: [
+    // Property Maintenance Monthly
+    Expanded(
+      flex: totalRentCosts != 0
+          ? ((token['propertyMaintenanceMonthly'] ?? 0) / totalRentCosts * 100).round()
+          : 0,
+      child: Container(
+        height: 10,
+        color: Colors.deepOrange, // Couleur pour 'propertyMaintenanceMonthly'
+      ),
+    ),
+    // Property Management
+    Expanded(
+      flex: totalRentCosts != 0
+          ? ((token['propertyManagement'] ?? 0) / totalRentCosts * 100).round()
+          : 0,
+      child: Container(
+        height: 10,
+        color: Colors.amber, // Couleur pour 'propertyManagement'
+      ),
+    ),
+    // Realt Platform
+    Expanded(
+      flex: totalRentCosts != 0
+          ? ((token['realtPlatform'] ?? 0) / totalRentCosts * 100).round()
+          : 0,
+      child: Container(
+        height: 10,
+        color: Colors.orange, // Couleur pour 'realtPlatform'
+      ),
+    ),
+    // Insurance
+    Expanded(
+      flex: totalRentCosts != 0
+          ? ((token['insurance'] ?? 0) / totalRentCosts * 100).round()
+          : 0,
+      child: Container(
+        height: 10,
+        color: Colors.purple, // Couleur pour 'insurance'
+      ),
+    ),
+    // Property Taxes
+    Expanded(
+      flex: totalRentCosts != 0
+          ? ((token['propertyTaxes'] ?? 0) / totalRentCosts * 100).round()
+          : 0,
+      child: Container(
+        height: 10,
+        color: Colors.red, // Couleur pour 'propertyTaxes'
+      ),
+    ),
+    // Autres
+    Expanded(
+      flex: totalRentCosts != 0
+          ? (((token['grossRentMonth'] ?? 0.0 - token['netRentMonth'] ?? 0.0 - totalRentCosts) / totalRentCosts * 100).round())
+          : 0,
+      child: Container(
+        height: 10,
+        color: Colors.grey, // Couleur pour les autres coûts
+      ),
+    ),
+  ],
+),
 
-                            _buildDetailRow(
-                                context,
-                                S.of(context).netRentMonth,
-                                formatCurrency(context, token['netRentMonth'] ?? 0)),
+                            SizedBox(height: 2), // Espace sous la jauge pour séparation visuelle
+
+                            _buildDetailRow(context, S.of(context).netRentMonth, formatCurrency(context, token['netRentMonth'] ?? 0)),
+                            SizedBox(height: 2), // Espace sous la jauge pour séparation visuelle
 
                             Divider(),
 
                             _buildDetailRow(
-                                context,
-                                S.of(context).annualPercentageYield,
-                                '${token['annualPercentageYield']?.toStringAsFixed(2) ?? S.of(context).notSpecified} %'),
+                              context,
+                              S.of(context).annualPercentageYield,
+                              '${token['annualPercentageYield']?.toStringAsFixed(2) ?? S.of(context).notSpecified} %',
+                              icon: Icons.percent, // Icône pour rendement annuel en pourcentage
+                            ),
                             _buildDetailRow(
-                                context,
-                                S.of(context).totalRentReceived,
-                                formatCurrency(context, token['totalRentReceived'] ?? 0)),
+                              context,
+                              S.of(context).totalRentReceived,
+                              formatCurrency(context, token['totalRentReceived'] ?? 0),
+                              icon: Icons.receipt_long, // Icône pour le total des loyers reçus
+                            ),
                             _buildDetailRow(
-                                context,
-                                S.of(context).roiPerProperties,
-                                "${(token['totalRentReceived'] / token['initialTotalValue'] * 100 ).toStringAsFixed(2)} %"),
+                              context,
+                              S.of(context).roiPerProperties,
+                              "${(token['totalRentReceived'] / token['initialTotalValue'] * 100).toStringAsFixed(2)} %",
+                              icon: Icons.show_chart,
+                              color: Colors.blue, // Icône pour le retour sur investissement (ROI)
+                            ),
+                          ],
+                        ),
+                      ),
+
+       
+                      // Onglet Market
+                      SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Affichage des offres YAM correspondant au token
+                            Text(
+                              S.of(context).secondary_offers_related_to_token,
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15 + appState.getTextSizeOffset(),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+
+                            // Filtrer et afficher les offres avec FutureBuilder et ListView.builder
+                            FutureBuilder<List<Map<String, dynamic>>>(
+                              future: _getFilteredOffers(dataManager, token['uuid']), // Future pour charger les offres filtrées
+
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState == ConnectionState.waiting) {
+                                  return const Center(child: CircularProgressIndicator());
+                                } else if (snapshot.hasError) {
+                                  return Center(child: Text(S.of(context).error_occurred(snapshot.error.toString())));
+                                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                                  return Center(child: Text(S.of(context).no_market_offers_available));
+                                } else {
+                                  final offers = snapshot.data!;
+
+                                  return ListView.builder(
+                                    shrinkWrap: true,
+                                    physics: NeverScrollableScrollPhysics(), // Empêche le défilement de ListView
+                                    itemCount: offers.length,
+                                    itemBuilder: (context, index) {
+                                      final offer = offers[index];
+                                      final delta = ((offer['tokenValue'] / token['tokenPrice'] - 1) * 100);
+
+                                      return Card(
+                                        color: Theme.of(context).scaffoldBackgroundColor,
+                                        margin: const EdgeInsets.symmetric(vertical: 8),
+                                        elevation: 0,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(12.0),
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Row(children: [
+                                                Text(
+                                                  '${S.of(context).offer_id}: ${offer['id_offer']}',
+                                                  style: TextStyle(
+                                                    fontSize: 14 + appState.getTextSizeOffset(),
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                                Spacer(),
+                                                Text(
+                                                  Utils.formatReadableDate(offer['creationDate']),
+                                                  style: TextStyle(
+                                                    fontSize: 12 + appState.getTextSizeOffset(),
+                                                    color: Colors.grey[600],
+                                                  ),
+                                                ),
+                                              ]),
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                '${S.of(context).token_amount}: ${offer['tokenAmount'].toStringAsFixed(3)}',
+                                                style: TextStyle(
+                                                  fontSize: 12 + appState.getTextSizeOffset(),
+                                                  color: Colors.grey[600],
+                                                ),
+                                              ),
+                                              Text(
+                                                '${S.of(context).token_value}: ${formatCurrency(context,offer['tokenValue'])}',
+                                                style: TextStyle(
+                                                  fontSize: 12 + appState.getTextSizeOffset(),
+                                                  color: Colors.grey[600],
+                                                ),
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Row(
+                                                children: [
+                                                  Text(
+                                                    '${S.of(context).delta_price}: ', // Partie fixe, sans changement de couleur
+                                                    style: TextStyle(
+                                                      fontSize: 12 + appState.getTextSizeOffset(),
+                                                      color: Colors.grey[600],
+                                                    ),
+                                                  ),
+                                                  Text(
+                                                    '${delta.toStringAsFixed(2)}%', // Partie variable en couleur
+                                                    style: TextStyle(
+                                                      fontSize: 12 + appState.getTextSizeOffset(),
+                                                      color: delta > 0 ? Colors.red : Colors.green, // Rouge si positif, vert si négatif
+                                                      fontWeight: FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Center(
+                                                child: ElevatedButton(
+                                                  onPressed: () {
+                                                    Utils.launchURL('https://yambyofferid.netlify.app/?offerId=${offer['id_offer']}');
+                                                  },
+                                                  style: ElevatedButton.styleFrom(
+                                                    foregroundColor: Colors.white,
+                                                    backgroundColor: Colors.blue, // Texte blanc et fond bleu
+                                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), // Réduire le padding
+                                                    minimumSize: Size(80, 30), // Taille minimale du bouton (largeur x hauteur)
+                                                  ),
+                                                  child: Text(S.of(context).buy_token),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  );
+                                }
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // Onglet Autres avec section Blockchain uniquement
+                      SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              S.of(context).blockchain,
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15 + appState.getTextSizeOffset(),
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+
+                            // Ethereum Contract avec icône de lien
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  children: [
+                                    Image.asset(
+                                      'assets/ethereum.png', // Chemin de l'image
+                                      width: 18, // Largeur de l'image
+                                      height: 18, // Hauteur de l'image
+                                    ),
+                                    const SizedBox(width: 8), // Espacement entre l'image et le texte
+                                    Text(
+                                      S.of(context).ethereumContract,
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 13 + appState.getTextSizeOffset(),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.link),
+                                  onPressed: () {
+                                    final ethereumAddress = token['ethereumContract'] ?? '';
+                                    if (ethereumAddress.isNotEmpty) {
+                                      Utils.launchURL('https://etherscan.io/address/$ethereumAddress');
+                                    } else {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(content: Text(S.of(context).notSpecified)),
+                                      );
+                                    }
+                                  },
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              token['ethereumContract'] ?? S.of(context).notSpecified,
+                              style: TextStyle(fontSize: 13 + appState.getTextSizeOffset()),
+                            ),
+
+                            const SizedBox(height: 10),
+
+                            // Gnosis Contract avec icône de lien
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  children: [
+                                    Image.asset(
+                                      'assets/gnosis.png', // Chemin de l'image
+                                      width: 18, // Largeur de l'image
+                                      height: 18, // Hauteur de l'image
+                                    ),
+                                    const SizedBox(width: 8), // Espacement entre l'image et le texte
+                                    Text(
+                                      S.of(context).gnosisContract,
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 13 + appState.getTextSizeOffset(),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.link),
+                                  onPressed: () {
+                                    final gnosisAddress = token['gnosisContract'] ?? '';
+                                    if (gnosisAddress.isNotEmpty) {
+                                      Utils.launchURL('https://gnosisscan.io/address/$gnosisAddress');
+                                    } else {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(content: Text(S.of(context).notSpecified)),
+                                      );
+                                    }
+                                  },
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              token['gnosisContract'] ?? S.of(context).notSpecified,
+                              style: TextStyle(fontSize: 13 + appState.getTextSizeOffset()),
+                            ),
                             Divider(), // Réduisez la hauteur pour minimiser l’espace
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start, // Aligne le texte et l'icône à gauche
@@ -539,7 +983,7 @@ final TextEditingController initPriceController = TextEditingController(
                                     const SizedBox(width: 4),
                                     IconButton(
                                       padding: EdgeInsets.zero, // Retire l'espacement interne de l'icône
-                                      icon: Icon(Icons.edit, color: Colors.grey, size: 18 + appState.getTextSizeOffset() ), // Icône crayon plus petite et grise
+                                      icon: Icon(Icons.edit, color: Colors.grey, size: 18 + appState.getTextSizeOffset()), // Icône crayon plus petite et grise
                                       onPressed: () {
                                         showTextField.value = !showTextField.value; // Bascule la visibilité
                                       },
@@ -560,7 +1004,7 @@ final TextEditingController initPriceController = TextEditingController(
                                             Expanded(
                                               child: TextFormField(
                                                 controller: initPriceController,
-                                                keyboardType: TextInputType.number,
+                                                keyboardType: TextInputType.text,
                                                 decoration: InputDecoration(
                                                   labelText: S.of(context).initialPrice,
                                                   border: OutlineInputBorder(),
@@ -574,8 +1018,7 @@ final TextEditingController initPriceController = TextEditingController(
                                               onPressed: () {
                                                 final newPrice = double.tryParse(initPriceController.text);
                                                 if (newPrice != null) {
-                                                  Provider.of<DataManager>(context, listen: false)
-                                                      .setCustomInitPrice(token['uuid'], newPrice);
+                                                  Provider.of<DataManager>(context).setCustomInitPrice(token['uuid'], newPrice);
                                                   showTextField.value = false; // Masque le champ et les icônes
                                                   ScaffoldMessenger.of(context).showSnackBar(
                                                     SnackBar(content: Text(S.of(context).initialPriceUpdated)),
@@ -590,8 +1033,7 @@ final TextEditingController initPriceController = TextEditingController(
                                             IconButton(
                                               icon: Icon(Icons.delete, color: Colors.red),
                                               onPressed: () {
-                                                Provider.of<DataManager>(context, listen: false)
-                                                    .removeCustomInitPrice(token['uuid']);
+                                                Provider.of<DataManager>(context).removeCustomInitPrice(token['uuid']);
                                                 initPriceController.clear(); // Efface le champ de texte
                                                 showTextField.value = false; // Masque le champ et les icônes
                                                 ScaffoldMessenger.of(context).showSnackBar(
@@ -608,191 +1050,116 @@ final TextEditingController initPriceController = TextEditingController(
                               ],
                             ),
                           ],
-                          
-                        ),
-                      ),
-                      
-                      // Onglet Autres avec section Blockchain uniquement
-                      SingleChildScrollView(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              S.of(context).blockchain,
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 15 + appState.getTextSizeOffset(),
-                              ),
-                            ),
-                            const SizedBox(height: 10),
-
-                            // Ethereum Contract avec icône de lien
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  S.of(context).ethereumContract,
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 13 + appState.getTextSizeOffset(), // Rendre TextStyle non const
-                                  ),
-                                ),
-
-                                IconButton(
-                                  icon: const Icon(Icons.link),
-                                  onPressed: () {
-                                    final ethereumAddress =
-                                        token['ethereumContract'] ?? '';
-                                    if (ethereumAddress.isNotEmpty) {
-                                      Utils.launchURL(
-                                          'https://etherscan.io/address/$ethereumAddress');
-                                    } else {
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
-                                        SnackBar(
-                                            content: Text(
-                                                S.of(context).notSpecified)),
-                                      );
-                                    }
-                                  },
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              token['ethereumContract'] ??
-                                  S.of(context).notSpecified,
-                              style: TextStyle(fontSize: 13 + appState.getTextSizeOffset()),
-                            ),
-
-                            const SizedBox(height: 10),
-
-                            // Gnosis Contract avec icône de lien
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  S.of(context).gnosisContract,
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 13 + appState.getTextSizeOffset()),
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.link),
-                                  onPressed: () {
-                                    final gnosisAddress =
-                                        token['gnosisContract'] ?? '';
-                                    if (gnosisAddress.isNotEmpty) {
-                                      Utils.launchURL(
-                                          'https://gnosisscan.io/address/$gnosisAddress');
-                                    } else {
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
-                                        SnackBar(
-                                            content: Text(
-                                                S.of(context).notSpecified)),
-                                      );
-                                    }
-                                  },
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              token['gnosisContract'] ??
-                                  S.of(context).notSpecified,
-                              style: TextStyle(fontSize: 13 + appState.getTextSizeOffset()),
-                            ),
-                          ],
                         ),
                       ),
 
                       // Onglet Insights
-                     SingleChildScrollView(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Graphique du rendement (Yield)
-                          Text(
-                            S.of(context).yieldEvolution, // Utilisation de la traduction
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 15 + appState.getTextSizeOffset(), // Réduction de la taille du texte pour Android
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          _buildYieldChartOrMessage(
-                              context,
-                              token['historic']?['yields'] ?? [],
-                              token['historic']?['init_yield']),
+                      SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: 20),
 
-                          const SizedBox(height: 20),
-
-                          // Jauge verticale du ROI de la propriété
-                          Row(
-                      children: [
-                        Text(
-                          S.of(context).roiPerProperties, // Titre de la jauge
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 15 + appState.getTextSizeOffset(),
-                          ),
-                        ),
-                        const SizedBox(width: 8), // Espace entre le texte et l'icône
-                        GestureDetector(
-                          onTap: () {
-                            showDialog(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return AlertDialog(
-                                  title: Text(S.of(context).roiPerProperties), // Titre du popup
-                                  content: Text(S.of(context).roiAlertInfo), // Texte du popup
-                                  actions: <Widget>[
-                                    TextButton(
-                                      onPressed: () {
-                                        Navigator.of(context).pop(); // Fermer le popup
-                                      },
-                                      child: Text('OK'),
+                            // Jauge verticale du ROI de la propriété
+                            Row(
+                              children: [
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.assessment, // Choisissez une icône appropriée
+                                      size: 18, // Taille de l'icône
+                                      color: Colors.blueGrey, // Couleur basée sur le thème actuel
+                                    ),
+                                    const SizedBox(width: 8), // Espacement entre l'icône et le texte
+                                    Text(
+                                      S.of(context).roiPerProperties, // Titre de la jauge
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 15 + appState.getTextSizeOffset(),
+                                      ),
                                     ),
                                   ],
-                                );
-                              },
-                            );
-                          },
-                          child: Icon(
-                            Icons.help_outline, // Icône "?"
-                            color: Colors.grey,
-                            size: 20 + appState.getTextSizeOffset(), // Ajustez la taille en fonction du texte
-                          ),
+                                ),
+
+                                const SizedBox(width: 8), // Espace entre le texte et l'icône
+                                GestureDetector(
+                                  onTap: () {
+                                    showDialog(
+                                      context: context,
+                                      builder: (BuildContext context) {
+                                        return AlertDialog(
+                                          title: Text(S.of(context).roiPerProperties), // Titre du popup
+                                          content: Text(S.of(context).roiAlertInfo), // Texte du popup
+                                          actions: <Widget>[
+                                            TextButton(
+                                              onPressed: () {
+                                                Navigator.of(context).pop(); // Fermer le popup
+                                              },
+                                              child: Text('OK'),
+                                            ),
+                                          ],
+                                        );
+                                      },
+                                    );
+                                  },
+                                  child: Icon(
+                                    Icons.help_outline, // Icône "?"
+                                    color: Colors.grey,
+                                    size: 20 + appState.getTextSizeOffset(), // Ajustez la taille en fonction du texte
+                                  ),
+                                ),
+                              ],
+                            ),
+
+                            const SizedBox(height: 4),
+                            _buildGaugeForROI(
+                              token['totalRentReceived'] / token['initialTotalValue'] * 100, // Calcul du ROI
+                              context,
+                            ),
+                            const SizedBox(height: 8), // Espacement entre l'icône et le texte
+                            // Graphique du rendement (Yield)
+                            Row(
+                              children: [
+                                Icon(Icons.trending_up, size: 18, color: Colors.blueGrey), // Icône devant le texte
+                                const SizedBox(width: 8), // Espacement entre l'icône et le texte
+                                Text(
+                                  S.of(context).yieldEvolution, // Utilisation de la traduction
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 15 + appState.getTextSizeOffset(), // Réduction de la taille du texte pour Android
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 10),
+                            _buildYieldChartOrMessage(context, token['historic']?['yields'] ?? [], token['historic']?['init_yield']),
+
+                            const SizedBox(height: 20),
+
+                            // Graphique des prix
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.attach_money, // Icône pour représenter l'évolution des prix
+                                  size: 18, // Taille de l'icône
+                                  color: Colors.blueGrey, // Couleur en fonction du thème
+                                ),
+                                const SizedBox(width: 8), // Espacement entre l'icône et le texte
+                                Text(
+                                  S.of(context).priceEvolution, // Texte avec traduction
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 15 + appState.getTextSizeOffset(),
+                                  ),
+                                ),
+                              ],
+                            ),
+
+                            const SizedBox(height: 10),
+                            _buildPriceChartOrMessage(context, token['historic']?['prices'] ?? [], token['initPrice']),
+                          ],
                         ),
-                      ],
-                    ),
-
-      const SizedBox(height: 10),
-      _buildGaugeForROI(
-        token['totalRentReceived'] / token['initialTotalValue'] * 100, // Calcul du ROI
-        context,
-      ),
-
-      const SizedBox(height: 20),
-
-      // Graphique des prix
-      Text(
-        S.of(context).priceEvolution, // Utilisation de la traduction
-        style: TextStyle(
-          fontWeight: FontWeight.bold,
-          fontSize: 15 + appState.getTextSizeOffset(), // Réduction de la taille du texte pour Android
-        ),
-      ),
-      const SizedBox(height: 10),
-      _buildPriceChartOrMessage(
-          context,
-          token['historic']?['prices'] ?? [],
-          token['initPrice']),
-    ],
-  ),
-),
-
+                      ),
                     ],
                   ),
                 ),
@@ -802,11 +1169,9 @@ final TextEditingController initPriceController = TextEditingController(
                 // Bouton pour voir sur RealT
                 Center(
                   child: Padding(
-                    padding: const EdgeInsets.all(
-                        16.0), // Ajoute un padding de 16 pixels autour des boutons
+                    padding: const EdgeInsets.all(8.0), // Ajoute un padding de 16 pixels autour des boutons
                     child: Row(
-                      mainAxisAlignment:
-                          MainAxisAlignment.center, // Centre les boutons
+                      mainAxisAlignment: MainAxisAlignment.center, // Centre les boutons
                       children: [
                         // Bouton pour voir sur RealT
                         SizedBox(
@@ -816,7 +1181,7 @@ final TextEditingController initPriceController = TextEditingController(
                             style: ElevatedButton.styleFrom(
                               foregroundColor: Colors.white,
                               backgroundColor: Colors.blue, // Bouton bleu pour RealT
-                              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
                               textStyle: TextStyle(
                                 fontSize: 13 + appState.getTextSizeOffset(), // Rendre TextStyle non const
                               ),
@@ -825,22 +1190,18 @@ final TextEditingController initPriceController = TextEditingController(
                           ),
                         ),
 
-                        const SizedBox(
-                            width: 10), // Espacement entre les deux boutons
+                        const SizedBox(width: 10), // Espacement entre les deux boutons
                         // Bouton pour voir sur la carte
                         SizedBox(
                           height: 36,
                           child: ElevatedButton(
-                            onPressed: () => _openMapModal(
-                                context, token['lat'], token['lng']),
+                            onPressed: () => _openMapModal(context, token['lat'], token['lng']),
                             style: ElevatedButton.styleFrom(
                               foregroundColor: Colors.white,
-                              backgroundColor:
-                                  Colors.green, // Bouton vert pour la carte
-                              padding: const EdgeInsets.symmetric(
-                                  vertical: 8, horizontal: 16),
-                                  textStyle: TextStyle(fontSize: 13 + appState.getTextSizeOffset()),                            
-                              ),
+                              backgroundColor: Colors.green, // Bouton vert pour la carte
+                              padding: const EdgeInsets.symmetric(vertical: 8, horizontal:8),
+                              textStyle: TextStyle(fontSize: 13 + appState.getTextSizeOffset()),
+                            ),
                             child: Text(S.of(context).viewOnMap),
                           ),
                         ),
@@ -862,7 +1223,6 @@ Widget _buildGaugeForROI(double roiValue, BuildContext context) {
     crossAxisAlignment: CrossAxisAlignment.start, // Aligner la jauge à gauche
     children: [
       const SizedBox(height: 5),
-      // Utilisation de LayoutBuilder pour occuper toute la largeur disponible
       LayoutBuilder(
         builder: (context, constraints) {
           double maxWidth = constraints.maxWidth; // Largeur disponible
@@ -871,20 +1231,33 @@ Widget _buildGaugeForROI(double roiValue, BuildContext context) {
             children: [
               // Fond gris
               Container(
-                height: 20,
+                height: 15,
                 width: maxWidth, // Largeur maximale disponible
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade300, // Couleur du fond grisé
+                  color: const Color.fromARGB(255, 78, 78, 78).withOpacity(0.3), // Couleur du fond grisé
                   borderRadius: BorderRadius.circular(5), // Bordure arrondie
                 ),
               ),
               // Barre bleue représentant le ROI
               Container(
-                height: 20,
+                height: 15,
                 width: roiValue.clamp(0, 100) / 100 * maxWidth, // Largeur de la barre bleue en fonction du ROI
                 decoration: BoxDecoration(
                   color: Colors.blue, // Couleur de la barre
                   borderRadius: BorderRadius.circular(5), // Bordure arrondie
+                ),
+              ),
+              // Texte centré sur la jauge
+              Positioned.fill(
+                child: Center(
+                  child: Text(
+                    "${roiValue.toStringAsFixed(1)} %", // Afficher avec 1 chiffre après la virgule
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white, // Couleur du texte pour contraster avec la jauge
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -892,21 +1265,12 @@ Widget _buildGaugeForROI(double roiValue, BuildContext context) {
         },
       ),
       const SizedBox(height: 5),
-      // Afficher la valeur du ROI
-      Text(
-        "${roiValue.toStringAsFixed(1)} %", // Afficher avec 1 chiffre après la virgule
-        style: TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.bold,
-          color: Colors.blue,
-        ),
-      ),
     ],
   );
 }
 
 // Méthode pour construire les lignes de détails
-Widget _buildDetailRow(BuildContext context, String label, String value, {bool isNegative = false}) {
+Widget _buildDetailRow(BuildContext context, String label, String value, {IconData? icon, bool isNegative = false, Color? color}) {
   final appState = Provider.of<AppState>(context, listen: false);
 
   // Ajout du signe "-" et de la couleur rouge si isNegative est true
@@ -921,10 +1285,29 @@ Widget _buildDetailRow(BuildContext context, String label, String value, {bool i
     child: Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label,
-            style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 13 + appState.getTextSizeOffset())), // Réduction pour Android
+        Row(
+          children: [
+            if (icon != null) // Affiche l'icône si elle est spécifiée
+              Icon(icon, size: 18, color: Colors.blueGrey),
+            if (isNegative) // Affiche la puce rouge uniquement si isNegative est true
+              Padding(
+                padding: const EdgeInsets.only(left: 4.0),
+                child: Icon(
+                  Icons.circle,
+                  size: 8,
+                  color: color ?? Colors.red,
+                ),
+              ),
+            SizedBox(width: icon != null || isNegative ? 8 : 0), // Espacement conditionnel entre l'icône et le texte
+            Text(
+              label,
+              style: TextStyle(
+                fontWeight: isNegative ? FontWeight.normal : FontWeight.bold,
+                fontSize: 13 + appState.getTextSizeOffset(),
+              ),
+            ),
+          ],
+        ),
         Text(displayValue, style: valueStyle), // Texte avec style conditionnel
       ],
     ),
@@ -933,14 +1316,13 @@ Widget _buildDetailRow(BuildContext context, String label, String value, {bool i
 
 // Méthode pour afficher soit le graphique du yield, soit un message, avec % évolution
 Widget _buildYieldChartOrMessage(BuildContext context, List<dynamic> yields, double? initYield) {
-    final appState = Provider.of<AppState>(context, listen: false);
+  final appState = Provider.of<AppState>(context, listen: false);
 
   if (yields.length <= 1) {
     // Afficher le message si une seule donnée est disponible
     return Text(
       "${S.of(context).noYieldEvolution} ${yields.isNotEmpty ? yields.first['yield'].toStringAsFixed(2) : S.of(context).notSpecified} %",
-      style: TextStyle(
-          fontSize: 13 + appState.getTextSizeOffset()), // Réduction pour Android
+      style: TextStyle(fontSize: 13 + appState.getTextSizeOffset()), // Réduction pour Android
     );
   } else {
     // Calculer l'évolution en pourcentage
@@ -951,13 +1333,26 @@ Widget _buildYieldChartOrMessage(BuildContext context, List<dynamic> yields, dou
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildYieldChart(context,yields),
+        _buildYieldChart(context, yields),
         const SizedBox(height: 10),
-        Text(
-          "${S.of(context).yieldEvolutionPercentage} ${percentageChange.toStringAsFixed(2)} %",
-          style: TextStyle(
-              fontSize: 13 + appState.getTextSizeOffset()), // Réduction pour Android
-        ),
+        RichText(
+          text: TextSpan(
+            text: S.of(context).yieldEvolutionPercentage, // Texte avec la couleur par défaut
+            style: TextStyle(
+              fontSize: 13 + appState.getTextSizeOffset(),
+              color: Theme.of(context).textTheme.bodyMedium?.color,
+            ),
+            children: [
+              TextSpan(
+                text: " ${percentageChange.toStringAsFixed(2)} %", // Affiche la valeur avec une couleur conditionnelle
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: percentageChange < 0 ? Colors.red : Colors.green, // Rouge si négatif, vert sinon
+                ),
+              ),
+            ],
+          ),
+        )
       ],
     );
   }
@@ -965,7 +1360,7 @@ Widget _buildYieldChartOrMessage(BuildContext context, List<dynamic> yields, dou
 
 // Méthode pour afficher soit le graphique des prix, soit un message, avec % évolution
 Widget _buildPriceChartOrMessage(BuildContext context, List<dynamic> prices, double? initPrice) {
-    final appState = Provider.of<AppState>(context, listen: false);
+  final appState = Provider.of<AppState>(context, listen: false);
 
   if (prices.length <= 1) {
     // Afficher le message si une seule donnée est disponible
@@ -984,11 +1379,24 @@ Widget _buildPriceChartOrMessage(BuildContext context, List<dynamic> prices, dou
       children: [
         _buildPriceChart(context, prices),
         const SizedBox(height: 10),
-        Text(
-          "${S.of(context).priceEvolutionPercentage} ${percentageChange.toStringAsFixed(2)} %",
-          style: TextStyle(
-              fontSize: 13 + appState.getTextSizeOffset()), // Réduction pour Android
-        ),
+        RichText(
+          text: TextSpan(
+            text: S.of(context).priceEvolutionPercentage, // Texte avec la couleur par défaut
+            style: TextStyle(
+              fontSize: 13 + appState.getTextSizeOffset(),
+              color: Theme.of(context).textTheme.bodyMedium?.color,
+            ),
+            children: [
+              TextSpan(
+                text: " ${percentageChange.toStringAsFixed(2)} %", // Affiche la valeur avec une couleur conditionnelle
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: percentageChange < 0 ? Colors.red : Colors.green, // Rouge si négatif, vert sinon
+                ),
+              ),
+            ],
+          ),
+        )
       ],
     );
   }
@@ -1005,11 +1413,8 @@ Widget _buildYieldChart(BuildContext context, List<dynamic> yields) {
     if (yields[i]['timsync'] != null && yields[i]['timsync'] is String) {
       DateTime date = DateTime.parse(yields[i]['timsync']);
       double x = i.toDouble(); // Utiliser un indice pour l'axe X
-      double y = yields[i]['yield'] != null
-          ? double.tryParse(yields[i]['yield'].toString()) ?? 0
-          : 0;
-      y = double.parse(
-          y.toStringAsFixed(2)); // Limiter la valeur de `y` à 2 décimales
+      double y = yields[i]['yield'] != null ? double.tryParse(yields[i]['yield'].toString()) ?? 0 : 0;
+      y = double.parse(y.toStringAsFixed(2)); // Limiter la valeur de `y` à 2 décimales
 
       spots.add(FlSpot(x, y));
       dateLabels.add(DateFormat('MM/yyyy').format(date)); // Ajouter la date formatée en mois/année
@@ -1019,19 +1424,15 @@ Widget _buildYieldChart(BuildContext context, List<dynamic> yields) {
   // Calcul des marges
   double minXValue = spots.isNotEmpty ? spots.first.x : 0;
   double maxXValue = spots.isNotEmpty ? spots.last.x : 0;
-  double minYValue = spots.isNotEmpty
-      ? spots.map((spot) => spot.y).reduce((a, b) => a < b ? a : b)
-      : 0;
-  double maxYValue = spots.isNotEmpty
-      ? spots.map((spot) => spot.y).reduce((a, b) => a > b ? a : b)
-      : 0;
+  double minYValue = spots.isNotEmpty ? spots.map((spot) => spot.y).reduce((a, b) => a < b ? a : b) : 0;
+  double maxYValue = spots.isNotEmpty ? spots.map((spot) => spot.y).reduce((a, b) => a > b ? a : b) : 0;
 
   // Ajouter des marges autour des valeurs min et max
   const double marginX = 0.2; // Marge pour l'axe X
   const double marginY = 0.5; // Marge pour l'axe Y
 
   return SizedBox(
-    height: 200,
+    height: 180,
     child: LineChart(
       LineChartData(
         gridData: FlGridData(show: true),
@@ -1065,7 +1466,7 @@ Widget _buildYieldChart(BuildContext context, List<dynamic> yields) {
                 return Text(
                   value.toStringAsFixed(2),
                   style: TextStyle(
-                    fontSize: 10 + appState.getTextSizeOffset(), // Réduction de la taille pour Android
+                    fontSize: 10 + appState.getTextSizeOffset(),
                   ),
                 );
               },
@@ -1112,19 +1513,15 @@ Widget _buildPriceChart(BuildContext context, List<dynamic> prices) {
   // Calcul des marges
   double minXValue = spots.isNotEmpty ? spots.first.x : 0;
   double maxXValue = spots.isNotEmpty ? spots.last.x : 0;
-  double minYValue = spots.isNotEmpty
-      ? spots.map((spot) => spot.y).reduce((a, b) => a < b ? a : b)
-      : 0;
-  double maxYValue = spots.isNotEmpty
-      ? spots.map((spot) => spot.y).reduce((a, b) => a > b ? a : b)
-      : 0;
+  double minYValue = spots.isNotEmpty ? spots.map((spot) => spot.y).reduce((a, b) => a < b ? a : b) : 0;
+  double maxYValue = spots.isNotEmpty ? spots.map((spot) => spot.y).reduce((a, b) => a > b ? a : b) : 0;
 
   // Ajouter des marges autour des valeurs min et max
   const double marginX = 0.1; // Marge pour l'axe X
   const double marginY = 0.2; // Marge pour l'axe Y
 
   return SizedBox(
-    height: 200,
+    height: 180,
     child: LineChart(
       LineChartData(
         gridData: FlGridData(show: true),
@@ -1141,7 +1538,7 @@ Widget _buildPriceChart(BuildContext context, List<dynamic> prices) {
                   return Text(
                     dateLabels[value.toInt()],
                     style: TextStyle(
-                      fontSize: 10 + appState.getTextSizeOffset(), // Réduction de la taille pour Android
+                      fontSize: 10 + appState.getTextSizeOffset(),
                     ),
                   );
                 }
@@ -1185,4 +1582,3 @@ Widget _buildPriceChart(BuildContext context, List<dynamic> prices) {
     ),
   );
 }
-

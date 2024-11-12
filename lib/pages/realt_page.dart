@@ -27,11 +27,11 @@ class RealtPageState extends State<RealtPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(S.of(context).realTTitle),  // Utilisation de S.of(context)
+        title: Text(S.of(context).realTTitle), // Utilisation de S.of(context)
       ),
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(8.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
@@ -44,11 +44,11 @@ class RealtPageState extends State<RealtPage> {
               ),
               const SizedBox(height: 30), // Espace sous l'image
               _buildCard(
-                S.of(context).totalTokens,  // Utilisation de S.of(context)
+                S.of(context).totalTokens, // Utilisation de S.of(context)
                 Icons.token,
                 _buildValueBeforeText(
                   '${dataManager.totalRealtTokens}',
-                  S.of(context).tokens,  // Utilisation de S.of(context)
+                  S.of(context).tokens, // Utilisation de S.of(context)
                 ),
                 [],
                 dataManager,
@@ -56,7 +56,7 @@ class RealtPageState extends State<RealtPage> {
               ),
               const SizedBox(height: 15),
               _buildCard(
-                S.of(context).totalInvestment,  // Utilisation de S.of(context)
+                S.of(context).totalInvestment, // Utilisation de S.of(context)
                 Icons.attach_money,
                 _buildValueBeforeText(
                   Utils.formatCurrency(dataManager.convert(dataManager.totalRealtInvestment), dataManager.currencySymbol),
@@ -68,7 +68,7 @@ class RealtPageState extends State<RealtPage> {
               ),
               const SizedBox(height: 15),
               _buildCard(
-                S.of(context).netAnnualRent,  // Utilisation de S.of(context)
+                S.of(context).netAnnualRent, // Utilisation de S.of(context)
                 Icons.money,
                 _buildValueBeforeText(
                   Utils.formatCurrency(dataManager.convert(dataManager.netRealtRentYear), dataManager.currencySymbol),
@@ -80,16 +80,16 @@ class RealtPageState extends State<RealtPage> {
               ),
               const SizedBox(height: 15),
               _buildCard(
-                S.of(context).totalUnits,  // Utilisation de S.of(context)
+                S.of(context).totalUnits, // Utilisation de S.of(context)
                 Icons.home,
                 _buildValueBeforeText(
                   '${dataManager.totalRealtUnits}',
-                  S.of(context).units,  // Utilisation de S.of(context)
+                  S.of(context).units, // Utilisation de S.of(context)
                 ),
                 [
                   _buildValueBeforeText(
                     '${dataManager.rentedRealtUnits}',
-                    S.of(context).rentedUnits,  // Utilisation de S.of(context)
+                    S.of(context).rentedUnits, // Utilisation de S.of(context)
                   ),
                 ],
                 dataManager,
@@ -97,16 +97,16 @@ class RealtPageState extends State<RealtPage> {
               ),
               const SizedBox(height: 15),
               _buildCard(
-                S.of(context).realTPerformance,  // Utilisation de S.of(context)
+                S.of(context).realTPerformance, // Utilisation de S.of(context)
                 Icons.trending_up,
                 _buildValueBeforeText(
                   '${dataManager.averageRealtAnnualYield.toStringAsFixed(2)}%',
-                  S.of(context).annualYield,  // Utilisation de S.of(context)
+                  S.of(context).annualYield, // Utilisation de S.of(context)
                 ),
                 [
                   _buildValueBeforeText(
                     '',
-                    S.of(context).annualYield,  // Utilisation de S.of(context)
+                    S.of(context).annualYield, // Utilisation de S.of(context)
                   ),
                 ],
                 dataManager,
@@ -188,8 +188,7 @@ class RealtPageState extends State<RealtPage> {
         const SizedBox(width: 6),
         Text(
           text,
-          style: TextStyle(
-            fontSize: 13),
+          style: TextStyle(fontSize: 13),
         ),
       ],
     );

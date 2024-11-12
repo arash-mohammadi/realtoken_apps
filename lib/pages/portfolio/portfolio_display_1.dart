@@ -25,7 +25,7 @@ class PortfolioDisplay1 extends StatelessWidget {
                   height: 10,
                   width: maxWidth,
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
+                  color: const Color.fromARGB(255, 78, 78, 78).withOpacity(0.3), // Couleur du fond grisé
                     borderRadius: BorderRadius.circular(5),
                   ),
                 ),
@@ -62,7 +62,7 @@ class PortfolioDisplay1 extends StatelessWidget {
       body: portfolio.isEmpty
           ? Center(
               child: Padding(
-                padding: const EdgeInsets.all(16.0),
+                padding: const EdgeInsets.all(8.0),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -99,8 +99,13 @@ class PortfolioDisplay1 extends StatelessWidget {
                 ),
               ),
             )
-          : ListView.builder(
+          : GridView.builder(
               padding: const EdgeInsets.only(top: 20, bottom: 80),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: MediaQuery.of(context).size.width > 700 ? 2 : 1,
+            
+                mainAxisExtent: 170 * (1 + (appState.getTextSizeOffset() / 35)), // Ajustez ici pour plus de hauteur
+              ),
               itemCount: portfolio.length,
               itemBuilder: (context, index) {
                 final token = portfolio[index];
@@ -108,20 +113,19 @@ class PortfolioDisplay1 extends StatelessWidget {
                 final isRMM = token['inRMM'] ?? false;
                 final city = Utils.extractCity(token['fullName'] ?? '');
 
-                final rentPercentage = (token['totalRentReceived'] != null &&
-                        token['initialTotalValue'] != null &&
-                        token['initialTotalValue'] != 0)
+                // Vérifier si la date de 'rent_start' est dans le futur
+                final rentStartDate = DateTime.parse(token['rentStartDate'] ?? DateTime.now().toString());
+                final bool isFutureRentStart = rentStartDate.isAfter(DateTime.now());
+
+                final rentPercentage = (token['totalRentReceived'] != null && token['initialTotalValue'] != null && token['initialTotalValue'] != 0)
                     ? (token['totalRentReceived'] / token['initialTotalValue']) * 100
                     : 0.5;
 
                 return Padding(
-                  padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
+                  padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
                   child: GestureDetector(
                     onTap: () => showTokenDetails(context, token),
-                    child: SizedBox(
-                      height: 170, // Définir une hauteur fixe pour le Row
-                      
-                      child: Row(
+                    child: Row(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         // Image avec la ville et le statut de location
@@ -133,23 +137,82 @@ class PortfolioDisplay1 extends StatelessWidget {
                           child: Stack(
                             children: [
                               ColorFiltered(
-                                colorFilter: token['rentStartDate'] != null &&
-                                        DateTime.tryParse(token['rentStartDate']) != null &&
-                                        DateTime.parse(token['rentStartDate']).isAfter(DateTime.now())
+                                colorFilter: isFutureRentStart
                                     ? const ColorFilter.mode(Colors.black45, BlendMode.darken)
                                     : const ColorFilter.mode(Colors.transparent, BlendMode.multiply),
                                 child: SizedBox(
                                   width: 120,
                                   height: double.infinity,
                                   child: CachedNetworkImage(
-                                    imageUrl: (token['imageLink'] != null && token['imageLink'].isNotEmpty)
-                                        ? token['imageLink'][0]
-                                        : '',
+                                    imageUrl: (token['imageLink'] != null && token['imageLink'].isNotEmpty) ? token['imageLink'][0] : '',
                                     fit: BoxFit.cover,
                                     errorWidget: (context, url, error) => const Icon(Icons.error),
                                   ),
                                 ),
                               ),
+                              // Superposition du texte si 'rent_start' est dans le futur
+                              if (isFutureRentStart)
+                                Positioned.fill(
+                                  child: Center(
+                                    child: Container(
+                                      color: Colors.black54,
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Text(
+                                        S.of(context).rentStartFuture, // Texte indiquant que le loyer commence dans le futur
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 12 + appState.getTextSizeOffset(),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              // Indicateur isWallet / isRMM en haut à gauche
+                              if (isWallet || isRMM)
+                                Positioned(
+                                  top: 4,
+                                  left: 4,
+                                  child: Row(
+                                    children: [
+                                      if (isWallet)
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 2.0),
+                                          decoration: BoxDecoration(
+                                            color: Colors.grey,
+                                            shape: BoxShape.rectangle,
+                                            borderRadius: BorderRadius.circular(8.0),
+                                          ),
+                                          child: Text(
+                                            S.of(context).wallet,
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 10 + appState.getTextSizeOffset(),
+                                            ),
+                                          ),
+                                        ),
+                                      const SizedBox(width: 4),
+                                      if (isRMM)
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 2.0),
+                                          decoration: BoxDecoration(
+                                            color: const Color.fromARGB(255, 165, 100, 21),
+                                            shape: BoxShape.rectangle,
+                                            borderRadius: BorderRadius.circular(8.0),
+                                          ),
+                                          child: Text(
+                                            'RMM',
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 10 + appState.getTextSizeOffset(),
+                                            ),
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                ),
                               Positioned(
                                 bottom: 0,
                                 left: 0,
@@ -212,29 +275,41 @@ class PortfolioDisplay1 extends StatelessWidget {
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: [
-                                      // Tronquer le shortName si trop long
                                       Expanded(
-                                        child: Text(
-                                          token['shortName'] ?? S.of(context).nameUnavailable,
-                                          style: TextStyle(
-                                            fontSize: 15 + appState.getTextSizeOffset(),
-                                            fontWeight: FontWeight.bold,
-                                            color: Theme.of(context).textTheme.bodyLarge?.color,
-                                          ),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
+                                        child: Row(
+                                          children: [
+                                            if (token['country'] != null) // Vérifie si le pays est disponible
+                                              Padding(
+                                                padding: const EdgeInsets.only(right: 8.0), // Espacement entre l'image et le texte
+                                                child: Image.asset(
+                                                  'assets/country/${token['country'].toLowerCase()}.png',
+                                                  width: 18,
+                                                  height: 18,
+                                                  errorBuilder: (context, error, stackTrace) {
+                                                    return const Icon(Icons.flag, size: 24); // Icône par défaut si l'image est introuvable
+                                                  },
+                                                ),
+                                              ),
+                                            Text(
+                                              token['shortName'] ?? S.of(context).nameUnavailable,
+                                              style: TextStyle(
+                                                fontSize: 15 + appState.getTextSizeOffset(),
+                                                fontWeight: FontWeight.bold,
+                                                color: Theme.of(context).textTheme.bodyLarge?.color,
+                                              ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ],
                                         ),
                                       ),
-                                      // Jauge alignée à droite sans marges
                                       Transform.translate(
-                                            offset: const Offset(16.0, 0), // Décalage de 8 pixels vers la droite
-                                            child: SizedBox(
-                                              width: 100,
-                                              child: rentPercentage != null
-                                                  ? _buildGaugeForRent(rentPercentage, context)
-                                                  : const SizedBox.shrink(),
-                                            ),
-                                          ),
+                                        offset: const Offset(30.0, 0), // Décalage de 30 pixels vers la droite
+                                        child: SizedBox(
+                                          width: 100,
+                                          child: rentPercentage != null ? _buildGaugeForRent(rentPercentage, context) : const SizedBox.shrink(),
+                                        ),
+                                      ),
                                     ],
                                   ),
                                   Text(
@@ -250,57 +325,48 @@ class PortfolioDisplay1 extends StatelessWidget {
                                     style: TextStyle(fontSize: 13 + appState.getTextSizeOffset()),
                                   ),
                                   const SizedBox(height: 8),
-                                          Text(
-                                            '${S.of(context).revenue}:',
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 13 + appState.getTextSizeOffset(),
-                                            ),
-                                          ),
-                                          Padding(
-                                            padding: const EdgeInsets.only(top: 4.0),
-                                            child: Row(
-                                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                              children: [
-                                                Column(
-                                                  children: [
-                                                    Text(S.of(context).week,
-                                                        style: TextStyle(fontSize: 13 + appState.getTextSizeOffset())),
-                                                    Text(
-                                                        formatCurrency(context, token['dailyIncome'] * 7 ?? 0),
-                                                        style: TextStyle(fontSize: 13 + appState.getTextSizeOffset())),
-                                                  ],
-                                                ),
-                                                Column(
-                                                  children: [
-                                                    Text(S.of(context).month,
-                                                        style: TextStyle(fontSize: 13 + appState.getTextSizeOffset())),
-                                                    Text(
-                                                        formatCurrency(context, token['monthlyIncome'] ?? 0),
-                                                        style: TextStyle(fontSize: 13 + appState.getTextSizeOffset())),
-                                                  ],
-                                                ),
-                                                Column(
-                                                  children: [
-                                                    Text(S.of(context).year,
-                                                        style: TextStyle(fontSize: 13 + appState.getTextSizeOffset())),
-                                                    Text(
-                                                        formatCurrency(context, token['yearlyIncome'] ?? 0),
-                                                        style: TextStyle(fontSize: 13 + appState.getTextSizeOffset())),
-                                                  ],
-                                                ),
-                                              ],
-                                            ),
-                                    
-                                          ),
+                                  Text(
+                                    '${S.of(context).revenue}:',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 13 + appState.getTextSizeOffset(),
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 4.0),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                      children: [
+                                        Column(
+                                          children: [
+                                            Text(S.of(context).week, style: TextStyle(fontSize: 13 + appState.getTextSizeOffset())),
+                                            Text(formatCurrency(context, token['dailyIncome'] * 7 ?? 0),
+                                                style: TextStyle(fontSize: 13 + appState.getTextSizeOffset())),
+                                          ],
+                                        ),
+                                        Column(
+                                          children: [
+                                            Text(S.of(context).month, style: TextStyle(fontSize: 13 + appState.getTextSizeOffset())),
+                                            Text(formatCurrency(context, token['monthlyIncome'] ?? 0),
+                                                style: TextStyle(fontSize: 13 + appState.getTextSizeOffset())),
+                                          ],
+                                        ),
+                                        Column(
+                                          children: [
+                                            Text(S.of(context).year, style: TextStyle(fontSize: 13 + appState.getTextSizeOffset())),
+                                            Text(formatCurrency(context, token['yearlyIncome'] ?? 0),
+                                                style: TextStyle(fontSize: 13 + appState.getTextSizeOffset())),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),
                           ),
                         ),
-
                       ],
-                    ),
                     ),
                   ),
                 );

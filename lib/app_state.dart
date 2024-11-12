@@ -37,7 +37,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     themeMode = mode;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('themeMode', mode);
-    
+
     _applyTheme(); // Apply the theme immediately after updating the mode
     notifyListeners(); // Notify listeners about the theme mode change
   }
@@ -100,7 +100,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       case 'big':
         return 2.0; // Increase font size
       case 'veryBig':
-      return 4.0; // Increase font size
+        return 4.0; // Increase font size
       default:
         return 0.0; // Default size
     }
