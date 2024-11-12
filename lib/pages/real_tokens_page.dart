@@ -95,7 +95,7 @@ class RealTokensPageState extends State<RealTokensPage> {
                   floating: true,
                   snap: true,
                   automaticallyImplyLeading: false,
-                  expandedHeight: Utils.getSliverAppBarHeight(context) - 20,
+                  expandedHeight: Utils.getSliverAppBarHeight(context),
                   flexibleSpace: FlexibleSpaceBar(
                     background: Container(
                       color: Theme.of(context).cardColor,

@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:realtokens_apps/api/data_manager.dart';
 import 'package:realtokens_apps/generated/l10n.dart';
 import 'package:flutter/material.dart';
@@ -10,40 +13,74 @@ import 'package:logger/logger.dart';
 class Utils {
   static final logger = Logger(); // Initialiser une instance de logger
 
-  static double getAppBarHeight(BuildContext context) {
-    double screenHeight = MediaQuery.of(context).size.height;
-    double screenWidth = MediaQuery.of(context).size.width;
-    bool isPortrait = MediaQuery.of(context).orientation == Orientation.portrait;
+ static double getAppBarHeight(BuildContext context) {
+    double screenHeight = MediaQuery.of(context).size.height ; // Hauteur en dips
+double screenWidth = MediaQuery.of(context).size.width; // Largeur en dips
+double pixelRatio = MediaQuery.of(context).devicePixelRatio; // Ratio de densité
+    double longestSide = MediaQuery.of(context).size.longestSide * pixelRatio;
+        double shortestSide = MediaQuery.of(context).size.shortestSide * pixelRatio;
 
-    if (screenWidth >= 768) {
-      // Dimensions spécifiques pour iPad
-      return isPortrait ? kToolbarHeight + 10 : kToolbarHeight + 10;
-    } else if (screenHeight > 800) {
-      // Appareils avec grands écrans (par exemple iPhone 15 Pro Max)
-      return kToolbarHeight + 40;
+
+bool isPortrait = MediaQuery.of(context).orientation == Orientation.portrait;
+
+
+print('Orientation: ${isPortrait ? 'Portrait' : 'Paysage'}');
+print('shortestSide: $shortestSide');
+print('longestSide: $longestSide');
+print('Logical height: $screenHeight');
+print('Logical width: $screenWidth');
+print('Device pixel ratio: $pixelRatio');
+print('Physical height: ${screenHeight * pixelRatio}');
+print('Physical width: ${screenWidth * pixelRatio}');
+
+
+    if (kIsWeb) {
+      // Taille pour le Web, ajustée pour écrans larges
+      return longestSide > 1200 ? kToolbarHeight : kToolbarHeight;
+    } else if (Platform.isIOS || Platform.isAndroid) {
+      if (shortestSide >= 1800) {
+        // Tablettes (toute orientation)
+        return kToolbarHeight + 30;
+      } else if (longestSide > 2000) {
+        // Grands téléphones
+        return kToolbarHeight + 15;
+      } else {
+        // Taille par défaut pour les téléphones standards
+        return kToolbarHeight + 10;
+      }
     } else {
-      // Appareils avec petits écrans (par exemple iPhone SE)
-      return kToolbarHeight + 10;
+      // Par défaut pour desktop
+      return kToolbarHeight + 20;
     }
   }
 
   static double getSliverAppBarHeight(BuildContext context) {
-    double screenHeight = MediaQuery.of(context).size.height;
-    double screenWidth = MediaQuery.of(context).size.width;
-    bool isPortrait = MediaQuery.of(context).orientation == Orientation.portrait;
+    double baseHeight = getAppBarHeight(context);
 
-    if (screenWidth >= 768) {
-      // Hauteur spécifique pour les iPads
-      return isPortrait ? getAppBarHeight(context) + 30 : getAppBarHeight(context) + 45;
-    } else if (isPortrait) {
-      // Utiliser une hauteur normale pour les appareils en mode portrait
-      return screenHeight > 800 ? getAppBarHeight(context) - 10 : getAppBarHeight(context) + 25;
+double pixelRatio = MediaQuery.of(context).devicePixelRatio; // Ratio de densité
+    double longestSide = MediaQuery.of(context).size.longestSide * pixelRatio;
+        double shortestSide = MediaQuery.of(context).size.shortestSide * pixelRatio;
+
+    if (kIsWeb) {
+      // SliverAppBar pour le Web
+      return longestSide > 2500 ? baseHeight + 50 : baseHeight + 50;
+    } else if (Platform.isIOS || Platform.isAndroid) {
+      if (shortestSide >= 1800) {
+        // Tablettes
+        return baseHeight + 30;
+      } else if (longestSide > 2500) {
+        // Grands téléphones
+        return baseHeight + 10;
+      } else {
+        // Taille par défaut
+        return baseHeight + 20;
+      }
     } else {
-      // Réduire la hauteur en mode paysage
-      return getAppBarHeight(context) + 45; // Ajustez cette valeur si nécessaire
+      // Par défaut pour desktop
+      return baseHeight + 20;
     }
   }
-
+  
   static Future<void> loadData(BuildContext context) async {
     final dataManager = Provider.of<DataManager>(context, listen: false);
     await dataManager.updateGlobalVariables();

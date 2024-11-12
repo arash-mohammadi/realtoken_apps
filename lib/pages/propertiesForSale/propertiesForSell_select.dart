@@ -85,7 +85,7 @@ class _PropertiesForSalePageState extends State<PropertiesForSalePage> {
               right: isLast ? const Radius.circular(8) : Radius.zero,
             ),
           ),
-          padding: const EdgeInsets.symmetric(vertical: 8),
+          padding: const EdgeInsets.symmetric(vertical: 4),
           alignment: Alignment.center,
           child: Text(
             label,

@@ -44,6 +44,7 @@ void main() async {
     dataManager.loadSelectedCurrency(),
     dataManager.loadUserIdToAddresses(),
   ]);
+  
   FlutterNativeSplash.remove(); // Supprimer le splash screen natif après l'initialisation
 
   // Ensuite, exécuter fetchAndCalculateData une fois que les précédentes sont terminées
