@@ -141,7 +141,8 @@ class _PortfolioStats extends State<PortfolioStats> {
             sliver: SliverGrid(
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: isWideScreen ? 2 : 1,
-               
+                mainAxisSpacing: 8.0, // Espacement vertical entre les cartes
+                crossAxisSpacing: 8.0, // Espacement horizontal entre les cartes
                 mainAxisExtent: fixedCardHeight, // Hauteur fixe pour chaque carte
               ),
               delegate: SliverChildBuilderDelegate(

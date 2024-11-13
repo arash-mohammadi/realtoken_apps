@@ -25,7 +25,7 @@ class PortfolioDisplay1 extends StatelessWidget {
                   height: 10,
                   width: maxWidth,
                   decoration: BoxDecoration(
-                  color: const Color.fromARGB(255, 78, 78, 78).withOpacity(0.3), // Couleur du fond grisé
+                    color: const Color.fromARGB(255, 78, 78, 78).withOpacity(0.3), // Couleur du fond grisé
                     borderRadius: BorderRadius.circular(5),
                   ),
                 ),
@@ -103,8 +103,8 @@ class PortfolioDisplay1 extends StatelessWidget {
               padding: const EdgeInsets.only(top: 20, bottom: 80),
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: MediaQuery.of(context).size.width > 700 ? 2 : 1,
-            
-                mainAxisExtent: 170 * (1 + (appState.getTextSizeOffset() / 35)), // Ajustez ici pour plus de hauteur
+
+                mainAxisExtent: 180 * (1 + (appState.getTextSizeOffset() / 35)), // Ajustez ici pour plus de hauteur
               ),
               itemCount: portfolio.length,
               itemBuilder: (context, index) {

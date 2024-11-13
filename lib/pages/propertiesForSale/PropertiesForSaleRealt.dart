@@ -36,7 +36,7 @@ class _PropertiesForSaleRealtState extends State<PropertiesForSaleRealt> {
                   height: 15,
                   width: maxWidth,
                   decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.3), // Couleur du fond grisé
+                    color: Colors.black.withOpacity(0.3), // Couleur du fond grisé
                     borderRadius: BorderRadius.circular(5),
                   ),
                 ),
@@ -89,7 +89,7 @@ class _PropertiesForSaleRealtState extends State<PropertiesForSaleRealt> {
           : AlignedGridView.count(
               padding: const EdgeInsets.only(top: 20, bottom: 80),
               crossAxisCount: MediaQuery.of(context).size.width > 700 ? 2 : 1, // Nombre de colonnes selon la largeur de l'écran
-         
+
               itemCount: propertiesForSale.length,
               itemBuilder: (context, index) {
                 final property = propertiesForSale[index];

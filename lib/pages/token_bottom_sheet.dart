@@ -299,11 +299,11 @@ Future<void> showTokenDetails(BuildContext context, Map<String, dynamic> token) 
                               icon: Icons.calendar_today, // Icône pour l'année de construction
                             ),
                             _buildDetailRow(
-  context,
-  S.of(context).propertyType,
-  Parameters.getPropertyTypeName(token['propertyType'] ?? -1, context),
-  icon: Icons.home,
-),
+                              context,
+                              S.of(context).propertyType,
+                              Parameters.getPropertyTypeName(token['propertyType'] ?? -1, context),
+                              icon: Icons.home,
+                            ),
                             _buildDetailRow(
                               context,
                               S.of(context).rentalType,
@@ -432,7 +432,7 @@ Future<void> showTokenDetails(BuildContext context, Map<String, dynamic> token) 
                         ),
                       ),
 
-               // Onglet Finances
+                      // Onglet Finances
                       SingleChildScrollView(
                         child: Column(
                           children: [
@@ -643,70 +643,60 @@ Future<void> showTokenDetails(BuildContext context, Map<String, dynamic> token) 
                             ),
                             // Ajouter une jauge pour afficher la répartition des coûts
                             SizedBox(height: 2), // Espace entre les éléments
-                           Row(
-  children: [
-    // Property Maintenance Monthly
-    Expanded(
-      flex: totalRentCosts != 0
-          ? ((token['propertyMaintenanceMonthly'] ?? 0) / totalRentCosts * 100).round()
-          : 0,
-      child: Container(
-        height: 10,
-        color: Colors.deepOrange, // Couleur pour 'propertyMaintenanceMonthly'
-      ),
-    ),
-    // Property Management
-    Expanded(
-      flex: totalRentCosts != 0
-          ? ((token['propertyManagement'] ?? 0) / totalRentCosts * 100).round()
-          : 0,
-      child: Container(
-        height: 10,
-        color: Colors.amber, // Couleur pour 'propertyManagement'
-      ),
-    ),
-    // Realt Platform
-    Expanded(
-      flex: totalRentCosts != 0
-          ? ((token['realtPlatform'] ?? 0) / totalRentCosts * 100).round()
-          : 0,
-      child: Container(
-        height: 10,
-        color: Colors.orange, // Couleur pour 'realtPlatform'
-      ),
-    ),
-    // Insurance
-    Expanded(
-      flex: totalRentCosts != 0
-          ? ((token['insurance'] ?? 0) / totalRentCosts * 100).round()
-          : 0,
-      child: Container(
-        height: 10,
-        color: Colors.purple, // Couleur pour 'insurance'
-      ),
-    ),
-    // Property Taxes
-    Expanded(
-      flex: totalRentCosts != 0
-          ? ((token['propertyTaxes'] ?? 0) / totalRentCosts * 100).round()
-          : 0,
-      child: Container(
-        height: 10,
-        color: Colors.red, // Couleur pour 'propertyTaxes'
-      ),
-    ),
-    // Autres
-    Expanded(
-      flex: totalRentCosts != 0
-          ? (((token['grossRentMonth'] ?? 0.0 - token['netRentMonth'] ?? 0.0 - totalRentCosts) / totalRentCosts * 100).round())
-          : 0,
-      child: Container(
-        height: 10,
-        color: Colors.grey, // Couleur pour les autres coûts
-      ),
-    ),
-  ],
-),
+                            Row(
+                              children: [
+                                // Property Maintenance Monthly
+                                Expanded(
+                                  flex: totalRentCosts != 0 ? ((token['propertyMaintenanceMonthly'] ?? 0) / totalRentCosts * 100).round() : 0,
+                                  child: Container(
+                                    height: 10,
+                                    color: Colors.deepOrange, // Couleur pour 'propertyMaintenanceMonthly'
+                                  ),
+                                ),
+                                // Property Management
+                                Expanded(
+                                  flex: totalRentCosts != 0 ? ((token['propertyManagement'] ?? 0) / totalRentCosts * 100).round() : 0,
+                                  child: Container(
+                                    height: 10,
+                                    color: Colors.amber, // Couleur pour 'propertyManagement'
+                                  ),
+                                ),
+                                // Realt Platform
+                                Expanded(
+                                  flex: totalRentCosts != 0 ? ((token['realtPlatform'] ?? 0) / totalRentCosts * 100).round() : 0,
+                                  child: Container(
+                                    height: 10,
+                                    color: Colors.orange, // Couleur pour 'realtPlatform'
+                                  ),
+                                ),
+                                // Insurance
+                                Expanded(
+                                  flex: totalRentCosts != 0 ? ((token['insurance'] ?? 0) / totalRentCosts * 100).round() : 0,
+                                  child: Container(
+                                    height: 10,
+                                    color: Colors.purple, // Couleur pour 'insurance'
+                                  ),
+                                ),
+                                // Property Taxes
+                                Expanded(
+                                  flex: totalRentCosts != 0 ? ((token['propertyTaxes'] ?? 0) / totalRentCosts * 100).round() : 0,
+                                  child: Container(
+                                    height: 10,
+                                    color: Colors.red, // Couleur pour 'propertyTaxes'
+                                  ),
+                                ),
+                                // Autres
+                                Expanded(
+                                  flex: totalRentCosts != 0
+                                      ? (((token['grossRentMonth'] ?? 0.0 - token['netRentMonth'] ?? 0.0 - totalRentCosts) / totalRentCosts * 100).round())
+                                      : 0,
+                                  child: Container(
+                                    height: 10,
+                                    color: Colors.grey, // Couleur pour les autres coûts
+                                  ),
+                                ),
+                              ],
+                            ),
 
                             SizedBox(height: 2), // Espace sous la jauge pour séparation visuelle
 
@@ -738,7 +728,6 @@ Future<void> showTokenDetails(BuildContext context, Map<String, dynamic> token) 
                         ),
                       ),
 
-       
                       // Onglet Market
                       SingleChildScrollView(
                         child: Column(
@@ -777,7 +766,7 @@ Future<void> showTokenDetails(BuildContext context, Map<String, dynamic> token) 
                                       final delta = ((offer['tokenValue'] / token['tokenPrice'] - 1) * 100);
 
                                       return Card(
-                                        color: Theme.of(context).scaffoldBackgroundColor,
+                                        color: Colors.grey.withOpacity(0.1),
                                         margin: const EdgeInsets.symmetric(vertical: 8),
                                         elevation: 0,
                                         shape: RoundedRectangleBorder(
@@ -797,6 +786,10 @@ Future<void> showTokenDetails(BuildContext context, Map<String, dynamic> token) 
                                                   ),
                                                 ),
                                                 Spacer(),
+                                                    Stack(
+                                              alignment: Alignment.center,
+                                              clipBehavior: Clip.none,
+                                              children: [
                                                 Text(
                                                   Utils.formatReadableDate(offer['creationDate']),
                                                   style: TextStyle(
@@ -804,6 +797,29 @@ Future<void> showTokenDetails(BuildContext context, Map<String, dynamic> token) 
                                                     color: Colors.grey[600],
                                                   ),
                                                 ),
+                                                if (offer['token_to_pay'] == '0x0ca4f5554dd9da6217d62d8df2816c82bba4157b' ||
+                                                    offer['token_to_pay'] == '0xed56f76e9cbc6a64b821e9c016eafbd3db5436d1' ||
+                                                    offer['token_to_pay'] == '0xe91d153e0b41518a2ce8dd3d7944fa863463a97d')
+                                                  Positioned(
+                                                    bottom: -30,
+                                                    child: Image.asset(
+                                                      'assets/icons/xdai.png',
+                                                      width: 28,
+                                                      height: 28,
+                                                    ),
+                                                  )
+                                                else if (offer['token_to_pay'] == '0xddafbb505ad214d7b80b1f830fccc89b60fb7a83')
+                                                  Positioned(
+                                                    bottom: -30,
+                                                    child: Image.asset(
+                                                      'assets/icons/usdc.png',
+                                                      width: 24,
+                                                      height: 24,
+                                                    ),
+                                                  ),
+                                              ],
+                                            ),
+                                          
                                               ]),
                                               const SizedBox(height: 4),
                                               Text(
@@ -814,7 +830,7 @@ Future<void> showTokenDetails(BuildContext context, Map<String, dynamic> token) 
                                                 ),
                                               ),
                                               Text(
-                                                '${S.of(context).token_value}: ${formatCurrency(context,offer['tokenValue'])}',
+                                                '${S.of(context).token_value}: ${formatCurrency(context, offer['tokenValue'])}',
                                                 style: TextStyle(
                                                   fontSize: 12 + appState.getTextSizeOffset(),
                                                   color: Colors.grey[600],
@@ -1199,7 +1215,7 @@ Future<void> showTokenDetails(BuildContext context, Map<String, dynamic> token) 
                             style: ElevatedButton.styleFrom(
                               foregroundColor: Colors.white,
                               backgroundColor: Colors.green, // Bouton vert pour la carte
-                              padding: const EdgeInsets.symmetric(vertical: 8, horizontal:8),
+                              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
                               textStyle: TextStyle(fontSize: 13 + appState.getTextSizeOffset()),
                             ),
                             child: Text(S.of(context).viewOnMap),

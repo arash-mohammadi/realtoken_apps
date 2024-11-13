@@ -245,7 +245,7 @@ class DashboardPageState extends State<DashboardPage> {
                         backDrawRodData: BackgroundBarChartRodData(
                           show: true,
                           toY: 100, // Fond de la jauge
-                  color: const Color.fromARGB(255, 78, 78, 78).withOpacity(0.3), // Couleur du fond grisé
+                          color: const Color.fromARGB(255, 78, 78, 78).withOpacity(0.3), // Couleur du fond grisé
                         ),
                         rodStackItems: [
                           BarChartRodStackItem(0, displayValue, Colors.blueAccent.withOpacity(0.6)),
@@ -619,7 +619,7 @@ class DashboardPageState extends State<DashboardPage> {
                       hasGraph: true,
                       rightWidget: _buildVerticalGauge(_getPortfolioBarGraphData(dataManager), context),
                     ),
-                    const SizedBox(height: 15),
+                    const SizedBox(height: 8),
                     _buildCard(
                       S.of(context).properties,
                       Icons.home,
@@ -688,7 +688,7 @@ class DashboardPageState extends State<DashboardPage> {
                         },
                       ),
                     ),
-                    const SizedBox(height: 15),
+                    const SizedBox(height: 8),
                     _buildCard(
                       S.of(context).tokens,
                       Icons.account_balance_wallet,
@@ -716,7 +716,7 @@ class DashboardPageState extends State<DashboardPage> {
                         },
                       ),
                     ),
-                    const SizedBox(height: 15),
+                    const SizedBox(height: 8),
                     _buildCard(
                       S.of(context).rents,
                       Icons.attach_money,
@@ -779,7 +779,7 @@ class DashboardPageState extends State<DashboardPage> {
                       hasGraph: true,
                       rightWidget: _buildMiniGraphForRendement(_getLast12MonthsRent(dataManager), context, dataManager),
                     ),
-                    const SizedBox(height: 15),
+                    const SizedBox(height: 8),
                     _buildCard(
                       S.of(context).nextRondays,
                       Icons.trending_up,

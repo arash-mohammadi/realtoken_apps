@@ -43,6 +43,8 @@ class RmmStatsState extends State<RmmStats> {
             sliver: SliverGrid(
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: screenWidth > 700 ? 2 : 1,
+                mainAxisSpacing: 8.0, // Espacement vertical entre les cartes
+                crossAxisSpacing: 8.0, // Espacement horizontal entre les cartes
                 mainAxisExtent: fixedCardHeight, // Hauteur fixe pour chaque carte
               ),
               delegate: SliverChildBuilderDelegate(
@@ -67,7 +69,6 @@ class RmmStatsState extends State<RmmStats> {
 
 // Fonction pour créer la carte APY en pleine largeur
   Widget _buildApyCard(DataManager dataManager, double screenWidth) {
-
     return SizedBox(
       height: 180,
       width: double.infinity,
@@ -215,7 +216,7 @@ class RmmStatsState extends State<RmmStats> {
     return Table(
       border: TableBorder(
         horizontalInside: BorderSide(
-                  color: Colors.black.withOpacity(0.3), // Couleur du fond grisé
+          color: Colors.black.withOpacity(0.3), // Couleur du fond grisé
           width: 1,
         ),
       ),

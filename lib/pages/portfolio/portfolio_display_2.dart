@@ -32,7 +32,7 @@ class PortfolioDisplay2State extends State<PortfolioDisplay2> {
                   height: 15,
                   width: maxWidth,
                   decoration: BoxDecoration(
-                  color: const Color.fromARGB(255, 78, 78, 78).withOpacity(0.3), // Couleur du fond grisé
+                    color: const Color.fromARGB(255, 78, 78, 78).withOpacity(0.3), // Couleur du fond grisé
                     borderRadius: BorderRadius.circular(5),
                   ),
                 ),
@@ -117,7 +117,7 @@ class PortfolioDisplay2State extends State<PortfolioDisplay2> {
                   child: AlignedGridView.count(
                     padding: const EdgeInsets.only(top: 20, bottom: 80),
                     crossAxisCount: widthScreen > 700 ? 2 : 1, // Nombre de colonnes basé sur la largeur de l'écran
-              
+
                     itemCount: filteredPortfolio.length,
                     itemBuilder: (context, index) {
                       final token = filteredPortfolio[index];
@@ -134,7 +134,7 @@ class PortfolioDisplay2State extends State<PortfolioDisplay2> {
                           : 0.5;
 
                       return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
+                        padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
                         child: GestureDetector(
                           onTap: () => showTokenDetails(context, token),
                           child: Card(

@@ -234,7 +234,7 @@ class PortfolioPageState extends State<PortfolioPage> {
                     expandedHeight: Utils.getSliverAppBarHeight(context), // Hauteur étendue
                     flexibleSpace: FlexibleSpaceBar(
                       background: Container(
-                        color: Theme.of(context).cardColor,
+                        color: Theme.of(context).scaffoldBackgroundColor,
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.end, // Aligne les éléments vers le bas
                           crossAxisAlignment: CrossAxisAlignment.start,

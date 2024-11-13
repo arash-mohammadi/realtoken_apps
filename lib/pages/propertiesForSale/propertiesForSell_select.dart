@@ -32,7 +32,7 @@ class _PropertiesForSalePageState extends State<PropertiesForSalePage> {
               automaticallyImplyLeading: false, // Supprime la flèche de retour
               flexibleSpace: FlexibleSpaceBar(
                 background: Container(
-                  color: Theme.of(context).cardColor,
+                  color: Theme.of(context).scaffoldBackgroundColor,
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [

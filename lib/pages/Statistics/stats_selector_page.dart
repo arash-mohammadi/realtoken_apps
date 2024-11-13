@@ -27,7 +27,7 @@ class StatsSelectorPageState extends State<StatsSelectorPage> {
               expandedHeight: Utils.getSliverAppBarHeight(context), // Hauteur étendue si besoin
               flexibleSpace: FlexibleSpaceBar(
                 background: Container(
-                  color: Theme.of(context).cardColor,
+                  color: Theme.of(context).scaffoldBackgroundColor,
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.end, // Aligne les éléments vers le bas
                     crossAxisAlignment: CrossAxisAlignment.start,

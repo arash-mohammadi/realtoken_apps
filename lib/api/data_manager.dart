@@ -1557,6 +1557,7 @@ class DataManager extends ChangeNotifier {
           'annualPercentageYield': matchingToken['annualPercentageYield'],
           'tokenDigit': offer['token_digit'],
           'creationDate': offer['creation_date'],
+          'token_to_pay': offer['token_to_pay'],
           'token_to_sell': offer['token_to_sell'],
           'token_to_buy': offer['token_to_buy'],
           'id_offer': offer['id_offer'],

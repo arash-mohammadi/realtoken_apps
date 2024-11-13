@@ -217,7 +217,7 @@ class CustomDrawer extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text(
-                              'RealToken',
+                              'RealTokens',
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 23 + appState.getTextSizeOffset(),
@@ -332,6 +332,16 @@ class CustomDrawer extends StatelessWidget {
                         builder: (context) => ServiceStatusPage(),
                       ),
                     );
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.book),
+                  title: Text(
+                    'RMM',
+                    style: TextStyle(fontSize: 15 + appState.getTextSizeOffset()),
+                  ),
+                  onTap: () {
+                    Utils.launchURL('https://rmm.realtoken.network');
                   },
                 ),
                 ListTile(

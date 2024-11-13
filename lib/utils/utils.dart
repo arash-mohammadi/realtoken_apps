@@ -13,40 +13,41 @@ import 'package:logger/logger.dart';
 class Utils {
   static final logger = Logger(); // Initialiser une instance de logger
 
- static double getAppBarHeight(BuildContext context) {
-    double screenHeight = MediaQuery.of(context).size.height ; // Hauteur en dips
-double screenWidth = MediaQuery.of(context).size.width; // Largeur en dips
-double pixelRatio = MediaQuery.of(context).devicePixelRatio; // Ratio de densité
+  static double getAppBarHeight(BuildContext context) {
+    double screenHeight = MediaQuery.of(context).size.height; // Hauteur en dips
+    double screenWidth = MediaQuery.of(context).size.width; // Largeur en dips
+    double pixelRatio = MediaQuery.of(context).devicePixelRatio; // Ratio de densité
     double longestSide = MediaQuery.of(context).size.longestSide * pixelRatio;
-        double shortestSide = MediaQuery.of(context).size.shortestSide * pixelRatio;
+    double shortestSide = MediaQuery.of(context).size.shortestSide * pixelRatio;
 
-
-bool isPortrait = MediaQuery.of(context).orientation == Orientation.portrait;
-
-
-print('Orientation: ${isPortrait ? 'Portrait' : 'Paysage'}');
-print('shortestSide: $shortestSide');
-print('longestSide: $longestSide');
-print('Logical height: $screenHeight');
-print('Logical width: $screenWidth');
-print('Device pixel ratio: $pixelRatio');
-print('Physical height: ${screenHeight * pixelRatio}');
-print('Physical width: ${screenWidth * pixelRatio}');
-
+    bool isPortrait = MediaQuery.of(context).orientation == Orientation.portrait;
 
     if (kIsWeb) {
       // Taille pour le Web, ajustée pour écrans larges
       return longestSide > 1200 ? kToolbarHeight : kToolbarHeight;
-    } else if (Platform.isIOS || Platform.isAndroid) {
-      if (shortestSide >= 1800) {
+    } else if (Platform.isAndroid) {
+      if (shortestSide >= 1500) {
         // Tablettes (toute orientation)
-        return kToolbarHeight + 30;
+        return kToolbarHeight;
       } else if (longestSide > 2000) {
         // Grands téléphones
         return kToolbarHeight + 15;
       } else {
         // Taille par défaut pour les téléphones standards
         return kToolbarHeight + 10;
+      }
+    } else if (Platform.isIOS) {
+      var orientation = MediaQuery.of(context).orientation;
+
+      if (shortestSide >= 1500) {
+        // Tablettes (toute orientation)
+        return orientation == Orientation.portrait ? kToolbarHeight : kToolbarHeight; // Exemple d'ajustement en paysage
+      } else if (longestSide > 2000) {
+        // Grands téléphones
+        return orientation == Orientation.portrait ? kToolbarHeight + 40 : kToolbarHeight; // Exemple d'ajustement en paysage
+      } else {
+        // Taille par défaut pour les téléphones standards
+        return orientation == Orientation.portrait ? kToolbarHeight : kToolbarHeight - 10; // Exemple d'ajustement en paysage
       }
     } else {
       // Par défaut pour desktop
@@ -57,15 +58,15 @@ print('Physical width: ${screenWidth * pixelRatio}');
   static double getSliverAppBarHeight(BuildContext context) {
     double baseHeight = getAppBarHeight(context);
 
-double pixelRatio = MediaQuery.of(context).devicePixelRatio; // Ratio de densité
+    double pixelRatio = MediaQuery.of(context).devicePixelRatio; // Ratio de densité
     double longestSide = MediaQuery.of(context).size.longestSide * pixelRatio;
-        double shortestSide = MediaQuery.of(context).size.shortestSide * pixelRatio;
+    double shortestSide = MediaQuery.of(context).size.shortestSide * pixelRatio;
 
     if (kIsWeb) {
       // SliverAppBar pour le Web
       return longestSide > 2500 ? baseHeight + 50 : baseHeight + 50;
-    } else if (Platform.isIOS || Platform.isAndroid) {
-      if (shortestSide >= 1800) {
+    } else if (Platform.isAndroid) {
+      if (shortestSide >= 1500) {
         // Tablettes
         return baseHeight + 30;
       } else if (longestSide > 2500) {
@@ -75,12 +76,25 @@ double pixelRatio = MediaQuery.of(context).devicePixelRatio; // Ratio de densit�
         // Taille par défaut
         return baseHeight + 20;
       }
+    } else if (Platform.isIOS) {
+      var orientation = MediaQuery.of(context).orientation;
+
+      if (shortestSide >= 1500) {
+        // Tablettes
+        return orientation == Orientation.portrait ? baseHeight + 25 : baseHeight + 25; // Ajustement en paysage pour les tablettes
+      } else if (longestSide > 2500) {
+        // Grands téléphones
+        return orientation == Orientation.portrait ? baseHeight - 15 : baseHeight + 40; // Ajustement en paysage pour les grands téléphones
+      } else {
+        // Taille par défaut pour téléphones standards
+        return orientation == Orientation.portrait ? baseHeight + 30 : baseHeight + 45; // Ajustement en paysage pour téléphones standards
+      }
     } else {
       // Par défaut pour desktop
       return baseHeight + 20;
     }
   }
-  
+
   static Future<void> loadData(BuildContext context) async {
     final dataManager = Provider.of<DataManager>(context, listen: false);
     await dataManager.updateGlobalVariables();
@@ -142,8 +156,6 @@ double pixelRatio = MediaQuery.of(context).devicePixelRatio; // Ratio de densit�
       return dateString;
     }
   }
-
-
 
   static Future<void> launchURL(String url) async {
     logger.i('Tentative d\'ouverture de l\'URL: $url'); // Log pour capturer l'URL

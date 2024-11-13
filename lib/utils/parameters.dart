@@ -19,31 +19,31 @@ class Parameters {
   static List<String> textSizeOptions = ['verySmall', 'small', 'normal', 'big', 'veryBig']; // Options de taille de texte
 
   static String getPropertyTypeName(int? propertyType, BuildContext context) {
-  switch (propertyType) {
-    case 1:
-      return S.of(context).singleFamily;
-    case 2:
-      return S.of(context).multiFamily;
-    case 3:
-      return S.of(context).duplex;
-    case 4:
-      return S.of(context).condominium;
-    case 6:
-      return S.of(context).mixedUse;
-    case 8:
-      return S.of(context).multiFamily;
-    case 9:
-      return S.of(context).commercial;
-    case 10:
-      return S.of(context).sfrPortfolio;
-    case 11:
-      return S.of(context).mfrPortfolio;
-    case 12:
-      return S.of(context).resortBungalow;
-    default:
-      return S.of(context).unknown;
+    switch (propertyType) {
+      case 1:
+        return S.of(context).singleFamily;
+      case 2:
+        return S.of(context).multiFamily;
+      case 3:
+        return S.of(context).duplex;
+      case 4:
+        return S.of(context).condominium;
+      case 6:
+        return S.of(context).mixedUse;
+      case 8:
+        return S.of(context).multiFamily;
+      case 9:
+        return S.of(context).commercial;
+      case 10:
+        return S.of(context).sfrPortfolio;
+      case 11:
+        return S.of(context).mfrPortfolio;
+      case 12:
+        return S.of(context).resortBungalow;
+      default:
+        return S.of(context).unknown;
+    }
   }
-}
 
   // Carte des abréviations d'États des États-Unis à leurs noms complets
   static final Map<String, String> usStateAbbreviations = {

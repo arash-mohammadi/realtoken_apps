@@ -236,7 +236,7 @@ class ApiService {
     // Si lastFetchTime est déjà défini et que le temps minimum n'est pas atteint, on vérifie d'abord la validité du cache
     if (!forceFetch && lastFetchTime != null) {
       final DateTime lastFetch = DateTime.parse(lastFetchTime);
-      if (now.difference(lastFetch) < Parameters.apiCacheDuration) {
+      if (now.difference(lastFetch) < Duration(minutes: 5)) {
         if (cachedData != null) {
           logger.i("apiService: fetchYamMarket -> Requête annulée, temps minimum pas atteint");
           return [];
@@ -271,6 +271,8 @@ class ApiService {
         box.put('yamlastFetchTime', now.toIso8601String());
         // Enregistrer la nouvelle date de mise à jour renvoyée par l'API
         box.put('lastUpdateTime_YamMarket', lastUpdateDateString);
+            box.put('lastExecutionTime_Yam', now.toIso8601String());
+
 
         return data;
       } else {
