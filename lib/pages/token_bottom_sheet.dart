@@ -688,7 +688,7 @@ Future<void> showTokenDetails(BuildContext context, Map<String, dynamic> token) 
                                 // Autres
                                 Expanded(
                                   flex: totalRentCosts != 0
-                                      ? (((token['grossRentMonth'] ?? 0.0 - token['netRentMonth'] ?? 0.0 - totalRentCosts) / totalRentCosts * 100).round())
+                                      ? (((token['grossRentMonth'] ?? 0.0) - (token['netRentMonth'] ?? 0.0) - totalRentCosts) / totalRentCosts * 100).round()
                                       : 0,
                                   child: Container(
                                     height: 10,
@@ -786,40 +786,39 @@ Future<void> showTokenDetails(BuildContext context, Map<String, dynamic> token) 
                                                   ),
                                                 ),
                                                 Spacer(),
-                                                    Stack(
-                                              alignment: Alignment.center,
-                                              clipBehavior: Clip.none,
-                                              children: [
-                                                Text(
-                                                  Utils.formatReadableDate(offer['creationDate']),
-                                                  style: TextStyle(
-                                                    fontSize: 12 + appState.getTextSizeOffset(),
-                                                    color: Colors.grey[600],
-                                                  ),
+                                                Stack(
+                                                  alignment: Alignment.center,
+                                                  clipBehavior: Clip.none,
+                                                  children: [
+                                                    Text(
+                                                      Utils.formatReadableDate(offer['creationDate']),
+                                                      style: TextStyle(
+                                                        fontSize: 12 + appState.getTextSizeOffset(),
+                                                        color: Colors.grey[600],
+                                                      ),
+                                                    ),
+                                                    if (offer['token_to_pay'] == '0x0ca4f5554dd9da6217d62d8df2816c82bba4157b' ||
+                                                        offer['token_to_pay'] == '0xed56f76e9cbc6a64b821e9c016eafbd3db5436d1' ||
+                                                        offer['token_to_pay'] == '0xe91d153e0b41518a2ce8dd3d7944fa863463a97d')
+                                                      Positioned(
+                                                        bottom: -30,
+                                                        child: Image.asset(
+                                                          'assets/icons/xdai.png',
+                                                          width: 28,
+                                                          height: 28,
+                                                        ),
+                                                      )
+                                                    else if (offer['token_to_pay'] == '0xddafbb505ad214d7b80b1f830fccc89b60fb7a83')
+                                                      Positioned(
+                                                        bottom: -30,
+                                                        child: Image.asset(
+                                                          'assets/icons/usdc.png',
+                                                          width: 24,
+                                                          height: 24,
+                                                        ),
+                                                      ),
+                                                  ],
                                                 ),
-                                                if (offer['token_to_pay'] == '0x0ca4f5554dd9da6217d62d8df2816c82bba4157b' ||
-                                                    offer['token_to_pay'] == '0xed56f76e9cbc6a64b821e9c016eafbd3db5436d1' ||
-                                                    offer['token_to_pay'] == '0xe91d153e0b41518a2ce8dd3d7944fa863463a97d')
-                                                  Positioned(
-                                                    bottom: -30,
-                                                    child: Image.asset(
-                                                      'assets/icons/xdai.png',
-                                                      width: 28,
-                                                      height: 28,
-                                                    ),
-                                                  )
-                                                else if (offer['token_to_pay'] == '0xddafbb505ad214d7b80b1f830fccc89b60fb7a83')
-                                                  Positioned(
-                                                    bottom: -30,
-                                                    child: Image.asset(
-                                                      'assets/icons/usdc.png',
-                                                      width: 24,
-                                                      height: 24,
-                                                    ),
-                                                  ),
-                                              ],
-                                            ),
-                                          
                                               ]),
                                               const SizedBox(height: 4),
                                               Text(
@@ -1310,7 +1309,7 @@ Widget _buildDetailRow(BuildContext context, String label, String value, {IconDa
                 padding: const EdgeInsets.only(left: 4.0),
                 child: Icon(
                   Icons.circle,
-                  size: 8,
+                  size: 10,
                   color: color ?? Colors.red,
                 ),
               ),

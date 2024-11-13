@@ -124,9 +124,7 @@ class _PropertiesForSaleSecondaryState extends State<PropertiesForSaleSecondary>
                       itemBuilder: (context, index) {
                         String tokenKey = groupedOffers.keys.elementAt(index);
                         List<Map<String, dynamic>> offers = groupedOffers[tokenKey]!;
-                        final imageUrl = (offers.first['imageLink'] != null &&
-                                offers.first['imageLink'] is List &&
-                                offers.first['imageLink'].isNotEmpty)
+                        final imageUrl = (offers.first['imageLink'] != null && offers.first['imageLink'] is List && offers.first['imageLink'].isNotEmpty)
                             ? offers.first['imageLink'][0]
                             : '';
                         final shortName = offers.first['shortName'] ?? 'N/A';
@@ -264,9 +262,7 @@ class _PropertiesForSaleSecondaryState extends State<PropertiesForSaleSecondary>
                                               ),
                                             ),
                                             Text(
-                                              offer['tokenValue'] != null &&
-                                                      offer['tokenPrice'] != null &&
-                                                      offer['tokenPrice'] != 0
+                                              offer['tokenValue'] != null && offer['tokenPrice'] != null && offer['tokenPrice'] != 0
                                                   ? '${(((offer['tokenValue'] ?? 0) / (offer['tokenPrice'] ?? 1) - 1) * 100).toStringAsFixed(2)}%'
                                                   : 'N/A',
                                               style: TextStyle(
@@ -284,8 +280,7 @@ class _PropertiesForSaleSecondaryState extends State<PropertiesForSaleSecondary>
                                         const SizedBox(height: 4),
                                         ElevatedButton(
                                           onPressed: () {
-                                            Utils.launchURL(
-                                                'https://yambyofferid.netlify.app/?offerId=$offerId');
+                                            Utils.launchURL('https://yambyofferid.netlify.app/?offerId=$offerId');
                                           },
                                           style: ElevatedButton.styleFrom(
                                             foregroundColor: Colors.white,

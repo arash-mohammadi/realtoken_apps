@@ -271,8 +271,7 @@ class ApiService {
         box.put('yamlastFetchTime', now.toIso8601String());
         // Enregistrer la nouvelle date de mise à jour renvoyée par l'API
         box.put('lastUpdateTime_YamMarket', lastUpdateDateString);
-            box.put('lastExecutionTime_Yam', now.toIso8601String());
-
+        box.put('lastExecutionTime_Yam', now.toIso8601String());
 
         return data;
       } else {

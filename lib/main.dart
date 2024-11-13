@@ -51,7 +51,7 @@ void main() async {
   // Ensuite, exécuter fetchAndCalculateData une fois que les précédentes sont terminées
   dataManager.fetchAndStorePropertiesForSale();
   await dataManager.fetchAndCalculateData();
-  
+
   runApp(
     MultiProvider(
       providers: [
@@ -80,40 +80,38 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
 
     // Initialiser le DataManager ou le récupérer via Provider si déjà initialisé
-    dataManager = Provider.of<DataManager>(context, listen: false); 
+    dataManager = Provider.of<DataManager>(context, listen: false);
 
     // Initialiser OneSignal avec l'App ID
     initOneSignal();
   }
 
-void initOneSignal() {
-  OneSignal.Debug.setLogLevel(OSLogLevel.verbose);
-  OneSignal.Debug.setAlertLevel(OSLogLevel.none);
+  void initOneSignal() {
+    OneSignal.Debug.setLogLevel(OSLogLevel.verbose);
+    OneSignal.Debug.setAlertLevel(OSLogLevel.none);
 
+    // Configuration de OneSignal avec le consentement requis ou non
+    OneSignal.consentRequired(_requireConsent);
+    OneSignal.initialize("e7059f66-9c12-4d21-a078-edaf1a203dea");
 
-  // Configuration de OneSignal avec le consentement requis ou non
-  OneSignal.consentRequired(_requireConsent);
-  OneSignal.initialize("e7059f66-9c12-4d21-a078-edaf1a203dea");
+    // Demander l'autorisation de notification
+    OneSignal.Notifications.requestPermission(true);
 
-  // Demander l'autorisation de notification
-  OneSignal.Notifications.requestPermission(true);
+    // Configuration des gestionnaires de notifications et d'état utilisateur
+    OneSignal.Notifications.addForegroundWillDisplayListener((event) {
+      print('Notification reçue en premier plan : ${event.notification.jsonRepresentation()}');
+      event.preventDefault(); // Empêche l'affichage automatique si nécessaire
+      event.notification.display(); // Affiche manuellement la notification
+    });
 
-  // Configuration des gestionnaires de notifications et d'état utilisateur
-  OneSignal.Notifications.addForegroundWillDisplayListener((event) {
-    print(
-        'Notification reçue en premier plan : ${event.notification.jsonRepresentation()}');
-    event.preventDefault(); // Empêche l'affichage automatique si nécessaire
-    event.notification.display(); // Affiche manuellement la notification
-  });
+    OneSignal.Notifications.addClickListener((event) {
+      print('Notification cliquée : ${event.notification.jsonRepresentation()}');
+    });
 
-  OneSignal.Notifications.addClickListener((event) {
-    print('Notification cliquée : ${event.notification.jsonRepresentation()}');
-  });
-
-  OneSignal.User.pushSubscription.addObserver((state) {
-    print('Utilisateur inscrit aux notifications : ${state.current.jsonRepresentation()}');
-  });
-}
+    OneSignal.User.pushSubscription.addObserver((state) {
+      print('Utilisateur inscrit aux notifications : ${state.current.jsonRepresentation()}');
+    });
+  }
 
   @override
   void dispose() {
