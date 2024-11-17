@@ -221,6 +221,7 @@
     "delta_price": "价格差异",
     "creation_date": "创建日期",
     "buy_token": "购买代币",
+    "sell_token": "卖出",
      "secondary_offers_related_to_token": "与代币相关的YAMM报价",
   "error_occurred": "错误：{error}",
   "properties_for_sale": "待售物业",

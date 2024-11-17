@@ -221,6 +221,7 @@
   "delta_price": "Différence de prix",
   "creation_date": "Date de création",
   "buy_token": "Acheter",
+  "sell_token": "Vendre",
    "secondary_offers_related_to_token": "Offres YAMM liées au token",
   "error_occurred": "Erreur : {error}",
   "properties_for_sale": "Propriétés à vendre",

@@ -1,4 +1,5 @@
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:realtokens_apps/api/data_manager.dart';
 import 'package:realtokens_apps/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -63,6 +64,7 @@ class PortfolioDisplay2State extends State<PortfolioDisplay2> {
 
   @override
   Widget build(BuildContext context) {
+    final dataManager = Provider.of<DataManager>(context, listen: false);
     final appState = Provider.of<AppState>(context); // Accéder à AppState
     final filteredPortfolio = widget.portfolio;
     final widthScreen = MediaQuery.of(context).size.width;
@@ -275,7 +277,7 @@ class PortfolioDisplay2State extends State<PortfolioDisplay2> {
                                       const SizedBox(height: 8),
 
                                       Text(
-                                        '${S.of(context).totalValue}: ${formatCurrency(context, token['totalValue'])}',
+                                        '${S.of(context).totalValue}: ${Utils.formatCurrency(token['totalValue'], dataManager.currencySymbol)}',
                                         style: TextStyle(
                                           fontSize: 15 + appState.getTextSizeOffset(),
                                         ),
@@ -311,7 +313,7 @@ class PortfolioDisplay2State extends State<PortfolioDisplay2> {
                                                     style: TextStyle(
                                                       fontSize: 13 + appState.getTextSizeOffset(),
                                                     )),
-                                                Text(formatCurrency(context, token['dailyIncome'] ?? 0),
+                                                Text(Utils.formatCurrency(token['dailyIncome'] ?? 0, dataManager.currencySymbol),
                                                     style: TextStyle(
                                                       fontSize: 13 + appState.getTextSizeOffset(),
                                                     )),
@@ -323,7 +325,7 @@ class PortfolioDisplay2State extends State<PortfolioDisplay2> {
                                                     style: TextStyle(
                                                       fontSize: 13 + appState.getTextSizeOffset(),
                                                     )),
-                                                Text(formatCurrency(context, token['dailyIncome'] * 7 ?? 0),
+                                                Text(Utils.formatCurrency(token['dailyIncome'] * 7 ?? 0, dataManager.currencySymbol),
                                                     style: TextStyle(
                                                       fontSize: 13 + appState.getTextSizeOffset(),
                                                     )),
@@ -335,7 +337,7 @@ class PortfolioDisplay2State extends State<PortfolioDisplay2> {
                                                     style: TextStyle(
                                                       fontSize: 13 + appState.getTextSizeOffset(),
                                                     )),
-                                                Text(formatCurrency(context, token['monthlyIncome'] ?? 0),
+                                                Text(Utils.formatCurrency(token['monthlyIncome'] ?? 0, dataManager.currencySymbol),
                                                     style: TextStyle(
                                                       fontSize: 13 + appState.getTextSizeOffset(),
                                                     )),
@@ -347,7 +349,7 @@ class PortfolioDisplay2State extends State<PortfolioDisplay2> {
                                                     style: TextStyle(
                                                       fontSize: 13 + appState.getTextSizeOffset(),
                                                     )),
-                                                Text(formatCurrency(context, token['yearlyIncome'] ?? 0),
+                                                Text(Utils.formatCurrency(token['yearlyIncome'] ?? 0, dataManager.currencySymbol),
                                                     style: TextStyle(
                                                       fontSize: 13 + appState.getTextSizeOffset(),
                                                     )),

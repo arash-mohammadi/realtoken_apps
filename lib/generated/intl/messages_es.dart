@@ -201,6 +201,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "secondary": MessageLookupByLibrary.simpleMessage("Secundario"),
         "secondary_offers_related_to_token": MessageLookupByLibrary.simpleMessage("Ofertas YAMM relacionadas con el token"),
         "section8paid": MessageLookupByLibrary.simpleMessage("Sección 8"),
+        "sell_token": MessageLookupByLibrary.simpleMessage("Vender"),
         "sendDonations": MessageLookupByLibrary.simpleMessage("Envía tus donaciones a la siguiente dirección:"),
         "serviceStatusPage": MessageLookupByLibrary.simpleMessage("Estado de los servicios"),
         "settings": MessageLookupByLibrary.simpleMessage("Configuración"),

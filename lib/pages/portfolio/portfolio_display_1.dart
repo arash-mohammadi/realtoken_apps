@@ -1,3 +1,4 @@
+import 'package:realtokens_apps/api/data_manager.dart';
 import 'package:realtokens_apps/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -56,6 +57,7 @@ class PortfolioDisplay1 extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
+    final dataManager = Provider.of<DataManager>(context, listen: false);
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -313,7 +315,7 @@ class PortfolioDisplay1 extends StatelessWidget {
                                     ],
                                   ),
                                   Text(
-                                    '${S.of(context).totalValue}: ${formatCurrency(context, token['totalValue'] ?? 0)}',
+                                    '${S.of(context).totalValue}: ${Utils.formatCurrency(token['totalValue'] ?? 0, dataManager.currencySymbol)}',
                                     style: TextStyle(fontSize: 13 + appState.getTextSizeOffset()),
                                   ),
                                   Text(
@@ -340,21 +342,21 @@ class PortfolioDisplay1 extends StatelessWidget {
                                         Column(
                                           children: [
                                             Text(S.of(context).week, style: TextStyle(fontSize: 13 + appState.getTextSizeOffset())),
-                                            Text(formatCurrency(context, token['dailyIncome'] * 7 ?? 0),
+                                            Text(Utils.formatCurrency(token['dailyIncome'] * 7 ?? 0, dataManager.currencySymbol),
                                                 style: TextStyle(fontSize: 13 + appState.getTextSizeOffset())),
                                           ],
                                         ),
                                         Column(
                                           children: [
                                             Text(S.of(context).month, style: TextStyle(fontSize: 13 + appState.getTextSizeOffset())),
-                                            Text(formatCurrency(context, token['monthlyIncome'] ?? 0),
+                                            Text(Utils.formatCurrency(token['monthlyIncome'] ?? 0, dataManager.currencySymbol),
                                                 style: TextStyle(fontSize: 13 + appState.getTextSizeOffset())),
                                           ],
                                         ),
                                         Column(
                                           children: [
                                             Text(S.of(context).year, style: TextStyle(fontSize: 13 + appState.getTextSizeOffset())),
-                                            Text(formatCurrency(context, token['yearlyIncome'] ?? 0),
+                                            Text(Utils.formatCurrency(token['yearlyIncome'] ?? 0, dataManager.currencySymbol),
                                                 style: TextStyle(fontSize: 13 + appState.getTextSizeOffset())),
                                           ],
                                         ),

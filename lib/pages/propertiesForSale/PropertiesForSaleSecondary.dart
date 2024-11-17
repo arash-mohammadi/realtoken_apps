@@ -186,7 +186,9 @@ class _PropertiesForSaleSecondaryState extends State<PropertiesForSaleSecondary>
                                   final tokenAmount = offer['tokenAmount']?.toString() ?? '0';
                                   final tokenValue = offer['tokenValue']?.toString() ?? '0.00';
                                   final creationDate = offer['creationDate'] ?? 'Unknown date';
-
+                                  final delta = (offer['token_to_buy'] == null)
+                                      ? ((offer['tokenValue'] / offer['tokenPrice'] - 1) * 100) // Formule inversée
+                                      : ((offer['tokenValue'] / offer['tokenPrice'] - 1) * 100); // Formule originale
                                   return Padding(
                                     padding: const EdgeInsets.symmetric(vertical: 4.0),
                                     child: Column(
@@ -214,7 +216,6 @@ class _PropertiesForSaleSecondaryState extends State<PropertiesForSaleSecondary>
                                                   ),
                                                 ),
                                                 if (offer['token_to_pay'] == '0x0ca4f5554dd9da6217d62d8df2816c82bba4157b' ||
-                                                    offer['token_to_pay'] == '0xed56f76e9cbc6a64b821e9c016eafbd3db5436d1' ||
                                                     offer['token_to_pay'] == '0xe91d153e0b41518a2ce8dd3d7944fa863463a97d')
                                                   Positioned(
                                                     bottom: -30,
@@ -224,7 +225,8 @@ class _PropertiesForSaleSecondaryState extends State<PropertiesForSaleSecondary>
                                                       height: 28,
                                                     ),
                                                   )
-                                                else if (offer['token_to_pay'] == '0xddafbb505ad214d7b80b1f830fccc89b60fb7a83')
+                                                else if (offer['token_to_pay'] == '0xddafbb505ad214d7b80b1f830fccc89b60fb7a83' ||
+                                                    offer['token_to_pay'] == '0xed56f76e9cbc6a64b821e9c016eafbd3db5436d1')
                                                   Positioned(
                                                     bottom: -30,
                                                     child: Image.asset(
@@ -246,7 +248,7 @@ class _PropertiesForSaleSecondaryState extends State<PropertiesForSaleSecondary>
                                           ),
                                         ),
                                         Text(
-                                          '${S.of(context).token_value}: \$${tokenValue}',
+                                          '${S.of(context).token_value}: ${Utils.formatCurrency(offer['tokenValue'], dataManager.currencySymbol)}',
                                           style: TextStyle(
                                             fontSize: 12 + appState.getTextSizeOffset(),
                                             color: Colors.grey[600],
@@ -267,12 +269,10 @@ class _PropertiesForSaleSecondaryState extends State<PropertiesForSaleSecondary>
                                                   : 'N/A',
                                               style: TextStyle(
                                                 fontSize: 12 + appState.getTextSizeOffset(),
-                                                color: offer['tokenValue'] != null &&
-                                                        offer['tokenPrice'] != null &&
-                                                        offer['tokenPrice'] != 0 &&
-                                                        ((offer['tokenValue'] / offer['tokenPrice'] - 1) * 100) > 0
-                                                    ? Colors.red
-                                                    : Colors.green,
+                                                fontWeight: FontWeight.bold,
+                                                color: offer['token_to_buy'] == null
+                                                    ? (delta < 0 ? Colors.green : Colors.red)
+                                                    : (delta < 0 ? Colors.red : Colors.green),
                                               ),
                                             ),
                                           ],
@@ -280,17 +280,17 @@ class _PropertiesForSaleSecondaryState extends State<PropertiesForSaleSecondary>
                                         const SizedBox(height: 4),
                                         ElevatedButton(
                                           onPressed: () {
-                                            Utils.launchURL('https://yambyofferid.netlify.app/?offerId=$offerId');
+                                            Utils.launchURL('https://yambyofferid.netlify.app/?offerId=${offer['id_offer']}');
                                           },
                                           style: ElevatedButton.styleFrom(
                                             foregroundColor: Colors.white,
-                                            backgroundColor: Colors.blue,
+                                            backgroundColor:
+                                                offer['token_to_buy'] == null ? Colors.blue : Colors.green, // Rouge pour "acheter" et bleu pour "vendre"
                                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                             minimumSize: Size(80, 30),
                                           ),
                                           child: Text(
-                                            S.of(context).buy_token,
-                                            style: TextStyle(fontSize: 12),
+                                            offer['token_to_buy'] == null ? S.of(context).buy_token : S.of(context).sell_token,
                                           ),
                                         ),
                                         Divider(),

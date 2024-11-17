@@ -15,21 +15,7 @@ import 'package:realtokens_apps/utils/utils.dart';
 import 'package:realtokens_apps/app_state.dart';
 
 Future<List<Map<String, dynamic>>> _getFilteredOffers(DataManager dataManager, String tokenUuid) async {
-  return dataManager.yamMarket
-      .where((offer) => offer['token_to_sell'] == tokenUuid.toLowerCase() || offer['token_to_buy'] == tokenUuid.toLowerCase())
-      .take(20) // Limite initiale pour les performances (à ajuster selon besoin)
-      .toList();
-}
-
-// Fonction modifiée pour formater la monnaie avec le taux de conversion et le symbole
-String formatCurrency(BuildContext context, double value) {
-  final dataManager = Provider.of<DataManager>(context); // Récupérer DataManager
-  final NumberFormat formatter = NumberFormat.currency(
-    locale: 'fr_FR', // Vous pouvez adapter la locale selon vos besoins
-    symbol: dataManager.currencySymbol, // Utilise le symbole de la devise
-    decimalDigits: 2,
-  );
-  return formatter.format(dataManager.convert(value)); // Conversion selon la devise sélectionnée
+  return dataManager.yamMarket.where((offer) => offer['token_to_sell'] == tokenUuid.toLowerCase() || offer['token_to_buy'] == tokenUuid.toLowerCase()).toList();
 }
 
 void _openMapModal(BuildContext context, dynamic lat, dynamic lng) {
@@ -241,7 +227,7 @@ Future<void> showTokenDetails(BuildContext context, Map<String, dynamic> token) 
                             ),
                             const SizedBox(width: 8), // Espace entre les deux éléments
                             Text(
-                              formatCurrency(context, token['totalValue']),
+                              Utils.formatCurrency(token['totalValue'], dataManager.currencySymbol),
                               style: TextStyle(
                                 fontWeight: FontWeight.normal,
                                 color: Colors.grey,
@@ -425,7 +411,7 @@ Future<void> showTokenDetails(BuildContext context, Map<String, dynamic> token) 
                             _buildDetailRow(
                               context,
                               S.of(context).section8paid,
-                              '${(token['section8paid'] ?? 0.0 / token['grossRentMonth'] ?? 0.0 * 100).toStringAsFixed(2)}%',
+                              '${((token['section8paid']) / (token['grossRentMonth']) * 100).toStringAsFixed(2)}%',
                               icon: Icons.attach_money, // Icône pour le montant payé par Section 8
                             ),
                           ],
@@ -436,7 +422,8 @@ Future<void> showTokenDetails(BuildContext context, Map<String, dynamic> token) 
                       SingleChildScrollView(
                         child: Column(
                           children: [
-                            _buildDetailRow(context, S.of(context).totalInvestment, formatCurrency(context, token['totalInvestment'] ?? 0),
+                            _buildDetailRow(
+                                context, S.of(context).totalInvestment, Utils.formatCurrency(token['totalInvestment'] ?? 0, dataManager.currencySymbol),
                                 icon: Icons.monetization_on),
 
                             GestureDetector(
@@ -462,7 +449,7 @@ Future<void> showTokenDetails(BuildContext context, Map<String, dynamic> token) 
                                     ],
                                   ),
                                   Text(
-                                    '- ${formatCurrency(context, token['totalInvestment'] - token['underlyingAssetPrice'])}', // Affichage du montant total
+                                    '- ${Utils.formatCurrency(token['totalInvestment'] - token['underlyingAssetPrice'], dataManager.currencySymbol)}', // Affichage du montant total
                                     style: TextStyle(color: Colors.red),
                                   ),
                                 ],
@@ -479,14 +466,14 @@ Future<void> showTokenDetails(BuildContext context, Map<String, dynamic> token) 
                                       _buildDetailRow(
                                         context,
                                         S.of(context).realtListingFee,
-                                        formatCurrency(context, token['realtListingFee'] ?? 0),
+                                        Utils.formatCurrency(token['realtListingFee'] ?? 0, dataManager.currencySymbol),
                                         isNegative: true,
                                         color: listingFeeColor, // Couleur spécifique
                                       ),
                                       _buildDetailRow(
                                         context,
                                         S.of(context).initialMaintenanceReserve,
-                                        formatCurrency(context, token['initialMaintenanceReserve'] ?? 0),
+                                        Utils.formatCurrency(token['initialMaintenanceReserve'] ?? 0, dataManager.currencySymbol),
 
                                         isNegative: true,
                                         color: maintenanceReserveColor, // Couleur spécifique
@@ -494,21 +481,22 @@ Future<void> showTokenDetails(BuildContext context, Map<String, dynamic> token) 
                                       _buildDetailRow(
                                         context,
                                         S.of(context).renovationReserve,
-                                        formatCurrency(context, token['renovationReserve'] ?? 0),
+                                        Utils.formatCurrency(token['renovationReserve'] ?? 0, dataManager.currencySymbol),
                                         isNegative: true,
                                         color: renovationReserveColor, // Couleur spécifique
                                       ),
                                       _buildDetailRow(
                                         context,
                                         S.of(context).miscellaneousCosts,
-                                        formatCurrency(context, token['miscellaneousCosts'] ?? 0),
+                                        Utils.formatCurrency(token['miscellaneousCosts'] ?? 0, dataManager.currencySymbol),
                                         isNegative: true,
                                         color: miscellaneousCostsColor, // Couleur spécifique
                                       ),
                                       _buildDetailRow(
                                         context,
                                         S.of(context).others,
-                                        formatCurrency(context, token['totalInvestment'] - token['underlyingAssetPrice'] - totalCosts ?? 0),
+                                        Utils.formatCurrency(
+                                            token['totalInvestment'] - token['underlyingAssetPrice'] - totalCosts ?? 0, dataManager.currencySymbol),
                                         isNegative: true,
                                         color: othersColor, // Couleur spécifique
                                       ),
@@ -577,12 +565,14 @@ Future<void> showTokenDetails(BuildContext context, Map<String, dynamic> token) 
                             ),
 
                             SizedBox(height: 2), // Espace sous la jauge pour séparatio
-                            _buildDetailRow(context, S.of(context).underlyingAssetPrice, formatCurrency(context, token['underlyingAssetPrice'] ?? 0)),
+                            _buildDetailRow(context, S.of(context).underlyingAssetPrice,
+                                Utils.formatCurrency(token['underlyingAssetPrice'] ?? 0, dataManager.currencySymbol)),
                             SizedBox(height: 2), // Espace sous la jauge pour séparatio
 
                             Divider(),
 
-                            _buildDetailRow(context, S.of(context).grossRentMonth, formatCurrency(context, token['grossRentMonth'] ?? 0),
+                            _buildDetailRow(
+                                context, S.of(context).grossRentMonth, Utils.formatCurrency(token['grossRentMonth'] ?? 0, dataManager.currencySymbol),
                                 icon: Icons.attach_money),
                             // Total row with tap to show/hide details
                             GestureDetector(
@@ -608,7 +598,7 @@ Future<void> showTokenDetails(BuildContext context, Map<String, dynamic> token) 
                                     ],
                                   ),
                                   Text(
-                                    '- ${formatCurrency(context, token['grossRentMonth'] - token['netRentMonth'])}', // Affichage du montant total
+                                    '- ${Utils.formatCurrency(token['grossRentMonth'] - token['netRentMonth'], dataManager.currencySymbol)}', // Affichage du montant total
                                     style: TextStyle(color: Colors.red),
                                   ),
                                 ],
@@ -622,20 +612,28 @@ Future<void> showTokenDetails(BuildContext context, Map<String, dynamic> token) 
                                   visible: showDetails,
                                   child: Column(
                                     children: [
-                                      _buildDetailRow(
-                                          context, S.of(context).propertyMaintenanceMonthly, formatCurrency(context, token['propertyMaintenanceMonthly'] ?? 0),
+                                      _buildDetailRow(context, S.of(context).propertyMaintenanceMonthly,
+                                          Utils.formatCurrency(token['propertyMaintenanceMonthly'] ?? 0, dataManager.currencySymbol),
                                           isNegative: true, color: Colors.deepOrange),
-                                      _buildDetailRow(context, S.of(context).propertyManagement, formatCurrency(context, token['propertyManagement'] ?? 0),
+                                      _buildDetailRow(context, S.of(context).propertyManagement,
+                                          Utils.formatCurrency(token['propertyManagement'] ?? 0, dataManager.currencySymbol),
                                           isNegative: true, color: Colors.amber),
-                                      _buildDetailRow(context, S.of(context).realtPlatform, formatCurrency(context, token['realtPlatform'] ?? 0),
+                                      _buildDetailRow(
+                                          context, S.of(context).realtPlatform, Utils.formatCurrency(token['realtPlatform'] ?? 0, dataManager.currencySymbol),
                                           isNegative: true, color: Colors.orange),
-                                      _buildDetailRow(context, S.of(context).insurance, formatCurrency(context, token['insurance'] ?? 0),
+                                      _buildDetailRow(
+                                          context, S.of(context).insurance, Utils.formatCurrency(token['insurance'] ?? 0, dataManager.currencySymbol),
                                           isNegative: true, color: Colors.purple),
-                                      _buildDetailRow(context, S.of(context).propertyTaxes, formatCurrency(context, token['propertyTaxes'] ?? 0),
+                                      _buildDetailRow(
+                                          context, S.of(context).propertyTaxes, Utils.formatCurrency(token['propertyTaxes'] ?? 0, dataManager.currencySymbol),
                                           isNegative: true, color: Colors.red),
-                                      _buildDetailRow(context, S.of(context).others,
-                                          formatCurrency(context, token['grossRentMonth'] - token['netRentMonth'] - totalRentCosts ?? 0),
-                                          isNegative: true, color: Colors.grey),
+                                      _buildDetailRow(
+                                          context,
+                                          S.of(context).others,
+                                          Utils.formatCurrency(
+                                              token['grossRentMonth'] - token['netRentMonth'] - totalRentCosts ?? 0, dataManager.currencySymbol),
+                                          isNegative: true,
+                                          color: Colors.grey),
                                     ],
                                   ),
                                 );
@@ -700,7 +698,7 @@ Future<void> showTokenDetails(BuildContext context, Map<String, dynamic> token) 
 
                             SizedBox(height: 2), // Espace sous la jauge pour séparation visuelle
 
-                            _buildDetailRow(context, S.of(context).netRentMonth, formatCurrency(context, token['netRentMonth'] ?? 0)),
+                            _buildDetailRow(context, S.of(context).netRentMonth, Utils.formatCurrency(token['netRentMonth'] ?? 0, dataManager.currencySymbol)),
                             SizedBox(height: 2), // Espace sous la jauge pour séparation visuelle
 
                             Divider(),
@@ -714,7 +712,7 @@ Future<void> showTokenDetails(BuildContext context, Map<String, dynamic> token) 
                             _buildDetailRow(
                               context,
                               S.of(context).totalRentReceived,
-                              formatCurrency(context, token['totalRentReceived'] ?? 0),
+                              Utils.formatCurrency(token['totalRentReceived'] ?? 0, dataManager.currencySymbol),
                               icon: Icons.receipt_long, // Icône pour le total des loyers reçus
                             ),
                             _buildDetailRow(
@@ -746,7 +744,6 @@ Future<void> showTokenDetails(BuildContext context, Map<String, dynamic> token) 
                             // Filtrer et afficher les offres avec FutureBuilder et ListView.builder
                             FutureBuilder<List<Map<String, dynamic>>>(
                               future: _getFilteredOffers(dataManager, token['uuid']), // Future pour charger les offres filtrées
-
                               builder: (context, snapshot) {
                                 if (snapshot.connectionState == ConnectionState.waiting) {
                                   return const Center(child: CircularProgressIndicator());
@@ -763,7 +760,9 @@ Future<void> showTokenDetails(BuildContext context, Map<String, dynamic> token) 
                                     itemCount: offers.length,
                                     itemBuilder: (context, index) {
                                       final offer = offers[index];
-                                      final delta = ((offer['tokenValue'] / token['tokenPrice'] - 1) * 100);
+                                      final delta = (offer['token_to_buy'] == null)
+                                          ? ((offer['tokenValue'] / offer['tokenPrice'] - 1) * 100) // Formule inversée
+                                          : ((offer['tokenValue'] / offer['tokenPrice'] - 1) * 100); // Formule originale
 
                                       return Card(
                                         color: Colors.grey.withOpacity(0.1),
@@ -798,7 +797,6 @@ Future<void> showTokenDetails(BuildContext context, Map<String, dynamic> token) 
                                                       ),
                                                     ),
                                                     if (offer['token_to_pay'] == '0x0ca4f5554dd9da6217d62d8df2816c82bba4157b' ||
-                                                        offer['token_to_pay'] == '0xed56f76e9cbc6a64b821e9c016eafbd3db5436d1' ||
                                                         offer['token_to_pay'] == '0xe91d153e0b41518a2ce8dd3d7944fa863463a97d')
                                                       Positioned(
                                                         bottom: -30,
@@ -808,7 +806,8 @@ Future<void> showTokenDetails(BuildContext context, Map<String, dynamic> token) 
                                                           height: 28,
                                                         ),
                                                       )
-                                                    else if (offer['token_to_pay'] == '0xddafbb505ad214d7b80b1f830fccc89b60fb7a83')
+                                                    else if (offer['token_to_pay'] == '0xddafbb505ad214d7b80b1f830fccc89b60fb7a83' ||
+                                                        offer['token_to_pay'] == '0xed56f76e9cbc6a64b821e9c016eafbd3db5436d1')
                                                       Positioned(
                                                         bottom: -30,
                                                         child: Image.asset(
@@ -829,7 +828,7 @@ Future<void> showTokenDetails(BuildContext context, Map<String, dynamic> token) 
                                                 ),
                                               ),
                                               Text(
-                                                '${S.of(context).token_value}: ${formatCurrency(context, offer['tokenValue'])}',
+                                                '${S.of(context).token_value}: ${Utils.formatCurrency(offer['tokenValue'], dataManager.currencySymbol)}',
                                                 style: TextStyle(
                                                   fontSize: 12 + appState.getTextSizeOffset(),
                                                   color: Colors.grey[600],
@@ -849,7 +848,9 @@ Future<void> showTokenDetails(BuildContext context, Map<String, dynamic> token) 
                                                     '${delta.toStringAsFixed(2)}%', // Partie variable en couleur
                                                     style: TextStyle(
                                                       fontSize: 12 + appState.getTextSizeOffset(),
-                                                      color: delta > 0 ? Colors.red : Colors.green, // Rouge si positif, vert si négatif
+                                                      color: offer['token_to_buy'] == null
+                                                          ? (delta < 0 ? Colors.green : Colors.red)
+                                                          : (delta < 0 ? Colors.red : Colors.green),
                                                       fontWeight: FontWeight.bold,
                                                     ),
                                                   ),
@@ -863,11 +864,15 @@ Future<void> showTokenDetails(BuildContext context, Map<String, dynamic> token) 
                                                   },
                                                   style: ElevatedButton.styleFrom(
                                                     foregroundColor: Colors.white,
-                                                    backgroundColor: Colors.blue, // Texte blanc et fond bleu
-                                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), // Réduire le padding
-                                                    minimumSize: Size(80, 30), // Taille minimale du bouton (largeur x hauteur)
+                                                    backgroundColor: offer['token_to_buy'] == null
+                                                        ? Colors.blue
+                                                        : Colors.green, // Rouge pour "acheter" et bleu pour "vendre"
+                                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                                    minimumSize: Size(80, 30),
                                                   ),
-                                                  child: Text(S.of(context).buy_token),
+                                                  child: Text(
+                                                    offer['token_to_buy'] == null ? S.of(context).buy_token : S.of(context).sell_token,
+                                                  ),
                                                 ),
                                               ),
                                             ],

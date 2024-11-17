@@ -2246,6 +2246,16 @@ class S {
     );
   }
 
+  /// `Sell`
+  String get sell_token {
+    return Intl.message(
+      'Sell',
+      name: 'sell_token',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `YAMM offers related to token`
   String get secondary_offers_related_to_token {
     return Intl.message(

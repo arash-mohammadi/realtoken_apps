@@ -89,7 +89,7 @@ class DashboardPageState extends State<DashboardPage> {
 
   double _getPortfolioBarGraphData(DataManager dataManager) {
     // Calcul du pourcentage de rentabilité (ROI)
-    return (dataManager.getTotalRentReceived() / (dataManager.initialTotalValue) * 100); // ROI en %
+    return (dataManager.roiGlobalValue); // ROI en %
   }
 
   Widget _buildPieChart(double rentedPercentage, BuildContext context) {

@@ -198,6 +198,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "secondary": MessageLookupByLibrary.simpleMessage("次要"),
         "secondary_offers_related_to_token": MessageLookupByLibrary.simpleMessage("与代币相关的YAMM报价"),
         "section8paid": MessageLookupByLibrary.simpleMessage("第8条"),
+        "sell_token": MessageLookupByLibrary.simpleMessage("卖出"),
         "sendDonations": MessageLookupByLibrary.simpleMessage("将您的捐款发送至以下地址："),
         "serviceStatusPage": MessageLookupByLibrary.simpleMessage("服务状态"),
         "settings": MessageLookupByLibrary.simpleMessage("设置"),

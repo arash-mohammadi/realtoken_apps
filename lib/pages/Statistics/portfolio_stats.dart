@@ -153,13 +153,15 @@ class _PortfolioStats extends State<PortfolioStats> {
                       return _buildRentGraphCard(groupedData, dataManager!);
                     case 1:
                       return _buildWalletBalanceCard(dataManager!);
-                    case 2:
-                      return _buildTokenDistributionCard(dataManager!);
+                      case 2:
+                      return _buildRoiHistoryCard(dataManager!);
                     case 3:
-                      return _buildTokenDistributionByCountryCard(dataManager!);
+                      return _buildTokenDistributionCard(dataManager!);
                     case 4:
-                      return _buildTokenDistributionByRegionCard(dataManager!);
+                      return _buildTokenDistributionByCountryCard(dataManager!);
                     case 5:
+                      return _buildTokenDistributionByRegionCard(dataManager!);
+                    case 6:
                       return _buildTokenDistributionByCityCard(dataManager!);
                     default:
                       return Container();
@@ -471,6 +473,136 @@ class _PortfolioStats extends State<PortfolioStats> {
     );
   }
 
+ Widget _buildRoiHistoryCard(DataManager dataManager) {
+    final appState = Provider.of<AppState>(context);
+
+    // Récupérer les données de l'historique des balances du wallet
+    List<FlSpot> roiHistoryData = _buildRoiHistoryChartData(dataManager);
+
+    return Card(
+      elevation: 0,
+      color: Theme.of(context).cardColor,
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Text(
+                  S.of(context).walletBalanceHistory, // Clé de traduction pour "Historique du Wallet"
+                  style: TextStyle(
+                    fontSize: 20 + appState.getTextSizeOffset(),
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Spacer(),
+
+              ],
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              height: 250,
+              child: LineChart(
+                LineChartData(
+                  gridData: FlGridData(show: true, drawVerticalLine: false),
+                  titlesData: FlTitlesData(
+                    topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    leftTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        reservedSize: 45,
+                        getTitlesWidget: (value, meta) {
+                          // Remplacez `highestValue` par la valeur maximale que vous souhaitez ignorer
+                          final highestValue = roiHistoryData.map((e) => e.y).reduce((a, b) => a > b ? a : b);
+
+                          // Vérifier si la valeur est la plus haute pour l'ignorer
+                          if (value == highestValue) {
+                            return const SizedBox.shrink();
+                          }
+
+                         
+                          return Transform.rotate(
+                            angle: -0.5,
+                            child: Text(
+                              value as String,
+                              style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    bottomTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        interval: _calculateBottomInterval(roiHistoryData.cast<Map<String, dynamic>>()),
+                        getTitlesWidget: (value, meta) {
+                          List<String> labels = _buildDateLabelsForRoi(dataManager);
+                          if (value.toInt() >= 0 && value.toInt() < labels.length) {
+                            return Transform.rotate(
+                              angle: -0.5,
+                              child: Text(
+                                labels[value.toInt()],
+                                style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
+                              ),
+                            );
+                          } else {
+                            return const Text('');
+                          }
+                        },
+                      ),
+                    ),
+                    rightTitles: AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
+                    ),
+                  ),
+                  borderData: FlBorderData(show: false),
+                  minX: 0,
+                  maxX: (roiHistoryData.length - 1).toDouble(),
+                  minY: 0, // Définit la valeur minimale de l'axe de gauche à 0
+                  lineBarsData: [
+                    LineChartBarData(
+                      spots: roiHistoryData,
+                      isCurved: false,
+                      barWidth: 2,
+                      color: Colors.purple,
+                      dotData: FlDotData(show: false),
+                      belowBarData: BarAreaData(
+                        show: true,
+                        gradient: LinearGradient(
+                          colors: [
+                            Colors.purple.withOpacity(0.4),
+                            Colors.purple.withOpacity(0),
+                          ],
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                        ),
+                      ),
+                    ),
+                  ],
+                  lineTouchData: LineTouchData(
+                    touchTooltipData: LineTouchTooltipData(
+                      getTooltipItems: (List<LineBarSpot> touchedSpots) {
+                        return touchedSpots.map((touchedSpot) {
+                          final value = touchedSpot.y;
+                          return LineTooltipItem(
+                            Utils.formatCurrency(dataManager.convert(value), dataManager.currencySymbol),
+                            const TextStyle(color: Colors.white),
+                          );
+                        }).toList();
+                      },
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+
   void _showEditModal(BuildContext context, DataManager dataManager) {
     final appState = Provider.of<AppState>(context, listen: false);
     showModalBottomSheet(
@@ -606,8 +738,23 @@ class _PortfolioStats extends State<PortfolioStats> {
     return spots;
   }
 
+  List<FlSpot> _buildRoiHistoryChartData(DataManager dataManager) {
+    List<FlSpot> spots = [];
+    List<RoiRecord> roiHistory = dataManager.roiHistory;
+
+    for (var i = 0; i <roiHistory.length; i++) {
+      double roiValue = roiHistory[i].roi;
+      spots.add(FlSpot(i.toDouble(), roiValue));
+    }
+    return spots;
+  }
+
   List<String> _buildDateLabelsForWallet(DataManager dataManager) {
     return dataManager.walletBalanceHistory.map((record) => DateFormat('yy-MM-dd').format(record.timestamp)).toList();
+  }
+
+  List<String> _buildDateLabelsForRoi(DataManager dataManager) {
+    return dataManager.roiHistory.map((record) => DateFormat('yy-MM-dd').format(record.timestamp)).toList();
   }
 
 // Méthode pour calculer un intervalle optimisé pour l'axe des dates
