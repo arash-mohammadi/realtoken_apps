@@ -1,7 +1,8 @@
 import 'package:realtokens_apps/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:realtokens_apps/pages/Statistics/rmm_stats.dart';
-import 'package:realtokens_apps/pages/Statistics/portfolio_stats.dart'; // Assurez-vous que ces pages existent dans votre projet
+import 'package:realtokens_apps/pages/Statistics/portfolio_stats.dart';
+import 'package:realtokens_apps/pages/Statistics/wallet_stats.dart'; // Assurez-vous que cette page existe
 import 'package:provider/provider.dart';
 import 'package:realtokens_apps/app_state.dart';
 
@@ -22,19 +23,19 @@ class StatsSelectorPageState extends State<StatsSelectorPage> {
         headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
           return <Widget>[
             SliverAppBar(
-              floating: true, // Rend l'AppBar rétractable
-              snap: true, // Permet de faire réapparaître l'AppBar automatiquement
-              expandedHeight: Utils.getSliverAppBarHeight(context), // Hauteur étendue si besoin
+              floating: true,
+              snap: true,
+              expandedHeight: Utils.getSliverAppBarHeight(context),
               flexibleSpace: FlexibleSpaceBar(
                 background: Container(
                   color: Theme.of(context).scaffoldBackgroundColor,
                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment.end, // Aligne les éléments vers le bas
+                    mainAxisAlignment: MainAxisAlignment.end,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Padding(
-                        padding: const EdgeInsets.all(8.0), // Ajustez les marges si nécessaire
-                        child: _buildStatsSelector(), // Place votre sélecteur ici
+                        padding: const EdgeInsets.all(8.0),
+                        child: _buildStatsSelector(),
                       ),
                     ],
                   ),
@@ -43,7 +44,7 @@ class StatsSelectorPageState extends State<StatsSelectorPage> {
             ),
           ];
         },
-        body: _selectedStats == 'PortfolioStats' ? const PortfolioStats() : const RmmStats(),
+        body: _getSelectedStatsPage(), // Appelle une méthode pour obtenir la page sélectionnée
       ),
     );
   }
@@ -53,8 +54,9 @@ class StatsSelectorPageState extends State<StatsSelectorPage> {
       padding: const EdgeInsets.symmetric(horizontal: 8.0),
       child: Row(
         children: [
-          _buildStatsButton('PortfolioStats', 'Portfolio Stats', isFirst: true),
-          _buildStatsButton('RMMStats', 'RMM Stats', isLast: true),
+          _buildStatsButton('WalletStats', 'Wallet', isFirst: true), // Nouveau bouton
+          _buildStatsButton('PortfolioStats', 'Portfolio' ),
+          _buildStatsButton('RMMStats', 'RMM', isLast: true),
         ],
       ),
     );
@@ -92,5 +94,18 @@ class StatsSelectorPageState extends State<StatsSelectorPage> {
         ),
       ),
     );
+  }
+
+  Widget _getSelectedStatsPage() {
+    switch (_selectedStats) {
+      case 'WalletStats':
+        return const WalletStats(); // Affiche la page Wallet Stats
+      case 'PortfolioStats':
+        return const PortfolioStats();
+      case 'RMMStats':
+        return const RmmStats();
+      default:
+        return const PortfolioStats();
+    }
   }
 }

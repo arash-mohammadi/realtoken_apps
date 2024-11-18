@@ -450,7 +450,7 @@ class RmmStatsState extends State<RmmStats> {
       isCurved: true,
       dotData: FlDotData(show: false), // Afficher les points sur chaque valeur
       barWidth: 2,
-      isStrokeCapRound: true,
+      isStrokeCapRound: false,
       color: color,
       belowBarData: BarAreaData(
         show: true,
