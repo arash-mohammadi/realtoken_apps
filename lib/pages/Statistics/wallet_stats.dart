@@ -9,6 +9,7 @@ import 'package:realtokens_apps/api/data_manager.dart';
 import 'package:realtokens_apps/generated/l10n.dart'; // Import pour les traductions
 import 'package:realtokens_apps/app_state.dart'; // Import AppState
 import 'package:logger/logger.dart';
+import 'dart:math'; // Import the math library
 
 class WalletStats extends StatefulWidget {
   const WalletStats({super.key});
@@ -78,7 +79,7 @@ class _WalletStats extends State<WalletStats> {
     Map<String, double> groupedData = {};
     for (var entry in data) {
       DateTime date = DateTime.parse(entry['date']);
-      String monthKey = DateFormat('yy-MM').format(date);
+      String monthKey = DateFormat('yyyy/MM').format(date);
       groupedData[monthKey] = (groupedData[monthKey] ?? 0) + entry['rent'];
     }
     return groupedData.entries.map((entry) => {'date': entry.key, 'rent': entry.value}).toList();
@@ -135,7 +136,7 @@ class _WalletStats extends State<WalletStats> {
       body: CustomScrollView(
         slivers: [
           SliverPadding(
-            padding: const EdgeInsets.only(top: 16.0, bottom: 8.0, left: 8.0, right: 16.0),
+            padding: const EdgeInsets.only(top: 16.0, bottom: 80.0, left: 8.0, right: 8.0),
             sliver: SliverGrid(
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: isWideScreen ? 2 : 1,
@@ -153,11 +154,13 @@ class _WalletStats extends State<WalletStats> {
                       return _buildWalletBalanceCard(dataManager!);
                     case 2:
                       return _buildRoiHistoryCard(dataManager!);
+                    case 3:
+                      return _buildApyHistoryCard(dataManager!);
                     default:
                       return Container();
                   }
                 },
-                childCount: 6, // Total number of chart widgets
+                childCount: 4, // Total number of chart widgets
               ),
             ),
           ),
@@ -305,12 +308,21 @@ class _WalletStats extends State<WalletStats> {
                   ],
                   lineTouchData: LineTouchData(
                     touchTooltipData: LineTouchTooltipData(
+                      tooltipRoundedRadius: 8,
+                      tooltipMargin: 8,
                       getTooltipItems: (List<LineBarSpot> touchedSpots) {
+                        if (touchedSpots.isEmpty) {
+                          return [];
+                        }
                         return touchedSpots.map((touchedSpot) {
-                          final value = touchedSpot.y;
+                          final index = touchedSpot.x.toInt();
+                          final rent = convertedData[index]['rent'];
+                          final date = convertedData[index]['date']; // Utiliser directement la date
+
+                          // Combine la date et la valeur dans le tooltip
                           return LineTooltipItem(
-                            '${Utils.formatCurrency(dataManager.convert(value), dataManager.currencySymbol)} ', // Formater avec 2 chiffres après la virgule
-                            const TextStyle(color: Colors.white),
+                            '$date\n${Utils.formatCurrency(rent, dataManager.currencySymbol)}', // Date + Valeur
+                            const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                           );
                         }).toList();
                       },
@@ -396,19 +408,21 @@ class _WalletStats extends State<WalletStats> {
                     bottomTitles: AxisTitles(
                       sideTitles: SideTitles(
                         showTitles: true,
-                        interval: _calculateBottomInterval(walletBalanceData.cast<Map<String, dynamic>>()),
+                        interval: 1, // Une étiquette par point
                         getTitlesWidget: (value, meta) {
                           List<String> labels = _buildDateLabelsForWallet(dataManager);
+
+                          // Vérifie si l'indice est valide
                           if (value.toInt() >= 0 && value.toInt() < labels.length) {
                             return Transform.rotate(
-                              angle: -0.5,
+                              angle: -0.5, // Inclinaison optionnelle des étiquettes
                               child: Text(
                                 labels[value.toInt()],
                                 style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
                               ),
                             );
                           } else {
-                            return const Text('');
+                            return const SizedBox.shrink(); // Pas d'étiquette si hors des limites
                           }
                         },
                       ),
@@ -443,16 +457,32 @@ class _WalletStats extends State<WalletStats> {
                   ],
                   lineTouchData: LineTouchData(
                     touchTooltipData: LineTouchTooltipData(
+                      tooltipRoundedRadius: 8, // Arrondi des bords du tooltip
+                      tooltipMargin: 8, // Marge entre le point et le tooltip
                       getTooltipItems: (List<LineBarSpot> touchedSpots) {
                         return touchedSpots.map((touchedSpot) {
+                          final index = touchedSpot.x.toInt();
+
+                          // Récupérer la valeur et la date associées au point touché
                           final value = touchedSpot.y;
+                          final date = _buildDateLabelsForWallet(dataManager)[index]; // Récupère la date
+
+                          // Formater la valeur
+                          final formattedValue = Utils.formatCurrency(dataManager.convert(value), dataManager.currencySymbol);
+
                           return LineTooltipItem(
-                            Utils.formatCurrency(dataManager.convert(value), dataManager.currencySymbol),
-                            const TextStyle(color: Colors.white),
+                            '$date\n$formattedValue', // Combine la date et la valeur
+                            const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                           );
                         }).toList();
                       },
                     ),
+                    touchCallback: (FlTouchEvent event, LineTouchResponse? touchResponse) {
+                      if (touchResponse != null && touchResponse.lineBarSpots != null) {
+                        debugPrint('Point touché : ${touchResponse.lineBarSpots?.first.x}');
+                      }
+                    },
+                    handleBuiltInTouches: true, // Active les interactions tactiles intégrées
                   ),
                 ),
               ),
@@ -463,7 +493,7 @@ class _WalletStats extends State<WalletStats> {
     );
   }
 
- Widget _buildRoiHistoryCard(DataManager dataManager) {
+  Widget _buildRoiHistoryCard(DataManager dataManager) {
     final appState = Provider.of<AppState>(context);
 
     // Récupérer les données de l'historique des balances du wallet
@@ -480,14 +510,13 @@ class _WalletStats extends State<WalletStats> {
             Row(
               children: [
                 Text(
-                  S.of(context).walletBalanceHistory, // Clé de traduction pour "Historique du Wallet"
+                  S.of(context).roiHistory, // Clé de traduction pour "Historique du Wallet"
                   style: TextStyle(
                     fontSize: 20 + appState.getTextSizeOffset(),
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 Spacer(),
-
               ],
             ),
             const SizedBox(height: 20),
@@ -511,11 +540,10 @@ class _WalletStats extends State<WalletStats> {
                             return const SizedBox.shrink();
                           }
 
-                         
                           return Transform.rotate(
                             angle: -0.5,
                             child: Text(
-                              value as String,
+                              '${value.toStringAsFixed(0)}%',
                               style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
                             ),
                           );
@@ -525,21 +553,24 @@ class _WalletStats extends State<WalletStats> {
                     bottomTitles: AxisTitles(
                       sideTitles: SideTitles(
                         showTitles: true,
-                        interval: _calculateBottomInterval(roiHistoryData.cast<Map<String, dynamic>>()),
                         getTitlesWidget: (value, meta) {
                           List<String> labels = _buildDateLabelsForRoi(dataManager);
+
+                          // Vérifie si l'indice est valide
                           if (value.toInt() >= 0 && value.toInt() < labels.length) {
                             return Transform.rotate(
-                              angle: -0.5,
+                              angle: -0.5, // Optionnel : incliner les étiquettes si elles sont longues
                               child: Text(
                                 labels[value.toInt()],
                                 style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
                               ),
                             );
                           } else {
-                            return const Text('');
+                            return const SizedBox.shrink(); // Pas d'étiquette en dehors de la plage
                           }
                         },
+                        reservedSize: 30, // Ajuste la hauteur réservée pour les étiquettes
+                        interval: 1, // Force un intervalle correspondant à vos points
                       ),
                     ),
                     rightTitles: AxisTitles(
@@ -550,19 +581,20 @@ class _WalletStats extends State<WalletStats> {
                   minX: 0,
                   maxX: (roiHistoryData.length - 1).toDouble(),
                   minY: 0, // Définit la valeur minimale de l'axe de gauche à 0
+                  maxY: 100,
                   lineBarsData: [
                     LineChartBarData(
                       spots: roiHistoryData,
                       isCurved: false,
                       barWidth: 2,
-                      color: Colors.purple,
+                      color: Colors.cyan,
                       dotData: FlDotData(show: false),
                       belowBarData: BarAreaData(
                         show: true,
                         gradient: LinearGradient(
                           colors: [
-                            Colors.purple.withOpacity(0.4),
-                            Colors.purple.withOpacity(0),
+                            Colors.cyan.withOpacity(0.4),
+                            Colors.cyan.withOpacity(0),
                           ],
                           begin: Alignment.topCenter,
                           end: Alignment.bottomCenter,
@@ -572,16 +604,32 @@ class _WalletStats extends State<WalletStats> {
                   ],
                   lineTouchData: LineTouchData(
                     touchTooltipData: LineTouchTooltipData(
+                      tooltipRoundedRadius: 8, // Arrondi des bords du tooltip
+                      tooltipMargin: 8, // Marge entre le point et le tooltip
                       getTooltipItems: (List<LineBarSpot> touchedSpots) {
                         return touchedSpots.map((touchedSpot) {
+                          final index = touchedSpot.x.toInt();
+
+                          // Récupérer la valeur et la date associées au point touché
                           final value = touchedSpot.y;
+                          final date = _buildDateLabelsForRoi(dataManager)[index]; // Récupère la date
+
+                          // Construire le texte du tooltip avec la date et la valeur
+                          final formattedValue = '${value.toStringAsFixed(2)}%';
+
                           return LineTooltipItem(
-                            Utils.formatCurrency(dataManager.convert(value), dataManager.currencySymbol),
-                            const TextStyle(color: Colors.white),
+                            '$date\n$formattedValue', // Combine la date et la valeur
+                            const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                           );
                         }).toList();
                       },
                     ),
+                    touchCallback: (FlTouchEvent event, LineTouchResponse? touchResponse) {
+                      if (touchResponse != null && touchResponse.lineBarSpots != null) {
+                        debugPrint('Point touché : ${touchResponse.lineBarSpots?.first.x}');
+                      }
+                    },
+                    handleBuiltInTouches: true, // Active les interactions tactiles intégrées
                   ),
                 ),
               ),
@@ -590,6 +638,155 @@ class _WalletStats extends State<WalletStats> {
         ),
       ),
     );
+  }
+
+  Widget _buildApyHistoryCard(DataManager dataManager) {
+    final appState = Provider.of<AppState>(context);
+
+    List<BarChartGroupData> apyHistoryData = _buildApyHistoryBarChartData(dataManager);
+
+    int? selectedIndex; // Variable pour stocker l'index sélectionné
+
+    return Card(
+      elevation: 0,
+      color: Theme.of(context).cardColor,
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Text(
+                  S.of(context).apyHistory,
+                  style: TextStyle(
+                    fontSize: 20 + appState.getTextSizeOffset(),
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Spacer(),
+              ],
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              height: 250,
+              child: StatefulBuilder(
+                builder: (context, setState) {
+                  return BarChart(
+                    BarChartData(
+                      gridData: FlGridData(show: true, drawVerticalLine: false),
+                      titlesData: FlTitlesData(
+                        leftTitles: AxisTitles(
+                          sideTitles: SideTitles(
+                            showTitles: true,
+                            reservedSize: 45,
+                            getTitlesWidget: (value, meta) {
+                              return Text(
+                                '${value.toStringAsFixed(0)}%',
+                                style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
+                              );
+                            },
+                          ),
+                        ),
+                        bottomTitles: AxisTitles(
+                          sideTitles: SideTitles(
+                            showTitles: true,
+                            getTitlesWidget: (value, meta) {
+                              List<String> labels = _buildDateLabelsForApy(dataManager);
+                              if (value.toInt() >= 0 && value.toInt() < labels.length) {
+                                return Transform.rotate(
+                                  angle: -0.5,
+                                  child: Text(
+                                    labels[value.toInt()],
+                                    style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
+                                  ),
+                                );
+                              } else {
+                                return const Text('');
+                              }
+                            },
+                          ),
+                        ),
+                        topTitles: AxisTitles(
+                          sideTitles: SideTitles(showTitles: false),
+                        ),
+                        rightTitles: AxisTitles(
+                          sideTitles: SideTitles(showTitles: false),
+                        ),
+                      ),
+                      alignment: BarChartAlignment.center,
+                      borderData: FlBorderData(show: false),
+                      barGroups: apyHistoryData,
+                      maxY: 50,
+                      barTouchData: BarTouchData(
+                        touchTooltipData: BarTouchTooltipData(
+                          getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                            // Affiche uniquement le tooltip si l'index est sélectionné
+                            if (selectedIndex == groupIndex) {
+                              String tooltip = '${S.of(context).brute}: ${group.barRods[0].rodStackItems[0].toY.toStringAsFixed(2)}%\n'
+                                  '${S.of(context).net}: ${group.barRods[0].rodStackItems[1].toY.toStringAsFixed(2)}%';
+                              return BarTooltipItem(
+                                tooltip,
+                                const TextStyle(color: Colors.white),
+                              );
+                            }
+                            return null; // Aucun tooltip
+                          },
+                        ),
+                        touchCallback: (FlTouchEvent event, barTouchResponse) {
+                          // Met à jour l'index sélectionné en cas de clic
+                          if (event is FlTapUpEvent && barTouchResponse != null) {
+                            setState(() {
+                              selectedIndex = barTouchResponse.spot?.touchedBarGroupIndex;
+                            });
+                          } else if (event is FlLongPressEnd || event is FlPanEndEvent) {
+                            // Désélectionne si l'utilisateur annule l'interaction
+                            setState(() {
+                              selectedIndex = null;
+                            });
+                          }
+                        },
+                        handleBuiltInTouches: true,
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  List<BarChartGroupData> _buildApyHistoryBarChartData(DataManager dataManager) {
+    final groupedData = _groupApyByDate(dataManager);
+    final barGroups = <BarChartGroupData>[];
+
+    int index = 0;
+    groupedData.forEach((date, values) {
+      barGroups.add(
+        BarChartGroupData(
+          x: index,
+          barRods: [
+            BarChartRodData(
+              toY: values['gross']!,
+              width: 16,
+              borderRadius: BorderRadius.circular(0),
+              color: Colors.transparent,
+              rodStackItems: [
+                BarChartRodStackItem(0, values['gross']!, Colors.blue.withOpacity(0.6)),
+                BarChartRodStackItem(0, values['net']!, Colors.green.withOpacity(0.8)),
+              ],
+            ),
+          ],
+          showingTooltipIndicators: [0],
+        ),
+      );
+      index++;
+    });
+
+    return barGroups;
   }
 
   void _showEditModal(BuildContext context, DataManager dataManager) {
@@ -717,33 +914,131 @@ class _WalletStats extends State<WalletStats> {
   }
 
   List<FlSpot> _buildWalletBalanceChartData(DataManager dataManager) {
-    List<FlSpot> spots = [];
     List<BalanceRecord> walletHistory = dataManager.walletBalanceHistory;
 
-    for (var i = 0; i < walletHistory.length; i++) {
-      double balanceValue = walletHistory[i].balance;
-      spots.add(FlSpot(i.toDouble(), balanceValue));
+    // Grouper les données par date sans l'heure
+    Map<DateTime, List<double>> groupedData = {};
+    for (var record in walletHistory) {
+      DateTime dateWithoutTime = DateTime(
+        record.timestamp.year,
+        record.timestamp.month,
+        record.timestamp.day,
+      );
+      groupedData.putIfAbsent(dateWithoutTime, () => []).add(record.balance);
     }
+
+    // Calculer le maximum pour chaque groupe et créer des FlSpot
+    List<FlSpot> spots = [];
+    List<DateTime> sortedDates = groupedData.keys.toList()..sort();
+
+    for (int i = 0; i < sortedDates.length; i++) {
+      DateTime date = sortedDates[i];
+      List<double> balances = groupedData[date]!;
+      double maxBalance = balances.reduce((a, b) => a > b ? a : b); // Calcul du max
+
+      spots.add(FlSpot(i.toDouble(), maxBalance));
+    }
+
     return spots;
   }
 
   List<FlSpot> _buildRoiHistoryChartData(DataManager dataManager) {
-    List<FlSpot> spots = [];
     List<RoiRecord> roiHistory = dataManager.roiHistory;
 
-    for (var i = 0; i <roiHistory.length; i++) {
-      double roiValue = roiHistory[i].roi;
-      spots.add(FlSpot(i.toDouble(), roiValue));
+    // Grouper les données par date sans l'heure
+    Map<DateTime, List<double>> groupedData = {};
+    for (var record in roiHistory) {
+      DateTime dateWithoutTime = DateTime(
+        record.timestamp.year,
+        record.timestamp.month,
+        record.timestamp.day,
+      );
+      groupedData.putIfAbsent(dateWithoutTime, () => []).add(record.roi);
     }
+
+    // Calculer le maximum pour chaque groupe
+    List<FlSpot> spots = [];
+    List<DateTime> sortedDates = groupedData.keys.toList()..sort();
+
+    for (int i = 0; i < sortedDates.length; i++) {
+      DateTime date = sortedDates[i];
+      List<double> rois = groupedData[date]!;
+      double maxRoi = rois.reduce((a, b) => a > b ? a : b); // Calcul du maximum
+
+      spots.add(FlSpot(i.toDouble(), maxRoi));
+    }
+
     return spots;
   }
 
+  Map<String, Map<String, double>> _groupApyByDate(DataManager dataManager) {
+    Map<String, Map<String, double>> groupedData = {};
+
+    for (var record in dataManager.apyHistory) {
+      String formattedDate = DateFormat('yy/MM/dd').format(record.timestamp);
+
+      if (!groupedData.containsKey(formattedDate)) {
+        groupedData[formattedDate] = {'gross': 0, 'net': 0};
+      }
+
+      groupedData[formattedDate]!['gross'] = record.grossApy;
+      groupedData[formattedDate]!['net'] = record.netApy;
+    }
+
+    return groupedData;
+  }
+
   List<String> _buildDateLabelsForWallet(DataManager dataManager) {
-    return dataManager.walletBalanceHistory.map((record) => DateFormat('yy-MM-dd').format(record.timestamp)).toList();
+    List<BalanceRecord> walletHistory = dataManager.walletBalanceHistory;
+
+    // Grouper par date sans l'heure
+    Map<DateTime, List<double>> groupedData = {};
+    for (var record in walletHistory) {
+      DateTime dateWithoutTime = DateTime(
+        record.timestamp.year,
+        record.timestamp.month,
+        record.timestamp.day,
+      );
+      groupedData.putIfAbsent(dateWithoutTime, () => []).add(record.balance);
+    }
+
+    // Trier les dates et formater pour les étiquettes
+    List<DateTime> sortedDates = groupedData.keys.toList()..sort();
+
+    return sortedDates.map((date) {
+      return DateFormat('yy/MM/dd').format(date); // Format souhaité
+    }).toList();
   }
 
   List<String> _buildDateLabelsForRoi(DataManager dataManager) {
-    return dataManager.roiHistory.map((record) => DateFormat('yy-MM-dd').format(record.timestamp)).toList();
+    // Récupérer l'historique des données ROI
+    List<RoiRecord> roiHistory = dataManager.roiHistory;
+
+    // Grouper les données par date sans l'heure
+    Map<DateTime, List<double>> groupedData = {};
+    for (var record in roiHistory) {
+      DateTime dateWithoutTime = DateTime(
+        record.timestamp.year,
+        record.timestamp.month,
+        record.timestamp.day,
+      );
+      groupedData.putIfAbsent(dateWithoutTime, () => []).add(record.roi);
+    }
+
+    // Trier les dates pour s'assurer que les labels correspondent aux points
+    List<DateTime> sortedDates = groupedData.keys.toList()..sort();
+
+    // Formater les dates pour les étiquettes
+    List<String> dateLabels = sortedDates.map((date) {
+      return "${date.day}/${date.month}"; // Format: jour/mois
+    }).toList();
+
+    return dateLabels;
+  }
+
+  List<String> _buildDateLabelsForApy(DataManager dataManager) {
+    final groupedData = _groupApyByDate(dataManager);
+    return groupedData.keys.toList();
   }
 
 // Méthode pour calculer un intervalle optimisé pour l'axe des dates
@@ -810,7 +1105,4 @@ class _WalletStats extends State<WalletStats> {
     }
     return spots;
   }
-
-
-
 }

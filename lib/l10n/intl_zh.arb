@@ -54,6 +54,8 @@
     "initialMaintenanceReserve": "维护储备金",
     "grossRentMonth": "每月毛租金",
     "netRentMonth": "每月净租金",
+      "net": "净值",
+  "brute": "总值",
     "annualPercentageYield": "年收益率",
     "blockchain": "区块链",
     "tokenAddress": "代币地址",
@@ -227,6 +229,8 @@
   "properties_for_sale": "待售物业",
   "realt": "RealT",
   "secondary": "次要",
+    "apyHistory": "APY 历史",
+  "roiHistory": "ROI 历史",
     "@propertyMaintenanceMonthly": {
       "description": "物业的每月维护费用"
     },

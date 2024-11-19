@@ -27,6 +27,7 @@ class RealtPageState extends State<RealtPage> {
 
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor, // Définir le fond noir
         title: Text(S.of(context).realTTitle), // Utilisation de S.of(context)
       ),
       body: SingleChildScrollView(

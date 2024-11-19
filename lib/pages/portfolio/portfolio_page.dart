@@ -177,10 +177,11 @@ class PortfolioPageState extends State<PortfolioPage> {
       filteredPortfolio.sort((a, b) =>
           _isAscending ? a['annualPercentageYield'].compareTo(b['annualPercentageYield']) : b['annualPercentageYield'].compareTo(a['annualPercentageYield']));
     } else if (_sortOption == S.of(context).sortByInitialLaunchDate) {
-      // Nouveau tri par initialLaunchDate
-      filteredPortfolio.sort((a, b) => _isAscending
-          ? DateTime.parse(a['initialLaunchDate']).compareTo(DateTime.parse(b['initialLaunchDate']))
-          : DateTime.parse(b['initialLaunchDate']).compareTo(DateTime.parse(a['initialLaunchDate'])));
+      filteredPortfolio.sort((a, b) {
+        final dateA = a['initialLaunchDate'] != null ? DateTime.tryParse(a['initialLaunchDate']) : DateTime(1970);
+        final dateB = b['initialLaunchDate'] != null ? DateTime.tryParse(b['initialLaunchDate']) : DateTime(1970);
+        return _isAscending ? dateA!.compareTo(dateB!) : dateB!.compareTo(dateA!);
+      });
     }
 
     return filteredPortfolio;

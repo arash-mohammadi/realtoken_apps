@@ -54,6 +54,8 @@
   "initialMaintenanceReserve": "Reserva de mantenimiento inicial",
   "grossRentMonth": "Alquiler bruto por mes",
   "netRentMonth": "Alquiler neto por mes",
+    "net": "Neto",
+  "brute": "Bruto",
   "annualPercentageYield": "Rendimiento anual",
   "blockchain": "Blockchain",
   "tokenAddress": "Dirección del token",
@@ -227,6 +229,8 @@
   "properties_for_sale": "Propiedades en venta",
   "realt": "RealT",
   "secondary": "Secundario",
+    "apyHistory": "Historial APY",
+  "roiHistory": "Historial ROI",
   "@propertyMaintenanceMonthly": {
     "description": "Gastos mensuales de mantenimiento de la propiedad"
   },

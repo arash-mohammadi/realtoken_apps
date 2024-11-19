@@ -19,13 +19,17 @@ class DashboardPage extends StatefulWidget {
 
 class DashboardPageState extends State<DashboardPage> {
   bool _showAmounts = true; // Variable pour contrôler la visibilité des montants
+  bool _isPageLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _loadPrivacyMode(); // Charger l'état du mode confidentialité au démarrage
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      Utils.loadData(context); // Charger les données au démarrage
+    _loadPrivacyMode();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await Utils.loadData(context);
+      setState(() {
+        _isPageLoading = false; // Indique que la page a fini de charger
+      });
     });
   }
 
@@ -497,15 +501,7 @@ class DashboardPageState extends State<DashboardPage> {
 
     final lastRentReceived = _getLastRentReceived(dataManager);
     final totalRentReceived = Utils.getFormattedAmount(dataManager.convert(dataManager.getTotalRentReceived()), dataManager.currencySymbol, _showAmounts);
-    final netAPY = (((dataManager.averageAnnualYield * (dataManager.walletValue + dataManager.rmmValue)) +
-            (dataManager.totalUsdcDepositBalance * dataManager.usdcDepositApy + dataManager.totalXdaiDepositBalance * dataManager.xdaiDepositApy) -
-            (dataManager.totalUsdcBorrowBalance * dataManager.usdcBorrowApy + dataManager.totalXdaiBorrowBalance * dataManager.xdaiBorrowApy)) /
-        (dataManager.walletValue +
-            dataManager.rmmValue +
-            dataManager.totalUsdcDepositBalance +
-            dataManager.totalXdaiDepositBalance +
-            dataManager.totalUsdcBorrowBalance +
-            dataManager.totalXdaiBorrowBalance));
+
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Stack(
@@ -530,7 +526,7 @@ class DashboardPageState extends State<DashboardPage> {
                         visibilityButton,
                       ],
                     ),
-                    if (dataManager.rentData.isEmpty || dataManager.walletValue == 0) _buildNoWalletCard(context),
+                    if (!_isPageLoading && (dataManager.rentData.isEmpty || dataManager.walletValue == 0)) _buildNoWalletCard(context),
                     const SizedBox(height: 8),
                     RichText(
                       text: TextSpan(
@@ -722,7 +718,7 @@ class DashboardPageState extends State<DashboardPage> {
                       Icons.attach_money,
                       Row(
                         children: [
-                          _buildValueBeforeText('${netAPY.toStringAsFixed(2)}%', S.of(context).annualYield),
+                          _buildValueBeforeText('${dataManager.netGlobalApy.toStringAsFixed(2)}%', S.of(context).annualYield),
                           SizedBox(width: 6),
                           GestureDetector(
                             onTap: () {

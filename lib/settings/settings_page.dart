@@ -93,22 +93,42 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
+  dynamic sanitizeValue(dynamic value) {
+    if (value is Map) {
+      return value.map((key, val) => MapEntry(key, sanitizeValue(val)));
+    } else if (value is List) {
+      return value.map(sanitizeValue).toList();
+    } else if (value is num && value.isNaN) {
+      return 0; // Remplacer NaN par 0
+    }
+    return value;
+  }
+
   Future<void> shareZippedHiveData() async {
     try {
       // Ouvrir les deux boîtes Hive
       var balanceHistoryBox = await Hive.openBox('balanceHistory');
       var walletValueArchiveBox = await Hive.openBox('walletValueArchive');
       var customInitPricesBox = await Hive.openBox('customInitPrices');
+      var customRoiBox = await Hive.openBox('roiValueArchive');
+      var customApyBox = await Hive.openBox('apyValueArchive');
+      var customYamBox = await Hive.openBox('YamMarket');
 
       // Récupérer les données de chaque boîte Hive
-      Map balanceHistoryData = balanceHistoryBox.toMap();
-      Map walletValueArchiveData = walletValueArchiveBox.toMap();
-      Map customInitPricesData = customInitPricesBox.toMap();
+      Map balanceHistoryData = sanitizeValue(balanceHistoryBox.toMap());
+      Map walletValueArchiveData = sanitizeValue(walletValueArchiveBox.toMap());
+      Map customInitPricesData = sanitizeValue(customInitPricesBox.toMap());
+      Map customRoiData = sanitizeValue(customRoiBox.toMap());
+      Map customApyData = sanitizeValue(customApyBox.toMap());
+      Map customYamData = sanitizeValue(customYamBox.toMap());
 
       // Convertir les données en JSON
       String balanceHistoryJson = jsonEncode(balanceHistoryData);
       String walletValueArchiveJson = jsonEncode(walletValueArchiveData);
       String customInitPricesJson = jsonEncode(customInitPricesData);
+      String customRoiJson = jsonEncode(customRoiData);
+      String customApyJson = jsonEncode(customApyData);
+      String customYamJson = jsonEncode(customYamData);
 
       // Obtenir les données des SharedPreferences
       final prefs = await SharedPreferences.getInstance();
@@ -135,17 +155,29 @@ class _SettingsPageState extends State<SettingsPage> {
       String balanceHistoryFilePath = path.join(directory.path, 'balanceHistoryBackup.json');
       String walletValueArchiveFilePath = path.join(directory.path, 'walletValueArchiveBackup.json');
       String customInitPricesFilePath = path.join(directory.path, 'customInitPricesBackup.json');
+      String customRoiFilePath = path.join(directory.path, 'customRoiBackup.json');
+      String customApyFilePath = path.join(directory.path, 'customApyBackup.json');
+      String customYamFilePath = path.join(directory.path, 'customYamBackup.json');
+
       String preferencesFilePath = path.join(directory.path, 'preferencesBackup.json');
 
       File balanceHistoryFile = File(balanceHistoryFilePath);
       File walletValueArchiveFile = File(walletValueArchiveFilePath);
       File customInitPricesFile = File(customInitPricesFilePath);
+      File customRoiFile = File(customRoiFilePath);
+      File customApyFile = File(customApyFilePath);
+      File customYamFile = File(customYamFilePath);
+
       File preferencesFile = File(preferencesFilePath);
 
       // Écrire les données JSON dans les fichiers
       await balanceHistoryFile.writeAsString(balanceHistoryJson);
       await walletValueArchiveFile.writeAsString(walletValueArchiveJson);
       await customInitPricesFile.writeAsString(customInitPricesJson);
+      await customRoiFile.writeAsString(customRoiJson);
+      await customApyFile.writeAsString(customApyJson);
+      await customYamFile.writeAsString(customYamJson);
+
       await preferencesFile.writeAsString(preferencesJson);
 
       // Créer un fichier ZIP dans le même répertoire
@@ -158,12 +190,16 @@ class _SettingsPageState extends State<SettingsPage> {
       archive.addFile(ArchiveFile('balanceHistoryBackup.json', balanceHistoryFile.lengthSync(), balanceHistoryFile.readAsBytesSync()));
       archive.addFile(ArchiveFile('walletValueArchiveBackup.json', walletValueArchiveFile.lengthSync(), walletValueArchiveFile.readAsBytesSync()));
       archive.addFile(ArchiveFile('customInitPricesBackup.json', customInitPricesFile.lengthSync(), customInitPricesFile.readAsBytesSync()));
+      archive.addFile(ArchiveFile('customRoiBackup.json', customRoiFile.lengthSync(), customRoiFile.readAsBytesSync()));
+      archive.addFile(ArchiveFile('customApyBackup.json', customApyFile.lengthSync(), customApyFile.readAsBytesSync()));
+      archive.addFile(ArchiveFile('customYamBackup.json', customYamFile.lengthSync(), customYamFile.readAsBytesSync()));
+
       archive.addFile(ArchiveFile('preferencesBackup.json', preferencesFile.lengthSync(), preferencesFile.readAsBytesSync()));
 
       // Écrire le fichier zip
       final zipEncoder = ZipFileEncoder();
       zipEncoder.create(zipFilePath);
-      for (var file in [balanceHistoryFile, walletValueArchiveFile, customInitPricesFile, preferencesFile]) {
+      for (var file in [balanceHistoryFile, walletValueArchiveFile, customInitPricesFile, customRoiFile, customApyFile, customYamFile, preferencesFile]) {
         zipEncoder.addFile(file);
       }
       zipEncoder.close();
@@ -215,6 +251,21 @@ class _SettingsPageState extends State<SettingsPage> {
             Map<String, dynamic> customInitPricesData = jsonDecode(jsonContent);
             var customInitPricesBox = await Hive.openBox('customInitPrices');
             await customInitPricesBox.putAll(customInitPricesData);
+          } else if (file.name == 'customRoiBackup.json') {
+            // Décoder et insérer les données dans la boîte 'walletValueArchive'
+            Map<String, dynamic> customRoiData = jsonDecode(jsonContent);
+            var customRoiBox = await Hive.openBox('roiValueArchive');
+            await customRoiBox.putAll(customRoiData);
+          } else if (file.name == 'customApyBackup.json') {
+            // Décoder et insérer les données dans la boîte 'walletValueArchive'
+            Map<String, dynamic> customApyData = jsonDecode(jsonContent);
+            var customApyBox = await Hive.openBox('apyValueArchive');
+            await customApyBox.putAll(customApyData);
+          } else if (file.name == 'customYamBackup.json') {
+            // Décoder et insérer les données dans la boîte 'walletValueArchive'
+            Map<String, dynamic> customYamData = jsonDecode(jsonContent);
+            var customYamBox = await Hive.openBox('YamMarket');
+            await customYamBox.putAll(customYamData);
           } else if (file.name == 'preferencesBackup.json') {
             // Décoder et insérer les préférences dans SharedPreferences
             Map<String, dynamic> preferencesData = jsonDecode(jsonContent);
@@ -256,6 +307,7 @@ class _SettingsPageState extends State<SettingsPage> {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor, // Définir le fond noir
         title: Text(S.of(context).settingsTitle), // Utilisation de la traduction
       ),
       body: Padding(

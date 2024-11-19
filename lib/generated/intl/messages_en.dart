@@ -43,6 +43,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "appName": MessageLookupByLibrary.simpleMessage("RealToken"),
         "application": MessageLookupByLibrary.simpleMessage("Application"),
         "apy": MessageLookupByLibrary.simpleMessage("APY"),
+        "apyHistory": MessageLookupByLibrary.simpleMessage("APY History"),
         "areYouSureClearData": MessageLookupByLibrary.simpleMessage("Are you sure you want to clear cache and data?"),
         "ascending": MessageLookupByLibrary.simpleMessage("Ascending"),
         "author": MessageLookupByLibrary.simpleMessage("Author"),
@@ -51,6 +52,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "bedroomBath": MessageLookupByLibrary.simpleMessage("Bedroom/Bath"),
         "blockchain": MessageLookupByLibrary.simpleMessage("Blockchain"),
         "borrowBalance": MessageLookupByLibrary.simpleMessage("Borrows"),
+        "brute": MessageLookupByLibrary.simpleMessage("Gross"),
         "buy_token": MessageLookupByLibrary.simpleMessage("Buy"),
         "cancel": MessageLookupByLibrary.simpleMessage("Cancel"),
         "characteristics": MessageLookupByLibrary.simpleMessage("Characteristics"),
@@ -132,6 +134,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "monthly": MessageLookupByLibrary.simpleMessage("Monthly"),
         "multiFamily": MessageLookupByLibrary.simpleMessage("Multi Family"),
         "nameUnavailable": MessageLookupByLibrary.simpleMessage("Name Unavailable"),
+        "net": MessageLookupByLibrary.simpleMessage("Net"),
         "netAnnualRent": MessageLookupByLibrary.simpleMessage("Net Annual Rent"),
         "netApyHelp": MessageLookupByLibrary.simpleMessage(
             "The net yield is calculated by weighting the yields of the portfolios (wallet/RMM) and the deposit/borrow balances with their respective rates."),
@@ -194,6 +197,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "rmm": MessageLookupByLibrary.simpleMessage("RMM"),
         "roiAlertInfo": MessageLookupByLibrary.simpleMessage(
             "This ROI feature is in beta and is currently calculated based on the income received from the property and the initial token value."),
+        "roiHistory": MessageLookupByLibrary.simpleMessage("ROI History"),
         "roiPerProperties": MessageLookupByLibrary.simpleMessage("Property ROI"),
         "rwaHoldings": MessageLookupByLibrary.simpleMessage("RWA Holdings SA"),
         "save": MessageLookupByLibrary.simpleMessage("Save"),

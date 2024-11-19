@@ -43,6 +43,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "appName": MessageLookupByLibrary.simpleMessage("RealToken"),
         "application": MessageLookupByLibrary.simpleMessage("Application"),
         "apy": MessageLookupByLibrary.simpleMessage("Rendement net"),
+        "apyHistory": MessageLookupByLibrary.simpleMessage("Historique APY"),
         "areYouSureClearData": MessageLookupByLibrary.simpleMessage("Êtes-vous sûr de vouloir effacer le cache et les données ?"),
         "ascending": MessageLookupByLibrary.simpleMessage("Ascendant"),
         "author": MessageLookupByLibrary.simpleMessage("Auteur"),
@@ -51,6 +52,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "bedroomBath": MessageLookupByLibrary.simpleMessage("Chambre/Salle de bain"),
         "blockchain": MessageLookupByLibrary.simpleMessage("Blockchain"),
         "borrowBalance": MessageLookupByLibrary.simpleMessage("Emprunts"),
+        "brute": MessageLookupByLibrary.simpleMessage("Brute"),
         "buy_token": MessageLookupByLibrary.simpleMessage("Acheter"),
         "cancel": MessageLookupByLibrary.simpleMessage("Annuler"),
         "characteristics": MessageLookupByLibrary.simpleMessage("Caractéristiques"),
@@ -133,6 +135,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "monthly": MessageLookupByLibrary.simpleMessage("Mensuel"),
         "multiFamily": MessageLookupByLibrary.simpleMessage("Multi-familiale"),
         "nameUnavailable": MessageLookupByLibrary.simpleMessage("Nom indisponible"),
+        "net": MessageLookupByLibrary.simpleMessage("Net"),
         "netAnnualRent": MessageLookupByLibrary.simpleMessage("Loyer net annuel"),
         "netApyHelp": MessageLookupByLibrary.simpleMessage(
             "Le rendement net est calculé en ponderant le rendement des portfeuilles (wallet/RMM) et les balances de déposits/borrows avec leurs taux respectifs."),
@@ -195,6 +198,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "rmm": MessageLookupByLibrary.simpleMessage("RMM"),
         "roiAlertInfo": MessageLookupByLibrary.simpleMessage(
             "Cette fonction ROI est en beta, elle est pour le moment calculée en fonction des revenus reçus de la propriété et la valeur initiale du token."),
+        "roiHistory": MessageLookupByLibrary.simpleMessage("Historique ROI"),
         "roiPerProperties": MessageLookupByLibrary.simpleMessage("ROI de la propriété"),
         "rwaHoldings": MessageLookupByLibrary.simpleMessage("RWA Holdings SA"),
         "save": MessageLookupByLibrary.simpleMessage("Enregistrer"),

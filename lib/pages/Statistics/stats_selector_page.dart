@@ -14,7 +14,7 @@ class StatsSelectorPage extends StatefulWidget {
 }
 
 class StatsSelectorPageState extends State<StatsSelectorPage> {
-  String _selectedStats = 'PortfolioStats'; // Valeur par défaut
+  String _selectedStats = 'WalletStats'; // Valeur par défaut
 
   @override
   Widget build(BuildContext context) {
@@ -55,7 +55,7 @@ class StatsSelectorPageState extends State<StatsSelectorPage> {
       child: Row(
         children: [
           _buildStatsButton('WalletStats', 'Wallet', isFirst: true), // Nouveau bouton
-          _buildStatsButton('PortfolioStats', 'Portfolio' ),
+          _buildStatsButton('PortfolioStats', 'Portfolio'),
           _buildStatsButton('RMMStats', 'RMM', isLast: true),
         ],
       ),

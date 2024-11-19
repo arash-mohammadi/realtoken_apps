@@ -32,6 +32,7 @@ class _UpdatesPageState extends State<UpdatesPage> {
     if (dataManager.recentUpdates.isEmpty) {
       return Scaffold(
         appBar: AppBar(
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor, // Définir le fond noir
           title: Text(S.of(context).recentUpdatesTitle), // Utilisation des traductions
         ),
         body: Center(
@@ -70,12 +71,14 @@ class _UpdatesPageState extends State<UpdatesPage> {
 
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor, // Définir le fond noir
         title: Text(S.of(context).recentUpdatesTitle), // Garde le titre dans l'AppBar fixe
       ),
       body: NestedScrollView(
         headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
           return <Widget>[
             SliverAppBar(
+              backgroundColor: Theme.of(context).scaffoldBackgroundColor, // Définir le fond noir
               automaticallyImplyLeading: false,
               floating: true,
               snap: true,
@@ -85,7 +88,7 @@ class _UpdatesPageState extends State<UpdatesPage> {
                 background: Container(
                   alignment: Alignment.centerLeft,
                   padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                  color: Theme.of(context).cardColor,
+                  color: Theme.of(context).scaffoldBackgroundColor,
                   child: Row(
                     children: [
                       Text(S.of(context).portfolio),

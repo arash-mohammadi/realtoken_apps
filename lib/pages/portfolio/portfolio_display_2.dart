@@ -27,22 +27,39 @@ class PortfolioDisplay2State extends State<PortfolioDisplay2> {
         LayoutBuilder(
           builder: (context, constraints) {
             double maxWidth = constraints.maxWidth;
+            double barWidth = rentValue.clamp(0, 100) / 100 * maxWidth;
+
             return Stack(
               children: [
+                // Barre grisée de fond
                 Container(
                   height: 15,
                   width: maxWidth,
                   decoration: BoxDecoration(
-                    color: const Color.fromARGB(255, 78, 78, 78).withOpacity(0.3), // Couleur du fond grisé
+                    color: const Color.fromARGB(255, 78, 78, 78).withOpacity(0.3),
                     borderRadius: BorderRadius.circular(5),
                   ),
                 ),
+                // Barre bleue de progression
                 Container(
-                  height: 14,
-                  width: rentValue.clamp(0, 100) / 100 * maxWidth,
+                  height: 15,
+                  width: barWidth,
                   decoration: BoxDecoration(
                     color: Colors.blue,
                     borderRadius: BorderRadius.circular(5),
+                  ),
+                ),
+                // Texte centré
+                Positioned.fill(
+                  child: Center(
+                    child: Text(
+                      "${rentValue.toStringAsFixed(1)}%",
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white, // Assurez une bonne lisibilité
+                      ),
+                    ),
                   ),
                 ),
               ],
@@ -50,14 +67,6 @@ class PortfolioDisplay2State extends State<PortfolioDisplay2> {
           },
         ),
         const SizedBox(height: 5),
-        Text(
-          "ROI: ${rentValue.toStringAsFixed(1)} %",
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.bold,
-            color: Colors.blue,
-          ),
-        ),
       ],
     );
   }

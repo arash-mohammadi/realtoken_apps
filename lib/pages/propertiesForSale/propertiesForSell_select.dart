@@ -20,6 +20,7 @@ class _PropertiesForSalePageState extends State<PropertiesForSalePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor, // Définir le fond noir
         title: Text(S.of(context).properties_for_sale), // Titre de la page
       ),
       body: NestedScrollView(

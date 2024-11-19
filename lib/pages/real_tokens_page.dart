@@ -81,6 +81,7 @@ class RealTokensPageState extends State<RealTokensPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor, // Définir le fond noir
         title: const Text('RealTokens'),
       ),
       body: Consumer<DataManager>(

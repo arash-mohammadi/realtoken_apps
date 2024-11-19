@@ -53,11 +53,40 @@ class RoiRecord {
   }
 }
 
+class ApyRecord {
+  double netApy; // APY net
+  double grossApy; // APY brut
+  DateTime timestamp; // Timestamp de l'enregistrement
+
+  ApyRecord({
+    required this.netApy,
+    required this.grossApy,
+    required this.timestamp,
+  });
+
+  // Méthode pour convertir l'objet en JSON
+  Map<String, dynamic> toJson() => {
+        'netApy': netApy,
+        'grossApy': grossApy,
+        'timestamp': timestamp.toIso8601String(),
+      };
+
+  // Méthode pour convertir le JSON en objet
+  static ApyRecord fromJson(Map<String, dynamic> json) {
+    return ApyRecord(
+      netApy: (json['netApy'] ?? 0.0) as double,
+      grossApy: (json['grossApy'] ?? 0.0) as double,
+      timestamp: DateTime.parse(json['timestamp'] ?? DateTime.now().toIso8601String()),
+    );
+  }
+}
+
 class DataManager extends ChangeNotifier {
   static final logger = Logger(); // Initialiser une instance de logger
 
   double totalWalletValue = 0;
   double roiGlobalValue = 0;
+  double netGlobalApy = 0;
   double walletValue = 0;
   double rmmValue = 0;
   double rwaHoldingsValue = 0;
@@ -102,8 +131,7 @@ class DataManager extends ChangeNotifier {
   List<Map<String, dynamic>> detailedRentData = [];
   List<Map<String, dynamic>> propertyData = [];
   List<Map<String, dynamic>> rmmBalances = [];
-  List<Map<String, dynamic>> _allTokens =
-      []; // Liste privée pour tous les tokens
+  List<Map<String, dynamic>> _allTokens = []; // Liste privée pour tous les tokens
   List<Map<String, dynamic>> get allTokens => _allTokens;
   List<Map<String, dynamic>> _portfolio = [];
   List<Map<String, dynamic>> get portfolio => _portfolio;
@@ -117,6 +145,7 @@ class DataManager extends ChangeNotifier {
   List<BalanceRecord> balanceHistory = [];
   List<BalanceRecord> walletBalanceHistory = [];
   List<RoiRecord> roiHistory = [];
+  List<ApyRecord> apyHistory = [];
   Map<String, double> customInitPrices = {};
   List<Map<String, dynamic>> propertiesForSale = [];
   List<Map<String, dynamic>> propertiesForSaleFetched = [];
@@ -140,8 +169,7 @@ class DataManager extends ChangeNotifier {
 
     try {
       // Mise à jour des données Gnosis
-      var gnosisData =
-          await ApiService.fetchTokensFromGnosis(forceFetch: forceFetch);
+      var gnosisData = await ApiService.fetchTokensFromGnosis(forceFetch: forceFetch);
       if (gnosisData.isNotEmpty) {
         logger.i("Mise à jour des données Gnosis avec de nouvelles valeurs.");
         box.put('cachedTokenData_gnosis', json.encode(gnosisData));
@@ -152,8 +180,7 @@ class DataManager extends ChangeNotifier {
       }
 
       // Mise à jour des données Ethereum
-      var etherumData =
-          await ApiService.fetchTokensFromEtherum(forceFetch: forceFetch);
+      var etherumData = await ApiService.fetchTokensFromEtherum(forceFetch: forceFetch);
       if (etherumData.isNotEmpty) {
         logger.i("Mise à jour des données Ethereum avec de nouvelles valeurs.");
         box.put('cachedTokenData_etherum', json.encode(etherumData));
@@ -175,8 +202,7 @@ class DataManager extends ChangeNotifier {
       }
 
       // Mise à jour des RealTokens
-      var realTokensData =
-          await ApiService.fetchRealTokens(forceFetch: forceFetch);
+      var realTokensData = await ApiService.fetchRealTokens(forceFetch: forceFetch);
       if (realTokensData.isNotEmpty) {
         logger.i("Mise à jour des RealTokens avec de nouvelles valeurs.");
         box.put('cachedRealTokens', json.encode(realTokensData));
@@ -187,8 +213,7 @@ class DataManager extends ChangeNotifier {
       }
 
       // Mise à jour des RMM Balances
-      var rmmBalancesData =
-          await ApiService.fetchRmmBalances(forceFetch: forceFetch);
+      var rmmBalancesData = await ApiService.fetchRmmBalances(forceFetch: forceFetch);
       if (rmmBalancesData.isNotEmpty) {
         logger.i("Mise à jour des RMM Balances avec de nouvelles valeurs.");
 
@@ -204,39 +229,31 @@ class DataManager extends ChangeNotifier {
       // Mise à jour des données de loyer temporaires
       var rentData = await ApiService.fetchRentData(forceFetch: forceFetch);
       if (rentData.isNotEmpty) {
-        logger.i(
-            "Mise à jour des données de loyer temporaires avec de nouvelles valeurs.");
+        logger.i("Mise à jour des données de loyer temporaires avec de nouvelles valeurs.");
         box.put('tempRentData', json.encode(rentData));
         tempRentData = rentData.cast<Map<String, dynamic>>();
         notifyListeners(); // Notifier les listeners après la mise à jour
       } else {
-        logger.d(
-            "Les données de loyer temporaires sont vides, pas de mise à jour.");
+        logger.d("Les données de loyer temporaires sont vides, pas de mise à jour.");
       }
 
       // Mise à jour des propriétés en cours de vente
       var propertiesForSaleData = await ApiService.fetchPropertiesForSale();
       if (propertiesForSaleData.isNotEmpty) {
-        logger.i(
-            "Mise à jour des propriétés en vente avec de nouvelles valeurs.");
-        box.put(
-            'cachedPropertiesForSaleData', json.encode(propertiesForSaleData));
-        propertiesForSaleFetched =
-            propertiesForSaleData.cast<Map<String, dynamic>>();
+        logger.i("Mise à jour des propriétés en vente avec de nouvelles valeurs.");
+        box.put('cachedPropertiesForSaleData', json.encode(propertiesForSaleData));
+        propertiesForSaleFetched = propertiesForSaleData.cast<Map<String, dynamic>>();
         notifyListeners(); // Notifier les listeners après la mise à jour
       } else {
         logger.d("Les propriétés en vente sont vides, pas de mise à jour.");
       }
 
       // Mise à jour des données YAMM Market
-      var yamMarketData =
-          await ApiService.fetchYamMarket(forceFetch: forceFetch);
+      var yamMarketData = await ApiService.fetchYamMarket(forceFetch: forceFetch);
       if (yamMarketData.isNotEmpty) {
-        logger.i(
-            "Mise à jour des données YAMM Market avec de nouvelles valeurs.");
+        logger.i("Mise à jour des données YAMM Market avec de nouvelles valeurs.");
         box.put('cachedYamMarket', json.encode(yamMarketData));
-        yamMarketFetched = yamMarketData.cast<
-            Map<String, dynamic>>(); // Remplacez par votre variable de stockage
+        yamMarketFetched = yamMarketData.cast<Map<String, dynamic>>(); // Remplacez par votre variable de stockage
         notifyListeners();
       } else {
         logger.d("Les données YAMM Market sont vides, pas de mise à jour.");
@@ -247,13 +264,13 @@ class DataManager extends ChangeNotifier {
 
     loadWalletBalanceHistory();
     loadRoiHistory();
+    loadApyHistory();
   }
 
   Future<void> loadWalletBalanceHistory() async {
     try {
       var box = Hive.box('walletValueArchive'); // Ouvrir la boîte Hive
-      List<dynamic>? balanceHistoryJson = box.get(
-          'balanceHistory_totalWalletValue'); // Récupérer les données sauvegardées
+      List<dynamic>? balanceHistoryJson = box.get('balanceHistory_totalWalletValue'); // Récupérer les données sauvegardées
 
       if (balanceHistoryJson != null) {
         // Convertir chaque élément JSON en objet BalanceRecord et l'ajouter à walletBalanceHistory
@@ -263,22 +280,19 @@ class DataManager extends ChangeNotifier {
 
         notifyListeners(); // Notifier les listeners après la mise à jour
 
-        logger.i(
-            'Données de l\'historique du portefeuille chargées avec succès.');
+        logger.i('Données de l\'historique du portefeuille chargées avec succès.');
       } else {
         logger.i('Aucune donnée d\'historique trouvée.');
       }
     } catch (e) {
-      logger.w(
-          'Erreur lors du chargement des données de l\'historique du portefeuille : $e');
+      logger.w('Erreur lors du chargement des données de l\'historique du portefeuille : $e');
     }
   }
 
   Future<void> loadRoiHistory() async {
     try {
       var box = Hive.box('roiValueArchive'); // Ouvrir la boîte Hive
-      List<dynamic>? roiHistoryJson =
-          box.get('roi_history'); // Récupérer les données sauvegardées
+      List<dynamic>? roiHistoryJson = box.get('roi_history'); // Récupérer les données sauvegardées
 
       if (roiHistoryJson != null) {
         // Convertir chaque élément JSON en objet BalanceRecord et l'ajouter à walletBalanceHistory
@@ -293,16 +307,36 @@ class DataManager extends ChangeNotifier {
         logger.i('Aucune donnée d\'historique ROI trouvée.');
       }
     } catch (e) {
-      logger.w(
-          'Erreur lors du chargement des données de l\'historique du ROI : $e');
+      logger.w('Erreur lors du chargement des données de l\'historique du ROI : $e');
+    }
+  }
+
+  Future<void> loadApyHistory() async {
+    try {
+      var box = Hive.box('apyValueArchive'); // Ouvrir la boîte Hive
+      List<dynamic>? apyHistoryJson = box.get('apy_history'); // Récupérer les données sauvegardées
+
+      if (apyHistoryJson != null) {
+        // Charger l'historique
+        apyHistory = apyHistoryJson.map((recordJson) {
+          return ApyRecord.fromJson(Map<String, dynamic>.from(recordJson));
+        }).toList();
+
+        notifyListeners(); // Notifier les listeners après la mise à jour
+
+        logger.i('Données de l\'historique APY chargées avec succès.');
+      } else {
+        logger.i('Aucune donnée d\'historique APY trouvée.');
+      }
+    } catch (e) {
+      logger.w('Erreur lors du chargement des données de l\'historique APY : $e');
     }
   }
 
   // Sauvegarde l'historique des balances dans Hive
   Future<void> saveWalletBalanceHistory() async {
     var box = Hive.box('walletValueArchive');
-    List<Map<String, dynamic>> balanceHistoryJson =
-        walletBalanceHistory.map((record) => record.toJson()).toList();
+    List<Map<String, dynamic>> balanceHistoryJson = walletBalanceHistory.map((record) => record.toJson()).toList();
     await box.put('balanceHistory_totalWalletValue', balanceHistoryJson);
     notifyListeners(); // Notifier les listeners de tout changement
   }
@@ -312,8 +346,7 @@ class DataManager extends ChangeNotifier {
 
     try {
       // Mise à jour des détails de loyer détaillés
-      var detailedRentDataResult =
-          await ApiService.fetchDetailedRentDataForAllWallets();
+      var detailedRentDataResult = await ApiService.fetchDetailedRentDataForAllWallets();
       if (detailedRentDataResult.isNotEmpty) {
         logger.i("Mise à jour des détails de loyer avec de nouvelles valeurs.");
         box.put('detailedRentData', json.encode(detailedRentDataResult));
@@ -342,8 +375,7 @@ class DataManager extends ChangeNotifier {
   Future<void> saveUserIdToAddresses() async {
     final prefs = await SharedPreferences.getInstance();
     final userIdToAddressesJson = userIdToAddresses.map((userId, addresses) {
-      return MapEntry(
-          userId, jsonEncode(addresses)); // Encoder les adresses en JSON
+      return MapEntry(userId, jsonEncode(addresses)); // Encoder les adresses en JSON
     });
 
     prefs.setString('userIdToAddresses', jsonEncode(userIdToAddressesJson));
@@ -369,8 +401,7 @@ class DataManager extends ChangeNotifier {
     if (userIdToAddresses.containsKey(userId)) {
       userIdToAddresses[userId]!.remove(address);
       if (userIdToAddresses[userId]!.isEmpty) {
-        userIdToAddresses
-            .remove(userId); // Supprimer le userId si plus d'adresses
+        userIdToAddresses.remove(userId); // Supprimer le userId si plus d'adresses
       }
       saveUserIdToAddresses(); // Sauvegarder après suppression
       notifyListeners();
@@ -421,8 +452,7 @@ class DataManager extends ChangeNotifier {
 
     final cachedRealTokens = box.get('cachedRealTokens');
     if (cachedRealTokens != null) {
-      realTokens =
-          List<Map<String, dynamic>>.from(json.decode(cachedRealTokens));
+      realTokens = List<Map<String, dynamic>>.from(json.decode(cachedRealTokens));
       logger.i("Données RealTokens en cache utilisées.");
     }
     List<Map<String, dynamic>> allTokensList = [];
@@ -433,8 +463,7 @@ class DataManager extends ChangeNotifier {
       for (var realToken in realTokens.cast<Map<String, dynamic>>()) {
         // Vérification: Ne pas ajouter si totalTokens est 0 ou si fullName commence par "OLD-"
         // Récupérer la valeur customisée de initPrice si elle existe
-        final tokenContractAddress =
-            realToken['uuid'] ?? ''; // Utiliser l'adresse du contrat du token
+        final tokenContractAddress = realToken['uuid'] ?? ''; // Utiliser l'adresse du contrat du token
 
         if (realToken['totalTokens'] != null &&
             realToken['totalTokens'] > 0 &&
@@ -442,16 +471,13 @@ class DataManager extends ChangeNotifier {
             !realToken['fullName'].startsWith('OLD-') &&
             realToken['uuid'].toLowerCase() != rwaTokenAddress) {
           double? customInitPrice = customInitPrices[tokenContractAddress];
-          double initPrice = customInitPrice ??
-              (realToken['historic']['init_price'] as num?)?.toDouble() ??
-              0.0;
+          double initPrice = customInitPrice ?? (realToken['historic']['init_price'] as num?)?.toDouble() ?? 0.0;
 
           String fullName = realToken['fullName'];
           List<String> parts = fullName.split(',');
           String country = parts.length == 4 ? parts[3].trim() : 'USA';
           List<String> parts2 = fullName.split(',');
-          String regionCode =
-              parts2.length >= 3 ? parts[2].trim().substring(0, 2) : 'unknown';
+          String regionCode = parts2.length >= 3 ? parts[2].trim().substring(0, 2) : 'unknown';
           List<String> parts3 = fullName.split(',');
           String city = parts3.length >= 2 ? parts[1].trim() : 'Unknown';
 
@@ -470,12 +496,9 @@ class DataManager extends ChangeNotifier {
             'totalValue': realToken['totalInvestment'],
             'amount': 0.0,
             'annualPercentageYield': realToken['annualPercentageYield'],
-            'dailyIncome':
-                realToken['netRentDayPerToken'] * realToken['totalTokens'],
-            'monthlyIncome':
-                realToken['netRentMonthPerToken'] * realToken['totalTokens'],
-            'yearlyIncome':
-                realToken['netRentYearPerToken'] * realToken['totalTokens'],
+            'dailyIncome': realToken['netRentDayPerToken'] * realToken['totalTokens'],
+            'monthlyIncome': realToken['netRentMonthPerToken'] * realToken['totalTokens'],
+            'yearlyIncome': realToken['netRentYearPerToken'] * realToken['totalTokens'],
             'initialLaunchDate': realToken['initialLaunchDate']?['date'],
             'totalInvestment': realToken['totalInvestment'],
             'underlyingAssetPrice': realToken['underlyingAssetPrice'] ?? 0.0,
@@ -498,8 +521,7 @@ class DataManager extends ChangeNotifier {
             'initPrice': initPrice,
             'totalRentReceived': 0.0,
             'initialTotalValue': initPrice,
-            'propertyMaintenanceMonthly':
-                realToken['propertyMaintenanceMonthly'],
+            'propertyMaintenanceMonthly': realToken['propertyMaintenanceMonthly'],
             'propertyManagement': realToken['propertyManagement'],
             'realtPlatform': realToken['realtPlatform'],
             'insurance': realToken['insurance'],
@@ -512,10 +534,8 @@ class DataManager extends ChangeNotifier {
 
           tempTotalTokens += 1; // Conversion explicite en int
           tempTotalInvestment += realToken['totalInvestment'] ?? 0.0;
-          tempNetRentYear += realToken['netRentYearPerToken'] *
-              (realToken['totalTokens'] as num).toInt();
-          tempTotalUnits += (realToken['totalUnits'] as num?)?.toInt() ??
-              0; // Conversion en int avec vérification
+          tempNetRentYear += realToken['netRentYearPerToken'] * (realToken['totalTokens'] as num).toInt();
+          tempTotalUnits += (realToken['totalUnits'] as num?)?.toInt() ?? 0; // Conversion en int avec vérification
           tempRentedUnits += (realToken['rentedUnits'] as num?)?.toInt() ?? 0;
           // Gérer le cas où tokenPrice est soit un num soit une liste
           dynamic tokenPriceData = realToken['tokenPrice'];
@@ -523,11 +543,9 @@ class DataManager extends ChangeNotifier {
           int totalTokens = (realToken['totalTokens'] as num).toInt();
 
           if (tokenPriceData is List && tokenPriceData.isNotEmpty) {
-            tokenPrice = (tokenPriceData.first as num)
-                .toDouble(); // Utiliser le premier élément de la liste
+            tokenPrice = (tokenPriceData.first as num).toDouble(); // Utiliser le premier élément de la liste
           } else if (tokenPriceData is num) {
-            tokenPrice = tokenPriceData
-                .toDouble(); // Utiliser directement si c'est un num
+            tokenPrice = tokenPriceData.toDouble(); // Utiliser directement si c'est un num
           }
 
           tempInitialPrice += initPrice * totalTokens;
@@ -547,8 +565,7 @@ class DataManager extends ChangeNotifier {
 
     // Mettre à jour la liste des tokens
     _allTokens = allTokensList;
-    logger.i(
-        "Tokens récupérés: ${allTokensList.length}"); // Vérifiez que vous obtenez bien des tokens
+    logger.i("Tokens récupérés: ${allTokensList.length}"); // Vérifiez que vous obtenez bien des tokens
 
     // Mise à jour des variables partagées
     totalRealtTokens = tempTotalTokens; //en retire le RWA token dans le calcul
@@ -558,8 +575,7 @@ class DataManager extends ChangeNotifier {
     netRealtRentYear = tempNetRentYear;
     totalRealtUnits = tempTotalUnits;
     rentedRealtUnits = tempRentedUnits;
-    averageRealtAnnualYield =
-        yieldCount > 0 ? tempAnnualYieldSum / yieldCount : 0.0;
+    averageRealtAnnualYield = yieldCount > 0 ? tempAnnualYieldSum / yieldCount : 0.0;
 
     // Notifie les widgets que les données ont changé
     notifyListeners();
@@ -574,15 +590,13 @@ class DataManager extends ChangeNotifier {
     // Charger les données en cache si disponibles
     final cachedGnosisTokens = box.get('cachedTokenData_gnosis');
     if (cachedGnosisTokens != null) {
-      walletTokensGnosis =
-          List<Map<String, dynamic>>.from(json.decode(cachedGnosisTokens));
+      walletTokensGnosis = List<Map<String, dynamic>>.from(json.decode(cachedGnosisTokens));
       logger.i("Données Gnosis en cache utilisées.");
     }
 
     final cachedEtherumTokens = box.get('cachedTokenData_ethereum');
     if (cachedEtherumTokens != null) {
-      walletTokensEtherum =
-          List<Map<String, dynamic>>.from(json.decode(cachedEtherumTokens));
+      walletTokensEtherum = List<Map<String, dynamic>>.from(json.decode(cachedEtherumTokens));
       logger.i("Données Etherum en cache utilisées.");
     }
 
@@ -594,15 +608,13 @@ class DataManager extends ChangeNotifier {
 
     final cachedRealTokens = box.get('cachedRealTokens');
     if (cachedRealTokens != null) {
-      realTokens =
-          List<Map<String, dynamic>>.from(json.decode(cachedRealTokens));
+      realTokens = List<Map<String, dynamic>>.from(json.decode(cachedRealTokens));
       logger.i("Données RealTokens en cache utilisées.");
     }
 
     final cachedDetailedRentData = box.get('detailedRentData');
     if (cachedDetailedRentData != null) {
-      detailedRentData =
-          List<Map<String, dynamic>>.from(json.decode(cachedDetailedRentData));
+      detailedRentData = List<Map<String, dynamic>>.from(json.decode(cachedDetailedRentData));
       logger.i("Données Rent en cache utilisées.");
     }
 
@@ -613,15 +625,13 @@ class DataManager extends ChangeNotifier {
     if (walletTokensGnosis.isEmpty) {
       logger.i("Aucun wallet récupéré depuis Gnosis.");
     } else {
-      logger.i(
-          "Nombre de wallets récupérés depuis Gnosis: ${walletTokensGnosis.length}");
+      logger.i("Nombre de wallets récupérés depuis Gnosis: ${walletTokensGnosis.length}");
     }
 
     if (walletTokensEtherum.isEmpty) {
       logger.i("Aucun wallet récupéré depuis Etherum.");
     } else {
-      logger.i(
-          "Nombre de wallets récupérés depuis Etherum: ${walletTokensEtherum.length}");
+      logger.i("Nombre de wallets récupérés depuis Etherum: ${walletTokensEtherum.length}");
     }
 
     if (rmmTokens.isEmpty) {
@@ -658,10 +668,8 @@ class DataManager extends ChangeNotifier {
     // Utilisation des ensembles pour stocker les adresses uniques
     Set<String> uniqueWalletTokens = {};
     Set<String> uniqueRmmTokens = {};
-    Set<String> uniqueRentedUnitAddresses =
-        {}; // Pour stocker les adresses uniques avec unités louées
-    Set<String> uniqueTotalUnitAddresses =
-        {}; // Pour stocker les adresses uniques avec unités totales
+    Set<String> uniqueRentedUnitAddresses = {}; // Pour stocker les adresses uniques avec unités louées
+    Set<String> uniqueTotalUnitAddresses = {}; // Pour stocker les adresses uniques avec unités totales
 
     // **Itérer sur chaque wallet** pour récupérer tous les tokens
     for (var wallet in walletTokens) {
@@ -670,31 +678,25 @@ class DataManager extends ChangeNotifier {
       // Process wallet tokens (pour Dashboard et Portfolio)
       for (var walletToken in walletBalances) {
         final tokenAddress = walletToken['token']['address'].toLowerCase();
-        uniqueWalletTokens
-            .add(tokenAddress); // Ajouter à l'ensemble des tokens uniques
+        uniqueWalletTokens.add(tokenAddress); // Ajouter à l'ensemble des tokens uniques
 
-        final matchingRealToken =
-            realTokens.cast<Map<String, dynamic>>().firstWhere(
-                  (realToken) =>
-                      realToken['uuid'].toLowerCase() == tokenAddress,
-                  orElse: () => <String, dynamic>{},
-                );
+        final matchingRealToken = realTokens.cast<Map<String, dynamic>>().firstWhere(
+              (realToken) => realToken['uuid'].toLowerCase() == tokenAddress,
+              orElse: () => <String, dynamic>{},
+            );
 
         if (matchingRealToken.isNotEmpty) {
           final double tokenPrice = matchingRealToken['tokenPrice'] ?? 0.0;
-          final double tokenValue =
-              (double.parse(walletToken['amount']) * tokenPrice);
+          final double tokenValue = (double.parse(walletToken['amount']) * tokenPrice);
 
           // Compter les unités louées et totales si elles n'ont pas déjà été comptées
           if (!uniqueRentedUnitAddresses.contains(tokenAddress)) {
             rentedUnits += (matchingRealToken['rentedUnits'] ?? 0) as int;
-            uniqueRentedUnitAddresses.add(
-                tokenAddress); // Marquer cette adresse comme comptée pour les unités louées
+            uniqueRentedUnitAddresses.add(tokenAddress); // Marquer cette adresse comme comptée pour les unités louées
           }
           if (!uniqueTotalUnitAddresses.contains(tokenAddress)) {
             totalUnits += (matchingRealToken['totalUnits'] ?? 0) as int;
-            uniqueTotalUnitAddresses.add(
-                tokenAddress); // Marquer cette adresse comme comptée pour les unités totales
+            uniqueTotalUnitAddresses.add(tokenAddress); // Marquer cette adresse comme comptée pour les unités totales
           }
 
           if (tokenAddress == rwaTokenAddress.toLowerCase()) {
@@ -707,8 +709,7 @@ class DataManager extends ChangeNotifier {
             final today = DateTime.now();
 
             // Convertir la chaîne de date 'initialLaunchDate' en objet DateTime
-            final launchDateString =
-                matchingRealToken['rentStartDate']?['date'];
+            final launchDateString = matchingRealToken['rentStartDate']?['date'];
             if (launchDateString != null) {
               final launchDate = DateTime.tryParse(launchDateString);
 
@@ -717,31 +718,23 @@ class DataManager extends ChangeNotifier {
                 // Ajouter uniquement si la date de lancement est dans le passé
                 annualYieldSum += matchingRealToken['annualPercentageYield'];
                 yieldCount++;
-                dailyRentSum += matchingRealToken['netRentDayPerToken'] *
-                    double.parse(walletToken['amount']);
-                monthlyRentSum += matchingRealToken['netRentMonthPerToken'] *
-                    double.parse(walletToken['amount']);
-                yearlyRentSum += matchingRealToken['netRentYearPerToken'] *
-                    double.parse(walletToken['amount']);
+                dailyRentSum += matchingRealToken['netRentDayPerToken'] * double.parse(walletToken['amount']);
+                monthlyRentSum += matchingRealToken['netRentMonthPerToken'] * double.parse(walletToken['amount']);
+                yearlyRentSum += matchingRealToken['netRentYearPerToken'] * double.parse(walletToken['amount']);
               }
             }
           }
           double totalRentReceived = 0.0;
-          final tokenContractAddress = matchingRealToken['uuid'] ??
-              ''; // Utiliser l'adresse du contrat du token
+          final tokenContractAddress = matchingRealToken['uuid'] ?? ''; // Utiliser l'adresse du contrat du token
 
           double? customInitPrice = customInitPrices[tokenContractAddress];
-          double initPrice = customInitPrice ??
-              (matchingRealToken['historic']['init_price'] as num?)
-                  ?.toDouble() ??
-              0.0;
+          double initPrice = customInitPrice ?? (matchingRealToken['historic']['init_price'] as num?)?.toDouble() ?? 0.0;
 
           String fullName = matchingRealToken['fullName'];
           List<String> parts = fullName.split(',');
           String country = parts.length == 4 ? parts[3].trim() : 'USA';
           List<String> parts2 = fullName.split(',');
-          String regionCode =
-              parts2.length >= 3 ? parts[2].trim().substring(0, 2) : 'unknown';
+          String regionCode = parts2.length >= 3 ? parts[2].trim().substring(0, 2) : 'unknown';
           List<String> parts3 = fullName.split(',');
           String city = parts3.length >= 2 ? parts[1].trim() : 'Unknown City';
 
@@ -762,33 +755,25 @@ class DataManager extends ChangeNotifier {
             'source': 'Wallet',
             'tokenPrice': tokenPrice,
             'totalValue': tokenValue,
-            'initialTotalValue':
-                double.parse(walletToken['amount']) * initPrice,
+            'initialTotalValue': double.parse(walletToken['amount']) * initPrice,
             'annualPercentageYield': matchingRealToken['annualPercentageYield'],
-            'dailyIncome': matchingRealToken['netRentDayPerToken'] *
-                double.parse(walletToken['amount']),
-            'monthlyIncome': matchingRealToken['netRentMonthPerToken'] *
-                double.parse(walletToken['amount']),
-            'yearlyIncome': matchingRealToken['netRentYearPerToken'] *
-                double.parse(walletToken['amount']),
-            'initialLaunchDate': matchingRealToken['initialLaunchDate']
-                ?['date'],
+            'dailyIncome': matchingRealToken['netRentDayPerToken'] * double.parse(walletToken['amount']),
+            'monthlyIncome': matchingRealToken['netRentMonthPerToken'] * double.parse(walletToken['amount']),
+            'yearlyIncome': matchingRealToken['netRentYearPerToken'] * double.parse(walletToken['amount']),
+            'initialLaunchDate': matchingRealToken['initialLaunchDate']?['date'],
             'bedroomBath': matchingRealToken['bedroomBath'],
 
             // financials details
             'totalInvestment': matchingRealToken['totalInvestment'] ?? 0.0,
-            'underlyingAssetPrice':
-                matchingRealToken['underlyingAssetPrice'] ?? 0.0,
+            'underlyingAssetPrice': matchingRealToken['underlyingAssetPrice'] ?? 0.0,
             'realtListingFee': matchingRealToken['realtListingFee'],
-            'initialMaintenanceReserve':
-                matchingRealToken['initialMaintenanceReserve'],
+            'initialMaintenanceReserve': matchingRealToken['initialMaintenanceReserve'],
             'renovationReserve': matchingRealToken['renovationReserve'],
             'miscellaneousCosts': matchingRealToken['miscellaneousCosts'],
 
             'grossRentMonth': matchingRealToken['grossRentMonth'],
             'netRentMonth': matchingRealToken['netRentMonth'],
-            'propertyMaintenanceMonthly':
-                matchingRealToken['propertyMaintenanceMonthly'],
+            'propertyMaintenanceMonthly': matchingRealToken['propertyMaintenanceMonthly'],
             'propertyManagement': matchingRealToken['propertyManagement'],
             'realtPlatform': matchingRealToken['realtPlatform'],
             'insurance': matchingRealToken['insurance'],
@@ -837,14 +822,12 @@ class DataManager extends ChangeNotifier {
     // Process tokens dans le RMM (similaire au processus wallet)
     for (var rmmToken in rmmTokens) {
       final tokenAddress = rmmToken['token']['id'].toLowerCase();
-      uniqueRmmTokens
-          .add(tokenAddress); // Ajouter à l'ensemble des tokens uniques
+      uniqueRmmTokens.add(tokenAddress); // Ajouter à l'ensemble des tokens uniques
 
-      final matchingRealToken =
-          realTokens.cast<Map<String, dynamic>>().firstWhere(
-                (realToken) => realToken['uuid'].toLowerCase() == tokenAddress,
-                orElse: () => <String, dynamic>{},
-              );
+      final matchingRealToken = realTokens.cast<Map<String, dynamic>>().firstWhere(
+            (realToken) => realToken['uuid'].toLowerCase() == tokenAddress,
+            orElse: () => <String, dynamic>{},
+          );
 
       if (matchingRealToken.isNotEmpty) {
         final BigInt rawAmount = BigInt.parse(rmmToken['amount']);
@@ -857,21 +840,18 @@ class DataManager extends ChangeNotifier {
         // Compter les unités louées et totales si elles n'ont pas déjà été comptées
         if (!uniqueRentedUnitAddresses.contains(tokenAddress)) {
           rentedUnits += (matchingRealToken['rentedUnits'] ?? 0) as int;
-          uniqueRentedUnitAddresses.add(
-              tokenAddress); // Marquer cette adresse comme comptée pour les unités louées
+          uniqueRentedUnitAddresses.add(tokenAddress); // Marquer cette adresse comme comptée pour les unités louées
         }
         if (!uniqueTotalUnitAddresses.contains(tokenAddress)) {
           totalUnits += (matchingRealToken['totalUnits'] ?? 0) as int;
-          uniqueTotalUnitAddresses.add(
-              tokenAddress); // Marquer cette adresse comme comptée pour les unités totales
+          uniqueTotalUnitAddresses.add(tokenAddress); // Marquer cette adresse comme comptée pour les unités totales
         }
 
         // Récupérer la date d'aujourd'hui
         final today = DateTime.now();
 
         // Convertir la chaîne de date 'initialLaunchDate' en objet DateTime
-        final launchDateString =
-            matchingRealToken['initialLaunchDate']?['date'];
+        final launchDateString = matchingRealToken['initialLaunchDate']?['date'];
         if (launchDateString != null) {
           final launchDate = DateTime.tryParse(launchDateString);
 
@@ -881,27 +861,22 @@ class DataManager extends ChangeNotifier {
             annualYieldSum += matchingRealToken['annualPercentageYield'];
             yieldCount++;
             dailyRentSum += matchingRealToken['netRentDayPerToken'] * amount;
-            monthlyRentSum +=
-                matchingRealToken['netRentMonthPerToken'] * amount;
+            monthlyRentSum += matchingRealToken['netRentMonthPerToken'] * amount;
             yearlyRentSum += matchingRealToken['netRentYearPerToken'] * amount;
           }
         }
 
         double totalRentReceived = 0.0;
-        final tokenContractAddress = matchingRealToken['uuid'].toLowerCase() ??
-            ''; // Utiliser l'adresse du contrat du token
+        final tokenContractAddress = matchingRealToken['uuid'].toLowerCase() ?? ''; // Utiliser l'adresse du contrat du token
 
         double? customInitPrice = customInitPrices[tokenContractAddress];
-        double initPrice = customInitPrice ??
-            (matchingRealToken['historic']['init_price'] as num?)?.toDouble() ??
-            0.0;
+        double initPrice = customInitPrice ?? (matchingRealToken['historic']['init_price'] as num?)?.toDouble() ?? 0.0;
 
         String fullName = matchingRealToken['fullName'];
         List<String> parts = fullName.split(',');
         String country = parts.length == 4 ? parts[3].trim() : 'USA';
         List<String> parts2 = fullName.split(',');
-        String regionCode =
-            parts2.length >= 3 ? parts[2].trim().substring(0, 2) : 'unknown';
+        String regionCode = parts2.length >= 3 ? parts[2].trim().substring(0, 2) : 'unknown';
         List<String> parts3 = fullName.split(',');
         String city = parts3.length >= 2 ? parts[1].trim() : 'Unknown';
 
@@ -933,18 +908,15 @@ class DataManager extends ChangeNotifier {
 
           // financials details
           'totalInvestment': matchingRealToken['totalInvestment'] ?? 0.0,
-          'underlyingAssetPrice':
-              matchingRealToken['underlyingAssetPrice'] ?? 0.0,
+          'underlyingAssetPrice': matchingRealToken['underlyingAssetPrice'] ?? 0.0,
           'realtListingFee': matchingRealToken['realtListingFee'],
-          'initialMaintenanceReserve':
-              matchingRealToken['initialMaintenanceReserve'],
+          'initialMaintenanceReserve': matchingRealToken['initialMaintenanceReserve'],
           'renovationReserve': matchingRealToken['renovationReserve'],
           'miscellaneousCosts': matchingRealToken['miscellaneousCosts'],
 
           'grossRentMonth': matchingRealToken['grossRentMonth'],
           'netRentMonth': matchingRealToken['netRentMonth'],
-          'propertyMaintenanceMonthly':
-              matchingRealToken['propertyMaintenanceMonthly'],
+          'propertyMaintenanceMonthly': matchingRealToken['propertyMaintenanceMonthly'],
           'propertyManagement': matchingRealToken['propertyManagement'],
           'realtPlatform': matchingRealToken['realtPlatform'],
           'insurance': matchingRealToken['insurance'],
@@ -991,17 +963,9 @@ class DataManager extends ChangeNotifier {
     }
 
     // Mise à jour des variables pour le Dashboard
-    totalWalletValue = walletValueSum +
-        rmmValueSum +
-        rwaValue +
-        totalUsdcDepositBalance +
-        totalXdaiDepositBalance -
-        totalUsdcBorrowBalance -
-        totalXdaiBorrowBalance;
+    totalWalletValue =
+        walletValueSum + rmmValueSum + rwaValue + totalUsdcDepositBalance + totalXdaiDepositBalance - totalUsdcBorrowBalance - totalXdaiBorrowBalance;
     archiveTotalWalletValue(totalWalletValue);
-
-    roiGlobalValue = getTotalRentReceived() / initialTotalValue * 100;
-    archiveRoiValue(roiGlobalValue);
 
     walletValue = double.parse(walletValueSum.toStringAsFixed(3));
     rmmValue = double.parse(rmmValueSum.toStringAsFixed(3));
@@ -1028,8 +992,7 @@ class DataManager extends ChangeNotifier {
     totalTokenCount = allUniqueTokens.length;
 
     // Trouve l'intersection des deux ensembles (tokens présents dans les deux sets)
-    final Set<String> duplicateTokens =
-        walletTokensSet.intersection(rmmTokensSet);
+    final Set<String> duplicateTokens = walletTokensSet.intersection(rmmTokensSet);
 
     // Comptabilise le nombre de tokens en doublons
     duplicateTokenCount = duplicateTokens.length;
@@ -1037,9 +1000,18 @@ class DataManager extends ChangeNotifier {
     // Mise à jour des données pour le Portfolio
     _portfolio = newPortfolio;
 
+    roiGlobalValue = getTotalRentReceived() / initialTotalValue * 100;
+    archiveRoiValue(roiGlobalValue);
+
+    netGlobalApy = (((averageAnnualYield * (walletValue + rmmValue)) +
+            (totalUsdcDepositBalance * usdcDepositApy + totalXdaiDepositBalance * xdaiDepositApy) -
+            (totalUsdcBorrowBalance * usdcBorrowApy + totalXdaiBorrowBalance * xdaiBorrowApy)) /
+        (walletValue + rmmValue + totalUsdcDepositBalance + totalXdaiDepositBalance + totalUsdcBorrowBalance + totalXdaiBorrowBalance));
+
+    archiveApyValue(netGlobalApy, averageAnnualYield);
+
     logger.i("Portfolio mis à jour avec ${_portfolio.length} éléments.");
-    logger.i(
-        "Unité louées uniques: $rentedUnits, Unités totales uniques: $totalUnits");
+    logger.i("Unité louées uniques: $rentedUnits, Unités totales uniques: $totalUnits");
 
     // Notify listeners that data has changed
     notifyListeners();
@@ -1052,22 +1024,17 @@ class DataManager extends ChangeNotifier {
 
     // Trier les données de `_portfolio` par 'rentStartDate'
     _portfolio.sort((a, b) {
-      DateTime dateA = a['rentStartDate'] != null
-          ? DateTime.parse(a['rentStartDate'])
-          : DateTime
-              .now(); // Utiliser DateTime.now() ou une autre valeur par défaut si null
-      DateTime dateB = b['rentStartDate'] != null
-          ? DateTime.parse(b['rentStartDate'])
-          : DateTime
-              .now(); // Utiliser DateTime.now() ou une autre valeur par défaut si null
+      DateTime dateA =
+          a['rentStartDate'] != null ? DateTime.parse(a['rentStartDate']) : DateTime.now(); // Utiliser DateTime.now() ou une autre valeur par défaut si null
+      DateTime dateB =
+          b['rentStartDate'] != null ? DateTime.parse(b['rentStartDate']) : DateTime.now(); // Utiliser DateTime.now() ou une autre valeur par défaut si null
       return dateA.compareTo(dateB);
     });
 
     // Parcourir chaque élément de `_portfolio` et accumuler les loyers
     for (var portfolioEntry in _portfolio) {
       if (portfolioEntry['rentStartDate'] != null) {
-        DateTime rentStartDate =
-            DateTime.parse(portfolioEntry['rentStartDate']);
+        DateTime rentStartDate = DateTime.parse(portfolioEntry['rentStartDate']);
 
         // Ajoutez la valeur de loyer au cumul jusqu'à cette date
         cumulativeRent += (portfolioEntry['dailyIncome'] * 7) ?? 0.0;
@@ -1085,36 +1052,24 @@ class DataManager extends ChangeNotifier {
 
   // Méthode pour extraire les mises à jour récentes sur les 30 derniers jours
 
-  List<Map<String, dynamic>> _extractRecentUpdates(
-      List<dynamic> realTokensRaw) {
-    final List<Map<String, dynamic>> realTokens =
-        realTokensRaw.cast<Map<String, dynamic>>();
+  List<Map<String, dynamic>> _extractRecentUpdates(List<dynamic> realTokensRaw) {
+    final List<Map<String, dynamic>> realTokens = realTokensRaw.cast<Map<String, dynamic>>();
     List<Map<String, dynamic>> recentUpdates = [];
 
     for (var token in realTokens) {
       // Vérification si update30 existe, est une liste et est non vide
-      if (token.containsKey('update30') &&
-          token['update30'] is List &&
-          token['update30'].isNotEmpty) {
-        logger.i(
-            "Processing updates for token: ${token['shortName'] ?? 'Nom inconnu'}");
+      if (token.containsKey('update30') && token['update30'] is List && token['update30'].isNotEmpty) {
+        logger.i("Processing updates for token: ${token['shortName'] ?? 'Nom inconnu'}");
 
         // Récupérer les informations de base du token
         final String shortName = token['shortName'] ?? 'Nom inconnu';
-        final String imageLink =
-            (token['imageLink'] != null && token['imageLink'].isNotEmpty)
-                ? token['imageLink'][0]
-                : 'Lien d\'image non disponible';
+        final String imageLink = (token['imageLink'] != null && token['imageLink'].isNotEmpty) ? token['imageLink'][0] : 'Lien d\'image non disponible';
 
         // Filtrer et formater les mises à jour pertinentes
-        List<Map<String, dynamic>> updatesWithDetails =
-            List<Map<String, dynamic>>.from(token['update30'])
-                .where((update) =>
-                    update.containsKey('key') &&
-                    _isRelevantKey(update['key'])) // Vérifier que 'key' existe
-                .map((update) => _formatUpdateDetails(
-                    update, shortName, imageLink)) // Formater les détails
-                .toList();
+        List<Map<String, dynamic>> updatesWithDetails = List<Map<String, dynamic>>.from(token['update30'])
+            .where((update) => update.containsKey('key') && _isRelevantKey(update['key'])) // Vérifier que 'key' existe
+            .map((update) => _formatUpdateDetails(update, shortName, imageLink)) // Formater les détails
+            .toList();
 
         // Ajouter les mises à jour extraites dans recentUpdates
         recentUpdates.addAll(updatesWithDetails);
@@ -1124,8 +1079,7 @@ class DataManager extends ChangeNotifier {
     }
 
     // Trier les mises à jour par date
-    recentUpdates.sort((a, b) =>
-        DateTime.parse(b['timsync']).compareTo(DateTime.parse(a['timsync'])));
+    recentUpdates.sort((a, b) => DateTime.parse(b['timsync']).compareTo(DateTime.parse(a['timsync'])));
     return recentUpdates;
   }
 
@@ -1135,8 +1089,7 @@ class DataManager extends ChangeNotifier {
   }
 
   // Formater les détails des mises à jour
-  Map<String, dynamic> _formatUpdateDetails(
-      Map<String, dynamic> update, String shortName, String imageLink) {
+  Map<String, dynamic> _formatUpdateDetails(Map<String, dynamic> update, String shortName, String imageLink) {
     String formattedKey = 'Donnée inconnue';
     String formattedOldValue = 'Valeur inconnue';
     String formattedNewValue = 'Valeur inconnue';
@@ -1182,13 +1135,11 @@ class DataManager extends ChangeNotifier {
 
         // Vérifier si les résultats ne sont pas vides avant de mettre à jour les variables
         if (tempRentData.isNotEmpty) {
-          logger.i(
-              "Mise à jour des données de rentData avec de nouvelles valeurs.");
+          logger.i("Mise à jour des données de rentData avec de nouvelles valeurs.");
           rentData = tempRentData; // Mise à jour de la variable locale
           box.put('cachedRentData', json.encode(tempRentData));
         } else {
-          logger.d(
-              "Les résultats des données de rentData sont vides, pas de mise à jour.");
+          logger.d("Les résultats des données de rentData sont vides, pas de mise à jour.");
         }
       } catch (e) {
         logger.e("Erreur lors de la récupération des données de loyer: $e");
@@ -1208,36 +1159,28 @@ class DataManager extends ChangeNotifier {
     // Fusionner les tokens du portefeuille (Gnosis, Ethereum) et du RMM
     List<dynamic> allTokens = [];
     for (var wallet in walletTokens) {
-      allTokens
-          .addAll(wallet['balances']); // Ajouter tous les balances des wallets
+      allTokens.addAll(wallet['balances']); // Ajouter tous les balances des wallets
     }
     allTokens.addAll(rmmTokens); // Ajouter les tokens du RMM
 
     // Parcourir chaque token du portefeuille et du RMM
     for (var token in allTokens) {
-      if (token != null &&
-          token['token'] != null &&
-          token['token']['address'] != null) {
+      if (token != null && token['token'] != null && token['token']['address'] != null) {
         final tokenAddress = token['token']['address'].toLowerCase();
 
         // Correspondre avec les RealTokens
-        final matchingRealToken = realTokens
-            .cast<Map<String, dynamic>>()
-            .firstWhere(
-              (realToken) =>
-                  realToken['uuid'].toLowerCase() == tokenAddress.toLowerCase(),
+        final matchingRealToken = realTokens.cast<Map<String, dynamic>>().firstWhere(
+              (realToken) => realToken['uuid'].toLowerCase() == tokenAddress.toLowerCase(),
               orElse: () => <String, dynamic>{},
             );
 
-        if (matchingRealToken.isNotEmpty &&
-            matchingRealToken['propertyType'] != null) {
+        if (matchingRealToken.isNotEmpty && matchingRealToken['propertyType'] != null) {
           final propertyType = matchingRealToken['propertyType'];
 
           // Vérifiez si le type de propriété existe déjà dans propertyData
           final existingPropertyType = tempPropertyData.firstWhere(
             (data) => data['propertyType'] == propertyType,
-            orElse: () => <String,
-                dynamic>{}, // Renvoie un map vide si aucune correspondance n'est trouvée
+            orElse: () => <String, dynamic>{}, // Renvoie un map vide si aucune correspondance n'est trouvée
           );
 
           if (existingPropertyType.isNotEmpty) {
@@ -1341,17 +1284,13 @@ class DataManager extends ChangeNotifier {
       conversionRate = 1.0; // Forcer le taux à 1 pour USD
     } else if (currencies.containsKey(selectedCurrency)) {
       // Récupérez le taux de conversion, ou 1.0 si absent
-      conversionRate = currencies[selectedCurrency] is double
-          ? currencies[selectedCurrency]
-          : 1.0;
+      conversionRate = currencies[selectedCurrency] is double ? currencies[selectedCurrency] : 1.0;
     } else {
       conversionRate = 1.0; // Par défaut, utiliser 1.0 (si devise inconnue)
     }
 
     // Mettre à jour le symbole de la devise, ou utiliser les 3 lettres si le symbole est absent
-    currencySymbol = _currencySymbols[selectedCurrency] ??
-        selectedCurrency
-            .toUpperCase(); // Utiliser les lettres de la devise si le symbole est absent
+    currencySymbol = _currencySymbols[selectedCurrency] ?? selectedCurrency.toUpperCase(); // Utiliser les lettres de la devise si le symbole est absent
 
     notifyListeners(); // Notifiez les écouteurs que quelque chose a changé
   }
@@ -1408,8 +1347,7 @@ class DataManager extends ChangeNotifier {
       notifyListeners(); // Notifier l'interface que les données ont été mises à jour
 
       // Vérifier si une heure s'est écoulée depuis le dernier archivage
-      if (lastArchiveTime == null ||
-          DateTime.now().difference(lastArchiveTime!).inHours >= 1) {
+      if (lastArchiveTime == null || DateTime.now().difference(lastArchiveTime!).inHours >= 1) {
         if (timestamp != null) {
           // Archiver les balances cumulées pour chaque type de token
           archiveBalance('usdcDeposit', usdcDepositSum, timestamp);
@@ -1427,18 +1365,15 @@ class DataManager extends ChangeNotifier {
   }
 
   Future<List<BalanceRecord>> getBalanceHistory(String tokenType) async {
-    var box =
-        Hive.box('balanceHistory'); // Boîte Hive pour récupérer les balances
+    var box = Hive.box('balanceHistory'); // Boîte Hive pour récupérer les balances
 
     // Récupérer les données depuis Hive
     List<dynamic>? balanceHistoryJson = box.get('balanceHistory_$tokenType');
     if (balanceHistoryJson != null) {
       // Convertir chaque élément JSON en objet BalanceRecord
       return balanceHistoryJson
-          .map((recordJson) =>
-              BalanceRecord.fromJson(Map<String, dynamic>.from(recordJson)))
-          .where((record) =>
-              record.tokenType == tokenType) // Filtrer par tokenType
+          .map((recordJson) => BalanceRecord.fromJson(Map<String, dynamic>.from(recordJson)))
+          .where((record) => record.tokenType == tokenType) // Filtrer par tokenType
           .toList();
     }
 
@@ -1446,18 +1381,12 @@ class DataManager extends ChangeNotifier {
   }
 
   Future<void> archiveTotalWalletValue(double totalWalletValue) async {
-    var box =
-        Hive.box('walletValueArchive'); // Ouvrir une nouvelle boîte dédiée
+    var box = Hive.box('walletValueArchive'); // Ouvrir une nouvelle boîte dédiée
 
     // Charger l'historique existant depuis Hive
-    List<dynamic>? balanceHistoryJson =
-        box.get('balanceHistory_totalWalletValue');
-    List<BalanceRecord> balanceHistory = balanceHistoryJson != null
-        ? balanceHistoryJson
-            .map((recordJson) =>
-                BalanceRecord.fromJson(Map<String, dynamic>.from(recordJson)))
-            .toList()
-        : [];
+    List<dynamic>? balanceHistoryJson = box.get('balanceHistory_totalWalletValue');
+    List<BalanceRecord> balanceHistory =
+        balanceHistoryJson != null ? balanceHistoryJson.map((recordJson) => BalanceRecord.fromJson(Map<String, dynamic>.from(recordJson))).toList() : [];
 
     // Vérifier le dernier enregistrement
     if (balanceHistory.isNotEmpty) {
@@ -1481,10 +1410,8 @@ class DataManager extends ChangeNotifier {
     balanceHistory.add(newRecord);
 
     // Sauvegarder la liste mise à jour dans Hive
-    List<Map<String, dynamic>> balanceHistoryJsonToSave =
-        balanceHistory.map((record) => record.toJson()).toList();
-    await box.put('balanceHistory_totalWalletValue',
-        balanceHistoryJsonToSave); // Stocker dans la nouvelle boîte
+    List<Map<String, dynamic>> balanceHistoryJsonToSave = balanceHistory.map((record) => record.toJson()).toList();
+    await box.put('balanceHistory_totalWalletValue', balanceHistoryJsonToSave); // Stocker dans la nouvelle boîte
   }
 
   Future<void> archiveRoiValue(double roiValue) async {
@@ -1492,12 +1419,8 @@ class DataManager extends ChangeNotifier {
 
     // Charger l'historique existant depuis Hive
     List<dynamic>? roiHistoryJson = box.get('roi_history');
-    List<RoiRecord> roiHistory = roiHistoryJson != null
-        ? roiHistoryJson
-            .map((recordJson) =>
-                RoiRecord.fromJson(Map<String, dynamic>.from(recordJson)))
-            .toList()
-        : [];
+    List<RoiRecord> roiHistory =
+        roiHistoryJson != null ? roiHistoryJson.map((recordJson) => RoiRecord.fromJson(Map<String, dynamic>.from(recordJson))).toList() : [];
 
     // Vérifier le dernier enregistrement
     if (roiHistory.isNotEmpty) {
@@ -1520,25 +1443,50 @@ class DataManager extends ChangeNotifier {
     roiHistory.add(newRecord);
 
     // Sauvegarder la liste mise à jour dans Hive
-    List<Map<String, dynamic>> roiHistoryJsonToSave =
-        roiHistory.map((record) => record.toJson()).toList();
-    await box.put(
-        'roi_history', roiHistoryJsonToSave); // Stocker dans la nouvelle boîte
+    List<Map<String, dynamic>> roiHistoryJsonToSave = roiHistory.map((record) => record.toJson()).toList();
+    await box.put('roi_history', roiHistoryJsonToSave); // Stocker dans la nouvelle boîte
   }
 
-  void archiveBalance(
-      String tokenType, double balance, String timestamp) async {
-    var box =
-        Hive.box('balanceHistory'); // Boîte Hive pour stocker les balances
+  Future<void> archiveApyValue(double netApyValue, double grossApyValue) async {
+    var box = Hive.box('apyValueArchive'); // Ouvrir une nouvelle boîte dédiée
+
+    // Charger l'historique existant depuis Hive
+    List<dynamic>? apyHistoryJson = box.get('apy_history');
+    List<ApyRecord> apyHistory =
+        apyHistoryJson != null ? apyHistoryJson.map((recordJson) => ApyRecord.fromJson(Map<String, dynamic>.from(recordJson))).toList() : [];
+
+    // Vérifier le dernier enregistrement
+    if (apyHistory.isNotEmpty) {
+      ApyRecord lastRecord = apyHistory.last;
+      DateTime lastTimestamp = lastRecord.timestamp;
+
+      // Vérifier si la différence est inférieure à 1 heure
+      if (DateTime.now().difference(lastTimestamp).inHours < 1) {
+        // Si moins d'une heure, ne rien faire
+        return;
+      }
+    }
+
+    // Ajouter un nouvel enregistrement
+    ApyRecord newRecord = ApyRecord(
+      netApy: double.parse(netApyValue.toStringAsFixed(3)),
+      grossApy: double.parse(grossApyValue.toStringAsFixed(3)),
+      timestamp: DateTime.now(),
+    );
+    apyHistory.add(newRecord);
+
+    // Sauvegarder dans Hive
+    List<Map<String, dynamic>> apyHistoryJsonToSave = apyHistory.map((record) => record.toJson()).toList();
+    await box.put('apy_history', apyHistoryJsonToSave);
+  }
+
+  void archiveBalance(String tokenType, double balance, String timestamp) async {
+    var box = Hive.box('balanceHistory'); // Boîte Hive pour stocker les balances
 
     // Charger l'historique existant depuis Hive
     List<dynamic>? balanceHistoryJson = box.get('balanceHistory_$tokenType');
-    List<BalanceRecord> balanceHistory = balanceHistoryJson != null
-        ? balanceHistoryJson
-            .map((recordJson) =>
-                BalanceRecord.fromJson(Map<String, dynamic>.from(recordJson)))
-            .toList()
-        : [];
+    List<BalanceRecord> balanceHistory =
+        balanceHistoryJson != null ? balanceHistoryJson.map((recordJson) => BalanceRecord.fromJson(Map<String, dynamic>.from(recordJson))).toList() : [];
 
     // Ajouter le nouvel enregistrement à l'historique
     BalanceRecord newRecord = BalanceRecord(
@@ -1549,10 +1497,8 @@ class DataManager extends ChangeNotifier {
     balanceHistory.add(newRecord);
 
     // Sauvegarder la liste mise à jour dans Hive
-    List<Map<String, dynamic>> balanceHistoryJsonToSave =
-        balanceHistory.map((record) => record.toJson()).toList();
-    await box.put('balanceHistory_$tokenType',
-        balanceHistoryJsonToSave); // Stocker chaque type de token séparément
+    List<Map<String, dynamic>> balanceHistoryJsonToSave = balanceHistory.map((record) => record.toJson()).toList();
+    await box.put('balanceHistory_$tokenType', balanceHistoryJsonToSave); // Stocker chaque type de token séparément
   }
 
   Future<double> calculateAPY(String tokenType) async {
@@ -1565,8 +1511,7 @@ class DataManager extends ChangeNotifier {
     }
 
     // Calculer l'APY moyen des 3 dernières paires valides
-    double averageAPYForLastThreePairs =
-        _calculateAPYForLastThreeValidPairs(history);
+    double averageAPYForLastThreePairs = _calculateAPYForLastThreeValidPairs(history);
 
     // Si aucune paire valide n'est trouvée, retourner 0
     if (averageAPYForLastThreePairs == 0) {
@@ -1624,8 +1569,7 @@ class DataManager extends ChangeNotifier {
     double finalBalance = current.balance;
 
     // Calculer la différence en pourcentage
-    double percentageChange =
-        ((finalBalance - initialBalance) / initialBalance) * 100;
+    double percentageChange = ((finalBalance - initialBalance) / initialBalance) * 100;
 
     // Ignorer si la différence est trop faible (par exemple moins de 0,001%)
     if (percentageChange.abs() < 0.001) {
@@ -1638,8 +1582,7 @@ class DataManager extends ChangeNotifier {
     }
 
     // Calculer la durée en secondes
-    double timePeriodInSeconds =
-        current.timestamp.difference(previous.timestamp).inSeconds.toDouble();
+    double timePeriodInSeconds = current.timestamp.difference(previous.timestamp).inSeconds.toDouble();
 
     // Ignorer les périodes trop courtes (moins de 1 minute, par exemple)
     if (timePeriodInSeconds < 60) {
@@ -1647,21 +1590,13 @@ class DataManager extends ChangeNotifier {
     }
 
     // Calculer l'APY en utilisant des secondes et convertir pour une période annuelle
-    double apy = ((finalBalance - initialBalance) / initialBalance) *
-        (365 * 24 * 60 * 60 / timePeriodInSeconds) *
-        100;
+    double apy = ((finalBalance - initialBalance) / initialBalance) * (365 * 24 * 60 * 60 / timePeriodInSeconds) * 100;
 
     return apy;
   }
 
   double getTotalRentReceived() {
-    return rentData.fold(
-        0.0,
-        (total, rentEntry) =>
-            total +
-            (rentEntry['rent'] is String
-                ? double.parse(rentEntry['rent'])
-                : rentEntry['rent']));
+    return rentData.fold(0.0, (total, rentEntry) => total + (rentEntry['rent'] is String ? double.parse(rentEntry['rent']) : rentEntry['rent']));
   }
 
   double getRentDetailsForToken(String token) {
@@ -1675,8 +1610,7 @@ class DataManager extends ChangeNotifier {
 
         // Parcourir chaque élément de la liste des loyers
         for (var rentEntry in rents) {
-          if (rentEntry['token'] != null &&
-              rentEntry['token'].toLowerCase() == token.toLowerCase()) {
+          if (rentEntry['token'] != null && rentEntry['token'].toLowerCase() == token.toLowerCase()) {
             // Ajoute le rent à totalRent si le token correspond
             totalRent += (rentEntry['rent'] ?? 0.0).toDouble();
           }
@@ -1693,8 +1627,7 @@ class DataManager extends ChangeNotifier {
 
     if (savedData != null) {
       final decodedMap = Map<String, dynamic>.from(jsonDecode(savedData));
-      customInitPrices =
-          decodedMap.map((key, value) => MapEntry(key, value as double));
+      customInitPrices = decodedMap.map((key, value) => MapEntry(key, value as double));
     }
     notifyListeners();
   }
@@ -1724,9 +1657,7 @@ class DataManager extends ChangeNotifier {
       if (propertiesForSaleFetched.isNotEmpty) {
         propertiesForSale = propertiesForSaleFetched.map((property) {
           // Chercher le RealToken correspondant à partir de realTokens en comparant `title` et `fullName`
-          final matchingToken = allTokens.firstWhere(
-              (token) => token['fullName'] == property['title'],
-              orElse: () => <String, dynamic>{});
+          final matchingToken = allTokens.firstWhere((token) => token['fullName'] == property['title'], orElse: () => <String, dynamic>{});
 
           return {
             'title': property['title'],
@@ -1750,8 +1681,7 @@ class DataManager extends ChangeNotifier {
         logger.w("DataManager: Aucune propriété en vente trouvée");
       }
     } catch (e) {
-      logger.e(
-          "DataManager: Erreur lors de la récupération des propriétés en vente: $e");
+      logger.e("DataManager: Erreur lors de la récupération des propriétés en vente: $e");
     }
 
     // Notifie les widgets que les données ont changé
@@ -1767,8 +1697,7 @@ class DataManager extends ChangeNotifier {
     List<Map<String, dynamic>> yamMarketData = [];
 
     if (cachedData != null) {
-      yamMarketFetched =
-          List<Map<String, dynamic>>.from(json.decode(cachedData));
+      yamMarketFetched = List<Map<String, dynamic>>.from(json.decode(cachedData));
       logger.i("Données YamMarket en cache utilisées.");
     }
 
@@ -1781,9 +1710,7 @@ class DataManager extends ChangeNotifier {
     if (yamMarketFetched.isNotEmpty) {
       for (var offer in yamMarketFetched) {
         final matchingToken = allTokens.firstWhere(
-            (token) =>
-                token['uuid'].toLowerCase() == offer['token_to_sell'] ||
-                token['uuid'].toLowerCase() == offer['token_to_buy'],
+            (token) => token['uuid'].toLowerCase() == offer['token_to_sell'] || token['uuid'].toLowerCase() == offer['token_to_buy'],
             orElse: () => <String, dynamic>{});
 
         double tokenAmount = offer['token_amount'] ?? 0.0;

@@ -213,6 +213,8 @@
   "section8paid": "Section 8",
   "propertiesForSale": "Properties for Sale",
   "noPropertiesForSale": "No properties for sale",
+    "net": "Net",
+  "brute": "Gross",
   "unknownCountry": "Unknown country",
   "no_market_offers_available": "No market offers available",
   "offer_id": "Offer ID",
@@ -227,6 +229,8 @@
   "properties_for_sale": "Properties For Sale",
   "realt": "RealT",
   "secondary": "Secondary",
+    "apyHistory": "APY History",
+  "roiHistory": "ROI History",
   "@propertyMaintenanceMonthly": {
     "description": "Monthly maintenance expenses for the property"
   },

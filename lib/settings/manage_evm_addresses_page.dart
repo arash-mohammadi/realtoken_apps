@@ -86,7 +86,9 @@ class ManageEthAddressesPageState extends State<ManageEvmAddressesPage> {
     bool isAddressSaved = false; // Pour éviter l'ajout multiple
     await Navigator.of(context).push(MaterialPageRoute(
       builder: (context) => Scaffold(
-        appBar: AppBar(title: const Text('Scan QR Code')),
+        appBar: AppBar(
+            backgroundColor: Theme.of(context).scaffoldBackgroundColor, // Définir le fond noir
+            title: const Text('Scan QR Code')),
         body: MobileScanner(onDetect: (BarcodeCapture barcodeCapture) {
           if (!isAddressSaved) {
             final List<Barcode> barcodes = barcodeCapture.barcodes;
@@ -136,6 +138,7 @@ class ManageEthAddressesPageState extends State<ManageEvmAddressesPage> {
 
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor, // Définir le fond noir
         title: const Text('Manage Wallets'),
       ),
       body: Padding(

@@ -34,6 +34,7 @@ void main() async {
     Hive.openBox('balanceHistory'),
     Hive.openBox('walletValueArchive'),
     Hive.openBox('roiValueArchive'),
+    Hive.openBox('apyValueArchive'),
     Hive.openBox('customInitPrices'),
     Hive.openBox('YamMarket'),
   ]);

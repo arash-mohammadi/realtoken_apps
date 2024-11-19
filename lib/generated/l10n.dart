@@ -2166,6 +2166,26 @@ class S {
     );
   }
 
+  /// `Net`
+  String get net {
+    return Intl.message(
+      'Net',
+      name: 'net',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Gross`
+  String get brute {
+    return Intl.message(
+      'Gross',
+      name: 'brute',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Unknown country`
   String get unknownCountry {
     return Intl.message(
@@ -2301,6 +2321,26 @@ class S {
     return Intl.message(
       'Secondary',
       name: 'secondary',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `APY History`
+  String get apyHistory {
+    return Intl.message(
+      'APY History',
+      name: 'apyHistory',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `ROI History`
+  String get roiHistory {
+    return Intl.message(
+      'ROI History',
+      name: 'roiHistory',
       desc: '',
       args: [],
     );

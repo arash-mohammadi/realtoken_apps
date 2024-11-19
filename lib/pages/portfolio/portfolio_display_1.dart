@@ -102,7 +102,7 @@ class PortfolioDisplay1 extends StatelessWidget {
               ),
             )
           : GridView.builder(
-              padding: const EdgeInsets.only(top: 20, bottom: 80),
+              padding: const EdgeInsets.only(top: 20, bottom: 80, right: 4, left: 4),
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: MediaQuery.of(context).size.width > 700 ? 2 : 1,
 

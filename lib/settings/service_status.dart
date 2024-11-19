@@ -42,6 +42,7 @@ class ServiceStatusPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor, // Définir le fond noir
         title: Text(S.of(context).serviceStatusPage),
       ),
       body: executionTimesMap.isNotEmpty

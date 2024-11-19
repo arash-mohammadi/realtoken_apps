@@ -43,8 +43,7 @@ class RmmStatsState extends State<RmmStats> {
             sliver: SliverGrid(
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: screenWidth > 700 ? 2 : 1,
-                mainAxisSpacing: 8.0, // Espacement vertical entre les cartes
-                crossAxisSpacing: 8.0, // Espacement horizontal entre les cartes
+
                 mainAxisExtent: fixedCardHeight, // Hauteur fixe pour chaque carte
               ),
               delegate: SliverChildBuilderDelegate(
@@ -169,6 +168,103 @@ class RmmStatsState extends State<RmmStats> {
     );
   }
 
+  LineChartData _buildDepositChart(Map<String, List<BalanceRecord>> allHistories) {
+    final dataManager = Provider.of<DataManager>(context);
+    final appState = Provider.of<AppState>(context);
+
+    final maxY = _getMaxY(allHistories, ['usdcDeposit', 'xdaiDeposit']);
+    final maxX = allHistories.values.expand((e) => e).map((e) => e.timestamp.millisecondsSinceEpoch.toDouble()).reduce((a, b) => a > b ? a : b);
+    final minX = allHistories.values.expand((e) => e).map((e) => e.timestamp.millisecondsSinceEpoch.toDouble()).reduce((a, b) => a < b ? a : b);
+
+    return LineChartData(
+      gridData: FlGridData(show: true, drawVerticalLine: false),
+      titlesData: FlTitlesData(
+        bottomTitles: AxisTitles(
+          sideTitles: SideTitles(
+            showTitles: true,
+            getTitlesWidget: (value, meta) {
+              final date = DateTime.fromMillisecondsSinceEpoch(value.toInt());
+              return Transform.rotate(
+                angle: -0.5,
+                child: Text(
+                  '${date.month}/${date.day}',
+                  style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
+                ),
+              );
+            },
+          ),
+        ),
+        leftTitles: AxisTitles(
+          sideTitles: SideTitles(
+            showTitles: true,
+            reservedSize: 45,
+            getTitlesWidget: (value, meta) {
+              final displayValue = value >= 1000
+                  ? '${(value / 1000).toStringAsFixed(1)} k${dataManager.currencySymbol}'
+                  : '${value.toStringAsFixed(2)}${dataManager.currencySymbol}';
+
+              return Transform.rotate(
+                angle: -0.5,
+                child: Text(
+                  displayValue,
+                  style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
+                ),
+              );
+            },
+          ),
+        ),
+        rightTitles: AxisTitles(
+          sideTitles: SideTitles(showTitles: false),
+        ),
+        topTitles: AxisTitles(
+          sideTitles: SideTitles(showTitles: false),
+        ),
+      ),
+      borderData: FlBorderData(show: false),
+      minX: minX,
+      maxX: maxX,
+      minY: 0,
+      maxY: maxY,
+      lineBarsData: [
+        _buildLineBarData(allHistories['usdcDeposit']!, Colors.blue, "USDC Deposit"),
+        _buildLineBarData(allHistories['xdaiDeposit']!, Colors.green, "xDai Deposit"),
+      ],
+      lineTouchData: LineTouchData(
+        touchTooltipData: LineTouchTooltipData(
+          getTooltipItems: (List<LineBarSpot> touchedSpots) {
+            if (touchedSpots.isEmpty) return [];
+
+            final timestamp = touchedSpots.first.x.toInt();
+            final date = DateTime.fromMillisecondsSinceEpoch(timestamp);
+            final formattedDate = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+
+            // Génère des éléments de tooltip pour chaque spot
+            final tooltipItems = touchedSpots.map((spot) {
+              final barName = spot.bar.color == Colors.blue ? "USDC" : "XDAI"; // Identifie l'élément
+              final value = spot.y;
+
+              return LineTooltipItem(
+                '$barName: ${Utils.formatCurrency(dataManager.convert(value), dataManager.currencySymbol)}',
+                const TextStyle(color: Colors.white),
+              );
+            }).toList();
+
+            // Ajoutez la date uniquement au premier élément
+            if (tooltipItems.isNotEmpty) {
+              tooltipItems[0] = LineTooltipItem(
+                '$formattedDate\n${tooltipItems[0].text}', // Ajouter la date au premier tooltip
+                tooltipItems[0].textStyle,
+              );
+            }
+
+            return tooltipItems;
+          },
+        ),
+        handleBuiltInTouches: true,
+      ),
+    );
+  }
+
 // Fonction pour créer la carte d'emprunt (Borrow Balance Card)
   Widget _buildBorrowBalanceCard(DataManager dataManager, double screenHeight) {
     return SizedBox(
@@ -207,6 +303,104 @@ class RmmStatsState extends State<RmmStats> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  LineChartData _buildBorrowChart(Map<String, List<BalanceRecord>> allHistories) {
+    final dataManager = Provider.of<DataManager>(context);
+    final appState = Provider.of<AppState>(context);
+
+    final maxY = _getMaxY(allHistories, ['usdcBorrow', 'xdaiBorrow']);
+    final maxX = allHistories.values.expand((e) => e).map((e) => e.timestamp.millisecondsSinceEpoch.toDouble()).reduce((a, b) => a > b ? a : b);
+    final minX = allHistories.values.expand((e) => e).map((e) => e.timestamp.millisecondsSinceEpoch.toDouble()).reduce((a, b) => a < b ? a : b);
+
+    return LineChartData(
+      gridData: FlGridData(show: true, drawVerticalLine: false),
+      titlesData: FlTitlesData(
+        bottomTitles: AxisTitles(
+          sideTitles: SideTitles(
+            showTitles: true,
+            getTitlesWidget: (value, meta) {
+              final date = DateTime.fromMillisecondsSinceEpoch(value.toInt());
+              return Transform.rotate(
+                angle: -0.5,
+                child: Text(
+                  '${date.month}/${date.day}',
+                  style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
+                ),
+              );
+            },
+          ),
+        ),
+        leftTitles: AxisTitles(
+          sideTitles: SideTitles(
+            showTitles: true,
+            reservedSize: 45,
+            getTitlesWidget: (value, meta) {
+              final displayValue = value >= 1000
+                  ? '${(value / 1000).toStringAsFixed(1)} k${dataManager.currencySymbol}'
+                  : '${value.toStringAsFixed(2)}${dataManager.currencySymbol}';
+
+              return Transform.rotate(
+                angle: -0.5,
+                child: Text(
+                  displayValue,
+                  style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
+                ),
+              );
+            },
+          ),
+        ),
+        rightTitles: AxisTitles(
+          sideTitles: SideTitles(showTitles: false),
+        ),
+        topTitles: AxisTitles(
+          sideTitles: SideTitles(showTitles: false),
+        ),
+      ),
+      borderData: FlBorderData(show: false),
+      minX: minX,
+      maxX: maxX,
+      minY: 0,
+      maxY: maxY,
+      lineBarsData: [
+        _buildLineBarData(allHistories['usdcBorrow']!, Colors.orange, "USDC Borrow"),
+        _buildLineBarData(allHistories['xdaiBorrow']!, Colors.red, "xDai Borrow"),
+      ],
+      lineTouchData: LineTouchData(
+        touchTooltipData: LineTouchTooltipData(
+          getTooltipItems: (List<LineBarSpot> touchedSpots) {
+            if (touchedSpots.isEmpty) return [];
+
+            // Récupère la date depuis le premier spot touché
+            final timestamp = touchedSpots.first.x.toInt();
+            final date = DateTime.fromMillisecondsSinceEpoch(timestamp);
+            final formattedDate = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+
+            // Génère un élément pour chaque spot touché
+            final tooltipItems = touchedSpots.map((spot) {
+              final barName = spot.bar.color == Colors.orange ? "USDC" : "XDAI";
+              final value = spot.y;
+
+              return LineTooltipItem(
+                '$barName: ${Utils.formatCurrency(dataManager.convert(value), dataManager.currencySymbol)}',
+                const TextStyle(color: Colors.white),
+              );
+            }).toList();
+
+            // Ajoute la date en haut du tooltip
+            if (tooltipItems.isNotEmpty) {
+              tooltipItems[0] = LineTooltipItem(
+                '$formattedDate\n${tooltipItems[0].text}',
+                tooltipItems[0].textStyle,
+              );
+            }
+
+            return tooltipItems;
+          },
+        ),
+        handleBuiltInTouches: true,
       ),
     );
   }
@@ -255,13 +449,13 @@ class RmmStatsState extends State<RmmStats> {
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Center(
-                child: Text('${dataManager.usdcDepositApy.toStringAsFixed(2)}%'),
+                child: Text('${dataManager.usdcDepositApy.toStringAsFixed(2)}%', style: const TextStyle(color: Colors.blue)),
               ),
             ),
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Center(
-                child: Text('${dataManager.xdaiDepositApy.toStringAsFixed(2)}%'),
+                child: Text('${dataManager.xdaiDepositApy.toStringAsFixed(2)}%', style: const TextStyle(color: Colors.green)),
               ),
             ),
           ],
@@ -275,159 +469,17 @@ class RmmStatsState extends State<RmmStats> {
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Center(
-                child: Text('${dataManager.usdcBorrowApy.toStringAsFixed(2)}%'),
+                child: Text('${dataManager.usdcBorrowApy.toStringAsFixed(2)}%', style: const TextStyle(color: Colors.orange)),
               ),
             ),
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Center(
-                child: Text('${dataManager.xdaiBorrowApy.toStringAsFixed(2)}%'),
+                child: Text('${dataManager.xdaiBorrowApy.toStringAsFixed(2)}%', style: const TextStyle(color: Colors.red)),
               ),
             ),
           ],
         ),
-      ],
-    );
-  }
-
-  // Fonction pour créer le graphique des dépôts (Deposits)
-  LineChartData _buildDepositChart(Map<String, List<BalanceRecord>> allHistories) {
-    final dataManager = Provider.of<DataManager>(context);
-    final appState = Provider.of<AppState>(context);
-
-    final maxY = _getMaxY(allHistories, ['usdcDeposit', 'xdaiDeposit']);
-    final maxX = allHistories.values.expand((e) => e).map((e) => e.timestamp.millisecondsSinceEpoch.toDouble()).reduce((a, b) => a > b ? a : b);
-    final minX = allHistories.values.expand((e) => e).map((e) => e.timestamp.millisecondsSinceEpoch.toDouble()).reduce((a, b) => a < b ? a : b);
-
-    return LineChartData(
-      gridData: FlGridData(show: true, drawVerticalLine: false),
-      titlesData: FlTitlesData(
-        bottomTitles: AxisTitles(
-          sideTitles: SideTitles(
-            showTitles: true,
-            getTitlesWidget: (value, meta) {
-              final date = DateTime.fromMillisecondsSinceEpoch(value.toInt());
-              return Transform.rotate(
-                angle: -0.5,
-                child: Text(
-                  '${date.month}/${date.day}',
-                  style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
-                ),
-              );
-            },
-          ),
-        ),
-        leftTitles: AxisTitles(
-          sideTitles: SideTitles(
-            showTitles: true,
-            reservedSize: 45,
-            getTitlesWidget: (value, meta) {
-              // Déterminer la valeur la plus élevée dans les données de l'axe Y
-              if (value == maxY) {
-                return const SizedBox.shrink(); // Ne pas afficher la valeur la plus élevée
-              }
-
-              // Formater la valeur en "k" si elle est supérieure ou égale à 1000
-              final displayValue = value >= 1000
-                  ? '${(value / 1000).toStringAsFixed(1)} k${dataManager.currencySymbol}'
-                  : '${value.toStringAsFixed(2)}${dataManager.currencySymbol}';
-
-              return Transform.rotate(
-                angle: -0.5,
-                child: Text(
-                  displayValue,
-                  style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
-                ),
-              );
-            },
-          ),
-        ),
-        rightTitles: AxisTitles(
-          sideTitles: SideTitles(showTitles: false),
-        ),
-        topTitles: AxisTitles(
-          sideTitles: SideTitles(showTitles: false),
-        ),
-      ),
-      borderData: FlBorderData(show: false),
-      minX: minX,
-      maxX: maxX,
-      minY: 0, // Laisser un peu d'espace en bas
-      maxY: maxY, // Ajouter une marge en haut
-      lineBarsData: [
-        _buildLineBarData(allHistories['usdcDeposit']!, Colors.blue, "USDC Deposit"),
-        _buildLineBarData(allHistories['xdaiDeposit']!, Colors.green, "xDai Deposit"),
-      ],
-    );
-  }
-
-  // Fonction pour créer le graphique des emprunts (Borrows)
-  LineChartData _buildBorrowChart(Map<String, List<BalanceRecord>> allHistories) {
-    final dataManager = Provider.of<DataManager>(context);
-    final appState = Provider.of<AppState>(context);
-
-    final maxY = _getMaxY(allHistories, ['usdcBorrow', 'xdaiBorrow']);
-    final maxX = allHistories.values.expand((e) => e).map((e) => e.timestamp.millisecondsSinceEpoch.toDouble()).reduce((a, b) => a > b ? a : b);
-    final minX = allHistories.values.expand((e) => e).map((e) => e.timestamp.millisecondsSinceEpoch.toDouble()).reduce((a, b) => a < b ? a : b);
-
-    return LineChartData(
-      gridData: FlGridData(show: true, drawVerticalLine: false),
-      titlesData: FlTitlesData(
-        bottomTitles: AxisTitles(
-          sideTitles: SideTitles(
-            showTitles: true,
-            getTitlesWidget: (value, meta) {
-              final date = DateTime.fromMillisecondsSinceEpoch(value.toInt());
-              return Transform.rotate(
-                angle: -0.5,
-                child: Text(
-                  '${date.month}/${date.day}',
-                  style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
-                ),
-              );
-            },
-          ),
-        ),
-        leftTitles: AxisTitles(
-          sideTitles: SideTitles(
-            showTitles: true,
-            reservedSize: 45,
-            getTitlesWidget: (value, meta) {
-              // Déterminer la valeur la plus élevée dans les données de l'axe Y
-              if (value == maxY) {
-                return const SizedBox.shrink(); // Ne pas afficher la valeur la plus élevée
-              }
-
-              // Formater la valeur en "k" si elle est supérieure ou égale à 1000
-              final displayValue = value >= 1000
-                  ? '${(value / 1000).toStringAsFixed(1)} k${dataManager.currencySymbol}'
-                  : '${value.toStringAsFixed(2)}${dataManager.currencySymbol}';
-
-              return Transform.rotate(
-                angle: -0.5,
-                child: Text(
-                  displayValue,
-                  style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
-                ),
-              );
-            },
-          ),
-        ),
-        rightTitles: AxisTitles(
-          sideTitles: SideTitles(showTitles: false),
-        ),
-        topTitles: AxisTitles(
-          sideTitles: SideTitles(showTitles: false),
-        ),
-      ),
-      borderData: FlBorderData(show: false),
-      minX: minX,
-      maxX: maxX,
-      minY: 0, // Laisser un peu d'espace en bas
-      maxY: maxY, // Ajouter une marge en haut
-      lineBarsData: [
-        _buildLineBarData(allHistories['usdcBorrow']!, Colors.orange, "USDC Borrow"),
-        _buildLineBarData(allHistories['xdaiBorrow']!, Colors.red, "xDai Borrow"),
       ],
     );
   }
@@ -447,7 +499,7 @@ class RmmStatsState extends State<RmmStats> {
                 double.parse(record.balance.toStringAsFixed(2)), // Limiter à 2 décimales
               ))
           .toList(),
-      isCurved: true,
+      isCurved: false,
       dotData: FlDotData(show: false), // Afficher les points sur chaque valeur
       barWidth: 2,
       isStrokeCapRound: false,

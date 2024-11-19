@@ -137,7 +137,7 @@ class _PortfolioStats extends State<PortfolioStats> {
       body: CustomScrollView(
         slivers: [
           SliverPadding(
-            padding: const EdgeInsets.only(top: 16.0, bottom: 8.0, left: 8.0, right: 16.0),
+            padding: const EdgeInsets.only(top: 16.0, bottom: 80.0, left: 8.0, right: 8.0),
             sliver: SliverGrid(
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: isWideScreen ? 2 : 1,
@@ -161,7 +161,7 @@ class _PortfolioStats extends State<PortfolioStats> {
                       return Container();
                   }
                 },
-                childCount: 6, // Total number of chart widgets
+                childCount: 4, // Total number of chart widgets
               ),
             ),
           ),
@@ -649,7 +649,11 @@ class _PortfolioStats extends State<PortfolioStats> {
     for (var region in sortedRegions) {
       final value = regionCount[region]!;
       final double percentage = (value / totalCount) * 100;
-      final color = generateColor(sortedRegions.indexOf(region));
+      final baseColor = generateColor(sortedRegions.indexOf(region));
+
+      // Créer des nuances pour le gradient
+      final Color lighterColor = Utils.shadeColor(baseColor, 1);
+      final Color darkerColor = Utils.shadeColor(baseColor, 0.7);
 
       if (percentage < 2) {
         othersValue += value;
@@ -658,7 +662,11 @@ class _PortfolioStats extends State<PortfolioStats> {
         sections.add(PieChartSectionData(
           value: value.toDouble(),
           title: '${percentage.toStringAsFixed(1)}%',
-          color: color,
+          gradient: LinearGradient(
+            colors: [lighterColor, darkerColor],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
           radius: 50,
           titleStyle: TextStyle(
             fontSize: 10 + appState.getTextSizeOffset(),
@@ -712,7 +720,11 @@ class _PortfolioStats extends State<PortfolioStats> {
     for (var city in sortedCities) {
       final value = cityCount[city]!;
       final double percentage = (value / totalCount) * 100;
-      final color = generateColor(sortedCities.indexOf(city)); // Appliquer la couleur générée
+      final baseColor = generateColor(sortedCities.indexOf(city)); // Appliquer la couleur générée
+
+      // Créer des nuances pour le gradient
+      final Color lighterColor = Utils.shadeColor(baseColor, 1);
+      final Color darkerColor = Utils.shadeColor(baseColor, 0.7);
 
       if (percentage < 2) {
         othersValue += value;
@@ -721,7 +733,11 @@ class _PortfolioStats extends State<PortfolioStats> {
         sections.add(PieChartSectionData(
           value: value.toDouble(),
           title: '${percentage.toStringAsFixed(1)}%',
-          color: color,
+          gradient: LinearGradient(
+            colors: [lighterColor, darkerColor],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
           radius: 50,
           titleStyle: TextStyle(
             fontSize: 10 + appState.getTextSizeOffset(),
