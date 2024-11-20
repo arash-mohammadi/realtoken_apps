@@ -60,6 +60,7 @@ flutter:
     - assets/RealT_Logo.png
     - assets/ethereum.png
     - assets/gnosis.png
+    - assets/bmc.png
     - assets/icons/xdai.png
     - assets/icons/usdc.png
     - assets/country/usa.png
