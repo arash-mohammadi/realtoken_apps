@@ -356,7 +356,7 @@ class CustomDrawer extends StatelessWidget {
                 ),
                 const Divider(),
                 // Ajout de l'item pour les donations
-                if (!kIsWeb && !Platform.isIOS)
+                if (kIsWeb || (!kIsWeb && Platform.isAndroid))
                   ListTile(
                     leading: const Icon(Icons.monetization_on, color: Colors.blue),
                     title: Text(
@@ -368,6 +368,7 @@ class CustomDrawer extends StatelessWidget {
                       _showDonationModal(context, appState.getTextSizeOffset());
                     },
                   ),
+
                 // Item pour la notation de l'application
                 ListTile(
                   leading: const Icon(Icons.star),
