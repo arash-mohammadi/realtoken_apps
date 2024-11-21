@@ -269,11 +269,14 @@ class _WalletStats extends State<WalletStats> {
                         getTitlesWidget: (value, meta) {
                           List<String> labels = _buildDateLabels(convertedData);
                           if (value.toInt() >= 0 && value.toInt() < labels.length) {
-                            return Transform.rotate(
-                              angle: -0.5,
-                              child: Text(
-                                labels[value.toInt()],
-                                style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
+                            return Padding(
+                              padding: const EdgeInsets.only(top: 10.0), // Décalage vers le bas
+                              child: Transform.rotate(
+                                angle: -0.5,
+                                child: Text(
+                                  labels[value.toInt()],
+                                  style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
+                                ),
                               ),
                             );
                           } else {
@@ -283,7 +286,15 @@ class _WalletStats extends State<WalletStats> {
                       ),
                     ),
                   ),
-                  borderData: FlBorderData(show: false),
+                  borderData: FlBorderData(
+                    show: true, // Affiche les bordures
+                    border: Border(
+                      left: BorderSide(color: Colors.transparent), // Axe gauche
+                      bottom: BorderSide(color: Colors.blueGrey.shade700, width: 0.5), // Axe bas
+                      right: BorderSide(color: Colors.transparent), // Masque l'axe droit
+                      top: BorderSide(color: Colors.transparent), // Masque l'axe supérieur
+                    ),
+                  ),
                   minX: 0,
                   maxX: (convertedData.length - 1).toDouble(),
                   lineBarsData: [
@@ -414,11 +425,14 @@ class _WalletStats extends State<WalletStats> {
 
                           // Vérifie si l'indice est valide
                           if (value.toInt() >= 0 && value.toInt() < labels.length) {
-                            return Transform.rotate(
-                              angle: -0.5, // Inclinaison optionnelle des étiquettes
-                              child: Text(
-                                labels[value.toInt()],
-                                style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
+                            return Padding(
+                              padding: const EdgeInsets.only(top: 10.0), // Décalage vers le bas
+                              child: Transform.rotate(
+                                angle: -0.5,
+                                child: Text(
+                                  labels[value.toInt()],
+                                  style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
+                                ),
                               ),
                             );
                           } else {
@@ -431,7 +445,15 @@ class _WalletStats extends State<WalletStats> {
                       sideTitles: SideTitles(showTitles: false),
                     ),
                   ),
-                  borderData: FlBorderData(show: false),
+                  borderData: FlBorderData(
+                    show: true, // Affiche les bordures
+                    border: Border(
+                      left: BorderSide(color: Colors.transparent), // Axe gauche
+                      bottom: BorderSide(color: Colors.blueGrey.shade700, width: 0.5), // Axe bas
+                      right: BorderSide(color: Colors.transparent), // Masque l'axe droit
+                      top: BorderSide(color: Colors.transparent), // Masque l'axe supérieur
+                    ),
+                  ),
                   minX: 0,
                   maxX: (walletBalanceData.length - 1).toDouble(),
                   minY: 0, // Définit la valeur minimale de l'axe de gauche à 0
@@ -558,11 +580,14 @@ class _WalletStats extends State<WalletStats> {
 
                           // Vérifie si l'indice est valide
                           if (value.toInt() >= 0 && value.toInt() < labels.length) {
-                            return Transform.rotate(
-                              angle: -0.5, // Optionnel : incliner les étiquettes si elles sont longues
-                              child: Text(
-                                labels[value.toInt()],
-                                style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
+                            return Padding(
+                              padding: const EdgeInsets.only(top: 10.0), // Décalage vers le bas
+                              child: Transform.rotate(
+                                angle: -0.5,
+                                child: Text(
+                                  labels[value.toInt()],
+                                  style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
+                                ),
                               ),
                             );
                           } else {
@@ -577,7 +602,15 @@ class _WalletStats extends State<WalletStats> {
                       sideTitles: SideTitles(showTitles: false),
                     ),
                   ),
-                  borderData: FlBorderData(show: false),
+                  borderData: FlBorderData(
+                    show: true, // Affiche les bordures
+                    border: Border(
+                      left: BorderSide(color: Colors.transparent), // Axe gauche
+                      bottom: BorderSide(color: Colors.blueGrey.shade700, width: 0.5), // Axe bas
+                      right: BorderSide(color: Colors.transparent), // Masque l'axe droit
+                      top: BorderSide(color: Colors.transparent), // Masque l'axe supérieur
+                    ),
+                  ),
                   minX: 0,
                   maxX: (roiHistoryData.length - 1).toDouble(),
                   minY: 0, // Définit la valeur minimale de l'axe de gauche à 0
@@ -678,7 +711,7 @@ class _WalletStats extends State<WalletStats> {
                       titlesData: FlTitlesData(
                         leftTitles: AxisTitles(
                           sideTitles: SideTitles(
-                            showTitles: true,
+                            showTitles: true, // Afficher les titres à gauche
                             reservedSize: 45,
                             getTitlesWidget: (value, meta) {
                               return Text(
@@ -694,11 +727,14 @@ class _WalletStats extends State<WalletStats> {
                             getTitlesWidget: (value, meta) {
                               List<String> labels = _buildDateLabelsForApy(dataManager);
                               if (value.toInt() >= 0 && value.toInt() < labels.length) {
-                                return Transform.rotate(
-                                  angle: -0.5,
-                                  child: Text(
-                                    labels[value.toInt()],
-                                    style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
+                                return Padding(
+                                  padding: const EdgeInsets.only(top: 10.0), // Décalage vers le bas
+                                  child: Transform.rotate(
+                                    angle: -0.5,
+                                    child: Text(
+                                      labels[value.toInt()],
+                                      style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
+                                    ),
                                   ),
                                 );
                               } else {
@@ -708,16 +744,24 @@ class _WalletStats extends State<WalletStats> {
                           ),
                         ),
                         topTitles: AxisTitles(
-                          sideTitles: SideTitles(showTitles: false),
+                          sideTitles: SideTitles(showTitles: false), // Masquer les titres en haut
                         ),
                         rightTitles: AxisTitles(
-                          sideTitles: SideTitles(showTitles: false),
+                          sideTitles: SideTitles(showTitles: false), // Masquer les titres à droite
+                        ),
+                      ),
+                      borderData: FlBorderData(
+                        show: true, // Affiche les bordures
+                        border: Border(
+                          left: BorderSide(color: Colors.transparent), // Axe gauche
+                          bottom: BorderSide(color: Colors.blueGrey.shade700, width: 0.5), // Axe bas
+                          right: BorderSide(color: Colors.transparent), // Masque l'axe droit
+                          top: BorderSide(color: Colors.transparent), // Masque l'axe supérieur
                         ),
                       ),
                       alignment: BarChartAlignment.center,
-                      borderData: FlBorderData(show: false),
                       barGroups: apyHistoryData,
-                      maxY: 50,
+                      maxY: 20,
                       barTouchData: BarTouchData(
                         touchTooltipData: BarTouchTooltipData(
                           getTooltipItem: (group, groupIndex, rod, rodIndex) {
@@ -768,14 +812,19 @@ class _WalletStats extends State<WalletStats> {
       barGroups.add(
         BarChartGroupData(
           x: index,
+          barsSpace: 0, // Supprimer ou réduire l'espace entre les barres dans un groupe
           barRods: [
             BarChartRodData(
               toY: values['gross']!,
-              width: 16,
-              borderRadius: BorderRadius.circular(0),
-              color: Colors.transparent,
+              width: 16, // Réduire la largeur des barres
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(6), // Rayon pour le haut gauche
+                topRight: Radius.circular(6), // Rayon pour le haut droit
+                bottomLeft: Radius.zero, // Pas de rayon pour le bas gauche
+                bottomRight: Radius.zero, // Pas de rayon pour le bas droit
+              ),
               rodStackItems: [
-                BarChartRodStackItem(0, values['gross']!, Colors.blue.withOpacity(0.6)),
+                BarChartRodStackItem(0, values['gross']!, Colors.blue.withOpacity(0.8)),
                 BarChartRodStackItem(0, values['net']!, Colors.green.withOpacity(0.8)),
               ],
             ),

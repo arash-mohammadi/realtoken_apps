@@ -77,23 +77,22 @@ class CustomDrawer extends StatelessWidget {
                     ),
                   ),
                   ElevatedButton.icon(
-  onPressed: () {
-    Utils.launchURL('https://buymeacoffee.com/byackee');
-  },
-  icon: Image.asset(
-    'assets/bmc.png', // Chemin de votre image dans les assets
-    height: 24, // Ajustez la taille de l'image
-    width: 24,
-  ),
-  label: Text(
-    'buy coffee',
-    style: TextStyle(fontSize: 14 + textSizeOffset, color: Colors.white),
-  ),
-  style: ElevatedButton.styleFrom(
-    backgroundColor: Colors.blue,
-  ),
-),
-
+                    onPressed: () {
+                      Utils.launchURL('https://buymeacoffee.com/byackee');
+                    },
+                    icon: Image.asset(
+                      'assets/bmc.png', // Chemin de votre image dans les assets
+                      height: 24, // Ajustez la taille de l'image
+                      width: 24,
+                    ),
+                    label: Text(
+                      'buy coffee',
+                      style: TextStyle(fontSize: 14 + textSizeOffset, color: Colors.white),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                    ),
+                  ),
                   ElevatedButton.icon(
                     onPressed: () {
                       _showCryptoAddressDialog(context, textSizeOffset);

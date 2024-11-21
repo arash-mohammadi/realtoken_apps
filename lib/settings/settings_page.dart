@@ -98,8 +98,9 @@ class _SettingsPageState extends State<SettingsPage> {
       return value.map((key, val) => MapEntry(key, sanitizeValue(val)));
     } else if (value is List) {
       return value.map(sanitizeValue).toList();
-    } else if (value is num && value.isNaN) {
-      return 0; // Remplacer NaN par 0
+    } else if (value is num) {
+      // Convertir en double (y compris NaN géré comme 0.0)
+      return value.isNaN ? 0.0 : value.toDouble();
     }
     return value;
   }
