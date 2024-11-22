@@ -1415,90 +1415,111 @@ class DataManager extends ChangeNotifier {
   }
 
   Future<void> archiveRoiValue(double roiValue) async {
-    var box = Hive.box('roiValueArchive'); // Ouvrir une nouvelle boîte dédiée
+    try {
+      var box = Hive.box('roiValueArchive'); // Ouvrir une nouvelle boîte dédiée
 
-    // Charger l'historique existant depuis Hive
-    List<dynamic>? roiHistoryJson = box.get('roi_history');
-    List<RoiRecord> roiHistory =
-        roiHistoryJson != null ? roiHistoryJson.map((recordJson) => RoiRecord.fromJson(Map<String, dynamic>.from(recordJson))).toList() : [];
+      // Charger l'historique existant depuis Hive
+      List<dynamic>? roiHistoryJson = box.get('roi_history');
+      List<RoiRecord> roiHistory =
+          roiHistoryJson != null ? roiHistoryJson.map((recordJson) => RoiRecord.fromJson(Map<String, dynamic>.from(recordJson))).toList() : [];
 
-    // Vérifier le dernier enregistrement
-    if (roiHistory.isNotEmpty) {
-      RoiRecord lastRecord = roiHistory.last;
-      DateTime lastTimestamp = lastRecord.timestamp;
+      // Vérifier le dernier enregistrement
+      if (roiHistory.isNotEmpty) {
+        RoiRecord lastRecord = roiHistory.last;
+        DateTime lastTimestamp = lastRecord.timestamp;
 
-      // Vérifier si la différence est inférieure à 1 heure
-      logger.w(DateTime.now().difference(lastTimestamp).inHours);
-      if (DateTime.now().difference(lastTimestamp).inHours < 1) {
-        // Si moins d'une heure, ne rien faire
-        return; // Sortir de la fonction sans ajouter d'enregistrement
+        // Vérifier si la différence est inférieure à 1 heure
+        if (DateTime.now().difference(lastTimestamp).inHours < 1) {
+          // Si moins d'une heure, ne rien faire
+          logger.i('Dernière archive récente, aucun nouvel enregistrement ajouté.');
+          return; // Sortir de la fonction sans ajouter d'enregistrement
+        }
       }
+
+      // Ajouter le nouvel enregistrement à l'historique
+      RoiRecord newRecord = RoiRecord(
+        roi: double.parse(roiValue.toStringAsFixed(3)), // S'assurer que roi est un double
+        timestamp: DateTime.now(),
+      );
+      roiHistory.add(newRecord);
+
+      // Sauvegarder la liste mise à jour dans Hive
+      List<Map<String, dynamic>> roiHistoryJsonToSave = roiHistory.map((record) => record.toJson()).toList();
+
+      await box.put('roi_history', roiHistoryJsonToSave); // Stocker dans la nouvelle boîte
+      logger.i('Nouvel enregistrement ROI ajouté et sauvegardé avec succès.');
+    } catch (e) {
+      logger.w('Erreur lors de l\'archivage de la valeur ROI : $e');
     }
-
-    // Ajouter le nouvel enregistrement à l'historique
-    RoiRecord newRecord = RoiRecord(
-      roi: double.parse(roiValue.toStringAsFixed(3)),
-      timestamp: DateTime.now(),
-    );
-    roiHistory.add(newRecord);
-
-    // Sauvegarder la liste mise à jour dans Hive
-    List<Map<String, dynamic>> roiHistoryJsonToSave = roiHistory.map((record) => record.toJson()).toList();
-    await box.put('roi_history', roiHistoryJsonToSave); // Stocker dans la nouvelle boîte
   }
 
   Future<void> archiveApyValue(double netApyValue, double grossApyValue) async {
-    var box = Hive.box('apyValueArchive'); // Ouvrir une nouvelle boîte dédiée
+    try {
+      var box = Hive.box('apyValueArchive'); // Ouvrir une nouvelle boîte dédiée
 
-    // Charger l'historique existant depuis Hive
-    List<dynamic>? apyHistoryJson = box.get('apy_history');
-    List<ApyRecord> apyHistory =
-        apyHistoryJson != null ? apyHistoryJson.map((recordJson) => ApyRecord.fromJson(Map<String, dynamic>.from(recordJson))).toList() : [];
+      // Charger l'historique existant depuis Hive
+      List<dynamic>? apyHistoryJson = box.get('apy_history');
+      List<ApyRecord> apyHistory =
+          apyHistoryJson != null ? apyHistoryJson.map((recordJson) => ApyRecord.fromJson(Map<String, dynamic>.from(recordJson))).toList() : [];
 
-    // Vérifier le dernier enregistrement
-    if (apyHistory.isNotEmpty) {
-      ApyRecord lastRecord = apyHistory.last;
-      DateTime lastTimestamp = lastRecord.timestamp;
+      // Vérifier le dernier enregistrement
+      if (apyHistory.isNotEmpty) {
+        ApyRecord lastRecord = apyHistory.last;
+        DateTime lastTimestamp = lastRecord.timestamp;
 
-      // Vérifier si la différence est inférieure à 1 heure
-      if (DateTime.now().difference(lastTimestamp).inHours < 1) {
-        // Si moins d'une heure, ne rien faire
-        return;
+        // Vérifier si la différence est inférieure à 1 heure
+        if (DateTime.now().difference(lastTimestamp).inHours < 1) {
+          // Si moins d'une heure, ne rien faire
+          logger.i('Dernier enregistrement récent, aucun nouvel enregistrement ajouté.');
+          return; // Sortir de la fonction
+        }
       }
+
+      // Ajouter un nouvel enregistrement avec des valeurs formatées en double
+      ApyRecord newRecord = ApyRecord(
+        netApy: double.parse(netApyValue.toStringAsFixed(3)), // Conversion en double avec précision
+        grossApy: double.parse(grossApyValue.toStringAsFixed(3)), // Conversion en double avec précision
+        timestamp: DateTime.now(),
+      );
+      apyHistory.add(newRecord);
+
+      // Sauvegarder dans Hive
+      List<Map<String, dynamic>> apyHistoryJsonToSave = apyHistory.map((record) => record.toJson()).toList();
+      await box.put('apy_history', apyHistoryJsonToSave);
+
+      logger.i('Nouvel enregistrement APY ajouté et sauvegardé avec succès.');
+    } catch (e) {
+      logger.w('Erreur lors de l\'archivage des valeurs APY : $e');
     }
-
-    // Ajouter un nouvel enregistrement
-    ApyRecord newRecord = ApyRecord(
-      netApy: double.parse(netApyValue.toStringAsFixed(3)),
-      grossApy: double.parse(grossApyValue.toStringAsFixed(3)),
-      timestamp: DateTime.now(),
-    );
-    apyHistory.add(newRecord);
-
-    // Sauvegarder dans Hive
-    List<Map<String, dynamic>> apyHistoryJsonToSave = apyHistory.map((record) => record.toJson()).toList();
-    await box.put('apy_history', apyHistoryJsonToSave);
   }
 
-  void archiveBalance(String tokenType, double balance, String timestamp) async {
-    var box = Hive.box('balanceHistory'); // Boîte Hive pour stocker les balances
+  Future<void> archiveBalance(String tokenType, double balance, String timestamp) async {
+    try {
+      var box = Hive.box('balanceHistory'); // Boîte Hive pour stocker les balances
 
-    // Charger l'historique existant depuis Hive
-    List<dynamic>? balanceHistoryJson = box.get('balanceHistory_$tokenType');
-    List<BalanceRecord> balanceHistory =
-        balanceHistoryJson != null ? balanceHistoryJson.map((recordJson) => BalanceRecord.fromJson(Map<String, dynamic>.from(recordJson))).toList() : [];
+      // Charger l'historique existant depuis Hive
+      List<dynamic>? balanceHistoryJson = box.get('balanceHistory_$tokenType');
+      List<BalanceRecord> balanceHistory =
+          balanceHistoryJson != null ? balanceHistoryJson.map((recordJson) => BalanceRecord.fromJson(Map<String, dynamic>.from(recordJson))).toList() : [];
 
-    // Ajouter le nouvel enregistrement à l'historique
-    BalanceRecord newRecord = BalanceRecord(
-      tokenType: tokenType,
-      balance: balance,
-      timestamp: DateTime.parse(timestamp),
-    );
-    balanceHistory.add(newRecord);
+      // Créer un nouvel enregistrement avec une balance formatée
+      BalanceRecord newRecord = BalanceRecord(
+        tokenType: tokenType,
+        balance: double.parse(balance.toStringAsFixed(3)), // Garantir une balance au format double
+        timestamp: DateTime.parse(timestamp),
+      );
 
-    // Sauvegarder la liste mise à jour dans Hive
-    List<Map<String, dynamic>> balanceHistoryJsonToSave = balanceHistory.map((record) => record.toJson()).toList();
-    await box.put('balanceHistory_$tokenType', balanceHistoryJsonToSave); // Stocker chaque type de token séparément
+      // Ajouter le nouvel enregistrement
+      balanceHistory.add(newRecord);
+
+      // Sauvegarder la liste mise à jour dans Hive
+      List<Map<String, dynamic>> balanceHistoryJsonToSave = balanceHistory.map((record) => record.toJson()).toList();
+      await box.put('balanceHistory_$tokenType', balanceHistoryJsonToSave);
+
+      logger.i('Nouvelle balance ajoutée et sauvegardée avec succès pour $tokenType.');
+    } catch (e) {
+      logger.w('Erreur lors de l\'archivage de la balance pour $tokenType : $e');
+    }
   }
 
   Future<double> calculateAPY(String tokenType) async {
