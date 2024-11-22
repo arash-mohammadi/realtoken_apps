@@ -36,12 +36,20 @@ jobs:
       run: |
         echo "${{ secrets.MY_RELEASE_KEY }}" | base64 --decode > android/app/my-release-key.jks
 
+    - name: Debug keystore
+      run: |
+        ls -la android/app/
+
     - name: Set up environment for signing
       run: |
         echo "storePassword=${{ secrets.KEYSTORE_PASSWORD }}" >> android/key.properties
         echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/key.properties
         echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/key.properties
-        echo "storeFile=/app/my-release-key.jks" >> android/key.properties
+        echo "storeFile=/my-release-key.jks" >> android/key.properties
+
+    - name: Debug key properties
+      run: |
+        ls -la android/
 
     - name: Clean Flutter build
       run: flutter clean
