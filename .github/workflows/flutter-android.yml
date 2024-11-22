@@ -38,7 +38,7 @@ jobs:
 
     - name: Debug keystore
       run: |
-        ls -la android/app/
+        ls -la android/
 
     - name: Set up environment for signing
       run: |
