@@ -910,6 +910,21 @@ Future<void> showTokenDetails(
 
                             _buildDetailRow(
                               context,
+                              S.of(context).initialPrice,
+                              Utils.formatCurrency(
+                                  dataManager.convert(token['tokenPrice']),dataManager.currencySymbol),
+                              icon: Icons.price_change_sharp, // Icône pour rendement annuel en pourcentage
+                            ),
+                            _buildDetailRow(
+                              context,
+                              'S.of(context).yamPrice',
+                              '${Utils.formatCurrency(
+                                  dataManager.convert(token['yamAverageValue']), dataManager.currencySymbol)} (${(1 - (token['yamAverageValue'] / token['tokenPrice']) * 100 ).toStringAsFixed(0)}%)',
+                              icon: Icons.price_change, // Icône pour rendement annuel en pourcentage
+                            ),
+
+                            _buildDetailRow(
+                              context,
                               S.of(context).annualPercentageYield,
                               '${token['annualPercentageYield']?.toStringAsFixed(2) ?? S.of(context).notSpecified} %',
                               icon: Icons

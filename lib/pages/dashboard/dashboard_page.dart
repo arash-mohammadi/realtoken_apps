@@ -752,15 +752,24 @@ Widget _buildVerticalGauges(double factor, BuildContext context, DataManager dat
                     _buildCard(
                       S.of(context).wallet,
                       Icons.dashboard,
-                      _buildValueBeforeText(
+                              _buildValueBeforeText(
+                        Utils.getFormattedAmount(
+                            dataManager.convert(dataManager.yamTotalValue),
+                            dataManager.currencySymbol,
+                            _showAmounts),
+                        'projection YAM',
+                      ),
+                      
+                      
+                      [
+                        _buildValueBeforeText(
                         Utils.getFormattedAmount(
                             dataManager.convert(dataManager.totalWalletValue),
                             dataManager.currencySymbol,
                             _showAmounts),
                         S.of(context).totalPortfolio,
-                      ),
                       
-                      [
+                      ),
                         _buildIndentedBalance(
                           S.of(context).wallet,
                           dataManager.convert(dataManager.walletValue),

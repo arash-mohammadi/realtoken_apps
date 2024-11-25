@@ -314,10 +314,28 @@ class PortfolioDisplay1 extends StatelessWidget {
                                       ),
                                     ],
                                   ),
-                                  Text(
-                                    '${S.of(context).totalValue}: ${Utils.formatCurrency(dataManager.convert(token['totalValue']), dataManager.currencySymbol)}',
-                                    style: TextStyle(fontSize: 13 + appState.getTextSizeOffset()),
-                                  ),
+                                  RichText(
+  text: TextSpan(
+    style: TextStyle(
+      fontSize: 13 + appState.getTextSizeOffset(),
+    ),
+    children: [
+      TextSpan(
+        text: '${S.of(context).totalValue}: ${Utils.formatCurrency(dataManager.convert(token['totalValue']), dataManager.currencySymbol)} yam: ',
+      ),
+      TextSpan(
+        text: '${Utils.formatCurrency(dataManager.convert((token['yamAverageValue'] * token['amount'])), dataManager.currencySymbol)} (${(token['yamAverageValue'] / token['tokenPrice'] * 100).toStringAsFixed(0)}%)',
+        style: TextStyle(
+          color: (token['yamAverageValue'] * token['amount']) > token['totalValue']
+              ? Colors.green // Texte vert si la condition est vraie
+              : Colors.red,  // Texte rouge si la condition est fausse
+        ),
+      ),
+      
+    ],
+  ),
+),
+
                                   Text(
                                     '${S.of(context).amount}: ${token['amount']?.toStringAsFixed(2) ?? '0.00'} / ${token['totalTokens'] ?? 'N/A'}',
                                     style: TextStyle(fontSize: 13 + appState.getTextSizeOffset()),

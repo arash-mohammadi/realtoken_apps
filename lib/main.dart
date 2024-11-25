@@ -37,6 +37,7 @@ void main() async {
     Hive.openBox('apyValueArchive'),
     Hive.openBox('customInitPrices'),
     Hive.openBox('YamMarket'),
+    Hive.openBox('YamHistory'),
   ]);
 
   // Initialisation de SharedPreferences et DataManager

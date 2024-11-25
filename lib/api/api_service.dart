@@ -673,4 +673,83 @@ class ApiService {
       return [];
     }
   }
+
+  static Future<List<dynamic>> fetchTokenVolumes({bool forceFetch = false}) async {
+    logger.i("apiService: fetchTokenVolumes -> Lancement de la requête");
+
+    var box = Hive.box('realTokens');
+    final lastFetchTime = box.get('lastTokenVolumesFetchTime');
+    final DateTime now = DateTime.now();
+
+    // Vérifiez si le cache est valide
+    if (!forceFetch && lastFetchTime != null) {
+      final DateTime lastFetch = DateTime.parse(lastFetchTime);
+      if (now.difference(lastFetch) < Parameters.apiCacheDuration) {
+        final cachedData = box.get('cachedTokenVolumesData');
+        if (cachedData != null) {
+          logger.i("apiService: fetchTokenVolumes -> Requête annulée, cache valide");
+          return json.decode(cachedData);
+        }
+      }
+    }
+
+    // Définition des variables pour la requête GraphQL
+    const List<String> stables = [
+      "0xe91d153e0b41518a2ce8dd3d7944fa863463a97d",
+      "0xddafbb505ad214d7b80b1f830fccc89b60fb7a83",
+      "0x7349c9eaa538e118725a6130e0f8341509b9f8a0"
+    ];
+    final String limitDate = DateTime.now().subtract(Duration(days: 30)).toIso8601String().split('T').first;
+
+    // Envoyer la requête GraphQL
+    final response = await http.post(
+      Uri.parse(Parameters.yamUrl),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        "query": '''
+          query GetTokenVolumes(\$stables: [String!], \$limitDate: String!) {
+            tokens(first: 1000) {
+              id
+              decimals
+              volumes(where: { token_in: \$stables }) {
+                token {
+                  decimals
+                }
+                volumeDays(orderBy: date, orderDirection: desc, where: { date_gte: \$limitDate }) {
+                  date
+                  quantity
+                  volume
+                }
+              }
+            }
+          }
+        ''',
+        "variables": {
+          "stables": stables,
+          "limitDate": limitDate,
+        }
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      logger.i("apiService: fetchTokenVolumes -> Requête lancée avec succès");
+
+      final decodedResponse = json.decode(response.body);
+      if (decodedResponse['data'] != null && decodedResponse['data']['tokens'] != null) {
+        final List<dynamic> tokens = decodedResponse['data']['tokens'];
+
+        // Mettre les données dans le cache
+        box.put('cachedTokenVolumesData', json.encode(tokens));
+        box.put('lastTokenVolumesFetchTime', now.toIso8601String());
+        box.put('lastExecutionTime_TokenVolumes', now.toIso8601String());
+
+        return tokens;
+      } else {
+        logger.w("apiService: fetchTokenVolumes -> Aucune donnée disponible");
+        return [];
+      }
+    } else {
+      throw Exception('apiService: fetchTokenVolumes -> Échec de la requête');
+    }
+  }
 }
