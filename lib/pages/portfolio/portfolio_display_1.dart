@@ -106,7 +106,7 @@ class PortfolioDisplay1 extends StatelessWidget {
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: MediaQuery.of(context).size.width > 700 ? 2 : 1,
 
-                mainAxisExtent: 180 * (1 + (appState.getTextSizeOffset() / 35)), // Ajustez ici pour plus de hauteur
+                mainAxisExtent: 195 * (1 + (appState.getTextSizeOffset() / 35)), // Ajustez ici pour plus de hauteur
               ),
               itemCount: portfolio.length,
               itemBuilder: (context, index) {
@@ -292,15 +292,17 @@ class PortfolioDisplay1 extends StatelessWidget {
                                                   },
                                                 ),
                                               ),
-                                            Text(
-                                              token['shortName'] ?? S.of(context).nameUnavailable,
-                                              style: TextStyle(
-                                                fontSize: 15 + appState.getTextSizeOffset(),
-                                                fontWeight: FontWeight.bold,
-                                                color: Theme.of(context).textTheme.bodyLarge?.color,
+                                            Expanded(
+                                              child: Text(
+                                                token['shortName'] ?? S.of(context).nameUnavailable,
+                                                style: TextStyle(
+                                                  fontSize: 15 + appState.getTextSizeOffset(),
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Theme.of(context).textTheme.bodyLarge?.color,
+                                                ),
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
                                               ),
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
                                             ),
                                           ],
                                         ),
@@ -314,28 +316,17 @@ class PortfolioDisplay1 extends StatelessWidget {
                                       ),
                                     ],
                                   ),
-                                  RichText(
-  text: TextSpan(
-    style: TextStyle(
-      fontSize: 13 + appState.getTextSizeOffset(),
-    ),
-    children: [
-      TextSpan(
-        text: '${S.of(context).totalValue}: ${Utils.formatCurrency(dataManager.convert(token['totalValue']), dataManager.currencySymbol)} yam: ',
-      ),
-      TextSpan(
-        text: '${Utils.formatCurrency(dataManager.convert((token['yamAverageValue'] * token['amount'])), dataManager.currencySymbol)} (${(token['yamAverageValue'] / token['tokenPrice'] * 100).toStringAsFixed(0)}%)',
-        style: TextStyle(
-          color: (token['yamAverageValue'] * token['amount']) > token['totalValue']
-              ? Colors.green // Texte vert si la condition est vraie
-              : Colors.red,  // Texte rouge si la condition est fausse
-        ),
-      ),
-      
-    ],
-  ),
-),
-
+                                  Text(
+                                      '${S.of(context).totalValue}: ${Utils.formatCurrency(dataManager.convert(token['totalValue']), dataManager.currencySymbol)}'),
+                                  Text(
+                                    'YAM: ${Utils.formatCurrency(dataManager.convert((token['yamAverageValue'] * token['amount'])), dataManager.currencySymbol)} (${((token['yamAverageValue'] / token['tokenPrice'] - 1) * 100).toStringAsFixed(0)}%)',
+                                    style: TextStyle(
+                                      fontSize: 13 + appState.getTextSizeOffset(),
+                                      color: (token['yamAverageValue'] * token['amount']) > token['totalValue']
+                                          ? Colors.green // Texte vert si la condition est vraie
+                                          : Colors.red, // Texte rouge si la condition est fausse
+                                    ),
+                                  ),
                                   Text(
                                     '${S.of(context).amount}: ${token['amount']?.toStringAsFixed(2) ?? '0.00'} / ${token['totalTokens'] ?? 'N/A'}',
                                     style: TextStyle(fontSize: 13 + appState.getTextSizeOffset()),

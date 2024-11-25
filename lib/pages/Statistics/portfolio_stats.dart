@@ -23,7 +23,7 @@ class _PortfolioStats extends State<PortfolioStats> {
   static final logger = Logger(); // Initialiser une instance de logger
 
   late String _selectedPeriod;
-late String _selectedFilter; // Ajoutez une variable pour le filtre
+  late String _selectedFilter; // Ajoutez une variable pour le filtre
 
   @override
   void initState() {
@@ -175,140 +175,150 @@ late String _selectedFilter; // Ajoutez une variable pour le filtre
     );
   }
 
-Widget _buildRentDistributionCard(DataManager dataManager) {
-  final appState = Provider.of<AppState>(context);
+  Widget _buildRentDistributionCard(DataManager dataManager) {
+    final appState = Provider.of<AppState>(context);
 
-  return Card(
-    elevation: 0,
-    color: Theme.of(context).cardColor,
-    child: Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                S.of(context).rentDistribution,
-                style: TextStyle(
-                  fontSize: 20 + appState.getTextSizeOffset(),
-                  fontWeight: FontWeight.bold,
+    return Card(
+      elevation: 0,
+      color: Theme.of(context).cardColor,
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  S.of(context).rentDistribution,
+                  style: TextStyle(
+                    fontSize: 20 + appState.getTextSizeOffset(),
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                DropdownButton<String>(
+                  value: _selectedFilter,
+                  items: [
+                    DropdownMenuItem(value: 'Country', child: Text(S.of(context).country)),
+                    DropdownMenuItem(value: 'Region', child: Text(S.of(context).region)),
+                    DropdownMenuItem(value: 'City', child: Text(S.of(context).city)),
+                  ],
+                  onChanged: (String? value) {
+                    setState(() {
+                      _selectedFilter = value!;
+                    });
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            // Graphique
+            SizedBox(
+              height: 200,
+              child: PieChart(
+                PieChartData(
+                  sections: _buildRentDonutChartData(dataManager),
+                  centerSpaceRadius: 50,
+                  sectionsSpace: 2,
+                  borderData: FlBorderData(show: false),
                 ),
               ),
-              DropdownButton<String>(
-                value: _selectedFilter,
-                items: [
-                  DropdownMenuItem(value: 'Country', child: Text(S.of(context).country)),
-                  DropdownMenuItem(value: 'Region', child: Text(S.of(context).region)),
-                  DropdownMenuItem(value: 'City', child: Text(S.of(context).city)),
-                ],
-                onChanged: (String? value) {
-                  setState(() {
-                    _selectedFilter = value!;
-                  });
-                },
+            ),
+            const SizedBox(height: 20),
+            // Légende avec Flexible
+            Flexible(
+              child: SingleChildScrollView(
+                child: _buildRentLegend(dataManager),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRentLegend(DataManager dataManager) {
+    final Map<String, double> groupedData = _groupRentDataBySelectedFilter(dataManager);
+    final appState = Provider.of<AppState>(context);
+
+    return Wrap(
+      spacing: 8.0,
+      runSpacing: 4.0,
+      alignment: WrapAlignment.start,
+      children: groupedData.entries.map((entry) {
+        final index = groupedData.keys.toList().indexOf(entry.key);
+        final color = generateColor(index);
+
+        return ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: 200), // Largeur maximale pour éviter les débordements
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 16,
+                height: 16,
+                color: color,
+              ),
+              const SizedBox(width: 4),
+              Flexible(
+                child: Text(
+                  '${entry.key}: ${Utils.formatCurrency(dataManager.convert(entry.value), dataManager.currencySymbol)}',
+                  style: TextStyle(fontSize: 13 + appState.getTextSizeOffset()),
+                ),
               ),
             ],
           ),
-          const SizedBox(height: 20),
-          SizedBox(
-            height: 200,
-            child: PieChart(
-              PieChartData(
-                sections: _buildRentDonutChartData(dataManager),
-                centerSpaceRadius: 50,
-                sectionsSpace: 2,
-                borderData: FlBorderData(show: false),
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
-          _buildRentLegend(dataManager),
-        ],
-      ),
-    ),
-  );
-}
-
-Widget _buildRentLegend(DataManager dataManager) {
-  final Map<String, double> groupedData = _groupRentDataBySelectedFilter(dataManager);
-  final appState = Provider.of<AppState>(context);
-
-  return Wrap(
-    spacing: 8.0,
-    runSpacing: 4.0,
-    children: groupedData.entries.map((entry) {
-      final index = groupedData.keys.toList().indexOf(entry.key);
-      final color = generateColor(index);
-
-      return Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 16,
-            height: 16,
-            color: color,
-          ),
-          const SizedBox(width: 4),
-          Text(
-            '${entry.key}: ${Utils.formatCurrency(dataManager.convert(entry.value), dataManager.currencySymbol)}',
-            style: TextStyle(fontSize: 13 + appState.getTextSizeOffset()),
-          ),
-        ],
-      );
-    }).toList(),
-  );
-}
-
-
-List<PieChartSectionData> _buildRentDonutChartData(DataManager dataManager) {
-  final Map<String, double> groupedData = _groupRentDataBySelectedFilter(dataManager);
-
-  final totalRent = groupedData.values.fold(0.0, (sum, value) => sum + value);
-
-  return groupedData.entries.map((entry) {
-    final percentage = (entry.value / totalRent) * 100;
-    return PieChartSectionData(
-      value: entry.value,
-      title: '${percentage.toStringAsFixed(1)}%',
-      color: generateColor(groupedData.keys.toList().indexOf(entry.key)),
-      radius: 50,
-      titleStyle: TextStyle(
-        fontSize: 10 + Provider.of<AppState>(context).getTextSizeOffset(),
-        color: Colors.white,
-        fontWeight: FontWeight.bold,
-      ),
+        );
+      }).toList(),
     );
-  }).toList();
-}
-
-Map<String, double> _groupRentDataBySelectedFilter(DataManager dataManager) {
-  Map<String, double> groupedData = {};
-
-  for (var token in dataManager.portfolio) {
-    String key;
-    switch (_selectedFilter) {
-      case 'Country':
-        key = token['country'] ?? 'Unknown Country';
-        break;
-      case 'Region':
-        key = token['regionCode'] ?? 'Unknown Region';
-        break;
-      case 'City':
-        key = token['city'] ?? 'Unknown City';
-        break;
-      default:
-        key = 'Unknown';
-    }
-
-    // Additionner les revenus locatifs (monthlyIncome)
-    groupedData[key] = (groupedData[key] ?? 0) + (token['monthlyIncome'] ?? 0.0);
   }
 
-  return groupedData;
-}
+  List<PieChartSectionData> _buildRentDonutChartData(DataManager dataManager) {
+    final Map<String, double> groupedData = _groupRentDataBySelectedFilter(dataManager);
 
+    final totalRent = groupedData.values.fold(0.0, (sum, value) => sum + value);
+
+    return groupedData.entries.map((entry) {
+      final percentage = (entry.value / totalRent) * 100;
+      return PieChartSectionData(
+        value: entry.value,
+        title: '${percentage.toStringAsFixed(1)}%',
+        color: generateColor(groupedData.keys.toList().indexOf(entry.key)),
+        radius: 50,
+        titleStyle: TextStyle(
+          fontSize: 10 + Provider.of<AppState>(context).getTextSizeOffset(),
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+        ),
+      );
+    }).toList();
+  }
+
+  Map<String, double> _groupRentDataBySelectedFilter(DataManager dataManager) {
+    Map<String, double> groupedData = {};
+
+    for (var token in dataManager.portfolio) {
+      String key;
+      switch (_selectedFilter) {
+        case 'Country':
+          key = token['country'] ?? 'Unknown Country';
+          break;
+        case 'Region':
+          key = token['regionCode'] ?? 'Unknown Region';
+          break;
+        case 'City':
+          key = token['city'] ?? 'Unknown City';
+          break;
+        default:
+          key = 'Unknown';
+      }
+
+      // Additionner les revenus locatifs (monthlyIncome)
+      groupedData[key] = (groupedData[key] ?? 0) + (token['monthlyIncome'] ?? 0.0);
+    }
+
+    return groupedData;
+  }
 
   Widget _buildTokenDistributionCard(DataManager dataManager) {
     final appState = Provider.of<AppState>(context);
@@ -509,26 +519,30 @@ Map<String, double> _groupRentDataBySelectedFilter(DataManager dataManager) {
   Widget _buildLegend(DataManager dataManager) {
     final appState = Provider.of<AppState>(context);
 
-    return Wrap(
-      spacing: 8.0,
-      runSpacing: 4.0,
-      children: dataManager.propertyData.map((data) {
-        return Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 16,
-              height: 16,
-              color: _getPropertyColor(data['propertyType']),
-            ),
-            const SizedBox(width: 4),
-            Text(
-              Parameters.getPropertyTypeName(data['propertyType'], context),
-              style: TextStyle(fontSize: 13 + appState.getTextSizeOffset()),
-            ),
-          ],
-        );
-      }).toList(),
+    return Flexible(
+      child: SingleChildScrollView(
+        child: Wrap(
+          spacing: 8.0,
+          runSpacing: 4.0,
+          children: dataManager.propertyData.map((data) {
+            return Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 16,
+                  height: 16,
+                  color: _getPropertyColor(data['propertyType']),
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  Parameters.getPropertyTypeName(data['propertyType'], context),
+                  style: TextStyle(fontSize: 13 + appState.getTextSizeOffset()),
+                ),
+              ],
+            );
+          }).toList(),
+        ),
+      ),
     );
   }
 
@@ -538,36 +552,40 @@ Map<String, double> _groupRentDataBySelectedFilter(DataManager dataManager) {
 
     // Compter les occurrences par pays
     for (var token in dataManager.portfolio) {
-      String country = token['country'];
+      String country = token['country'] ?? 'Unknown Country';
       countryCount[country] = (countryCount[country] ?? 0) + 1;
     }
 
     // Utiliser le même tri que pour le graphique
     final sortedCountries = countryCount.keys.toList()..sort();
 
-    return Wrap(
-      spacing: 8.0,
-      runSpacing: 4.0,
-      children: sortedCountries.map((country) {
-        final int index = sortedCountries.indexOf(country);
-        final color = generateColor(index);
+    return Flexible(
+      child: SingleChildScrollView(
+        child: Wrap(
+          spacing: 8.0,
+          runSpacing: 4.0,
+          children: sortedCountries.map((country) {
+            final int index = sortedCountries.indexOf(country);
+            final color = generateColor(index);
 
-        return Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 16,
-              height: 16,
-              color: color,
-            ),
-            const SizedBox(width: 4),
-            Text(
-              '$country: ${countryCount[country]}',
-              style: TextStyle(fontSize: 13 + appState.getTextSizeOffset()),
-            ),
-          ],
-        );
-      }).toList(),
+            return Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 16,
+                  height: 16,
+                  color: color,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  '$country: ${countryCount[country]}',
+                  style: TextStyle(fontSize: 13 + appState.getTextSizeOffset()),
+                ),
+              ],
+            );
+          }).toList(),
+        ),
+      ),
     );
   }
 
@@ -577,7 +595,7 @@ Map<String, double> _groupRentDataBySelectedFilter(DataManager dataManager) {
 
     // Remplir le dictionnaire avec les counts par région
     for (var token in dataManager.portfolio) {
-      String regionCode = token['regionCode'];
+      String regionCode = token['regionCode'] ?? 'Unknown Region';
       String regionName = Parameters.usStateAbbreviations[regionCode] ?? regionCode;
       regionCount[regionName] = (regionCount[regionName] ?? 0) + 1;
     }
@@ -636,10 +654,14 @@ Map<String, double> _groupRentDataBySelectedFilter(DataManager dataManager) {
       ));
     }
 
-    return Wrap(
-      spacing: 8.0,
-      runSpacing: 4.0,
-      children: legendItems,
+    return Flexible(
+      child: SingleChildScrollView(
+        child: Wrap(
+          spacing: 8.0,
+          runSpacing: 4.0,
+          children: legendItems,
+        ),
+      ),
     );
   }
 

@@ -155,8 +155,7 @@ class DataManager extends ChangeNotifier {
   List<Map<String, dynamic>> yamMarketFetched = [];
   List<Map<String, dynamic>> yamMarketData = [];
   List<Map<String, dynamic>> yamMarket = [];
-    List<Map<String, dynamic>> yamHistory = [];
-
+  List<Map<String, dynamic>> yamHistory = [];
 
   var customInitPricesBox = Hive.box('CustomInitPrices');
 
@@ -267,18 +266,18 @@ class DataManager extends ChangeNotifier {
     }
 
     // Mise à jour des Yam History
-      var yamHistoryData = await ApiService.fetchTokenVolumes(forceFetch: forceFetch);
-      if (yamHistoryData.isNotEmpty) {
-        logger.i("Mise à jour de l'historiques YAM avec de nouvelles valeurs.");
+    var yamHistoryData = await ApiService.fetchTokenVolumes(forceFetch: forceFetch);
+    if (yamHistoryData.isNotEmpty) {
+      logger.i("Mise à jour de l'historiques YAM avec de nouvelles valeurs.");
 
-        // Sauvegarder les balances dans Hive
-        box.put('yamHistory', json.encode(yamHistoryData));
-        rmmBalances = yamHistoryData.cast<Map<String, dynamic>>();
-        fetchYamHistory();
-        notifyListeners(); // Notifier les listeners après la mise à jour
-      } else {
-        logger.d("Les RMM Balances sont vides, pas de mise à jour.");
-      }
+      // Sauvegarder les balances dans Hive
+      box.put('yamHistory', json.encode(yamHistoryData));
+      rmmBalances = yamHistoryData.cast<Map<String, dynamic>>();
+      fetchYamHistory();
+      notifyListeners(); // Notifier les listeners après la mise à jour
+    } else {
+      logger.d("Les RMM Balances sont vides, pas de mise à jour.");
+    }
 
     loadWalletBalanceHistory();
     loadRoiHistory();
@@ -605,7 +604,7 @@ class DataManager extends ChangeNotifier {
 
     var box = Hive.box('realTokens');
     initialTotalValue = 0.0;
-   yamTotalValue = 0.0;
+    yamTotalValue = 0.0;
 
     // Charger les données en cache si disponibles
     final cachedGnosisTokens = box.get('cachedTokenData_gnosis');
@@ -758,15 +757,14 @@ class DataManager extends ChangeNotifier {
           List<String> parts3 = fullName.split(',');
           String city = parts3.length >= 2 ? parts[1].trim() : 'Unknown City';
 
-
 // Chercher la valeur Yam associée au token
-    final yamData = yamHistory.firstWhere(
-      (yam) => yam['id'].toLowerCase() == tokenContractAddress,
-      orElse: () => <String, dynamic>{},
-    );
+          final yamData = yamHistory.firstWhere(
+            (yam) => yam['id'].toLowerCase() == tokenContractAddress,
+            orElse: () => <String, dynamic>{},
+          );
 
-    final double yamTotalVolume = yamData['totalVolume'] ?? 0.0;
-    final double yamAverageValue = yamData['averageValue'] ?? tokenPrice;
+          final double yamTotalVolume = yamData['totalVolume'] ?? 0.0;
+          final double yamAverageValue = yamData['averageValue'] ?? tokenPrice;
 
           // Ajouter au Portfolio
           newPortfolio.add({
@@ -831,7 +829,7 @@ class DataManager extends ChangeNotifier {
           });
 
           initialTotalValue += double.parse(walletToken['amount']) * initPrice;
-         yamTotalValue += double.parse(walletToken['amount']) * yamAverageValue;
+          yamTotalValue += double.parse(walletToken['amount']) * yamAverageValue;
 
           if (tokenContractAddress.isNotEmpty) {
             // Récupérer les informations de loyer pour ce token
@@ -915,13 +913,13 @@ class DataManager extends ChangeNotifier {
         String city = parts3.length >= 2 ? parts[1].trim() : 'Unknown';
 
 // Chercher la valeur Yam associée au token
-    final yamData = yamHistory.firstWhere(
-      (yam) => yam['id'].toLowerCase() == tokenContractAddress,
-      orElse: () => <String, dynamic>{},
-    );
+        final yamData = yamHistory.firstWhere(
+          (yam) => yam['id'].toLowerCase() == tokenContractAddress,
+          orElse: () => <String, dynamic>{},
+        );
 
-    final double yamTotalVolume = yamData['totalVolume'] ?? 0.0;
-    final double yamAverageValue = yamData['averageValue'] ?? tokenPrice;
+        final double yamTotalVolume = yamData['totalVolume'] ?? 0.0;
+        final double yamAverageValue = yamData['averageValue'] ?? tokenPrice;
 
         // Ajouter au Portfolio
         newPortfolio.add({
@@ -982,8 +980,8 @@ class DataManager extends ChangeNotifier {
           'initPrice': initPrice,
           'section8paid': matchingRealToken['section8paid'] ?? 0.0,
 
-           'yamTotalVolume': yamTotalVolume, // Ajout de la valeur Yam calculée
-            'yamAverageValue': yamData['averageValue'], // Ajout de la valeur moyenne Yam calculée
+          'yamTotalVolume': yamTotalVolume, // Ajout de la valeur Yam calculée
+          'yamAverageValue': yamData['averageValue'], // Ajout de la valeur moyenne Yam calculée
         });
 
         initialTotalValue += amount * initPrice;
@@ -1010,7 +1008,8 @@ class DataManager extends ChangeNotifier {
     }
 
     // Mise à jour des variables pour le Dashboard
-    totalWalletValue = walletValueSum + rmmValueSum + rwaValue + totalUsdcDepositBalance + totalXdaiDepositBalance - totalUsdcBorrowBalance - totalXdaiBorrowBalance;
+    totalWalletValue =
+        walletValueSum + rmmValueSum + rwaValue + totalUsdcDepositBalance + totalXdaiDepositBalance - totalUsdcBorrowBalance - totalXdaiBorrowBalance;
     archiveTotalWalletValue(totalWalletValue);
 
     walletValue = double.parse(walletValueSum.toStringAsFixed(3));
@@ -1822,62 +1821,54 @@ class DataManager extends ChangeNotifier {
     }
   }
 
-void fetchYamHistory() {
-  var box = Hive.box('realTokens');
-  final yamHistoryJson = box.get('yamHistory');
+  void fetchYamHistory() {
+    var box = Hive.box('realTokens');
+    final yamHistoryJson = box.get('yamHistory');
 
-  if (yamHistoryJson == null) {
-    logger.w("fetchYamHistory -> Aucune donnée Yam History trouvée dans Hive.");
-    return;
-  }
+    if (yamHistoryJson == null) {
+      logger.w("fetchYamHistory -> Aucune donnée Yam History trouvée dans Hive.");
+      return;
+    }
 
-  List<dynamic> yamHistoryData = json.decode(yamHistoryJson);
+    List<dynamic> yamHistoryData = json.decode(yamHistoryJson);
 
-  List<Map<String, dynamic>> tokenStatistics = yamHistoryData.map((tokenData) {
-    final tokenDecimals = int.tryParse(tokenData['decimals'].toString()) ?? 18;
-    final volumes = tokenData['volumes'] ?? [];
+    List<Map<String, dynamic>> tokenStatistics = yamHistoryData.map((tokenData) {
+      final tokenDecimals = int.tryParse(tokenData['decimals'].toString()) ?? 18;
+      final volumes = tokenData['volumes'] ?? [];
 
-    double totalVolume = 0;
-    double totalQuantity = 0;
+      double totalVolume = 0;
+      double totalQuantity = 0;
 
-    for (var volume in volumes) {
-      final volumeTokenDecimals = int.tryParse(volume['token']['decimals'].toString()) ?? 6;
-      final volumeDays = volume['volumeDays'] ?? [];
+      for (var volume in volumes) {
+        final volumeTokenDecimals = int.tryParse(volume['token']['decimals'].toString()) ?? 6;
+        final volumeDays = volume['volumeDays'] ?? [];
 
+        for (var day in volumeDays) {
+          final dayVolume = (day['volume'] != null) ? (double.tryParse(day['volume'].toString()) ?? 0) / pow(10, volumeTokenDecimals) : 0;
+          final dayQuantity = (day['quantity'] != null) ? (double.tryParse(day['quantity'].toString()) ?? 0) / pow(10, tokenDecimals) : 0;
 
-      for (var day in volumeDays) {
-
-        final dayVolume = (day['volume'] != null)
-            ? (double.tryParse(day['volume'].toString()) ?? 0) / pow(10, volumeTokenDecimals)
-            : 0;
-        final dayQuantity = (day['quantity'] != null)
-            ? (double.tryParse(day['quantity'].toString()) ?? 0) / pow(10, tokenDecimals)
-            : 0;
-
-
-        totalVolume += dayVolume;
-        totalQuantity += dayQuantity;
+          totalVolume += dayVolume;
+          totalQuantity += dayQuantity;
+        }
       }
-    }
 
-    double averageValue = 0;
-    if (totalQuantity > 1e-10) {
-      averageValue = totalVolume / totalQuantity;
-    } else {
-      logger.w("Valeur aberrante détectée : totalQuantity=$totalQuantity pour token ${tokenData['id']}");
-    }
+      double averageValue = 0;
+      if (totalQuantity > 1e-10) {
+        averageValue = totalVolume / totalQuantity;
+      } else {
+        logger.w("Valeur aberrante détectée : totalQuantity=$totalQuantity pour token ${tokenData['id']}");
+      }
 
-    return {
-      'id': tokenData['id'],
-      'totalVolume': totalVolume,
-      'averageValue': averageValue,
-    };
-  }).toList();
+      return {
+        'id': tokenData['id'],
+        'totalVolume': totalVolume,
+        'averageValue': averageValue,
+      };
+    }).toList();
 
-  logger.i("fetchyamHistory -> Mise à jour des statistiques des tokens Yam.");
-  yamHistory = tokenStatistics;
+    logger.i("fetchyamHistory -> Mise à jour des statistiques des tokens Yam.");
+    yamHistory = tokenStatistics;
 
-  notifyListeners();
-}
-
+    notifyListeners();
+  }
 }
