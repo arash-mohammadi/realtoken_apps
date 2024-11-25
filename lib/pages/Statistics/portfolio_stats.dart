@@ -23,10 +23,13 @@ class _PortfolioStats extends State<PortfolioStats> {
   static final logger = Logger(); // Initialiser une instance de logger
 
   late String _selectedPeriod;
+late String _selectedFilter; // Ajoutez une variable pour le filtre
 
   @override
   void initState() {
     super.initState();
+    _selectedFilter = 'Region'; // Valeur par défaut
+
     SchedulerBinding.instance.addPostFrameCallback((_) async {
       try {
         final dataManager = Provider.of<DataManager>(context, listen: false);
@@ -150,18 +153,20 @@ class _PortfolioStats extends State<PortfolioStats> {
                   // Return widgets based on index
                   switch (index) {
                     case 0:
-                      return _buildTokenDistributionCard(dataManager!);
+                      return _buildRentDistributionCard(dataManager!);
                     case 1:
-                      return _buildTokenDistributionByCountryCard(dataManager!);
+                      return _buildTokenDistributionCard(dataManager!);
                     case 2:
-                      return _buildTokenDistributionByRegionCard(dataManager!);
+                      return _buildTokenDistributionByCountryCard(dataManager!);
                     case 3:
+                      return _buildTokenDistributionByRegionCard(dataManager!);
+                    case 4:
                       return _buildTokenDistributionByCityCard(dataManager!);
                     default:
                       return Container();
                   }
                 },
-                childCount: 4, // Total number of chart widgets
+                childCount: 5, // Total number of chart widgets
               ),
             ),
           ),
@@ -169,6 +174,141 @@ class _PortfolioStats extends State<PortfolioStats> {
       ),
     );
   }
+
+Widget _buildRentDistributionCard(DataManager dataManager) {
+  final appState = Provider.of<AppState>(context);
+
+  return Card(
+    elevation: 0,
+    color: Theme.of(context).cardColor,
+    child: Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                S.of(context).rentDistribution,
+                style: TextStyle(
+                  fontSize: 20 + appState.getTextSizeOffset(),
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              DropdownButton<String>(
+                value: _selectedFilter,
+                items: [
+                  DropdownMenuItem(value: 'Country', child: Text(S.of(context).country)),
+                  DropdownMenuItem(value: 'Region', child: Text(S.of(context).region)),
+                  DropdownMenuItem(value: 'City', child: Text(S.of(context).city)),
+                ],
+                onChanged: (String? value) {
+                  setState(() {
+                    _selectedFilter = value!;
+                  });
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          SizedBox(
+            height: 200,
+            child: PieChart(
+              PieChartData(
+                sections: _buildRentDonutChartData(dataManager),
+                centerSpaceRadius: 50,
+                sectionsSpace: 2,
+                borderData: FlBorderData(show: false),
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+          _buildRentLegend(dataManager),
+        ],
+      ),
+    ),
+  );
+}
+
+Widget _buildRentLegend(DataManager dataManager) {
+  final Map<String, double> groupedData = _groupRentDataBySelectedFilter(dataManager);
+  final appState = Provider.of<AppState>(context);
+
+  return Wrap(
+    spacing: 8.0,
+    runSpacing: 4.0,
+    children: groupedData.entries.map((entry) {
+      final index = groupedData.keys.toList().indexOf(entry.key);
+      final color = generateColor(index);
+
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 16,
+            height: 16,
+            color: color,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            '${entry.key}: ${Utils.formatCurrency(dataManager.convert(entry.value), dataManager.currencySymbol)}',
+            style: TextStyle(fontSize: 13 + appState.getTextSizeOffset()),
+          ),
+        ],
+      );
+    }).toList(),
+  );
+}
+
+
+List<PieChartSectionData> _buildRentDonutChartData(DataManager dataManager) {
+  final Map<String, double> groupedData = _groupRentDataBySelectedFilter(dataManager);
+
+  final totalRent = groupedData.values.fold(0.0, (sum, value) => sum + value);
+
+  return groupedData.entries.map((entry) {
+    final percentage = (entry.value / totalRent) * 100;
+    return PieChartSectionData(
+      value: entry.value,
+      title: '${percentage.toStringAsFixed(1)}%',
+      color: generateColor(groupedData.keys.toList().indexOf(entry.key)),
+      radius: 50,
+      titleStyle: TextStyle(
+        fontSize: 10 + Provider.of<AppState>(context).getTextSizeOffset(),
+        color: Colors.white,
+        fontWeight: FontWeight.bold,
+      ),
+    );
+  }).toList();
+}
+
+Map<String, double> _groupRentDataBySelectedFilter(DataManager dataManager) {
+  Map<String, double> groupedData = {};
+
+  for (var token in dataManager.portfolio) {
+    String key;
+    switch (_selectedFilter) {
+      case 'Country':
+        key = token['country'] ?? 'Unknown Country';
+        break;
+      case 'Region':
+        key = token['regionCode'] ?? 'Unknown Region';
+        break;
+      case 'City':
+        key = token['city'] ?? 'Unknown City';
+        break;
+      default:
+        key = 'Unknown';
+    }
+
+    // Additionner les revenus locatifs (monthlyIncome)
+    groupedData[key] = (groupedData[key] ?? 0) + (token['monthlyIncome'] ?? 0.0);
+  }
+
+  return groupedData;
+}
+
 
   Widget _buildTokenDistributionCard(DataManager dataManager) {
     final appState = Provider.of<AppState>(context);

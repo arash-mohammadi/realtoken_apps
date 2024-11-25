@@ -231,6 +231,12 @@
   "secondary": "Secondary",
     "apyHistory": "APY History",
   "roiHistory": "ROI History",
+  "barChart": "Bar Chart",
+  "lineChart": "Line Chart",
+  "rentDistribution": "Rent Distribution",
+  "country": "Country",
+  "region": "Region",
+  "city": "City",
   "@propertyMaintenanceMonthly": {
     "description": "Monthly maintenance expenses for the property"
   },

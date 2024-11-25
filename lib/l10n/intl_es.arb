@@ -231,6 +231,12 @@
   "secondary": "Secundario",
     "apyHistory": "Historial APY",
   "roiHistory": "Historial ROI",
+  "barChart": "Gráfico de barras",
+  "lineChart": "Gráfico de líneas",
+  "rentDistribution": "Distribución de alquileres",
+  "country": "País",
+  "region": "Región",
+  "city": "Ciudad",
   "@propertyMaintenanceMonthly": {
     "description": "Gastos mensuales de mantenimiento de la propiedad"
   },

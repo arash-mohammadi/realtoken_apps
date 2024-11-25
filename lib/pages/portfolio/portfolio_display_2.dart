@@ -286,7 +286,7 @@ class PortfolioDisplay2State extends State<PortfolioDisplay2> {
                                       const SizedBox(height: 8),
 
                                       Text(
-                                        '${S.of(context).totalValue}: ${Utils.formatCurrency(token['totalValue'], dataManager.currencySymbol)}',
+                                        '${S.of(context).totalValue}: ${Utils.formatCurrency(dataManager.convert(token['totalValue']), dataManager.currencySymbol)}',
                                         style: TextStyle(
                                           fontSize: 15 + appState.getTextSizeOffset(),
                                         ),
@@ -322,7 +322,7 @@ class PortfolioDisplay2State extends State<PortfolioDisplay2> {
                                                     style: TextStyle(
                                                       fontSize: 13 + appState.getTextSizeOffset(),
                                                     )),
-                                                Text(Utils.formatCurrency(token['dailyIncome'] ?? 0, dataManager.currencySymbol),
+                                                Text(Utils.formatCurrency(dataManager.convert(token['dailyIncome']), dataManager.currencySymbol),
                                                     style: TextStyle(
                                                       fontSize: 13 + appState.getTextSizeOffset(),
                                                     )),
@@ -334,7 +334,7 @@ class PortfolioDisplay2State extends State<PortfolioDisplay2> {
                                                     style: TextStyle(
                                                       fontSize: 13 + appState.getTextSizeOffset(),
                                                     )),
-                                                Text(Utils.formatCurrency(token['dailyIncome'] * 7 ?? 0, dataManager.currencySymbol),
+                                                Text(Utils.formatCurrency(dataManager.convert(token['dailyIncome']) * 7, dataManager.currencySymbol),
                                                     style: TextStyle(
                                                       fontSize: 13 + appState.getTextSizeOffset(),
                                                     )),
@@ -346,7 +346,7 @@ class PortfolioDisplay2State extends State<PortfolioDisplay2> {
                                                     style: TextStyle(
                                                       fontSize: 13 + appState.getTextSizeOffset(),
                                                     )),
-                                                Text(Utils.formatCurrency(token['monthlyIncome'] ?? 0, dataManager.currencySymbol),
+                                                Text(Utils.formatCurrency(dataManager.convert(token['monthlyIncome']), dataManager.currencySymbol),
                                                     style: TextStyle(
                                                       fontSize: 13 + appState.getTextSizeOffset(),
                                                     )),
@@ -358,7 +358,7 @@ class PortfolioDisplay2State extends State<PortfolioDisplay2> {
                                                     style: TextStyle(
                                                       fontSize: 13 + appState.getTextSizeOffset(),
                                                     )),
-                                                Text(Utils.formatCurrency(token['yearlyIncome'] ?? 0, dataManager.currencySymbol),
+                                                Text(Utils.formatCurrency(dataManager.convert(token['yearlyIncome'] ), dataManager.currencySymbol),
                                                     style: TextStyle(
                                                       fontSize: 13 + appState.getTextSizeOffset(),
                                                     )),

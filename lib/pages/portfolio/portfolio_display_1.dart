@@ -315,7 +315,7 @@ class PortfolioDisplay1 extends StatelessWidget {
                                     ],
                                   ),
                                   Text(
-                                    '${S.of(context).totalValue}: ${Utils.formatCurrency(token['totalValue'] ?? 0, dataManager.currencySymbol)}',
+                                    '${S.of(context).totalValue}: ${Utils.formatCurrency(dataManager.convert(token['totalValue']), dataManager.currencySymbol)}',
                                     style: TextStyle(fontSize: 13 + appState.getTextSizeOffset()),
                                   ),
                                   Text(
@@ -342,21 +342,21 @@ class PortfolioDisplay1 extends StatelessWidget {
                                         Column(
                                           children: [
                                             Text(S.of(context).week, style: TextStyle(fontSize: 13 + appState.getTextSizeOffset())),
-                                            Text(Utils.formatCurrency(token['dailyIncome'] * 7 ?? 0, dataManager.currencySymbol),
+                                            Text(Utils.formatCurrency(dataManager.convert(token['dailyIncome']) * 7, dataManager.currencySymbol),
                                                 style: TextStyle(fontSize: 13 + appState.getTextSizeOffset())),
                                           ],
                                         ),
                                         Column(
                                           children: [
                                             Text(S.of(context).month, style: TextStyle(fontSize: 13 + appState.getTextSizeOffset())),
-                                            Text(Utils.formatCurrency(token['monthlyIncome'] ?? 0, dataManager.currencySymbol),
+                                            Text(Utils.formatCurrency(dataManager.convert(token['monthlyIncome']), dataManager.currencySymbol),
                                                 style: TextStyle(fontSize: 13 + appState.getTextSizeOffset())),
                                           ],
                                         ),
                                         Column(
                                           children: [
                                             Text(S.of(context).year, style: TextStyle(fontSize: 13 + appState.getTextSizeOffset())),
-                                            Text(Utils.formatCurrency(token['yearlyIncome'] ?? 0, dataManager.currencySymbol),
+                                            Text(Utils.formatCurrency(dataManager.convert(token['yearlyIncome']), dataManager.currencySymbol),
                                                 style: TextStyle(fontSize: 13 + appState.getTextSizeOffset())),
                                           ],
                                         ),

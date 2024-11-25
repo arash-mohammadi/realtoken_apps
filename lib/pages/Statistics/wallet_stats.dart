@@ -9,7 +9,9 @@ import 'package:realtokens_apps/api/data_manager.dart';
 import 'package:realtokens_apps/generated/l10n.dart'; // Import pour les traductions
 import 'package:realtokens_apps/app_state.dart'; // Import AppState
 import 'package:logger/logger.dart';
-import 'dart:math'; // Import the math library
+import 'dart:math';
+
+import 'package:shared_preferences/shared_preferences.dart'; // Import the math library
 
 class WalletStats extends StatefulWidget {
   const WalletStats({super.key});
@@ -22,11 +24,24 @@ class _WalletStats extends State<WalletStats> {
   static final logger = Logger(); // Initialiser une instance de logger
 
   late String _selectedPeriod;
+  bool apyIsBarChart = true; // Basculer entre BarChart et LineChart
+  bool roiIsBarChart = false; // Basculer entre BarChart et LineChart
+  bool walletIsBarChart = false; // Basculer entre BarChart et LineChart
+late SharedPreferences prefs;
 
   @override
   void initState() {
     super.initState();
     SchedulerBinding.instance.addPostFrameCallback((_) async {
+       prefs = await SharedPreferences.getInstance();
+
+    setState(() {
+      // Charger les préférences sauvegardées ou utiliser des valeurs par défaut
+      apyIsBarChart = prefs.getBool('apyIsBarChart') ?? true;
+      roiIsBarChart = prefs.getBool('roiIsBarChart') ?? false;
+      walletIsBarChart = prefs.getBool('walletIsBarChart') ?? false;
+    });
+    
       try {
         final dataManager = Provider.of<DataManager>(context, listen: false);
         logger.i("Fetching rent data and property data...");
@@ -348,421 +363,678 @@ class _WalletStats extends State<WalletStats> {
     );
   }
 
-  Widget _buildWalletBalanceCard(DataManager dataManager) {
-    final appState = Provider.of<AppState>(context);
+Widget _buildWalletBalanceCard(DataManager dataManager) {
+  final appState = Provider.of<AppState>(context);
 
-    // Récupérer les données de l'historique des balances du wallet
-    List<FlSpot> walletBalanceData = _buildWalletBalanceChartData(dataManager);
+  // Récupérer les données pour les graphiques
+  List<FlSpot> walletBalanceData = _buildWalletBalanceChartData(dataManager);
+  List<BarChartGroupData> barChartData = _buildWalletBalanceBarChartData(dataManager);
 
-    return Card(
-      elevation: 0,
-      color: Theme.of(context).cardColor,
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Text(
-                  S.of(context).walletBalanceHistory, // Clé de traduction pour "Historique du Wallet"
-                  style: TextStyle(
-                    fontSize: 20 + appState.getTextSizeOffset(),
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Spacer(),
-                IconButton(
-                  icon: Icon(Icons.edit),
-                  iconSize: 16.0, // Réduisez la taille ici
-                  onPressed: () => _showEditModal(context, dataManager),
-                  tooltip: S.of(context).edit, // Clé de traduction pour "Éditer"
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            SizedBox(
-              height: 250,
-              child: LineChart(
-                LineChartData(
-                  gridData: FlGridData(show: true, drawVerticalLine: false),
-                  titlesData: FlTitlesData(
-                    topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    leftTitles: AxisTitles(
-                      sideTitles: SideTitles(
-                        showTitles: true,
-                        reservedSize: 45,
-                        getTitlesWidget: (value, meta) {
-                          // Remplacez `highestValue` par la valeur maximale que vous souhaitez ignorer
-                          final highestValue = walletBalanceData.map((e) => e.y).reduce((a, b) => a > b ? a : b);
-
-                          // Vérifier si la valeur est la plus haute pour l'ignorer
-                          if (value == highestValue) {
-                            return const SizedBox.shrink();
-                          }
-
-                          // Vérifier si la valeur dépasse 1000 et formater en "1k$" si nécessaire
-                          final displayValue = value >= 1000
-                              ? '${(value / 1000).toStringAsFixed(1)} k${dataManager.currencySymbol}' // Formater en "1.0k"
-                              : Utils.formatCurrency(value, dataManager.currencySymbol);
-
-                          return Transform.rotate(
-                            angle: -0.5,
-                            child: Text(
-                              displayValue,
-                              style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                    bottomTitles: AxisTitles(
-                      sideTitles: SideTitles(
-                        showTitles: true,
-                        interval: 1, // Une étiquette par point
-                        getTitlesWidget: (value, meta) {
-                          List<String> labels = _buildDateLabelsForWallet(dataManager);
-
-                          // Vérifie si l'indice est valide
-                          if (value.toInt() >= 0 && value.toInt() < labels.length) {
-                            return Padding(
-                              padding: const EdgeInsets.only(top: 10.0), // Décalage vers le bas
-                              child: Transform.rotate(
-                                angle: -0.5,
-                                child: Text(
-                                  labels[value.toInt()],
-                                  style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
-                                ),
-                              ),
-                            );
-                          } else {
-                            return const SizedBox.shrink(); // Pas d'étiquette si hors des limites
-                          }
-                        },
-                      ),
-                    ),
-                    rightTitles: AxisTitles(
-                      sideTitles: SideTitles(showTitles: false),
-                    ),
-                  ),
-                  borderData: FlBorderData(
-                    show: true, // Affiche les bordures
-                    border: Border(
-                      left: BorderSide(color: Colors.transparent), // Axe gauche
-                      bottom: BorderSide(color: Colors.blueGrey.shade700, width: 0.5), // Axe bas
-                      right: BorderSide(color: Colors.transparent), // Masque l'axe droit
-                      top: BorderSide(color: Colors.transparent), // Masque l'axe supérieur
-                    ),
-                  ),
-                  minX: 0,
-                  maxX: (walletBalanceData.length - 1).toDouble(),
-                  minY: 0, // Définit la valeur minimale de l'axe de gauche à 0
-                  lineBarsData: [
-                    LineChartBarData(
-                      spots: walletBalanceData,
-                      isCurved: false,
-                      barWidth: 2,
-                      color: Colors.purple,
-                      dotData: FlDotData(show: false),
-                      belowBarData: BarAreaData(
-                        show: true,
-                        gradient: LinearGradient(
-                          colors: [
-                            Colors.purple.withOpacity(0.4),
-                            Colors.purple.withOpacity(0),
-                          ],
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                        ),
-                      ),
-                    ),
-                  ],
-                  lineTouchData: LineTouchData(
-                    touchTooltipData: LineTouchTooltipData(
-                      tooltipRoundedRadius: 8, // Arrondi des bords du tooltip
-                      tooltipMargin: 8, // Marge entre le point et le tooltip
-                      getTooltipItems: (List<LineBarSpot> touchedSpots) {
-                        return touchedSpots.map((touchedSpot) {
-                          final index = touchedSpot.x.toInt();
-
-                          // Récupérer la valeur et la date associées au point touché
-                          final value = touchedSpot.y;
-                          final date = _buildDateLabelsForWallet(dataManager)[index]; // Récupère la date
-
-                          // Formater la valeur
-                          final formattedValue = Utils.formatCurrency(dataManager.convert(value), dataManager.currencySymbol);
-
-                          return LineTooltipItem(
-                            '$date\n$formattedValue', // Combine la date et la valeur
-                            const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                          );
-                        }).toList();
-                      },
-                    ),
-                    touchCallback: (FlTouchEvent event, LineTouchResponse? touchResponse) {
-                      if (touchResponse != null && touchResponse.lineBarSpots != null) {
-                        debugPrint('Point touché : ${touchResponse.lineBarSpots?.first.x}');
-                      }
-                    },
-                    handleBuiltInTouches: true, // Active les interactions tactiles intégrées
-                  ),
+  return Card(
+    elevation: 0,
+    color: Theme.of(context).cardColor,
+    child: Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(
+                S.of(context).walletBalanceHistory, // Titre principal
+                style: TextStyle(
+                  fontSize: 20 + appState.getTextSizeOffset(),
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+              const Spacer(),
+              IconButton(
+                icon: const Icon(Icons.settings, size: 20.0,),
+                onPressed: () {
+                  showModalBottomSheet(
+                    context: context,
+                    builder: (context) {
+                      return Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            ListTile(
+                              leading: const Icon(Icons.bar_chart),
+                              title: Text(S.of(context).barChart),
+                              onTap: () {
+                                setState(() {
+                                  walletIsBarChart = true;
+                                  _saveChartPreference('walletIsBarChart', walletIsBarChart);
 
-  Widget _buildRoiHistoryCard(DataManager dataManager) {
-    final appState = Provider.of<AppState>(context);
-
-    // Récupérer les données de l'historique des balances du wallet
-    List<FlSpot> roiHistoryData = _buildRoiHistoryChartData(dataManager);
-
-    return Card(
-      elevation: 0,
-      color: Theme.of(context).cardColor,
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Text(
-                  S.of(context).roiHistory, // Clé de traduction pour "Historique du Wallet"
-                  style: TextStyle(
-                    fontSize: 20 + appState.getTextSizeOffset(),
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Spacer(),
-              ],
-            ),
-            const SizedBox(height: 20),
-            SizedBox(
-              height: 250,
-              child: LineChart(
-                LineChartData(
-                  gridData: FlGridData(show: true, drawVerticalLine: false),
-                  titlesData: FlTitlesData(
-                    topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    leftTitles: AxisTitles(
-                      sideTitles: SideTitles(
-                        showTitles: true,
-                        reservedSize: 45,
-                        getTitlesWidget: (value, meta) {
-                          // Remplacez `highestValue` par la valeur maximale que vous souhaitez ignorer
-                          final highestValue = roiHistoryData.map((e) => e.y).reduce((a, b) => a > b ? a : b);
-
-                          // Vérifier si la valeur est la plus haute pour l'ignorer
-                          if (value == highestValue) {
-                            return const SizedBox.shrink();
-                          }
-
-                          return Transform.rotate(
-                            angle: -0.5,
-                            child: Text(
-                              '${value.toStringAsFixed(0)}%',
-                              style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
+                                });
+                                Navigator.of(context).pop();
+                              },
                             ),
-                          );
-                        },
-                      ),
-                    ),
-                    bottomTitles: AxisTitles(
-                      sideTitles: SideTitles(
-                        showTitles: true,
-                        getTitlesWidget: (value, meta) {
-                          List<String> labels = _buildDateLabelsForRoi(dataManager);
+                            ListTile(
+                              leading: const Icon(Icons.show_chart),
+                              title: Text(S.of(context).lineChart),
+                              onTap: () {
+                                setState(() {
+                                  walletIsBarChart = false;
+                                  _saveChartPreference('walletIsBarChart', walletIsBarChart);
 
-                          // Vérifie si l'indice est valide
-                          if (value.toInt() >= 0 && value.toInt() < labels.length) {
-                            return Padding(
-                              padding: const EdgeInsets.only(top: 10.0), // Décalage vers le bas
-                              child: Transform.rotate(
-                                angle: -0.5,
-                                child: Text(
-                                  labels[value.toInt()],
-                                  style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
-                                ),
-                              ),
-                            );
-                          } else {
-                            return const SizedBox.shrink(); // Pas d'étiquette en dehors de la plage
-                          }
-                        },
-                        reservedSize: 30, // Ajuste la hauteur réservée pour les étiquettes
-                        interval: 1, // Force un intervalle correspondant à vos points
-                      ),
-                    ),
-                    rightTitles: AxisTitles(
-                      sideTitles: SideTitles(showTitles: false),
-                    ),
-                  ),
-                  borderData: FlBorderData(
-                    show: true, // Affiche les bordures
-                    border: Border(
-                      left: BorderSide(color: Colors.transparent), // Axe gauche
-                      bottom: BorderSide(color: Colors.blueGrey.shade700, width: 0.5), // Axe bas
-                      right: BorderSide(color: Colors.transparent), // Masque l'axe droit
-                      top: BorderSide(color: Colors.transparent), // Masque l'axe supérieur
-                    ),
-                  ),
-                  minX: 0,
-                  maxX: (roiHistoryData.length - 1).toDouble(),
-                  minY: 0, // Définit la valeur minimale de l'axe de gauche à 0
-                  maxY: 100,
-                  lineBarsData: [
-                    LineChartBarData(
-                      spots: roiHistoryData,
-                      isCurved: false,
-                      barWidth: 2,
-                      color: Colors.cyan,
-                      dotData: FlDotData(show: false),
-                      belowBarData: BarAreaData(
-                        show: true,
-                        gradient: LinearGradient(
-                          colors: [
-                            Colors.cyan.withOpacity(0.4),
-                            Colors.cyan.withOpacity(0),
+                                });
+                                Navigator.of(context).pop();
+                              },
+                            ),
+                            const Divider(),
+                            ListTile(
+                              leading: const Icon(Icons.edit),
+                              title: Text(S.of(context).edit),
+                              onTap: () {
+                                Navigator.of(context).pop();
+                                _showEditModal(context, dataManager);
+                              },
+                            ),
                           ],
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
                         ),
-                      ),
-                    ),
-                  ],
-                  lineTouchData: LineTouchData(
-                    touchTooltipData: LineTouchTooltipData(
-                      tooltipRoundedRadius: 8, // Arrondi des bords du tooltip
-                      tooltipMargin: 8, // Marge entre le point et le tooltip
-                      getTooltipItems: (List<LineBarSpot> touchedSpots) {
-                        return touchedSpots.map((touchedSpot) {
-                          final index = touchedSpot.x.toInt();
-
-                          // Récupérer la valeur et la date associées au point touché
-                          final value = touchedSpot.y;
-                          final date = _buildDateLabelsForRoi(dataManager)[index]; // Récupère la date
-
-                          // Construire le texte du tooltip avec la date et la valeur
-                          final formattedValue = '${value.toStringAsFixed(2)}%';
-
-                          return LineTooltipItem(
-                            '$date\n$formattedValue', // Combine la date et la valeur
-                            const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                          );
-                        }).toList();
-                      },
-                    ),
-                    touchCallback: (FlTouchEvent event, LineTouchResponse? touchResponse) {
-                      if (touchResponse != null && touchResponse.lineBarSpots != null) {
-                        debugPrint('Point touché : ${touchResponse.lineBarSpots?.first.x}');
-                      }
+                      );
                     },
-                    handleBuiltInTouches: true, // Active les interactions tactiles intégrées
-                  ),
-                ),
+                  );
+                },
               ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildApyHistoryCard(DataManager dataManager) {
-    final appState = Provider.of<AppState>(context);
-
-    List<BarChartGroupData> apyHistoryData = _buildApyHistoryBarChartData(dataManager);
-
-    int? selectedIndex; // Variable pour stocker l'index sélectionné
-
-    return Card(
-      elevation: 0,
-      color: Theme.of(context).cardColor,
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Text(
-                  S.of(context).apyHistory,
-                  style: TextStyle(
-                    fontSize: 20 + appState.getTextSizeOffset(),
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Spacer(),
-              ],
-            ),
-            const SizedBox(height: 20),
-            SizedBox(
-              height: 250,
-              child: StatefulBuilder(
-                builder: (context, setState) {
-                  return BarChart(
-                    BarChartData(
-                      gridData: FlGridData(show: true, drawVerticalLine: false),
-                      titlesData: FlTitlesData(
-                        leftTitles: AxisTitles(
-                          sideTitles: SideTitles(
-                            showTitles: true, // Afficher les titres à gauche
-                            reservedSize: 45,
-                            getTitlesWidget: (value, meta) {
-                              return Text(
-                                '${value.toStringAsFixed(0)}%',
-                                style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
-                              );
-                            },
+            ],
+          ),
+          const SizedBox(height: 20),
+          SizedBox(
+            height: 250,
+            child: StatefulBuilder(
+              builder: (context, setState) {
+                return walletIsBarChart
+                    ? BarChart(
+                        BarChartData(
+                          gridData: FlGridData(show: true, drawVerticalLine: false),
+                          titlesData: FlTitlesData(
+                            leftTitles: AxisTitles(
+                              sideTitles: SideTitles(
+                                showTitles: true,
+                                reservedSize: 45,
+                                getTitlesWidget: (value, meta) {
+                                  final displayValue = value >= 1000
+                                      ? '${(value / 1000).toStringAsFixed(1)} k${dataManager.currencySymbol}'
+                                      : Utils.formatCurrency(value, dataManager.currencySymbol);
+                                  return Text(
+                                    displayValue,
+                                    style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
+                                  );
+                                },
+                              
+                              ),
+                            ),
+                            bottomTitles: AxisTitles(
+                              sideTitles: SideTitles(
+                                showTitles: true,
+                                getTitlesWidget: (value, meta) {
+                                  List<String> labels = _buildDateLabelsForWallet(dataManager);
+                                  if (value.toInt() >= 0 && value.toInt() < labels.length) {
+                                    return Padding(
+                                      padding: const EdgeInsets.only(top: 10.0),
+                                      child: Transform.rotate(
+                                        angle: -0.5,
+                                        child: Text(
+                                          labels[value.toInt()],
+                                          style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
+                                        ),
+                                      ),
+                                    );
+                                  } else {
+                                    return const SizedBox.shrink();
+                                  }
+                                },
+                              ),
+                            ),
+                          
+                           topTitles: AxisTitles(
+                              sideTitles: SideTitles(showTitles: false),
+                            ),
+                            rightTitles: AxisTitles(
+                              sideTitles: SideTitles(showTitles: false),
+                            ),),
+                           borderData: FlBorderData(
+                            show: true,
+                            border: Border(
+                              left: BorderSide(color: Colors.transparent),
+                              bottom: BorderSide(color: Colors.blueGrey.shade700, width: 0.5),
+                              right: BorderSide(color: Colors.transparent),
+                              top: BorderSide(color: Colors.transparent),
+                            ),
                           ),
+                          barGroups: barChartData,
                         ),
-                        bottomTitles: AxisTitles(
-                          sideTitles: SideTitles(
-                            showTitles: true,
-                            getTitlesWidget: (value, meta) {
-                              List<String> labels = _buildDateLabelsForApy(dataManager);
-                              if (value.toInt() >= 0 && value.toInt() < labels.length) {
-                                return Padding(
-                                  padding: const EdgeInsets.only(top: 10.0), // Décalage vers le bas
-                                  child: Transform.rotate(
+                      )
+                    : LineChart(
+                        LineChartData(
+                          gridData: FlGridData(show: true, drawVerticalLine: false),
+                          titlesData: FlTitlesData(
+                            leftTitles: AxisTitles(
+                              sideTitles: SideTitles(
+                                showTitles: true,
+                                reservedSize: 45,
+                                getTitlesWidget: (value, meta) {
+                                  final displayValue = value >= 1000
+                                      ? '${(value / 1000).toStringAsFixed(1)} k${dataManager.currencySymbol}'
+                                      : Utils.formatCurrency(value, dataManager.currencySymbol);
+                                  return Text(
+                                    displayValue,
+                                    style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
+                                  );
+                                },
+                              ),
+                            ),
+                            bottomTitles: AxisTitles(
+                              sideTitles: SideTitles(
+                                showTitles: true,
+                                getTitlesWidget: (value, meta) {
+                                  List<String> labels = _buildDateLabelsForWallet(dataManager);
+                                  if (value.toInt() >= 0 && value.toInt() < labels.length) {
+                                    return Padding(
+                                      padding: const EdgeInsets.only(top: 10.0),
+                                      child: Transform.rotate(
+                                        angle: -0.5,
+                                        child: Text(
+                                          labels[value.toInt()],
+                                          style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
+                                        ),
+                                      ),
+                                    );
+                                  } else {
+                                    return const SizedBox.shrink();
+                                  }
+                                },
+                              ),
+                            ),
+                           topTitles: AxisTitles(
+                              sideTitles: SideTitles(showTitles: false),
+                            ),
+                            rightTitles: AxisTitles(
+                              sideTitles: SideTitles(showTitles: false),
+                            ),
+                          ),
+                           borderData: FlBorderData(
+                            show: true,
+                            border: Border(
+                              left: BorderSide(color: Colors.transparent),
+                              bottom: BorderSide(color: Colors.blueGrey.shade700, width: 0.5),
+                              right: BorderSide(color: Colors.transparent),
+                              top: BorderSide(color: Colors.transparent),
+                            ),
+                          ),
+                          lineBarsData: [
+                            LineChartBarData(
+                              spots: walletBalanceData,
+                              isCurved: false,
+                              barWidth: 2,
+                              color: Colors.purple,
+                              dotData: FlDotData(show: false),
+                              belowBarData: BarAreaData(
+                                show: true,
+                                gradient: LinearGradient(
+                                  colors: [
+                                    Colors.purple.withOpacity(0.4),
+                                    Colors.purple.withOpacity(0),
+                                  ],
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+              },
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+List<BarChartGroupData> _buildWalletBalanceBarChartData(DataManager dataManager) {
+  List<FlSpot> walletBalanceData = _buildWalletBalanceChartData(dataManager);
+  return walletBalanceData
+      .asMap()
+      .entries
+      .map(
+        (entry) => BarChartGroupData(
+          x: entry.key,
+          barRods: [
+            BarChartRodData(
+              toY: entry.value.y,
+              color: Colors.purple,
+              width: 8,
+            ),
+          ],
+        ),
+      )
+      .toList();
+}
+
+Widget _buildRoiHistoryCard(DataManager dataManager) {
+  final appState = Provider.of<AppState>(context);
+
+  // Récupérer les données pour les graphiques
+  List<FlSpot> roiHistoryData = _buildRoiHistoryChartData(dataManager);
+  List<BarChartGroupData> barChartData = _buildRoiHistoryBarChartData(dataManager);
+
+  return Card(
+    elevation: 0,
+    color: Theme.of(context).cardColor,
+    child: Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(
+                S.of(context).roiHistory, // Titre principal
+                style: TextStyle(
+                  fontSize: 20 + appState.getTextSizeOffset(),
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const Spacer(),
+              IconButton(
+                icon: const Icon(Icons.settings, size: 20.0),
+                onPressed: () {
+                  showModalBottomSheet(
+                    context: context,
+                    builder: (context) {
+                      return Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            ListTile(
+                              leading: const Icon(Icons.bar_chart),
+                              title: Text(S.of(context).barChart),
+                              onTap: () {
+                                setState(() {
+                                  roiIsBarChart = true;
+                                   _saveChartPreference('roiIsBarChart', roiIsBarChart);
+
+                                });
+                                Navigator.of(context).pop();
+                              },
+                            ),
+                            ListTile(
+                              leading: const Icon(Icons.show_chart),
+                              title: Text(S.of(context).lineChart),
+                              onTap: () {
+                                setState(() {
+                                  roiIsBarChart = false;
+                                   _saveChartPreference('roiIsBarChart', roiIsBarChart);
+
+                                });
+                                Navigator.of(context).pop();
+                              },
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          SizedBox(
+            height: 250,
+            child: StatefulBuilder(
+              builder: (context, setState) {
+                // Basculer entre BarChart et LineChart
+                return roiIsBarChart
+                    ? BarChart(
+                        BarChartData(
+                          gridData: FlGridData(show: true, drawVerticalLine: false),
+                          titlesData: FlTitlesData(
+                            leftTitles: AxisTitles(
+                              sideTitles: SideTitles(
+                                showTitles: true,
+                                reservedSize: 45,
+                                getTitlesWidget: (value, meta) {
+                                  return Text(
+                                    '${value.toStringAsFixed(0)}%',
+                                    style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
+                                  );
+                                },
+                              ),
+                            ),
+                            bottomTitles: AxisTitles(
+                              sideTitles: SideTitles(
+                                showTitles: true,
+                                getTitlesWidget: (value, meta) {
+                                  List<String> labels = _buildDateLabelsForRoi(dataManager);
+                                  if (value.toInt() >= 0 && value.toInt() < labels.length) {
+                                    return Padding(
+                                      padding: const EdgeInsets.only(top: 10.0),
+                                      child: Transform.rotate(
+                                        angle: -0.5,
+                                        child: Text(
+                                          labels[value.toInt()],
+                                          style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
+                                        ),
+                                      ),
+                                    );
+                                  } else {
+                                    return const SizedBox.shrink();
+                                  }
+                                },
+                              ),
+                            ),
+                            topTitles: AxisTitles(
+                              sideTitles: SideTitles(showTitles: false),
+                            ),
+                            rightTitles: AxisTitles(
+                              sideTitles: SideTitles(showTitles: false),
+                            ),
+                          ),
+                          borderData: FlBorderData(
+                            show: true,
+                            border: Border(
+                              left: BorderSide(color: Colors.transparent),
+                              bottom: BorderSide(color: Colors.blueGrey.shade700, width: 0.5),
+                              right: BorderSide(color: Colors.transparent),
+                              top: BorderSide(color: Colors.transparent),
+                            ),
+                          ),
+                          barGroups: barChartData,
+                        ),
+                      )
+                    : LineChart(
+                        LineChartData(
+                          gridData: FlGridData(show: true, drawVerticalLine: false),
+                          titlesData: FlTitlesData(
+                            topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                            leftTitles: AxisTitles(
+                              sideTitles: SideTitles(
+                                showTitles: true,
+                                reservedSize: 45,
+                                getTitlesWidget: (value, meta) {
+                                  final highestValue = roiHistoryData.map((e) => e.y).reduce((a, b) => a > b ? a : b);
+
+                                  if (value == highestValue) {
+                                    return const SizedBox.shrink();
+                                  }
+
+                                  return Transform.rotate(
                                     angle: -0.5,
                                     child: Text(
-                                      labels[value.toInt()],
+                                      '${value.toStringAsFixed(0)}%',
                                       style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
                                     ),
-                                  ),
-                                );
-                              } else {
-                                return const Text('');
+                                  );
+                                },
+                              ),
+                            ),
+                            bottomTitles: AxisTitles(
+                              sideTitles: SideTitles(
+                                showTitles: true,
+                                getTitlesWidget: (value, meta) {
+                                  List<String> labels = _buildDateLabelsForRoi(dataManager);
+
+                                  if (value.toInt() >= 0 && value.toInt() < labels.length) {
+                                    return Padding(
+                                      padding: const EdgeInsets.only(top: 10.0),
+                                      child: Transform.rotate(
+                                        angle: -0.5,
+                                        child: Text(
+                                          labels[value.toInt()],
+                                          style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
+                                        ),
+                                      ),
+                                    );
+                                  } else {
+                                    return const SizedBox.shrink();
+                                  }
+                                },
+                                reservedSize: 30,
+                                interval: 1,
+                              ),
+                            ),
+                            rightTitles: AxisTitles(
+                              sideTitles: SideTitles(showTitles: false),
+                            ),
+                          ),
+                          borderData: FlBorderData(
+                            show: true,
+                            border: Border(
+                              left: BorderSide(color: Colors.transparent),
+                              bottom: BorderSide(color: Colors.blueGrey.shade700, width: 0.5),
+                              right: BorderSide(color: Colors.transparent),
+                              top: BorderSide(color: Colors.transparent),
+                            ),
+                          ),
+                          minX: 0,
+                          maxX: (roiHistoryData.length - 1).toDouble(),
+                          minY: 0,
+                          maxY: 100,
+                          lineBarsData: [
+                            LineChartBarData(
+                              spots: roiHistoryData,
+                              isCurved: false,
+                              barWidth: 2,
+                              color: Colors.cyan,
+                              dotData: FlDotData(show: false),
+                              belowBarData: BarAreaData(
+                                show: true,
+                                gradient: LinearGradient(
+                                  colors: [
+                                    Colors.cyan.withOpacity(0.4),
+                                    Colors.cyan.withOpacity(0),
+                                  ],
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                ),
+                              ),
+                            ),
+                          ],
+                          lineTouchData: LineTouchData(
+                            touchTooltipData: LineTouchTooltipData(
+                              tooltipRoundedRadius: 8,
+                              tooltipMargin: 8,
+                              getTooltipItems: (List<LineBarSpot> touchedSpots) {
+                                return touchedSpots.map((touchedSpot) {
+                                  final index = touchedSpot.x.toInt();
+                                  final value = touchedSpot.y;
+                                  final date = _buildDateLabelsForRoi(dataManager)[index];
+
+                                  final formattedValue = '${value.toStringAsFixed(2)}%';
+
+                                  return LineTooltipItem(
+                                    '$date\n$formattedValue',
+                                    const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                                  );
+                                }).toList();
+                              },
+                            ),
+                            touchCallback: (FlTouchEvent event, LineTouchResponse? touchResponse) {
+                              if (touchResponse != null && touchResponse.lineBarSpots != null) {
+                                debugPrint('Point touché : ${touchResponse.lineBarSpots?.first.x}');
                               }
                             },
+                            handleBuiltInTouches: true,
                           ),
                         ),
-                        topTitles: AxisTitles(
-                          sideTitles: SideTitles(showTitles: false), // Masquer les titres en haut
+                      );
+              },
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+List<BarChartGroupData> _buildRoiHistoryBarChartData(DataManager dataManager) {
+  // Convertir les données de FlSpot pour le BarChart
+  List<FlSpot> roiHistoryData = _buildRoiHistoryChartData(dataManager);
+  return roiHistoryData
+      .asMap()
+      .entries
+      .map(
+        (entry) => BarChartGroupData(
+          x: entry.key,
+          barRods: [
+            BarChartRodData(
+              toY: entry.value.y,
+              color: Colors.cyan,
+              width: 8,
+            ),
+          ],
+        ),
+      )
+      .toList();
+}
+
+Widget _buildApyHistoryCard(DataManager dataManager) {
+  final appState = Provider.of<AppState>(context);
+
+  List<BarChartGroupData> apyHistoryData = _buildApyHistoryBarChartData(dataManager);
+  List<LineChartBarData> lineChartData = _buildApyHistoryLineChartData(dataManager);
+
+  int? selectedIndex; // Variable pour stocker l'index sélectionné
+
+  return Card(
+    elevation: 0,
+    color: Theme.of(context).cardColor,
+    child: Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(
+                S.of(context).apyHistory,
+                style: TextStyle(
+                  fontSize: 20 + appState.getTextSizeOffset(),
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const Spacer(),
+              IconButton(
+                icon: const Icon(Icons.settings, size: 20.0),
+                onPressed: () {
+                  showModalBottomSheet(
+                    context: context,
+                    builder: (context) {
+                      return Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            ListTile(
+                              leading: const Icon(Icons.bar_chart),
+                              title: Text(S.of(context).barChart),
+                              onTap: () {
+                                setState(() {
+                                  apyIsBarChart = true;
+                                 _saveChartPreference('apyIsBarChart', apyIsBarChart);
+
+                                });
+                                Navigator.of(context).pop();
+                              },
+                            ),
+                            ListTile(
+                              leading: const Icon(Icons.show_chart),
+                              title: Text(S.of(context).lineChart),
+                              onTap: () {
+                                setState(() {
+                                  apyIsBarChart = false;
+                                  _saveChartPreference('apyIsBarChart', apyIsBarChart);
+
+                                });
+                                Navigator.of(context).pop();
+                              },
+                            ),
+                          ],
                         ),
-                        rightTitles: AxisTitles(
-                          sideTitles: SideTitles(showTitles: false), // Masquer les titres à droite
-                        ),
-                      ),
-                      borderData: FlBorderData(
-                        show: true, // Affiche les bordures
-                        border: Border(
-                          left: BorderSide(color: Colors.transparent), // Axe gauche
-                          bottom: BorderSide(color: Colors.blueGrey.shade700, width: 0.5), // Axe bas
-                          right: BorderSide(color: Colors.transparent), // Masque l'axe droit
-                          top: BorderSide(color: Colors.transparent), // Masque l'axe supérieur
-                        ),
-                      ),
-                      alignment: BarChartAlignment.center,
-                      barGroups: apyHistoryData,
-                      maxY: 20,
-                      barTouchData: BarTouchData(
+                      );
+                    },
+                  );
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          SizedBox(
+            height: 250,
+            child: StatefulBuilder(
+              builder: (context, setState) {
+                return apyIsBarChart
+                    ? BarChart(
+                        BarChartData(
+                          gridData: FlGridData(show: true, drawVerticalLine: false),
+                          titlesData: FlTitlesData(
+                            leftTitles: AxisTitles(
+                              sideTitles: SideTitles(
+                                showTitles: true,
+                                reservedSize: 45,
+                                getTitlesWidget: (value, meta) {
+                                  return Text(
+                                    '${value.toStringAsFixed(0)}%',
+                                    style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
+                                  );
+                                },
+                              ),
+                            ),
+                            bottomTitles: AxisTitles(
+                              sideTitles: SideTitles(
+                                showTitles: true,
+                                getTitlesWidget: (value, meta) {
+                                  List<String> labels = _buildDateLabelsForApy(dataManager);
+                                  if (value.toInt() >= 0 && value.toInt() < labels.length) {
+                                    return Padding(
+                                      padding: const EdgeInsets.only(top: 10.0),
+                                      child: Transform.rotate(
+                                        angle: -0.5,
+                                        child: Text(
+                                          labels[value.toInt()],
+                                          style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
+                                        ),
+                                      ),
+                                    );
+                                  } else {
+                                    return const Text('');
+                                  }
+                                },
+                              ),
+                            ),
+                            topTitles: AxisTitles(
+                              sideTitles: SideTitles(
+                                showTitles: false,
+                                
+                              ),
+                            ),
+                            rightTitles: AxisTitles(
+                              sideTitles: SideTitles(
+                                showTitles: false,
+                                
+                              ),
+                            ),
+                          ),
+                          borderData: FlBorderData(
+                            show: true,
+                            border: Border(
+                              left: BorderSide(color: Colors.transparent),
+                              bottom: BorderSide(color: Colors.blueGrey.shade700, width: 0.5),
+                              right: BorderSide(color: Colors.transparent),
+                              top: BorderSide(color: Colors.transparent),
+                            ),
+                          ),
+                          alignment: BarChartAlignment.center,
+                          barGroups: apyHistoryData,
+                          maxY: 20,
+                          barTouchData: BarTouchData(
                         touchTooltipData: BarTouchTooltipData(
                           getTooltipItem: (group, groupIndex, rod, rodIndex) {
                             // Affiche uniquement le tooltip si l'index est sélectionné
@@ -792,16 +1064,120 @@ class _WalletStats extends State<WalletStats> {
                         },
                         handleBuiltInTouches: true,
                       ),
-                    ),
-                  );
-                },
-              ),
+                        ),
+                      )
+                    : LineChart(
+                        LineChartData(
+                          gridData: FlGridData(show: true, drawVerticalLine: false),
+                          titlesData: FlTitlesData(
+                            leftTitles: AxisTitles(
+                              sideTitles: SideTitles(
+                                showTitles: true,
+                                reservedSize: 45,
+                                getTitlesWidget: (value, meta) {
+                                  return Text(
+                                    '${value.toStringAsFixed(0)}%',
+                                    style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
+                                  );
+                                },
+                              ),
+                            ),
+                            bottomTitles: AxisTitles(
+                              sideTitles: SideTitles(
+                                showTitles: true,
+                                getTitlesWidget: (value, meta) {
+                                  List<String> labels = _buildDateLabelsForApy(dataManager);
+                                  if (value.toInt() >= 0 && value.toInt() < labels.length) {
+                                    return Padding(
+                                      padding: const EdgeInsets.only(top: 10.0),
+                                      child: Transform.rotate(
+                                        angle: -0.5,
+                                        child: Text(
+                                          labels[value.toInt()],
+                                          style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
+                                        ),
+                                      ),
+                                    );
+                                  } else {
+                                    return const Text('');
+                                  }
+                                },
+                              ),
+                            ),
+                            topTitles: AxisTitles(
+                              sideTitles: SideTitles(
+                                showTitles: false,
+                                
+                              ),
+                            ),
+                            rightTitles: AxisTitles(
+                              sideTitles: SideTitles(
+                                showTitles: false,
+                                
+                              ),
+                            ),
+                          ),
+                          borderData: FlBorderData(
+                            show: true,
+                            border: Border(
+                              left: BorderSide(color: Colors.transparent),
+                              bottom: BorderSide(color: Colors.blueGrey.shade700, width: 0.5),
+                              right: BorderSide(color: Colors.transparent),
+                              top: BorderSide(color: Colors.transparent),
+                            ),
+                          ),
+                          lineBarsData: lineChartData,
+                           minY:0,
+                           maxY: 20,
+                        ),
+                      );
+              },
             ),
-          ],
-        ),
+          ),
+        ],
       ),
-    );
-  }
+    ),
+  );
+}
+
+List<LineChartBarData> _buildApyHistoryLineChartData(DataManager dataManager) {
+  final groupedData = _groupApyByDate(dataManager); // Regroupe les données comme pour le BarChart
+
+  final grossSpots = <FlSpot>[];
+  final netSpots = <FlSpot>[];
+
+  int index = 0;
+  groupedData.forEach((date, values) {
+    grossSpots.add(FlSpot(index.toDouble(), values['gross']!));
+    netSpots.add(FlSpot(index.toDouble(), values['net']!));
+    index++;
+  });
+
+  return [
+    LineChartBarData(
+      spots: grossSpots,
+      isCurved: true,
+      color: Colors.blue,
+      barWidth: 2,
+      belowBarData: BarAreaData(
+        show: true,
+        color: Colors.blue.withOpacity(0.1),
+      ),
+      dotData: FlDotData(show: false),
+    ),
+    LineChartBarData(
+      spots: netSpots,
+      isCurved: true,
+      color: Colors.green,
+      barWidth: 2,
+      belowBarData: BarAreaData(
+        show: true,
+        color: Colors.green.withOpacity(0.1),
+      ),
+      dotData: FlDotData(show: false),
+    ),
+  ];
+}
 
   List<BarChartGroupData> _buildApyHistoryBarChartData(DataManager dataManager) {
     final groupedData = _groupApyByDate(dataManager);
@@ -1123,7 +1499,7 @@ class _WalletStats extends State<WalletStats> {
         },
         child: Container(
           decoration: BoxDecoration(
-            color: isSelected ? Colors.blue : Colors.grey[300],
+            color: isSelected ? Colors.blue :  Theme.of(context).secondaryHeaderColor,
             borderRadius: BorderRadius.horizontal(
               left: isFirst ? const Radius.circular(8) : Radius.zero,
               right: isLast ? const Radius.circular(8) : Radius.zero,
@@ -1135,7 +1511,7 @@ class _WalletStats extends State<WalletStats> {
             period,
             style: TextStyle(
               fontSize: 14 + appState.getTextSizeOffset(),
-              color: isSelected ? Colors.white : Colors.black,
+              color: isSelected ? Colors.white : Theme.of(context).textTheme.bodyLarge?.color,
               fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
             ),
           ),
@@ -1154,4 +1530,8 @@ class _WalletStats extends State<WalletStats> {
     }
     return spots;
   }
+
+void _saveChartPreference(String key, bool value) {
+  prefs.setBool(key, value);
+} 
 }

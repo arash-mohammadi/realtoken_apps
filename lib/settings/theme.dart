@@ -5,6 +5,7 @@ final ThemeData lightTheme = ThemeData(
   scaffoldBackgroundColor: Colors.grey[100],
   cardColor: Colors.white,
   dialogBackgroundColor: Colors.white,
+  secondaryHeaderColor:Colors.grey[300] ,
   textTheme: TextTheme(
     bodyLarge: TextStyle(color: Colors.black), // Couleur principale
     bodyMedium: TextStyle(color: Colors.grey[750]), // Couleur secondaire pour les textes
@@ -29,6 +30,8 @@ final ThemeData darkTheme = ThemeData(
   scaffoldBackgroundColor: Colors.black,
   cardColor: Colors.grey[900],
   dialogBackgroundColor: Colors.black,
+    secondaryHeaderColor:Color.fromARGB(255, 78, 78, 78).withOpacity(0.4) ,
+
   textTheme: TextTheme(
     bodyLarge: TextStyle(color: Colors.white), // Couleur principale
     bodyMedium: TextStyle(color: Colors.grey[400]), // Couleur secondaire pour les textes

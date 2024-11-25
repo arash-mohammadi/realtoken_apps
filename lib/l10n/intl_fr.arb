@@ -231,6 +231,12 @@
   "secondary": "Secondaire",
     "apyHistory": "Historique APY",
   "roiHistory": "Historique ROI",
+  "barChart": "Diagramme en barres",
+  "lineChart": "Diagramme linéaire",
+  "rentDistribution": "Répartition des loyers",
+  "country": "Pays",
+  "region": "Région",
+  "city": "Ville",
   "@propertyMaintenanceMonthly": {
     "description": "Dépenses mensuelles d'entretien de la propriété"
   },

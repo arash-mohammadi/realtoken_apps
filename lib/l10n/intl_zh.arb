@@ -231,6 +231,12 @@
   "secondary": "次要",
     "apyHistory": "APY 历史",
   "roiHistory": "ROI 历史",
+  "barChart": "柱状图",
+  "lineChart": "折线图",
+  "rentDistribution": "租金分配",
+  "country": "国家",
+  "region": "地区",
+  "city": "城市",
     "@propertyMaintenanceMonthly": {
       "description": "物业的每月维护费用"
     },
