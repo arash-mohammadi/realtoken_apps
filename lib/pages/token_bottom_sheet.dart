@@ -164,7 +164,7 @@ Future<void> showTokenDetails(
     isScrollControlled: true,
     builder: (BuildContext context) {
       return DefaultTabController(
-        length: 5, // Quatre onglets
+        length: 6, // Quatre onglets
         child: SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.all(8.0),
@@ -245,8 +245,7 @@ Future<void> showTokenDetails(
                                 fontSize: 13 + appState.getTextSizeOffset(),
                               ),
                             ),
-                            const SizedBox(
-                                width: 8), // Espace entre les deux éléments
+                            const SizedBox( width: 8), // Espace entre les deux éléments
                             Text(
                               Utils.formatCurrency(dataManager.convert(token['totalValue']), dataManager.currencySymbol),
                               style: TextStyle(
@@ -261,28 +260,24 @@ Future<void> showTokenDetails(
                     : SizedBox.shrink(),
 
                 const SizedBox(height: 5),
-
                 // TabBar pour les différents onglets
                 TabBar(
                   labelColor: Colors.blue,
-                  indicatorColor: Colors
-                      .blue, // Couleur de l'indicateur sous l'onglet sélectionné
+                  indicatorColor: Colors.blue, // Couleur de l'indicateur sous l'onglet sélectionné
 
                   unselectedLabelColor: Colors.grey,
                   labelStyle: TextStyle(
                       fontSize: 13 + appState.getTextSizeOffset(),
-                      fontWeight: FontWeight
-                          .bold), // Taille du texte des onglets sélectionnés
+                      fontWeight: FontWeight.bold), // Taille du texte des onglets sélectionnés
                   unselectedLabelStyle: TextStyle(
-                      fontSize: 13 +
-                          appState
-                              .getTextSizeOffset()), // Taille du texte des onglets non sélectionnés
+                      fontSize: 13 +appState.getTextSizeOffset()), // Taille du texte des onglets non sélectionnés
                   tabs: [
                     Tab(icon: Icon(Icons.home)), // Propriétés
                     Tab(icon: Icon(Icons.attach_money)), // Finances
                     Tab(icon: Icon(Icons.store)), // Market
                     Tab(icon: Icon(Icons.info)), // Autres (icône d'information)
                     Tab(icon: Icon(Icons.insights)), // Insights
+                    Tab(icon: Icon(Icons.history)), // Insights
                   ],
                 ),
 
@@ -919,7 +914,7 @@ Future<void> showTokenDetails(
                               context,
                               'S.of(context).yamPrice',
                               '${Utils.formatCurrency(
-                                  dataManager.convert(token['yamAverageValue']), dataManager.currencySymbol)} (${(1 - (token['yamAverageValue'] / token['tokenPrice']) * 100 ).toStringAsFixed(0)}%)',
+                                  dataManager.convert(token['yamAverageValue']), dataManager.currencySymbol)} (${((token['yamAverageValue'] / token['tokenPrice'] - 1) * 100 ).toStringAsFixed(0)}%)',
                               icon: Icons.price_change, // Icône pour rendement annuel en pourcentage
                             ),
 
@@ -1576,6 +1571,76 @@ Future<void> showTokenDetails(
                           ],
                         ),
                       ),
+                    
+                    // Ajout de l'onglet Historique des transactions
+                    SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            S.of(context).transactionHistory,
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15 + appState.getTextSizeOffset(),
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          token['transactions'] != null &&
+                                  token['transactions'].isNotEmpty
+                              ? ListView.builder(
+                                  shrinkWrap: true,
+                                  physics: NeverScrollableScrollPhysics(),
+                                  itemCount: token['transactions'].length,
+                                  itemBuilder: (context, index) {
+                                    final transaction =
+                                        token['transactions'][index];
+                                    final amount = transaction['amount'] ?? 0.0;
+                                    final dateTime = transaction['dateTime'] !=
+                                            null
+                                        ? DateFormat('yyyy-MM-dd HH:mm')
+                                            .format(transaction['dateTime'])
+                                        : S.of(context).unknownDate;
+
+                                    return Card(
+                                      margin: const EdgeInsets.symmetric(
+                                          vertical: 5.0),
+                                      child: ListTile(
+                                        leading: Icon(
+                                          Icons.attach_money,
+                                          color: Colors.green,
+                                        ),
+                                        title: Text(
+                                          '${S.of(context).amount}: $amount',
+                                          style: TextStyle(
+                                            fontSize: 14 +
+                                                appState.getTextSizeOffset(),
+                                          ),
+                                        ),
+                                        subtitle: Text(
+                                          '${S.of(context).date}: $dateTime',
+                                          style: TextStyle(
+                                            fontSize: 12 +
+                                                appState.getTextSizeOffset(),
+                                            color: Colors.grey,
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                )
+                              : Center(
+                                  child: Text(
+                                    S.of(context).noTransactionsAvailable,
+                                    style: TextStyle(
+                                      fontSize:
+                                          13 + appState.getTextSizeOffset(),
+                                    ),
+                                  ),
+                                ),
+                        ],
+                      ),
+                    ),
+
                     ],
                   ),
                 ),

@@ -237,6 +237,11 @@
   "country": "País",
   "region": "Región",
   "city": "Ciudad",
+  "transactionHistory": "Historial de transacciones",
+  "amount": "Monto",
+  "timestamp": "Marca temporal",
+  "unknownDate": "Fecha desconocida",
+  "noTransactionsAvailable": "No hay transacciones disponibles",
   "@propertyMaintenanceMonthly": {
     "description": "Gastos mensuales de mantenimiento de la propiedad"
   },

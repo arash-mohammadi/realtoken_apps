@@ -2410,6 +2410,46 @@ class S {
     );
   }
 
+  /// `Transaction History`
+  String get transactionHistory {
+    return Intl.message(
+      'Transaction History',
+      name: 'transactionHistory',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Timestamp`
+  String get timestamp {
+    return Intl.message(
+      'Timestamp',
+      name: 'timestamp',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Unknown date`
+  String get unknownDate {
+    return Intl.message(
+      'Unknown date',
+      name: 'unknownDate',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No transactions available`
+  String get noTransactionsAvailable {
+    return Intl.message(
+      'No transactions available',
+      name: 'noTransactionsAvailable',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Bedroom/Bath`
   String get bedroomBath {
     return Intl.message(

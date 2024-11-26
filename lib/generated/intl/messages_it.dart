@@ -203,6 +203,8 @@ class MessageLookup extends MessageLookupByLibrary {
             "Nessun cambiamento recente disponibile."),
         "noRentReceived":
             MessageLookupByLibrary.simpleMessage("Nessun affitto ricevuto"),
+        "noTransactionsAvailable": MessageLookupByLibrary.simpleMessage(
+            "Nessuna transazione disponibile"),
         "noYieldEvolution": MessageLookupByLibrary.simpleMessage(
             "Nessuna evoluzione del rendimento. L\'ultimo rendimento è:"),
         "no_market_offers_available": MessageLookupByLibrary.simpleMessage(
@@ -322,6 +324,7 @@ class MessageLookup extends MessageLookupByLibrary {
             "Grazie a tutti coloro che hanno contribuito a questo progetto."),
         "thanks": MessageLookupByLibrary.simpleMessage("Grazie"),
         "themeUpdated": m2,
+        "timestamp": MessageLookupByLibrary.simpleMessage("Data e ora"),
         "tokenAddress":
             MessageLookupByLibrary.simpleMessage("Indirizzo del token"),
         "tokenDistribution": MessageLookupByLibrary.simpleMessage(
@@ -349,6 +352,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "totalUnits":
             MessageLookupByLibrary.simpleMessage("Numero totale di unità"),
         "totalValue": MessageLookupByLibrary.simpleMessage("Valore totale"),
+        "transactionHistory": MessageLookupByLibrary.simpleMessage(
+            "Cronologia delle transazioni"),
         "underlyingAssetPrice":
             MessageLookupByLibrary.simpleMessage("Prezzo dell\'asset"),
         "units": MessageLookupByLibrary.simpleMessage("unità"),
@@ -357,6 +362,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Città sconosciuta"),
         "unknownCountry":
             MessageLookupByLibrary.simpleMessage("Paese sconosciuto"),
+        "unknownDate": MessageLookupByLibrary.simpleMessage("Data sconosciuta"),
         "unknownTokenName":
             MessageLookupByLibrary.simpleMessage("Nome sconosciuto"),
         "usdcBorrowBalance":

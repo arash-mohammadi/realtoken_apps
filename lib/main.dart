@@ -42,6 +42,8 @@ void main() async {
 
   // Initialisation de SharedPreferences et DataManager
   final dataManager = DataManager();
+    FlutterNativeSplash.remove(); // Supprimer le splash screen natif après l'initialisation
+
   // Charger les premières opérations en parallèle
   await Future.wait([
     dataManager.updateGlobalVariables(),
@@ -49,7 +51,6 @@ void main() async {
     dataManager.loadUserIdToAddresses(),
   ]);
 
-  FlutterNativeSplash.remove(); // Supprimer le splash screen natif après l'initialisation
 
   // Ensuite, exécuter fetchAndCalculateData une fois que les précédentes sont terminées
   dataManager.fetchAndStorePropertiesForSale();

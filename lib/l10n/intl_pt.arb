@@ -237,6 +237,11 @@
   "country": "País",
   "region": "Região",
   "city": "Cidade",
+   "transactionHistory": "Histórico de transações",
+  "amount": "Quantia",
+  "timestamp": "Carimbo de data/hora",
+  "unknownDate": "Data desconhecida",
+  "noTransactionsAvailable": "Nenhuma transação disponível",
   "@propertyMaintenanceMonthly": {
     "description": "Despesas mensais de manutenção da propriedade"
   },

@@ -197,6 +197,8 @@ class MessageLookup extends MessageLookupByLibrary {
             "No recent changes available."),
         "noRentReceived":
             MessageLookupByLibrary.simpleMessage("No rent received"),
+        "noTransactionsAvailable":
+            MessageLookupByLibrary.simpleMessage("No transactions available"),
         "noYieldEvolution": MessageLookupByLibrary.simpleMessage(
             "No yield evolution. The last yield is:"),
         "no_market_offers_available":
@@ -307,6 +309,7 @@ class MessageLookup extends MessageLookupByLibrary {
             "Thank you to everyone who contributed to this project."),
         "thanks": MessageLookupByLibrary.simpleMessage("Thanks"),
         "themeUpdated": m2,
+        "timestamp": MessageLookupByLibrary.simpleMessage("Timestamp"),
         "tokenAddress": MessageLookupByLibrary.simpleMessage("Token address"),
         "tokenDistribution": MessageLookupByLibrary.simpleMessage(
             "Token Distribution by Property Type"),
@@ -330,6 +333,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "totalTokens": MessageLookupByLibrary.simpleMessage("Total Tokens"),
         "totalUnits": MessageLookupByLibrary.simpleMessage("Total units"),
         "totalValue": MessageLookupByLibrary.simpleMessage("Total Value"),
+        "transactionHistory":
+            MessageLookupByLibrary.simpleMessage("Transaction History"),
         "underlyingAssetPrice":
             MessageLookupByLibrary.simpleMessage("Asset price"),
         "units": MessageLookupByLibrary.simpleMessage("units"),
@@ -337,6 +342,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "unknownCity": MessageLookupByLibrary.simpleMessage("Unknown City"),
         "unknownCountry":
             MessageLookupByLibrary.simpleMessage("Unknown country"),
+        "unknownDate": MessageLookupByLibrary.simpleMessage("Unknown date"),
         "unknownTokenName":
             MessageLookupByLibrary.simpleMessage("Unknown name"),
         "usdcBorrowBalance":

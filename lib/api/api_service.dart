@@ -752,4 +752,96 @@ class ApiService {
       throw Exception('apiService: fetchTokenVolumes -> Échec de la requête');
     }
   }
+
+static Future<List<dynamic>> fetchTransactionsHistory({
+  required List<Map<String, dynamic>> portfolio,
+  bool forceFetch = false,
+}) async {
+  logger.i("apiService: fetchTransferEvents -> Lancement de la requête");
+
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  List<String> destinations = prefs.getStringList('evmAddresses') ?? [];
+
+  if (destinations.isEmpty) {
+    logger.w("apiService: fetchTransferEvents -> Pas d'adresses de destination disponibles");
+    return [];
+  }
+
+  // Extraire les UUID des tokens depuis le portfolio
+  List<String> tokenAddresses = portfolio.map((token) => token['uuid'] as String).toList();
+
+  if (tokenAddresses.isEmpty) {
+    logger.w("apiService: fetchTransferEvents -> Pas de tokens disponibles dans le portfolio");
+    return [];
+  }
+
+  // Requête GraphQL
+  final response = await http.post(
+    Uri.parse(Parameters.gnosisUrl),
+    headers: {'Content-Type': 'application/json'},
+    body: json.encode({
+      "query": '''
+        query GetTransferEvents(\$tokenAddresses: [String!], \$destinations: [String!]) {
+          transferEvents(
+            where: {
+              token_in: \$tokenAddresses,
+              destination_in: \$destinations
+            }
+            orderBy: timestamp
+            orderDirection: desc
+            first: 1000
+          ) {
+            id
+            token {
+              id
+            }
+            amount
+            sender
+            destination
+            timestamp
+            transaction {
+              id
+            }
+          }
+        }
+      ''',
+      "variables": {
+        "tokenAddresses": tokenAddresses,
+        "destinations": destinations,
+      }
+    }),
+  );
+
+  if (response.statusCode == 200) {
+    logger.i("apiService: fetchTransferEvents -> Requête lancée avec succès");
+
+    final decodedResponse = json.decode(response.body);
+
+    // Vérifiez si "data" et "transferEvents" existent
+    if (decodedResponse['data'] != null &&
+        decodedResponse['data']['transferEvents'] != null) {
+      final List<dynamic> transferEvents = decodedResponse['data']['transferEvents'];
+
+      if (transferEvents.isNotEmpty) {
+        // Mettre les données dans le cache
+        var box = Hive.box('realTokens');
+        final now = DateTime.now();
+        box.put('cachedTransferEventsData', json.encode(transferEvents));
+        box.put('lastTransferEventsFetchTime', now.toIso8601String());
+        box.put('lastExecutionTime_TransferEvents', now.toIso8601String());
+
+        return transferEvents;
+      } else {
+        logger.w("apiService: fetchTransferEvents -> Aucun événement de transfert trouvé");
+        return [];
+      }
+    } else {
+      logger.w("apiService: fetchTransferEvents -> Aucune donnée dans la réponse");
+      return [];
+    }
+  } else {
+    throw Exception('apiService: fetchTransferEvents -> Échec de la requête');
+  }
+}
+
 }

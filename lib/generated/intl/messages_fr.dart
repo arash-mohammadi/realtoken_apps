@@ -208,6 +208,8 @@ class MessageLookup extends MessageLookupByLibrary {
             "Aucune modification récente disponible."),
         "noRentReceived":
             MessageLookupByLibrary.simpleMessage("Aucun loyer reçu"),
+        "noTransactionsAvailable": MessageLookupByLibrary.simpleMessage(
+            "Aucune transaction disponible"),
         "noYieldEvolution": MessageLookupByLibrary.simpleMessage(
             "Aucune évolution du rendement. Le dernier rendement est :"),
         "no_market_offers_available": MessageLookupByLibrary.simpleMessage(
@@ -326,6 +328,7 @@ class MessageLookup extends MessageLookupByLibrary {
             "Merci à tous ceux qui ont contribué à ce projet."),
         "thanks": MessageLookupByLibrary.simpleMessage("Remerciements"),
         "themeUpdated": m2,
+        "timestamp": MessageLookupByLibrary.simpleMessage("Horodatage"),
         "tokenAddress":
             MessageLookupByLibrary.simpleMessage("Adresse du jeton"),
         "tokenDistribution": MessageLookupByLibrary.simpleMessage(
@@ -353,12 +356,15 @@ class MessageLookup extends MessageLookupByLibrary {
         "totalUnits":
             MessageLookupByLibrary.simpleMessage("Nombre total d\'unités"),
         "totalValue": MessageLookupByLibrary.simpleMessage("Valeur totale"),
+        "transactionHistory":
+            MessageLookupByLibrary.simpleMessage("Historique des transactions"),
         "underlyingAssetPrice": MessageLookupByLibrary.simpleMessage(
             "Prix de l\'actif sous-jacent"),
         "units": MessageLookupByLibrary.simpleMessage("logements"),
         "unknown": MessageLookupByLibrary.simpleMessage("Inconnu"),
         "unknownCity": MessageLookupByLibrary.simpleMessage("Ville inconnue"),
         "unknownCountry": MessageLookupByLibrary.simpleMessage("Pays inconnu"),
+        "unknownDate": MessageLookupByLibrary.simpleMessage("Date inconnue"),
         "unknownTokenName": MessageLookupByLibrary.simpleMessage("Nom inconnu"),
         "usdcBorrowBalance":
             MessageLookupByLibrary.simpleMessage("Solde des emprunts USDC"),

@@ -7,7 +7,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   String selectedTextSize = 'normal'; // Default text size
   String selectedLanguage = 'en'; // Default language
   List<String>? evmAddresses; // Variable for storing EVM addresses
-
+  
   AppState() {
     _loadSettings();
     WidgetsBinding.instance.addObserver(this); // Add observer to listen to system changes

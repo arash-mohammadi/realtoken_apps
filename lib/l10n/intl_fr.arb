@@ -237,6 +237,11 @@
   "country": "Pays",
   "region": "Région",
   "city": "Ville",
+   "transactionHistory": "Historique des transactions",
+  "amount": "Montant",
+  "timestamp": "Horodatage",
+  "unknownDate": "Date inconnue",
+  "noTransactionsAvailable": "Aucune transaction disponible",
   "@propertyMaintenanceMonthly": {
     "description": "Dépenses mensuelles d'entretien de la propriété"
   },

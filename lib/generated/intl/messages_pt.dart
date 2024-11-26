@@ -38,7 +38,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "allCities": MessageLookupByLibrary.simpleMessage("Todas as Cidades"),
         "allWorkCorrectly": MessageLookupByLibrary.simpleMessage(
             "Tudo está funcionando corretamente"),
-        "amount": MessageLookupByLibrary.simpleMessage("Quantidade"),
+        "amount": MessageLookupByLibrary.simpleMessage("Quantia"),
         "annualPercentageYield":
             MessageLookupByLibrary.simpleMessage("Rendimento Anual (%)"),
         "annualYield":
@@ -204,6 +204,8 @@ class MessageLookup extends MessageLookupByLibrary {
             "Nenhuma alteração recente disponível."),
         "noRentReceived":
             MessageLookupByLibrary.simpleMessage("Nenhum aluguel recebido"),
+        "noTransactionsAvailable": MessageLookupByLibrary.simpleMessage(
+            "Nenhuma transação disponível"),
         "noYieldEvolution": MessageLookupByLibrary.simpleMessage(
             "Sem evolução de rendimento. O último rendimento é:"),
         "no_market_offers_available": MessageLookupByLibrary.simpleMessage(
@@ -325,6 +327,8 @@ class MessageLookup extends MessageLookupByLibrary {
             "Obrigado a todos que contribuíram para este projeto."),
         "thanks": MessageLookupByLibrary.simpleMessage("Agradecimentos"),
         "themeUpdated": m2,
+        "timestamp":
+            MessageLookupByLibrary.simpleMessage("Carimbo de data/hora"),
         "tokenAddress":
             MessageLookupByLibrary.simpleMessage("Endereço do Token"),
         "tokenDistribution": MessageLookupByLibrary.simpleMessage(
@@ -351,6 +355,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "totalTokens": MessageLookupByLibrary.simpleMessage("Total de Tokens"),
         "totalUnits": MessageLookupByLibrary.simpleMessage("Total de Unidades"),
         "totalValue": MessageLookupByLibrary.simpleMessage("Valor Total"),
+        "transactionHistory":
+            MessageLookupByLibrary.simpleMessage("Histórico de transações"),
         "underlyingAssetPrice":
             MessageLookupByLibrary.simpleMessage("Preço do Ativo Subjacente"),
         "units": MessageLookupByLibrary.simpleMessage("unidades"),
@@ -359,6 +365,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Cidade Desconhecida"),
         "unknownCountry":
             MessageLookupByLibrary.simpleMessage("País desconhecido"),
+        "unknownDate":
+            MessageLookupByLibrary.simpleMessage("Data desconhecida"),
         "unknownTokenName":
             MessageLookupByLibrary.simpleMessage("Nome Desconhecido"),
         "usdcBorrowBalance":

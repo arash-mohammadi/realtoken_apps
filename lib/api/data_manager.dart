@@ -155,7 +155,8 @@ class DataManager extends ChangeNotifier {
   List<Map<String, dynamic>> yamMarketFetched = [];
   List<Map<String, dynamic>> yamMarketData = [];
   List<Map<String, dynamic>> yamMarket = [];
-    List<Map<String, dynamic>> yamHistory = [];
+  List<Map<String, dynamic>> yamHistory = [];
+  List<Map<String, dynamic>> transactionsHistory = [];
 
 
   var customInitPricesBox = Hive.box('CustomInitPrices');
@@ -278,6 +279,19 @@ class DataManager extends ChangeNotifier {
         notifyListeners(); // Notifier les listeners après la mise à jour
       } else {
         logger.d("Les RMM Balances sont vides, pas de mise à jour.");
+      }
+
+// Mise à jour des transactions History
+      var transactionsHistoryData = await ApiService.fetchTransactionsHistory(portfolio:portfolio, forceFetch: forceFetch);
+      if (transactionsHistoryData.isNotEmpty) {
+        logger.i("Mise à jour de l'historique des transactions avec de nouvelles valeurs.");
+
+        // Sauvegarder les balances dans Hive
+        box.put('transactionsHistory', json.encode(transactionsHistoryData));
+        transactionsHistory = transactionsHistoryData.cast<Map<String, dynamic>>();
+        notifyListeners(); // Notifier les listeners après la mise à jour
+      } else {
+        logger.d("L'historique des transactions est vide, pas de mise à jour.");
       }
 
     loadWalletBalanceHistory();
@@ -759,7 +773,7 @@ class DataManager extends ChangeNotifier {
           String city = parts3.length >= 2 ? parts[1].trim() : 'Unknown City';
 
 
-// Chercher la valeur Yam associée au token
+    // Chercher la valeur Yam associée au token
     final yamData = yamHistory.firstWhere(
       (yam) => yam['id'].toLowerCase() == tokenContractAddress,
       orElse: () => <String, dynamic>{},
@@ -767,6 +781,35 @@ class DataManager extends ChangeNotifier {
 
     final double yamTotalVolume = yamData['totalVolume'] ?? 0.0;
     final double yamAverageValue = yamData['averageValue'] ?? tokenPrice;
+
+  // Créer une nouvelle structure pour regrouper les transactions par token
+Map<String, List<Map<String, dynamic>>> transactionsByToken = {};
+
+// Filtrer les transactions par tokenContractAddress
+for (var transaction in transactionsHistory) {
+  final String tokenId = transaction['token']['id'];
+  final double amount = double.parse(transaction['amount']);
+  final String timestamp = transaction['timestamp']; // Format brut du timestamp
+
+  if (tokenId == tokenContractAddress) {
+    // Ajouter les transactions au groupe correspondant
+    if (transactionsByToken.containsKey(tokenId)) {
+      transactionsByToken[tokenId]!.add({
+        "amount": amount,
+        "dateTime": DateTime.fromMillisecondsSinceEpoch(
+            int.parse(timestamp) * 1000) // Conversion en DateTime
+      });
+    } else {
+      transactionsByToken[tokenId] = [
+        {
+          "amount": amount,
+          "dateTime": DateTime.fromMillisecondsSinceEpoch(
+              int.parse(timestamp) * 1000) // Conversion en DateTime
+        }
+      ];
+    }
+  }
+}
 
           // Ajouter au Portfolio
           newPortfolio.add({
@@ -827,7 +870,9 @@ class DataManager extends ChangeNotifier {
             'section8paid': matchingRealToken['section8paid'] ?? 0.0,
 
             'yamTotalVolume': yamTotalVolume, // Ajout de la valeur Yam calculée
-            'yamAverageValue': yamAverageValue // Ajout de la valeur moyenne Yam calculée
+            'yamAverageValue': yamAverageValue, // Ajout de la valeur moyenne Yam calculée
+  'transactions': transactionsByToken[tokenContractAddress] ?? []
+
           });
 
           initialTotalValue += double.parse(walletToken['amount']) * initPrice;
@@ -914,7 +959,7 @@ class DataManager extends ChangeNotifier {
         List<String> parts3 = fullName.split(',');
         String city = parts3.length >= 2 ? parts[1].trim() : 'Unknown';
 
-// Chercher la valeur Yam associée au token
+      // Chercher la valeur Yam associée au token
     final yamData = yamHistory.firstWhere(
       (yam) => yam['id'].toLowerCase() == tokenContractAddress,
       orElse: () => <String, dynamic>{},
@@ -923,6 +968,35 @@ class DataManager extends ChangeNotifier {
     final double yamTotalVolume = yamData['totalVolume'] ?? 0.0;
     final double yamAverageValue = yamData['averageValue'] ?? tokenPrice;
 
+// Créer une nouvelle structure pour regrouper les transactions par token
+Map<String, List<Map<String, dynamic>>> transactionsByToken = {};
+
+// Filtrer les transactions par tokenContractAddress
+for (var transaction in transactionsHistory) {
+  final String tokenId = transaction['token']['id'].toLowerCase();
+  final double amount = double.parse(transaction['amount']);
+  final String timestamp = transaction['timestamp']; // Format brut du timestamp
+
+  if (tokenId == tokenContractAddress) {
+    // Ajouter les transactions au groupe correspondant
+    if (transactionsByToken.containsKey(tokenId)) {
+      transactionsByToken[tokenId]!.add({
+        "amount": amount,
+        "dateTime": DateTime.fromMillisecondsSinceEpoch(
+            int.parse(timestamp) * 1000) // Conversion en DateTime
+      });
+    } else {
+      transactionsByToken[tokenId] = [
+        {
+          "amount": amount,
+          "dateTime": DateTime.fromMillisecondsSinceEpoch(
+              int.parse(timestamp) * 1000) // Conversion en DateTime
+        }
+      ];
+    }
+  }
+}
+  
         // Ajouter au Portfolio
         newPortfolio.add({
           'id': matchingRealToken['id'],
@@ -984,6 +1058,8 @@ class DataManager extends ChangeNotifier {
 
            'yamTotalVolume': yamTotalVolume, // Ajout de la valeur Yam calculée
             'yamAverageValue': yamData['averageValue'], // Ajout de la valeur moyenne Yam calculée
+  'transactions': transactionsByToken[tokenContractAddress] ?? []
+
         });
 
         initialTotalValue += amount * initPrice;
@@ -1055,9 +1131,6 @@ class DataManager extends ChangeNotifier {
         (walletValue + rmmValue + totalUsdcDepositBalance + totalXdaiDepositBalance + totalUsdcBorrowBalance + totalXdaiBorrowBalance));
 
     archiveApyValue(netGlobalApy, averageAnnualYield);
-
-    logger.i("Portfolio mis à jour avec ${_portfolio.length} éléments.");
-    logger.i("Unité louées uniques: $rentedUnits, Unités totales uniques: $totalUnits");
 
     // Notify listeners that data has changed
     notifyListeners();

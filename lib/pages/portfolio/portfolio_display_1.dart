@@ -318,13 +318,14 @@ class PortfolioDisplay1 extends StatelessWidget {
   text: TextSpan(
     style: TextStyle(
       fontSize: 13 + appState.getTextSizeOffset(),
+      color: Theme.of(context).textTheme.bodyLarge?.color
     ),
     children: [
       TextSpan(
         text: '${S.of(context).totalValue}: ${Utils.formatCurrency(dataManager.convert(token['totalValue']), dataManager.currencySymbol)} yam: ',
       ),
       TextSpan(
-        text: '${Utils.formatCurrency(dataManager.convert((token['yamAverageValue'] * token['amount'])), dataManager.currencySymbol)} (${(token['yamAverageValue'] / token['tokenPrice'] * 100).toStringAsFixed(0)}%)',
+        text: '${Utils.formatCurrency(dataManager.convert((token['yamAverageValue'] * token['amount'])), dataManager.currencySymbol)} (${((token['yamAverageValue'] / token['tokenPrice'] -1 ) * 100).toStringAsFixed(0)}%)',
         style: TextStyle(
           color: (token['yamAverageValue'] * token['amount']) > token['totalValue']
               ? Colors.green // Texte vert si la condition est vraie
