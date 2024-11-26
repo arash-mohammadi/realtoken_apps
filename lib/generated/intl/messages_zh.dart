@@ -229,6 +229,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "thankYouMessage": MessageLookupByLibrary.simpleMessage("感谢所有为此项目作出贡献的人。"),
         "thanks": MessageLookupByLibrary.simpleMessage("感谢"),
         "themeUpdated": m2,
+        "timeBeforeLiquidation": MessageLookupByLibrary.simpleMessage("清算前的时间"),
         "tokenAddress": MessageLookupByLibrary.simpleMessage("代币地址"),
         "tokenDistribution": MessageLookupByLibrary.simpleMessage("按物业类型分配代币"),
         "tokenDistributionByCity": MessageLookupByLibrary.simpleMessage("按城市分配代币"),

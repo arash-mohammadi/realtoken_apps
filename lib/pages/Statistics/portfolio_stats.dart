@@ -99,19 +99,6 @@ class _PortfolioStats extends State<PortfolioStats> {
     return groupedData.entries.map((entry) => {'date': entry.key, 'rent': entry.value}).toList();
   }
 
-  List<FlSpot> _buildChartData(List<Map<String, dynamic>> data) {
-    List<FlSpot> spots = [];
-    for (var i = 0; i < data.length; i++) {
-      double rentValue = data[i]['rent']?.toDouble() ?? 0.0;
-      spots.add(FlSpot(i.toDouble(), rentValue));
-    }
-    return spots;
-  }
-
-  List<String> _buildDateLabels(List<Map<String, dynamic>> data) {
-    return data.map((entry) => entry['date'].toString()).toList();
-  }
-
   @override
   Widget build(BuildContext context) {
     // Try to access DataManager from the provider
@@ -249,6 +236,9 @@ class _PortfolioStats extends State<PortfolioStats> {
         final index = groupedData.keys.toList().indexOf(entry.key);
         final color = generateColor(index);
 
+        // Convertir les abréviations d'état en noms complets si possible
+        String displayKey = Parameters.usStateAbbreviations[entry.key] ?? entry.key;
+
         return ConstrainedBox(
           constraints: BoxConstraints(maxWidth: 200), // Largeur maximale pour éviter les débordements
           child: Row(
@@ -262,7 +252,7 @@ class _PortfolioStats extends State<PortfolioStats> {
               const SizedBox(width: 4),
               Flexible(
                 child: Text(
-                  '${entry.key}: ${Utils.formatCurrency(dataManager.convert(entry.value), dataManager.currencySymbol)}',
+                  '$displayKey: ${Utils.formatCurrency(dataManager.convert(entry.value), dataManager.currencySymbol)}',
                   style: TextStyle(fontSize: 13 + appState.getTextSizeOffset()),
                 ),
               ),

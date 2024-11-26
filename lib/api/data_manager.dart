@@ -158,7 +158,6 @@ class DataManager extends ChangeNotifier {
   List<Map<String, dynamic>> yamHistory = [];
   List<Map<String, dynamic>> transactionsHistory = [];
 
-
   var customInitPricesBox = Hive.box('CustomInitPrices');
 
   final String rwaTokenAddress = '0x0675e8f4a52ea6c845cb6427af03616a2af42170';
@@ -268,31 +267,31 @@ class DataManager extends ChangeNotifier {
     }
 
     // Mise à jour des Yam History
-      var yamHistoryData = await ApiService.fetchTokenVolumes(forceFetch: forceFetch);
-      if (yamHistoryData.isNotEmpty) {
-        logger.i("Mise à jour de l'historiques YAM avec de nouvelles valeurs.");
+    var yamHistoryData = await ApiService.fetchTokenVolumes(forceFetch: forceFetch);
+    if (yamHistoryData.isNotEmpty) {
+      logger.i("Mise à jour de l'historiques YAM avec de nouvelles valeurs.");
 
-        // Sauvegarder les balances dans Hive
-        box.put('yamHistory', json.encode(yamHistoryData));
-        rmmBalances = yamHistoryData.cast<Map<String, dynamic>>();
-        fetchYamHistory();
-        notifyListeners(); // Notifier les listeners après la mise à jour
-      } else {
-        logger.d("Les RMM Balances sont vides, pas de mise à jour.");
-      }
+      // Sauvegarder les balances dans Hive
+      box.put('yamHistory', json.encode(yamHistoryData));
+      rmmBalances = yamHistoryData.cast<Map<String, dynamic>>();
+      fetchYamHistory();
+      notifyListeners(); // Notifier les listeners après la mise à jour
+    } else {
+      logger.d("Les RMM Balances sont vides, pas de mise à jour.");
+    }
 
 // Mise à jour des transactions History
-      var transactionsHistoryData = await ApiService.fetchTransactionsHistory(portfolio:portfolio, forceFetch: forceFetch);
-      if (transactionsHistoryData.isNotEmpty) {
-        logger.i("Mise à jour de l'historique des transactions avec de nouvelles valeurs.");
+    var transactionsHistoryData = await ApiService.fetchTransactionsHistory(portfolio: portfolio, forceFetch: forceFetch);
+    if (transactionsHistoryData.isNotEmpty) {
+      logger.i("Mise à jour de l'historique des transactions avec de nouvelles valeurs.");
 
-        // Sauvegarder les balances dans Hive
-        box.put('transactionsHistory', json.encode(transactionsHistoryData));
-        transactionsHistory = transactionsHistoryData.cast<Map<String, dynamic>>();
-        notifyListeners(); // Notifier les listeners après la mise à jour
-      } else {
-        logger.d("L'historique des transactions est vide, pas de mise à jour.");
-      }
+      // Sauvegarder les balances dans Hive
+      box.put('transactionsHistory', json.encode(transactionsHistoryData));
+      transactionsHistory = transactionsHistoryData.cast<Map<String, dynamic>>();
+      notifyListeners(); // Notifier les listeners après la mise à jour
+    } else {
+      logger.d("L'historique des transactions est vide, pas de mise à jour.");
+    }
 
     loadWalletBalanceHistory();
     loadRoiHistory();
@@ -561,7 +560,11 @@ class DataManager extends ChangeNotifier {
             'realtListingFee': realToken['realtListingFee'],
             'renovationReserve': realToken['renovationReserve'],
             'miscellaneousCosts': realToken['miscellaneousCosts'],
-            'section8paid': realToken['section8paid'] ?? 0.0
+            'section8paid': realToken['section8paid'] ?? 0.0,
+
+            'yamTotalVolume': 0, // Ajout de la valeur Yam calculée
+            'yamAverageValue': 0, // Ajout de la valeur moyenne Yam calculée
+            'transactions': []
           });
 
           tempTotalTokens += 1; // Conversion explicite en int
@@ -619,7 +622,7 @@ class DataManager extends ChangeNotifier {
 
     var box = Hive.box('realTokens');
     initialTotalValue = 0.0;
-   yamTotalValue = 0.0;
+    yamTotalValue = 0.0;
 
     // Charger les données en cache si disponibles
     final cachedGnosisTokens = box.get('cachedTokenData_gnosis');
@@ -772,44 +775,41 @@ class DataManager extends ChangeNotifier {
           List<String> parts3 = fullName.split(',');
           String city = parts3.length >= 2 ? parts[1].trim() : 'Unknown City';
 
+          // Chercher la valeur Yam associée au token
+          final yamData = yamHistory.firstWhere(
+            (yam) => yam['id'].toLowerCase() == tokenContractAddress,
+            orElse: () => <String, dynamic>{},
+          );
 
-    // Chercher la valeur Yam associée au token
-    final yamData = yamHistory.firstWhere(
-      (yam) => yam['id'].toLowerCase() == tokenContractAddress,
-      orElse: () => <String, dynamic>{},
-    );
+          final double yamTotalVolume = yamData['totalVolume'] ?? 0.0;
+          final double yamAverageValue = yamData['averageValue'] ?? tokenPrice;
 
-    final double yamTotalVolume = yamData['totalVolume'] ?? 0.0;
-    final double yamAverageValue = yamData['averageValue'] ?? tokenPrice;
-
-  // Créer une nouvelle structure pour regrouper les transactions par token
-Map<String, List<Map<String, dynamic>>> transactionsByToken = {};
+          // Créer une nouvelle structure pour regrouper les transactions par token
+          Map<String, List<Map<String, dynamic>>> transactionsByToken = {};
 
 // Filtrer les transactions par tokenContractAddress
-for (var transaction in transactionsHistory) {
-  final String tokenId = transaction['token']['id'];
-  final double amount = double.parse(transaction['amount']);
-  final String timestamp = transaction['timestamp']; // Format brut du timestamp
+          for (var transaction in transactionsHistory) {
+            final String tokenId = transaction['token']['id'];
+            final double amount = double.parse(transaction['amount']);
+            final String timestamp = transaction['timestamp']; // Format brut du timestamp
 
-  if (tokenId == tokenContractAddress) {
-    // Ajouter les transactions au groupe correspondant
-    if (transactionsByToken.containsKey(tokenId)) {
-      transactionsByToken[tokenId]!.add({
-        "amount": amount,
-        "dateTime": DateTime.fromMillisecondsSinceEpoch(
-            int.parse(timestamp) * 1000) // Conversion en DateTime
-      });
-    } else {
-      transactionsByToken[tokenId] = [
-        {
-          "amount": amount,
-          "dateTime": DateTime.fromMillisecondsSinceEpoch(
-              int.parse(timestamp) * 1000) // Conversion en DateTime
-        }
-      ];
-    }
-  }
-}
+            if (tokenId == tokenContractAddress) {
+              // Ajouter les transactions au groupe correspondant
+              if (transactionsByToken.containsKey(tokenId)) {
+                transactionsByToken[tokenId]!.add({
+                  "amount": amount,
+                  "dateTime": DateTime.fromMillisecondsSinceEpoch(int.parse(timestamp) * 1000) // Conversion en DateTime
+                });
+              } else {
+                transactionsByToken[tokenId] = [
+                  {
+                    "amount": amount,
+                    "dateTime": DateTime.fromMillisecondsSinceEpoch(int.parse(timestamp) * 1000) // Conversion en DateTime
+                  }
+                ];
+              }
+            }
+          }
 
           // Ajouter au Portfolio
           newPortfolio.add({
@@ -871,12 +871,11 @@ for (var transaction in transactionsHistory) {
 
             'yamTotalVolume': yamTotalVolume, // Ajout de la valeur Yam calculée
             'yamAverageValue': yamAverageValue, // Ajout de la valeur moyenne Yam calculée
-  'transactions': transactionsByToken[tokenContractAddress] ?? []
-
+            'transactions': transactionsByToken[tokenContractAddress] ?? []
           });
 
           initialTotalValue += double.parse(walletToken['amount']) * initPrice;
-         yamTotalValue += double.parse(walletToken['amount']) * yamAverageValue;
+          yamTotalValue += double.parse(walletToken['amount']) * yamAverageValue;
 
           if (tokenContractAddress.isNotEmpty) {
             // Récupérer les informations de loyer pour ce token
@@ -959,44 +958,42 @@ for (var transaction in transactionsHistory) {
         List<String> parts3 = fullName.split(',');
         String city = parts3.length >= 2 ? parts[1].trim() : 'Unknown';
 
-      // Chercher la valeur Yam associée au token
-    final yamData = yamHistory.firstWhere(
-      (yam) => yam['id'].toLowerCase() == tokenContractAddress,
-      orElse: () => <String, dynamic>{},
-    );
+        // Chercher la valeur Yam associée au token
+        final yamData = yamHistory.firstWhere(
+          (yam) => yam['id'].toLowerCase() == tokenContractAddress,
+          orElse: () => <String, dynamic>{},
+        );
 
-    final double yamTotalVolume = yamData['totalVolume'] ?? 0.0;
-    final double yamAverageValue = yamData['averageValue'] ?? tokenPrice;
+        final double yamTotalVolume = yamData['totalVolume'] ?? 0.0;
+        final double yamAverageValue = yamData['averageValue'] ?? tokenPrice;
 
 // Créer une nouvelle structure pour regrouper les transactions par token
-Map<String, List<Map<String, dynamic>>> transactionsByToken = {};
+        Map<String, List<Map<String, dynamic>>> transactionsByToken = {};
 
 // Filtrer les transactions par tokenContractAddress
-for (var transaction in transactionsHistory) {
-  final String tokenId = transaction['token']['id'].toLowerCase();
-  final double amount = double.parse(transaction['amount']);
-  final String timestamp = transaction['timestamp']; // Format brut du timestamp
+        for (var transaction in transactionsHistory) {
+          final String tokenId = transaction['token']['id'].toLowerCase();
+          final double amount = double.parse(transaction['amount']);
+          final String timestamp = transaction['timestamp']; // Format brut du timestamp
 
-  if (tokenId == tokenContractAddress) {
-    // Ajouter les transactions au groupe correspondant
-    if (transactionsByToken.containsKey(tokenId)) {
-      transactionsByToken[tokenId]!.add({
-        "amount": amount,
-        "dateTime": DateTime.fromMillisecondsSinceEpoch(
-            int.parse(timestamp) * 1000) // Conversion en DateTime
-      });
-    } else {
-      transactionsByToken[tokenId] = [
-        {
-          "amount": amount,
-          "dateTime": DateTime.fromMillisecondsSinceEpoch(
-              int.parse(timestamp) * 1000) // Conversion en DateTime
+          if (tokenId == tokenContractAddress) {
+            // Ajouter les transactions au groupe correspondant
+            if (transactionsByToken.containsKey(tokenId)) {
+              transactionsByToken[tokenId]!.add({
+                "amount": amount,
+                "dateTime": DateTime.fromMillisecondsSinceEpoch(int.parse(timestamp) * 1000) // Conversion en DateTime
+              });
+            } else {
+              transactionsByToken[tokenId] = [
+                {
+                  "amount": amount,
+                  "dateTime": DateTime.fromMillisecondsSinceEpoch(int.parse(timestamp) * 1000) // Conversion en DateTime
+                }
+              ];
+            }
+          }
         }
-      ];
-    }
-  }
-}
-  
+
         // Ajouter au Portfolio
         newPortfolio.add({
           'id': matchingRealToken['id'],
@@ -1056,10 +1053,9 @@ for (var transaction in transactionsHistory) {
           'initPrice': initPrice,
           'section8paid': matchingRealToken['section8paid'] ?? 0.0,
 
-           'yamTotalVolume': yamTotalVolume, // Ajout de la valeur Yam calculée
-            'yamAverageValue': yamData['averageValue'], // Ajout de la valeur moyenne Yam calculée
-  'transactions': transactionsByToken[tokenContractAddress] ?? []
-
+          'yamTotalVolume': yamTotalVolume, // Ajout de la valeur Yam calculée
+          'yamAverageValue': yamData['averageValue'], // Ajout de la valeur moyenne Yam calculée
+          'transactions': transactionsByToken[tokenContractAddress] ?? []
         });
 
         initialTotalValue += amount * initPrice;
@@ -1086,7 +1082,8 @@ for (var transaction in transactionsHistory) {
     }
 
     // Mise à jour des variables pour le Dashboard
-    totalWalletValue = walletValueSum + rmmValueSum + rwaValue + totalUsdcDepositBalance + totalXdaiDepositBalance - totalUsdcBorrowBalance - totalXdaiBorrowBalance;
+    totalWalletValue =
+        walletValueSum + rmmValueSum + rwaValue + totalUsdcDepositBalance + totalXdaiDepositBalance - totalUsdcBorrowBalance - totalXdaiBorrowBalance;
     archiveTotalWalletValue(totalWalletValue);
 
     walletValue = double.parse(walletValueSum.toStringAsFixed(3));
@@ -1141,29 +1138,29 @@ for (var transaction in transactionsHistory) {
     List<Map<String, dynamic>> cumulativeRentList = [];
     double cumulativeRent = 0.0;
 
-    // Trier les données de `_portfolio` par 'rentStartDate'
-    _portfolio.sort((a, b) {
-      DateTime dateA =
-          a['rentStartDate'] != null ? DateTime.parse(a['rentStartDate']) : DateTime.now(); // Utiliser DateTime.now() ou une autre valeur par défaut si null
-      DateTime dateB =
-          b['rentStartDate'] != null ? DateTime.parse(b['rentStartDate']) : DateTime.now(); // Utiliser DateTime.now() ou une autre valeur par défaut si null
-      return dateA.compareTo(dateB);
-    });
+    // Filtrer les entrées valides et trier par `rentStartDate`
+    final validPortfolioEntries = _portfolio.where((entry) {
+      return entry['rentStartDate'] != null && entry['dailyIncome'] != null;
+    }).toList()
+      ..sort((a, b) {
+        DateTime dateA = DateTime.parse(a['rentStartDate']);
+        DateTime dateB = DateTime.parse(b['rentStartDate']);
+        return dateA.compareTo(dateB);
+      });
 
-    // Parcourir chaque élément de `_portfolio` et accumuler les loyers
-    for (var portfolioEntry in _portfolio) {
-      if (portfolioEntry['rentStartDate'] != null) {
-        DateTime rentStartDate = DateTime.parse(portfolioEntry['rentStartDate']);
+    // Accumuler les loyers
+    for (var portfolioEntry in validPortfolioEntries) {
+      DateTime rentStartDate = DateTime.parse(portfolioEntry['rentStartDate']);
+      double dailyIncome = portfolioEntry['dailyIncome'] ?? 0.0;
 
-        // Ajoutez la valeur de loyer au cumul jusqu'à cette date
-        cumulativeRent += (portfolioEntry['dailyIncome'] * 7) ?? 0.0;
+      // Ajouter loyer au cumul
+      cumulativeRent += dailyIncome * 7; // Supposons un calcul hebdomadaire
 
-        // Ajoutez cette entrée à la liste des loyers cumulés (peu importe la date)
-        cumulativeRentList.add({
-          'rentStartDate': rentStartDate,
-          'cumulativeRent': cumulativeRent,
-        });
-      }
+      // Ajouter à la liste des loyers cumulés
+      cumulativeRentList.add({
+        'rentStartDate': rentStartDate,
+        'cumulativeRent': cumulativeRent,
+      });
     }
 
     return cumulativeRentList;
@@ -1895,62 +1892,54 @@ for (var transaction in transactionsHistory) {
     }
   }
 
-void fetchYamHistory() {
-  var box = Hive.box('realTokens');
-  final yamHistoryJson = box.get('yamHistory');
+  void fetchYamHistory() {
+    var box = Hive.box('realTokens');
+    final yamHistoryJson = box.get('yamHistory');
 
-  if (yamHistoryJson == null) {
-    logger.w("fetchYamHistory -> Aucune donnée Yam History trouvée dans Hive.");
-    return;
-  }
+    if (yamHistoryJson == null) {
+      logger.w("fetchYamHistory -> Aucune donnée Yam History trouvée dans Hive.");
+      return;
+    }
 
-  List<dynamic> yamHistoryData = json.decode(yamHistoryJson);
+    List<dynamic> yamHistoryData = json.decode(yamHistoryJson);
 
-  List<Map<String, dynamic>> tokenStatistics = yamHistoryData.map((tokenData) {
-    final tokenDecimals = int.tryParse(tokenData['decimals'].toString()) ?? 18;
-    final volumes = tokenData['volumes'] ?? [];
+    List<Map<String, dynamic>> tokenStatistics = yamHistoryData.map((tokenData) {
+      final tokenDecimals = int.tryParse(tokenData['decimals'].toString()) ?? 18;
+      final volumes = tokenData['volumes'] ?? [];
 
-    double totalVolume = 0;
-    double totalQuantity = 0;
+      double totalVolume = 0;
+      double totalQuantity = 0;
 
-    for (var volume in volumes) {
-      final volumeTokenDecimals = int.tryParse(volume['token']['decimals'].toString()) ?? 6;
-      final volumeDays = volume['volumeDays'] ?? [];
+      for (var volume in volumes) {
+        final volumeTokenDecimals = int.tryParse(volume['token']['decimals'].toString()) ?? 6;
+        final volumeDays = volume['volumeDays'] ?? [];
 
+        for (var day in volumeDays) {
+          final dayVolume = (day['volume'] != null) ? (double.tryParse(day['volume'].toString()) ?? 0) / pow(10, volumeTokenDecimals) : 0;
+          final dayQuantity = (day['quantity'] != null) ? (double.tryParse(day['quantity'].toString()) ?? 0) / pow(10, tokenDecimals) : 0;
 
-      for (var day in volumeDays) {
-
-        final dayVolume = (day['volume'] != null)
-            ? (double.tryParse(day['volume'].toString()) ?? 0) / pow(10, volumeTokenDecimals)
-            : 0;
-        final dayQuantity = (day['quantity'] != null)
-            ? (double.tryParse(day['quantity'].toString()) ?? 0) / pow(10, tokenDecimals)
-            : 0;
-
-
-        totalVolume += dayVolume;
-        totalQuantity += dayQuantity;
+          totalVolume += dayVolume;
+          totalQuantity += dayQuantity;
+        }
       }
-    }
 
-    double averageValue = 0;
-    if (totalQuantity > 1e-10) {
-      averageValue = totalVolume / totalQuantity;
-    } else {
-      logger.w("Valeur aberrante détectée : totalQuantity=$totalQuantity pour token ${tokenData['id']}");
-    }
+      double averageValue = 0;
+      if (totalQuantity > 1e-10) {
+        averageValue = totalVolume / totalQuantity;
+      } else {
+        logger.w("Valeur aberrante détectée : totalQuantity=$totalQuantity pour token ${tokenData['id']}");
+      }
 
-    return {
-      'id': tokenData['id'],
-      'totalVolume': totalVolume,
-      'averageValue': averageValue,
-    };
-  }).toList();
+      return {
+        'id': tokenData['id'],
+        'totalVolume': totalVolume,
+        'averageValue': averageValue,
+      };
+    }).toList();
 
-  logger.i("fetchyamHistory -> Mise à jour des statistiques des tokens Yam.");
-  yamHistory = tokenStatistics;
+    logger.i("fetchyamHistory -> Mise à jour des statistiques des tokens Yam.");
+    yamHistory = tokenStatistics;
 
-  notifyListeners();
-}
-
+    notifyListeners();
+  }
 }

@@ -242,6 +242,7 @@
   "timestamp": "Carimbo de data/hora",
   "unknownDate": "Data desconhecida",
   "noTransactionsAvailable": "Nenhuma transação disponível",
+  "timeBeforeLiquidation": "Tempo antes da liquidação",
   "@propertyMaintenanceMonthly": {
     "description": "Despesas mensais de manutenção da propriedade"
   },

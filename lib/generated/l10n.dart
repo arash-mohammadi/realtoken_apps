@@ -2446,6 +2446,16 @@ class S {
     );
   }
 
+  /// `Time before liquidation`
+  String get timeBeforeLiquidation {
+    return Intl.message(
+      'Time before liquidation',
+      name: 'timeBeforeLiquidation',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Bedroom/Bath`
   String get bedroomBath {
     return Intl.message(

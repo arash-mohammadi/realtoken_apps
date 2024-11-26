@@ -242,6 +242,7 @@
   "timestamp": "Timestamp",
   "unknownDate": "Unknown date",
   "noTransactionsAvailable": "No transactions available",
+  "timeBeforeLiquidation": "Time before liquidation",
   "@propertyMaintenanceMonthly": {
     "description": "Monthly maintenance expenses for the property"
   },

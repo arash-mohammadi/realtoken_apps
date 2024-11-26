@@ -242,6 +242,7 @@
   "timestamp": "Marca temporal",
   "unknownDate": "Fecha desconocida",
   "noTransactionsAvailable": "No hay transacciones disponibles",
+  "timeBeforeLiquidation": "Tiempo antes de la liquidación",
   "@propertyMaintenanceMonthly": {
     "description": "Gastos mensuales de mantenimiento de la propiedad"
   },

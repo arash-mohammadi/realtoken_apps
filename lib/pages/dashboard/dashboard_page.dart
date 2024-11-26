@@ -758,6 +758,18 @@ class DashboardPageState extends State<DashboardPage> {
                           ),
                           const SizedBox(height: 10),
                           Text(
+                            '${S.of(context).timeBeforeLiquidation}: ${_calculateTimeBeforeLiquidationFormatted(
+                              dataManager.rmmValue,
+                              dataManager.totalUsdcBorrowBalance,
+                              dataManager.totalXdaiBorrowBalance,
+                              dataManager.usdcDepositApy,
+                            )}',
+                            style: TextStyle(
+                              fontSize: 13 + appState.getTextSizeOffset(),
+                              color: Theme.of(context).textTheme.bodyLarge?.color,
+                            ),
+                          ),
+                          Text(
                             'Xdai ${S.of(context).depositBalance}: ${Utils.getFormattedAmount(dataManager.convert(dataManager.totalXdaiDepositBalance), dataManager.currencySymbol, _showAmounts)}',
                             style: TextStyle(fontSize: 13 + appState.getTextSizeOffset(), color: Theme.of(context).textTheme.bodyMedium?.color),
                           ),
@@ -964,6 +976,39 @@ class DashboardPageState extends State<DashboardPage> {
         ],
       ),
     );
+  }
+
+  String _calculateTimeBeforeLiquidationFormatted(double rmmValue, double usdcBorrow, double xdaiBorrow, double apy) {
+    double totalBorrow = usdcBorrow + xdaiBorrow;
+
+    if (totalBorrow == 0 || apy == 0) {
+      return '∞'; // Pas de liquidation possible
+    }
+
+    double liquidationThreshold = rmmValue * 0.7;
+
+    if (liquidationThreshold <= totalBorrow) {
+      return 'Liquidation imminente'; // Déjà liquidé
+    }
+
+    // APY en taux journalier
+    double dailyRate = apy / 365 / 100;
+
+    // Temps avant liquidation en jours
+    double timeInDays = (liquidationThreshold - totalBorrow) / (totalBorrow * dailyRate);
+
+    // Conversion en mois ou années si nécessaire
+    if (timeInDays > 100 * 30) {
+      // Plus de 100 mois
+      double years = timeInDays / 365;
+      return '${years.toStringAsFixed(1)} ans';
+    } else if (timeInDays > 100) {
+      // Plus de 100 jours
+      double months = timeInDays / 30;
+      return '${months.toStringAsFixed(1)} mois';
+    } else {
+      return '${timeInDays.toStringAsFixed(1)} jours';
+    }
   }
 
   Widget _buildCumulativeRentList(DataManager dataManager) {

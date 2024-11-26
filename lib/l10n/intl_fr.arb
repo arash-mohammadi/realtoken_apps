@@ -242,6 +242,7 @@
   "timestamp": "Horodatage",
   "unknownDate": "Date inconnue",
   "noTransactionsAvailable": "Aucune transaction disponible",
+  "timeBeforeLiquidation": "Temps avant liquidation",
   "@propertyMaintenanceMonthly": {
     "description": "Dépenses mensuelles d'entretien de la propriété"
   },

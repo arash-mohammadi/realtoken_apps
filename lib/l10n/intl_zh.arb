@@ -237,6 +237,7 @@
   "country": "国家",
   "region": "地区",
   "city": "城市",
+  "timeBeforeLiquidation": "清算前的时间",
     "@propertyMaintenanceMonthly": {
       "description": "物业的每月维护费用"
     },
