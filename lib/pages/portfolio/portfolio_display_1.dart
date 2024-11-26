@@ -316,6 +316,9 @@ class PortfolioDisplay1 extends StatelessWidget {
                                   ),
                                   Text(
                                     '${S.of(context).totalValue}: ${Utils.formatCurrency(dataManager.convert((token['totalValue'])), dataManager.currencySymbol)}',
+                                    style: TextStyle(
+                                      fontSize: 13 + appState.getTextSizeOffset(),
+                                    ),
                                   ),
                                   Text(
                                     'YAM: ${Utils.formatCurrency(dataManager.convert((token['yamAverageValue'] * token['amount'])), dataManager.currencySymbol)} (${((token['yamAverageValue'] / token['tokenPrice'] - 1) * 100).toStringAsFixed(0)}%)',
