@@ -292,6 +292,15 @@ class PortfolioDisplay2State extends State<PortfolioDisplay2> {
                                         ),
                                       ),
                                       Text(
+                                        'YAM: ${Utils.formatCurrency(dataManager.convert((token['yamAverageValue'] * token['amount'])), dataManager.currencySymbol)} (${((token['yamAverageValue'] / token['tokenPrice'] - 1) * 100).toStringAsFixed(0)}%)',
+                                        style: TextStyle(
+                                          fontSize: 13 + appState.getTextSizeOffset(),
+                                          color: (token['yamAverageValue'] * token['amount']) > token['totalValue']
+                                              ? Colors.green // Texte vert si la condition est vraie
+                                              : Colors.red, // Texte rouge si la condition est fausse
+                                        ),
+                                      ),
+                                      Text(
                                         '${S.of(context).amount}: ${token['amount'].toStringAsFixed(2)} / ${token['totalTokens']}',
                                         style: TextStyle(
                                           fontSize: 15 + appState.getTextSizeOffset(),
@@ -358,7 +367,7 @@ class PortfolioDisplay2State extends State<PortfolioDisplay2> {
                                                     style: TextStyle(
                                                       fontSize: 13 + appState.getTextSizeOffset(),
                                                     )),
-                                                Text(Utils.formatCurrency(dataManager.convert(token['yearlyIncome'] ), dataManager.currencySymbol),
+                                                Text(Utils.formatCurrency(dataManager.convert(token['yearlyIncome']), dataManager.currencySymbol),
                                                     style: TextStyle(
                                                       fontSize: 13 + appState.getTextSizeOffset(),
                                                     )),

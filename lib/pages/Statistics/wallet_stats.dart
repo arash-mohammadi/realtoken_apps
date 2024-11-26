@@ -27,21 +27,21 @@ class _WalletStats extends State<WalletStats> {
   bool apyIsBarChart = true; // Basculer entre BarChart et LineChart
   bool roiIsBarChart = false; // Basculer entre BarChart et LineChart
   bool walletIsBarChart = false; // Basculer entre BarChart et LineChart
-late SharedPreferences prefs;
+  late SharedPreferences prefs;
 
   @override
   void initState() {
     super.initState();
     SchedulerBinding.instance.addPostFrameCallback((_) async {
-       prefs = await SharedPreferences.getInstance();
+      prefs = await SharedPreferences.getInstance();
 
-    setState(() {
-      // Charger les préférences sauvegardées ou utiliser des valeurs par défaut
-      apyIsBarChart = prefs.getBool('apyIsBarChart') ?? true;
-      roiIsBarChart = prefs.getBool('roiIsBarChart') ?? false;
-      walletIsBarChart = prefs.getBool('walletIsBarChart') ?? false;
-    });
-    
+      setState(() {
+        // Charger les préférences sauvegardées ou utiliser des valeurs par défaut
+        apyIsBarChart = prefs.getBool('apyIsBarChart') ?? true;
+        roiIsBarChart = prefs.getBool('roiIsBarChart') ?? false;
+        walletIsBarChart = prefs.getBool('walletIsBarChart') ?? false;
+      });
+
       try {
         final dataManager = Provider.of<DataManager>(context, listen: false);
         logger.i("Fetching rent data and property data...");
@@ -363,821 +363,813 @@ late SharedPreferences prefs;
     );
   }
 
-Widget _buildWalletBalanceCard(DataManager dataManager) {
-  final appState = Provider.of<AppState>(context);
+  Widget _buildWalletBalanceCard(DataManager dataManager) {
+    final appState = Provider.of<AppState>(context);
 
-  // Récupérer les données pour les graphiques
-  List<FlSpot> walletBalanceData = _buildWalletBalanceChartData(dataManager);
-  List<BarChartGroupData> barChartData = _buildWalletBalanceBarChartData(dataManager);
+    // Récupérer les données pour les graphiques
+    List<FlSpot> walletBalanceData = _buildWalletBalanceChartData(dataManager);
+    List<BarChartGroupData> barChartData = _buildWalletBalanceBarChartData(dataManager);
 
-  return Card(
-    elevation: 0,
-    color: Theme.of(context).cardColor,
-    child: Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Text(
-                S.of(context).walletBalanceHistory, // Titre principal
-                style: TextStyle(
-                  fontSize: 20 + appState.getTextSizeOffset(),
-                  fontWeight: FontWeight.bold,
+    return Card(
+      elevation: 0,
+      color: Theme.of(context).cardColor,
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Text(
+                  S.of(context).walletBalanceHistory, // Titre principal
+                  style: TextStyle(
+                    fontSize: 20 + appState.getTextSizeOffset(),
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-              const Spacer(),
-              IconButton(
-                icon: const Icon(Icons.settings, size: 20.0,),
-                onPressed: () {
-                  showModalBottomSheet(
-                    context: context,
-                    builder: (context) {
-                      return Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            ListTile(
-                              leading: const Icon(Icons.bar_chart),
-                              title: Text(S.of(context).barChart),
-                              onTap: () {
-                                setState(() {
-                                  walletIsBarChart = true;
-                                  _saveChartPreference('walletIsBarChart', walletIsBarChart);
-
-                                });
-                                Navigator.of(context).pop();
-                              },
-                            ),
-                            ListTile(
-                              leading: const Icon(Icons.show_chart),
-                              title: Text(S.of(context).lineChart),
-                              onTap: () {
-                                setState(() {
-                                  walletIsBarChart = false;
-                                  _saveChartPreference('walletIsBarChart', walletIsBarChart);
-
-                                });
-                                Navigator.of(context).pop();
-                              },
-                            ),
-                            const Divider(),
-                            ListTile(
-                              leading: const Icon(Icons.edit),
-                              title: Text(S.of(context).edit),
-                              onTap: () {
-                                Navigator.of(context).pop();
-                                _showEditModal(context, dataManager);
-                              },
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  );
-                },
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          SizedBox(
-            height: 250,
-            child: StatefulBuilder(
-              builder: (context, setState) {
-                return walletIsBarChart
-                    ? BarChart(
-                        BarChartData(
-                          gridData: FlGridData(show: true, drawVerticalLine: false),
-                          titlesData: FlTitlesData(
-                            leftTitles: AxisTitles(
-                              sideTitles: SideTitles(
-                                showTitles: true,
-                                reservedSize: 45,
-                                getTitlesWidget: (value, meta) {
-                                  final displayValue = value >= 1000
-                                      ? '${(value / 1000).toStringAsFixed(1)} k${dataManager.currencySymbol}'
-                                      : Utils.formatCurrency(value, dataManager.currencySymbol);
-                                  return Text(
-                                    displayValue,
-                                    style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
-                                  );
+                const Spacer(),
+                IconButton(
+                  icon: const Icon(
+                    Icons.settings,
+                    size: 20.0,
+                  ),
+                  onPressed: () {
+                    showModalBottomSheet(
+                      context: context,
+                      builder: (context) {
+                        return Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              ListTile(
+                                leading: const Icon(Icons.bar_chart),
+                                title: Text(S.of(context).barChart),
+                                onTap: () {
+                                  setState(() {
+                                    walletIsBarChart = true;
+                                    _saveChartPreference('walletIsBarChart', walletIsBarChart);
+                                  });
+                                  Navigator.of(context).pop();
                                 },
-                              
                               ),
-                            ),
-                            bottomTitles: AxisTitles(
-                              sideTitles: SideTitles(
-                                showTitles: true,
-                                getTitlesWidget: (value, meta) {
-                                  List<String> labels = _buildDateLabelsForWallet(dataManager);
-                                  if (value.toInt() >= 0 && value.toInt() < labels.length) {
-                                    return Padding(
-                                      padding: const EdgeInsets.only(top: 10.0),
-                                      child: Transform.rotate(
-                                        angle: -0.5,
-                                        child: Text(
-                                          labels[value.toInt()],
-                                          style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
-                                        ),
-                                      ),
+                              ListTile(
+                                leading: const Icon(Icons.show_chart),
+                                title: Text(S.of(context).lineChart),
+                                onTap: () {
+                                  setState(() {
+                                    walletIsBarChart = false;
+                                    _saveChartPreference('walletIsBarChart', walletIsBarChart);
+                                  });
+                                  Navigator.of(context).pop();
+                                },
+                              ),
+                              const Divider(),
+                              ListTile(
+                                leading: const Icon(Icons.edit),
+                                title: Text(S.of(context).edit),
+                                onTap: () {
+                                  Navigator.of(context).pop();
+                                  _showEditModal(context, dataManager);
+                                },
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              height: 250,
+              child: StatefulBuilder(
+                builder: (context, setState) {
+                  return walletIsBarChart
+                      ? BarChart(
+                          BarChartData(
+                            gridData: FlGridData(show: true, drawVerticalLine: false),
+                            titlesData: FlTitlesData(
+                              leftTitles: AxisTitles(
+                                sideTitles: SideTitles(
+                                  showTitles: true,
+                                  reservedSize: 45,
+                                  getTitlesWidget: (value, meta) {
+                                    final displayValue = value >= 1000
+                                        ? '${(value / 1000).toStringAsFixed(1)} k${dataManager.currencySymbol}'
+                                        : Utils.formatCurrency(value, dataManager.currencySymbol);
+                                    return Text(
+                                      displayValue,
+                                      style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
                                     );
-                                  } else {
-                                    return const SizedBox.shrink();
-                                  }
-                                },
-                              ),
-                            ),
-                          
-                           topTitles: AxisTitles(
-                              sideTitles: SideTitles(showTitles: false),
-                            ),
-                            rightTitles: AxisTitles(
-                              sideTitles: SideTitles(showTitles: false),
-                            ),),
-                           borderData: FlBorderData(
-                            show: true,
-                            border: Border(
-                              left: BorderSide(color: Colors.transparent),
-                              bottom: BorderSide(color: Colors.blueGrey.shade700, width: 0.5),
-                              right: BorderSide(color: Colors.transparent),
-                              top: BorderSide(color: Colors.transparent),
-                            ),
-                          ),
-                          barGroups: barChartData,
-                        ),
-                      )
-                    : LineChart(
-                        LineChartData(
-                          gridData: FlGridData(show: true, drawVerticalLine: false),
-                          titlesData: FlTitlesData(
-                            leftTitles: AxisTitles(
-                              sideTitles: SideTitles(
-                                showTitles: true,
-                                reservedSize: 45,
-                                getTitlesWidget: (value, meta) {
-                                  final displayValue = value >= 1000
-                                      ? '${(value / 1000).toStringAsFixed(1)} k${dataManager.currencySymbol}'
-                                      : Utils.formatCurrency(value, dataManager.currencySymbol);
-                                  return Text(
-                                    displayValue,
-                                    style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
-                                  );
-                                },
-                              ),
-                            ),
-                            bottomTitles: AxisTitles(
-                              sideTitles: SideTitles(
-                                showTitles: true,
-                                getTitlesWidget: (value, meta) {
-                                  List<String> labels = _buildDateLabelsForWallet(dataManager);
-                                  if (value.toInt() >= 0 && value.toInt() < labels.length) {
-                                    return Padding(
-                                      padding: const EdgeInsets.only(top: 10.0),
-                                      child: Transform.rotate(
-                                        angle: -0.5,
-                                        child: Text(
-                                          labels[value.toInt()],
-                                          style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
-                                        ),
-                                      ),
-                                    );
-                                  } else {
-                                    return const SizedBox.shrink();
-                                  }
-                                },
-                              ),
-                            ),
-                           topTitles: AxisTitles(
-                              sideTitles: SideTitles(showTitles: false),
-                            ),
-                            rightTitles: AxisTitles(
-                              sideTitles: SideTitles(showTitles: false),
-                            ),
-                          ),
-                           borderData: FlBorderData(
-                            show: true,
-                            border: Border(
-                              left: BorderSide(color: Colors.transparent),
-                              bottom: BorderSide(color: Colors.blueGrey.shade700, width: 0.5),
-                              right: BorderSide(color: Colors.transparent),
-                              top: BorderSide(color: Colors.transparent),
-                            ),
-                          ),
-                          lineBarsData: [
-                            LineChartBarData(
-                              spots: walletBalanceData,
-                              isCurved: false,
-                              barWidth: 2,
-                              color: Colors.purple,
-                              dotData: FlDotData(show: false),
-                              belowBarData: BarAreaData(
-                                show: true,
-                                gradient: LinearGradient(
-                                  colors: [
-                                    Colors.purple.withOpacity(0.4),
-                                    Colors.purple.withOpacity(0),
-                                  ],
-                                  begin: Alignment.topCenter,
-                                  end: Alignment.bottomCenter,
+                                  },
                                 ),
                               ),
+                              bottomTitles: AxisTitles(
+                                sideTitles: SideTitles(
+                                  showTitles: true,
+                                  getTitlesWidget: (value, meta) {
+                                    List<String> labels = _buildDateLabelsForWallet(dataManager);
+                                    if (value.toInt() >= 0 && value.toInt() < labels.length) {
+                                      return Padding(
+                                        padding: const EdgeInsets.only(top: 10.0),
+                                        child: Transform.rotate(
+                                          angle: -0.5,
+                                          child: Text(
+                                            labels[value.toInt()],
+                                            style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
+                                          ),
+                                        ),
+                                      );
+                                    } else {
+                                      return const SizedBox.shrink();
+                                    }
+                                  },
+                                ),
+                              ),
+                              topTitles: AxisTitles(
+                                sideTitles: SideTitles(showTitles: false),
+                              ),
+                              rightTitles: AxisTitles(
+                                sideTitles: SideTitles(showTitles: false),
+                              ),
                             ),
-                          ],
-                        ),
-                      );
-              },
-            ),
-          ),
-        ],
-      ),
-    ),
-  );
-}
-
-List<BarChartGroupData> _buildWalletBalanceBarChartData(DataManager dataManager) {
-  List<FlSpot> walletBalanceData = _buildWalletBalanceChartData(dataManager);
-  return walletBalanceData
-      .asMap()
-      .entries
-      .map(
-        (entry) => BarChartGroupData(
-          x: entry.key,
-          barRods: [
-            BarChartRodData(
-              toY: entry.value.y,
-              color: Colors.purple,
-              width: 8,
+                            borderData: FlBorderData(
+                              show: true,
+                              border: Border(
+                                left: BorderSide(color: Colors.transparent),
+                                bottom: BorderSide(color: Colors.blueGrey.shade700, width: 0.5),
+                                right: BorderSide(color: Colors.transparent),
+                                top: BorderSide(color: Colors.transparent),
+                              ),
+                            ),
+                            barGroups: barChartData,
+                          ),
+                        )
+                      : LineChart(
+                          LineChartData(
+                            gridData: FlGridData(show: true, drawVerticalLine: false),
+                            titlesData: FlTitlesData(
+                              leftTitles: AxisTitles(
+                                sideTitles: SideTitles(
+                                  showTitles: true,
+                                  reservedSize: 45,
+                                  getTitlesWidget: (value, meta) {
+                                    final displayValue = value >= 1000
+                                        ? '${(value / 1000).toStringAsFixed(1)} k${dataManager.currencySymbol}'
+                                        : Utils.formatCurrency(value, dataManager.currencySymbol);
+                                    return Text(
+                                      displayValue,
+                                      style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
+                                    );
+                                  },
+                                ),
+                              ),
+                              bottomTitles: AxisTitles(
+                                sideTitles: SideTitles(
+                                  showTitles: true,
+                                  getTitlesWidget: (value, meta) {
+                                    List<String> labels = _buildDateLabelsForWallet(dataManager);
+                                    if (value.toInt() >= 0 && value.toInt() < labels.length) {
+                                      return Padding(
+                                        padding: const EdgeInsets.only(top: 10.0),
+                                        child: Transform.rotate(
+                                          angle: -0.5,
+                                          child: Text(
+                                            labels[value.toInt()],
+                                            style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
+                                          ),
+                                        ),
+                                      );
+                                    } else {
+                                      return const SizedBox.shrink();
+                                    }
+                                  },
+                                ),
+                              ),
+                              topTitles: AxisTitles(
+                                sideTitles: SideTitles(showTitles: false),
+                              ),
+                              rightTitles: AxisTitles(
+                                sideTitles: SideTitles(showTitles: false),
+                              ),
+                            ),
+                            borderData: FlBorderData(
+                              show: true,
+                              border: Border(
+                                left: BorderSide(color: Colors.transparent),
+                                bottom: BorderSide(color: Colors.blueGrey.shade700, width: 0.5),
+                                right: BorderSide(color: Colors.transparent),
+                                top: BorderSide(color: Colors.transparent),
+                              ),
+                            ),
+                            lineBarsData: [
+                              LineChartBarData(
+                                spots: walletBalanceData,
+                                isCurved: false,
+                                barWidth: 2,
+                                color: Colors.purple,
+                                dotData: FlDotData(show: false),
+                                belowBarData: BarAreaData(
+                                  show: true,
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      Colors.purple.withOpacity(0.4),
+                                      Colors.purple.withOpacity(0),
+                                    ],
+                                    begin: Alignment.topCenter,
+                                    end: Alignment.bottomCenter,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                },
+              ),
             ),
           ],
         ),
-      )
-      .toList();
-}
+      ),
+    );
+  }
 
-Widget _buildRoiHistoryCard(DataManager dataManager) {
-  final appState = Provider.of<AppState>(context);
-
-  // Récupérer les données pour les graphiques
-  List<FlSpot> roiHistoryData = _buildRoiHistoryChartData(dataManager);
-  List<BarChartGroupData> barChartData = _buildRoiHistoryBarChartData(dataManager);
-
-  return Card(
-    elevation: 0,
-    color: Theme.of(context).cardColor,
-    child: Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Text(
-                S.of(context).roiHistory, // Titre principal
-                style: TextStyle(
-                  fontSize: 20 + appState.getTextSizeOffset(),
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const Spacer(),
-              IconButton(
-                icon: const Icon(Icons.settings, size: 20.0),
-                onPressed: () {
-                  showModalBottomSheet(
-                    context: context,
-                    builder: (context) {
-                      return Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            ListTile(
-                              leading: const Icon(Icons.bar_chart),
-                              title: Text(S.of(context).barChart),
-                              onTap: () {
-                                setState(() {
-                                  roiIsBarChart = true;
-                                   _saveChartPreference('roiIsBarChart', roiIsBarChart);
-
-                                });
-                                Navigator.of(context).pop();
-                              },
-                            ),
-                            ListTile(
-                              leading: const Icon(Icons.show_chart),
-                              title: Text(S.of(context).lineChart),
-                              onTap: () {
-                                setState(() {
-                                  roiIsBarChart = false;
-                                   _saveChartPreference('roiIsBarChart', roiIsBarChart);
-
-                                });
-                                Navigator.of(context).pop();
-                              },
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  );
-                },
+  List<BarChartGroupData> _buildWalletBalanceBarChartData(DataManager dataManager) {
+    List<FlSpot> walletBalanceData = _buildWalletBalanceChartData(dataManager);
+    return walletBalanceData
+        .asMap()
+        .entries
+        .map(
+          (entry) => BarChartGroupData(
+            x: entry.key,
+            barRods: [
+              BarChartRodData(
+                toY: entry.value.y,
+                color: Colors.purple,
+                width: 8,
               ),
             ],
           ),
-          const SizedBox(height: 20),
-          SizedBox(
-            height: 250,
-            child: StatefulBuilder(
-              builder: (context, setState) {
-                // Basculer entre BarChart et LineChart
-                return roiIsBarChart
-                    ? BarChart(
-                        BarChartData(
-                          gridData: FlGridData(show: true, drawVerticalLine: false),
-                          titlesData: FlTitlesData(
-                            leftTitles: AxisTitles(
-                              sideTitles: SideTitles(
-                                showTitles: true,
-                                reservedSize: 45,
-                                getTitlesWidget: (value, meta) {
-                                  return Text(
-                                    '${value.toStringAsFixed(0)}%',
-                                    style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
-                                  );
+        )
+        .toList();
+  }
+
+  Widget _buildRoiHistoryCard(DataManager dataManager) {
+    final appState = Provider.of<AppState>(context);
+
+    // Récupérer les données pour les graphiques
+    List<FlSpot> roiHistoryData = _buildRoiHistoryChartData(dataManager);
+    List<BarChartGroupData> barChartData = _buildRoiHistoryBarChartData(dataManager);
+
+    return Card(
+      elevation: 0,
+      color: Theme.of(context).cardColor,
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Text(
+                  S.of(context).roiHistory, // Titre principal
+                  style: TextStyle(
+                    fontSize: 20 + appState.getTextSizeOffset(),
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const Spacer(),
+                IconButton(
+                  icon: const Icon(Icons.settings, size: 20.0),
+                  onPressed: () {
+                    showModalBottomSheet(
+                      context: context,
+                      builder: (context) {
+                        return Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              ListTile(
+                                leading: const Icon(Icons.bar_chart),
+                                title: Text(S.of(context).barChart),
+                                onTap: () {
+                                  setState(() {
+                                    roiIsBarChart = true;
+                                    _saveChartPreference('roiIsBarChart', roiIsBarChart);
+                                  });
+                                  Navigator.of(context).pop();
                                 },
                               ),
-                            ),
-                            bottomTitles: AxisTitles(
-                              sideTitles: SideTitles(
-                                showTitles: true,
-                                getTitlesWidget: (value, meta) {
-                                  List<String> labels = _buildDateLabelsForRoi(dataManager);
-                                  if (value.toInt() >= 0 && value.toInt() < labels.length) {
-                                    return Padding(
-                                      padding: const EdgeInsets.only(top: 10.0),
-                                      child: Transform.rotate(
-                                        angle: -0.5,
-                                        child: Text(
-                                          labels[value.toInt()],
-                                          style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
-                                        ),
-                                      ),
-                                    );
-                                  } else {
-                                    return const SizedBox.shrink();
-                                  }
+                              ListTile(
+                                leading: const Icon(Icons.show_chart),
+                                title: Text(S.of(context).lineChart),
+                                onTap: () {
+                                  setState(() {
+                                    roiIsBarChart = false;
+                                    _saveChartPreference('roiIsBarChart', roiIsBarChart);
+                                  });
+                                  Navigator.of(context).pop();
                                 },
                               ),
-                            ),
-                            topTitles: AxisTitles(
-                              sideTitles: SideTitles(showTitles: false),
-                            ),
-                            rightTitles: AxisTitles(
-                              sideTitles: SideTitles(showTitles: false),
-                            ),
+                            ],
                           ),
-                          borderData: FlBorderData(
-                            show: true,
-                            border: Border(
-                              left: BorderSide(color: Colors.transparent),
-                              bottom: BorderSide(color: Colors.blueGrey.shade700, width: 0.5),
-                              right: BorderSide(color: Colors.transparent),
-                              top: BorderSide(color: Colors.transparent),
-                            ),
-                          ),
-                          barGroups: barChartData,
-                        ),
-                      )
-                    : LineChart(
-                        LineChartData(
-                          gridData: FlGridData(show: true, drawVerticalLine: false),
-                          titlesData: FlTitlesData(
-                            topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                            leftTitles: AxisTitles(
-                              sideTitles: SideTitles(
-                                showTitles: true,
-                                reservedSize: 45,
-                                getTitlesWidget: (value, meta) {
-                                  final highestValue = roiHistoryData.map((e) => e.y).reduce((a, b) => a > b ? a : b);
-
-                                  if (value == highestValue) {
-                                    return const SizedBox.shrink();
-                                  }
-
-                                  return Transform.rotate(
-                                    angle: -0.5,
-                                    child: Text(
+                        );
+                      },
+                    );
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              height: 250,
+              child: StatefulBuilder(
+                builder: (context, setState) {
+                  // Basculer entre BarChart et LineChart
+                  return roiIsBarChart
+                      ? BarChart(
+                          BarChartData(
+                            gridData: FlGridData(show: true, drawVerticalLine: false),
+                            titlesData: FlTitlesData(
+                              leftTitles: AxisTitles(
+                                sideTitles: SideTitles(
+                                  showTitles: true,
+                                  reservedSize: 45,
+                                  getTitlesWidget: (value, meta) {
+                                    return Text(
                                       '${value.toStringAsFixed(0)}%',
                                       style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
-                                    ),
-                                  );
-                                },
-                              ),
-                            ),
-                            bottomTitles: AxisTitles(
-                              sideTitles: SideTitles(
-                                showTitles: true,
-                                getTitlesWidget: (value, meta) {
-                                  List<String> labels = _buildDateLabelsForRoi(dataManager);
-
-                                  if (value.toInt() >= 0 && value.toInt() < labels.length) {
-                                    return Padding(
-                                      padding: const EdgeInsets.only(top: 10.0),
-                                      child: Transform.rotate(
-                                        angle: -0.5,
-                                        child: Text(
-                                          labels[value.toInt()],
-                                          style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
-                                        ),
-                                      ),
                                     );
-                                  } else {
-                                    return const SizedBox.shrink();
-                                  }
-                                },
-                                reservedSize: 30,
-                                interval: 1,
-                              ),
-                            ),
-                            rightTitles: AxisTitles(
-                              sideTitles: SideTitles(showTitles: false),
-                            ),
-                          ),
-                          borderData: FlBorderData(
-                            show: true,
-                            border: Border(
-                              left: BorderSide(color: Colors.transparent),
-                              bottom: BorderSide(color: Colors.blueGrey.shade700, width: 0.5),
-                              right: BorderSide(color: Colors.transparent),
-                              top: BorderSide(color: Colors.transparent),
-                            ),
-                          ),
-                          minX: 0,
-                          maxX: (roiHistoryData.length - 1).toDouble(),
-                          minY: 0,
-                          maxY: 100,
-                          lineBarsData: [
-                            LineChartBarData(
-                              spots: roiHistoryData,
-                              isCurved: false,
-                              barWidth: 2,
-                              color: Colors.cyan,
-                              dotData: FlDotData(show: false),
-                              belowBarData: BarAreaData(
-                                show: true,
-                                gradient: LinearGradient(
-                                  colors: [
-                                    Colors.cyan.withOpacity(0.4),
-                                    Colors.cyan.withOpacity(0),
-                                  ],
-                                  begin: Alignment.topCenter,
-                                  end: Alignment.bottomCenter,
+                                  },
                                 ),
                               ),
+                              bottomTitles: AxisTitles(
+                                sideTitles: SideTitles(
+                                  showTitles: true,
+                                  getTitlesWidget: (value, meta) {
+                                    List<String> labels = _buildDateLabelsForRoi(dataManager);
+                                    if (value.toInt() >= 0 && value.toInt() < labels.length) {
+                                      return Padding(
+                                        padding: const EdgeInsets.only(top: 10.0),
+                                        child: Transform.rotate(
+                                          angle: -0.5,
+                                          child: Text(
+                                            labels[value.toInt()],
+                                            style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
+                                          ),
+                                        ),
+                                      );
+                                    } else {
+                                      return const SizedBox.shrink();
+                                    }
+                                  },
+                                ),
+                              ),
+                              topTitles: AxisTitles(
+                                sideTitles: SideTitles(showTitles: false),
+                              ),
+                              rightTitles: AxisTitles(
+                                sideTitles: SideTitles(showTitles: false),
+                              ),
                             ),
-                          ],
-                          lineTouchData: LineTouchData(
-                            touchTooltipData: LineTouchTooltipData(
-                              tooltipRoundedRadius: 8,
-                              tooltipMargin: 8,
-                              getTooltipItems: (List<LineBarSpot> touchedSpots) {
-                                return touchedSpots.map((touchedSpot) {
-                                  final index = touchedSpot.x.toInt();
-                                  final value = touchedSpot.y;
-                                  final date = _buildDateLabelsForRoi(dataManager)[index];
-
-                                  final formattedValue = '${value.toStringAsFixed(2)}%';
-
-                                  return LineTooltipItem(
-                                    '$date\n$formattedValue',
-                                    const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                                  );
-                                }).toList();
-                              },
+                            borderData: FlBorderData(
+                              show: true,
+                              border: Border(
+                                left: BorderSide(color: Colors.transparent),
+                                bottom: BorderSide(color: Colors.blueGrey.shade700, width: 0.5),
+                                right: BorderSide(color: Colors.transparent),
+                                top: BorderSide(color: Colors.transparent),
+                              ),
                             ),
-                            touchCallback: (FlTouchEvent event, LineTouchResponse? touchResponse) {
-                              if (touchResponse != null && touchResponse.lineBarSpots != null) {
-                                debugPrint('Point touché : ${touchResponse.lineBarSpots?.first.x}');
-                              }
-                            },
-                            handleBuiltInTouches: true,
+                            barGroups: barChartData,
                           ),
-                        ),
-                      );
-              },
-            ),
-          ),
-        ],
-      ),
-    ),
-  );
-}
+                        )
+                      : LineChart(
+                          LineChartData(
+                            gridData: FlGridData(show: true, drawVerticalLine: false),
+                            titlesData: FlTitlesData(
+                              topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                              leftTitles: AxisTitles(
+                                sideTitles: SideTitles(
+                                  showTitles: true,
+                                  reservedSize: 45,
+                                  getTitlesWidget: (value, meta) {
+                                    final highestValue = roiHistoryData.map((e) => e.y).reduce((a, b) => a > b ? a : b);
 
-List<BarChartGroupData> _buildRoiHistoryBarChartData(DataManager dataManager) {
-  // Convertir les données de FlSpot pour le BarChart
-  List<FlSpot> roiHistoryData = _buildRoiHistoryChartData(dataManager);
-  return roiHistoryData
-      .asMap()
-      .entries
-      .map(
-        (entry) => BarChartGroupData(
-          x: entry.key,
-          barRods: [
-            BarChartRodData(
-              toY: entry.value.y,
-              color: Colors.cyan,
-              width: 8,
+                                    if (value == highestValue) {
+                                      return const SizedBox.shrink();
+                                    }
+
+                                    return Transform.rotate(
+                                      angle: -0.5,
+                                      child: Text(
+                                        '${value.toStringAsFixed(0)}%',
+                                        style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                              bottomTitles: AxisTitles(
+                                sideTitles: SideTitles(
+                                  showTitles: true,
+                                  getTitlesWidget: (value, meta) {
+                                    List<String> labels = _buildDateLabelsForRoi(dataManager);
+
+                                    if (value.toInt() >= 0 && value.toInt() < labels.length) {
+                                      return Padding(
+                                        padding: const EdgeInsets.only(top: 10.0),
+                                        child: Transform.rotate(
+                                          angle: -0.5,
+                                          child: Text(
+                                            labels[value.toInt()],
+                                            style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
+                                          ),
+                                        ),
+                                      );
+                                    } else {
+                                      return const SizedBox.shrink();
+                                    }
+                                  },
+                                  reservedSize: 30,
+                                  interval: 1,
+                                ),
+                              ),
+                              rightTitles: AxisTitles(
+                                sideTitles: SideTitles(showTitles: false),
+                              ),
+                            ),
+                            borderData: FlBorderData(
+                              show: true,
+                              border: Border(
+                                left: BorderSide(color: Colors.transparent),
+                                bottom: BorderSide(color: Colors.blueGrey.shade700, width: 0.5),
+                                right: BorderSide(color: Colors.transparent),
+                                top: BorderSide(color: Colors.transparent),
+                              ),
+                            ),
+                            minX: 0,
+                            maxX: (roiHistoryData.length - 1).toDouble(),
+                            minY: 0,
+                            maxY: 100,
+                            lineBarsData: [
+                              LineChartBarData(
+                                spots: roiHistoryData,
+                                isCurved: false,
+                                barWidth: 2,
+                                color: Colors.cyan,
+                                dotData: FlDotData(show: false),
+                                belowBarData: BarAreaData(
+                                  show: true,
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      Colors.cyan.withOpacity(0.4),
+                                      Colors.cyan.withOpacity(0),
+                                    ],
+                                    begin: Alignment.topCenter,
+                                    end: Alignment.bottomCenter,
+                                  ),
+                                ),
+                              ),
+                            ],
+                            lineTouchData: LineTouchData(
+                              touchTooltipData: LineTouchTooltipData(
+                                tooltipRoundedRadius: 8,
+                                tooltipMargin: 8,
+                                getTooltipItems: (List<LineBarSpot> touchedSpots) {
+                                  return touchedSpots.map((touchedSpot) {
+                                    final index = touchedSpot.x.toInt();
+                                    final value = touchedSpot.y;
+                                    final date = _buildDateLabelsForRoi(dataManager)[index];
+
+                                    final formattedValue = '${value.toStringAsFixed(2)}%';
+
+                                    return LineTooltipItem(
+                                      '$date\n$formattedValue',
+                                      const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                                    );
+                                  }).toList();
+                                },
+                              ),
+                              touchCallback: (FlTouchEvent event, LineTouchResponse? touchResponse) {
+                                if (touchResponse != null && touchResponse.lineBarSpots != null) {
+                                  debugPrint('Point touché : ${touchResponse.lineBarSpots?.first.x}');
+                                }
+                              },
+                              handleBuiltInTouches: true,
+                            ),
+                          ),
+                        );
+                },
+              ),
             ),
           ],
         ),
-      )
-      .toList();
-}
+      ),
+    );
+  }
 
-Widget _buildApyHistoryCard(DataManager dataManager) {
-  final appState = Provider.of<AppState>(context);
-
-  List<BarChartGroupData> apyHistoryData = _buildApyHistoryBarChartData(dataManager);
-  List<LineChartBarData> lineChartData = _buildApyHistoryLineChartData(dataManager);
-
-  int? selectedIndex; // Variable pour stocker l'index sélectionné
-
-  return Card(
-    elevation: 0,
-    color: Theme.of(context).cardColor,
-    child: Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Text(
-                S.of(context).apyHistory,
-                style: TextStyle(
-                  fontSize: 20 + appState.getTextSizeOffset(),
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const Spacer(),
-              IconButton(
-                icon: const Icon(Icons.settings, size: 20.0),
-                onPressed: () {
-                  showModalBottomSheet(
-                    context: context,
-                    builder: (context) {
-                      return Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            ListTile(
-                              leading: const Icon(Icons.bar_chart),
-                              title: Text(S.of(context).barChart),
-                              onTap: () {
-                                setState(() {
-                                  apyIsBarChart = true;
-                                 _saveChartPreference('apyIsBarChart', apyIsBarChart);
-
-                                });
-                                Navigator.of(context).pop();
-                              },
-                            ),
-                            ListTile(
-                              leading: const Icon(Icons.show_chart),
-                              title: Text(S.of(context).lineChart),
-                              onTap: () {
-                                setState(() {
-                                  apyIsBarChart = false;
-                                  _saveChartPreference('apyIsBarChart', apyIsBarChart);
-
-                                });
-                                Navigator.of(context).pop();
-                              },
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  );
-                },
+  List<BarChartGroupData> _buildRoiHistoryBarChartData(DataManager dataManager) {
+    // Convertir les données de FlSpot pour le BarChart
+    List<FlSpot> roiHistoryData = _buildRoiHistoryChartData(dataManager);
+    return roiHistoryData
+        .asMap()
+        .entries
+        .map(
+          (entry) => BarChartGroupData(
+            x: entry.key,
+            barRods: [
+              BarChartRodData(
+                toY: entry.value.y,
+                color: Colors.cyan,
+                width: 8,
               ),
             ],
           ),
-          const SizedBox(height: 20),
-          SizedBox(
-            height: 250,
-            child: StatefulBuilder(
-              builder: (context, setState) {
-                return apyIsBarChart
-                    ? BarChart(
-                        BarChartData(
-                          gridData: FlGridData(show: true, drawVerticalLine: false),
-                          titlesData: FlTitlesData(
-                            leftTitles: AxisTitles(
-                              sideTitles: SideTitles(
-                                showTitles: true,
-                                reservedSize: 45,
-                                getTitlesWidget: (value, meta) {
-                                  return Text(
-                                    '${value.toStringAsFixed(0)}%',
-                                    style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
-                                  );
+        )
+        .toList();
+  }
+
+  Widget _buildApyHistoryCard(DataManager dataManager) {
+    final appState = Provider.of<AppState>(context);
+
+    List<BarChartGroupData> apyHistoryData = _buildApyHistoryBarChartData(dataManager);
+    List<LineChartBarData> lineChartData = _buildApyHistoryLineChartData(dataManager);
+
+    int? selectedIndex; // Variable pour stocker l'index sélectionné
+
+    return Card(
+      elevation: 0,
+      color: Theme.of(context).cardColor,
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Text(
+                  S.of(context).apyHistory,
+                  style: TextStyle(
+                    fontSize: 20 + appState.getTextSizeOffset(),
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const Spacer(),
+                IconButton(
+                  icon: const Icon(Icons.settings, size: 20.0),
+                  onPressed: () {
+                    showModalBottomSheet(
+                      context: context,
+                      builder: (context) {
+                        return Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              ListTile(
+                                leading: const Icon(Icons.bar_chart),
+                                title: Text(S.of(context).barChart),
+                                onTap: () {
+                                  setState(() {
+                                    apyIsBarChart = true;
+                                    _saveChartPreference('apyIsBarChart', apyIsBarChart);
+                                  });
+                                  Navigator.of(context).pop();
                                 },
                               ),
-                            ),
-                            bottomTitles: AxisTitles(
-                              sideTitles: SideTitles(
-                                showTitles: true,
-                                getTitlesWidget: (value, meta) {
-                                  List<String> labels = _buildDateLabelsForApy(dataManager);
-                                  if (value.toInt() >= 0 && value.toInt() < labels.length) {
-                                    return Padding(
-                                      padding: const EdgeInsets.only(top: 10.0),
-                                      child: Transform.rotate(
-                                        angle: -0.5,
-                                        child: Text(
-                                          labels[value.toInt()],
-                                          style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
-                                        ),
-                                      ),
-                                    );
-                                  } else {
-                                    return const Text('');
-                                  }
+                              ListTile(
+                                leading: const Icon(Icons.show_chart),
+                                title: Text(S.of(context).lineChart),
+                                onTap: () {
+                                  setState(() {
+                                    apyIsBarChart = false;
+                                    _saveChartPreference('apyIsBarChart', apyIsBarChart);
+                                  });
+                                  Navigator.of(context).pop();
                                 },
                               ),
-                            ),
-                            topTitles: AxisTitles(
-                              sideTitles: SideTitles(
-                                showTitles: false,
-                                
-                              ),
-                            ),
-                            rightTitles: AxisTitles(
-                              sideTitles: SideTitles(
-                                showTitles: false,
-                                
-                              ),
-                            ),
+                            ],
                           ),
-                          borderData: FlBorderData(
-                            show: true,
-                            border: Border(
-                              left: BorderSide(color: Colors.transparent),
-                              bottom: BorderSide(color: Colors.blueGrey.shade700, width: 0.5),
-                              right: BorderSide(color: Colors.transparent),
-                              top: BorderSide(color: Colors.transparent),
-                            ),
-                          ),
-                          alignment: BarChartAlignment.center,
-                          barGroups: apyHistoryData,
-                          maxY: 20,
-                          barTouchData: BarTouchData(
-                        touchTooltipData: BarTouchTooltipData(
-                          getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                            // Affiche uniquement le tooltip si l'index est sélectionné
-                            if (selectedIndex == groupIndex) {
-                              String tooltip = '${S.of(context).brute}: ${group.barRods[0].rodStackItems[0].toY.toStringAsFixed(2)}%\n'
-                                  '${S.of(context).net}: ${group.barRods[0].rodStackItems[1].toY.toStringAsFixed(2)}%';
-                              return BarTooltipItem(
-                                tooltip,
-                                const TextStyle(color: Colors.white),
-                              );
-                            }
-                            return null; // Aucun tooltip
-                          },
-                        ),
-                        touchCallback: (FlTouchEvent event, barTouchResponse) {
-                          // Met à jour l'index sélectionné en cas de clic
-                          if (event is FlTapUpEvent && barTouchResponse != null) {
-                            setState(() {
-                              selectedIndex = barTouchResponse.spot?.touchedBarGroupIndex;
-                            });
-                          } else if (event is FlLongPressEnd || event is FlPanEndEvent) {
-                            // Désélectionne si l'utilisateur annule l'interaction
-                            setState(() {
-                              selectedIndex = null;
-                            });
-                          }
-                        },
-                        handleBuiltInTouches: true,
-                      ),
-                        ),
-                      )
-                    : LineChart(
-                        LineChartData(
-                          gridData: FlGridData(show: true, drawVerticalLine: false),
-                          titlesData: FlTitlesData(
-                            leftTitles: AxisTitles(
-                              sideTitles: SideTitles(
-                                showTitles: true,
-                                reservedSize: 45,
-                                getTitlesWidget: (value, meta) {
-                                  return Text(
-                                    '${value.toStringAsFixed(0)}%',
-                                    style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
-                                  );
-                                },
-                              ),
-                            ),
-                            bottomTitles: AxisTitles(
-                              sideTitles: SideTitles(
-                                showTitles: true,
-                                getTitlesWidget: (value, meta) {
-                                  List<String> labels = _buildDateLabelsForApy(dataManager);
-                                  if (value.toInt() >= 0 && value.toInt() < labels.length) {
-                                    return Padding(
-                                      padding: const EdgeInsets.only(top: 10.0),
-                                      child: Transform.rotate(
-                                        angle: -0.5,
-                                        child: Text(
-                                          labels[value.toInt()],
-                                          style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
-                                        ),
-                                      ),
-                                    );
-                                  } else {
-                                    return const Text('');
-                                  }
-                                },
-                              ),
-                            ),
-                            topTitles: AxisTitles(
-                              sideTitles: SideTitles(
-                                showTitles: false,
-                                
-                              ),
-                            ),
-                            rightTitles: AxisTitles(
-                              sideTitles: SideTitles(
-                                showTitles: false,
-                                
-                              ),
-                            ),
-                          ),
-                          borderData: FlBorderData(
-                            show: true,
-                            border: Border(
-                              left: BorderSide(color: Colors.transparent),
-                              bottom: BorderSide(color: Colors.blueGrey.shade700, width: 0.5),
-                              right: BorderSide(color: Colors.transparent),
-                              top: BorderSide(color: Colors.transparent),
-                            ),
-                          ),
-                          lineBarsData: lineChartData,
-                           minY:0,
-                           maxY: 20,
-                        ),
-                      );
-              },
+                        );
+                      },
+                    );
+                  },
+                ),
+              ],
             ),
-          ),
-        ],
+            const SizedBox(height: 20),
+            SizedBox(
+              height: 250,
+              child: StatefulBuilder(
+                builder: (context, setState) {
+                  return apyIsBarChart
+                      ? BarChart(
+                          BarChartData(
+                            gridData: FlGridData(show: true, drawVerticalLine: false),
+                            titlesData: FlTitlesData(
+                              leftTitles: AxisTitles(
+                                sideTitles: SideTitles(
+                                  showTitles: true,
+                                  reservedSize: 45,
+                                  getTitlesWidget: (value, meta) {
+                                    return Text(
+                                      '${value.toStringAsFixed(0)}%',
+                                      style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
+                                    );
+                                  },
+                                ),
+                              ),
+                              bottomTitles: AxisTitles(
+                                sideTitles: SideTitles(
+                                  showTitles: true,
+                                  getTitlesWidget: (value, meta) {
+                                    List<String> labels = _buildDateLabelsForApy(dataManager);
+                                    if (value.toInt() >= 0 && value.toInt() < labels.length) {
+                                      return Padding(
+                                        padding: const EdgeInsets.only(top: 10.0),
+                                        child: Transform.rotate(
+                                          angle: -0.5,
+                                          child: Text(
+                                            labels[value.toInt()],
+                                            style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
+                                          ),
+                                        ),
+                                      );
+                                    } else {
+                                      return const Text('');
+                                    }
+                                  },
+                                ),
+                              ),
+                              topTitles: AxisTitles(
+                                sideTitles: SideTitles(
+                                  showTitles: false,
+                                ),
+                              ),
+                              rightTitles: AxisTitles(
+                                sideTitles: SideTitles(
+                                  showTitles: false,
+                                ),
+                              ),
+                            ),
+                            borderData: FlBorderData(
+                              show: true,
+                              border: Border(
+                                left: BorderSide(color: Colors.transparent),
+                                bottom: BorderSide(color: Colors.blueGrey.shade700, width: 0.5),
+                                right: BorderSide(color: Colors.transparent),
+                                top: BorderSide(color: Colors.transparent),
+                              ),
+                            ),
+                            alignment: BarChartAlignment.center,
+                            barGroups: apyHistoryData,
+                            maxY: 20,
+                            barTouchData: BarTouchData(
+                              touchTooltipData: BarTouchTooltipData(
+                                getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                                  // Affiche uniquement le tooltip si l'index est sélectionné
+                                  if (selectedIndex == groupIndex) {
+                                    String tooltip = '${S.of(context).brute}: ${group.barRods[0].rodStackItems[0].toY.toStringAsFixed(2)}%\n'
+                                        '${S.of(context).net}: ${group.barRods[0].rodStackItems[1].toY.toStringAsFixed(2)}%';
+                                    return BarTooltipItem(
+                                      tooltip,
+                                      const TextStyle(color: Colors.white),
+                                    );
+                                  }
+                                  return null; // Aucun tooltip
+                                },
+                              ),
+                              touchCallback: (FlTouchEvent event, barTouchResponse) {
+                                // Met à jour l'index sélectionné en cas de clic
+                                if (event is FlTapUpEvent && barTouchResponse != null) {
+                                  setState(() {
+                                    selectedIndex = barTouchResponse.spot?.touchedBarGroupIndex;
+                                  });
+                                } else if (event is FlLongPressEnd || event is FlPanEndEvent) {
+                                  // Désélectionne si l'utilisateur annule l'interaction
+                                  setState(() {
+                                    selectedIndex = null;
+                                  });
+                                }
+                              },
+                              handleBuiltInTouches: true,
+                            ),
+                          ),
+                        )
+                      : LineChart(
+                          LineChartData(
+                            gridData: FlGridData(show: true, drawVerticalLine: false),
+                            titlesData: FlTitlesData(
+                              leftTitles: AxisTitles(
+                                sideTitles: SideTitles(
+                                  showTitles: true,
+                                  reservedSize: 45,
+                                  getTitlesWidget: (value, meta) {
+                                    return Text(
+                                      '${value.toStringAsFixed(0)}%',
+                                      style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
+                                    );
+                                  },
+                                ),
+                              ),
+                              bottomTitles: AxisTitles(
+                                sideTitles: SideTitles(
+                                  showTitles: true,
+                                  getTitlesWidget: (value, meta) {
+                                    List<String> labels = _buildDateLabelsForApy(dataManager);
+                                    if (value.toInt() >= 0 && value.toInt() < labels.length) {
+                                      return Padding(
+                                        padding: const EdgeInsets.only(top: 10.0),
+                                        child: Transform.rotate(
+                                          angle: -0.5,
+                                          child: Text(
+                                            labels[value.toInt()],
+                                            style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
+                                          ),
+                                        ),
+                                      );
+                                    } else {
+                                      return const Text('');
+                                    }
+                                  },
+                                ),
+                              ),
+                              topTitles: AxisTitles(
+                                sideTitles: SideTitles(
+                                  showTitles: false,
+                                ),
+                              ),
+                              rightTitles: AxisTitles(
+                                sideTitles: SideTitles(
+                                  showTitles: false,
+                                ),
+                              ),
+                            ),
+                            borderData: FlBorderData(
+                              show: true,
+                              border: Border(
+                                left: BorderSide(color: Colors.transparent),
+                                bottom: BorderSide(color: Colors.blueGrey.shade700, width: 0.5),
+                                right: BorderSide(color: Colors.transparent),
+                                top: BorderSide(color: Colors.transparent),
+                              ),
+                            ),
+                            lineBarsData: lineChartData,
+                            minY: 0,
+                            maxY: 20,
+                          ),
+                        );
+                },
+              ),
+            ),
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
-List<LineChartBarData> _buildApyHistoryLineChartData(DataManager dataManager) {
-  final groupedData = _groupApyByDate(dataManager); // Regroupe les données comme pour le BarChart
+  List<LineChartBarData> _buildApyHistoryLineChartData(DataManager dataManager) {
+    final groupedData = _groupApyByDate(dataManager); // Regroupe les données comme pour le BarChart
 
-  final grossSpots = <FlSpot>[];
-  final netSpots = <FlSpot>[];
+    final grossSpots = <FlSpot>[];
+    final netSpots = <FlSpot>[];
 
-  int index = 0;
-  groupedData.forEach((date, values) {
-    grossSpots.add(FlSpot(index.toDouble(), values['gross']!));
-    netSpots.add(FlSpot(index.toDouble(), values['net']!));
-    index++;
-  });
+    int index = 0;
+    groupedData.forEach((date, values) {
+      grossSpots.add(FlSpot(index.toDouble(), values['gross']!));
+      netSpots.add(FlSpot(index.toDouble(), values['net']!));
+      index++;
+    });
 
-  return [
-    LineChartBarData(
-      spots: grossSpots,
-      isCurved: true,
-      color: Colors.blue,
-      barWidth: 2,
-      belowBarData: BarAreaData(
-        show: true,
-        color: Colors.blue.withOpacity(0.1),
+    return [
+      LineChartBarData(
+        spots: grossSpots,
+        isCurved: true,
+        color: Colors.blue,
+        barWidth: 2,
+        belowBarData: BarAreaData(
+          show: true,
+          color: Colors.blue.withOpacity(0.1),
+        ),
+        dotData: FlDotData(show: false),
       ),
-      dotData: FlDotData(show: false),
-    ),
-    LineChartBarData(
-      spots: netSpots,
-      isCurved: true,
-      color: Colors.green,
-      barWidth: 2,
-      belowBarData: BarAreaData(
-        show: true,
-        color: Colors.green.withOpacity(0.1),
+      LineChartBarData(
+        spots: netSpots,
+        isCurved: true,
+        color: Colors.green,
+        barWidth: 2,
+        belowBarData: BarAreaData(
+          show: true,
+          color: Colors.green.withOpacity(0.1),
+        ),
+        dotData: FlDotData(show: false),
       ),
-      dotData: FlDotData(show: false),
-    ),
-  ];
-}
+    ];
+  }
 
   List<BarChartGroupData> _buildApyHistoryBarChartData(DataManager dataManager) {
     final groupedData = _groupApyByDate(dataManager);
@@ -1499,7 +1491,7 @@ List<LineChartBarData> _buildApyHistoryLineChartData(DataManager dataManager) {
         },
         child: Container(
           decoration: BoxDecoration(
-            color: isSelected ? Colors.blue :  Theme.of(context).secondaryHeaderColor,
+            color: isSelected ? Colors.blue : Theme.of(context).secondaryHeaderColor,
             borderRadius: BorderRadius.horizontal(
               left: isFirst ? const Radius.circular(8) : Radius.zero,
               right: isLast ? const Radius.circular(8) : Radius.zero,
@@ -1531,7 +1523,7 @@ List<LineChartBarData> _buildApyHistoryLineChartData(DataManager dataManager) {
     return spots;
   }
 
-void _saveChartPreference(String key, bool value) {
-  prefs.setBool(key, value);
-} 
+  void _saveChartPreference(String key, bool value) {
+    prefs.setBool(key, value);
+  }
 }
