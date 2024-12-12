@@ -30,8 +30,13 @@ void showOtherDetailsModal(BuildContext context, dataManager, List<Map<String, d
                 ),
               ),
               const SizedBox(height: 20),
+
               // Ajout de la légende en dessous du donut
-              _buildLegendForModal(othersDetails, key),
+              Flexible(
+                child: SingleChildScrollView(
+                  child: _buildLegendForModal(othersDetails, key),
+                ),
+              )
             ],
           ),
         ),

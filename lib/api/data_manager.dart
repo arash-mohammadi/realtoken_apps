@@ -296,6 +296,7 @@ class DataManager extends ChangeNotifier {
     loadWalletBalanceHistory();
     loadRoiHistory();
     loadApyHistory();
+    isLoading = false;
   }
 
   Future<void> loadWalletBalanceHistory() async {

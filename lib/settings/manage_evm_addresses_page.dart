@@ -1,3 +1,4 @@
+import 'package:logger/logger.dart';
 import 'package:realtokens_apps/utils/utils.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
@@ -49,30 +50,63 @@ class ManageEthAddressesPageState extends State<ManageEvmAddressesPage> {
   }
 
   Future<void> _saveAddress(String address) async {
-    if (!ethAddresses.contains(address)) {
+    final logger = Logger(); // Initialiser une instance de logger
+
+    // Normalisez l'adresse (par exemple, tout en minuscule)
+    final normalizedAddress = address.toLowerCase();
+    logger.i("test");
+
+    // Vérifiez si l'adresse existe déjà
+    if (!ethAddresses.contains(normalizedAddress)) {
       final prefs = await SharedPreferences.getInstance();
+
+      // Ajoutez l'adresse normalisée à la liste
       setState(() {
-        ethAddresses.add(address.toLowerCase());
+        ethAddresses.add(normalizedAddress);
       });
+
+      // Sauvegardez les adresses dans SharedPreferences
       await prefs.setStringList('evmAddresses', ethAddresses);
 
-      final dataManager = Provider.of<DataManager>(context, listen: false);
+      logger.i("test1");
 
-      // Récupérer le userId associé à l'adresse via ApiService
-      final userId = await ApiService.fetchUserIdFromAddress(address);
-      if (userId != null) {
-        // Récupérer les autres adresses associées au userId
-        final associatedAddresses = await ApiService.fetchAddressesForUserId(userId);
-        dataManager.addAddressesForUserId(userId, associatedAddresses);
+      // Lancez une tâche asynchrone pour gérer les appels API
+      Future.microtask(() async {
+        try {
+          logger.i("Fetching userId...");
+          final userId = await ApiService.fetchUserIdFromAddress(address);
+          logger.i("test2: userId = $userId");
 
-        setState(() {
-          ethAddresses.addAll(associatedAddresses.where((addr) => !ethAddresses.contains(addr)));
-        });
+          if (userId != null) {
+            // Récupérer les autres adresses associées au userId
+            final associatedAddresses = await ApiService.fetchAddressesForUserId(userId);
 
-        await prefs.setStringList('evmAddresses', ethAddresses);
-      }
-      Utils.loadData(context);
+            // Ajoutez les nouvelles adresses associées, uniquement si elles n'existent pas
+            if (mounted) {
+              setState(() {
+                ethAddresses.addAll(associatedAddresses
+                    .map((addr) => addr.toLowerCase()) // Normalisez les adresses associées
+                    .where((addr) => !ethAddresses.contains(addr))); // Filtrez les doublons
+              });
+            }
+
+            // Sauvegardez à nouveau les adresses mises à jour
+            await prefs.setStringList('evmAddresses', ethAddresses);
+          }
+        } catch (e, stack) {
+          logger.e("Error during userId fetch or address association: $e");
+        }
+      });
+    } else {
+      // Affichez un message ou une alerte si l'adresse existe déjà
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Address already exists')),
+      );
     }
+
+    logger.i("test1232323");
+    // Charger les données après les modifications
+    Utils.loadData(context);
   }
 
   String? _validateEVMAddress(String address) {

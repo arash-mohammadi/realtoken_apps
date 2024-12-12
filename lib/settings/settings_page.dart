@@ -15,6 +15,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:path/path.dart' as path; // Ajoute cet import pour manipuler les chemins de fichiers
 import 'package:file_picker/file_picker.dart';
 import 'package:archive/archive_io.dart';
+import 'package:onesignal_flutter/onesignal_flutter.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -25,12 +26,48 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
   Map<String, dynamic> _currencies = {}; // Stockage des devises
+  bool _notificationsEnabled = true; // Valeur par défaut
 
   @override
   void initState() {
     super.initState();
     _loadSettings(); // Charger les paramètres initiaux
     _fetchCurrencies(); // Récupérer les devises lors de l'initialisation
+    _loadNotificationStatus();
+  }
+
+  Future<void> _loadNotificationStatus() async {
+    try {
+      // Fetch the subscription status, default to false if null
+      bool isSubscribed = OneSignal.User.pushSubscription.optedIn ?? false;
+      setState(() {
+        _notificationsEnabled = isSubscribed;
+      });
+    } catch (e) {
+      print("Error fetching notification status: $e");
+      setState(() {
+        _notificationsEnabled = false; // Default to false in case of an error
+      });
+    }
+  }
+
+// Activer ou désactiver les notifications
+  Future<void> _toggleNotificationStatus(bool value) async {
+    setState(() {
+      _notificationsEnabled = value;
+    });
+
+    try {
+      if (value) {
+        // Activer les notifications
+        OneSignal.User.pushSubscription.optIn();
+      } else {
+        // Désactiver les notifications
+        OneSignal.User.pushSubscription.optOut();
+      }
+    } catch (e) {
+      print("Erreur lors de la mise à jour du statut des notifications : $e");
+    }
   }
 
   // Fonction pour charger les paramètres stockés localement (conversion des m² et devise)
@@ -81,12 +118,8 @@ class _SettingsPageState extends State<SettingsPage> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear(); // Réinitialiser toutes les préférences
 
-    var box = await Hive.openBox('dashboardTokens');
-    await box.clear(); // Effacer toutes les données de la boîte
-
     final dataManager = DataManager();
     await dataManager.resetData();
-    dataManager.rentData = []; // Vider rentData
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Cache and data cleared')),
@@ -207,7 +240,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
       // Partager le fichier ZIP
       XFile xfile = XFile(zipFilePath);
-      await Share.shareXFiles([xfile], text: 'Voici les données Hive et préférences sauvegardées sous forme de fichier zip.');
+      await Share.shareXFiles([xfile]);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('All data successfully exported')),
       );
@@ -311,299 +344,306 @@ class _SettingsPageState extends State<SettingsPage> {
         backgroundColor: Theme.of(context).scaffoldBackgroundColor, // Définir le fond noir
         title: Text(S.of(context).settingsTitle), // Utilisation de la traduction
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            // Paramètre pour le thème sombre
-            ListTile(
-              title: Text(
-                S.of(context).darkTheme,
-                style: TextStyle(fontSize: 16.0 + appState.getTextSizeOffset()),
-              ),
-              trailing: DropdownButton<String>(
-                value: appState.themeMode, // Utilisez themeMode ici
-                items: [
-                  DropdownMenuItem(value: 'light', child: Text(S.of(context).light)),
-                  DropdownMenuItem(value: 'dark', child: Text(S.of(context).dark)),
-                  DropdownMenuItem(value: 'auto', child: Text('auto')), // Option auto
-                ],
-                onChanged: (String? newValue) {
-                  if (newValue != null) {
-                    appState.updateThemeMode(newValue); // Mettez à jour le mode
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(S.of(context).themeUpdated(newValue == 'dark'
-                            ? S.of(context).dark
-                            : newValue == 'auto'
-                                ? 'auto'
-                                : S.of(context).light)),
-                      ),
-                    );
-                  }
-                },
-              ),
-            ),
-            const Divider(),
-
-            // Paramètre pour la langue
-            ListTile(
-              title: Text(
-                S.of(context).language,
-                style: TextStyle(fontSize: 16.0 + appState.getTextSizeOffset()),
-              ),
-              trailing: DropdownButton<String>(
-                value: appState.selectedLanguage,
-                items: Parameters.languages.map((String languageCode) {
-                  return DropdownMenuItem<String>(
-                    value: languageCode,
-                    child: Text(
-                      languageCode == 'en'
-                          ? S.of(context).english
-                          : languageCode == 'fr'
-                              ? S.of(context).french
-                              : languageCode == 'es'
-                                  ? S.of(context).spanish
-                                  : languageCode == 'it'
-                                      ? S.of(context).italian
-                                      : languageCode == 'pt'
-                                          ? S.of(context).portuguese
-                                          : languageCode == 'zh'
-                                              ? S.of(context).chinese
-                                              : S.of(context).english, // Par défaut, anglais
-                      style: TextStyle(fontSize: 15.0 + appState.getTextSizeOffset()),
-                    ),
-                  );
-                }).toList(),
-                onChanged: (String? newValue) {
-                  if (newValue != null) {
-                    appState.updateLanguage(newValue); // Utiliser AppState pour changer la langue
-                    String languageName;
-
-                    switch (newValue) {
-                      case 'en':
-                        languageName = S.of(context).english;
-                        break;
-                      case 'fr':
-                        languageName = S.of(context).french;
-                        break;
-                      case 'es':
-                        languageName = S.of(context).spanish;
-                        break;
-                      case 'it':
-                        languageName = S.of(context).italian;
-                        break;
-                      case 'pt':
-                        languageName = S.of(context).portuguese;
-                        break;
-                      case 'zh':
-                        languageName = S.of(context).chinese;
-                        break;
-                      default:
-                        languageName = S.of(context).english; // Par défaut, anglais
-                        break;
-                    }
-
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(S.of(context).languageUpdated(languageName))),
-                    );
-                  }
-                },
-              ),
-            ),
-            const Divider(),
-
-            // Paramètre pour la taille du texte
-            ListTile(
-              title: Text(
-                S.of(context).textSize,
-                style: TextStyle(fontSize: 16.0 + appState.getTextSizeOffset()),
-              ),
-              trailing: DropdownButton<String>(
-                value: appState.selectedTextSize,
-                items: Parameters.textSizeOptions.map((String sizeOption) {
-                  return DropdownMenuItem<String>(
-                    value: sizeOption,
-                    child: Text(
-                      sizeOption,
-                      style: TextStyle(fontSize: 15.0 + appState.getTextSizeOffset()),
-                    ),
-                  );
-                }).toList(),
-                onChanged: (String? newSize) {
-                  if (newSize != null) {
-                    appState.updateTextSize(newSize); // Utiliser AppState pour changer la taille du texte
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Taille du texte mise à jour: $newSize')),
-                    );
-                  }
-                },
-              ),
-            ),
-            const Divider(),
-
-            // Paramètre pour la sélection de la devise
-            ListTile(
-              title: Text(
-                S.of(context).currency,
-                style: TextStyle(fontSize: 16.0 + appState.getTextSizeOffset()),
-              ),
-              trailing: _currencies.isNotEmpty
-                  ? DropdownButton<String>(
-                      value: Parameters.selectedCurrency, // Utiliser _selectedCurrency ici
-                      items: _currencies.keys.map((String key) {
-                        return DropdownMenuItem<String>(
-                          value: key,
-                          child: Text(key.toUpperCase()),
-                        );
-                      }).toList(),
-                      onChanged: (String? newValue) {
-                        if (newValue != null) {
-                          _saveCurrency(newValue); // Sauvegarder la devise sélectionnée
-                        }
-                      },
-                    )
-                  : const CircularProgressIndicator(), // Loader si devises non chargées
-            ),
-            const Divider(),
-
-            // Paramètre pour la conversion des sqft en m²
-            ListTile(
-              title: Text(
-                S.of(context).convertSqft,
-                style: TextStyle(fontSize: 16.0 + appState.getTextSizeOffset()),
-              ),
-              trailing: Transform.scale(
-                scale: 0.8, // Réduit la taille du Switch à 80%
-                child: Switch(
-                  value: Parameters.convertToSquareMeters,
-                  onChanged: (value) {
-                    setState(() {
-                      Parameters.convertToSquareMeters = value;
-                    });
-                    _saveConvertToSquareMeters(value); // Sauvegarder la préférence
-                  },
-                  activeColor: Colors.blue, // Couleur du bouton en mode activé
-                  inactiveThumbColor: Colors.grey, // Couleur du bouton en mode désactivé
+      body: SingleChildScrollView(
+        // Ajout du scroll
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              ListTile(
+                title: Text(
+                  'Enable Notifications',
+                  style: TextStyle(fontSize: 16.0 + appState.getTextSizeOffset()),
                 ),
-              ),
-            ),
-            const Divider(),
-            Row(
-              children: [
-                // Le texte
-                Text(
-                  S.of(context).importExportData,
-                  style: TextStyle(
-                    fontSize: 16.0 + appState.getTextSizeOffset(),
+                trailing: Transform.scale(
+                  scale: 0.8, // Réduit la taille du Switch
+                  child: Switch(
+                    value: _notificationsEnabled,
+                    onChanged: (value) {
+                      _toggleNotificationStatus(value);
+                    },
+                    activeColor: Colors.blue, // Couleur active
+                    inactiveThumbColor: Colors.grey, // Couleur inactive
                   ),
                 ),
+              ),
+              const Divider(),
 
-                // Un espace entre le texte et l'icône
-                SizedBox(width: 8.0),
+              ListTile(
+                title: Text(
+                  S.of(context).darkTheme,
+                  style: TextStyle(fontSize: 16.0 + appState.getTextSizeOffset()),
+                ),
+                trailing: DropdownButton<String>(
+                  value: appState.themeMode,
+                  items: [
+                    DropdownMenuItem(value: 'light', child: Text(S.of(context).light)),
+                    DropdownMenuItem(value: 'dark', child: Text(S.of(context).dark)),
+                    DropdownMenuItem(value: 'auto', child: Text('auto')),
+                  ],
+                  onChanged: (String? newValue) {
+                    if (newValue != null) {
+                      appState.updateThemeMode(newValue);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(S.of(context).themeUpdated(
+                                newValue == 'dark'
+                                    ? S.of(context).dark
+                                    : newValue == 'auto'
+                                        ? 'auto'
+                                        : S.of(context).light,
+                              )),
+                        ),
+                      );
+                    }
+                  },
+                ),
+              ),
+              const Divider(),
 
-                // L'icône cliquable
-                IconButton(
-                  icon: Icon(Icons.info_outline), // Icône d'information
+              ListTile(
+                title: Text(
+                  S.of(context).language,
+                  style: TextStyle(fontSize: 16.0 + appState.getTextSizeOffset()),
+                ),
+                trailing: DropdownButton<String>(
+                  value: appState.selectedLanguage,
+                  items: Parameters.languages.map((String languageCode) {
+                    return DropdownMenuItem<String>(
+                      value: languageCode,
+                      child: Text(
+                        languageCode == 'en'
+                            ? S.of(context).english
+                            : languageCode == 'fr'
+                                ? S.of(context).french
+                                : languageCode == 'es'
+                                    ? S.of(context).spanish
+                                    : languageCode == 'it'
+                                        ? S.of(context).italian
+                                        : languageCode == 'pt'
+                                            ? S.of(context).portuguese
+                                            : languageCode == 'zh'
+                                                ? S.of(context).chinese
+                                                : S.of(context).english,
+                        style: TextStyle(fontSize: 15.0 + appState.getTextSizeOffset()),
+                      ),
+                    );
+                  }).toList(),
+                  onChanged: (String? newValue) {
+                    if (newValue != null) {
+                      appState.updateLanguage(newValue);
+                      String languageName;
+
+                      switch (newValue) {
+                        case 'en':
+                          languageName = S.of(context).english;
+                          break;
+                        case 'fr':
+                          languageName = S.of(context).french;
+                          break;
+                        case 'es':
+                          languageName = S.of(context).spanish;
+                          break;
+                        case 'it':
+                          languageName = S.of(context).italian;
+                          break;
+                        case 'pt':
+                          languageName = S.of(context).portuguese;
+                          break;
+                        case 'zh':
+                          languageName = S.of(context).chinese;
+                          break;
+                        default:
+                          languageName = S.of(context).english;
+                          break;
+                      }
+
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(S.of(context).languageUpdated(languageName))),
+                      );
+                    }
+                  },
+                ),
+              ),
+              const Divider(),
+
+              ListTile(
+                title: Text(
+                  S.of(context).textSize,
+                  style: TextStyle(fontSize: 16.0 + appState.getTextSizeOffset()),
+                ),
+                trailing: DropdownButton<String>(
+                  value: appState.selectedTextSize,
+                  items: Parameters.textSizeOptions.map((String sizeOption) {
+                    return DropdownMenuItem<String>(
+                      value: sizeOption,
+                      child: Text(
+                        sizeOption,
+                        style: TextStyle(fontSize: 15.0 + appState.getTextSizeOffset()),
+                      ),
+                    );
+                  }).toList(),
+                  onChanged: (String? newSize) {
+                    if (newSize != null) {
+                      appState.updateTextSize(newSize);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Taille du texte mise à jour: $newSize')),
+                      );
+                    }
+                  },
+                ),
+              ),
+              const Divider(),
+
+              ListTile(
+                title: Text(
+                  S.of(context).currency,
+                  style: TextStyle(fontSize: 16.0 + appState.getTextSizeOffset()),
+                ),
+                trailing: _currencies.isNotEmpty
+                    ? DropdownButton<String>(
+                        value: Parameters.selectedCurrency,
+                        items: _currencies.keys.map((String key) {
+                          return DropdownMenuItem<String>(
+                            value: key,
+                            child: Text(key.toUpperCase()),
+                          );
+                        }).toList(),
+                        onChanged: (String? newValue) {
+                          if (newValue != null) {
+                            _saveCurrency(newValue);
+                          }
+                        },
+                      )
+                    : const CircularProgressIndicator(),
+              ),
+              const Divider(),
+
+              ListTile(
+                title: Text(
+                  S.of(context).convertSqft,
+                  style: TextStyle(fontSize: 16.0 + appState.getTextSizeOffset()),
+                ),
+                trailing: Transform.scale(
+                  scale: 0.8,
+                  child: Switch(
+                    value: Parameters.convertToSquareMeters,
+                    onChanged: (value) {
+                      setState(() {
+                        Parameters.convertToSquareMeters = value;
+                      });
+                      _saveConvertToSquareMeters(value);
+                    },
+                    activeColor: Colors.blue,
+                    inactiveThumbColor: Colors.grey,
+                  ),
+                ),
+              ),
+              const Divider(),
+              Row(
+                children: [
+                  // Le texte
+                  Text(
+                    S.of(context).importExportData,
+                    style: TextStyle(
+                      fontSize: 16.0 + appState.getTextSizeOffset(),
+                    ),
+                  ),
+
+                  // Un espace entre le texte et l'icône
+                  SizedBox(width: 8.0),
+
+                  // L'icône cliquable
+                  IconButton(
+                    icon: Icon(Icons.info_outline), // Icône d'information
+                    onPressed: () {
+                      // Afficher un modal lors du clic
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: Text(S.of(context).aboutImportExportTitle),
+                            content: Text(S.of(context).aboutImportExport),
+                            actions: [
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop(); // Ferme le modal
+                                },
+                                child: Text('OK'),
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    },
+                  ),
+                ],
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ElevatedButton(
+                    onPressed: () => shareZippedHiveData(),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                    ),
+                    child: Text(
+                      'Exporter',
+                      style: TextStyle(color: Colors.white, fontSize: 16.0 + appState.getTextSizeOffset()),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                    ),
+                    onPressed: () => importZippedHiveData(),
+                    child: Text(
+                      'Importer',
+                      style: TextStyle(color: Colors.white, fontSize: 16.0 + appState.getTextSizeOffset()),
+                    ),
+                  ),
+                ],
+              ),
+              const Divider(),
+
+              const SizedBox(height: 30), // Espacement entre le titre et la jauge
+
+              Center(
+                child: ElevatedButton(
                   onPressed: () {
-                    // Afficher un modal lors du clic
                     showDialog(
                       context: context,
                       builder: (BuildContext context) {
                         return AlertDialog(
-                          title: Text(S.of(context).aboutImportExportTitle),
-                          content: Text(S.of(context).aboutImportExport),
-                          actions: [
+                          title: Text(S.of(context).confirmAction),
+                          content: Text(S.of(context).areYouSureClearData),
+                          actions: <Widget>[
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(),
+                              child: Text(S.of(context).cancel),
+                            ),
                             TextButton(
                               onPressed: () {
-                                Navigator.of(context).pop(); // Ferme le modal
+                                Navigator.of(context).pop();
+                                _clearCacheAndData();
                               },
-                              child: Text('OK'),
+                              child: Text(S.of(context).confirm),
                             ),
                           ],
                         );
                       },
                     );
                   },
-                ),
-              ],
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center, // Aligne les boutons au centre
-              children: [
-                ElevatedButton(
-                  onPressed: () {
-                    shareZippedHiveData(); // Appelle la fonction d'export en zip
-                  },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
+                    backgroundColor: Colors.red,
                   ),
-                  child: Text(
-                    'Exporter',
-                    style: const TextStyle(color: Colors.white),
-                  ),
-                ),
-                SizedBox(width: 16), // Espace horizontal entre les deux boutons
-                ElevatedButton(
-                  onPressed: () {
-                    importZippedHiveData(); // Appelle la fonction d'import en zip
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                  ),
-                  child: Text(
-                    'Importer',
-                    style: const TextStyle(color: Colors.white),
-                  ),
-                ),
-              ],
-            ),
-            const Divider(),
-
-            const Spacer(),
-
-            // Bouton pour vider le cache et les données
-            Center(
-              child: ElevatedButton(
-                onPressed: () {
-                  // Afficher le modal de confirmation
-                  showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return AlertDialog(
-                        title: Text(S.of(context).confirmAction), // Titre du modal
-                        content: Text(S.of(context).areYouSureClearData), // Message de confirmation
-                        actions: <Widget>[
-                          TextButton(
-                            onPressed: () {
-                              Navigator.of(context).pop(); // Fermer le modal sans rien faire
-                            },
-                            child: Text(S.of(context).cancel), // Texte du bouton "Annuler"
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              Navigator.of(context).pop(); // Fermer le modal
-                              _clearCacheAndData(); // Exécuter l'action une fois confirmé
-                            },
-                            child: Text(S.of(context).confirm), // Texte du bouton "Confirmer"
-                          ),
-                        ],
-                      );
-                    },
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
-                  textStyle: TextStyle(fontSize: 15.0 + appState.getTextSizeOffset()),
-                ),
-                child: Text(
-                  S.of(context).clearCacheData,
-                  style: const TextStyle(color: Colors.white),
+                  child: Text(S.of(context).clearCacheData, style: TextStyle(color: Colors.white, fontSize: 16.0 + appState.getTextSizeOffset())),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

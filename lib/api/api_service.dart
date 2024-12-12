@@ -754,49 +754,49 @@ class ApiService {
   }
 
   static Future<List<dynamic>> fetchTransactionsHistory({
-  required List<Map<String, dynamic>> portfolio,
-  bool forceFetch = false,
-}) async {
-  logger.i("apiService: fetchTransactionsHistory -> Lancement de la requête");
+    required List<Map<String, dynamic>> portfolio,
+    bool forceFetch = false,
+  }) async {
+    logger.i("apiService: fetchTransactionsHistory -> Lancement de la requête");
 
-  var box = Hive.box('realTokens');
-  final lastFetchTime = box.get('transactionsHistoryFetchTime');
-  final DateTime now = DateTime.now();
+    var box = Hive.box('realTokens');
+    final lastFetchTime = box.get('transactionsHistoryFetchTime');
+    final DateTime now = DateTime.now();
 
-  // Vérifiez si le cache est valide
-  if (!forceFetch && lastFetchTime != null) {
-    final DateTime lastFetch = DateTime.parse(lastFetchTime);
-    if (now.difference(lastFetch) <  Duration(days: 1)) {
-      final cachedData = box.get('cachedTransactionsHistoryData');
-      if (cachedData != null) {
-        logger.i("apiService: fetchTransactionsHistory -> Requête annulée, cache valide");
-        return json.decode(cachedData);
+    // Vérifiez si le cache est valide
+    if (!forceFetch && lastFetchTime != null) {
+      final DateTime lastFetch = DateTime.parse(lastFetchTime);
+      if (now.difference(lastFetch) < Duration(days: 1)) {
+        final cachedData = box.get('cachedTransactionsHistoryData');
+        if (cachedData != null) {
+          logger.i("apiService: fetchTransactionsHistory -> Requête annulée, cache valide");
+          return json.decode(cachedData);
+        }
       }
     }
-  }
 
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  List<String> destinations = prefs.getStringList('evmAddresses') ?? [];
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String> destinations = prefs.getStringList('evmAddresses') ?? [];
 
-  if (destinations.isEmpty) {
-    logger.w("apiService: fetchTransactionsHistory -> Pas d'adresses de destination disponibles");
-    return [];
-  }
+    if (destinations.isEmpty) {
+      logger.w("apiService: fetchTransactionsHistory -> Pas d'adresses de destination disponibles");
+      return [];
+    }
 
-  // Extraire les UUID des tokens depuis le portfolio
-  List<String> tokenAddresses = portfolio.map((token) => token['uuid'] as String).toList();
+    // Extraire les UUID des tokens depuis le portfolio
+    List<String> tokenAddresses = portfolio.map((token) => token['uuid'] as String).toList();
 
-  if (tokenAddresses.isEmpty) {
-    logger.w("apiService: fetchTransactionsHistory -> Pas de tokens disponibles dans le portfolio");
-    return [];
-  }
+    if (tokenAddresses.isEmpty) {
+      logger.w("apiService: fetchTransactionsHistory -> Pas de tokens disponibles dans le portfolio");
+      return [];
+    }
 
-  // Requête GraphQL
-  final response = await http.post(
-    Uri.parse(Parameters.gnosisUrl),
-    headers: {'Content-Type': 'application/json'},
-    body: json.encode({
-      "query": '''
+    // Requête GraphQL
+    final response = await http.post(
+      Uri.parse(Parameters.gnosisUrl),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        "query": '''
       query GetTransferEvents(\$tokenAddresses: [String!], \$destinations: [String!]) {
         transferEvents(
           where: {
@@ -821,40 +821,39 @@ class ApiService {
         }
       }
     ''',
-      "variables": {
-        "tokenAddresses": tokenAddresses,
-        "destinations": destinations,
-      }
-    }),
-  );
+        "variables": {
+          "tokenAddresses": tokenAddresses,
+          "destinations": destinations,
+        }
+      }),
+    );
 
-  if (response.statusCode == 200) {
-    logger.i("apiService: fetchTransactionsHistory -> Requête lancée avec succès");
+    if (response.statusCode == 200) {
+      logger.i("apiService: fetchTransactionsHistory -> Requête lancée avec succès");
 
-    final decodedResponse = json.decode(response.body);
+      final decodedResponse = json.decode(response.body);
 
-    // Vérifiez si "data" et "transferEvents" existent
-    if (decodedResponse['data'] != null && decodedResponse['data']['transferEvents'] != null) {
-      final List<dynamic> transferEvents = decodedResponse['data']['transferEvents'];
+      // Vérifiez si "data" et "transferEvents" existent
+      if (decodedResponse['data'] != null && decodedResponse['data']['transferEvents'] != null) {
+        final List<dynamic> transferEvents = decodedResponse['data']['transferEvents'];
 
-      if (transferEvents.isNotEmpty) {
-        // Mettre les données dans le cache
-        box.put('cachedTransactionsHistoryData', json.encode(transferEvents));
-        box.put('transactionsHistoryFetchTime', now.toIso8601String());
-        box.put('lastExecutionTime_TransactionsHistory', now.toIso8601String());
+        if (transferEvents.isNotEmpty) {
+          // Mettre les données dans le cache
+          box.put('cachedTransactionsHistoryData', json.encode(transferEvents));
+          box.put('transactionsHistoryFetchTime', now.toIso8601String());
+          box.put('lastExecutionTime_TransactionsHistory', now.toIso8601String());
 
-        return transferEvents;
+          return transferEvents;
+        } else {
+          logger.w("apiService: fetchTransactionsHistory -> Aucun événement de transfert trouvé");
+          return [];
+        }
       } else {
-        logger.w("apiService: fetchTransactionsHistory -> Aucun événement de transfert trouvé");
+        logger.w("apiService: fetchTransactionsHistory -> Aucune donnée dans la réponse");
         return [];
       }
     } else {
-      logger.w("apiService: fetchTransactionsHistory -> Aucune donnée dans la réponse");
-      return [];
+      throw Exception('apiService: fetchTransactionsHistory -> Échec de la requête');
     }
-  } else {
-    throw Exception('apiService: fetchTransactionsHistory -> Échec de la requête');
   }
-}
-
 }

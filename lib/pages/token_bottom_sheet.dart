@@ -716,7 +716,7 @@ Future<void> showTokenDetails(BuildContext context, Map<String, dynamic> token) 
                               Text('  YAM ', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13 + appState.getTextSizeOffset())),
                               Spacer(),
                               Text(
-                                '${Utils.formatCurrency(dataManager.convert((token['yamAverageValue'] * token['amount'])), dataManager.currencySymbol)} (${((token['yamAverageValue'] / token['tokenPrice'] - 1) * 100).toStringAsFixed(0)}%)',
+                                '${Utils.formatCurrency(dataManager.convert((token['yamAverageValue'])), dataManager.currencySymbol)} (${((token['yamAverageValue'] / token['tokenPrice'] - 1) * 100).toStringAsFixed(0)}%)',
                                 style: TextStyle(
                                   fontSize: 13 + appState.getTextSizeOffset(),
                                   color: (token['yamAverageValue'] * token['amount']) > token['totalValue']

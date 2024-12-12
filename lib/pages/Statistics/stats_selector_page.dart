@@ -23,8 +23,8 @@ class StatsSelectorPageState extends State<StatsSelectorPage> {
         headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
           return <Widget>[
             SliverAppBar(
-              floating: true,
-              snap: true,
+              floating: false,
+              snap: false,
               expandedHeight: Utils.getSliverAppBarHeight(context),
               flexibleSpace: FlexibleSpaceBar(
                 background: Container(

@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart'; // Import pour SharedPreferences
 import 'package:realtokens_apps/api/data_manager.dart';
 import 'package:realtokens_apps/generated/l10n.dart';
+import 'package:shimmer/shimmer.dart';
 import '/settings/manage_evm_addresses_page.dart'; // Import de la page pour gérer les adresses EVM
 import 'dashboard_details_page.dart';
 import 'package:realtokens_apps/app_state.dart'; // Import AppState
@@ -267,7 +268,7 @@ class DashboardPageState extends State<DashboardPage> {
     double displayValue = value.isNaN || value < 0 ? 0 : value;
 
     return Padding(
-      padding: const EdgeInsets.only(right: 12.0),
+      padding: const EdgeInsets.only(right: 1.0),
       child: Column(
         mainAxisSize: MainAxisSize.min, // Ajuster la taille de la colonne au contenu
         children: [
@@ -541,24 +542,118 @@ class DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  // Construction d'une ligne pour afficher la valeur avant le texte
-  Widget _buildValueBeforeText(String value, String text) {
-    final appState = Provider.of<AppState>(context);
+  Widget _buildTextWithShimmer(String? value, String label, bool isLoading, BuildContext context) {
+    final theme = Theme.of(context);
+
+    // Couleurs pour le shimmer adaptées au thème
+    final baseColor = theme.textTheme.bodyMedium?.color?.withOpacity(0.2) ?? Colors.grey[300]!;
+    final highlightColor = theme.textTheme.bodyMedium?.color?.withOpacity(0.4) ?? Colors.grey[100]!;
+
     return Row(
       children: [
+        // Partie label statique
         Text(
-          value,
+          '$label: ',
           style: TextStyle(
-              fontSize: 16 + appState.getTextSizeOffset(),
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).textTheme.bodyLarge?.color // Mettre la valeur en gras
+            fontSize: 13,
+            color: theme.textTheme.bodyMedium?.color,
+          ),
+        ),
+        // Partie valeur dynamique avec ou sans shimmer
+        isLoading
+            ? Shimmer.fromColors(
+                baseColor: baseColor,
+                highlightColor: highlightColor,
+                child: Container(
+                  width: 100, // Largeur du shimmer
+                  height: 16, // Hauteur du shimmer
+                  color: baseColor,
+                ),
+              )
+            : Text(
+                value ?? '',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: theme.textTheme.bodyMedium?.color,
+                ),
               ),
-        ),
+      ],
+    );
+  }
+
+  // Construction d'une ligne pour afficher la valeur avant le texte
+  Widget _buildValueBeforeText(String? value, String text, bool isLoading, {bool highlightPercentage = false}) {
+    final appState = Provider.of<AppState>(context);
+    final theme = Theme.of(context); // Accéder au thème actuel
+
+    // Définir les couleurs en fonction du thème
+    final baseColor = theme.textTheme.bodyMedium?.color?.withOpacity(0.2) ?? Colors.grey[300]!;
+    final highlightColor = theme.textTheme.bodyMedium?.color?.withOpacity(0.6) ?? Colors.grey[100]!;
+
+    String percentageText = '';
+    Color percentageColor = theme.textTheme.bodyLarge?.color ?? Colors.black;
+
+    if (highlightPercentage) {
+      final regex = RegExp(r'\(([-+]?\d+)%\)'); // Extraction de la valeur entre parenthèses
+      final match = regex.firstMatch(text);
+      if (match != null) {
+        percentageText = match.group(1)!;
+        final percentageValue = double.tryParse(percentageText) ?? 0;
+        percentageColor = percentageValue >= 0 ? Colors.green : Colors.red;
+      }
+    }
+
+    return Row(
+      children: [
+        isLoading
+            ? Shimmer.fromColors(
+                baseColor: baseColor, // Couleur de fond du shimmer
+                highlightColor: highlightColor, // Couleur d'éclaircissement du shimmer
+                child: Container(
+                  width: 50, // Largeur placeholder pour la valeur
+                  height: 16, // Hauteur placeholder pour la valeur
+                  color: baseColor, // Couleur de fond
+                ),
+              )
+            : Text(
+                value ?? '',
+                style: TextStyle(
+                  fontSize: 16 + appState.getTextSizeOffset(),
+                  fontWeight: FontWeight.bold,
+                  color: theme.textTheme.bodyLarge?.color, // Couleur par défaut
+                ),
+              ),
         const SizedBox(width: 6),
-        Text(
-          text,
-          style: TextStyle(fontSize: 13 + appState.getTextSizeOffset(), color: Theme.of(context).textTheme.bodyLarge?.color),
-        ),
+        highlightPercentage && percentageText.isNotEmpty
+            ? RichText(
+                text: TextSpan(
+                  children: [
+                    TextSpan(
+                      text: text.split('(').first, // Texte avant les parenthèses
+                      style: TextStyle(
+                        fontSize: 13 + appState.getTextSizeOffset(),
+                        color: theme.textTheme.bodyLarge?.color,
+                      ),
+                    ),
+                    TextSpan(
+                      text: '($percentageText%)', // Texte entre parenthèses
+                      style: TextStyle(
+                        fontSize: 13 + appState.getTextSizeOffset(),
+                        color: percentageColor, // Vert si positif, rouge si négatif
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            : Text(
+                text,
+                style: TextStyle(
+                  fontSize: 13 + appState.getTextSizeOffset(),
+                  color: theme.textTheme.bodyLarge?.color,
+                ),
+              ),
       ],
     );
   }
@@ -650,6 +745,7 @@ class DashboardPageState extends State<DashboardPage> {
                     RichText(
                       text: TextSpan(
                         children: [
+                          // Partie statique pour "Last Rent Received"
                           TextSpan(
                             text: S.of(context).lastRentReceived,
                             style: TextStyle(
@@ -657,14 +753,29 @@ class DashboardPageState extends State<DashboardPage> {
                               color: Theme.of(context).textTheme.bodyMedium?.color,
                             ),
                           ),
-                          TextSpan(
-                            text: lastRentReceived,
-                            style: TextStyle(
-                              fontSize: 18 + appState.getTextSizeOffset(),
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(context).textTheme.bodyLarge?.color,
-                            ),
+                          // Partie dynamique avec ou sans shimmer pour "lastRentReceived"
+                          WidgetSpan(
+                            alignment: PlaceholderAlignment.middle,
+                            child: dataManager.isLoading
+                                ? Shimmer.fromColors(
+                                    baseColor: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.6) ?? Colors.grey[300]!,
+                                    highlightColor: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.9) ?? Colors.grey[100]!,
+                                    child: Container(
+                                      width: 100, // Largeur placeholder
+                                      height: 20, // Hauteur placeholder
+                                      color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.2),
+                                    ),
+                                  )
+                                : Text(
+                                    lastRentReceived,
+                                    style: TextStyle(
+                                      fontSize: 18 + appState.getTextSizeOffset(),
+                                      fontWeight: FontWeight.bold,
+                                      color: Theme.of(context).textTheme.bodyLarge?.color,
+                                    ),
+                                  ),
                           ),
+                          // Partie statique pour "Total Rent Received"
                           TextSpan(
                             text: '\n${S.of(context).totalRentReceived}: ',
                             style: TextStyle(
@@ -672,66 +783,67 @@ class DashboardPageState extends State<DashboardPage> {
                               color: Theme.of(context).textTheme.bodyMedium?.color,
                             ),
                           ),
-                          TextSpan(
-                            text: totalRentReceived,
-                            style: TextStyle(
-                              fontSize: 18 + appState.getTextSizeOffset(),
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(context).textTheme.bodyLarge?.color,
-                            ),
+                          // Partie dynamique avec ou sans shimmer pour "totalRentReceived"
+                          WidgetSpan(
+                            alignment: PlaceholderAlignment.middle,
+                            child: dataManager.isLoading
+                                ? Shimmer.fromColors(
+                                    baseColor: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.2) ?? Colors.grey[300]!,
+                                    highlightColor: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.4) ?? Colors.grey[100]!,
+                                    child: Container(
+                                      width: 100, // Largeur placeholder
+                                      height: 16, // Hauteur placeholder
+                                      color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.2),
+                                    ),
+                                  )
+                                : Text(
+                                    totalRentReceived,
+                                    style: TextStyle(
+                                      fontSize: 18 + appState.getTextSizeOffset(),
+                                      fontWeight: FontWeight.bold,
+                                      color: Theme.of(context).textTheme.bodyLarge?.color,
+                                    ),
+                                  ),
                           ),
                         ],
                       ),
                     ),
                     const SizedBox(height: 20),
                     _buildCard(
-                      S.of(context).wallet,
+                      S.of(context).portfolio,
                       Icons.dashboard,
                       _buildValueBeforeText(
                         Utils.getFormattedAmount(dataManager.convert(dataManager.yamTotalValue), dataManager.currencySymbol, _showAmounts),
-                        'projection YAM',
+                        'projection YAM (${((dataManager.yamTotalValue / dataManager.totalWalletValue - 1) * 100).toStringAsFixed(0)}%)',
+                        dataManager.isLoading,
+                        highlightPercentage: true, // Activer la coloration conditionnelle
                       ),
                       [
                         _buildValueBeforeText(
-                          Utils.getFormattedAmount(dataManager.convert(dataManager.totalWalletValue), dataManager.currencySymbol, _showAmounts),
-                          S.of(context).totalPortfolio,
-                        ),
+                            Utils.getFormattedAmount(dataManager.convert(dataManager.totalWalletValue), dataManager.currencySymbol, _showAmounts),
+                            S.of(context).totalPortfolio,
+                            dataManager.isLoading),
+                        _buildIndentedBalance(S.of(context).wallet, dataManager.convert(dataManager.walletValue), dataManager.currencySymbol, true, context,
+                            dataManager.isLoading),
                         _buildIndentedBalance(
-                          S.of(context).wallet,
-                          dataManager.convert(dataManager.walletValue),
-                          dataManager.currencySymbol,
-                          true,
-                          context,
-                        ),
-                        _buildIndentedBalance(
-                          S.of(context).rmm,
-                          dataManager.convert(dataManager.rmmValue),
-                          dataManager.currencySymbol,
-                          true,
-                          context,
-                        ),
-                        _buildIndentedBalance(
-                          S.of(context).rwaHoldings,
-                          dataManager.convert(dataManager.rwaHoldingsValue),
-                          dataManager.currencySymbol,
-                          true,
-                          context,
-                        ),
+                            S.of(context).rmm, dataManager.convert(dataManager.rmmValue), dataManager.currencySymbol, true, context, dataManager.isLoading),
+                        _buildIndentedBalance(S.of(context).rwaHoldings, dataManager.convert(dataManager.rwaHoldingsValue), dataManager.currencySymbol, true,
+                            context, dataManager.isLoading),
                         const SizedBox(height: 10),
                         _buildIndentedBalance(
-                          S.of(context).depositBalance,
-                          dataManager.convert(dataManager.totalUsdcDepositBalance + dataManager.totalXdaiDepositBalance),
-                          dataManager.currencySymbol,
-                          true,
-                          context,
-                        ),
+                            S.of(context).depositBalance,
+                            dataManager.convert(dataManager.totalUsdcDepositBalance + dataManager.totalXdaiDepositBalance),
+                            dataManager.currencySymbol,
+                            true,
+                            context,
+                            dataManager.isLoading),
                         _buildIndentedBalance(
-                          S.of(context).borrowBalance,
-                          dataManager.convert(dataManager.totalUsdcBorrowBalance + dataManager.totalXdaiBorrowBalance),
-                          dataManager.currencySymbol,
-                          false,
-                          context,
-                        ),
+                            S.of(context).borrowBalance,
+                            dataManager.convert(dataManager.totalUsdcBorrowBalance + dataManager.totalXdaiBorrowBalance),
+                            dataManager.currencySymbol,
+                            false,
+                            context,
+                            dataManager.isLoading),
                       ],
                       dataManager,
                       context,
@@ -748,14 +860,14 @@ class DashboardPageState extends State<DashboardPage> {
                         S.of(context).rmm,
                         Icons.currency_exchange,
                         _buildValueBeforeText(
-                          ((dataManager.rmmValue * 0.7) / (dataManager.totalUsdcBorrowBalance + dataManager.totalXdaiBorrowBalance)).toStringAsFixed(1),
-                          'Health factor',
-                        ),
+                            ((dataManager.rmmValue * 0.7) / (dataManager.totalUsdcBorrowBalance + dataManager.totalXdaiBorrowBalance)).toStringAsFixed(1),
+                            'Health factor',
+                            dataManager.isLoading),
                         [
                           _buildValueBeforeText(
-                            ((dataManager.totalUsdcBorrowBalance + dataManager.totalXdaiBorrowBalance) / dataManager.rmmValue * 100).toStringAsFixed(1),
-                            'Current LTV',
-                          ),
+                              ((dataManager.totalUsdcBorrowBalance + dataManager.totalXdaiBorrowBalance) / dataManager.rmmValue * 100).toStringAsFixed(1),
+                              'Current LTV',
+                              dataManager.isLoading),
                           const SizedBox(height: 10),
                           Text(
                             '${S.of(context).timeBeforeLiquidation}: ${_calculateTimeBeforeLiquidationFormatted(
@@ -769,22 +881,30 @@ class DashboardPageState extends State<DashboardPage> {
                               color: Theme.of(context).textTheme.bodyLarge?.color,
                             ),
                           ),
-                          Text(
-                            'Xdai ${S.of(context).depositBalance}: ${Utils.getFormattedAmount(dataManager.convert(dataManager.totalXdaiDepositBalance), dataManager.currencySymbol, _showAmounts)}',
-                            style: TextStyle(fontSize: 13 + appState.getTextSizeOffset(), color: Theme.of(context).textTheme.bodyMedium?.color),
+                          _buildTextWithShimmer(
+                            Utils.getFormattedAmount(dataManager.convert(dataManager.totalXdaiDepositBalance), dataManager.currencySymbol, _showAmounts),
+                            'Xdai ${S.of(context).depositBalance}',
+                            dataManager.isLoading,
+                            context,
                           ),
-                          Text(
-                            'USDC ${S.of(context).depositBalance}: ${Utils.getFormattedAmount(dataManager.convert(dataManager.totalUsdcDepositBalance), dataManager.currencySymbol, _showAmounts)}',
-                            style: TextStyle(fontSize: 13 + appState.getTextSizeOffset(), color: Theme.of(context).textTheme.bodyMedium?.color),
+                          _buildTextWithShimmer(
+                            Utils.getFormattedAmount(dataManager.convert(dataManager.totalUsdcDepositBalance), dataManager.currencySymbol, _showAmounts),
+                            'USDC ${S.of(context).depositBalance}',
+                            dataManager.isLoading,
+                            context,
                           ),
-                          Text(
-                            'USDC ${S.of(context).borrowBalance}: ${Utils.getFormattedAmount(dataManager.convert(dataManager.totalUsdcBorrowBalance), dataManager.currencySymbol, _showAmounts)}',
-                            style: TextStyle(fontSize: 13 + appState.getTextSizeOffset(), color: Theme.of(context).textTheme.bodyMedium?.color),
+                          _buildTextWithShimmer(
+                            Utils.getFormattedAmount(dataManager.convert(dataManager.totalUsdcBorrowBalance), dataManager.currencySymbol, _showAmounts),
+                            'USDC ${S.of(context).borrowBalance}',
+                            dataManager.isLoading,
+                            context,
                           ),
-                          Text(
-                            'Xdai ${S.of(context).borrowBalance}: ${Utils.getFormattedAmount(dataManager.convert(dataManager.totalXdaiBorrowBalance), dataManager.currencySymbol, _showAmounts)}',
-                            style: TextStyle(fontSize: 13 + appState.getTextSizeOffset(), color: Theme.of(context).textTheme.bodyMedium?.color),
-                          )
+                          _buildTextWithShimmer(
+                            Utils.getFormattedAmount(dataManager.convert(dataManager.totalXdaiBorrowBalance), dataManager.currencySymbol, _showAmounts),
+                            'Xdai ${S.of(context).borrowBalance}',
+                            dataManager.isLoading,
+                            context,
+                          ),
                         ],
                         dataManager,
                         context,
@@ -803,23 +923,27 @@ class DashboardPageState extends State<DashboardPage> {
                       S.of(context).properties,
                       Icons.home,
                       _buildValueBeforeText(
-                        '${(dataManager.rentedUnits / dataManager.totalUnits * 100).toStringAsFixed(2)}%',
-                        S.of(context).rented,
-                      ),
+                          '${(dataManager.rentedUnits / dataManager.totalUnits * 100).toStringAsFixed(2)}%', S.of(context).rented, dataManager.isLoading),
                       [
-                        Text(
-                          '${S.of(context).properties}: ${dataManager.totalTokenCount}',
-                          style: TextStyle(fontSize: 13 + appState.getTextSizeOffset(), color: Theme.of(context).textTheme.bodyMedium?.color),
+                        _buildTextWithShimmer(
+                          '${dataManager.totalTokenCount}',
+                          S.of(context).properties,
+                          dataManager.isLoading,
+                          context,
                         ),
-                        Text(
-                          '   ${S.of(context).wallet}: ${dataManager.walletTokenCount}',
-                          style: TextStyle(fontSize: 13 + appState.getTextSizeOffset(), color: Theme.of(context).textTheme.bodyMedium?.color),
+                        _buildTextWithShimmer(
+                          '${dataManager.walletTokenCount}',
+                          S.of(context).wallet,
+                          dataManager.isLoading,
+                          context,
                         ),
                         Row(
                           children: [
-                            Text(
-                              '   ${S.of(context).rmm}: ${dataManager.rmmTokenCount.toInt()}',
-                              style: TextStyle(fontSize: 13 + appState.getTextSizeOffset(), color: Theme.of(context).textTheme.bodyMedium?.color),
+                            _buildTextWithShimmer(
+                              '${dataManager.rmmTokenCount.toInt()}',
+                              S.of(context).rmm,
+                              dataManager.isLoading,
+                              context,
                             ),
                             SizedBox(width: 6),
                             GestureDetector(
@@ -849,9 +973,11 @@ class DashboardPageState extends State<DashboardPage> {
                             ),
                           ],
                         ),
-                        Text(
-                          '${S.of(context).rentedUnits}: ${dataManager.rentedUnits} / ${dataManager.totalUnits}',
-                          style: TextStyle(fontSize: 13 + appState.getTextSizeOffset(), color: Theme.of(context).textTheme.bodyMedium?.color),
+                        _buildTextWithShimmer(
+                          '${dataManager.rentedUnits} / ${dataManager.totalUnits}',
+                          S.of(context).rentedUnits,
+                          dataManager.isLoading,
+                          context,
                         ),
                       ],
                       dataManager,
@@ -871,15 +997,19 @@ class DashboardPageState extends State<DashboardPage> {
                     _buildCard(
                       S.of(context).tokens,
                       Icons.account_balance_wallet,
-                      _buildValueBeforeText(dataManager.totalTokens.toStringAsFixed(2), S.of(context).totalTokens),
+                      _buildValueBeforeText(dataManager.totalTokens.toStringAsFixed(2), S.of(context).totalTokens, dataManager.isLoading),
                       [
-                        Text(
-                          '${S.of(context).wallet}: ${dataManager.walletTokensSums.toStringAsFixed(2)}',
-                          style: TextStyle(fontSize: 13 + appState.getTextSizeOffset(), color: Theme.of(context).textTheme.bodyMedium?.color),
+                        _buildTextWithShimmer(
+                          dataManager.walletTokensSums.toStringAsFixed(2),
+                          S.of(context).wallet,
+                          dataManager.isLoading,
+                          context,
                         ),
-                        Text(
-                          '${S.of(context).rmm}: ${dataManager.rmmTokensSums.toStringAsFixed(2)}',
-                          style: TextStyle(fontSize: 13 + appState.getTextSizeOffset(), color: Theme.of(context).textTheme.bodyMedium?.color),
+                        _buildTextWithShimmer(
+                          dataManager.rmmTokensSums.toStringAsFixed(2),
+                          S.of(context).rmm,
+                          dataManager.isLoading,
+                          context,
                         ),
                       ],
                       dataManager,
@@ -901,7 +1031,7 @@ class DashboardPageState extends State<DashboardPage> {
                       Icons.attach_money,
                       Row(
                         children: [
-                          _buildValueBeforeText('${dataManager.netGlobalApy.toStringAsFixed(2)}%', S.of(context).annualYield),
+                          _buildValueBeforeText('${dataManager.netGlobalApy.toStringAsFixed(2)}%', S.of(context).annualYield, dataManager.isLoading),
                           SizedBox(width: 6),
                           GestureDetector(
                             onTap: () {
@@ -931,26 +1061,40 @@ class DashboardPageState extends State<DashboardPage> {
                         ],
                       ),
                       [
-                        Text(
-                          'APY brut: ${dataManager.averageAnnualYield.toStringAsFixed(2)} %',
-                          style: TextStyle(fontSize: 13 + appState.getTextSizeOffset(), color: Theme.of(context).textTheme.bodyMedium?.color),
+                        _buildTextWithShimmer(
+                          '${dataManager.averageAnnualYield.toStringAsFixed(2)}%',
+                          'APY brut: ',
+                          dataManager.isLoading,
+                          context,
                         ),
                         const SizedBox(height: 10),
-                        Text(
-                          '${S.of(context).daily}: ${Utils.getFormattedAmount(dataManager.convert(dataManager.dailyRent), dataManager.currencySymbol, _showAmounts)}',
-                          style: TextStyle(fontSize: 13 + appState.getTextSizeOffset(), color: Theme.of(context).textTheme.bodyMedium?.color),
+                        _buildTextWithShimmer(
+                          Utils.getFormattedAmount(dataManager.convert(dataManager.dailyRent), dataManager.currencySymbol, _showAmounts),
+                          S.of(context).daily,
+                          dataManager.isLoading,
+                          context,
                         ),
-                        Text(
-                          '${S.of(context).weekly}: ${Utils.getFormattedAmount(dataManager.convert(dataManager.weeklyRent), dataManager.currencySymbol, _showAmounts)}',
-                          style: TextStyle(fontSize: 13 + appState.getTextSizeOffset(), color: Theme.of(context).textTheme.bodyMedium?.color),
+                        _buildTextWithShimmer(
+                          Utils.getFormattedAmount(dataManager.convert(dataManager.weeklyRent), dataManager.currencySymbol, _showAmounts),
+                          S.of(context).weekly,
+                          dataManager.isLoading,
+                          context,
                         ),
-                        Text(
-                          '${S.of(context).monthly}: ${Utils.getFormattedAmount(dataManager.convert(dataManager.monthlyRent), dataManager.currencySymbol, _showAmounts)}',
-                          style: TextStyle(fontSize: 13 + appState.getTextSizeOffset(), color: Theme.of(context).textTheme.bodyMedium?.color),
+                        _buildTextWithShimmer(
+                          Utils.getFormattedAmount(
+                            dataManager.convert(dataManager.monthlyRent),
+                            dataManager.currencySymbol,
+                            _showAmounts,
+                          ),
+                          S.of(context).monthly,
+                          dataManager.isLoading,
+                          context,
                         ),
-                        Text(
-                          '${S.of(context).annually}: ${Utils.getFormattedAmount(dataManager.convert(dataManager.yearlyRent), dataManager.currencySymbol, _showAmounts)}',
-                          style: TextStyle(fontSize: 13 + appState.getTextSizeOffset(), color: Theme.of(context).textTheme.bodyMedium?.color),
+                        _buildTextWithShimmer(
+                          Utils.getFormattedAmount(dataManager.convert(dataManager.yearlyRent), dataManager.currencySymbol, _showAmounts),
+                          S.of(context).annually,
+                          dataManager.isLoading,
+                          context,
                         ),
                       ],
                       dataManager,
@@ -1054,31 +1198,49 @@ class DashboardPageState extends State<DashboardPage> {
   }
 
   // Fonction utilitaire pour ajouter un "+" ou "-" et afficher entre parenthèses
-  Widget _buildIndentedBalance(String label, double value, String symbol, bool isPositive, BuildContext context) {
+
+  Widget _buildIndentedBalance(String label, double value, String symbol, bool isPositive, BuildContext context, bool isLoading) {
     // Utiliser la fonction _getFormattedAmount pour gérer la visibilité des montants
     final appState = Provider.of<AppState>(context);
+    final theme = Theme.of(context); // Accéder au thème actuel
+
+    // Définir les couleurs pour le shimmer en fonction du thème
+    final baseColor = theme.textTheme.bodyMedium?.color?.withOpacity(0.2) ?? Colors.grey[300]!;
+    final highlightColor = theme.textTheme.bodyMedium?.color?.withOpacity(0.6) ?? Colors.grey[100]!;
+
+    // Formatage du montant
     String formattedAmount = _showAmounts
         ? (isPositive ? "+ ${Utils.formatCurrency(value, symbol)}" : "- ${Utils.formatCurrency(value, symbol)}")
         : (isPositive ? "+ " : "- ") + ('*' * 10); // Affiche une série d'astérisques si masqué
 
     return Padding(
-      padding: const EdgeInsets.only(left: 15.0), // Ajoute une indentation pour décaler à droite
+      padding: const EdgeInsets.only(left: 10.0), // Ajoute une indentation pour décaler à droite
       child: Row(
         children: [
-          Text(
-            formattedAmount, // Affiche le montant ou des astérisques
-            style: TextStyle(
-              fontSize: 13, // Taille du texte ajustée
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).textTheme.bodyMedium?.color, // Couleur en fonction du thème
-            ),
-          ),
+          isLoading
+              ? Shimmer.fromColors(
+                  baseColor: baseColor,
+                  highlightColor: highlightColor,
+                  child: Container(
+                    width: 60, // Largeur placeholder pour le montant
+                    height: 14, // Hauteur placeholder
+                    color: baseColor,
+                  ),
+                )
+              : Text(
+                  formattedAmount, // Affiche le montant ou des astérisques
+                  style: TextStyle(
+                    fontSize: 13, // Taille du texte ajustée
+                    fontWeight: FontWeight.bold,
+                    color: theme.textTheme.bodyMedium?.color, // Couleur en fonction du thème
+                  ),
+                ),
           const SizedBox(width: 8), // Espace entre le montant et le label
           Text(
             label, // Affiche le label après le montant
             style: TextStyle(
               fontSize: 11 + appState.getTextSizeOffset(), // Texte légèrement plus petit
-              color: Theme.of(context).textTheme.bodyMedium?.color, // Couleur en fonction du thème
+              color: theme.textTheme.bodyMedium?.color, // Couleur en fonction du thème
             ),
           ),
         ],
@@ -1099,7 +1261,7 @@ class DashboardPageState extends State<DashboardPage> {
     } else if (translatedTitle == S.of(context).properties) {
       return Colors.blue;
     } else if (translatedTitle == S.of(context).portfolio) {
-      return Colors.black;
+      return Colors.blueGrey;
     } else {
       return Colors.blue; // Couleur par défaut
     }
