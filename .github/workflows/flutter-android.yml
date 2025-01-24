@@ -64,7 +64,7 @@ jobs:
         VERSION=$(grep '^version: ' pubspec.yaml | sed 's/version: //;s/+.*//')
         echo "VERSION=$VERSION" >> $GITHUB_ENV
 
-    # Create a GitHub Release
+    # Create a GitHub Release and upload the APK
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v1
       with:
@@ -72,5 +72,6 @@ jobs:
         name: Release ${{ env.VERSION }}
         draft: false
         prerelease: false
+        files: build/app/outputs/flutter-apk/app-release.apk # Chemin du fichier APK
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
