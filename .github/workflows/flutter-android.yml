@@ -1,4 +1,4 @@
-name: Build and Deploy App Bundle
+name: Build and Deploy Android APK
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    name: Build Flutter App Bundle
+    name: Build Android APK
     runs-on: ubuntu-latest
 
     steps:
@@ -61,4 +61,4 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: app-release.aab
-        path: build/app/outputs/bundle/release/app-release.aab
+        path: build/app/outputs/flutter-apk/app-release.apk
