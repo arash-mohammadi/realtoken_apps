@@ -120123,6 +120123,7 @@ if(i1==null)i1=18
 a=A.a8z(10).aN7(i1)
 d6=i0.iX(0)/a.iX(0)
 b6=b2.h(b5,"tokenPrice")
+if(b6==null)b6=0
 a=d6*b6
 h8+=a
 h9+=d6
