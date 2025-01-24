@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:realtokens_apps/pages/links_page.dart';
 import 'package:realtokens_apps/pages/propertiesForSale/propertiesForSell_select.dart';
+import 'package:realtokens_apps/pages/support_page.dart';
 import 'package:realtokens_apps/settings/service_status.dart';
 import 'package:realtokens_apps/utils/utils.dart';
 import 'package:flutter/material.dart';
@@ -43,139 +45,7 @@ class CustomDrawer extends StatelessWidget {
     }
   }
 
-  void _showDonationModal(BuildContext context, double textSizeOffset) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(
-            S.of(context).supportProject, // Titre pour "Faire un don"
-            style: TextStyle(fontSize: 18 + textSizeOffset, fontWeight: FontWeight.bold),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                S.of(context).donationMessage,
-                style: TextStyle(fontSize: 15 + textSizeOffset),
-              ),
-              const SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      Utils.launchURL('https://paypal.me/byackee?country.x=FR&locale.x=fr_FR');
-                    },
-                    icon: const Icon(Icons.payment, color: Colors.white),
-                    label: Text(
-                      S.of(context).paypal,
-                      style: TextStyle(fontSize: 14 + textSizeOffset, color: Colors.white),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                    ),
-                  ),
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      Utils.launchURL('https://buymeacoffee.com/byackee');
-                    },
-                    icon: Image.asset(
-                      'assets/bmc.png', // Chemin de votre image dans les assets
-                      height: 24, // Ajustez la taille de l'image
-                      width: 24,
-                    ),
-                    label: Text(
-                      'buy coffee',
-                      style: TextStyle(fontSize: 14 + textSizeOffset, color: Colors.white),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                    ),
-                  ),
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      _showCryptoAddressDialog(context, textSizeOffset);
-                    },
-                    icon: const Icon(Icons.currency_bitcoin, color: Colors.white),
-                    label: Text(
-                      S.of(context).crypto,
-                      style: TextStyle(fontSize: 14 + textSizeOffset, color: Colors.white),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.orange,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text(S.of(context).close, style: TextStyle(fontSize: 14 + textSizeOffset)),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _showCryptoAddressDialog(BuildContext context, double textSizeOffset) {
-    const cryptoAddress = '0x2cb49d04890a98eb89f4f43af96ad01b98b64165';
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(
-            S.of(context).cryptoDonationAddress,
-            style: TextStyle(fontSize: 14 + textSizeOffset),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                S.of(context).sendDonations,
-                style: TextStyle(fontSize: 14 + textSizeOffset),
-              ),
-              const SizedBox(height: 10),
-              SelectableText(
-                cryptoAddress,
-                style: TextStyle(fontSize: 14 + textSizeOffset, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton.icon(
-                onPressed: () {
-                  Clipboard.setData(const ClipboardData(text: cryptoAddress));
-                  Navigator.of(context).pop();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(S.of(context).addressCopied)),
-                  );
-                },
-                icon: const Icon(Icons.copy),
-                label: Text(S.of(context).copy, style: TextStyle(fontSize: 14 + textSizeOffset)),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text(S.of(context).close, style: TextStyle(fontSize: 14 + textSizeOffset)),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
+ 
   void _showReviewNotAvailablePopup(BuildContext context) {
     showDialog(
       context: context,
@@ -224,7 +94,7 @@ class CustomDrawer extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Image.asset(
-                          'assets/logo.png',
+                          'assets/logo_community.png',
                           width: 60,
                           height: 60,
                         ),
@@ -352,39 +222,38 @@ class CustomDrawer extends StatelessWidget {
                   },
                 ),
                 ListTile(
-                  leading: const Icon(Icons.book),
+                  leading: const Icon(Icons.link),
                   title: Text(
-                    'RMM',
+                    'Links',
                     style: TextStyle(fontSize: 15 + appState.getTextSizeOffset()),
                   ),
                   onTap: () {
-                    Utils.launchURL('https://rmm.realtoken.network');
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.book),
-                  title: Text(
-                    'Wiki',
-                    style: TextStyle(fontSize: 15 + appState.getTextSizeOffset()),
-                  ),
-                  onTap: () {
-                    Utils.launchURL('https://community-realt.gitbook.io/tuto-community');
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => LinksPage(),
+                      ),
+                    );
                   },
                 ),
                 const Divider(),
-                // Ajout de l'item pour les donations
-                if (kIsWeb || (!kIsWeb && Platform.isAndroid))
-                  ListTile(
-                    leading: const Icon(Icons.monetization_on, color: Colors.blue),
-                    title: Text(
-                      S.of(context).donate,
-                      style: TextStyle(fontSize: 15 + appState.getTextSizeOffset(), color: Colors.blue),
-                    ),
-                    onTap: () {
-                      Navigator.pop(context);
-                      _showDonationModal(context, appState.getTextSizeOffset());
-                    },
+               ListTile(
+                  leading: const Icon(Icons.support_agent),
+                  title: Text(
+                    'Support',
+                    style: TextStyle(fontSize: 15 + appState.getTextSizeOffset()),
                   ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => SupportPage(),
+                      ),
+                    );
+                  },
+                ),
 
                 // Item pour la notation de l'application
                 ListTile(

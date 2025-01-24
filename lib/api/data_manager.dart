@@ -563,8 +563,8 @@ class DataManager extends ChangeNotifier {
             'miscellaneousCosts': realToken['miscellaneousCosts'],
             'section8paid': realToken['section8paid'] ?? 0.0,
 
-            'yamTotalVolume': 0, // Ajout de la valeur Yam calculée
-            'yamAverageValue': 0, // Ajout de la valeur moyenne Yam calculée
+            'yamTotalVolume': 0.0, // Ajout de la valeur Yam calculée
+            'yamAverageValue': 0.0, // Ajout de la valeur moyenne Yam calculée
             'transactions': []
           });
 

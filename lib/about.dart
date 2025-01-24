@@ -62,13 +62,13 @@ class AboutPage extends StatelessWidget {
 
             // Padding pour décaler les liens
             Padding(
-              padding: const EdgeInsets.only(left: 32.0), // Décalage des ListTile pour LinkedIn et GitHub
+              padding: const EdgeInsets.only(left: 16.0), // Décalage des ListTile pour LinkedIn et GitHub
               child: Column(
                 children: [
                   ListTile(
                     leading: const Icon(Icons.link),
                     title: Text(
-                      'linktree',
+                      'My linktree',
                       style: TextStyle(fontSize: 15 + appState.getTextSizeOffset()),
                     ),
                     onTap: () => Utils.launchURL('https://linktr.ee/byackee'),

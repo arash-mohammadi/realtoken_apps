@@ -18,10 +18,16 @@ void main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding); // Préserver le splash screen natif
 
-  await Future.wait([
-    Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform),
-    Hive.initFlutter(),
-  ]);
+  // Utilisez un bloc try-catch pour vérifier et initialiser Firebase
+  try {
+    if (Firebase.apps.isEmpty) {
+      await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+    }
+  } catch (e) {
+    print('Firebase déjà initialisé : $e');
+  }
+
+  await Hive.initFlutter();
 
   // Conditionner le chargement de FMTC uniquement si l'application n'est pas exécutée sur le Web
   if (!kIsWeb) {
@@ -40,25 +46,20 @@ void main() async {
     Hive.openBox('YamHistory'),
   ]);
 
-  // Initialisation de SharedPreferences et DataManager
+  // Initialisation de DataManager
   final dataManager = DataManager();
 
   // Charger les premières opérations en parallèle
-
   dataManager.updateGlobalVariables();
   dataManager.loadSelectedCurrency();
   dataManager.loadUserIdToAddresses();
 
   FlutterNativeSplash.remove(); // Supprimer le splash screen natif après l'initialisation
 
-  // Ensuite, exécuter fetchAndCalculateData une fois que les précédentes sont terminées
-  //dataManager.fetchAndStorePropertiesForSale();
-  //await dataManager.fetchAndCalculateData();
-
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => dataManager), // Utilisez ici la même instance
+        ChangeNotifierProvider(create: (_) => dataManager),
         ChangeNotifierProvider(create: (_) => AppState()), // AppState for global settings
       ],
       child: const MyApp(),

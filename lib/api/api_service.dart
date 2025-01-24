@@ -67,7 +67,7 @@ class ApiService {
       box.put('lastFetchTime_$cacheKey', now.toIso8601String());
 
       // Enregistrer uniquement la dernière date et heure d'exécution
-      box.put('lastExecutionTime_Portfolio_$cacheKey', now.toIso8601String());
+      box.put('lastExecutionTime_Portfolio ($cacheKey)', now.toIso8601String());
       return data;
     } else {
       throw Exception('apiService: fetchTokensFromUrl -> Failed to fetch tokens from $url');
@@ -194,14 +194,15 @@ class ApiService {
       final DateTime lastUpdateDate = DateTime.parse(lastUpdateDateString);
 
       // Comparaison entre la date de la dernière mise à jour et la date stockée localement
-      if (lastUpdateTime != null && cachedData != null) {
-        final DateTime lastExecutionDate = DateTime.parse(lastUpdateTime);
-        if (lastExecutionDate.isAtSameMomentAs(lastUpdateDate)) {
-          logger.i("apiService: fetchRealTokens -> Requête annulée, données déjà à jour");
-          return [];
+      if (!forceFetch) {
+        if (lastUpdateTime != null && cachedData != null) {
+          final DateTime lastExecutionDate = DateTime.parse(lastUpdateTime);
+          if (lastExecutionDate.isAtSameMomentAs(lastUpdateDate)) {
+            logger.i("apiService: fetchRealTokens -> Requête annulée, données déjà à jour");
+            return [];
+          }
         }
       }
-
       // Si les dates sont différentes ou pas de cache, on continue avec la requête réseau
       final response = await http.get(Uri.parse('${Parameters.realTokensUrl}/realTokens_mobileapps'));
 
@@ -213,6 +214,7 @@ class ApiService {
         box.put('lastFetchTime', now.toIso8601String());
         // Enregistrer la nouvelle date de mise à jour renvoyée par l'API
         box.put('lastUpdateTime_RealTokens', lastUpdateDateString);
+        box.put('lastExecutionTime_RealTokens', now.toIso8601String());
 
         return data;
       } else {
@@ -271,7 +273,7 @@ class ApiService {
         box.put('yamlastFetchTime', now.toIso8601String());
         // Enregistrer la nouvelle date de mise à jour renvoyée par l'API
         box.put('lastUpdateTime_YamMarket', lastUpdateDateString);
-        box.put('lastExecutionTime_Yam', now.toIso8601String());
+        box.put('lastExecutionTime_YAM', now.toIso8601String());
 
         return data;
       } else {
@@ -841,7 +843,7 @@ class ApiService {
           // Mettre les données dans le cache
           box.put('cachedTransactionsHistoryData', json.encode(transferEvents));
           box.put('transactionsHistoryFetchTime', now.toIso8601String());
-          box.put('lastExecutionTime_TransactionsHistory', now.toIso8601String());
+          box.put('lastExecutionTime_Transactions History', now.toIso8601String());
 
           return transferEvents;
         } else {

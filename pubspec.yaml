@@ -4,7 +4,7 @@ description: "A community app for RealT"
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
-version: 1.5.0+35
+version: 1.5.1+36
 
 environment:
   sdk: ^3.5.3
@@ -58,11 +58,14 @@ dev_dependencies:
 flutter:
   assets:
     - assets/logo.png
+    - assets/logo_community.png
     - assets/RealT_Logo.png
     - assets/ethereum.png
     - assets/gnosis.png
     - assets/bmc.png
     - assets/icons/xdai.png
+    - assets/icons/RMM.jpg
+    - assets/icons/YAM.jpg
     - assets/icons/usdc.png
     - assets/country/usa.png
     - assets/country/panama.png
@@ -73,7 +76,7 @@ flutter:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/logo_launcher.png"
+  image_path: "assets/logo_community.png"
   remove_alpha_ios: true  
   web:
     generate: true
@@ -86,7 +89,7 @@ flutter_intl:
 flutter_native_splash:
   color: "#ffffff"
   color_dark: "#121212"
-  image: assets/logo.png
+  image: assets/logo_community.png
   android: true
   web: true
   android_gravity: center
