@@ -912,7 +912,7 @@ class DataManager extends ChangeNotifier {
         final BigInt rawAmount = BigInt.parse(rmmToken['amount']);
         final int decimals = matchingRealToken['decimals'] ?? 18;
         final double amount = rawAmount / BigInt.from(10).pow(decimals);
-        final double tokenPrice = matchingRealToken['tokenPrice'];
+        final double tokenPrice = matchingRealToken['tokenPrice'] ?? 0.0;
         rmmValueSum += amount * tokenPrice;
         rmmTokensSum += amount;
 

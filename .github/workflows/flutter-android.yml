@@ -55,7 +55,7 @@ jobs:
       run: flutter clean
 
     - name: Build app bundle
-      run: flutter build appbundle --release
+      run: flutter build apk --release
 
     - name: Upload artifact
       uses: actions/upload-artifact@v3
