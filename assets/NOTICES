@@ -6263,7 +6263,7 @@ dart_earcut
 
 MIT License
 
-Copyright (c) 2023 Luka Stillingfleet (JaffaKetchup)
+Copyright (c) 2025 Luka Stillingfleet (JaffaKetchup)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -6479,7 +6479,7 @@ equatable
 
 MIT License
 
-Copyright (c) 2018 Felix Angelov
+Copyright (c) 2024 Felix Angelov
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -33634,6 +33634,7 @@ SOFTWARE.
 --------------------------------------------------------------------------------
 objectbox
 objectbox_flutter_libs
+rxdart
 
                                  Apache License
                            Version 2.0, January 2004
@@ -34768,7 +34769,7 @@ The above software in this distribution may have been modified by
 THL A29 Limited ("Tencent Modifications").
 All Tencent Modifications are Copyright (C) 2015 THL A29 Limited.
 --------------------------------------------------------------------------------
-realtokens_apps
+realtokens
 
                     GNU GENERAL PUBLIC LICENSE
                        Version 3, 29 June 2007
@@ -35445,20 +35446,6 @@ the library.  If this is what you want to do, use the GNU Lesser General
 Public License instead of this License.  But first, please read
 <https://www.gnu.org/licenses/why-not-lgpl.html>.
 
---------------------------------------------------------------------------------
-rxdart
-
-Licensed under the Apache License, Version 2.0 (the "License"); you
-may not use this file except in compliance with the License. You may
-obtain a copy of the License at
-
-http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
-implied. See the License for the specific language governing permissions
-and limitations under the License.
 --------------------------------------------------------------------------------
 share_plus
 
@@ -37573,7 +37560,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 sqflite
+sqflite_android
 sqflite_common
+sqflite_darwin
+sqflite_platform_interface
 
 BSD 2-Clause License
 
