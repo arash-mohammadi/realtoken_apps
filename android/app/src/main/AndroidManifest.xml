@@ -1,11 +1,11 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.byackee.realt_apps">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.byackee.realtokens">
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="com.google.android.gms.permission.AD_ID" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.CAMERA"/>
 
     <application
-        android:label="realt_apps"
+        android:label="realtokens"
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"

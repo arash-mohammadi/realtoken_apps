@@ -1,9 +1,9 @@
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:realtokens_apps/utils/utils.dart';
+import 'package:realtokens/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart'; // Pour accéder à AppState
-import 'package:realtokens_apps/generated/l10n.dart'; // Importer pour les traductions
-import 'package:realtokens_apps/app_state.dart'; // Importer pour accéder à l'offset de texte
+import 'package:realtokens/generated/l10n.dart'; // Importer pour les traductions
+import 'package:realtokens/app_state.dart'; // Importer pour accéder à l'offset de texte
 
 class AboutPage extends StatelessWidget {
   const AboutPage({super.key});

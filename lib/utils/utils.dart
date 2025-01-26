@@ -1,8 +1,8 @@
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
-import 'package:realtokens_apps/api/data_manager.dart';
-import 'package:realtokens_apps/generated/l10n.dart';
+import 'package:realtokens/api/data_manager.dart';
+import 'package:realtokens/generated/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';

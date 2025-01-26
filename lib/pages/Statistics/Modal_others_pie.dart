@@ -1,6 +1,6 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:realtokens_apps/generated/l10n.dart';
+import 'package:realtokens/generated/l10n.dart';
 
 void showOtherDetailsModal(BuildContext context, dataManager, List<Map<String, dynamic>> othersDetails, String key) {
   showModalBottomSheet(

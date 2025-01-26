@@ -238,6 +238,14 @@
   "region": "地区",
   "city": "城市",
   "timeBeforeLiquidation": "清算前的时间",
+  "yamHistory": "山药历史",
+    "daysLimit": "天数限制",
+    "newVersionAvailable": "新版本可用",
+    "serviceStatus": "服务状态",
+    "links": "链接",
+    "rmm_description": "使用房地产代币进行借贷的平台。",
+    "yam_description": "RealT 投资者社区的管理工具。",
+    "wiki_community_description": "RealT 社区的资源和教程。",
     "@propertyMaintenanceMonthly": {
       "description": "物业的每月维护费用"
     },

@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:realtokens_apps/utils/parameters.dart';
+import 'package:realtokens/utils/parameters.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart'; // Import pour les coordonnées géographiques
 import 'package:fl_chart/fl_chart.dart';
 import 'package:provider/provider.dart'; // Pour accéder à DataManager
-import 'package:realtokens_apps/api/data_manager.dart'; // Import de DataManager
-import 'package:realtokens_apps/generated/l10n.dart'; // Import pour les traductions
+import 'package:realtokens/api/data_manager.dart'; // Import de DataManager
+import 'package:realtokens/generated/l10n.dart'; // Import pour les traductions
 import 'package:carousel_slider/carousel_slider.dart';
 import 'portfolio/FullScreenCarousel.dart';
-import 'package:realtokens_apps/utils/utils.dart';
-import 'package:realtokens_apps/app_state.dart';
+import 'package:realtokens/utils/utils.dart';
+import 'package:realtokens/app_state.dart';
 
 Future<List<Map<String, dynamic>>> _getFilteredOffers(DataManager dataManager, String tokenUuid) async {
   return dataManager.yamMarket.where((offer) => offer['token_to_sell'] == tokenUuid.toLowerCase() || offer['token_to_buy'] == tokenUuid.toLowerCase()).toList();

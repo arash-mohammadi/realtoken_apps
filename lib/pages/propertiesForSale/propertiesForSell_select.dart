@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:realtokens_apps/app_state.dart';
-import 'package:realtokens_apps/pages/propertiesForSale/PropertiesForSaleRealt.dart';
-import 'package:realtokens_apps/pages/propertiesForSale/PropertiesForSaleSecondary.dart';
-import 'package:realtokens_apps/utils/utils.dart';
-import 'package:realtokens_apps/generated/l10n.dart';
+import 'package:realtokens/app_state.dart';
+import 'package:realtokens/pages/propertiesForSale/PropertiesForSaleRealt.dart';
+import 'package:realtokens/pages/propertiesForSale/PropertiesForSaleSecondary.dart';
+import 'package:realtokens/utils/utils.dart';
+import 'package:realtokens/generated/l10n.dart';
 
 class PropertiesForSalePage extends StatefulWidget {
   const PropertiesForSalePage({Key? key}) : super(key: key);

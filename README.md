@@ -1,4 +1,4 @@
-# RealToken_apps
+# RealToken
 
 RealToken apps is a mobile application built using Flutter, available on both iOS and Android, allowing users to access and see their fractional ownership of tokenized real estate. Leveraging blockchain technology, the app provides a seamless interface for users to view their RealToken portfolios, and access property details.
 

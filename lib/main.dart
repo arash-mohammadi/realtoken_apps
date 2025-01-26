@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
-import 'package:realtokens_apps/structure/home_page.dart';
+import 'package:realtokens/structure/home_page.dart';
 import 'api/data_manager.dart';
 import 'settings/theme.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';

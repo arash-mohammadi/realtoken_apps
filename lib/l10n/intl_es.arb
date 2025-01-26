@@ -243,6 +243,14 @@
   "unknownDate": "Fecha desconocida",
   "noTransactionsAvailable": "No hay transacciones disponibles",
   "timeBeforeLiquidation": "Tiempo antes de la liquidación",
+  "yamHistory": "Historial de Yam",
+  "daysLimit": "Límite de días",
+  "newVersionAvailable": "Nueva versión disponible",
+  "serviceStatus": "Estado del servicio",
+  "links": "Enlaces",
+  "rmm_description": "Plataforma para prestar y pedir prestado utilizando tokens inmobiliarios.",
+  "yam_description": "Herramienta de gestión para la comunidad de inversores de RealT.",
+  "wiki_community_description": "Recursos y tutoriales para la comunidad de RealT.",
   "@propertyMaintenanceMonthly": {
     "description": "Gastos mensuales de mantenimiento de la propiedad"
   },

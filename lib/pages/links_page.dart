@@ -2,10 +2,10 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:realtokens_apps/api/data_manager.dart';
-import 'package:realtokens_apps/app_state.dart';
-import 'package:realtokens_apps/generated/l10n.dart';
-import 'package:realtokens_apps/utils/utils.dart';
+import 'package:realtokens/api/data_manager.dart';
+import 'package:realtokens/app_state.dart';
+import 'package:realtokens/generated/l10n.dart';
+import 'package:realtokens/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -28,7 +28,7 @@ class RealtPageState extends State<LinksPage> {
   @override
   Widget build(BuildContext context) {
     // Accéder à DataManager pour récupérer les valeurs calculées
-final appState = Provider.of<AppState>(context);
+    final appState = Provider.of<AppState>(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -37,61 +37,77 @@ final appState = Provider.of<AppState>(context);
       ),
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Column(
-  children: [
-    _buildCard('assets/icons/RMM.jpg', 'RMM (RealToken Money Market)', 'https://rmm.realtoken.network'),
-    const SizedBox(height: 10),
-    _buildCard('assets/icons/YAM.jpg', 'YAM (You And Me)', 'https://yam.realtoken.network'),
-    const SizedBox(height: 10),
-    _buildCard('assets/logo_community.png', 'Wiki Community  ', 'https://community-realt.gitbook.io/tuto-community'),
-  ],
-) ),
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
+              children: [
+                _buildCard('assets/icons/RMM.jpg', 'RMM (RealToken Money Market)', 'https://rmm.realtoken.network', S.of(context).rmm_description),
+                const SizedBox(height: 10),
+                _buildCard('assets/icons/YAM.jpg', 'YAM (You And Me)', 'https://yam.realtoken.network', S.of(context).rmm_description),
+                const SizedBox(height: 10),
+                _buildCard('assets/logo_community.png', 'Wiki Community', 'https://community-realt.gitbook.io/tuto-community',
+                    S.of(context).wiki_community_description),
+              ],
+            )),
       ),
     );
   }
 
   // Fonction pour créer une carte similaire à DashboardPage
-Widget _buildCard(
-  String imagePath, // Chemin de l'image à afficher
-  String linkText, // Texte du lien
-  String linkUrl, // URL du lien
-) {
-  return Card(
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(12),
-    ),
-    elevation: 0,
-    child: Padding(
-      padding: const EdgeInsets.all(12.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          // Image sur la gauche
-          Image.asset(
-            imagePath,
-            width: 40,
-            height: 40,
-            fit: BoxFit.cover,
-          ),
-          const SizedBox(width: 12), // Espacement entre l'image et le texte
-          // Lien texte sur la droite
-          Expanded(
-            child: GestureDetector(
-              onTap: () => Utils.launchURL(linkUrl),
-              child: Text(
-                linkText,
-                style: const TextStyle(
-                  fontSize: 16,
-                  color: Colors.blue,
-                  decoration: TextDecoration.underline,
-                ),
+  Widget _buildCard(
+    String imagePath, // Chemin de l'image à afficher
+    String linkText, // Texte du lien
+    String linkUrl, // URL du lien
+    String description, // Description courte
+  ) {
+    return Card(
+      color: Theme.of(context).cardColor,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      elevation: 0,
+      child: Padding(
+        padding: const EdgeInsets.all(12.0),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Image sur la gauche
+            Image.asset(
+              imagePath,
+              width: 40,
+              height: 40,
+              fit: BoxFit.cover,
+            ),
+            const SizedBox(width: 12), // Espacement entre l'image et le texte
+            // Lien texte et description
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  GestureDetector(
+                    onTap: () => Utils.launchURL(linkUrl),
+                    child: Text(
+                      linkText,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        color: Colors.blue,
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 4), // Espacement entre le lien et la description
+                  Text(
+                    description,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Theme.of(context).textTheme.bodyMedium?.color,
+                    ),
+                  ),
+                ],
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 }

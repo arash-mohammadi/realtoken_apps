@@ -1,9 +1,9 @@
-import 'package:realtokens_apps/generated/l10n.dart';
-import 'package:realtokens_apps/utils/utils.dart';
+import 'package:realtokens/generated/l10n.dart';
+import 'package:realtokens/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:realtokens_apps/api/data_manager.dart';
+import 'package:realtokens/api/data_manager.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'token_bottom_sheet.dart';
 

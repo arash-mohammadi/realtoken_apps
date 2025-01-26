@@ -1,10 +1,10 @@
-import 'package:realtokens_apps/utils/utils.dart';
+import 'package:realtokens/utils/utils.dart';
 import 'package:flutter/material.dart';
-import 'package:realtokens_apps/pages/Statistics/rmm_stats.dart';
-import 'package:realtokens_apps/pages/Statistics/portfolio_stats.dart';
-import 'package:realtokens_apps/pages/Statistics/wallet_stats.dart'; // Assurez-vous que cette page existe
+import 'package:realtokens/pages/Statistics/rmm_stats.dart';
+import 'package:realtokens/pages/Statistics/portfolio_stats.dart';
+import 'package:realtokens/pages/Statistics/wallet_stats.dart'; // Assurez-vous que cette page existe
 import 'package:provider/provider.dart';
-import 'package:realtokens_apps/app_state.dart';
+import 'package:realtokens/app_state.dart';
 
 class StatsSelectorPage extends StatefulWidget {
   const StatsSelectorPage({super.key});

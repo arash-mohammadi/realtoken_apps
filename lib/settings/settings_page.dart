@@ -1,13 +1,13 @@
 import 'dart:convert';
 import 'dart:io'; // Pour détecter la plateforme (Android/iOS)
-import 'package:realtokens_apps/app_state.dart';
-import 'package:realtokens_apps/utils/parameters.dart';
-import 'package:realtokens_apps/utils/utils.dart';
+import 'package:realtokens/app_state.dart';
+import 'package:realtokens/utils/parameters.dart';
+import 'package:realtokens/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:realtokens_apps/api/data_manager.dart';
-import 'package:realtokens_apps/generated/l10n.dart'; // Importer le fichier généré pour les traductions
+import 'package:realtokens/api/data_manager.dart';
+import 'package:realtokens/generated/l10n.dart'; // Importer le fichier généré pour les traductions
 import 'package:hive/hive.dart'; // Import pour Hive
 import 'package:provider/provider.dart';
 import '/api/api_service.dart';
@@ -27,6 +27,7 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   Map<String, dynamic> _currencies = {}; // Stockage des devises
   bool _notificationsEnabled = true; // Valeur par défaut
+  int _daysLimit = 30; // Valeur par défaut
 
   @override
   void initState() {
@@ -76,7 +77,13 @@ class _SettingsPageState extends State<SettingsPage> {
     setState(() {
       Parameters.convertToSquareMeters = prefs.getBool('convertToSquareMeters') ?? false;
       Parameters.selectedCurrency = prefs.getString('selectedCurrency') ?? 'usd';
+      _daysLimit = prefs.getInt('daysLimit') ?? 30; // Charger la limite des jours
     });
+  }
+
+  Future<void> _saveDaysLimit(int value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('daysLimit', value);
   }
 
   // Fonction pour récupérer les devises depuis l'API
@@ -334,6 +341,89 @@ class _SettingsPageState extends State<SettingsPage> {
     Utils.loadData(context);
   }
 
+  void _showNumberPicker(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        int tempDaysLimit = _daysLimit; // Temporaire pour mise à jour
+
+        return Container(
+          height: 300,
+          child: Column(
+            children: [
+              // Barre d'actions
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context), // Annuler
+                      child: Text("Cancel", style: TextStyle(color: Colors.red)),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        setState(() {
+                          _daysLimit = tempDaysLimit; // Mise à jour
+                        });
+                        _saveDaysLimit(_daysLimit); // Sauvegarde
+                        Navigator.pop(context);
+                      },
+                      child: Text("Done"),
+                    ),
+                  ],
+                ),
+              ),
+              Divider(height: 1),
+              // Picker avec ListWheelScrollView
+              Expanded(
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    // Zone d'indication pour la valeur sélectionnée
+                    Container(
+                      height: 40, // Hauteur de la zone sélectionnée
+                      decoration: BoxDecoration(
+                        border: Border.symmetric(
+                          horizontal: BorderSide(color: Colors.blue, width: 2),
+                        ),
+                      ),
+                    ),
+                    ListWheelScrollView.useDelegate(
+                      itemExtent: 40, // Hauteur des items
+                      perspective: 0.005, // Perspective 3D
+                      onSelectedItemChanged: (index) {
+                        tempDaysLimit = index + 1; // Valeur temporaire
+                      },
+                      physics: FixedExtentScrollPhysics(), // Défilement unique
+                      childDelegate: ListWheelChildBuilderDelegate(
+                        builder: (context, index) {
+                          // Mettre en évidence la valeur sélectionnée
+                          final isSelected = (index + 1) == tempDaysLimit;
+                          return Center(
+                            child: Text(
+                              "${index + 1} days",
+                              style: TextStyle(
+                                fontSize: isSelected ? 20 : 16, // Plus grand si sélectionné
+                                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                color: isSelected ? Colors.black : Colors.grey,
+                              ),
+                            ),
+                          );
+                        },
+                        childCount: 365, // Limite à 365 jours
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context); // Accéder à l'état global
@@ -541,6 +631,19 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
               ),
               const Divider(),
+              ListTile(
+                title: Text(
+                  S.of(context).yamHistory,
+                  style: TextStyle(fontSize: 16.0),
+                ),
+                subtitle: Text("${S.of(context).daysLimit}: $_daysLimit days"),
+                trailing: IconButton(
+                  icon: Icon(Icons.edit),
+                  onPressed: () => _showNumberPicker(context), // Ouvre le picker
+                ),
+              ),
+              const Divider(),
+
               Row(
                 children: [
                   // Le texte

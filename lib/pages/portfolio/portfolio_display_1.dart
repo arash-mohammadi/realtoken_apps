@@ -1,12 +1,12 @@
-import 'package:realtokens_apps/api/data_manager.dart';
-import 'package:realtokens_apps/utils/utils.dart';
+import 'package:realtokens/api/data_manager.dart';
+import 'package:realtokens/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:realtokens_apps/pages/token_bottom_sheet.dart';
+import 'package:realtokens/pages/token_bottom_sheet.dart';
 import 'package:provider/provider.dart';
-import 'package:realtokens_apps/generated/l10n.dart';
-import 'package:realtokens_apps/settings/manage_evm_addresses_page.dart';
-import 'package:realtokens_apps/app_state.dart';
+import 'package:realtokens/generated/l10n.dart';
+import 'package:realtokens/settings/manage_evm_addresses_page.dart';
+import 'package:realtokens/app_state.dart';
 
 class PortfolioDisplay1 extends StatelessWidget {
   final List<Map<String, dynamic>> portfolio;
@@ -324,7 +324,7 @@ class PortfolioDisplay1 extends StatelessWidget {
                                     'YAM: ${Utils.formatCurrency(dataManager.convert((token['yamAverageValue'] * token['amount'])), dataManager.currencySymbol)} (${((token['yamAverageValue'] / token['tokenPrice'] - 1) * 100).toStringAsFixed(0)}%)',
                                     style: TextStyle(
                                       fontSize: 13 + appState.getTextSizeOffset(),
-                                      color: (token['yamAverageValue'] * token['amount']) > token['totalValue']
+                                      color: (token['yamAverageValue'] * token['amount']) >= token['totalValue']
                                           ? Colors.green // Texte vert si la condition est vraie
                                           : Colors.red, // Texte rouge si la condition est fausse
                                     ),

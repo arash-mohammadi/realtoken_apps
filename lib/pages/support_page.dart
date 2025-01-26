@@ -2,10 +2,10 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:realtokens_apps/api/data_manager.dart';
-import 'package:realtokens_apps/app_state.dart';
-import 'package:realtokens_apps/generated/l10n.dart';
-import 'package:realtokens_apps/utils/utils.dart';
+import 'package:realtokens/api/data_manager.dart';
+import 'package:realtokens/app_state.dart';
+import 'package:realtokens/generated/l10n.dart';
+import 'package:realtokens/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -28,7 +28,7 @@ class RealtPageState extends State<SupportPage> {
   @override
   Widget build(BuildContext context) {
     // Accéder à DataManager pour récupérer les valeurs calculées
-final appState = Provider.of<AppState>(context);
+    final appState = Provider.of<AppState>(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -41,113 +41,119 @@ final appState = Provider.of<AppState>(context);
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-            
               const SizedBox(height: 10), // Espace sous l'image
-             _buildCard(
+              _buildCard(
                 'GitHub support', // Titre de la carte
                 Icons.bug_report_outlined, // Icône représentative pour GitHub
-                Text('Contribuez ou signalez un problème sur GitHub :', style: TextStyle(fontSize: 13 + appState.getTextSizeOffset()),), // Texte principal
+                Text(
+                  'Contribuez ou signalez un problème sur GitHub :',
+                  style: TextStyle(fontSize: 13 + appState.getTextSizeOffset()),
+                ), // Texte principal
                 linkText: 'Github isssues link', // Texte du lien
-                linkUrl: 'https://github.com/RealToken-Community/realtoken_apps/issues',  // URL du lien
+                linkUrl: 'https://github.com/RealToken-Community/realtoken_apps/issues', // URL du lien
                 iconColor: Colors.grey, // Couleur noire pour GitHub
               ),
               const SizedBox(height: 10),
-             _buildCard(
+              _buildCard(
                 'Telegram support', // Titre de la carte
                 Icons.telegram, // Icône de Telegram
-                Text('Rejoignez-nous sur Telegram :', style: TextStyle(fontSize: 13 + appState.getTextSizeOffset()),), // Texte principal
+                Text(
+                  'Rejoignez-nous sur Telegram :',
+                  style: TextStyle(fontSize: 13 + appState.getTextSizeOffset()),
+                ), // Texte principal
                 linkText: 'Telegram Link here', // Texte du lien
-                linkUrl: 'https://t.me/c/1561110632/5797',  // URL du lien
+                linkUrl: 'https://t.me/c/1561110632/5797', // URL du lien
                 iconColor: Color(0xFF0088CC), // Couleur officielle Telegram
               ),
               const SizedBox(height: 10), // Espace sous l'image
-             _buildCard(
-              'Discord support', // Titre de la carte
-              Icons.discord,
-              Text('Rejoignez-nous sur Discord :', style: TextStyle(fontSize: 13 + appState.getTextSizeOffset()),), // Texte principal
-              linkText: 'Discord Link here', // Texte du lien
-              linkUrl: 'https://discord.com/channels/681940057183092737/681966628527013891',  // URL du lien
-              iconColor: Colors.purple, // Couleur de l'icône
-            ),
-            const SizedBox(height: 10), // Espace sous l'image
+              _buildCard(
+                'Discord support', // Titre de la carte
+                Icons.discord,
+                Text(
+                  'Rejoignez-nous sur Discord :',
+                  style: TextStyle(fontSize: 13 + appState.getTextSizeOffset()),
+                ), // Texte principal
+                linkText: 'Discord Link here', // Texte du lien
+                linkUrl: 'https://discord.com/channels/681940057183092737/681966628527013891', // URL du lien
+                iconColor: Colors.purple, // Couleur de l'icône
+              ),
+              const SizedBox(height: 10), // Espace sous l'image
 
-          _buildCard(
-  S.of(context).supportProject, // Titre de la carte
-  Icons.monetization_on, // Icône pour la carte
-  Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(
-        S.of(context).donationMessage,
-        style: TextStyle(fontSize: 13 + appState.getTextSizeOffset()),
-      ),
-      const SizedBox(height: 10),
-       ListTile(
-          leading: const Icon(Icons.link),
-          title: Text(
-            'My linktree',
-            style: TextStyle(fontSize: 13 + appState.getTextSizeOffset()),
-          ),
-          onTap: () => Utils.launchURL('https://linktr.ee/byackee'),
-          visualDensity: const VisualDensity(vertical: -4), // Réduction de l'espace vertical
-        ),
-      const SizedBox(height: 20),
-    if (kIsWeb || (!kIsWeb && !Platform.isIOS)) // Condition pour afficher les boutons
-  Wrap(
-    spacing: 8.0, // Espacement horizontal entre les boutons
-    runSpacing: 8.0, // Espacement vertical entre les lignes de boutons
-    alignment: WrapAlignment.center, // Alignement au centre
-    children: [
-      ElevatedButton.icon(
-        onPressed: () {
-          Utils.launchURL('https://paypal.me/byackee?country.x=FR&locale.x=fr_FR');
-        },
-        icon: const Icon(Icons.payment, color: Colors.white),
-        label: Text(
-          S.of(context).paypal,
-          style: TextStyle(fontSize: 14 + appState.getTextSizeOffset(), color: Colors.white),
-        ),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.blue,
-        ),
-      ),
-      ElevatedButton.icon(
-        onPressed: () {
-          Utils.launchURL('https://buymeacoffee.com/byackee');
-        },
-        icon: Image.asset(
-          'assets/bmc.png', // Chemin de votre image dans les assets
-          height: 24, // Ajustez la taille de l'image
-          width: 24,
-        ),
-        label: Text(
-          'Buy Coffee',
-          style: TextStyle(fontSize: 14 + appState.getTextSizeOffset(), color: Colors.white),
-        ),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.blue,
-        ),
-      ),
-      ElevatedButton.icon(
-        onPressed: () {
-          _showCryptoAddressDialog(context, appState.getTextSizeOffset());
-        },
-        icon: const Icon(Icons.currency_bitcoin, color: Colors.white),
-        label: Text(
-          S.of(context).crypto,
-          style: TextStyle(fontSize: 14 + appState.getTextSizeOffset(), color: Colors.white),
-        ),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.orange,
-        ),
-      ),
-    ],
-  ),
-],
-  ),
-),
-
-
+              _buildCard(
+                S.of(context).supportProject, // Titre de la carte
+                Icons.monetization_on, // Icône pour la carte
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      S.of(context).donationMessage,
+                      style: TextStyle(fontSize: 13 + appState.getTextSizeOffset()),
+                    ),
+                    const SizedBox(height: 10),
+                    ListTile(
+                      leading: const Icon(Icons.link),
+                      title: Text(
+                        'My linktree',
+                        style: TextStyle(fontSize: 13 + appState.getTextSizeOffset()),
+                      ),
+                      onTap: () => Utils.launchURL('https://linktr.ee/byackee'),
+                      visualDensity: const VisualDensity(vertical: -4), // Réduction de l'espace vertical
+                    ),
+                    const SizedBox(height: 20),
+                    if (kIsWeb || (!kIsWeb && !Platform.isIOS)) // Condition pour afficher les boutons
+                      Wrap(
+                        spacing: 8.0, // Espacement horizontal entre les boutons
+                        runSpacing: 8.0, // Espacement vertical entre les lignes de boutons
+                        alignment: WrapAlignment.center, // Alignement au centre
+                        children: [
+                          ElevatedButton.icon(
+                            onPressed: () {
+                              Utils.launchURL('https://paypal.me/byackee?country.x=FR&locale.x=fr_FR');
+                            },
+                            icon: const Icon(Icons.payment, color: Colors.white),
+                            label: Text(
+                              S.of(context).paypal,
+                              style: TextStyle(fontSize: 14 + appState.getTextSizeOffset(), color: Colors.white),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blue,
+                            ),
+                          ),
+                          ElevatedButton.icon(
+                            onPressed: () {
+                              Utils.launchURL('https://buymeacoffee.com/byackee');
+                            },
+                            icon: Image.asset(
+                              'assets/bmc.png', // Chemin de votre image dans les assets
+                              height: 24, // Ajustez la taille de l'image
+                              width: 24,
+                            ),
+                            label: Text(
+                              'Buy Coffee',
+                              style: TextStyle(fontSize: 14 + appState.getTextSizeOffset(), color: Colors.white),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blue,
+                            ),
+                          ),
+                          ElevatedButton.icon(
+                            onPressed: () {
+                              _showCryptoAddressDialog(context, appState.getTextSizeOffset());
+                            },
+                            icon: const Icon(Icons.currency_bitcoin, color: Colors.white),
+                            label: Text(
+                              S.of(context).crypto,
+                              style: TextStyle(fontSize: 14 + appState.getTextSizeOffset(), color: Colors.white),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.orange,
+                            ),
+                          ),
+                        ],
+                      ),
+                  ],
+                ),
+              ),
             ],
           ),
         ),
@@ -156,66 +162,66 @@ final appState = Provider.of<AppState>(context);
   }
 
   // Fonction pour créer une carte similaire à DashboardPage
-Widget _buildCard(
-  
-  String title,
-  IconData icon,
-  Widget firstChild, {
-  String? linkText, // Texte pour le lien
-  String? linkUrl,  // URL à ouvrir
-  Color iconColor = Colors.blue, // Couleur par défaut de l'icône
-}) {
-  final appState = Provider.of<AppState>(context);
-  return Card(
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(12),
-    ),
-    elevation: 0,
-    child: Padding(
-      padding: const EdgeInsets.all(12.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Icon(icon, size: 24, color: iconColor), // Couleur personnalisable
-                    const SizedBox(width: 8),
-                    Text(
-                      title,
-                      style: TextStyle(
-                        fontSize: 19,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                firstChild,
-                const SizedBox(height: 10),
-                if (linkText != null && linkUrl != null)
-                  GestureDetector(
-                    onTap: () => Utils.launchURL(linkUrl),
-                    child: Text(
-                      linkText,
-                      style: TextStyle(
-                        fontSize: 14 + appState.getTextSizeOffset(),
-                        color: Colors.blue,
-                        decoration: TextDecoration.underline,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-        ],
+  Widget _buildCard(
+    String title,
+    IconData icon,
+    Widget firstChild, {
+    String? linkText, // Texte pour le lien
+    String? linkUrl, // URL à ouvrir
+    Color iconColor = Colors.blue, // Couleur par défaut de l'icône
+  }) {
+    final appState = Provider.of<AppState>(context);
+    return Card(
+      color: Theme.of(context).cardColor,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
       ),
-    ),
-  );
-}
+      elevation: 0,
+      child: Padding(
+        padding: const EdgeInsets.all(12.0),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(icon, size: 24, color: iconColor), // Couleur personnalisable
+                      const SizedBox(width: 8),
+                      Text(
+                        title,
+                        style: TextStyle(
+                          fontSize: 19,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  firstChild,
+                  const SizedBox(height: 10),
+                  if (linkText != null && linkUrl != null)
+                    GestureDetector(
+                      onTap: () => Utils.launchURL(linkUrl),
+                      child: Text(
+                        linkText,
+                        style: TextStyle(
+                          fontSize: 14 + appState.getTextSizeOffset(),
+                          color: Colors.blue,
+                          decoration: TextDecoration.underline,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   void _showCryptoAddressDialog(BuildContext context, double textSizeOffset) {
     const cryptoAddress = '0x2cb49d04890a98eb89f4f43af96ad01b98b64165';
@@ -269,5 +275,4 @@ Widget _buildCard(
       },
     );
   }
-
 }

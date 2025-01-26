@@ -18,14 +18,17 @@ class S {
   static S? _current;
 
   static S get current {
-    assert(_current != null, 'No instance of S was loaded. Try to initialize the S delegate before accessing S.current.');
+    assert(_current != null,
+        'No instance of S was loaded. Try to initialize the S delegate before accessing S.current.');
     return _current!;
   }
 
   static const AppLocalizationDelegate delegate = AppLocalizationDelegate();
 
   static Future<S> load(Locale locale) {
-    final name = (locale.countryCode?.isEmpty ?? false) ? locale.languageCode : locale.toString();
+    final name = (locale.countryCode?.isEmpty ?? false)
+        ? locale.languageCode
+        : locale.toString();
     final localeName = Intl.canonicalizedLocale(name);
     return initializeMessages(localeName).then((_) {
       Intl.defaultLocale = localeName;
@@ -38,7 +41,8 @@ class S {
 
   static S of(BuildContext context) {
     final instance = S.maybeOf(context);
-    assert(instance != null, 'No instance of S present in the widget tree. Did you add S.delegate in localizationsDelegates?');
+    assert(instance != null,
+        'No instance of S present in the widget tree. Did you add S.delegate in localizationsDelegates?');
     return instance!;
   }
 
@@ -2451,6 +2455,86 @@ class S {
     return Intl.message(
       'Time before liquidation',
       name: 'timeBeforeLiquidation',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Yam history`
+  String get yamHistory {
+    return Intl.message(
+      'Yam history',
+      name: 'yamHistory',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Days Limit`
+  String get daysLimit {
+    return Intl.message(
+      'Days Limit',
+      name: 'daysLimit',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `New Version Available`
+  String get newVersionAvailable {
+    return Intl.message(
+      'New Version Available',
+      name: 'newVersionAvailable',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Service Status`
+  String get serviceStatus {
+    return Intl.message(
+      'Service Status',
+      name: 'serviceStatus',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Links`
+  String get links {
+    return Intl.message(
+      'Links',
+      name: 'links',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Platform for lending and borrowing using real estate tokens.`
+  String get rmm_description {
+    return Intl.message(
+      'Platform for lending and borrowing using real estate tokens.',
+      name: 'rmm_description',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Management tool for the RealT investors' community.`
+  String get yam_description {
+    return Intl.message(
+      'Management tool for the RealT investors\' community.',
+      name: 'yam_description',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Resources and tutorials for the RealT community.`
+  String get wiki_community_description {
+    return Intl.message(
+      'Resources and tutorials for the RealT community.',
+      name: 'wiki_community_description',
       desc: '',
       args: [],
     );

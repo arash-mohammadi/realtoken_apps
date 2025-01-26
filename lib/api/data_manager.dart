@@ -725,6 +725,7 @@ class DataManager extends ChangeNotifier {
 
         if (matchingRealToken.isNotEmpty) {
           final double tokenPrice = matchingRealToken['tokenPrice'] ?? 0.0;
+          logger.d("$matchingRealToken['uuid'] -> ${matchingRealToken['tokenPrice']}");
           final double tokenValue = (double.parse(walletToken['amount']) * tokenPrice);
 
           // Compter les unités louées et totales si elles n'ont pas déjà été comptées
@@ -782,8 +783,8 @@ class DataManager extends ChangeNotifier {
             orElse: () => <String, dynamic>{},
           );
 
-          final double yamTotalVolume = yamData['totalVolume'] ?? 0.0;
-          final double yamAverageValue = yamData['averageValue'] ?? tokenPrice;
+          final double yamTotalVolume = yamData['totalVolume'] ?? 1.0;
+          final double yamAverageValue = (yamData['averageValue'] != null && yamData['averageValue'] != 0) ? yamData['averageValue'] : tokenPrice;
 
           // Créer une nouvelle structure pour regrouper les transactions par token
           Map<String, List<Map<String, dynamic>>> transactionsByToken = {};
@@ -965,8 +966,8 @@ class DataManager extends ChangeNotifier {
           orElse: () => <String, dynamic>{},
         );
 
-        final double yamTotalVolume = yamData['totalVolume'] ?? 0.0;
-        final double yamAverageValue = yamData['averageValue'] ?? tokenPrice;
+        final double yamTotalVolume = yamData['totalVolume'] ?? 1.0;
+        final double yamAverageValue = (yamData['averageValue'] != null && yamData['averageValue'] != 0) ? yamData['averageValue'] : tokenPrice;
 
 // Créer une nouvelle structure pour regrouper les transactions par token
         Map<String, List<Map<String, dynamic>>> transactionsByToken = {};
@@ -1055,7 +1056,7 @@ class DataManager extends ChangeNotifier {
           'section8paid': matchingRealToken['section8paid'] ?? 0.0,
 
           'yamTotalVolume': yamTotalVolume, // Ajout de la valeur Yam calculée
-          'yamAverageValue': yamData['averageValue'], // Ajout de la valeur moyenne Yam calculée
+          'yamAverageValue': yamAverageValue, // Ajout de la valeur moyenne Yam calculée
           'transactions': transactionsByToken[tokenContractAddress] ?? []
         });
 
@@ -1511,7 +1512,7 @@ class DataManager extends ChangeNotifier {
       DateTime lastTimestamp = lastRecord.timestamp;
 
       // Vérifier si la différence est inférieure à 1 heure
-      logger.w(DateTime.now().difference(lastTimestamp).inHours);
+      //logger.w(DateTime.now().difference(lastTimestamp).inHours);
       if (DateTime.now().difference(lastTimestamp).inHours < 1) {
         // Si moins d'une heure, ne rien faire
         return; // Sortir de la fonction sans ajouter d'enregistrement
@@ -1633,7 +1634,7 @@ class DataManager extends ChangeNotifier {
       List<Map<String, dynamic>> balanceHistoryJsonToSave = balanceHistory.map((record) => record.toJson()).toList();
       await box.put('balanceHistory_$tokenType', balanceHistoryJsonToSave);
 
-      logger.i('Nouvelle balance ajoutée et sauvegardée avec succès pour $tokenType.');
+      //logger.i( 'Nouvelle balance ajoutée et sauvegardée avec succès pour $tokenType.');
     } catch (e) {
       logger.w('Erreur lors de l\'archivage de la balance pour $tokenType : $e');
     }
@@ -1779,7 +1780,7 @@ class DataManager extends ChangeNotifier {
   // Méthode pour définir une valeur initPrice personnalisée
   void setCustomInitPrice(String tokenUuid, double initPrice) {
     customInitPrices[tokenUuid] = initPrice;
-    logger.i("token: $tokenUuid et prix: $initPrice");
+    //logger.i("token: $tokenUuid et prix: $initPrice");
     saveCustomInitPrices(); // Sauvegarder après modification
     notifyListeners();
   }
@@ -1908,37 +1909,67 @@ class DataManager extends ChangeNotifier {
       final tokenDecimals = int.tryParse(tokenData['decimals'].toString()) ?? 18;
       final volumes = tokenData['volumes'] ?? [];
 
-      double totalVolume = 0;
-      double totalQuantity = 0;
+      double totalWeightedVolume = 0;
+      double totalWeight = 0;
 
       for (var volume in volumes) {
         final volumeTokenDecimals = int.tryParse(volume['token']['decimals'].toString()) ?? 6;
         final volumeDays = volume['volumeDays'] ?? [];
 
+        // Vérification des données de volume
+        //logger.d("Token: ${tokenData['id']}, Volume: $volume");
+        if (volumeDays.isEmpty) {
+          // logger.w( "Aucune donnée disponible dans volumeDays pour le token ${tokenData['id']} avec décimales=$volumeTokenDecimals");
+          continue;
+        }
+
+        double subTotalVolume = 0;
+        double subTotalQuantity = 0;
+
         for (var day in volumeDays) {
+          // Logs des données brutes
+          //logger.d( "Token: ${tokenData['id']}, Jour: ${day['date']}, Volume brut: ${day['volume']}, Quantité brute: ${day['quantity']}");
+
+          // Normalisation des quantités et des volumes
           final dayVolume = (day['volume'] != null) ? (double.tryParse(day['volume'].toString()) ?? 0) / pow(10, volumeTokenDecimals) : 0;
           final dayQuantity = (day['quantity'] != null) ? (double.tryParse(day['quantity'].toString()) ?? 0) / pow(10, tokenDecimals) : 0;
 
-          totalVolume += dayVolume;
-          totalQuantity += dayQuantity;
+          if (dayVolume > 0 && dayQuantity > 0) {
+            subTotalVolume += dayVolume;
+            subTotalQuantity += dayQuantity;
+          } else {
+            // logger.w( "Données invalides pour le jour ${day['date']} du token ${tokenData['id']} -> volume: $dayVolume, quantité: $dayQuantity");
+          }
+        }
+
+        if (subTotalQuantity > 0) {
+          final averageForDecimals = subTotalVolume / subTotalQuantity;
+          final weight = subTotalVolume;
+
+          totalWeightedVolume += averageForDecimals * weight;
+          totalWeight += weight;
+
+          //logger.d( "Sous-total pour décimales=$volumeTokenDecimals -> Volume: $subTotalVolume, Quantité: $subTotalQuantity, Moyenne: $averageForDecimals, Poids: $weight");
+        } else {
+          // logger.w("Aucun sous-total valide pour décimales=$volumeTokenDecimals");
         }
       }
 
       double averageValue = 0;
-      if (totalQuantity > 1e-10) {
-        averageValue = totalVolume / totalQuantity;
+      if (totalWeight > 0) {
+        averageValue = totalWeightedVolume / totalWeight;
       } else {
-        logger.w("Valeur aberrante détectée : totalQuantity=$totalQuantity pour token ${tokenData['id']}");
+        // logger.w("Valeur aberrante détectée : aucun poids total pour le token ${tokenData['id']}");
       }
 
       return {
         'id': tokenData['id'],
-        'totalVolume': totalVolume,
+        'totalVolume': totalWeight,
         'averageValue': averageValue,
       };
     }).toList();
 
-    logger.i("fetchyamHistory -> Mise à jour des statistiques des tokens Yam.");
+    logger.i("fetchYamHistory -> Mise à jour des statistiques des tokens Yam.");
     yamHistory = tokenStatistics;
 
     notifyListeners();

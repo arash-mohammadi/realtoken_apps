@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:realtokens_apps/utils/parameters.dart';
+import 'package:realtokens/utils/parameters.dart';
 import 'package:http/http.dart' as http;
 import 'package:hive/hive.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -171,7 +171,7 @@ class ApiService {
 
     var box = Hive.box('realTokens');
     final lastFetchTime = box.get('lastFetchTime');
-    final lastUpdateTime = box.get('lastUpdateTime_RealTokens');
+    final lastUpdateTime = box.get('lastUpdateTime_Tokens list');
     final cachedData = box.get('cachedRealTokens');
     final DateTime now = DateTime.now();
 
@@ -273,7 +273,7 @@ class ApiService {
         box.put('yamlastFetchTime', now.toIso8601String());
         // Enregistrer la nouvelle date de mise à jour renvoyée par l'API
         box.put('lastUpdateTime_YamMarket', lastUpdateDateString);
-        box.put('lastExecutionTime_YAM', now.toIso8601String());
+        box.put('lastExecutionTime_YAM Market', now.toIso8601String());
 
         return data;
       } else {
@@ -569,10 +569,10 @@ class ApiService {
 
         return balance;
       } else {
-        logger.i("apiService: RPC gnosis -> Invalid response for contract $contract: $result");
+        // logger.i("apiService: RPC gnosis -> Invalid response for contract $contract: $result");
       }
     } else {
-      logger.i('apiService: RPC gnosis -> Failed to fetch balance for contract $contract. Status code: ${response.statusCode}');
+      // logger.i('apiService: RPC gnosis -> Failed to fetch balance for contract $contract. Status code: ${response.statusCode}');
     }
 
     return null;
@@ -683,6 +683,9 @@ class ApiService {
     final lastFetchTime = box.get('lastTokenVolumesFetchTime');
     final DateTime now = DateTime.now();
 
+    final prefs = await SharedPreferences.getInstance();
+    int _daysLimit = prefs.getInt('daysLimit') ?? 30; // Par défaut, 30 jours
+
     // Vérifiez si le cache est valide
     if (!forceFetch && lastFetchTime != null) {
       final DateTime lastFetch = DateTime.parse(lastFetchTime);
@@ -701,7 +704,7 @@ class ApiService {
       "0xddafbb505ad214d7b80b1f830fccc89b60fb7a83",
       "0x7349c9eaa538e118725a6130e0f8341509b9f8a0"
     ];
-    final String limitDate = DateTime.now().subtract(Duration(days: 30)).toIso8601String().split('T').first;
+    final String limitDate = DateTime.now().subtract(Duration(days: _daysLimit)).toIso8601String().split('T').first;
 
     // Envoyer la requête GraphQL
     final response = await http.post(
@@ -743,7 +746,7 @@ class ApiService {
         // Mettre les données dans le cache
         box.put('cachedTokenVolumesData', json.encode(tokens));
         box.put('lastTokenVolumesFetchTime', now.toIso8601String());
-        box.put('lastExecutionTime_TokenVolumes', now.toIso8601String());
+        box.put('lastExecutionTime_YAM transactions', now.toIso8601String());
 
         return tokens;
       } else {
@@ -843,7 +846,7 @@ class ApiService {
           // Mettre les données dans le cache
           box.put('cachedTransactionsHistoryData', json.encode(transferEvents));
           box.put('transactionsHistoryFetchTime', now.toIso8601String());
-          box.put('lastExecutionTime_Transactions History', now.toIso8601String());
+          box.put('lastExecutionTime_Wallets Transactions', now.toIso8601String());
 
           return transferEvents;
         } else {

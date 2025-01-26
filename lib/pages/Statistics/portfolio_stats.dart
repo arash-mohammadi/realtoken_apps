@@ -1,15 +1,15 @@
 import 'package:flutter/services.dart';
-import 'package:realtokens_apps/pages/Statistics/Modal_others_pie.dart';
-import 'package:realtokens_apps/utils/parameters.dart';
-import 'package:realtokens_apps/utils/utils.dart';
+import 'package:realtokens/pages/Statistics/Modal_others_pie.dart';
+import 'package:realtokens/utils/parameters.dart';
+import 'package:realtokens/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:realtokens_apps/api/data_manager.dart';
-import 'package:realtokens_apps/generated/l10n.dart'; // Import pour les traductions
-import 'package:realtokens_apps/app_state.dart'; // Import AppState
+import 'package:realtokens/api/data_manager.dart';
+import 'package:realtokens/generated/l10n.dart'; // Import pour les traductions
+import 'package:realtokens/app_state.dart'; // Import AppState
 import 'package:logger/logger.dart';
 
 class PortfolioStats extends StatefulWidget {

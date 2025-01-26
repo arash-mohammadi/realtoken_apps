@@ -1,26 +1,68 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:realtokens_apps/pages/links_page.dart';
-import 'package:realtokens_apps/pages/propertiesForSale/propertiesForSell_select.dart';
-import 'package:realtokens_apps/pages/support_page.dart';
-import 'package:realtokens_apps/settings/service_status.dart';
-import 'package:realtokens_apps/utils/utils.dart';
+import 'package:realtokens/pages/links_page.dart';
+import 'package:realtokens/pages/propertiesForSale/propertiesForSell_select.dart';
+import 'package:realtokens/pages/support_page.dart';
+import 'package:realtokens/settings/service_status.dart';
+import 'package:realtokens/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:realtokens_apps/settings/settings_page.dart';
-import 'package:realtokens_apps/pages/real_tokens_page.dart';
-import 'package:realtokens_apps/about.dart';
-import 'package:realtokens_apps/pages/updates_page.dart';
-import 'package:realtokens_apps/pages/realt_page.dart';
-import 'package:realtokens_apps/generated/l10n.dart';
-import 'package:realtokens_apps/settings/manage_evm_addresses_page.dart';
-import 'package:realtokens_apps/app_state.dart';
+import 'package:realtokens/settings/settings_page.dart';
+import 'package:realtokens/pages/real_tokens_page.dart';
+import 'package:realtokens/about.dart';
+import 'package:realtokens/pages/updates_page.dart';
+import 'package:realtokens/pages/realt_page.dart';
+import 'package:realtokens/generated/l10n.dart';
+import 'package:realtokens/settings/manage_evm_addresses_page.dart';
+import 'package:realtokens/app_state.dart';
 import 'package:in_app_review/in_app_review.dart';
+import 'package:http/http.dart' as http;
+import 'package:package_info_plus/package_info_plus.dart';
 import 'dart:io';
 
-class CustomDrawer extends StatelessWidget {
+class CustomDrawer extends StatefulWidget {
   final Function(bool) onThemeChanged;
+
   const CustomDrawer({required this.onThemeChanged, super.key});
+
+  @override
+  _CustomDrawerState createState() => _CustomDrawerState();
+}
+
+class _CustomDrawerState extends State<CustomDrawer> {
+  String? latestVersion;
+  String? currentVersion;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchVersions();
+  }
+
+  Future<void> _fetchVersions() async {
+    try {
+      // Récupérer la version actuelle de l'application
+      final packageInfo = await PackageInfo.fromPlatform();
+      setState(() {
+        currentVersion = packageInfo.version;
+      });
+
+      // Récupérer la version du fichier pubspec.yaml sur GitHub
+      final response = await http.get(Uri.parse('https://raw.githubusercontent.com/RealToken-Community/realtoken_apps/main/pubspec.yaml'));
+
+      if (response.statusCode == 200) {
+        final pubspecContent = response.body;
+        final versionMatch = RegExp(r'version:\s*([\d.]+)').firstMatch(pubspecContent);
+        if (versionMatch != null) {
+          setState(() {
+            latestVersion = versionMatch.group(1);
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('Erreur lors de la récupération des versions : $e');
+    }
+  }
 
   Future<void> _requestReview(BuildContext context) async {
     final InAppReview inAppReview = InAppReview.instance;
@@ -45,15 +87,13 @@ class CustomDrawer extends StatelessWidget {
     }
   }
 
- 
   void _showReviewNotAvailablePopup(BuildContext context) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text("Merci pour vos retours !"),
-          content: Text("La demande de notation n'a pas pu être affichée. "
-              "Souhaitez-vous ouvrir la page de l'application dans le Store pour laisser un avis ?"),
+          content: Text("La demande de notation n'a pas pu être affichée. Souhaitez-vous ouvrir la page de l'application dans le Store pour laisser un avis ?"),
           actions: [
             TextButton(
               onPressed: () {
@@ -90,35 +130,61 @@ class CustomDrawer extends StatelessWidget {
                     onTap: () {
                       Utils.launchURL('https://realt.co/marketplace/');
                     },
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Image.asset(
-                          'assets/logo_community.png',
-                          width: 60,
-                          height: 60,
-                        ),
-                        const SizedBox(width: 10),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.center,
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            Text(
-                              'RealTokens',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 23 + appState.getTextSizeOffset(),
-                              ),
+                            Image.asset(
+                              'assets/logo_community.png',
+                              width: 60,
+                              height: 60,
                             ),
-                            Text(
-                              S.of(context).appDescription,
-                              style: TextStyle(
-                                color: Colors.white70,
-                                fontSize: 15 + appState.getTextSizeOffset(),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'RealTokens',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 23 + appState.getTextSizeOffset(),
+                                    ),
+                                  ),
+                                  Text(
+                                    S.of(context).appDescription,
+                                    style: TextStyle(
+                                      color: Colors.white70,
+                                      fontSize: 15 + appState.getTextSizeOffset(),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ],
                         ),
+                        if (latestVersion != null && currentVersion != null && latestVersion != currentVersion)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8.0),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
+                              decoration: BoxDecoration(
+                                color: Colors.green, // Bulle verte
+                                borderRadius: BorderRadius.circular(20.0),
+                              ),
+                              child: Text(
+                                '${S.of(context).newVersionAvailable}: $latestVersion',
+                                style: TextStyle(
+                                  color: Colors.white, // Texte blanc
+                                  fontSize: 14 + appState.getTextSizeOffset(),
+                                ),
+                                textAlign: TextAlign.start,
+                              ),
+                            ),
+                          ),
                       ],
                     ),
                   ),
@@ -206,25 +272,9 @@ class CustomDrawer extends StatelessWidget {
                   },
                 ),
                 ListTile(
-                  leading: const Icon(Icons.monitor),
-                  title: Text(
-                    'Service Status',
-                    style: TextStyle(fontSize: 15 + appState.getTextSizeOffset()),
-                  ),
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ServiceStatusPage(),
-                      ),
-                    );
-                  },
-                ),
-                ListTile(
                   leading: const Icon(Icons.link),
                   title: Text(
-                    'Links',
+                    S.of(context).links,
                     style: TextStyle(fontSize: 15 + appState.getTextSizeOffset()),
                   ),
                   onTap: () {
@@ -238,7 +288,23 @@ class CustomDrawer extends StatelessWidget {
                   },
                 ),
                 const Divider(),
-               ListTile(
+                ListTile(
+                  leading: const Icon(Icons.monitor),
+                  title: Text(
+                    S.of(context).serviceStatus,
+                    style: TextStyle(fontSize: 15 + appState.getTextSizeOffset()),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ServiceStatusPage(),
+                      ),
+                    );
+                  },
+                ),
+                ListTile(
                   leading: const Icon(Icons.support_agent),
                   title: Text(
                     'Support',
@@ -299,18 +365,6 @@ class CustomDrawer extends StatelessWidget {
                     );
                   },
                 ),
-                ListTile(
-                  leading: const Icon(Icons.feedback),
-                  title: Text(
-                    S.of(context).feedback,
-                    style: TextStyle(fontSize: 15 + appState.getTextSizeOffset()),
-                  ),
-                  onTap: () {
-                    Utils.launchURL('https://github.com/RealToken-Community/realtoken-apps/issues');
-                  },
-                ),
-
-                const SizedBox(height: 20),
               ],
             ),
           ),

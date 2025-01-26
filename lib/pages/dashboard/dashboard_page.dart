@@ -1,15 +1,15 @@
-import 'package:realtokens_apps/utils/utils.dart';
+import 'package:realtokens/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart'; // Import pour SharedPreferences
-import 'package:realtokens_apps/api/data_manager.dart';
-import 'package:realtokens_apps/generated/l10n.dart';
+import 'package:realtokens/api/data_manager.dart';
+import 'package:realtokens/generated/l10n.dart';
 import 'package:shimmer/shimmer.dart';
 import '/settings/manage_evm_addresses_page.dart'; // Import de la page pour gérer les adresses EVM
 import 'dashboard_details_page.dart';
-import 'package:realtokens_apps/app_state.dart'; // Import AppState
+import 'package:realtokens/app_state.dart'; // Import AppState
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -813,8 +813,8 @@ class DashboardPageState extends State<DashboardPage> {
                       S.of(context).portfolio,
                       Icons.dashboard,
                       _buildValueBeforeText(
-                        Utils.getFormattedAmount(dataManager.convert(dataManager.yamTotalValue), dataManager.currencySymbol, _showAmounts),
-                        'projection YAM (${((dataManager.yamTotalValue / dataManager.totalWalletValue - 1) * 100).toStringAsFixed(0)}%)',
+                        Utils.getFormattedAmount(dataManager.convert(dataManager.yamTotalValue + dataManager.rwaHoldingsValue + dataManager.totalUsdcDepositBalance + dataManager.totalXdaiDepositBalance - dataManager.totalUsdcBorrowBalance - dataManager.totalXdaiBorrowBalance), dataManager.currencySymbol, _showAmounts),
+                        'projection YAM (${(((dataManager.yamTotalValue + dataManager.rwaHoldingsValue + dataManager.totalUsdcDepositBalance + dataManager.totalXdaiDepositBalance - dataManager.totalUsdcBorrowBalance - dataManager.totalXdaiBorrowBalance) / dataManager.totalWalletValue - 1) * 100).toStringAsFixed(0)}%)',
                         dataManager.isLoading,
                         highlightPercentage: true, // Activer la coloration conditionnelle
                       ),
@@ -851,11 +851,12 @@ class DashboardPageState extends State<DashboardPage> {
                       rightWidget: _buildVerticalGauge(_getPortfolioBarGraphData(dataManager), context),
                     ),
                     const SizedBox(height: 8),
-                    if (dataManager.rmmValue != 0 ||
-                        dataManager.totalUsdcBorrowBalance != 0 ||
-                        dataManager.totalXdaiBorrowBalance != 0 ||
-                        dataManager.totalXdaiDepositBalance != 0 ||
-                        dataManager.totalUsdcDepositBalance != 0)
+                    if (!dataManager.isLoading &&
+                        (dataManager.rmmValue != 0 ||
+                            dataManager.totalUsdcBorrowBalance != 0 ||
+                            dataManager.totalXdaiBorrowBalance != 0 ||
+                            dataManager.totalXdaiDepositBalance != 0 ||
+                            dataManager.totalUsdcDepositBalance != 0))
                       _buildCard(
                         S.of(context).rmm,
                         Icons.currency_exchange,

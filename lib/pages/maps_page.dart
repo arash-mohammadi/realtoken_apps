@@ -1,16 +1,16 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
-import 'package:realtokens_apps/app_state.dart';
-import 'package:realtokens_apps/pages/token_bottom_sheet.dart';
-import 'package:realtokens_apps/utils/utils.dart';
+import 'package:realtokens/app_state.dart';
+import 'package:realtokens/pages/token_bottom_sheet.dart';
+import 'package:realtokens/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_marker_cluster/flutter_map_marker_cluster.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:realtokens_apps/api/data_manager.dart';
+import 'package:realtokens/api/data_manager.dart';
 
 class MapsPage extends StatefulWidget {
   const MapsPage({super.key});
@@ -177,7 +177,7 @@ class MapsPageState extends State<MapsPage> {
                   tileProvider: kIsWeb
                       ? NetworkTileProvider() // Utilisé uniquement pour le web
                       : FMTCStore('mapStore').getTileProvider(), // Utilisé pour iOS, Android, etc.
-                  userAgentPackageName: 'com.byackee.app',
+                  userAgentPackageName: 'com.byackee.realtokens',
                   retinaMode: true,
                 ),
                 MarkerClusterLayerWidget(

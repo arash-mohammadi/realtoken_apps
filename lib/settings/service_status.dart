@@ -1,9 +1,9 @@
-import 'package:realtokens_apps/generated/l10n.dart';
-import 'package:realtokens_apps/utils/utils.dart';
+import 'package:realtokens/generated/l10n.dart';
+import 'package:realtokens/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:provider/provider.dart';
-import 'package:realtokens_apps/app_state.dart'; // Import AppState
+import 'package:realtokens/app_state.dart'; // Import AppState
 
 class ServiceStatusPage extends StatelessWidget {
   const ServiceStatusPage({super.key});

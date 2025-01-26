@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:realtokens_apps/generated/l10n.dart';
+import 'package:realtokens/generated/l10n.dart';
 
 class Parameters {
 //Parameters apiService
