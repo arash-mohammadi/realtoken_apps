@@ -251,6 +251,8 @@
   "rmm_description": "Platform for lending and borrowing using real estate tokens.",
   "yam_description": "Management tool for the RealT investors' community.",
   "wiki_community_description": "Resources and tutorials for the RealT community.",
+  "initialPriceModified_description": "Value of the token at the average price you obtained it. This price will be considered for calculating the ROI among other things.",
+  "realtActualPrice": "Actual Price",
   "@propertyMaintenanceMonthly": {
     "description": "Monthly maintenance expenses for the property"
   },

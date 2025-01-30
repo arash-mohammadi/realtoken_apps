@@ -148,6 +148,8 @@ class MessageLookup extends MessageLookupByLibrary {
             "Reserva de Manutenção Inicial"),
         "initialPrice":
             MessageLookupByLibrary.simpleMessage("Preço médio de compra"),
+        "initialPriceModified_description": MessageLookupByLibrary.simpleMessage(
+            "Valor do token ao preço médio que você o obteve. Este preço será considerado para o cálculo do ROI, entre outras coisas."),
         "initialPriceRemoved": MessageLookupByLibrary.simpleMessage(
             "Preço médio de compra removido"),
         "initialPriceUpdated": MessageLookupByLibrary.simpleMessage(
@@ -251,6 +253,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "realTokensList":
             MessageLookupByLibrary.simpleMessage("Lista de RealTokens"),
         "realt": MessageLookupByLibrary.simpleMessage("RealT"),
+        "realtActualPrice": MessageLookupByLibrary.simpleMessage("Preço atual"),
         "realtListingFee":
             MessageLookupByLibrary.simpleMessage("Taxa de Listagem Realt"),
         "realtPlatform":

@@ -162,7 +162,14 @@ class _PortfolioStats extends State<PortfolioStats> {
     );
   }
 
-  Widget _buildRentDistributionCard(DataManager dataManager) {
+  //---------------------------------------------------------------------------------------
+  // ------------------------------------ Graphique des loyers ----------------------------
+  // --------------------------------------------------------------------------------------
+
+int? _selectedIndex;
+final ValueNotifier<int?> _selectedIndexNotifier = ValueNotifier<int?>(null); // Pour suivre l'index sélectionné
+
+Widget _buildRentDistributionCard(DataManager dataManager) {
     final appState = Provider.of<AppState>(context);
 
     return Card(
@@ -193,6 +200,7 @@ class _PortfolioStats extends State<PortfolioStats> {
                   onChanged: (String? value) {
                     setState(() {
                       _selectedFilter = value!;
+                      _selectedIndexNotifier.value = null; // Réinitialiser la sélection lors du changement de filtre
                     });
                   },
                 ),
@@ -202,13 +210,37 @@ class _PortfolioStats extends State<PortfolioStats> {
             // Graphique
             SizedBox(
               height: 200,
-              child: PieChart(
-                PieChartData(
-                  sections: _buildRentDonutChartData(dataManager),
-                  centerSpaceRadius: 50,
-                  sectionsSpace: 2,
-                  borderData: FlBorderData(show: false),
-                ),
+              child: ValueListenableBuilder<int?>(
+                valueListenable: _selectedIndexNotifier,
+                builder: (context, selectedIndex, child) {
+                  return Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      PieChart(
+                        PieChartData(
+                          sections: _buildRentDonutChartData(dataManager, selectedIndex),
+                          centerSpaceRadius: 65,
+                          sectionsSpace: 2,
+                          borderData: FlBorderData(show: false),
+                          pieTouchData: PieTouchData(
+                            touchCallback: (FlTouchEvent event, PieTouchResponse? response) {
+                              if (response != null && response.touchedSection != null) {
+                                final touchedIndex = response.touchedSection!.touchedSectionIndex;
+                                // Mettre à jour le ValueNotifier
+                                _selectedIndexNotifier.value = touchedIndex >= 0 ? touchedIndex : null;
+                              } else {
+                                // Si l'utilisateur clique en dehors du graphique, désélectionner tout
+                                _selectedIndexNotifier.value = null;
+                              }
+                            },
+                          ),
+                        ),
+                      ),
+                      // Texte affiché au centre
+                      _buildCenterText(dataManager, selectedIndex),
+                    ],
+                  );
+                },
               ),
             ),
             const SizedBox(height: 20),
@@ -224,64 +256,89 @@ class _PortfolioStats extends State<PortfolioStats> {
     );
   }
 
-  Widget _buildRentLegend(DataManager dataManager) {
+  List<PieChartSectionData> _buildRentDonutChartData(DataManager dataManager, int? selectedIndex) {
     final Map<String, double> groupedData = _groupRentDataBySelectedFilter(dataManager);
-    final appState = Provider.of<AppState>(context);
-
-    return Wrap(
-      spacing: 8.0,
-      runSpacing: 4.0,
-      alignment: WrapAlignment.start,
-      children: groupedData.entries.map((entry) {
-        final index = groupedData.keys.toList().indexOf(entry.key);
-        final color = generateColor(index);
-
-        // Convertir les abréviations d'état en noms complets si possible
-        String displayKey = Parameters.usStateAbbreviations[entry.key] ?? entry.key;
-
-        return ConstrainedBox(
-          constraints: BoxConstraints(maxWidth: 200), // Largeur maximale pour éviter les débordements
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 16,
-                height: 16,
-                color: color,
-              ),
-              const SizedBox(width: 4),
-              Flexible(
-                child: Text(
-                  '$displayKey: ${Utils.formatCurrency(dataManager.convert(entry.value), dataManager.currencySymbol)}',
-                  style: TextStyle(fontSize: 13 + appState.getTextSizeOffset()),
-                ),
-              ),
-            ],
-          ),
-        );
-      }).toList(),
-    );
-  }
-
-  List<PieChartSectionData> _buildRentDonutChartData(DataManager dataManager) {
-    final Map<String, double> groupedData = _groupRentDataBySelectedFilter(dataManager);
-
     final totalRent = groupedData.values.fold(0.0, (sum, value) => sum + value);
 
-    return groupedData.entries.map((entry) {
-      final percentage = (entry.value / totalRent) * 100;
+    // Trier les données en ordre décroissant par valeur
+    final sortedEntries = groupedData.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
+
+    return sortedEntries.asMap().entries.map((entry) {
+      final index = entry.key;
+      final data = entry.value;
+      final percentage = (data.value / totalRent) * 100;
+
+      final bool isSelected = selectedIndex == index;
+
+      // Appliquer l'opacité uniquement si un segment est sélectionné
+      final opacity = selectedIndex != null && !isSelected ? 0.5 : 1.0;
+
       return PieChartSectionData(
-        value: entry.value,
+        value: data.value,
         title: '${percentage.toStringAsFixed(1)}%',
-        color: generateColor(groupedData.keys.toList().indexOf(entry.key)),
-        radius: 50,
+        color: generateColor(index).withOpacity(opacity), // Opacité conditionnelle
+        radius: isSelected ? 50 : 40, // Augmenter légèrement la taille de la section sélectionnée
         titleStyle: TextStyle(
-          fontSize: 10 + Provider.of<AppState>(context).getTextSizeOffset(),
+          fontSize: isSelected ? 14 + Provider.of<AppState>(context).getTextSizeOffset() : 10 + Provider.of<AppState>(context).getTextSizeOffset(),
           color: Colors.white,
           fontWeight: FontWeight.bold,
         ),
       );
     }).toList();
+  }
+
+  Widget _buildCenterText(DataManager dataManager, int? selectedIndex) {
+    final Map<String, double> groupedData = _groupRentDataBySelectedFilter(dataManager);
+    final totalRent = groupedData.values.fold(0.0, (sum, value) => sum + value);
+
+    if (selectedIndex == null) {
+      // Afficher la valeur totale si aucun segment n'est sélectionné
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            'total',
+            style: TextStyle(
+              fontSize: 16 + Provider.of<AppState>(context).getTextSizeOffset(),
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          Text(
+            Utils.getFormattedAmount(dataManager.convert(totalRent), dataManager.currencySymbol, true),
+            style: TextStyle(
+              fontSize: 14 + Provider.of<AppState>(context).getTextSizeOffset(),
+              color: Colors.grey,
+            ),
+          ),
+        ],
+      );
+    }
+
+    // Afficher les détails du segment sélectionné
+    final sortedEntries = groupedData.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+
+    final selectedEntry = sortedEntries[selectedIndex];
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          Parameters.usStateAbbreviations[selectedEntry.key] ?? selectedEntry.key,
+          style: TextStyle(
+            fontSize: 16 + Provider.of<AppState>(context).getTextSizeOffset(),
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        Text(
+                      Utils.getFormattedAmount(dataManager.convert(selectedEntry.value), dataManager.currencySymbol, true),
+          style: TextStyle(
+            fontSize: 14 + Provider.of<AppState>(context).getTextSizeOffset(),
+            color: Colors.grey,
+          ),
+        ),
+      ],
+    );
   }
 
   Map<String, double> _groupRentDataBySelectedFilter(DataManager dataManager) {
@@ -310,614 +367,1156 @@ class _PortfolioStats extends State<PortfolioStats> {
     return groupedData;
   }
 
-  Widget _buildTokenDistributionCard(DataManager dataManager) {
+  Widget _buildRentLegend(DataManager dataManager) {
+    final Map<String, double> groupedData = _groupRentDataBySelectedFilter(dataManager);
     final appState = Provider.of<AppState>(context);
 
-    return Card(
-      elevation: 0,
-      color: Theme.of(context).cardColor,
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              S.of(context).tokenDistribution,
-              style: TextStyle(fontSize: 20 + appState.getTextSizeOffset(), fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 20),
-            SizedBox(
-              height: 200,
-              child: PieChart(
-                PieChartData(
-                  sections: _buildDonutChartData(dataManager),
-                  centerSpaceRadius: 50,
-                  sectionsSpace: 2,
-                  borderData: FlBorderData(show: false),
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            _buildLegend(dataManager),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTokenDistributionByCountryCard(DataManager dataManager) {
-    final appState = Provider.of<AppState>(context);
-
-    return Card(
-      elevation: 0,
-      color: Theme.of(context).cardColor,
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              S.of(context).tokenDistributionByCountry,
-              style: TextStyle(fontSize: 20 + appState.getTextSizeOffset(), fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 20),
-            SizedBox(
-              height: 200,
-              child: PieChart(
-                PieChartData(
-                  sections: _buildDonutChartDataByCountry(dataManager),
-                  centerSpaceRadius: 50,
-                  sectionsSpace: 2,
-                  borderData: FlBorderData(show: false),
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            _buildLegendByCountry(dataManager),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTokenDistributionByRegionCard(DataManager dataManager) {
-    final appState = Provider.of<AppState>(context);
-    List<Map<String, dynamic>> othersDetails = []; // Pour stocker les détails de la section "Autres"
-
-    return Card(
-      elevation: 0,
-      color: Theme.of(context).cardColor,
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              S.of(context).tokenDistributionByRegion,
-              style: TextStyle(fontSize: 20 + appState.getTextSizeOffset(), fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 20),
-            SizedBox(
-              height: 200,
-              child: PieChart(
-                PieChartData(
-                  sections: _buildDonutChartDataByRegion(dataManager, othersDetails),
-                  centerSpaceRadius: 50,
-                  sectionsSpace: 2,
-                  borderData: FlBorderData(show: false),
-                  pieTouchData: PieTouchData(
-                    touchCallback: (FlTouchEvent event, pieTouchResponse) {
-                      if (pieTouchResponse != null && pieTouchResponse.touchedSection != null) {
-                        final section = pieTouchResponse.touchedSection!.touchedSection;
-
-                        if (event is FlTapUpEvent) {
-                          // Gérer uniquement les événements de tap final
-                          if (section!.title.contains(S.of(context).others)) {
-                            showOtherDetailsModal(context, dataManager, othersDetails, 'region'); // Passer les détails de "Autres"
-                          }
-                        }
-                      }
-                    },
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            _buildLegendByRegion(dataManager, othersDetails),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTokenDistributionByCityCard(DataManager dataManager) {
-    final appState = Provider.of<AppState>(context);
-    List<Map<String, dynamic>> othersDetails = []; // Pour stocker les détails de la section "Autres"
-
-    return Card(
-      elevation: 0,
-      color: Theme.of(context).cardColor,
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              S.of(context).tokenDistributionByCity,
-              style: TextStyle(fontSize: 20 + appState.getTextSizeOffset(), fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 20),
-            SizedBox(
-              height: 200,
-              child: PieChart(
-                PieChartData(
-                  sections: _buildDonutChartDataByCity(dataManager, othersDetails),
-                  centerSpaceRadius: 50,
-                  sectionsSpace: 2,
-                  borderData: FlBorderData(show: false),
-                  pieTouchData: PieTouchData(
-                    touchCallback: (FlTouchEvent event, pieTouchResponse) {
-                      if (pieTouchResponse != null && pieTouchResponse.touchedSection != null) {
-                        final section = pieTouchResponse.touchedSection!.touchedSection;
-
-                        if (event is FlTapUpEvent) {
-                          // Gérer uniquement les événements de tap final
-                          if (section!.title.contains(S.of(context).others)) {
-                            showOtherDetailsModal(context, dataManager, othersDetails, 'city'); // Passer les détails de "Autres"
-                          }
-                        }
-                      }
-                    },
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            _buildLegendByCity(dataManager, othersDetails),
-          ],
-        ),
-      ),
-    );
-  }
-
-  List<PieChartSectionData> _buildDonutChartData(DataManager dataManager) {
-    final appState = Provider.of<AppState>(context);
-
-    return dataManager.propertyData.map((data) {
-      final double percentage = (data['count'] / dataManager.propertyData.fold(0.0, (double sum, item) => sum + item['count'])) * 100;
-
-      // Obtenir la couleur de base et créer des nuances
-      final Color baseColor = _getPropertyColor(data['propertyType']);
-      final Color lighterColor = Utils.shadeColor(baseColor, 1); // plus clair
-      final Color darkerColor = Utils.shadeColor(baseColor, 0.7); // plus foncé
-
-      return PieChartSectionData(
-        value: data['count'].toDouble(),
-        title: '${percentage.toStringAsFixed(1)}%',
-        // Supposons que le champ 'gradient' soit pris en charge
-        gradient: LinearGradient(
-          colors: [lighterColor, darkerColor], // Appliquer le dégradé avec les deux nuances
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        radius: 50,
-        titleStyle: TextStyle(fontSize: 10 + appState.getTextSizeOffset(), color: Colors.white, fontWeight: FontWeight.bold),
-      );
-    }).toList();
-  }
-
-  Widget _buildLegend(DataManager dataManager) {
-    final appState = Provider.of<AppState>(context);
-
-    return Flexible(
-      child: SingleChildScrollView(
-        child: Wrap(
-          spacing: 8.0,
-          runSpacing: 4.0,
-          children: dataManager.propertyData.map((data) {
-            return Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 16,
-                  height: 16,
-                  color: _getPropertyColor(data['propertyType']),
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  Parameters.getPropertyTypeName(data['propertyType'], context),
-                  style: TextStyle(fontSize: 13 + appState.getTextSizeOffset()),
-                ),
-              ],
-            );
-          }).toList(),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLegendByCountry(DataManager dataManager) {
-    Map<String, int> countryCount = {};
-    final appState = Provider.of<AppState>(context);
-
-    // Compter les occurrences par pays
-    for (var token in dataManager.portfolio) {
-      String country = token['country'] ?? 'Unknown Country';
-      countryCount[country] = (countryCount[country] ?? 0) + 1;
-    }
-
-    // Utiliser le même tri que pour le graphique
-    final sortedCountries = countryCount.keys.toList()..sort();
-
-    return Flexible(
-      child: SingleChildScrollView(
-        child: Wrap(
-          spacing: 8.0,
-          runSpacing: 4.0,
-          children: sortedCountries.map((country) {
-            final int index = sortedCountries.indexOf(country);
-            final color = generateColor(index);
-
-            return Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 16,
-                  height: 16,
-                  color: color,
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  '$country: ${countryCount[country]}',
-                  style: TextStyle(fontSize: 13 + appState.getTextSizeOffset()),
-                ),
-              ],
-            );
-          }).toList(),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLegendByRegion(DataManager dataManager, List<Map<String, dynamic>> othersDetails) {
-    Map<String, int> regionCount = {};
-    final appState = Provider.of<AppState>(context);
-
-    // Remplir le dictionnaire avec les counts par région
-    for (var token in dataManager.portfolio) {
-      String regionCode = token['regionCode'] ?? 'Unknown Region';
-      String regionName = Parameters.usStateAbbreviations[regionCode] ?? regionCode;
-      regionCount[regionName] = (regionCount[regionName] ?? 0) + 1;
-    }
-
-    // Liste triée pour un index cohérent entre les légendes et le graphique
-    final sortedRegions = regionCount.keys.toList()..sort();
-
-    List<Widget> legendItems = [];
-    int othersValue = 0;
-
-    for (var region in sortedRegions) {
-      final value = regionCount[region]!;
-      final double percentage = (value / regionCount.values.fold(0, (sum, v) => sum + v)) * 100;
-      final color = generateColor(sortedRegions.indexOf(region));
-
-      if (percentage < 2) {
-        // Ajouter aux "Autres" si < 2%
-        othersValue += value;
-        othersDetails.add({'region': region, 'count': value});
-      } else {
-        // Ajouter un élément de légende pour cette région
-        legendItems.add(Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 16,
-              height: 16,
-              color: color,
-            ),
-            const SizedBox(width: 4),
-            Text(
-              '$region: $value',
-              style: TextStyle(fontSize: 13 + appState.getTextSizeOffset()),
-            ),
-          ],
-        ));
-      }
-    }
-
-    // Ajouter une légende pour "Autres" si nécessaire
-    if (othersValue > 0) {
-      legendItems.add(Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 16,
-            height: 16,
-            color: Colors.grey,
-          ),
-          const SizedBox(width: 4),
-          Text(
-            '${S.of(context).others}: $othersValue',
-            style: TextStyle(fontSize: 13 + appState.getTextSizeOffset()),
-          ),
-        ],
-      ));
-    }
-
-    return Flexible(
-      child: SingleChildScrollView(
-        child: Wrap(
-          spacing: 8.0,
-          runSpacing: 4.0,
-          children: legendItems,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLegendByCity(DataManager dataManager, List<Map<String, dynamic>> othersDetails) {
-    Map<String, int> cityCount = {};
-    final appState = Provider.of<AppState>(context);
-
-    // Remplir le dictionnaire avec les counts par ville
-    for (var token in dataManager.portfolio) {
-      String fullName = token['fullName'];
-      List<String> parts = fullName.split(',');
-      String city = parts.length >= 2 ? parts[1].trim() : 'Unknown City';
-
-      cityCount[city] = (cityCount[city] ?? 0) + 1;
-    }
-
-    // Calculer le total des tokens
-    int totalCount = cityCount.values.fold(0, (sum, value) => sum + value);
-
-    // Trier les villes par ordre alphabétique pour un index constant
-    final sortedCities = cityCount.keys.toList()..sort();
-
-    List<Widget> legendItems = [];
-    int othersValue = 0;
-
-    // Parcourir les villes et regrouper celles avec < 2%
-    for (var city in sortedCities) {
-      final value = cityCount[city]!;
-      final double percentage = (value / totalCount) * 100;
-      final color = generateColor(sortedCities.indexOf(city)); // Appliquer la couleur générée
-
-      if (percentage < 2) {
-        // Ajouter aux "Autres" si < 2%
-        othersValue += value;
-        othersDetails.add({'city': city, 'count': value}); // Stocker les détails de "Autres"
-      } else {
-        // Ajouter un élément de légende pour cette ville
-        legendItems.add(Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 16,
-              height: 16,
-              color: color,
-            ),
-            const SizedBox(width: 4),
-            Text(
-              '$city: $value',
-              style: TextStyle(fontSize: 13 + appState.getTextSizeOffset()),
-            ),
-          ],
-        ));
-      }
-    }
-
-    // Ajouter une légende pour "Autres" si nécessaire
-    if (othersValue > 0) {
-      legendItems.add(Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 16,
-            height: 16,
-            color: Colors.grey,
-          ),
-          const SizedBox(width: 4),
-          Text(
-            '${S.of(context).others}: $othersValue',
-            style: TextStyle(fontSize: 13 + appState.getTextSizeOffset()),
-          ),
-        ],
-      ));
-    }
+    // Trier les données en ordre décroissant par valeur
+    final sortedEntries = groupedData.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
 
     return Wrap(
       spacing: 8.0,
       runSpacing: 4.0,
-      children: legendItems,
+      alignment: WrapAlignment.start,
+      children: sortedEntries.map((entry) {
+        final index = sortedEntries.indexOf(entry); // Index basé sur l'ordre trié
+        final color = generateColor(index);
+
+        // Convertir les abréviations d'état en noms complets si possible
+        String displayKey = Parameters.usStateAbbreviations[entry.key] ?? entry.key;
+
+        return ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: 200), // Largeur maximale pour éviter les débordements
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 16,
+                height: 16,
+                decoration: BoxDecoration(
+                  color: color,
+                  borderRadius: BorderRadius.circular(4), // Bordures arrondies
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 2,
+                      offset: Offset(1, 1),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 4),
+              Flexible(
+                child: Text(
+                  displayKey,
+                  style: TextStyle(fontSize: 11 + appState.getTextSizeOffset()),
+                ),
+              ),
+            ],
+          ),
+        );
+      }).toList(),
     );
   }
 
-  List<PieChartSectionData> _buildDonutChartDataByCountry(DataManager dataManager) {
-    Map<String, int> countryCount = {};
-    final appState = Provider.of<AppState>(context);
 
-    // Remplir le dictionnaire avec les counts par pays
-    for (var token in dataManager.portfolio) {
-      String fullName = token['fullName'];
-      List<String> parts = fullName.split(',');
-      String country = parts.length == 4 ? parts[3].trim() : 'United States';
+  //----------------------------------------------------------------------------------------
+  // --------------------------------- Graphique par Type de propriété ---------------------
+  // ---------------------------------------------------------------------------------------
 
-      countryCount[country] = (countryCount[country] ?? 0) + 1;
-    }
+int? _selectedIndexToken;
 
-    // Trier les pays par ordre alphabétique pour garantir un ordre constant
-    final sortedCountries = countryCount.keys.toList()..sort();
+final ValueNotifier<int?> _selectedIndexNotifierToken = ValueNotifier<int?>(null); // Pour suivre l'index sélectionné
 
-    // Créer les sections du graphique à secteurs avec des gradients
-    return sortedCountries.map((country) {
-      final int value = countryCount[country]!;
-      final double percentage = (value / countryCount.values.reduce((a, b) => a + b)) * 100;
+Widget _buildTokenDistributionCard(DataManager dataManager) {
+  final appState = Provider.of<AppState>(context);
 
-      // Utiliser `generateColor` avec l'index dans `sortedCountries`
-      final int index = sortedCountries.indexOf(country);
-      final Color baseColor = generateColor(index);
+  return Card(
+    elevation: 0,
+    color: Theme.of(context).cardColor,
+    child: Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            S.of(context).tokenDistribution,
+            style: TextStyle(fontSize: 20 + appState.getTextSizeOffset(), fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 20),
+          // Graphique
+          SizedBox(
+            height: 200,
+            child: ValueListenableBuilder<int?>(
+              valueListenable: _selectedIndexNotifierToken,
+              builder: (context, selectedIndex, child) {
+                return Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    PieChart(
+                      PieChartData(
+                        sections: _buildDonutChartData(dataManager, selectedIndex),
+                        centerSpaceRadius: 70,
+                        sectionsSpace: 2,
+                        borderData: FlBorderData(show: false),
+                        pieTouchData: PieTouchData(
+                          touchCallback: (FlTouchEvent event, PieTouchResponse? response) {
+                            if (response != null && response.touchedSection != null) {
+                              final touchedIndex = response.touchedSection!.touchedSectionIndex;
+                              // Mettre à jour le ValueNotifier
+                              _selectedIndexNotifierToken.value = touchedIndex >= 0 ? touchedIndex : null;
+                            } else {
+                              // Si l'utilisateur clique en dehors du graphique, désélectionner tout
+                              _selectedIndexNotifierToken.value = null;
+                            }
+                          },
+                        ),
+                      ),
+                    ),
+                    // Texte affiché au centre
+                    _buildCenterTextToken(dataManager, selectedIndex),
+                  ],
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: 20),
+          // Légende avec Flexible
+          Flexible(
+            child: SingleChildScrollView(
+              child: _buildLegend(dataManager),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
 
-      // Créer des nuances pour le gradient
-      final Color lighterColor = Utils.shadeColor(baseColor, 1);
-      final Color darkerColor = Utils.shadeColor(baseColor, 0.7);
+List<PieChartSectionData> _buildDonutChartData(DataManager dataManager, int? selectedIndex) {
+  final appState = Provider.of<AppState>(context);
 
-      return PieChartSectionData(
-        value: value.toDouble(),
-        title: percentage < 1 ? '' : '${percentage.toStringAsFixed(1)}%',
-        gradient: LinearGradient(
-          colors: [lighterColor, darkerColor],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+  // Trier les données par 'count' dans l'ordre décroissant
+  final sortedData = List<Map<String, dynamic>>.from(dataManager.propertyData)
+    ..sort((a, b) => b['count'].compareTo(a['count']));
+
+  return sortedData.asMap().entries.map((entry) {
+    final index = entry.key;
+    final data = entry.value;
+    final double percentage = (data['count'] / dataManager.propertyData.fold(0.0, (double sum, item) => sum + item['count'])) * 100;
+
+    final bool isSelected = selectedIndex == index;
+
+    // Appliquer l'opacité uniquement si un segment est sélectionné
+    final opacity = selectedIndex != null && !isSelected ? 0.5 : 1.0;
+
+    // Obtenir la couleur de base et créer des nuances
+    final Color baseColor = _getPropertyColor(data['propertyType']);
+    final Color lighterColor = Utils.shadeColor(baseColor, 1); // plus clair
+    final Color darkerColor = Utils.shadeColor(baseColor, 0.7); // plus foncé
+
+    return PieChartSectionData(
+      value: data['count'].toDouble(),
+      title: '${percentage.toStringAsFixed(1)}%',
+      color: baseColor.withOpacity(opacity), // Opacité conditionnelle
+      radius: isSelected ? 50 : 40, // Augmenter légèrement la taille de la section sélectionnée
+      titleStyle: TextStyle(
+        fontSize: isSelected ? 14 + appState.getTextSizeOffset() : 10 + appState.getTextSizeOffset(),
+        color: Colors.white,
+        fontWeight: FontWeight.bold,
+      ),
+    );
+  }).toList();
+}
+
+Widget _buildCenterTextToken(DataManager dataManager, int? selectedIndex) {
+  final totalCount = dataManager.propertyData.fold(0.0, (double sum, item) => sum + item['count']);
+
+  if (selectedIndex == null) {
+    // Afficher la valeur totale si aucun segment n'est sélectionné
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          'total',
+          style: TextStyle(
+            fontSize: 16 + Provider.of<AppState>(context).getTextSizeOffset(),
+            fontWeight: FontWeight.bold,
+          ),
         ),
-        radius: 50,
-        titleStyle: TextStyle(fontSize: 10 + appState.getTextSizeOffset(), color: Colors.white, fontWeight: FontWeight.bold),
+        Text(
+          totalCount.toStringAsFixed(0),
+          style: TextStyle(
+            fontSize: 14 + Provider.of<AppState>(context).getTextSizeOffset(),
+            color: Colors.grey,
+          ),
+        ),
+      ],
+    );
+  }
+
+  // Afficher les détails du segment sélectionné
+  final sortedData = List<Map<String, dynamic>>.from(dataManager.propertyData)
+    ..sort((a, b) => b['count'].compareTo(a['count']));
+
+  final selectedData = sortedData[selectedIndex];
+
+  return Column(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      Text(
+        Parameters.getPropertyTypeName(selectedData['propertyType'], context),
+        style: TextStyle(
+          fontSize: 16 + Provider.of<AppState>(context).getTextSizeOffset(),
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      Text(
+        selectedData['count'].toString(),
+        style: TextStyle(
+          fontSize: 14 + Provider.of<AppState>(context).getTextSizeOffset(),
+          color: Colors.grey,
+        ),
+      ),
+    ],
+  );
+}
+
+Widget _buildLegend(DataManager dataManager) {
+  final appState = Provider.of<AppState>(context);
+
+  // Trier les données par 'count' dans l'ordre décroissant
+  final sortedData = List<Map<String, dynamic>>.from(dataManager.propertyData)
+    ..sort((a, b) => b['count'].compareTo(a['count']));
+
+  return Wrap(
+    spacing: 8.0,
+    runSpacing: 4.0,
+    alignment: WrapAlignment.start,
+    children: sortedData.map((data) {
+      final index = sortedData.indexOf(data);
+      final color = _getPropertyColor(data['propertyType']);
+
+      return ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: 200), // Largeur maximale pour éviter les débordements
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 16,
+              height: 16,
+              decoration: BoxDecoration(
+                color: color,
+                borderRadius: BorderRadius.circular(4), // Bordures arrondies
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 2,
+                    offset: Offset(1, 1),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 4),
+            Flexible(
+              child: Text(
+                Parameters.getPropertyTypeName(data['propertyType'], context),
+                style: TextStyle(fontSize: 11 + appState.getTextSizeOffset()),
+              ),
+            ),
+          ],
+        ),
       );
-    }).toList();
+    }).toList(),
+  );
+}
+
+
+  //----------------------------------------------------------------------------------------
+  // --------------------------------- Graphique par Type de pays --------------------------
+  // ---------------------------------------------------------------------------------------
+
+int? _selectedIndexCountry;
+final ValueNotifier<int?> _selectedIndexNotifierCountry = ValueNotifier<int?>(null); // Pour suivre l'index sélectionné
+
+Widget _buildTokenDistributionByCountryCard(DataManager dataManager) {
+  final appState = Provider.of<AppState>(context);
+
+  return Card(
+    elevation: 0,
+    color: Theme.of(context).cardColor,
+    child: Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            S.of(context).tokenDistributionByCountry,
+            style: TextStyle(fontSize: 20 + appState.getTextSizeOffset(), fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 20),
+          // Graphique
+          SizedBox(
+            height: 200,
+            child: ValueListenableBuilder<int?>(
+              valueListenable: _selectedIndexNotifierCountry,
+              builder: (context, selectedIndex, child) {
+                return Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    PieChart(
+                      PieChartData(
+                        sections: _buildDonutChartDataByCountry(dataManager, selectedIndex),
+                        centerSpaceRadius: 70, // Augmenter l'espace central
+                        sectionsSpace: 2,
+                        borderData: FlBorderData(show: false),
+                        pieTouchData: PieTouchData(
+                          touchCallback: (FlTouchEvent event, PieTouchResponse? response) {
+                            if (response != null && response.touchedSection != null) {
+                              final touchedIndex = response.touchedSection!.touchedSectionIndex;
+                              // Mettre à jour le ValueNotifier
+                              _selectedIndexNotifierCountry.value = touchedIndex >= 0 ? touchedIndex : null;
+                            } else {
+                              // Si l'utilisateur clique en dehors du graphique, désélectionner tout
+                              _selectedIndexNotifierCountry.value = null;
+                            }
+                          },
+                        ),
+                      ),
+                    ),
+                    // Texte affiché au centre
+                    _buildCenterTextByCountry(dataManager, selectedIndex),
+                  ],
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: 20),
+          // Légende avec Flexible
+          Flexible(
+            child: SingleChildScrollView(
+              child: _buildLegendByCountry(dataManager),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+List<PieChartSectionData> _buildDonutChartDataByCountry(DataManager dataManager, int? selectedIndex) {
+  Map<String, int> countryCount = {};
+  final appState = Provider.of<AppState>(context);
+
+  // Remplir le dictionnaire avec les counts par pays
+  for (var token in dataManager.portfolio) {
+    String fullName = token['fullName'];
+    List<String> parts = fullName.split(',');
+    String country = parts.length == 4 ? parts[3].trim() : 'United States';
+
+    countryCount[country] = (countryCount[country] ?? 0) + 1;
   }
 
-  List<PieChartSectionData> _buildDonutChartDataByRegion(DataManager dataManager, List<Map<String, dynamic>> othersDetails) {
-    Map<String, int> regionCount = {};
-    final appState = Provider.of<AppState>(context);
+  // Trier les pays par ordre alphabétique pour garantir un ordre constant
+  final sortedCountries = countryCount.keys.toList()..sort();
 
-    // Remplir le dictionnaire avec les counts par région
-    for (var token in dataManager.portfolio) {
-      String fullName = token['fullName'];
-      List<String> parts = fullName.split(',');
-      String regionCode = parts.length >= 3 ? parts[2].trim().substring(0, 2) : S.of(context).unknown;
+  // Créer les sections du graphique à secteurs avec des gradients
+  return sortedCountries.asMap().entries.map((entry) {
+    final index = entry.key;
+    final country = entry.value;
+    final int value = countryCount[country]!;
+    final double percentage = (value / countryCount.values.reduce((a, b) => a + b)) * 100;
 
-      String regionName = Parameters.usStateAbbreviations[regionCode] ?? regionCode;
-      regionCount[regionName] = (regionCount[regionName] ?? 0) + 1;
-    }
+    final bool isSelected = selectedIndex == index;
 
-    // Calculer le total des tokens
-    int totalCount = regionCount.values.fold(0, (sum, value) => sum + value);
-    final sortedRegions = regionCount.keys.toList()..sort();
+    // Appliquer l'opacité uniquement si un segment est sélectionné
+    final opacity = selectedIndex != null && !isSelected ? 0.5 : 1.0;
 
-    List<PieChartSectionData> sections = [];
-    othersDetails.clear();
-    int othersValue = 0;
+    // Utiliser `generateColor` avec l'index dans `sortedCountries`
+    final Color baseColor = generateColor(index);
 
-    for (var region in sortedRegions) {
-      final value = regionCount[region]!;
-      final double percentage = (value / totalCount) * 100;
-      final baseColor = generateColor(sortedRegions.indexOf(region));
+    // Créer des nuances pour le gradient
+    final Color lighterColor = Utils.shadeColor(baseColor, 1);
+    final Color darkerColor = Utils.shadeColor(baseColor, 0.7);
 
-      // Créer des nuances pour le gradient
-      final Color lighterColor = Utils.shadeColor(baseColor, 1);
-      final Color darkerColor = Utils.shadeColor(baseColor, 0.7);
+    return PieChartSectionData(
+      value: value.toDouble(),
+      title: percentage < 1 ? '' : '${percentage.toStringAsFixed(1)}%',
+      color: baseColor.withOpacity(opacity), // Opacité conditionnelle
+      radius: isSelected ? 50 : 40, // Réduire légèrement le rayon des sections
+      titleStyle: TextStyle(
+        fontSize: isSelected ? 14 + appState.getTextSizeOffset() : 10 + appState.getTextSizeOffset(),
+        color: Colors.white,
+        fontWeight: FontWeight.bold,
+      ),
+    );
+  }).toList();
+}
 
-      if (percentage < 2) {
-        othersValue += value;
-        othersDetails.add({'region': region, 'count': value});
-      } else {
-        sections.add(PieChartSectionData(
-          value: value.toDouble(),
-          title: '${percentage.toStringAsFixed(1)}%',
-          gradient: LinearGradient(
-            colors: [lighterColor, darkerColor],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          radius: 50,
-          titleStyle: TextStyle(
-            fontSize: 10 + appState.getTextSizeOffset(),
-            color: Colors.white,
+Widget _buildCenterTextByCountry(DataManager dataManager, int? selectedIndex) {
+  Map<String, int> countryCount = {};
+
+  // Remplir le dictionnaire avec les counts par pays
+  for (var token in dataManager.portfolio) {
+    String fullName = token['fullName'];
+    List<String> parts = fullName.split(',');
+    String country = parts.length == 4 ? parts[3].trim() : 'United States';
+
+    countryCount[country] = (countryCount[country] ?? 0) + 1;
+  }
+
+  final totalCount = countryCount.values.reduce((a, b) => a + b);
+
+  if (selectedIndex == null) {
+    // Afficher la valeur totale si aucun segment n'est sélectionné
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          'total',
+          style: TextStyle(
+            fontSize: 16 + Provider.of<AppState>(context).getTextSizeOffset(),
             fontWeight: FontWeight.bold,
           ),
-        ));
-      }
-    }
+        ),
+        Text(
+          totalCount.toString(),
+          style: TextStyle(
+            fontSize: 14 + Provider.of<AppState>(context).getTextSizeOffset(),
+            color: Colors.grey,
+          ),
+        ),
+      ],
+    );
+  }
 
-    // Ajouter la section "Autres" si nécessaire
-    if (othersValue > 0) {
-      final double othersPercentage = (othersValue / totalCount) * 100;
+  // Afficher les détails du segment sélectionné
+  final sortedCountries = countryCount.keys.toList()..sort();
+  final selectedCountry = sortedCountries[selectedIndex];
+
+  return Column(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      Text(
+        selectedCountry,
+        style: TextStyle(
+          fontSize: 16 + Provider.of<AppState>(context).getTextSizeOffset(),
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      Text(
+        countryCount[selectedCountry].toString(),
+        style: TextStyle(
+          fontSize: 14 + Provider.of<AppState>(context).getTextSizeOffset(),
+          color: Colors.grey,
+        ),
+      ),
+    ],
+  );
+}
+
+Widget _buildLegendByCountry(DataManager dataManager) {
+  Map<String, int> countryCount = {};
+  final appState = Provider.of<AppState>(context);
+
+  // Compter les occurrences par pays
+  for (var token in dataManager.portfolio) {
+    String fullName = token['fullName'];
+    List<String> parts = fullName.split(',');
+    String country = parts.length == 4 ? parts[3].trim() : 'United States';
+
+    countryCount[country] = (countryCount[country] ?? 0) + 1;
+  }
+
+  // Utiliser le même tri que pour le graphique
+  final sortedCountries = countryCount.keys.toList()..sort();
+
+  return Wrap(
+    spacing: 8.0,
+    runSpacing: 4.0,
+    alignment: WrapAlignment.start,
+    children: sortedCountries.map((country) {
+      final int index = sortedCountries.indexOf(country);
+      final color = generateColor(index);
+
+      return ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: 200), // Largeur maximale pour éviter les débordements
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 16,
+              height: 16,
+              decoration: BoxDecoration(
+                color: color,
+                borderRadius: BorderRadius.circular(4), // Bordures arrondies
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 2,
+                    offset: Offset(1, 1),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 4),
+            Flexible(
+              child: Text(
+                country,
+                style: TextStyle(fontSize: 11 + appState.getTextSizeOffset()),
+              ),
+            ),
+          ],
+        ),
+      );
+    }).toList(),
+  );
+}
+  
+  //----------------------------------------------------------------------------------------
+  // --------------------------------- Graphique par Region --------------------------------
+  // ---------------------------------------------------------------------------------------
+
+int? _selectedIndexRegion;
+final ValueNotifier<int?> _selectedIndexNotifierRegion = ValueNotifier<int?>(null); // Pour suivre l'index sélectionné
+
+Widget _buildTokenDistributionByRegionCard(DataManager dataManager) {
+  final appState = Provider.of<AppState>(context);
+  List<Map<String, dynamic>> othersDetails = []; // Pour stocker les détails de la section "Autres"
+
+  return Card(
+    elevation: 0,
+    color: Theme.of(context).cardColor,
+    child: Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            S.of(context).tokenDistributionByRegion,
+            style: TextStyle(fontSize: 20 + appState.getTextSizeOffset(), fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 20),
+          // Graphique
+          SizedBox(
+            height: 200,
+            child: ValueListenableBuilder<int?>(
+              valueListenable: _selectedIndexNotifierRegion,
+              builder: (context, selectedIndex, child) {
+                return Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    PieChart(
+                      PieChartData(
+                        sections: _buildDonutChartDataByRegion(dataManager, othersDetails, selectedIndex),
+                        centerSpaceRadius: 70, // Augmenter l'espace central
+                        sectionsSpace: 2,
+                        borderData: FlBorderData(show: false),
+                        pieTouchData: PieTouchData(
+                          touchCallback: (FlTouchEvent event, PieTouchResponse? response) {
+                            if (response != null && response.touchedSection != null) {
+                              final touchedIndex = response.touchedSection!.touchedSectionIndex;
+                              // Mettre à jour le ValueNotifier
+                              _selectedIndexNotifierRegion.value = touchedIndex >= 0 ? touchedIndex : null;
+
+                              if (event is FlTapUpEvent) {
+                                final section = response.touchedSection!.touchedSection;
+                                if (section!.title.contains(S.of(context).others)) {
+                                  showOtherDetailsModal(context, dataManager, othersDetails, 'region'); // Passer les détails de "Autres"
+                                }
+                              }
+                            } else {
+                              // Si l'utilisateur clique en dehors du graphique, désélectionner tout
+                              _selectedIndexNotifierRegion.value = null;
+                            }
+                          },
+                        ),
+                      ),
+                    ),
+                    // Texte affiché au centre
+                    _buildCenterTextByRegion(dataManager, selectedIndex, othersDetails),
+                  ],
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: 20),
+          // Légende avec Flexible
+          Flexible(
+            child: SingleChildScrollView(
+              child: _buildLegendByRegion(dataManager, othersDetails),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+List<PieChartSectionData> _buildDonutChartDataByRegion(DataManager dataManager, List<Map<String, dynamic>> othersDetails, int? selectedIndex) {
+  Map<String, int> regionCount = {};
+  final appState = Provider.of<AppState>(context);
+
+  // Remplir le dictionnaire avec les counts par région
+  for (var token in dataManager.portfolio) {
+    String fullName = token['fullName'];
+    List<String> parts = fullName.split(',');
+    String regionCode = parts.length >= 3 ? parts[2].trim().substring(0, 2) : S.of(context).unknown;
+
+    String regionName = Parameters.usStateAbbreviations[regionCode] ?? regionCode;
+    regionCount[regionName] = (regionCount[regionName] ?? 0) + 1;
+  }
+
+  // Calculer le total des tokens
+  int totalCount = regionCount.values.fold(0, (sum, value) => sum + value);
+
+  // Trier les régions par 'count' croissant
+  final sortedRegions = regionCount.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
+
+  List<PieChartSectionData> sections = [];
+  othersDetails.clear();
+  int othersValue = 0;
+
+  for (var entry in sortedRegions) {
+    final region = entry.key;
+    final value = entry.value;
+    final double percentage = (value / totalCount) * 100;
+    final baseColor = generateColor(sortedRegions.indexOf(entry));
+
+    // Appliquer l'opacité uniquement si un segment est sélectionné
+    final bool isSelected = selectedIndex == sortedRegions.indexOf(entry);
+    final opacity = selectedIndex != null && !isSelected ? 0.5 : 1.0;
+
+    if (percentage < 2) {
+      othersValue += value;
+      othersDetails.add({'region': region, 'count': value});
+    } else {
       sections.add(PieChartSectionData(
-        value: othersValue.toDouble(),
-        title: '${S.of(context).others} ${othersPercentage.toStringAsFixed(1)}%',
-        color: Colors.grey,
-        radius: 50,
+        value: value.toDouble(),
+        title: '${percentage.toStringAsFixed(1)}%',
+        color: baseColor.withOpacity(opacity), // Opacité conditionnelle
+        radius: isSelected ? 50 : 40, // Réduire légèrement le rayon des sections
         titleStyle: TextStyle(
-          fontSize: 10 + appState.getTextSizeOffset(),
+          fontSize: isSelected ? 14 + appState.getTextSizeOffset() : 10 + appState.getTextSizeOffset(),
           color: Colors.white,
           fontWeight: FontWeight.bold,
         ),
       ));
     }
-
-    return sections;
   }
 
-  List<PieChartSectionData> _buildDonutChartDataByCity(DataManager dataManager, List<Map<String, dynamic>> othersDetails) {
-    Map<String, int> cityCount = {};
-    final appState = Provider.of<AppState>(context);
+  // Ajouter la section "Autres" si nécessaire
+  if (othersValue > 0) {
+    final double othersPercentage = (othersValue / totalCount) * 100;
+    sections.add(PieChartSectionData(
+      value: othersValue.toDouble(),
+      title: '${S.of(context).others} ${othersPercentage.toStringAsFixed(1)}%',
+      color: Colors.grey.withOpacity(selectedIndex != null && selectedIndex == sections.length ? 1.0 : 0.5), // Opacité conditionnelle
+      radius: selectedIndex != null && selectedIndex == sections.length ? 50 : 40, // Réduire légèrement le rayon des sections
+      titleStyle: TextStyle(
+        fontSize: selectedIndex != null && selectedIndex == sections.length ? 14 + appState.getTextSizeOffset() : 10 + appState.getTextSizeOffset(),
+        color: Colors.white,
+        fontWeight: FontWeight.bold,
+      ),
+    ));
+  }
 
-    // Remplir le dictionnaire avec les counts par ville
-    for (var token in dataManager.portfolio) {
-      String city = token['city'];
-      cityCount[city] = (cityCount[city] ?? 0) + 1;
-    }
+  return sections;
+}
 
-    // Calculer le total des tokens
-    int totalCount = cityCount.values.fold(0, (sum, value) => sum + value);
+Widget _buildCenterTextByRegion(DataManager dataManager, int? selectedIndex, List<Map<String, dynamic>> othersDetails) {
+  Map<String, int> regionCount = {};
 
-    // Trier les villes par ordre alphabétique pour un index constant
-    final sortedCities = cityCount.keys.toList()..sort();
+  // Remplir le dictionnaire avec les counts par région
+  for (var token in dataManager.portfolio) {
+    String fullName = token['fullName'];
+    List<String> parts = fullName.split(',');
+    String regionCode = parts.length >= 3 ? parts[2].trim().substring(0, 2) : S.of(context).unknown;
 
-    List<PieChartSectionData> sections = [];
-    othersDetails.clear(); // Clear previous details of "Autres"
-    int othersValue = 0;
+    String regionName = Parameters.usStateAbbreviations[regionCode] ?? regionCode;
+    regionCount[regionName] = (regionCount[regionName] ?? 0) + 1;
+  }
 
-    // Parcourir les villes et regrouper celles avec < 2%
-    for (var city in sortedCities) {
-      final value = cityCount[city]!;
-      final double percentage = (value / totalCount) * 100;
-      final baseColor = generateColor(sortedCities.indexOf(city)); // Appliquer la couleur générée
+  // Calculer le total des tokens
+  int totalCount = regionCount.values.fold(0, (sum, value) => sum + value);
 
-      // Créer des nuances pour le gradient
-      final Color lighterColor = Utils.shadeColor(baseColor, 1);
-      final Color darkerColor = Utils.shadeColor(baseColor, 0.7);
-
-      if (percentage < 2) {
-        othersValue += value;
-        othersDetails.add({'city': city, 'count': value}); // Stocker les détails de "Autres"
-      } else {
-        sections.add(PieChartSectionData(
-          value: value.toDouble(),
-          title: '${percentage.toStringAsFixed(1)}%',
-          gradient: LinearGradient(
-            colors: [lighterColor, darkerColor],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          radius: 50,
-          titleStyle: TextStyle(
-            fontSize: 10 + appState.getTextSizeOffset(),
-            color: Colors.white,
+  if (selectedIndex == null) {
+    // Afficher la valeur totale si aucun segment n'est sélectionné
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          'total',
+          style: TextStyle(
+            fontSize: 16 + Provider.of<AppState>(context).getTextSizeOffset(),
             fontWeight: FontWeight.bold,
           ),
-        ));
-      }
-    }
+        ),
+        Text(
+          totalCount.toString(),
+          style: TextStyle(
+            fontSize: 14 + Provider.of<AppState>(context).getTextSizeOffset(),
+            color: Colors.grey,
+          ),
+        ),
+      ],
+    );
+  }
 
-    // Ajouter la section "Autres" si nécessaire
-    if (othersValue > 0) {
-      final double othersPercentage = (othersValue / totalCount) * 100;
+  // Afficher les détails du segment sélectionné
+  final sortedRegions = regionCount.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
+
+  if (selectedIndex < sortedRegions.length) {
+    final selectedRegion = sortedRegions[selectedIndex];
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          selectedRegion.key,
+          style: TextStyle(
+            fontSize: 16 + Provider.of<AppState>(context).getTextSizeOffset(),
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        Text(
+          selectedRegion.value.toString(),
+          style: TextStyle(
+            fontSize: 14 + Provider.of<AppState>(context).getTextSizeOffset(),
+            color: Colors.grey,
+          ),
+        ),
+      ],
+    );
+  } else {
+    // Afficher les détails de la section "Autres"
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          S.of(context).others,
+          style: TextStyle(
+            fontSize: 16 + Provider.of<AppState>(context).getTextSizeOffset(),
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        Text(
+othersDetails.fold<int>(0, (sum, item) => sum + (item['count'] as int)).toString(),
+          style: TextStyle(
+            fontSize: 14 + Provider.of<AppState>(context).getTextSizeOffset(),
+            color: Colors.grey,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+Widget _buildLegendByRegion(DataManager dataManager, List<Map<String, dynamic>> othersDetails) {
+  Map<String, int> regionCount = {};
+  final appState = Provider.of<AppState>(context);
+
+  // Remplir le dictionnaire avec les counts par région
+  for (var token in dataManager.portfolio) {
+    String regionCode = token['regionCode'] ?? 'Unknown Region';
+    String regionName = Parameters.usStateAbbreviations[regionCode] ?? regionCode;
+    regionCount[regionName] = (regionCount[regionName] ?? 0) + 1;
+  }
+
+  // Trier les régions par 'count' croissant
+  final sortedRegions = regionCount.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
+
+  List<Widget> legendItems = [];
+  int othersValue = 0;
+
+  for (var entry in sortedRegions) {
+    final region = entry.key;
+    final value = entry.value;
+    final double percentage = (value / regionCount.values.fold(0, (sum, v) => sum + v)) * 100;
+    final color = generateColor(sortedRegions.indexOf(entry));
+
+    if (percentage < 2) {
+      // Ajouter aux "Autres" si < 2%
+      othersValue += value;
+      othersDetails.add({'region': region, 'count': value});
+    } else {
+      // Ajouter un élément de légende pour cette région
+      legendItems.add(Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 16,
+            height: 16,
+            decoration: BoxDecoration(
+              color: color,
+              borderRadius: BorderRadius.circular(4), // Bordures arrondies
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 2,
+                  offset: Offset(1, 1),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 4),
+          Text(
+            region,
+            style: TextStyle(fontSize: 11 + appState.getTextSizeOffset()),
+          ),
+        ],
+      ));
+    }
+  }
+
+  // Ajouter une légende pour "Autres" si nécessaire
+  if (othersValue > 0) {
+    legendItems.add(Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 16,
+          height: 16,
+          color: Colors.grey,
+        ),
+        const SizedBox(width: 4),
+        Text(
+          S.of(context).others,
+          style: TextStyle(fontSize: 11 + appState.getTextSizeOffset()),
+        ),
+      ],
+    ));
+  }
+
+  return Flexible(
+    child: SingleChildScrollView(
+      child: Wrap(
+        spacing: 8.0,
+        runSpacing: 4.0,
+        children: legendItems,
+      ),
+    ),
+  );
+}
+  
+  //----------------------------------------------------------------------------------------
+  // --------------------------------- Graphique par Ville --------------------------------
+  // ---------------------------------------------------------------------------------------
+
+int? _selectedIndexCity;
+final ValueNotifier<int?> _selectedIndexNotifierCity = ValueNotifier<int?>(null); // Pour suivre l'index sélectionné
+
+Widget _buildTokenDistributionByCityCard(DataManager dataManager) {
+  final appState = Provider.of<AppState>(context);
+  List<Map<String, dynamic>> othersDetails = []; // Pour stocker les détails de la section "Autres"
+
+  return Card(
+    elevation: 0,
+    color: Theme.of(context).cardColor,
+    child: Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            S.of(context).tokenDistributionByCity,
+            style: TextStyle(fontSize: 20 + appState.getTextSizeOffset(), fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 20),
+          // Graphique
+          SizedBox(
+            height: 200,
+            child: ValueListenableBuilder<int?>(
+              valueListenable: _selectedIndexNotifierCity,
+              builder: (context, selectedIndex, child) {
+                return Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    PieChart(
+                      PieChartData(
+                        sections: _buildDonutChartDataByCity(dataManager, othersDetails, selectedIndex),
+                        centerSpaceRadius: 70, // Augmenter l'espace central
+                        sectionsSpace: 2,
+                        borderData: FlBorderData(show: false),
+                        pieTouchData: PieTouchData(
+                          touchCallback: (FlTouchEvent event, PieTouchResponse? response) {
+                            if (response != null && response.touchedSection != null) {
+                              final touchedIndex = response.touchedSection!.touchedSectionIndex;
+                              // Mettre à jour le ValueNotifier
+                              _selectedIndexNotifierCity.value = touchedIndex >= 0 ? touchedIndex : null;
+
+                              if (event is FlTapUpEvent) {
+                                final section = response.touchedSection!.touchedSection;
+                                if (section!.title.contains(S.of(context).others)) {
+                                  showOtherDetailsModal(context, dataManager, othersDetails, 'city'); // Passer les détails de "Autres"
+                                }
+                              }
+                            } else {
+                              // Si l'utilisateur clique en dehors du graphique, désélectionner tout
+                              _selectedIndexNotifierCity.value = null;
+                            }
+                          },
+                        ),
+                      ),
+                    ),
+                    // Texte affiché au centre
+                    _buildCenterTextByCity(dataManager, selectedIndex, othersDetails),
+                  ],
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: 20),
+          // Légende avec Flexible
+          Flexible(
+            child: SingleChildScrollView(
+              child: _buildLegendByCity(dataManager, othersDetails),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+List<PieChartSectionData> _buildDonutChartDataByCity(DataManager dataManager, List<Map<String, dynamic>> othersDetails, int? selectedIndex) {
+  Map<String, int> cityCount = {};
+  final appState = Provider.of<AppState>(context);
+
+  // Remplir le dictionnaire avec les counts par ville
+  for (var token in dataManager.portfolio) {
+    String city = token['city'];
+    cityCount[city] = (cityCount[city] ?? 0) + 1;
+  }
+
+  // Calculer le total des tokens
+  int totalCount = cityCount.values.fold(0, (sum, value) => sum + value);
+
+  // Trier les villes par 'count' croissant
+  final sortedCities = cityCount.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
+
+  List<PieChartSectionData> sections = [];
+  othersDetails.clear(); // Clear previous details of "Autres"
+  int othersValue = 0;
+
+  // Parcourir les villes et regrouper celles avec < 2%
+  for (var entry in sortedCities) {
+    final city = entry.key;
+    final value = entry.value;
+    final double percentage = (value / totalCount) * 100;
+    final baseColor = generateColor(sortedCities.indexOf(entry)); // Appliquer la couleur générée
+
+    // Appliquer l'opacité uniquement si un segment est sélectionné
+    final bool isSelected = selectedIndex == sortedCities.indexOf(entry);
+    final opacity = selectedIndex != null && !isSelected ? 0.5 : 1.0;
+
+    if (percentage < 2) {
+      othersValue += value;
+      othersDetails.add({'city': city, 'count': value}); // Stocker les détails de "Autres"
+    } else {
       sections.add(PieChartSectionData(
-        value: othersValue.toDouble(),
-        title: '${S.of(context).others} ${othersPercentage.toStringAsFixed(1)}%',
-        color: Colors.grey,
-        radius: 50,
+        value: value.toDouble(),
+        title: '${percentage.toStringAsFixed(1)}%',
+        color: baseColor.withOpacity(opacity), // Opacité conditionnelle
+        radius: isSelected ? 50 : 40, // Réduire légèrement le rayon des sections
         titleStyle: TextStyle(
-          fontSize: 10 + appState.getTextSizeOffset(),
+          fontSize: isSelected ? 14 + appState.getTextSizeOffset() : 10 + appState.getTextSizeOffset(),
           color: Colors.white,
           fontWeight: FontWeight.bold,
         ),
       ));
     }
-
-    return sections;
   }
+
+  // Ajouter la section "Autres" si nécessaire
+  if (othersValue > 0) {
+    final double othersPercentage = (othersValue / totalCount) * 100;
+    sections.add(PieChartSectionData(
+      value: othersValue.toDouble(),
+      title: '${S.of(context).others} ${othersPercentage.toStringAsFixed(1)}%',
+      color: Colors.grey.withOpacity(selectedIndex != null && selectedIndex == sections.length ? 1.0 : 0.5), // Opacité conditionnelle
+      radius: selectedIndex != null && selectedIndex == sections.length ? 50 : 40, // Réduire légèrement le rayon des sections
+      titleStyle: TextStyle(
+        fontSize: selectedIndex != null && selectedIndex == sections.length ? 14 + appState.getTextSizeOffset() : 10 + appState.getTextSizeOffset(),
+        color: Colors.white,
+        fontWeight: FontWeight.bold,
+      ),
+    ));
+  }
+
+  return sections;
+}
+
+Widget _buildCenterTextByCity(DataManager dataManager, int? selectedIndex, List<Map<String, dynamic>> othersDetails) {
+  Map<String, int> cityCount = {};
+
+  // Remplir le dictionnaire avec les counts par ville
+  for (var token in dataManager.portfolio) {
+    String city = token['city'];
+    cityCount[city] = (cityCount[city] ?? 0) + 1;
+  }
+
+  // Calculer le total des tokens
+  int totalCount = cityCount.values.fold(0, (sum, value) => sum + value);
+
+  if (selectedIndex == null) {
+    // Afficher la valeur totale si aucun segment n'est sélectionné
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          'total',
+          style: TextStyle(
+            fontSize: 16 + Provider.of<AppState>(context).getTextSizeOffset(),
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        Text(
+          totalCount.toString(),
+          style: TextStyle(
+            fontSize: 14 + Provider.of<AppState>(context).getTextSizeOffset(),
+            color: Colors.grey,
+          ),
+        ),
+      ],
+    );
+  }
+
+  // Afficher les détails du segment sélectionné
+  final sortedCities = cityCount.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
+
+  if (selectedIndex < sortedCities.length) {
+    final selectedCity = sortedCities[selectedIndex];
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          selectedCity.key,
+          style: TextStyle(
+            fontSize: 16 + Provider.of<AppState>(context).getTextSizeOffset(),
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        Text(
+          selectedCity.value.toString(),
+          style: TextStyle(
+            fontSize: 14 + Provider.of<AppState>(context).getTextSizeOffset(),
+            color: Colors.grey,
+          ),
+        ),
+      ],
+    );
+  } else {
+    // Afficher les détails de la section "Autres"
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          S.of(context).others,
+          style: TextStyle(
+            fontSize: 16 + Provider.of<AppState>(context).getTextSizeOffset(),
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        Text(
+othersDetails.fold<int>(0, (sum, item) => sum + (item['count'] as int)).toString(),
+          style: TextStyle(
+            fontSize: 14 + Provider.of<AppState>(context).getTextSizeOffset(),
+            color: Colors.grey,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+Widget _buildLegendByCity(DataManager dataManager, List<Map<String, dynamic>> othersDetails) {
+  Map<String, int> cityCount = {};
+  final appState = Provider.of<AppState>(context);
+
+  // Remplir le dictionnaire avec les counts par ville
+  for (var token in dataManager.portfolio) {
+    String city = token['city'];
+    cityCount[city] = (cityCount[city] ?? 0) + 1;
+  }
+
+  // Calculer le total des tokens
+  int totalCount = cityCount.values.fold(0, (sum, value) => sum + value);
+
+  // Trier les villes par 'count' croissant
+  final sortedCities = cityCount.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
+
+  List<Widget> legendItems = [];
+  int othersValue = 0;
+
+  // Parcourir les villes et regrouper celles avec < 2%
+  for (var entry in sortedCities) {
+    final city = entry.key;
+    final value = entry.value;
+    final double percentage = (value / totalCount) * 100;
+    final color = generateColor(sortedCities.indexOf(entry)); // Appliquer la couleur générée
+
+    if (percentage < 2) {
+      // Ajouter aux "Autres" si < 2%
+      othersValue += value;
+      othersDetails.add({'city': city, 'count': value}); // Stocker les détails de "Autres"
+    } else {
+      // Ajouter un élément de légende pour cette ville
+      legendItems.add(Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 16,
+            height: 16,
+            decoration: BoxDecoration(
+              color: color,
+              borderRadius: BorderRadius.circular(4), // Bordures arrondies
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 2,
+                  offset: Offset(1, 1),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 4),
+          Text(
+            city,
+            style: TextStyle(fontSize: 11 + appState.getTextSizeOffset()),
+          ),
+        ],
+      ));
+    }
+  }
+
+  // Ajouter une légende pour "Autres" si nécessaire
+  if (othersValue > 0) {
+    legendItems.add(Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 16,
+          height: 16,
+          color: Colors.grey,
+        ),
+        const SizedBox(width: 4),
+        Text(
+          S.of(context).others,
+          style: TextStyle(fontSize: 11 + appState.getTextSizeOffset()),
+        ),
+      ],
+    ));
+  }
+
+  return Wrap(
+    spacing: 8.0,
+    runSpacing: 4.0,
+    children: legendItems,
+  );
+}
+  //----------------------------------------------------------------------------------------
+  // --------------------------------- Autres fonctions -----------------------------------
+  // ---------------------------------------------------------------------------------------
 
   Color generateColor(int index) {
     final hue = ((index * 57) + 193 * (index % 3)) % 360; // Alterne entre plusieurs intervalles de teinte

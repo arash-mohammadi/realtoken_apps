@@ -813,7 +813,15 @@ class DashboardPageState extends State<DashboardPage> {
                       S.of(context).portfolio,
                       Icons.dashboard,
                       _buildValueBeforeText(
-                        Utils.getFormattedAmount(dataManager.convert(dataManager.yamTotalValue + dataManager.rwaHoldingsValue + dataManager.totalUsdcDepositBalance + dataManager.totalXdaiDepositBalance - dataManager.totalUsdcBorrowBalance - dataManager.totalXdaiBorrowBalance), dataManager.currencySymbol, _showAmounts),
+                        Utils.getFormattedAmount(
+                            dataManager.convert(dataManager.yamTotalValue +
+                                dataManager.rwaHoldingsValue +
+                                dataManager.totalUsdcDepositBalance +
+                                dataManager.totalXdaiDepositBalance -
+                                dataManager.totalUsdcBorrowBalance -
+                                dataManager.totalXdaiBorrowBalance),
+                            dataManager.currencySymbol,
+                            _showAmounts),
                         'projection YAM (${(((dataManager.yamTotalValue + dataManager.rwaHoldingsValue + dataManager.totalUsdcDepositBalance + dataManager.totalXdaiDepositBalance - dataManager.totalUsdcBorrowBalance - dataManager.totalXdaiBorrowBalance) / dataManager.totalWalletValue - 1) * 100).toStringAsFixed(0)}%)',
                         dataManager.isLoading,
                         highlightPercentage: true, // Activer la coloration conditionnelle

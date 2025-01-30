@@ -251,6 +251,8 @@
   "rmm_description": "Plataforma para emprestar e tomar emprestado usando tokens imobiliários.",
     "yam_description": "Ferramenta de gerenciamento para a comunidade de investidores RealT.",
     "wiki_community_description": "Recursos e tutoriais para a comunidade RealT.",
+    "initialPriceModified_description": "Valor do token ao preço médio que você o obteve. Este preço será considerado para o cálculo do ROI, entre outras coisas.",
+    "realtActualPrice": "Preço atual",
   "@propertyMaintenanceMonthly": {
     "description": "Despesas mensais de manutenção da propriedade"
   },

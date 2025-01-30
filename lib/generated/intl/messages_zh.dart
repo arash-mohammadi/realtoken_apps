@@ -122,6 +122,9 @@ class MessageLookup extends MessageLookupByLibrary {
         "initialMaintenanceReserve":
             MessageLookupByLibrary.simpleMessage("维护储备金"),
         "initialPrice": MessageLookupByLibrary.simpleMessage("平均购买价格"),
+        "initialPriceModified_description":
+            MessageLookupByLibrary.simpleMessage(
+                "以您获得的平均价格计算的代币价值。此价格将用于计算投资回报率（ROI）等。"),
         "initialPriceRemoved":
             MessageLookupByLibrary.simpleMessage("平均购买价格已删除"),
         "initialPriceUpdated":
@@ -195,6 +198,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "realTTitle": MessageLookupByLibrary.simpleMessage("RealT"),
         "realTokensList": MessageLookupByLibrary.simpleMessage("RealTokens 列表"),
         "realt": MessageLookupByLibrary.simpleMessage("RealT"),
+        "realtActualPrice": MessageLookupByLibrary.simpleMessage("实际价格"),
         "realtListingFee": MessageLookupByLibrary.simpleMessage("Realt上市费"),
         "realtPlatform": MessageLookupByLibrary.simpleMessage("RealT 平台"),
         "recentChanges": MessageLookupByLibrary.simpleMessage("最近更改"),

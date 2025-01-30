@@ -1,8 +1,8 @@
 import 'package:realtokens/api/data_manager.dart';
+import 'package:realtokens/pages/portfolio/token_details/showTokenDetails.dart';
 import 'package:realtokens/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:realtokens/pages/token_bottom_sheet.dart';
 import 'package:provider/provider.dart';
 import 'package:realtokens/generated/l10n.dart';
 import 'package:realtokens/settings/manage_evm_addresses_page.dart';

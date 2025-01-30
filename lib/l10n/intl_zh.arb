@@ -246,6 +246,8 @@
     "rmm_description": "使用房地产代币进行借贷的平台。",
     "yam_description": "RealT 投资者社区的管理工具。",
     "wiki_community_description": "RealT 社区的资源和教程。",
+    "initialPriceModified_description": "以您获得的平均价格计算的代币价值。此价格将用于计算投资回报率（ROI）等。",
+    "realtActualPrice": "实际价格",
     "@propertyMaintenanceMonthly": {
       "description": "物业的每月维护费用"
     },

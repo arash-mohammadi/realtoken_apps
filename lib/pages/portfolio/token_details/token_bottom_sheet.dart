@@ -10,7 +10,7 @@ import 'package:provider/provider.dart'; // Pour accéder à DataManager
 import 'package:realtokens/api/data_manager.dart'; // Import de DataManager
 import 'package:realtokens/generated/l10n.dart'; // Import pour les traductions
 import 'package:carousel_slider/carousel_slider.dart';
-import 'portfolio/FullScreenCarousel.dart';
+import '../FullScreenCarousel.dart';
 import 'package:realtokens/utils/utils.dart';
 import 'package:realtokens/app_state.dart';
 
@@ -260,7 +260,10 @@ Future<void> showTokenDetails(BuildContext context, Map<String, dynamic> token) 
 
                 const SizedBox(height: 10),
 
-                // TabBarView pour le contenu de chaque onglet
+// --------------------------------------------------------------------------------------------------------
+// -------------------------------- TabBarView pour le contenu de chaque onglet ---------------------------
+// --------------------------------------------------------------------------------------------------------
+
                 SizedBox(
                   height: MediaQuery.of(context).size.height * 0.35,
                   child: TabBarView(
@@ -418,7 +421,10 @@ Future<void> showTokenDetails(BuildContext context, Map<String, dynamic> token) 
                         ),
                       ),
 
-                      // Onglet Finances
+// --------------------------------------------------------------------------------------------------------
+// ------------------------------------- Onglet Finances --------------------------------------------------
+// --------------------------------------------------------------------------------------------------------
+
                       SingleChildScrollView(
                         child: Column(
                           children: [
@@ -709,8 +715,91 @@ Future<void> showTokenDetails(BuildContext context, Map<String, dynamic> token) 
                               context,
                               S.of(context).initialPrice,
                               Utils.formatCurrency(dataManager.convert(token['tokenPrice']), dataManager.currencySymbol),
-                              icon: Icons.price_change_sharp, // Icône pour rendement annuel en pourcentage
+                              icon: Icons.price_change_sharp,
+                              trailing: IconButton(
+                                padding: EdgeInsets.zero,
+                                icon: Icon(Icons.edit, color: Colors.grey, size: 16 + appState.getTextSizeOffset()),
+                                onPressed: () {
+                                  showTextField.value = !showTextField.value; // Basculer la visibilité du champ de texte
+                                },
+                              ),
                             ),
+
+                            // Bloc TextFormField et boutons en dessous
+                            ValueListenableBuilder<bool>(
+                              valueListenable: showTextField,
+                              builder: (context, isVisible, child) {
+                                return Visibility(
+                                  visible: isVisible,
+                                  child: Padding(
+                                    padding: const EdgeInsets.only(top: 8.0), // Espace entre le texte/icone et le bloc
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start, // Alignement des éléments à gauche
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Expanded(
+                                              child: TextFormField(
+                                                controller: initPriceController,
+                                                keyboardType: TextInputType.text,
+                                                decoration: InputDecoration(
+                                                  labelText: S.of(context).initialPrice, // Libellé principal
+                                                  border: OutlineInputBorder(),
+                                                  contentPadding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0), // Réduire le padding interne
+                                                  isDense: true, // Compacte le champ
+                                                ),
+                                              ),
+                                            ),
+                                            IconButton(
+                                              icon: Icon(Icons.check, color: Colors.green),
+                                              onPressed: () {
+                                                final newPrice = double.tryParse(initPriceController.text);
+                                                if (newPrice != null) {
+                                                  Provider.of<DataManager>(context).setCustomInitPrice(token['uuid'], newPrice);
+                                                  showTextField.value = false; // Masque le champ et les icônes
+                                                  ScaffoldMessenger.of(context).showSnackBar(
+                                                    SnackBar(content: Text(S.of(context).initialPriceUpdated)),
+                                                  );
+                                                } else {
+                                                  ScaffoldMessenger.of(context).showSnackBar(
+                                                    SnackBar(content: Text(S.of(context).enterValidNumber)),
+                                                  );
+                                                }
+                                              },
+                                            ),
+                                            IconButton(
+                                              icon: Icon(Icons.delete, color: Colors.red),
+                                              onPressed: () {
+                                                Provider.of<DataManager>(context).removeCustomInitPrice(token['uuid']);
+                                                initPriceController.clear(); // Efface le champ de texte
+                                                showTextField.value = false; // Masque le champ et les icônes
+                                                ScaffoldMessenger.of(context).showSnackBar(
+                                                  SnackBar(content: Text(S.of(context).initialPriceRemoved)),
+                                                );
+                                              },
+                                            ),
+                                          ],
+                                        ),
+                                        // Ajout du texte explicatif en plusieurs lignes
+                                        Padding(
+                                          padding: const EdgeInsets.only(top: 4.0), // Espacement au-dessus du texte explicatif
+                                          child: Text(
+                                            S.of(context).initialPriceModified_description,
+                                            style: TextStyle(
+                                              fontSize: 12 + appState.getTextSizeOffset(), // Taille de texte ajustée
+                                              color: Colors.grey, // Couleur grise pour le texte explicatif
+                                            ),
+                                            maxLines: null, // Permet au texte de s'étendre sur plusieurs lignes
+                                            overflow: TextOverflow.visible, // Empêche le texte de se couper
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+
                             Row(children: [
                               Icon(Icons.price_change_sharp, size: 18, color: Colors.blueGrey),
                               Text('  YAM ', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13 + appState.getTextSizeOffset())),
@@ -748,7 +837,10 @@ Future<void> showTokenDetails(BuildContext context, Map<String, dynamic> token) 
                         ),
                       ),
 
-                      // Onglet Market
+// --------------------------------------------------------------------------------------------------------
+// -------------------------------------------- Onglet Market ---------------------------------------------
+// --------------------------------------------------------------------------------------------------------
+
                       SingleChildScrollView(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -910,7 +1002,10 @@ Future<void> showTokenDetails(BuildContext context, Map<String, dynamic> token) 
                         ),
                       ),
 
+// --------------------------------------------------------------------------------------------------------
                       // Onglet Autres avec section Blockchain uniquement
+// --------------------------------------------------------------------------------------------------------
+
                       SingleChildScrollView(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1012,90 +1107,16 @@ Future<void> showTokenDetails(BuildContext context, Map<String, dynamic> token) 
                             Divider(), // Réduisez la hauteur pour minimiser l’espace
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start, // Aligne le texte et l'icône à gauche
-                              children: [
-                                Row(
-                                  children: [
-                                    Text(
-                                      S.of(context).manualEdit,
-                                      style: TextStyle(
-                                        fontSize: 12, // Taille de police ajustée
-                                        color: Colors.grey,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 4),
-                                    IconButton(
-                                      padding: EdgeInsets.zero, // Retire l'espacement interne de l'icône
-                                      icon: Icon(Icons.edit, color: Colors.grey, size: 18 + appState.getTextSizeOffset()), // Icône crayon plus petite et grise
-                                      onPressed: () {
-                                        showTextField.value = !showTextField.value; // Bascule la visibilité
-                                      },
-                                    ),
-                                  ],
-                                ),
-
-                                // Bloc TextFormField et boutons en dessous
-                                ValueListenableBuilder<bool>(
-                                  valueListenable: showTextField,
-                                  builder: (context, isVisible, child) {
-                                    return Visibility(
-                                      visible: isVisible,
-                                      child: Padding(
-                                        padding: const EdgeInsets.only(top: 8.0), // Espace entre le texte/icone et le bloc
-                                        child: Row(
-                                          children: [
-                                            Expanded(
-                                              child: TextFormField(
-                                                controller: initPriceController,
-                                                keyboardType: TextInputType.text,
-                                                decoration: InputDecoration(
-                                                  labelText: S.of(context).initialPrice,
-                                                  border: OutlineInputBorder(),
-                                                  contentPadding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0), // Réduire le padding interne
-                                                  isDense: true, // Compacte le champ
-                                                ),
-                                              ),
-                                            ),
-                                            IconButton(
-                                              icon: Icon(Icons.check, color: Colors.green),
-                                              onPressed: () {
-                                                final newPrice = double.tryParse(initPriceController.text);
-                                                if (newPrice != null) {
-                                                  Provider.of<DataManager>(context).setCustomInitPrice(token['uuid'], newPrice);
-                                                  showTextField.value = false; // Masque le champ et les icônes
-                                                  ScaffoldMessenger.of(context).showSnackBar(
-                                                    SnackBar(content: Text(S.of(context).initialPriceUpdated)),
-                                                  );
-                                                } else {
-                                                  ScaffoldMessenger.of(context).showSnackBar(
-                                                    SnackBar(content: Text(S.of(context).enterValidNumber)),
-                                                  );
-                                                }
-                                              },
-                                            ),
-                                            IconButton(
-                                              icon: Icon(Icons.delete, color: Colors.red),
-                                              onPressed: () {
-                                                Provider.of<DataManager>(context).removeCustomInitPrice(token['uuid']);
-                                                initPriceController.clear(); // Efface le champ de texte
-                                                showTextField.value = false; // Masque le champ et les icônes
-                                                ScaffoldMessenger.of(context).showSnackBar(
-                                                  SnackBar(content: Text(S.of(context).initialPriceRemoved)),
-                                                );
-                                              },
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ],
+                              children: [],
                             ),
                           ],
                         ),
                       ),
 
+// --------------------------------------------------------------------------------------------------------
                       // Onglet Insights
+// --------------------------------------------------------------------------------------------------------
+
                       SingleChildScrollView(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1203,7 +1224,10 @@ Future<void> showTokenDetails(BuildContext context, Map<String, dynamic> token) 
                         ),
                       ),
 
+// --------------------------------------------------------------------------------------------------------
                       // Ajout de l'onglet Historique des transactions
+// --------------------------------------------------------------------------------------------------------
+
                       SingleChildScrollView(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1373,7 +1397,7 @@ Widget _buildGaugeForROI(double roiValue, BuildContext context) {
 }
 
 // Méthode pour construire les lignes de détails
-Widget _buildDetailRow(BuildContext context, String label, String value, {IconData? icon, bool isNegative = false, Color? color}) {
+Widget _buildDetailRow(BuildContext context, String label, String value, {IconData? icon, bool isNegative = false, Color? color, Widget? trailing}) {
   final appState = Provider.of<AppState>(context, listen: false);
 
   // Ajout du signe "-" et de la couleur rouge si isNegative est true
@@ -1409,9 +1433,17 @@ Widget _buildDetailRow(BuildContext context, String label, String value, {IconDa
                 fontSize: 13 + appState.getTextSizeOffset(),
               ),
             ),
+            SizedBox(
+              height: 16 + appState.getTextSizeOffset(), // Hauteur constante pour le trailing
+              child: trailing ?? SizedBox(), // Si trailing est null, on met un espace vide
+            ),
           ],
         ),
-        Text(displayValue, style: valueStyle), // Texte avec style conditionnel
+        Row(
+          children: [
+            Text(displayValue, style: valueStyle), // Texte avec style conditionnel
+          ],
+        ),
       ],
     ),
   );
@@ -1423,10 +1455,29 @@ Widget _buildYieldChartOrMessage(BuildContext context, List<dynamic> yields, dou
 
   if (yields.length <= 1) {
     // Afficher le message si une seule donnée est disponible
-    return Text(
-      "${S.of(context).noYieldEvolution} ${yields.isNotEmpty ? yields.first['yield'].toStringAsFixed(2) : S.of(context).notSpecified} %",
-      style: TextStyle(fontSize: 13 + appState.getTextSizeOffset()), // Réduction pour Android
-    );
+    return RichText(
+  text: TextSpan(
+    text: "${S.of(context).noYieldEvolution} ", // Texte avant la valeur
+    style: TextStyle(
+      fontSize: 13 + appState.getTextSizeOffset(),
+      color: Theme.of(context).textTheme.bodyMedium?.color, // Couleur par défaut
+    ),
+    children: [
+      TextSpan(
+        text: yields.isNotEmpty
+            ? yields.first['yield'].toStringAsFixed(2) // La valeur en gras
+            : S.of(context).notSpecified,
+        style: TextStyle(
+          fontWeight: FontWeight.bold,
+          color: Theme.of(context).textTheme.bodyLarge?.color, // Gras uniquement pour cette partie
+        ),
+      ),
+      TextSpan(
+        text: " %", // Texte après la valeur
+      ),
+    ],
+  ),
+);
   } else {
     // Calculer l'évolution en pourcentage
     double lastYield = yields.last['yield']?.toDouble() ?? 0;
@@ -1467,10 +1518,30 @@ Widget _buildPriceChartOrMessage(BuildContext context, List<dynamic> prices, dou
 
   if (prices.length <= 1) {
     // Afficher le message si une seule donnée est disponible
-    return Text(
-      "${S.of(context).noPriceEvolution} ${prices.isNotEmpty ? prices.first['price'].toStringAsFixed(2) : S.of(context).notSpecified} \$",
-      style: TextStyle(fontSize: 13 + appState.getTextSizeOffset()), // Réduction pour Android
-    );
+    return RichText(
+  text: TextSpan(
+    text: "${S.of(context).noPriceEvolution} ", // Texte avant la valeur
+    style: TextStyle(
+      fontSize: 13 + appState.getTextSizeOffset(),
+      color: Theme.of(context).textTheme.bodyMedium?.color, // Couleur par défaut
+    ),
+    children: [
+      TextSpan(
+        text: prices.isNotEmpty
+            ? prices.first['price'].toStringAsFixed(2) // La valeur en gras
+            : S.of(context).notSpecified,
+        style: TextStyle(
+          fontWeight: FontWeight.bold,
+          color: Theme.of(context).textTheme.bodyLarge?.color, // Gras uniquement pour cette partie
+        ),
+      ),
+      TextSpan(
+        text: " \$", // Texte après la valeur
+      ),
+    ],
+  ),
+);
+
   } else {
     // Calculer l'évolution en pourcentage
     double lastPrice = prices.last['price']?.toDouble() ?? 0;

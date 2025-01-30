@@ -2540,6 +2540,26 @@ class S {
     );
   }
 
+  /// `Value of the token at the average price you obtained it. This price will be considered for calculating the ROI among other things.`
+  String get initialPriceModified_description {
+    return Intl.message(
+      'Value of the token at the average price you obtained it. This price will be considered for calculating the ROI among other things.',
+      name: 'initialPriceModified_description',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Actual Price`
+  String get realtActualPrice {
+    return Intl.message(
+      'Actual Price',
+      name: 'realtActualPrice',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Bedroom/Bath`
   String get bedroomBath {
     return Intl.message(
