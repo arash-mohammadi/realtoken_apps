@@ -28,7 +28,12 @@ class RealtPageState extends State<RealtPage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).scaffoldBackgroundColor, // Définir le fond noir
-        title: Text(S.of(context).realTTitle), // Utilisation de S.of(context)
+        title:  Center(
+                child: Image.asset(
+                  'assets/RealT_Logo.png', // Chemin vers l'image dans assets
+                  height: 100, // Ajuster la taille de l'image
+                ),
+              ),
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -36,61 +41,46 @@ class RealtPageState extends State<RealtPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Image centrée en haut
-              Center(
-                child: Image.asset(
-                  'assets/RealT_Logo.png', // Chemin vers l'image dans assets
-                  height: 100, // Ajuster la taille de l'image
-                ),
-              ),
-              const SizedBox(height: 30), // Espace sous l'image
+                            const SizedBox(height: 30),
+
               _buildCard(
-                S.of(context).totalTokens, // Utilisation de S.of(context)
-                Icons.token,
-                _buildValueBeforeText(
-                  '${dataManager.totalRealtTokens}',
-                  S.of(context).tokens, // Utilisation de S.of(context)
-                ),
-                [],
-                dataManager,
-                context,
-              ),
-              const SizedBox(height: 15),
-              _buildCard(
-                S.of(context).totalInvestment, // Utilisation de S.of(context)
+                'investment', // Utilisation de S.of(context)
                 Icons.attach_money,
                 _buildValueBeforeText(
                   Utils.formatCurrency(dataManager.convert(dataManager.totalRealtInvestment), dataManager.currencySymbol),
-                  '',
-                ),
-                [],
-                dataManager,
-                context,
-              ),
-              const SizedBox(height: 15),
-              _buildCard(
-                S.of(context).netAnnualRent, // Utilisation de S.of(context)
-                Icons.money,
-                _buildValueBeforeText(
-                  Utils.formatCurrency(dataManager.convert(dataManager.netRealtRentYear), dataManager.currencySymbol),
-                  '',
-                ),
-                [],
-                dataManager,
-                context,
-              ),
-              const SizedBox(height: 15),
-              _buildCard(
-                S.of(context).totalUnits, // Utilisation de S.of(context)
-                Icons.home,
-                _buildValueBeforeText(
-                  '${dataManager.totalRealtUnits}',
-                  S.of(context).units, // Utilisation de S.of(context)
+                  S.of(context).totalInvestment,
                 ),
                 [
                   _buildValueBeforeText(
+                  Utils.formatCurrency(dataManager.convert(dataManager.netRealtRentYear), dataManager.currencySymbol),
+                  'net rent',
+                ),
+                ],
+                dataManager,
+                context,
+              ),
+             
+              const SizedBox(height: 15),
+              _buildCard(
+                S.of(context).properties, // Utilisation de S.of(context)
+                Icons.home,
+                 _buildValueBeforeText(
+                  '${dataManager.totalRealtTokens}',
+                  S.of(context).tokens, // Utilisation de S.of(context)
+                ),
+                [
+                  _buildValueBeforeText(
+                  '${dataManager.totalRealtUnits}',
+                  S.of(context).units, // Utilisation de S.of(context)
+                ),
+                  _buildValueBeforeText(
                     '${dataManager.rentedRealtUnits}',
                     S.of(context).rentedUnits, // Utilisation de S.of(context)
+                  ),
+                  _buildValueBeforeText(
+                    '${(dataManager.rentedRealtUnits / dataManager.totalRealtUnits * 100).toStringAsFixed(1)}%',
+                    S.of(context).rented, // Utilisation de S.of(context)
+                     color: Colors.green,
                   ),
                 ],
                 dataManager,
@@ -176,7 +166,7 @@ class RealtPageState extends State<RealtPage> {
   }
 
   // Construction d'une ligne pour afficher la valeur avant le texte
-  Widget _buildValueBeforeText(String value, String text) {
+  Widget _buildValueBeforeText(String value, String text, {Color? color}) {
     return Row(
       children: [
         Text(
@@ -184,6 +174,7 @@ class RealtPageState extends State<RealtPage> {
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
+            color: color ?? Theme.of(context).textTheme.bodyMedium?.color, // Utilise la couleur fournie ou la couleur par défaut
           ),
         ),
         const SizedBox(width: 6),

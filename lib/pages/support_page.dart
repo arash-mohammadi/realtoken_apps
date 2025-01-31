@@ -62,7 +62,7 @@ class RealtPageState extends State<SupportPage> {
                   style: TextStyle(fontSize: 13 + appState.getTextSizeOffset()),
                 ), // Texte principal
                 linkText: 'Telegram Link here', // Texte du lien
-                linkUrl: 'https://t.me/c/1561110632/5797', // URL du lien
+                linkUrl: 'https://t.me/+ae_vCmnjg5JjNWQ0', // URL du lien
                 iconColor: Color(0xFF0088CC), // Couleur officielle Telegram
               ),
               const SizedBox(height: 10), // Espace sous l'image

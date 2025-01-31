@@ -23,8 +23,13 @@
   class _WalletStats extends State<WalletStats> {
     static final logger = Logger(); // Initialiser une instance de logger
 
-    late String _selectedPeriod;
-    bool apyIsBarChart = true; // Basculer entre BarChart et LineChart
+// Variables pour stocker la période sélectionnée pour chaque graphique
+  late String _selectedRentPeriod; // Pour le graphique des loyers
+  late String _selectedWalletPeriod; // Pour le graphique du solde du portefeuille
+  late String _selectedRoiPeriod; // Pour le graphique du ROI
+  late String _selectedApyPeriod; // Pour le graphique de l'APY
+  
+  bool apyIsBarChart = true; // Basculer entre BarChart et LineChart
     bool roiIsBarChart = false; // Basculer entre BarChart et LineChart
     bool walletIsBarChart = false; // Basculer entre BarChart et LineChart
     late SharedPreferences prefs;
@@ -57,18 +62,56 @@
     @override
     void didChangeDependencies() {
       super.didChangeDependencies();
-      _selectedPeriod = S.of(context).month; // Initialisation avec la traduction après que le contexte est disponible.
-    }
+_selectedRentPeriod = S.of(context).month;
+    _selectedWalletPeriod = S.of(context).month;
+    _selectedRoiPeriod = S.of(context).month;
+    _selectedApyPeriod = S.of(context).month;    }
+
+
+List<BarChartGroupData> _buildRoiHistoryBarChartData(DataManager dataManager, String selectedPeriod) {
+  // Récupérer les données de ROI groupées par période
+  List<FlSpot> roiHistoryData = _buildRoiHistoryChartData(dataManager, selectedPeriod);
+
+  // Convertir les FlSpot en BarChartGroupData
+  return roiHistoryData
+      .asMap()
+      .entries
+      .map(
+        (entry) => BarChartGroupData(
+          x: entry.key,
+          barRods: [
+            BarChartRodData(
+              toY: entry.value.y,
+              color: Colors.cyan, // Couleur des barres
+              width: 8, // Largeur des barres
+            ),
+          ],
+        ),
+      )
+      .toList();
+}
 
     List<Map<String, dynamic>> _groupRentDataByPeriod(DataManager dataManager) {
-      if (_selectedPeriod == S.of(context).week) {
-        return _groupByWeek(dataManager.rentData);
-      } else if (_selectedPeriod == S.of(context).month) {
-        return _groupByMonth(dataManager.rentData);
-      } else {
-        return _groupByYear(dataManager.rentData);
-      }
-    }
+  if (_selectedRentPeriod == S.of(context).day) {
+    return _groupByDay(dataManager.rentData); // Ajouter une méthode _groupByDay
+  } else if (_selectedRentPeriod == S.of(context).week) {
+    return _groupByWeek(dataManager.rentData);
+  } else if (_selectedRentPeriod == S.of(context).month) {
+    return _groupByMonth(dataManager.rentData);
+  } else {
+    return _groupByYear(dataManager.rentData);
+  }
+}
+
+List<Map<String, dynamic>> _groupByDay(List<Map<String, dynamic>> data) {
+  Map<String, double> groupedData = {};
+  for (var entry in data) {
+    DateTime date = DateTime.parse(entry['date']);
+    String dayKey = DateFormat('yyyy/MM/dd').format(date); // Format jour
+    groupedData[dayKey] = (groupedData[dayKey] ?? 0) + entry['rent'];
+  }
+  return groupedData.entries.map((entry) => {'date': entry.key, 'rent': entry.value}).toList();
+}
 
     List<Map<String, dynamic>> _groupByWeek(List<Map<String, dynamic>> data) {
       Map<String, double> groupedData = {};
@@ -237,7 +280,14 @@
                   )
                 ],
               ),
-              _buildPeriodSelector(),
+                _buildPeriodSelector(
+            selectedPeriod: _selectedRentPeriod,
+            onPeriodChanged: (period) {
+              setState(() {
+                _selectedRentPeriod = period;
+              });
+            },
+          ),
               const SizedBox(height: 20),
               SizedBox(
                 height: 250,
@@ -364,847 +414,900 @@
     }
 
     Widget _buildWalletBalanceCard(DataManager dataManager) {
-      final appState = Provider.of<AppState>(context);
+  final appState = Provider.of<AppState>(context);
 
-      // Récupérer les données pour les graphiques
-      List<FlSpot> walletBalanceData = _buildWalletBalanceChartData(dataManager);
-      List<BarChartGroupData> barChartData = _buildWalletBalanceBarChartData(dataManager);
+  // Récupérer les données pour les graphiques
+  List<FlSpot> walletBalanceData = _buildWalletBalanceChartData(dataManager, _selectedWalletPeriod);
+  List<BarChartGroupData> barChartData = _buildWalletBalanceBarChartData(dataManager, _selectedWalletPeriod);
 
-      return Card(
-        elevation: 0,
-        color: Theme.of(context).cardColor,
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+  return Card(
+    elevation: 0,
+    color: Theme.of(context).cardColor,
+    child: Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
-              Row(
-                children: [
-                  Text(
-                    S.of(context).walletBalanceHistory, // Titre principal
-                    style: TextStyle(
-                      fontSize: 20 + appState.getTextSizeOffset(),
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const Spacer(),
-                  IconButton(
-                    icon: const Icon(
-                      Icons.settings,
-                      size: 20.0,
-                    ),
-                    onPressed: () {
-                      showModalBottomSheet(
-                        context: context,
-                        builder: (context) {
-                          return Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                ListTile(
-                                  leading: const Icon(Icons.bar_chart, color: Colors.blue),
-                                  title: Text(S.of(context).barChart),
-                                  onTap: () {
-                                    setState(() {
-                                      walletIsBarChart = true;
-                                      _saveChartPreference('walletIsBarChart', walletIsBarChart);
-                                    });
-                                    Navigator.of(context).pop();
-                                  },
-                                ),
-                                ListTile(
-                                  leading: const Icon(Icons.show_chart, color: Colors.green),
-                                  title: Text(S.of(context).lineChart),
-                                  onTap: () {
-                                    setState(() {
-                                      walletIsBarChart = false;
-                                      _saveChartPreference('walletIsBarChart', walletIsBarChart);
-                                    });
-                                    Navigator.of(context).pop();
-                                  },
-                                ),
-                                const Divider(),
-                                ListTile(
-                                  leading: const Icon(Icons.edit, color: Colors.orange),
-                                  title: Text(S.of(context).edit),
-                                  onTap: () {
-                                    Navigator.of(context).pop();
-                                    _showEditModal(context, dataManager);
-                                  },
-                                ),
-                              ],
+              Text(
+                S.of(context).walletBalanceHistory, // Titre principal
+                style: TextStyle(
+                  fontSize: 20 + appState.getTextSizeOffset(),
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const Spacer(),
+              IconButton(
+                icon: const Icon(
+                  Icons.settings,
+                  size: 20.0,
+                ),
+                onPressed: () {
+                  showModalBottomSheet(
+                    context: context,
+                    builder: (context) {
+                      return Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            ListTile(
+                              leading: const Icon(Icons.bar_chart, color: Colors.blue),
+                              title: Text(S.of(context).barChart),
+                              onTap: () {
+                                setState(() {
+                                  walletIsBarChart = true;
+                                  _saveChartPreference('walletIsBarChart', walletIsBarChart);
+                                });
+                                Navigator.of(context).pop();
+                              },
                             ),
-                          );
-                        },
+                            ListTile(
+                              leading: const Icon(Icons.show_chart, color: Colors.green),
+                              title: Text(S.of(context).lineChart),
+                              onTap: () {
+                                setState(() {
+                                  walletIsBarChart = false;
+                                  _saveChartPreference('walletIsBarChart', walletIsBarChart);
+                                });
+                                Navigator.of(context).pop();
+                              },
+                            ),
+                            const Divider(),
+                            ListTile(
+                              leading: const Icon(Icons.edit, color: Colors.orange),
+                              title: Text(S.of(context).edit),
+                              onTap: () {
+                                Navigator.of(context).pop();
+                                _showEditModal(context, dataManager);
+                              },
+                            ),
+                          ],
+                        ),
                       );
                     },
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-              SizedBox(
-                height: 250,
-                child: StatefulBuilder(
-                  builder: (context, setState) {
-                    return walletIsBarChart
-                        ? BarChart(
-                            BarChartData(
-                              gridData: FlGridData(show: true, drawVerticalLine: false),
-                              titlesData: FlTitlesData(
-                                leftTitles: AxisTitles(
-                                  sideTitles: SideTitles(
-                                    showTitles: true,
-                                    reservedSize: 45,
-                                    getTitlesWidget: (value, meta) {
-                                      final displayValue = value >= 1000
-                                          ? '${(value / 1000).toStringAsFixed(1)} k${dataManager.currencySymbol}'
-                                          : Utils.formatCurrency(value, dataManager.currencySymbol);
-                                      return Text(
-                                        displayValue,
-                                        style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
-                                      );
-                                    },
-                                  ),
-                                ),
-                                bottomTitles: AxisTitles(
-                                  sideTitles: SideTitles(
-                                    showTitles: true,
-                                    getTitlesWidget: (value, meta) {
-                                      List<String> labels = _buildDateLabelsForWallet(dataManager);
-                                      if (value.toInt() >= 0 && value.toInt() < labels.length) {
-                                        return Padding(
-                                          padding: const EdgeInsets.only(top: 10.0),
-                                          child: Transform.rotate(
-                                            angle: -0.5,
-                                            child: Text(
-                                              labels[value.toInt()],
-                                              style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
-                                            ),
-                                          ),
-                                        );
-                                      } else {
-                                        return const SizedBox.shrink();
-                                      }
-                                    },
-                                  ),
-                                ),
-                                topTitles: AxisTitles(
-                                  sideTitles: SideTitles(showTitles: false),
-                                ),
-                                rightTitles: AxisTitles(
-                                  sideTitles: SideTitles(showTitles: false),
-                                ),
-                              ),
-                              borderData: FlBorderData(
-                                show: true,
-                                border: Border(
-                                  left: BorderSide(color: Colors.transparent),
-                                  bottom: BorderSide(color: Colors.blueGrey.shade700, width: 0.5),
-                                  right: BorderSide(color: Colors.transparent),
-                                  top: BorderSide(color: Colors.transparent),
-                                ),
-                              ),
-                              barGroups: barChartData,
-                            ),
-                          )
-                        : LineChart(
-                            LineChartData(
-                              gridData: FlGridData(show: true, drawVerticalLine: false),
-                              titlesData: FlTitlesData(
-                                leftTitles: AxisTitles(
-                                  sideTitles: SideTitles(
-                                    showTitles: true,
-                                    reservedSize: 45,
-                                    getTitlesWidget: (value, meta) {
-                                      final displayValue = value >= 1000
-                                          ? '${(value / 1000).toStringAsFixed(1)} k${dataManager.currencySymbol}'
-                                          : Utils.formatCurrency(value, dataManager.currencySymbol);
-                                      return Text(
-                                        displayValue,
-                                        style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
-                                      );
-                                    },
-                                  ),
-                                ),
-                                bottomTitles: AxisTitles(
-                                  sideTitles: SideTitles(
-                                    showTitles: true,
-                                    getTitlesWidget: (value, meta) {
-                                      List<String> labels = _buildDateLabelsForWallet(dataManager);
-                                      if (value.toInt() >= 0 && value.toInt() < labels.length) {
-                                        return Padding(
-                                          padding: const EdgeInsets.only(top: 10.0),
-                                          child: Transform.rotate(
-                                            angle: -0.5,
-                                            child: Text(
-                                              labels[value.toInt()],
-                                              style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
-                                            ),
-                                          ),
-                                        );
-                                      } else {
-                                        return const SizedBox.shrink();
-                                      }
-                                    },
-                                  ),
-                                ),
-                                topTitles: AxisTitles(
-                                  sideTitles: SideTitles(showTitles: false),
-                                ),
-                                rightTitles: AxisTitles(
-                                  sideTitles: SideTitles(showTitles: false),
-                                ),
-                              ),
-                              borderData: FlBorderData(
-                                show: true,
-                                border: Border(
-                                  left: BorderSide(color: Colors.transparent),
-                                  bottom: BorderSide(color: Colors.blueGrey.shade700, width: 0.5),
-                                  right: BorderSide(color: Colors.transparent),
-                                  top: BorderSide(color: Colors.transparent),
-                                ),
-                              ),
-                              lineBarsData: [
-                                LineChartBarData(
-                                  spots: walletBalanceData,
-                                  isCurved: false,
-                                  barWidth: 2,
-                                  color: Colors.purple,
-                                  dotData: FlDotData(show: false),
-                                  belowBarData: BarAreaData(
-                                    show: true,
-                                    gradient: LinearGradient(
-                                      colors: [
-                                        Colors.purple.withOpacity(0.4),
-                                        Colors.purple.withOpacity(0),
-                                      ],
-                                      begin: Alignment.topCenter,
-                                      end: Alignment.bottomCenter,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                  },
-                ),
+                  );
+                },
               ),
             ],
           ),
-        ),
-      );
-    }
-
-    List<BarChartGroupData> _buildWalletBalanceBarChartData(DataManager dataManager) {
-      List<FlSpot> walletBalanceData = _buildWalletBalanceChartData(dataManager);
-      return walletBalanceData
-          .asMap()
-          .entries
-          .map(
-            (entry) => BarChartGroupData(
-              x: entry.key,
-              barRods: [
-                BarChartRodData(
-                  toY: entry.value.y,
-                  color: Colors.purple,
-                  width: 8,
-                ),
-              ],
-            ),
-          )
-          .toList();
-    }
-
-    Widget _buildRoiHistoryCard(DataManager dataManager) {
-      final appState = Provider.of<AppState>(context);
-
-      // Récupérer les données pour les graphiques
-      List<FlSpot> roiHistoryData = _buildRoiHistoryChartData(dataManager);
-      List<BarChartGroupData> barChartData = _buildRoiHistoryBarChartData(dataManager);
-
-      return Card(
-        elevation: 0,
-        color: Theme.of(context).cardColor,
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Text(
-                    S.of(context).roiHistory, // Titre principal
-                    style: TextStyle(
-                      fontSize: 20 + appState.getTextSizeOffset(),
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const Spacer(),
-                  IconButton(
-                    icon: const Icon(Icons.settings, size: 20.0),
-                    onPressed: () {
-                      showModalBottomSheet(
-                        context: context,
-                        builder: (context) {
-                          return Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                ListTile(
-                                  leading: const Icon(Icons.bar_chart, color: Colors.blue),
-                                  title: Text(S.of(context).barChart),
-                                  onTap: () {
-                                    setState(() {
-                                      roiIsBarChart = true;
-                                      _saveChartPreference('roiIsBarChart', roiIsBarChart);
-                                    });
-                                    Navigator.of(context).pop();
-                                  },
-                                ),
-                                ListTile(
-                                  leading: const Icon(Icons.show_chart, color: Colors.green),
-                                  title: Text(S.of(context).lineChart),
-                                  onTap: () {
-                                    setState(() {
-                                      roiIsBarChart = false;
-                                      _saveChartPreference('roiIsBarChart', roiIsBarChart);
-                                    });
-                                    Navigator.of(context).pop();
-                                  },
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                      );
-                    },
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-              SizedBox(
-                height: 250,
-                child: StatefulBuilder(
-                  builder: (context, setState) {
-                    // Basculer entre BarChart et LineChart
-                    return roiIsBarChart
-                        ? BarChart(
-                            BarChartData(
-                              gridData: FlGridData(show: true, drawVerticalLine: false),
-                              titlesData: FlTitlesData(
-                                leftTitles: AxisTitles(
-                                  sideTitles: SideTitles(
-                                    showTitles: true,
-                                    reservedSize: 45,
-                                    getTitlesWidget: (value, meta) {
-                                      return Text(
-                                        '${value.toStringAsFixed(0)}%',
-                                        style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
-                                      );
-                                    },
-                                  ),
-                                ),
-                                bottomTitles: AxisTitles(
-                                  sideTitles: SideTitles(
-                                    showTitles: true,
-                                    getTitlesWidget: (value, meta) {
-                                      List<String> labels = _buildDateLabelsForRoi(dataManager);
-                                      if (value.toInt() >= 0 && value.toInt() < labels.length) {
-                                        return Padding(
-                                          padding: const EdgeInsets.only(top: 10.0),
-                                          child: Transform.rotate(
-                                            angle: -0.5,
-                                            child: Text(
-                                              labels[value.toInt()],
-                                              style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
-                                            ),
-                                          ),
-                                        );
-                                      } else {
-                                        return const SizedBox.shrink();
-                                      }
-                                    },
-                                  ),
-                                ),
-                                topTitles: AxisTitles(
-                                  sideTitles: SideTitles(showTitles: false),
-                                ),
-                                rightTitles: AxisTitles(
-                                  sideTitles: SideTitles(showTitles: false),
-                                ),
+  _buildPeriodSelector(
+            selectedPeriod: _selectedWalletPeriod,
+            onPeriodChanged: (period) {
+              setState(() {
+                _selectedWalletPeriod = period;
+              });
+            },
+          ),          const SizedBox(height: 20),
+          SizedBox(
+            height: 250,
+            child: StatefulBuilder(
+              builder: (context, setState) {
+                return walletIsBarChart
+                    ? BarChart(
+                        BarChartData(
+                          gridData: FlGridData(show: true, drawVerticalLine: false),
+                          titlesData: FlTitlesData(
+                            leftTitles: AxisTitles(
+                              sideTitles: SideTitles(
+                                showTitles: true,
+                                reservedSize: 45,
+                                getTitlesWidget: (value, meta) {
+                                  final displayValue = value >= 1000
+                                      ? '${(value / 1000).toStringAsFixed(1)} k${dataManager.currencySymbol}'
+                                      : Utils.formatCurrency(value, dataManager.currencySymbol);
+                                  return Text(
+                                    displayValue,
+                                    style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
+                                  );
+                                },
                               ),
-                              borderData: FlBorderData(
-                                show: true,
-                                border: Border(
-                                  left: BorderSide(color: Colors.transparent),
-                                  bottom: BorderSide(color: Colors.blueGrey.shade700, width: 0.5),
-                                  right: BorderSide(color: Colors.transparent),
-                                  top: BorderSide(color: Colors.transparent),
-                                ),
-                              ),
-                              barGroups: barChartData,
                             ),
-                          )
-                        : LineChart(
-                            LineChartData(
-                              gridData: FlGridData(show: true, drawVerticalLine: false),
-                              titlesData: FlTitlesData(
-                                topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                                leftTitles: AxisTitles(
-                                  sideTitles: SideTitles(
-                                    showTitles: true,
-                                    reservedSize: 45,
-                                    getTitlesWidget: (value, meta) {
-                                      final highestValue = roiHistoryData.map((e) => e.y).reduce((a, b) => a > b ? a : b);
-
-                                      if (value == highestValue) {
-                                        return const SizedBox.shrink();
-                                      }
-
-                                      return Transform.rotate(
+                            bottomTitles: AxisTitles(
+                              sideTitles: SideTitles(
+                                showTitles: true,
+                                getTitlesWidget: (value, meta) {
+                                  List<String> labels = _buildDateLabelsForWallet(dataManager, _selectedWalletPeriod);
+                                  if (value.toInt() >= 0 && value.toInt() < labels.length) {
+                                    return Padding(
+                                      padding: const EdgeInsets.only(top: 10.0),
+                                      child: Transform.rotate(
                                         angle: -0.5,
                                         child: Text(
-                                          '${value.toStringAsFixed(0)}%',
+                                          labels[value.toInt()],
                                           style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
                                         ),
-                                      );
-                                    },
-                                  ),
-                                ),
-                                bottomTitles: AxisTitles(
-                                  sideTitles: SideTitles(
-                                    showTitles: true,
-                                    getTitlesWidget: (value, meta) {
-                                      List<String> labels = _buildDateLabelsForRoi(dataManager);
-
-                                      if (value.toInt() >= 0 && value.toInt() < labels.length) {
-                                        return Padding(
-                                          padding: const EdgeInsets.only(top: 10.0),
-                                          child: Transform.rotate(
-                                            angle: -0.5,
-                                            child: Text(
-                                              labels[value.toInt()],
-                                              style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
-                                            ),
-                                          ),
-                                        );
-                                      } else {
-                                        return const SizedBox.shrink();
-                                      }
-                                    },
-                                    reservedSize: 30,
-                                    interval: 1,
-                                  ),
-                                ),
-                                rightTitles: AxisTitles(
-                                  sideTitles: SideTitles(showTitles: false),
-                                ),
-                              ),
-                              borderData: FlBorderData(
-                                show: true,
-                                border: Border(
-                                  left: BorderSide(color: Colors.transparent),
-                                  bottom: BorderSide(color: Colors.blueGrey.shade700, width: 0.5),
-                                  right: BorderSide(color: Colors.transparent),
-                                  top: BorderSide(color: Colors.transparent),
-                                ),
-                              ),
-                              minX: 0,
-                              maxX: (roiHistoryData.length - 1).toDouble(),
-                              minY: 0,
-                              maxY: 100,
-                              lineBarsData: [
-                                LineChartBarData(
-                                  spots: roiHistoryData,
-                                  isCurved: false,
-                                  barWidth: 2,
-                                  color: Colors.cyan,
-                                  dotData: FlDotData(show: false),
-                                  belowBarData: BarAreaData(
-                                    show: true,
-                                    gradient: LinearGradient(
-                                      colors: [
-                                        Colors.cyan.withOpacity(0.4),
-                                        Colors.cyan.withOpacity(0),
-                                      ],
-                                      begin: Alignment.topCenter,
-                                      end: Alignment.bottomCenter,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                              lineTouchData: LineTouchData(
-                                touchTooltipData: LineTouchTooltipData(
-                                  tooltipRoundedRadius: 8,
-                                  tooltipMargin: 8,
-                                  getTooltipItems: (List<LineBarSpot> touchedSpots) {
-                                    return touchedSpots.map((touchedSpot) {
-                                      final index = touchedSpot.x.toInt();
-                                      final value = touchedSpot.y;
-                                      final date = _buildDateLabelsForRoi(dataManager)[index];
-
-                                      final formattedValue = '${value.toStringAsFixed(2)}%';
-
-                                      return LineTooltipItem(
-                                        '$date\n$formattedValue',
-                                        const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                                      );
-                                    }).toList();
-                                  },
-                                ),
-                                touchCallback: (FlTouchEvent event, LineTouchResponse? touchResponse) {
-                                  if (touchResponse != null && touchResponse.lineBarSpots != null) {
-                                    debugPrint('Point touché : ${touchResponse.lineBarSpots?.first.x}');
+                                      ),
+                                    );
+                                  } else {
+                                    return const SizedBox.shrink();
                                   }
                                 },
-                                handleBuiltInTouches: true,
                               ),
                             ),
-                          );
-                  },
+                            topTitles: AxisTitles(
+                              sideTitles: SideTitles(showTitles: false),
+                            ),
+                            rightTitles: AxisTitles(
+                              sideTitles: SideTitles(showTitles: false),
+                            ),
+                          ),
+                          borderData: FlBorderData(
+                            show: true,
+                            border: Border(
+                              left: BorderSide(color: Colors.transparent),
+                              bottom: BorderSide(color: Colors.blueGrey.shade700, width: 0.5),
+                              right: BorderSide(color: Colors.transparent),
+                              top: BorderSide(color: Colors.transparent),
+                            ),
+                          ),
+                          barGroups: barChartData,
+                        ),
+                      )
+                    : LineChart(
+                        LineChartData(
+                          gridData: FlGridData(show: true, drawVerticalLine: false),
+                          titlesData: FlTitlesData(
+                            leftTitles: AxisTitles(
+                              sideTitles: SideTitles(
+                                showTitles: true,
+                                reservedSize: 45,
+                                getTitlesWidget: (value, meta) {
+                                  final displayValue = value >= 1000
+                                      ? '${(value / 1000).toStringAsFixed(1)} k${dataManager.currencySymbol}'
+                                      : Utils.formatCurrency(value, dataManager.currencySymbol);
+                                  return Text(
+                                    displayValue,
+                                    style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
+                                  );
+                                },
+                              ),
+                            ),
+                            bottomTitles: AxisTitles(
+                              sideTitles: SideTitles(
+                                showTitles: true,
+                                getTitlesWidget: (value, meta) {
+                                  List<String> labels = _buildDateLabelsForWallet(dataManager, _selectedWalletPeriod);
+                                  if (value.toInt() >= 0 && value.toInt() < labels.length) {
+                                    return Padding(
+                                      padding: const EdgeInsets.only(top: 10.0),
+                                      child: Transform.rotate(
+                                        angle: -0.5,
+                                        child: Text(
+                                          labels[value.toInt()],
+                                          style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
+                                        ),
+                                      ),
+                                    );
+                                  } else {
+                                    return const SizedBox.shrink();
+                                  }
+                                },
+                              ),
+                            ),
+                            topTitles: AxisTitles(
+                              sideTitles: SideTitles(showTitles: false),
+                            ),
+                            rightTitles: AxisTitles(
+                              sideTitles: SideTitles(showTitles: false),
+                            ),
+                          ),
+                          borderData: FlBorderData(
+                            show: true,
+                            border: Border(
+                              left: BorderSide(color: Colors.transparent),
+                              bottom: BorderSide(color: Colors.blueGrey.shade700, width: 0.5),
+                              right: BorderSide(color: Colors.transparent),
+                              top: BorderSide(color: Colors.transparent),
+                            ),
+                          ),
+                          lineBarsData: [
+                            LineChartBarData(
+                              spots: walletBalanceData,
+                              isCurved: false,
+                              barWidth: 2,
+                              color: Colors.purple,
+                              dotData: FlDotData(show: false),
+                              belowBarData: BarAreaData(
+                                show: true,
+                                gradient: LinearGradient(
+                                  colors: [
+                                    Colors.purple.withOpacity(0.4),
+                                    Colors.purple.withOpacity(0),
+                                  ],
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                ),
+                              ),
+                            ),
+                          ],
+                          lineTouchData: LineTouchData(
+  touchTooltipData: LineTouchTooltipData(
+    getTooltipItems: (List<LineBarSpot> touchedSpots) {
+      return touchedSpots.map((touchedSpot) {
+        final index = touchedSpot.x.toInt();
+        final averageBalance = touchedSpot.y;
+        final periodLabel = _buildDateLabelsForWallet(dataManager, _selectedWalletPeriod)[index];
+
+        return LineTooltipItem(
+          '$periodLabel\n${Utils.formatCurrency(averageBalance, dataManager.currencySymbol)}',
+          const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        );
+      }).toList();
+    },
+  ),
+),
+                        ),
+                      );
+              },
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+List<BarChartGroupData> _buildWalletBalanceBarChartData(DataManager dataManager, String selectedPeriod) {
+  List<FlSpot> walletBalanceData = _buildWalletBalanceChartData(dataManager, selectedPeriod);
+  return walletBalanceData
+      .asMap()
+      .entries
+      .map(
+        (entry) => BarChartGroupData(
+          x: entry.key,
+          barRods: [
+            BarChartRodData(
+              toY: entry.value.y,
+              color: Colors.purple,
+              width: 8,
+            ),
+          ],
+        ),
+      )
+      .toList();
+}
+    
+   Widget _buildRoiHistoryCard(DataManager dataManager) {
+  final appState = Provider.of<AppState>(context);
+
+  // Récupérer les données pour les graphiques
+  List<FlSpot> roiHistoryData = _buildRoiHistoryChartData(dataManager, _selectedRoiPeriod);
+  List<BarChartGroupData> barChartData = _buildRoiHistoryBarChartData(dataManager, _selectedRoiPeriod);
+
+  return Card(
+    elevation: 0,
+    color: Theme.of(context).cardColor,
+    child: Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(
+                S.of(context).roiHistory, // Titre principal
+                style: TextStyle(
+                  fontSize: 20 + appState.getTextSizeOffset(),
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    List<BarChartGroupData> _buildRoiHistoryBarChartData(DataManager dataManager) {
-      // Convertir les données de FlSpot pour le BarChart
-      List<FlSpot> roiHistoryData = _buildRoiHistoryChartData(dataManager);
-      return roiHistoryData
-          .asMap()
-          .entries
-          .map(
-            (entry) => BarChartGroupData(
-              x: entry.key,
-              barRods: [
-                BarChartRodData(
-                  toY: entry.value.y,
-                  color: Colors.cyan,
-                  width: 8,
-                ),
-              ],
-            ),
-          )
-          .toList();
-    }
-
-    Widget _buildApyHistoryCard(DataManager dataManager) {
-      final appState = Provider.of<AppState>(context);
-
-      List<BarChartGroupData> apyHistoryData = _buildApyHistoryBarChartData(dataManager);
-      List<LineChartBarData> lineChartData = _buildApyHistoryLineChartData(dataManager);
-
-      int? selectedIndex; // Variable pour stocker l'index sélectionné
-
-      return Card(
-        elevation: 0,
-        color: Theme.of(context).cardColor,
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Text(
-                    S.of(context).apyHistory,
-                    style: TextStyle(
-                      fontSize: 20 + appState.getTextSizeOffset(),
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const Spacer(),
-                  IconButton(
-                    icon: const Icon(Icons.settings, size: 20.0),
-                    onPressed: () {
-                      showModalBottomSheet(
-                        context: context,
-                        builder: (context) {
-                          return Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                ListTile(
-                                  leading: const Icon(Icons.bar_chart, color: Colors.blue),
-                                  title: Text(S.of(context).barChart),
-                                  onTap: () {
-                                    setState(() {
-                                      apyIsBarChart = true;
-                                      _saveChartPreference('apyIsBarChart', apyIsBarChart);
-                                    });
-                                    Navigator.of(context).pop();
-                                  },
-                                ),
-                                ListTile(
-                                  leading: const Icon(Icons.show_chart, color: Colors.green),
-                                  title: Text(S.of(context).lineChart),
-                                  onTap: () {
-                                    setState(() {
-                                      apyIsBarChart = false;
-                                      _saveChartPreference('apyIsBarChart', apyIsBarChart);
-                                    });
-                                    Navigator.of(context).pop();
-                                  },
-                                ),
-                              ],
+              const Spacer(),
+              IconButton(
+                icon: const Icon(Icons.settings, size: 20.0),
+                onPressed: () {
+                  showModalBottomSheet(
+                    context: context,
+                    builder: (context) {
+                      return Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            ListTile(
+                              leading: const Icon(Icons.bar_chart, color: Colors.blue),
+                              title: Text(S.of(context).barChart),
+                              onTap: () {
+                                setState(() {
+                                  roiIsBarChart = true;
+                                  _saveChartPreference('roiIsBarChart', roiIsBarChart);
+                                });
+                                Navigator.of(context).pop();
+                              },
                             ),
-                          );
-                        },
+                            ListTile(
+                              leading: const Icon(Icons.show_chart, color: Colors.green),
+                              title: Text(S.of(context).lineChart),
+                              onTap: () {
+                                setState(() {
+                                  roiIsBarChart = false;
+                                  _saveChartPreference('roiIsBarChart', roiIsBarChart);
+                                });
+                                Navigator.of(context).pop();
+                              },
+                            ),
+                          ],
+                        ),
                       );
                     },
-                  ),
-                ],
+                  );
+                },
               ),
-              const SizedBox(height: 20),
-              SizedBox(
-                height: 250,
-                child: StatefulBuilder(
-                  builder: (context, setState) {
-                    return apyIsBarChart
-                        ? BarChart(
-                            BarChartData(
-                              gridData: FlGridData(show: true, drawVerticalLine: false),
-                              titlesData: FlTitlesData(
-                                leftTitles: AxisTitles(
-                                  sideTitles: SideTitles(
-                                    showTitles: true,
-                                    reservedSize: 45,
-                                    getTitlesWidget: (value, meta) {
-                                      return Text(
-                                        '${value.toStringAsFixed(0)}%',
-                                        style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
-                                      );
-                                    },
-                                  ),
-                                ),
-                                bottomTitles: AxisTitles(
-                                  sideTitles: SideTitles(
-                                    showTitles: true,
-                                    getTitlesWidget: (value, meta) {
-                                      List<String> labels = _buildDateLabelsForApy(dataManager);
-                                      if (value.toInt() >= 0 && value.toInt() < labels.length) {
-                                        return Padding(
-                                          padding: const EdgeInsets.only(top: 10.0),
-                                          child: Transform.rotate(
-                                            angle: -0.5,
-                                            child: Text(
-                                              labels[value.toInt()],
-                                              style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
-                                            ),
-                                          ),
-                                        );
-                                      } else {
-                                        return const Text('');
-                                      }
-                                    },
-                                  ),
-                                ),
-                                topTitles: AxisTitles(
-                                  sideTitles: SideTitles(
-                                    showTitles: false,
-                                  ),
-                                ),
-                                rightTitles: AxisTitles(
-                                  sideTitles: SideTitles(
-                                    showTitles: false,
-                                  ),
-                                ),
+            ],
+          ),
+          _buildPeriodSelector(
+            selectedPeriod: _selectedRoiPeriod,
+            onPeriodChanged: (period) {
+              setState(() {
+                _selectedRoiPeriod = period;
+              });
+            },
+          ),
+          const SizedBox(height: 20),
+          SizedBox(
+            height: 250,
+            child: StatefulBuilder(
+              builder: (context, setState) {
+                return roiIsBarChart
+                    ? BarChart(
+                        BarChartData(
+                          gridData: FlGridData(show: true, drawVerticalLine: false),
+                          titlesData: FlTitlesData(
+                            leftTitles: AxisTitles(
+                              sideTitles: SideTitles(
+                                showTitles: true,
+                                reservedSize: 45,
+                                getTitlesWidget: (value, meta) {
+                                  return Text(
+                                    '${value.toStringAsFixed(0)}%',
+                                    style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
+                                  );
+                                },
                               ),
-                              borderData: FlBorderData(
-                                show: true,
-                                border: Border(
-                                  left: BorderSide(color: Colors.transparent),
-                                  bottom: BorderSide(color: Colors.blueGrey.shade700, width: 0.5),
-                                  right: BorderSide(color: Colors.transparent),
-                                  top: BorderSide(color: Colors.transparent),
-                                ),
-                              ),
-                              alignment: BarChartAlignment.center,
-                              barGroups: apyHistoryData,
-                              maxY: 20,
-                              barTouchData: BarTouchData(
-                                touchTooltipData: BarTouchTooltipData(
-                                  getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                                    // Affiche uniquement le tooltip si l'index est sélectionné
-                                    if (selectedIndex == groupIndex) {
-                                      String tooltip = '${S.of(context).brute}: ${group.barRods[0].rodStackItems[0].toY.toStringAsFixed(2)}%\n'
-                                          '${S.of(context).net}: ${group.barRods[0].rodStackItems[1].toY.toStringAsFixed(2)}%';
-                                      return BarTooltipItem(
-                                        tooltip,
-                                        const TextStyle(color: Colors.white),
-                                      );
-                                    }
-                                    return null; // Aucun tooltip
-                                  },
-                                ),
-                                touchCallback: (FlTouchEvent event, barTouchResponse) {
-                                  // Met à jour l'index sélectionné en cas de clic
-                                  if (event is FlTapUpEvent && barTouchResponse != null) {
-                                    setState(() {
-                                      selectedIndex = barTouchResponse.spot?.touchedBarGroupIndex;
-                                    });
-                                  } else if (event is FlLongPressEnd || event is FlPanEndEvent) {
-                                    // Désélectionne si l'utilisateur annule l'interaction
-                                    setState(() {
-                                      selectedIndex = null;
-                                    });
+                            ),
+                            bottomTitles: AxisTitles(
+                              sideTitles: SideTitles(
+                                showTitles: true,
+                                getTitlesWidget: (value, meta) {
+                                  List<String> labels = _buildDateLabelsForRoi(dataManager, _selectedRoiPeriod);
+                                  if (value.toInt() >= 0 && value.toInt() < labels.length) {
+                                    return Padding(
+                                      padding: const EdgeInsets.only(top: 10.0),
+                                      child: Transform.rotate(
+                                        angle: -0.5,
+                                        child: Text(
+                                          labels[value.toInt()],
+                                          style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
+                                        ),
+                                      ),
+                                    );
+                                  } else {
+                                    return const SizedBox.shrink();
                                   }
                                 },
-                                handleBuiltInTouches: true,
                               ),
                             ),
-                          )
-                        : LineChart(
-                            LineChartData(
-                              gridData: FlGridData(show: true, drawVerticalLine: false),
-                              titlesData: FlTitlesData(
-                                leftTitles: AxisTitles(
-                                  sideTitles: SideTitles(
-                                    showTitles: true,
-                                    reservedSize: 45,
-                                    getTitlesWidget: (value, meta) {
-                                      return Text(
-                                        '${value.toStringAsFixed(0)}%',
-                                        style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
-                                      );
-                                    },
-                                  ),
-                                ),
-                                bottomTitles: AxisTitles(
-                                  sideTitles: SideTitles(
-                                    showTitles: true,
-                                    getTitlesWidget: (value, meta) {
-                                      List<String> labels = _buildDateLabelsForApy(dataManager);
-                                      if (value.toInt() >= 0 && value.toInt() < labels.length) {
-                                        return Padding(
-                                          padding: const EdgeInsets.only(top: 10.0),
-                                          child: Transform.rotate(
-                                            angle: -0.5,
-                                            child: Text(
-                                              labels[value.toInt()],
-                                              style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
-                                            ),
-                                          ),
-                                        );
-                                      } else {
-                                        return const Text('');
-                                      }
-                                    },
-                                  ),
-                                ),
-                                topTitles: AxisTitles(
-                                  sideTitles: SideTitles(
-                                    showTitles: false,
-                                  ),
-                                ),
-                                rightTitles: AxisTitles(
-                                  sideTitles: SideTitles(
-                                    showTitles: false,
-                                  ),
-                                ),
+                            topTitles: AxisTitles(
+                              sideTitles: SideTitles(showTitles: false),
+                            ),
+                            rightTitles: AxisTitles(
+                              sideTitles: SideTitles(showTitles: false),
+                            ),
+                          ),
+                          borderData: FlBorderData(
+                            show: true,
+                            border: Border(
+                              left: BorderSide(color: Colors.transparent),
+                              bottom: BorderSide(color: Colors.blueGrey.shade700, width: 0.5),
+                              right: BorderSide(color: Colors.transparent),
+                              top: BorderSide(color: Colors.transparent),
+                            ),
+                          ),
+                          barGroups: barChartData,
+                        ),
+                      )
+                    : LineChart(
+                        LineChartData(
+                          gridData: FlGridData(show: true, drawVerticalLine: false),
+                          titlesData: FlTitlesData(
+                            topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                            leftTitles: AxisTitles(
+                              sideTitles: SideTitles(
+                                showTitles: true,
+                                reservedSize: 45,
+                                getTitlesWidget: (value, meta) {
+                                  final highestValue = roiHistoryData.map((e) => e.y).reduce((a, b) => a > b ? a : b);
+
+                                  if (value == highestValue) {
+                                    return const SizedBox.shrink();
+                                  }
+
+                                  return Transform.rotate(
+                                    angle: -0.5,
+                                    child: Text(
+                                      '${value.toStringAsFixed(0)}%',
+                                      style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
+                                    ),
+                                  );
+                                },
                               ),
-                              borderData: FlBorderData(
+                            ),
+                            bottomTitles: AxisTitles(
+                              sideTitles: SideTitles(
+                                showTitles: true,
+                                getTitlesWidget: (value, meta) {
+                                  List<String> labels = _buildDateLabelsForRoi(dataManager, _selectedRoiPeriod);
+
+                                  if (value.toInt() >= 0 && value.toInt() < labels.length) {
+                                    return Padding(
+                                      padding: const EdgeInsets.only(top: 10.0),
+                                      child: Transform.rotate(
+                                        angle: -0.5,
+                                        child: Text(
+                                          labels[value.toInt()],
+                                          style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
+                                        ),
+                                      ),
+                                    );
+                                  } else {
+                                    return const SizedBox.shrink();
+                                  }
+                                },
+                                reservedSize: 30,
+                                interval: 1,
+                              ),
+                            ),
+                            rightTitles: AxisTitles(
+                              sideTitles: SideTitles(showTitles: false),
+                            ),
+                          ),
+                          borderData: FlBorderData(
+                            show: true,
+                            border: Border(
+                              left: BorderSide(color: Colors.transparent),
+                              bottom: BorderSide(color: Colors.blueGrey.shade700, width: 0.5),
+                              right: BorderSide(color: Colors.transparent),
+                              top: BorderSide(color: Colors.transparent),
+                            ),
+                          ),
+                          minX: 0,
+                          maxX: (roiHistoryData.length - 1).toDouble(),
+                          minY: 0,
+                          maxY: 100,
+                          lineBarsData: [
+                            LineChartBarData(
+                              spots: roiHistoryData,
+                              isCurved: false,
+                              barWidth: 2,
+                              color: Colors.cyan,
+                              dotData: FlDotData(show: false),
+                              belowBarData: BarAreaData(
                                 show: true,
-                                border: Border(
-                                  left: BorderSide(color: Colors.transparent),
-                                  bottom: BorderSide(color: Colors.blueGrey.shade700, width: 0.5),
-                                  right: BorderSide(color: Colors.transparent),
-                                  top: BorderSide(color: Colors.transparent),
+                                gradient: LinearGradient(
+                                  colors: [
+                                    Colors.cyan.withOpacity(0.4),
+                                    Colors.cyan.withOpacity(0),
+                                  ],
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
                                 ),
                               ),
-                              lineBarsData: lineChartData,
-                              minY: 0,
-                              maxY: 20,
                             ),
-                          );
-                  },
+                          ],
+                          lineTouchData: LineTouchData(
+                            touchTooltipData: LineTouchTooltipData(
+                              tooltipRoundedRadius: 8,
+                              tooltipMargin: 8,
+                              getTooltipItems: (List<LineBarSpot> touchedSpots) {
+                                return touchedSpots.map((touchedSpot) {
+                                  final index = touchedSpot.x.toInt();
+                                  final value = touchedSpot.y;
+                                  final date = _buildDateLabelsForRoi(dataManager, _selectedRoiPeriod)[index];
+
+                                  final formattedValue = '${value.toStringAsFixed(2)}%';
+
+                                  return LineTooltipItem(
+                                    '$date\n$formattedValue',
+                                    const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                                  );
+                                }).toList();
+                              },
+                            ),
+                            touchCallback: (FlTouchEvent event, LineTouchResponse? touchResponse) {
+                              if (touchResponse != null && touchResponse.lineBarSpots != null) {
+                                debugPrint('Point touché : ${touchResponse.lineBarSpots?.first.x}');
+                              }
+                            },
+                            handleBuiltInTouches: true,
+                          ),
+                        ),
+                      );
+              },
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+    List<FlSpot> _buildRoiHistoryChartData(DataManager dataManager, String selectedPeriod) {
+  List<RoiRecord> roiHistory = dataManager.roiHistory;
+
+  // Grouper les données en fonction de la période sélectionnée
+  Map<String, List<double>> groupedData = {};
+  for (var record in roiHistory) {
+    DateTime date = record.timestamp;
+    String periodKey;
+
+    if (selectedPeriod == S.of(context).day) {
+      periodKey = DateFormat('yyyy/MM/dd').format(date); // Grouper par jour
+    } else if (selectedPeriod == S.of(context).week) {
+      periodKey = "${date.year}-S${Utils.weekNumber(date).toString().padLeft(2, '0')}";
+    } else if (selectedPeriod == S.of(context).month) {
+      periodKey = DateFormat('yyyy/MM').format(date);
+    } else {
+      periodKey = date.year.toString();
+    }
+
+    groupedData.putIfAbsent(periodKey, () => []).add(record.roi);
+  }
+
+  // Calculer la moyenne pour chaque période
+  List<FlSpot> spots = [];
+  List<String> sortedKeys = groupedData.keys.toList()..sort();
+
+  for (int i = 0; i < sortedKeys.length; i++) {
+    String periodKey = sortedKeys[i];
+    List<double> rois = groupedData[periodKey]!;
+    double averageRoi = rois.reduce((a, b) => a + b) / rois.length; // Calcul de la moyenne
+    spots.add(FlSpot(i.toDouble(), averageRoi));
+  }
+
+  return spots;
+}
+
+    Widget _buildApyHistoryCard(DataManager dataManager) {
+  final appState = Provider.of<AppState>(context);
+
+  List<BarChartGroupData> apyHistoryData = _buildApyHistoryBarChartData(dataManager, _selectedApyPeriod);
+  List<LineChartBarData> lineChartData = _buildApyHistoryLineChartData(dataManager, _selectedApyPeriod);
+
+  int? selectedIndex; // Variable pour stocker l'index sélectionné
+
+  return Card(
+    elevation: 0,
+    color: Theme.of(context).cardColor,
+    child: Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(
+                S.of(context).apyHistory,
+                style: TextStyle(
+                  fontSize: 20 + appState.getTextSizeOffset(),
+                  fontWeight: FontWeight.bold,
                 ),
+              ),
+              const Spacer(),
+              IconButton(
+                icon: const Icon(Icons.settings, size: 20.0),
+                onPressed: () {
+                  showModalBottomSheet(
+                    context: context,
+                    builder: (context) {
+                      return Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            ListTile(
+                              leading: const Icon(Icons.bar_chart, color: Colors.blue),
+                              title: Text(S.of(context).barChart),
+                              onTap: () {
+                                setState(() {
+                                  apyIsBarChart = true;
+                                  _saveChartPreference('apyIsBarChart', apyIsBarChart);
+                                });
+                                Navigator.of(context).pop();
+                              },
+                            ),
+                            ListTile(
+                              leading: const Icon(Icons.show_chart, color: Colors.green),
+                              title: Text(S.of(context).lineChart),
+                              onTap: () {
+                                setState(() {
+                                  apyIsBarChart = false;
+                                  _saveChartPreference('apyIsBarChart', apyIsBarChart);
+                                });
+                                Navigator.of(context).pop();
+                              },
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  );
+                },
               ),
             ],
           ),
-        ),
-      );
-    }
-
-    List<LineChartBarData> _buildApyHistoryLineChartData(DataManager dataManager) {
-      final groupedData = _groupApyByDate(dataManager); // Regroupe les données comme pour le BarChart
-
-      final grossSpots = <FlSpot>[];
-      final netSpots = <FlSpot>[];
-
-      int index = 0;
-      groupedData.forEach((date, values) {
-        grossSpots.add(FlSpot(index.toDouble(), values['gross']!));
-        netSpots.add(FlSpot(index.toDouble(), values['net']!));
-        index++;
-      });
-
-      return [
-        LineChartBarData(
-          spots: grossSpots,
-          isCurved: true,
-          color: Colors.blue,
-          barWidth: 2,
-          belowBarData: BarAreaData(
-            show: true,
-            color: Colors.blue.withOpacity(0.1),
+          _buildPeriodSelector(
+            selectedPeriod: _selectedApyPeriod,
+            onPeriodChanged: (period) {
+              setState(() {
+                _selectedApyPeriod = period;
+              });
+            },
           ),
-          dotData: FlDotData(show: false),
-        ),
-        LineChartBarData(
-          spots: netSpots,
-          isCurved: true,
-          color: Colors.green,
-          barWidth: 2,
-          belowBarData: BarAreaData(
-            show: true,
-            color: Colors.green.withOpacity(0.1),
+          const SizedBox(height: 20),
+          SizedBox(
+            height: 250,
+            child: StatefulBuilder(
+              builder: (context, setState) {
+                return apyIsBarChart
+                    ? BarChart(
+                        BarChartData(
+                          gridData: FlGridData(show: true, drawVerticalLine: false),
+                          titlesData: FlTitlesData(
+                            leftTitles: AxisTitles(
+                              sideTitles: SideTitles(
+                                showTitles: true,
+                                reservedSize: 45,
+                                getTitlesWidget: (value, meta) {
+                                  return Text(
+                                    '${value.toStringAsFixed(0)}%',
+                                    style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
+                                  );
+                                },
+                              ),
+                            ),
+                            bottomTitles: AxisTitles(
+                              sideTitles: SideTitles(
+                                showTitles: true,
+                                getTitlesWidget: (value, meta) {
+                                  List<String> labels = _buildDateLabelsForApy(dataManager, _selectedApyPeriod);
+                                  if (value.toInt() >= 0 && value.toInt() < labels.length) {
+                                    return Padding(
+                                      padding: const EdgeInsets.only(top: 10.0),
+                                      child: Transform.rotate(
+                                        angle: -0.5,
+                                        child: Text(
+                                          labels[value.toInt()],
+                                          style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
+                                        ),
+                                      ),
+                                    );
+                                  } else {
+                                    return const Text('');
+                                  }
+                                },
+                              ),
+                            ),
+                            topTitles: AxisTitles(
+                              sideTitles: SideTitles(
+                                showTitles: false,
+                              ),
+                            ),
+                            rightTitles: AxisTitles(
+                              sideTitles: SideTitles(
+                                showTitles: false,
+                              ),
+                            ),
+                          ),
+                          borderData: FlBorderData(
+                            show: true,
+                            border: Border(
+                              left: BorderSide(color: Colors.transparent),
+                              bottom: BorderSide(color: Colors.blueGrey.shade700, width: 0.5),
+                              right: BorderSide(color: Colors.transparent),
+                              top: BorderSide(color: Colors.transparent),
+                            ),
+                          ),
+                          alignment: BarChartAlignment.center,
+                          barGroups: apyHistoryData,
+                          maxY: 20,
+                          barTouchData: BarTouchData(
+                            touchTooltipData: BarTouchTooltipData(
+                              getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                                // Affiche uniquement le tooltip si l'index est sélectionné
+                                if (selectedIndex == groupIndex) {
+                                  String tooltip = '${S.of(context).brute}: ${group.barRods[0].rodStackItems[0].toY.toStringAsFixed(2)}%\n'
+                                      '${S.of(context).net}: ${group.barRods[0].rodStackItems[1].toY.toStringAsFixed(2)}%';
+                                  return BarTooltipItem(
+                                    tooltip,
+                                    const TextStyle(color: Colors.white),
+                                  );
+                                }
+                                return null; // Aucun tooltip
+                              },
+                            ),
+                            touchCallback: (FlTouchEvent event, barTouchResponse) {
+                              // Met à jour l'index sélectionné en cas de clic
+                              if (event is FlTapUpEvent && barTouchResponse != null) {
+                                setState(() {
+                                  selectedIndex = barTouchResponse.spot?.touchedBarGroupIndex;
+                                });
+                              } else if (event is FlLongPressEnd || event is FlPanEndEvent) {
+                                // Désélectionne si l'utilisateur annule l'interaction
+                                setState(() {
+                                  selectedIndex = null;
+                                });
+                              }
+                            },
+                            handleBuiltInTouches: true,
+                          ),
+                        ),
+                      )
+                    : LineChart(
+                        LineChartData(
+                          gridData: FlGridData(show: true, drawVerticalLine: false),
+                          titlesData: FlTitlesData(
+                            leftTitles: AxisTitles(
+                              sideTitles: SideTitles(
+                                showTitles: true,
+                                reservedSize: 45,
+                                getTitlesWidget: (value, meta) {
+                                  return Text(
+                                    '${value.toStringAsFixed(0)}%',
+                                    style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
+                                  );
+                                },
+                              ),
+                            ),
+                            bottomTitles: AxisTitles(
+                              sideTitles: SideTitles(
+                                showTitles: true,
+                                getTitlesWidget: (value, meta) {
+                                  List<String> labels = _buildDateLabelsForApy(dataManager, _selectedApyPeriod);
+                                  if (value.toInt() >= 0 && value.toInt() < labels.length) {
+                                    return Padding(
+                                      padding: const EdgeInsets.only(top: 10.0),
+                                      child: Transform.rotate(
+                                        angle: -0.5,
+                                        child: Text(
+                                          labels[value.toInt()],
+                                          style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
+                                        ),
+                                      ),
+                                    );
+                                  } else {
+                                    return const Text('');
+                                  }
+                                },
+                              ),
+                            ),
+                            topTitles: AxisTitles(
+                              sideTitles: SideTitles(
+                                showTitles: false,
+                              ),
+                            ),
+                            rightTitles: AxisTitles(
+                              sideTitles: SideTitles(
+                                showTitles: false,
+                              ),
+                            ),
+                          ),
+                          borderData: FlBorderData(
+                            show: true,
+                            border: Border(
+                              left: BorderSide(color: Colors.transparent),
+                              bottom: BorderSide(color: Colors.blueGrey.shade700, width: 0.5),
+                              right: BorderSide(color: Colors.transparent),
+                              top: BorderSide(color: Colors.transparent),
+                            ),
+                          ),
+                          lineBarsData: lineChartData,
+                          minY: 0,
+                          maxY: 20,
+                        ),
+                      );
+              },
+            ),
           ),
-          dotData: FlDotData(show: false),
-        ),
-      ];
-    }
+        ],
+      ),
+    ),
+  );
+}
 
-    List<BarChartGroupData> _buildApyHistoryBarChartData(DataManager dataManager) {
-      final groupedData = _groupApyByDate(dataManager);
-      final barGroups = <BarChartGroupData>[];
+    List<LineChartBarData> _buildApyHistoryLineChartData(DataManager dataManager, String selectedPeriod) {
+  final groupedData = _groupApyByDate(dataManager, selectedPeriod);
 
-      int index = 0;
-      groupedData.forEach((date, values) {
-        barGroups.add(
-          BarChartGroupData(
-            x: index,
-            barsSpace: 0, // Supprimer ou réduire l'espace entre les barres dans un groupe
-            barRods: [
-              BarChartRodData(
-                toY: values['gross']!,
-                width: 16, // Réduire la largeur des barres
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(6), // Rayon pour le haut gauche
-                  topRight: Radius.circular(6), // Rayon pour le haut droit
-                  bottomLeft: Radius.zero, // Pas de rayon pour le bas gauche
-                  bottomRight: Radius.zero, // Pas de rayon pour le bas droit
-                ),
-                rodStackItems: [
-                  BarChartRodStackItem(0, values['gross']!, Colors.blue.withOpacity(0.8)),
-                  BarChartRodStackItem(0, values['net']!, Colors.green.withOpacity(0.8)),
-                ],
-              ),
+  final grossSpots = <FlSpot>[];
+  final netSpots = <FlSpot>[];
+
+  int index = 0;
+  groupedData.forEach((date, values) {
+    grossSpots.add(FlSpot(index.toDouble(), values['gross']!));
+    netSpots.add(FlSpot(index.toDouble(), values['net']!));
+    index++;
+  });
+
+  return [
+    LineChartBarData(
+      spots: grossSpots,
+      isCurved: true,
+      color: Colors.blue,
+      barWidth: 2,
+      belowBarData: BarAreaData(
+        show: true,
+        color: Colors.blue.withOpacity(0.1),
+      ),
+      dotData: FlDotData(show: false),
+    ),
+    LineChartBarData(
+      spots: netSpots,
+      isCurved: true,
+      color: Colors.green,
+      barWidth: 2,
+      belowBarData: BarAreaData(
+        show: true,
+        color: Colors.green.withOpacity(0.1),
+      ),
+      dotData: FlDotData(show: false),
+    ),
+  ];
+}
+
+    List<BarChartGroupData> _buildApyHistoryBarChartData(DataManager dataManager, String selectedPeriod) {
+  final groupedData = _groupApyByDate(dataManager, selectedPeriod);
+  final barGroups = <BarChartGroupData>[];
+
+  int index = 0;
+  groupedData.forEach((date, values) {
+    barGroups.add(
+      BarChartGroupData(
+        x: index,
+        barsSpace: 0,
+        barRods: [
+          BarChartRodData(
+            toY: values['gross']!,
+            width: 16,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(6),
+              topRight: Radius.circular(6),
+              bottomLeft: Radius.zero,
+              bottomRight: Radius.zero,
+            ),
+            rodStackItems: [
+              BarChartRodStackItem(0, values['gross']!, Colors.blue.withOpacity(0.8)),
+              BarChartRodStackItem(0, values['net']!, Colors.green.withOpacity(0.8)),
             ],
-            showingTooltipIndicators: [0],
           ),
-        );
-        index++;
-      });
+        ],
+        showingTooltipIndicators: [0],
+      ),
+    );
+    index++;
+  });
 
-      return barGroups;
-    }
+  return barGroups;
+}
 
     void _showEditModal(BuildContext context, DataManager dataManager) {
       final appState = Provider.of<AppState>(context, listen: false);
@@ -1330,133 +1433,127 @@
       dataManager.notifyListeners();
     }
 
-    List<FlSpot> _buildWalletBalanceChartData(DataManager dataManager) {
-      List<BalanceRecord> walletHistory = dataManager.walletBalanceHistory;
+    List<FlSpot> _buildWalletBalanceChartData(DataManager dataManager, String selectedPeriod) {
+  List<BalanceRecord> walletHistory = dataManager.walletBalanceHistory;
 
-      // Grouper les données par date sans l'heure
-      Map<DateTime, List<double>> groupedData = {};
-      for (var record in walletHistory) {
-        DateTime dateWithoutTime = DateTime(
-          record.timestamp.year,
-          record.timestamp.month,
-          record.timestamp.day,
-        );
-        groupedData.putIfAbsent(dateWithoutTime, () => []).add(record.balance);
-      }
+  // Grouper les données en fonction de la période sélectionnée
+  Map<String, List<double>> groupedData = {};
+  for (var record in walletHistory) {
+    DateTime date = record.timestamp;
+    String periodKey;
 
-      // Calculer le maximum pour chaque groupe et créer des FlSpot
-      List<FlSpot> spots = [];
-      List<DateTime> sortedDates = groupedData.keys.toList()..sort();
+    if (selectedPeriod == S.of(context).day) {
+      periodKey = DateFormat('yyyy/MM/dd').format(date); // Grouper par jour
+    } else if (selectedPeriod == S.of(context).week) {
+      periodKey = "${date.year}-S${Utils.weekNumber(date).toString().padLeft(2, '0')}";
+    } else if (selectedPeriod == S.of(context).month) {
+      periodKey = DateFormat('yyyy/MM').format(date);
+    } else {
+      periodKey = date.year.toString();
+    }
+    groupedData.putIfAbsent(periodKey, () => []).add(record.balance);
+  }
 
-      for (int i = 0; i < sortedDates.length; i++) {
-        DateTime date = sortedDates[i];
-        List<double> balances = groupedData[date]!;
-        double maxBalance = balances.reduce((a, b) => a > b ? a : b); // Calcul du max
+  // Calculer la moyenne pour chaque période
+  List<FlSpot> spots = [];
+  List<String> sortedKeys = groupedData.keys.toList()..sort();
 
-        spots.add(FlSpot(i.toDouble(), maxBalance));
-      }
+  for (int i = 0; i < sortedKeys.length; i++) {
+    String periodKey = sortedKeys[i];
+    List<double> balances = groupedData[periodKey]!;
+    double averageBalance = balances.reduce((a, b) => a + b) / balances.length; // Calcul de la moyenne
+    spots.add(FlSpot(i.toDouble(), averageBalance));
+  }
 
-      return spots;
+  return spots;
+}
+
+  Map<String, Map<String, double>> _groupApyByDate(DataManager dataManager, String selectedPeriod) {
+  Map<String, Map<String, double>> groupedData = {};
+
+  for (var record in dataManager.apyHistory) {
+    DateTime date = record.timestamp;
+    String periodKey;
+
+    if (selectedPeriod == S.of(context).day) {
+      periodKey = DateFormat('yyyy/MM/dd').format(date); // Grouper par jour
+    } else if (selectedPeriod == S.of(context).week) {
+      periodKey = "${date.year}-S${Utils.weekNumber(date).toString().padLeft(2, '0')}";
+    } else if (selectedPeriod == S.of(context).month) {
+      periodKey = DateFormat('yyyy/MM').format(date);
+    } else {
+      periodKey = date.year.toString();
     }
 
-    List<FlSpot> _buildRoiHistoryChartData(DataManager dataManager) {
-      List<RoiRecord> roiHistory = dataManager.roiHistory;
-
-      // Grouper les données par date sans l'heure
-      Map<DateTime, List<double>> groupedData = {};
-      for (var record in roiHistory) {
-        DateTime dateWithoutTime = DateTime(
-          record.timestamp.year,
-          record.timestamp.month,
-          record.timestamp.day,
-        );
-        groupedData.putIfAbsent(dateWithoutTime, () => []).add(record.roi);
-      }
-
-      // Calculer le maximum pour chaque groupe
-      List<FlSpot> spots = [];
-      List<DateTime> sortedDates = groupedData.keys.toList()..sort();
-
-      for (int i = 0; i < sortedDates.length; i++) {
-        DateTime date = sortedDates[i];
-        List<double> rois = groupedData[date]!;
-        double maxRoi = rois.reduce((a, b) => a > b ? a : b); // Calcul du maximum
-
-        spots.add(FlSpot(i.toDouble(), maxRoi));
-      }
-
-      return spots;
+    if (!groupedData.containsKey(periodKey)) {
+      groupedData[periodKey] = {'gross': 0, 'net': 0};
     }
 
-    Map<String, Map<String, double>> _groupApyByDate(DataManager dataManager) {
-      Map<String, Map<String, double>> groupedData = {};
+    groupedData[periodKey]!['gross'] = record.grossApy;
+    groupedData[periodKey]!['net'] = record.netApy;
+  }
 
-      for (var record in dataManager.apyHistory) {
-        String formattedDate = DateFormat('yy/MM/dd').format(record.timestamp);
+  return groupedData;
+}
 
-        if (!groupedData.containsKey(formattedDate)) {
-          groupedData[formattedDate] = {'gross': 0, 'net': 0};
-        }
+   List<String> _buildDateLabelsForWallet(DataManager dataManager, String selectedPeriod) {
+  List<BalanceRecord> walletHistory = dataManager.walletBalanceHistory;
 
-        groupedData[formattedDate]!['gross'] = record.grossApy;
-        groupedData[formattedDate]!['net'] = record.netApy;
-      }
+  // Grouper les données en fonction de la période sélectionnée
+  Map<String, List<double>> groupedData = {};
+  for (var record in walletHistory) {
+    DateTime date = record.timestamp;
+    String periodKey;
 
-      return groupedData;
+    if (selectedPeriod == S.of(context).day) {
+      periodKey = DateFormat('yyyy/MM/dd').format(date); // Grouper par jour
+    } else if (selectedPeriod == S.of(context).week) {
+      periodKey = "${date.year}-S${Utils.weekNumber(date).toString().padLeft(2, '0')}";
+    } else if (selectedPeriod == S.of(context).month) {
+      periodKey = DateFormat('yyyy/MM').format(date);
+    } else {
+      periodKey = date.year.toString();
     }
 
-    List<String> _buildDateLabelsForWallet(DataManager dataManager) {
-      List<BalanceRecord> walletHistory = dataManager.walletBalanceHistory;
+    groupedData.putIfAbsent(periodKey, () => []).add(record.balance);
+  }
 
-      // Grouper par date sans l'heure
-      Map<DateTime, List<double>> groupedData = {};
-      for (var record in walletHistory) {
-        DateTime dateWithoutTime = DateTime(
-          record.timestamp.year,
-          record.timestamp.month,
-          record.timestamp.day,
-        );
-        groupedData.putIfAbsent(dateWithoutTime, () => []).add(record.balance);
-      }
+  // Trier les clés et les retourner
+  List<String> sortedKeys = groupedData.keys.toList()..sort();
+  return sortedKeys;
+}
 
-      // Trier les dates et formater pour les étiquettes
-      List<DateTime> sortedDates = groupedData.keys.toList()..sort();
+    List<String> _buildDateLabelsForRoi(DataManager dataManager, String selectedPeriod) {
+  List<RoiRecord> roiHistory = dataManager.roiHistory;
 
-      return sortedDates.map((date) {
-        return DateFormat('yy/MM/dd').format(date); // Format souhaité
-      }).toList();
+  // Grouper les données en fonction de la période sélectionnée
+  Map<String, List<double>> groupedData = {};
+  for (var record in roiHistory) {
+    DateTime date = record.timestamp;
+    String periodKey;
+
+    if (selectedPeriod == S.of(context).day) {
+      periodKey = DateFormat('yyyy/MM/dd').format(date); // Grouper par jour
+    } else if (selectedPeriod == S.of(context).week) {
+      periodKey = "${date.year}-S${Utils.weekNumber(date).toString().padLeft(2, '0')}";
+    } else if (selectedPeriod == S.of(context).month) {
+      periodKey = DateFormat('yyyy/MM').format(date);
+    } else {
+      periodKey = date.year.toString();
     }
 
-    List<String> _buildDateLabelsForRoi(DataManager dataManager) {
-      // Récupérer l'historique des données ROI
-      List<RoiRecord> roiHistory = dataManager.roiHistory;
+    groupedData.putIfAbsent(periodKey, () => []).add(record.roi);
+  }
 
-      // Grouper les données par date sans l'heure
-      Map<DateTime, List<double>> groupedData = {};
-      for (var record in roiHistory) {
-        DateTime dateWithoutTime = DateTime(
-          record.timestamp.year,
-          record.timestamp.month,
-          record.timestamp.day,
-        );
-        groupedData.putIfAbsent(dateWithoutTime, () => []).add(record.roi);
-      }
+  // Trier les clés et les retourner
+  List<String> sortedKeys = groupedData.keys.toList()..sort();
+  return sortedKeys;
+}
 
-      // Trier les dates pour s'assurer que les labels correspondent aux points
-      List<DateTime> sortedDates = groupedData.keys.toList()..sort();
-
-      // Formater les dates pour les étiquettes
-      List<String> dateLabels = sortedDates.map((date) {
-        return "${date.day}/${date.month}"; // Format: jour/mois
-      }).toList();
-
-      return dateLabels;
-    }
-
-    List<String> _buildDateLabelsForApy(DataManager dataManager) {
-      final groupedData = _groupApyByDate(dataManager);
-      return groupedData.keys.toList();
-    }
+    List<String> _buildDateLabelsForApy(DataManager dataManager, String selectedPeriod) {
+  final groupedData = _groupApyByDate(dataManager, selectedPeriod);
+  return groupedData.keys.toList();
+}
 
   // Méthode pour calculer un intervalle optimisé pour l'axe des dates
     double _calculateBottomInterval(List<Map<String, dynamic>> data) {
@@ -1468,50 +1565,72 @@
       return interval > 0 ? interval : 1;
     }
 
-    Widget _buildPeriodSelector() {
-      return Row(
-        children: [
-          _buildPeriodButton(S.of(context).week, isFirst: true),
-          _buildPeriodButton(S.of(context).month),
-          _buildPeriodButton(S.of(context).year, isLast: true),
-        ],
-      );
-    }
+Widget _buildPeriodSelector({
+  required String selectedPeriod,
+  required Function(String) onPeriodChanged,
+}) {
+  return Row(
+    children: [
+      _buildPeriodButton(
+        period: S.of(context).day, // Ajouter le paramètre 'period'
+        isSelected: selectedPeriod == S.of(context).day,
+        isFirst: true,
+        onTap: () => onPeriodChanged(S.of(context).day),
+      ),
+      _buildPeriodButton(
+        period: S.of(context).week, // Ajouter le paramètre 'period'
+        isSelected: selectedPeriod == S.of(context).week,
+        onTap: () => onPeriodChanged(S.of(context).week),
+      ),
+      _buildPeriodButton(
+        period: S.of(context).month, // Ajouter le paramètre 'period'
+        isSelected: selectedPeriod == S.of(context).month,
+        onTap: () => onPeriodChanged(S.of(context).month),
+      ),
+      _buildPeriodButton(
+        period: S.of(context).year, // Ajouter le paramètre 'period'
+        isSelected: selectedPeriod == S.of(context).year,
+        isLast: true,
+        onTap: () => onPeriodChanged(S.of(context).year),
+      ),
+    ],
+  );
+}
 
-    Widget _buildPeriodButton(String period, {bool isFirst = false, bool isLast = false}) {
-      bool isSelected = _selectedPeriod == period;
-      final appState = Provider.of<AppState>(context);
+Widget _buildPeriodButton({
+  required String period, // Paramètre nommé 'period'
+  required bool isSelected,
+  bool isFirst = false,
+  bool isLast = false,
+  required Function() onTap,
+}) {
+  final appState = Provider.of<AppState>(context);
 
-      return Expanded(
-        child: GestureDetector(
-          onTap: () {
-            setState(() {
-              _selectedPeriod = period;
-            });
-          },
-          child: Container(
-            decoration: BoxDecoration(
-              color: isSelected ? Colors.blue : Theme.of(context).secondaryHeaderColor,
-              borderRadius: BorderRadius.horizontal(
-                left: isFirst ? const Radius.circular(8) : Radius.zero,
-                right: isLast ? const Radius.circular(8) : Radius.zero,
-              ),
-            ),
-            padding: const EdgeInsets.symmetric(vertical: 3),
-            alignment: Alignment.center,
-            child: Text(
-              period,
-              style: TextStyle(
-                fontSize: 14 + appState.getTextSizeOffset(),
-                color: isSelected ? Colors.white : Theme.of(context).textTheme.bodyLarge?.color,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-              ),
-            ),
+  return Expanded(
+    child: GestureDetector(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.blue : Theme.of(context).secondaryHeaderColor,
+          borderRadius: BorderRadius.horizontal(
+            left: isFirst ? const Radius.circular(8) : Radius.zero,
+            right: isLast ? const Radius.circular(8) : Radius.zero,
           ),
         ),
-      );
-    }
-
+        padding: const EdgeInsets.symmetric(vertical: 3),
+        alignment: Alignment.center,
+        child: Text(
+          period, // Utilisation du paramètre 'period'
+          style: TextStyle(
+            fontSize: 14 + appState.getTextSizeOffset(),
+            color: isSelected ? Colors.white : Theme.of(context).textTheme.bodyLarge?.color,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+          ),
+        ),
+      ),
+    ),
+  );
+}
     List<FlSpot> _buildCumulativeChartData(List<Map<String, dynamic>> data) {
       List<FlSpot> spots = [];
       double cumulativeRent = 0.0;

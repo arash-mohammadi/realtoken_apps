@@ -455,6 +455,7 @@ void _showEditPriceBottomModal(BuildContext context, Map<String, dynamic> token,
               decoration: InputDecoration(
                 labelText: S.of(context).enterValidNumber,
                 border: OutlineInputBorder(),
+                suffixText: '\$',
               ),
             ),
             SizedBox(height: 16), // Espacement entre le champ de texte et les boutons
