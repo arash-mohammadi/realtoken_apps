@@ -1,6 +1,6 @@
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:realtokens/api/data_manager.dart';
-import 'package:realtokens/pages/portfolio/token_details/showTokenDetails.dart';
+import 'package:realtokens/pages/portfolio/showTokenDetails.dart';
 import 'package:realtokens/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';

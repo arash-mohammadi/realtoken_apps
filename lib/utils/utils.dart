@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:realtokens/api/data_manager.dart';
+import 'package:realtokens/app_state.dart';
 import 'package:realtokens/generated/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -242,13 +243,85 @@ class Utils {
   }
 
   // Fonction pour convertir les sqft en m²
-static String formatSquareFeet(double sqft, bool convertToSquareMeters) {
-  if (convertToSquareMeters) {
-    double squareMeters = sqft * 0.092903; // Conversion des pieds carrés en m²
-    return '${squareMeters.toStringAsFixed(2)} m²';
-  } else {
-    return '${sqft.toStringAsFixed(2)} sqft';
+  static String formatSquareFeet(double sqft, bool convertToSquareMeters) {
+    if (convertToSquareMeters) {
+      double squareMeters = sqft * 0.092903; // Conversion des pieds carrés en m²
+      return '${squareMeters.toStringAsFixed(2)} m²';
+    } else {
+      return '${sqft.toStringAsFixed(2)} sqft';
+    }
   }
+
+  static  Widget buildPeriodSelector(
+  BuildContext context, {
+  required String selectedPeriod,
+  required Function(String) onPeriodChanged,
+}) {
+  return Row(
+    children: [
+      buildPeriodButton(
+        context: context,
+        period: S.of(context).day,
+        isSelected: selectedPeriod == S.of(context).day,
+        isFirst: true,
+        onTap: () => onPeriodChanged(S.of(context).day),
+      ),
+      buildPeriodButton(
+        context: context,
+        period: S.of(context).week,
+        isSelected: selectedPeriod == S.of(context).week,
+        onTap: () => onPeriodChanged(S.of(context).week),
+      ),
+      buildPeriodButton(
+        context: context,
+        period: S.of(context).month,
+        isSelected: selectedPeriod == S.of(context).month,
+        onTap: () => onPeriodChanged(S.of(context).month),
+      ),
+      buildPeriodButton(
+        context: context,
+        period: S.of(context).year,
+        isSelected: selectedPeriod == S.of(context).year,
+        isLast: true,
+        onTap: () => onPeriodChanged(S.of(context).year),
+      ),
+    ],
+  );
+}
+
+static Widget buildPeriodButton({
+  required BuildContext context,
+  required String period,
+  required bool isSelected,
+  bool isFirst = false,
+  bool isLast = false,
+  required Function() onTap,
+}) {
+  final appState = Provider.of<AppState>(context);
+  return Expanded(
+    child: GestureDetector(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.blue : Theme.of(context).secondaryHeaderColor,
+          borderRadius: BorderRadius.horizontal(
+            left: isFirst ? const Radius.circular(8) : Radius.zero,
+            right: isLast ? const Radius.circular(8) : Radius.zero,
+          ),
+        ),
+        padding: const EdgeInsets.symmetric(vertical: 3),
+        alignment: Alignment.center,
+        child: Text(
+          period,
+          style: TextStyle(
+            fontSize: 14 + appState.getTextSizeOffset(),
+            color: isSelected ? Colors.white : Theme.of(context).textTheme.bodyLarge?.color,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+          ),
+        ),
+      ),
+    ),
+  );
 }
 
 }

@@ -1,5 +1,5 @@
 import 'package:realtokens/generated/l10n.dart';
-import 'package:realtokens/pages/portfolio/token_details/showTokenDetails.dart';
+import 'package:realtokens/pages/portfolio/showTokenDetails.dart';
 import 'package:realtokens/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';

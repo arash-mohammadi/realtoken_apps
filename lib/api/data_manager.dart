@@ -1269,55 +1269,66 @@ class DataManager extends ChangeNotifier {
 
   // Méthode pour récupérer les données des propriétés
   Future<void> fetchPropertyData({bool forceFetch = false}) async {
-    List<Map<String, dynamic>> tempPropertyData = [];
+  List<Map<String, dynamic>> tempPropertyData = [];
 
-    // Fusionner les tokens de Gnosis et d'Etherum
-    final walletTokens = [...walletTokensGnosis, ...walletTokensEtherum];
+  // Fusionner les tokens de Gnosis et d'Etherum
+  final walletTokens = [...walletTokensGnosis, ...walletTokensEtherum];
 
-    // Fusionner les tokens du portefeuille (Gnosis, Ethereum) et du RMM
-    List<dynamic> allTokens = [];
-    for (var wallet in walletTokens) {
-      allTokens.addAll(wallet['balances']); // Ajouter tous les balances des wallets
-    }
-    allTokens.addAll(rmmTokens); // Ajouter les tokens du RMM
+  // Fusionner les tokens du portefeuille (Gnosis, Ethereum) et du RMM
+  List<dynamic> allTokens = [];
+  for (var wallet in walletTokens) {
+    allTokens.addAll(wallet['balances']); // Ajouter tous les balances des wallets
+  }
+  allTokens.addAll(rmmTokens); // Ajouter les tokens du RMM
 
-    // Parcourir chaque token du portefeuille et du RMM
-    for (var token in allTokens) {
-      if (token != null && token['token'] != null && token['token']['address'] != null) {
-        final tokenAddress = token['token']['address'].toLowerCase();
+  print('Nombre de tokens RMM: ${rmmTokens.length}');
+  print('Tokens RMM: $rmmTokens');
+  print('Nombre total de tokens après fusion: ${allTokens.length}');
 
-        // Correspondre avec les RealTokens
-        final matchingRealToken = realTokens.cast<Map<String, dynamic>>().firstWhere(
-              (realToken) => realToken['uuid'].toLowerCase() == tokenAddress.toLowerCase(),
-              orElse: () => <String, dynamic>{},
-            );
+print('Contenu de allTokens: $allTokens');
 
-        if (matchingRealToken.isNotEmpty && matchingRealToken['propertyType'] != null) {
-          final propertyType = matchingRealToken['propertyType'];
+  // Parcourir chaque token du portefeuille et du RMM
+  for (var token in allTokens) {
 
-          // Vérifiez si le type de propriété existe déjà dans propertyData
-          final existingPropertyType = tempPropertyData.firstWhere(
-            (data) => data['propertyType'] == propertyType,
-            orElse: () => <String, dynamic>{}, // Renvoie un map vide si aucune correspondance n'est trouvée
+if (token != null && token['token'] != null && (token['token']['address'] != null || token['token']['id'] != null)) {
+final tokenAddress = (token['token']['address'] ?? token['token']['id'])?.toLowerCase();
+
+      // Correspondre avec les RealTokens
+      final matchingRealToken = realTokens.cast<Map<String, dynamic>>().firstWhere(
+            (realToken) => realToken['uuid'].toLowerCase() == tokenAddress.toLowerCase(),
+            orElse: () => <String, dynamic>{},
           );
 
-          if (existingPropertyType.isNotEmpty) {
-            // Incrémenter le compte si la propriété existe déjà
-            existingPropertyType['count'] += 1;
-          } else {
-            // Ajouter une nouvelle entrée si la propriété n'existe pas encore
-            tempPropertyData.add({'propertyType': propertyType, 'count': 1});
-          }
+      print('Matching Real Token for token $tokenAddress: $matchingRealToken');
+
+      if (matchingRealToken.isNotEmpty && matchingRealToken['propertyType'] != null) {
+        final propertyType = matchingRealToken['propertyType'];
+
+        // Vérifiez si le type de propriété existe déjà dans propertyData
+        final existingPropertyType = tempPropertyData.firstWhere(
+          (data) => data['propertyType'] == propertyType,
+          orElse: () => <String, dynamic>{}, // Renvoie un map vide si aucune correspondance n'est trouvée
+        );
+
+        if (existingPropertyType.isNotEmpty) {
+          // Incrémenter le compte si la propriété existe déjà
+          existingPropertyType['count'] += 1;
+        } else {
+          // Ajouter une nouvelle entrée si la propriété n'existe pas encore
+          tempPropertyData.add({'propertyType': propertyType, 'count': 1});
         }
-      } else {
-        //logger.i('Invalid token or missing address for token: $token');
       }
+    } else {
+      logger.i('Invalid token or missing address for token: $token');
     }
-
-    propertyData = tempPropertyData;
-
-    notifyListeners();
   }
+
+  propertyData = tempPropertyData;
+
+  print('Données finales avec RMM: $propertyData');
+
+  notifyListeners();
+}
 
   // Méthode pour réinitialiser toutes les données
   Future<void> resetData() async {

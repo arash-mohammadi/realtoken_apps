@@ -28,12 +28,12 @@ class RealtPageState extends State<RealtPage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).scaffoldBackgroundColor, // Définir le fond noir
-        title:  Center(
-                child: Image.asset(
-                  'assets/RealT_Logo.png', // Chemin vers l'image dans assets
-                  height: 100, // Ajuster la taille de l'image
-                ),
-              ),
+        title: Center(
+          child: Image.asset(
+            'assets/RealT_Logo.png', // Chemin vers l'image dans assets
+            height: 100, // Ajuster la taille de l'image
+          ),
+        ),
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -41,8 +41,7 @@ class RealtPageState extends State<RealtPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-                            const SizedBox(height: 30),
-
+              const SizedBox(height: 30),
               _buildCard(
                 'investment', // Utilisation de S.of(context)
                 Icons.attach_money,
@@ -52,27 +51,26 @@ class RealtPageState extends State<RealtPage> {
                 ),
                 [
                   _buildValueBeforeText(
-                  Utils.formatCurrency(dataManager.convert(dataManager.netRealtRentYear), dataManager.currencySymbol),
-                  'net rent',
-                ),
+                    Utils.formatCurrency(dataManager.convert(dataManager.netRealtRentYear), dataManager.currencySymbol),
+                    'net rent',
+                  ),
                 ],
                 dataManager,
                 context,
               ),
-             
               const SizedBox(height: 15),
               _buildCard(
                 S.of(context).properties, // Utilisation de S.of(context)
                 Icons.home,
-                 _buildValueBeforeText(
+                _buildValueBeforeText(
                   '${dataManager.totalRealtTokens}',
                   S.of(context).tokens, // Utilisation de S.of(context)
                 ),
                 [
                   _buildValueBeforeText(
-                  '${dataManager.totalRealtUnits}',
-                  S.of(context).units, // Utilisation de S.of(context)
-                ),
+                    '${dataManager.totalRealtUnits}',
+                    S.of(context).units, // Utilisation de S.of(context)
+                  ),
                   _buildValueBeforeText(
                     '${dataManager.rentedRealtUnits}',
                     S.of(context).rentedUnits, // Utilisation de S.of(context)
@@ -80,7 +78,7 @@ class RealtPageState extends State<RealtPage> {
                   _buildValueBeforeText(
                     '${(dataManager.rentedRealtUnits / dataManager.totalRealtUnits * 100).toStringAsFixed(1)}%',
                     S.of(context).rented, // Utilisation de S.of(context)
-                     color: Colors.green,
+                    color: Colors.green,
                   ),
                 ],
                 dataManager,
