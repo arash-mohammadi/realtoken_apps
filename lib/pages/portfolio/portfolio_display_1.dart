@@ -1,12 +1,14 @@
-import 'package:realtokens/api/data_manager.dart';
+import 'package:realtokens/managers/data_manager.dart';
 import 'package:realtokens/pages/portfolio/showTokenDetails.dart';
-import 'package:realtokens/utils/utils.dart';
+import 'package:realtokens/utils/currency_utils.dart';
+import 'package:realtokens/utils/location_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:provider/provider.dart';
 import 'package:realtokens/generated/l10n.dart';
 import 'package:realtokens/settings/manage_evm_addresses_page.dart';
 import 'package:realtokens/app_state.dart';
+import 'package:realtokens/utils/ui_utils.dart';
 
 class PortfolioDisplay1 extends StatelessWidget {
   final List<Map<String, dynamic>> portfolio;
@@ -113,7 +115,7 @@ class PortfolioDisplay1 extends StatelessWidget {
                 final token = portfolio[index];
                 final isWallet = token['inWallet'] ?? false;
                 final isRMM = token['inRMM'] ?? false;
-                final city = Utils.extractCity(token['fullName'] ?? '');
+                final city = LocationUtils.extractCity(token['fullName'] ?? '');
 
                 // Vérifier si la date de 'rent_start' est dans le futur
                 final rentStartDate = DateTime.parse(token['rentStartDate'] ?? DateTime.now().toString());
@@ -233,7 +235,7 @@ class PortfolioDisplay1 extends StatelessWidget {
                                           height: 12,
                                           decoration: BoxDecoration(
                                             shape: BoxShape.circle,
-                                            color: Utils.getRentalStatusColor(
+                                            color: UIUtils.getRentalStatusColor(
                                               token['rentedUnits'] ?? 0,
                                               token['totalUnits'] ?? 1,
                                             ),
@@ -315,13 +317,13 @@ class PortfolioDisplay1 extends StatelessWidget {
                                     ],
                                   ),
                                   Text(
-                                    '${S.of(context).totalValue}: ${Utils.formatCurrency(dataManager.convert((token['totalValue'])), dataManager.currencySymbol)}',
+                                    '${S.of(context).totalValue}: ${CurrencyUtils.formatCurrency(dataManager.convert((token['totalValue'])), dataManager.currencySymbol)}',
                                     style: TextStyle(
                                       fontSize: 13 + appState.getTextSizeOffset(),
                                     ),
                                   ),
                                   Text(
-                                    'YAM: ${Utils.formatCurrency(dataManager.convert((token['yamAverageValue'] * token['amount'])), dataManager.currencySymbol)} (${((token['yamAverageValue'] / token['tokenPrice'] - 1) * 100).toStringAsFixed(0)}%)',
+                                    'YAM: ${CurrencyUtils.formatCurrency(dataManager.convert((token['yamAverageValue'] * token['amount'])), dataManager.currencySymbol)} (${((token['yamAverageValue'] / token['tokenPrice'] - 1) * 100).toStringAsFixed(0)}%)',
                                     style: TextStyle(
                                       fontSize: 13 + appState.getTextSizeOffset(),
                                       color: (token['yamAverageValue'] * token['amount']) >= token['totalValue']
@@ -353,21 +355,21 @@ class PortfolioDisplay1 extends StatelessWidget {
                                         Column(
                                           children: [
                                             Text(S.of(context).week, style: TextStyle(fontSize: 13 + appState.getTextSizeOffset())),
-                                            Text(Utils.formatCurrency(dataManager.convert(token['dailyIncome']) * 7, dataManager.currencySymbol),
+                                            Text(CurrencyUtils.formatCurrency(dataManager.convert(token['dailyIncome']) * 7, dataManager.currencySymbol),
                                                 style: TextStyle(fontSize: 13 + appState.getTextSizeOffset())),
                                           ],
                                         ),
                                         Column(
                                           children: [
                                             Text(S.of(context).month, style: TextStyle(fontSize: 13 + appState.getTextSizeOffset())),
-                                            Text(Utils.formatCurrency(dataManager.convert(token['monthlyIncome']), dataManager.currencySymbol),
+                                            Text(CurrencyUtils.formatCurrency(dataManager.convert(token['monthlyIncome']), dataManager.currencySymbol),
                                                 style: TextStyle(fontSize: 13 + appState.getTextSizeOffset())),
                                           ],
                                         ),
                                         Column(
                                           children: [
                                             Text(S.of(context).year, style: TextStyle(fontSize: 13 + appState.getTextSizeOffset())),
-                                            Text(Utils.formatCurrency(dataManager.convert(token['yearlyIncome']), dataManager.currencySymbol),
+                                            Text(CurrencyUtils.formatCurrency(dataManager.convert(token['yearlyIncome']), dataManager.currencySymbol),
                                                 style: TextStyle(fontSize: 13 + appState.getTextSizeOffset())),
                                           ],
                                         ),

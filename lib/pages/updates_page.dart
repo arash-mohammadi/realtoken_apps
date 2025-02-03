@@ -1,7 +1,7 @@
 import 'package:realtokens/app_state.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:realtokens/api/data_manager.dart'; // Assurez-vous d'importer votre DataManager
+import 'package:realtokens/managers/data_manager.dart'; // Assurez-vous d'importer votre DataManager
 import 'package:realtokens/generated/l10n.dart'; // Import pour les traductions
 
 class UpdatesPage extends StatefulWidget {

@@ -1,10 +1,10 @@
-import 'package:realtokens/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:realtokens/pages/Statistics/rmm/rmm_stats.dart';
 import 'package:realtokens/pages/Statistics/portfolio/portfolio_stats.dart';
 import 'package:realtokens/pages/Statistics/wallet/wallet_stats.dart'; // Assurez-vous que cette page existe
 import 'package:provider/provider.dart';
 import 'package:realtokens/app_state.dart';
+import 'package:realtokens/utils/ui_utils.dart';
 
 class StatsSelectorPage extends StatefulWidget {
   const StatsSelectorPage({super.key});
@@ -25,7 +25,7 @@ class StatsSelectorPageState extends State<StatsSelectorPage> {
             SliverAppBar(
               floating: false,
               snap: false,
-              expandedHeight: Utils.getSliverAppBarHeight(context),
+              expandedHeight: UIUtils.getSliverAppBarHeight(context),
               flexibleSpace: FlexibleSpaceBar(
                 background: Container(
                   color: Theme.of(context).scaffoldBackgroundColor,

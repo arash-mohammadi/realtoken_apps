@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:realtokens/generated/l10n.dart';
 import 'package:realtokens/app_state.dart';
-import 'package:realtokens/utils/utils.dart';
+import 'package:realtokens/utils/url_utils.dart';
 
 Widget buildOthersTab(BuildContext context, Map<String, dynamic> token) {
   final appState = Provider.of<AppState>(context, listen: false);
@@ -47,7 +47,7 @@ Widget buildOthersTab(BuildContext context, Map<String, dynamic> token) {
               onPressed: () {
                 final ethereumAddress = token['ethereumContract'] ?? '';
                 if (ethereumAddress.isNotEmpty) {
-                  Utils.launchURL('https://etherscan.io/address/$ethereumAddress');
+                  UrlUtils.launchURL('https://etherscan.io/address/$ethereumAddress');
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text(S.of(context).notSpecified)),
@@ -91,7 +91,7 @@ Widget buildOthersTab(BuildContext context, Map<String, dynamic> token) {
               onPressed: () {
                 final gnosisAddress = token['gnosisContract'] ?? '';
                 if (gnosisAddress.isNotEmpty) {
-                  Utils.launchURL('https://gnosisscan.io/address/$gnosisAddress');
+                  UrlUtils.launchURL('https://gnosisscan.io/address/$gnosisAddress');
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text(S.of(context).notSpecified)),

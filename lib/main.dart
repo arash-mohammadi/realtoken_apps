@@ -1,30 +1,34 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 import 'package:realtokens/structure/home_page.dart';
-import 'api/data_manager.dart';
+import 'managers/data_manager.dart';
 import 'settings/theme.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'generated/l10n.dart'; // Import du fichier généré pour les traductions
+import 'generated/l10n.dart'; 
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
-import 'package:flutter_native_splash/flutter_native_splash.dart'; // Import du package pour le splashscreen
-import 'app_state.dart'; // Import the global AppState
+import 'package:flutter_native_splash/flutter_native_splash.dart'; 
+import 'app_state.dart'; 
 import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
-import 'package:onesignal_flutter/onesignal_flutter.dart'; // Import de OneSignal
+import 'package:onesignal_flutter/onesignal_flutter.dart'; 
 
 void main() async {
+  final logger = Logger(); // Initialiser une instance de logger
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
-  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding); // Préserver le splash screen natif
+  FlutterNativeSplash.preserve(
+      widgetsBinding: widgetsBinding); // Préserver le splash screen natif
 
   // Utilisez un bloc try-catch pour vérifier et initialiser Firebase
   try {
     if (Firebase.apps.isEmpty) {
-      await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+      await Firebase.initializeApp(
+          options: DefaultFirebaseOptions.currentPlatform);
     }
   } catch (e) {
-    print('Firebase déjà initialisé : $e');
+    logger.w(e);
   }
 
   await Hive.initFlutter();
@@ -54,13 +58,15 @@ void main() async {
   dataManager.loadSelectedCurrency();
   dataManager.loadUserIdToAddresses();
 
-  FlutterNativeSplash.remove(); // Supprimer le splash screen natif après l'initialisation
+  FlutterNativeSplash
+      .remove(); // Supprimer le splash screen natif après l'initialisation
 
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => dataManager),
-        ChangeNotifierProvider(create: (_) => AppState()), // AppState for global settings
+        ChangeNotifierProvider(
+            create: (_) => AppState()), // AppState for global settings
       ],
       child: const MyApp(),
     ),
@@ -71,12 +77,13 @@ class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
   @override
-  _MyAppState createState() => _MyAppState();
+  MyAppState createState() => MyAppState();
 }
 
-class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
+class MyAppState extends State<MyApp> with WidgetsBindingObserver {
   late DataManager dataManager;
-  bool _requireConsent = false;
+  final bool _requireConsent = false;
+  static final logger = Logger(); // Initialiser une instance de logger
 
   @override
   void initState() {
@@ -103,17 +110,20 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
     // Configuration des gestionnaires de notifications et d'état utilisateur
     OneSignal.Notifications.addForegroundWillDisplayListener((event) {
-      print('Notification reçue en premier plan : ${event.notification.jsonRepresentation()}');
+      logger.i(
+          'Notification reçue en premier plan : ${event.notification.jsonRepresentation()}');
       event.preventDefault(); // Empêche l'affichage automatique si nécessaire
       event.notification.display(); // Affiche manuellement la notification
     });
 
     OneSignal.Notifications.addClickListener((event) {
-      print('Notification cliquée : ${event.notification.jsonRepresentation()}');
+      logger.i(
+          'Notification cliquée : ${event.notification.jsonRepresentation()}');
     });
 
     OneSignal.User.pushSubscription.addObserver((state) {
-      print('Utilisateur inscrit aux notifications : ${state.current.jsonRepresentation()}');
+      logger.i(
+          'Utilisateur inscrit aux notifications : ${state.current.jsonRepresentation()}');
     });
   }
 

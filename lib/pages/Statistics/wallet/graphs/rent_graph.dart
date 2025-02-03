@@ -3,11 +3,12 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:realtokens/api/data_manager.dart';
+import 'package:realtokens/managers/data_manager.dart';
 import 'package:realtokens/generated/l10n.dart';
 import 'package:realtokens/app_state.dart';
 import 'package:logger/logger.dart';
-import 'package:realtokens/utils/utils.dart';
+import 'package:realtokens/utils/chart_utils.dart';
+import 'package:realtokens/utils/date_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class RentGraph extends StatefulWidget {
@@ -114,7 +115,7 @@ class _RentGraphState extends State<RentGraph> {
                 )
               ],
             ),
-          Utils.buildPeriodSelector(
+          ChartUtils.buildPeriodSelector(
             context,
             selectedPeriod: _selectedRentPeriod,
             onPeriodChanged: (period) {
@@ -182,6 +183,15 @@ class _RentGraphState extends State<RentGraph> {
                       ),
                     ),
                   ),
+                  borderData: FlBorderData(
+                          show: true,
+                          border: Border(
+                            left: BorderSide(color: Colors.transparent),
+                            bottom: BorderSide(color: Colors.blueGrey.shade700, width: 0.5),
+                            right: BorderSide(color: Colors.transparent),
+                            top: BorderSide(color: Colors.transparent),
+                          ),
+                        ),
                   lineBarsData: [
                     LineChartBarData(
                       spots: _showCumulativeRent
@@ -205,6 +215,7 @@ class _RentGraphState extends State<RentGraph> {
                     ),
                   ],
                 ),
+                
               ),
             ),
           ],
@@ -242,7 +253,7 @@ class _RentGraphState extends State<RentGraph> {
         if (entry.containsKey('date') && entry.containsKey('rent')) {
           try {
             DateTime date = DateTime.parse(entry['date']);
-            String weekKey = "${date.year}-S${Utils.weekNumber(date).toString().padLeft(2, '0')}"; // Semaine formatée avec deux chiffres
+            String weekKey = "${date.year}-S${CustomDateUtils.weekNumber(date).toString().padLeft(2, '0')}"; // Semaine formatée avec deux chiffres
             groupedData[weekKey] = (groupedData[weekKey] ?? 0) + entry['rent'];
           } catch (e) {
             // En cas d'erreur de parsing de date ou autre, vous pouvez ignorer cette entrée ou la traiter différemment

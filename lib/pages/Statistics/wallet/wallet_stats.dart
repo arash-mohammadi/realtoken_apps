@@ -3,9 +3,10 @@ import 'package:flutter/scheduler.dart';
 import 'package:intl/intl.dart';
 import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
-import 'package:realtokens/api/data_manager.dart';
+import 'package:realtokens/managers/data_manager.dart';
 import 'package:realtokens/generated/l10n.dart';
-import 'package:realtokens/utils/utils.dart';
+import 'package:realtokens/utils/data_fetch_utils.dart';
+import 'package:realtokens/utils/date_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 // Import des fichiers de graphiques
@@ -49,7 +50,7 @@ class _WalletStats extends State<WalletStats> {
 
       try {
         final dataManager = Provider.of<DataManager>(context, listen: false);
-        Utils.loadData(context);
+        DataFetchUtils.loadData(context);
         dataManager.fetchPropertyData();
       } catch (e, stacktrace) {
         logger.i("Error during initState: $e");
@@ -203,7 +204,7 @@ class _WalletStats extends State<WalletStats> {
       if (entry.containsKey('date') && entry.containsKey('rent')) {
         try {
           DateTime date = DateTime.parse(entry['date']);
-          String weekKey = "${date.year}-S${Utils.weekNumber(date).toString().padLeft(2, '0')}"; // Semaine formatée avec deux chiffres
+          String weekKey = "${date.year}-S${CustomDateUtils.weekNumber(date).toString().padLeft(2, '0')}"; // Semaine formatée avec deux chiffres
           groupedData[weekKey] = (groupedData[weekKey] ?? 0) + entry['rent'];
         } catch (e) {
           // En cas d'erreur de parsing de date ou autre, vous pouvez ignorer cette entrée ou la traiter différemment

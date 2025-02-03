@@ -1,7 +1,8 @@
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
-import 'package:realtokens/api/data_manager.dart';
+import 'package:realtokens/managers/data_manager.dart';
 import 'package:realtokens/pages/portfolio/showTokenDetails.dart';
-import 'package:realtokens/utils/utils.dart';
+import 'package:realtokens/utils/currency_utils.dart';
+import 'package:realtokens/utils/location_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:provider/provider.dart'; // Pour accéder à DataManager
@@ -134,7 +135,7 @@ class PortfolioDisplay2State extends State<PortfolioDisplay2> {
                       final token = filteredPortfolio[index];
                       final isWallet = token['inWallet'] ?? false; // Modifier pour détecter si présent dans le wallet
                       final isRMM = token['inRMM'] ?? false; // Modifier pour détecter si présent dans le RMM
-                      final city = Utils.extractCity(token['fullName'] ?? '');
+                      final city = LocationUtils.extractCity(token['fullName'] ?? '');
 
                       // Vérifier si la date de 'rent_start' est dans le futur en utilisant le bon format
                       final rentStartDate = DateTime.tryParse(token['rentStartDate'] ?? '');
@@ -286,13 +287,13 @@ class PortfolioDisplay2State extends State<PortfolioDisplay2> {
                                       const SizedBox(height: 8),
 
                                       Text(
-                                        '${S.of(context).totalValue}: ${Utils.formatCurrency(dataManager.convert(token['totalValue']), dataManager.currencySymbol)}',
+                                        '${S.of(context).totalValue}: ${CurrencyUtils.formatCurrency(dataManager.convert(token['totalValue']), dataManager.currencySymbol)}',
                                         style: TextStyle(
                                           fontSize: 15 + appState.getTextSizeOffset(),
                                         ),
                                       ),
                                       Text(
-                                        'YAM: ${Utils.formatCurrency(dataManager.convert((token['yamAverageValue'] * token['amount'])), dataManager.currencySymbol)} (${((token['yamAverageValue'] / token['tokenPrice'] - 1) * 100).toStringAsFixed(0)}%)',
+                                        'YAM: ${CurrencyUtils.formatCurrency(dataManager.convert((token['yamAverageValue'] * token['amount'])), dataManager.currencySymbol)} (${((token['yamAverageValue'] / token['tokenPrice'] - 1) * 100).toStringAsFixed(0)}%)',
                                         style: TextStyle(
                                           fontSize: 13 + appState.getTextSizeOffset(),
                                           color: (token['yamAverageValue'] * token['amount']) >= token['totalValue']
@@ -331,7 +332,7 @@ class PortfolioDisplay2State extends State<PortfolioDisplay2> {
                                                     style: TextStyle(
                                                       fontSize: 13 + appState.getTextSizeOffset(),
                                                     )),
-                                                Text(Utils.formatCurrency(dataManager.convert(token['dailyIncome']), dataManager.currencySymbol),
+                                                Text(CurrencyUtils.formatCurrency(dataManager.convert(token['dailyIncome']), dataManager.currencySymbol),
                                                     style: TextStyle(
                                                       fontSize: 13 + appState.getTextSizeOffset(),
                                                     )),
@@ -343,7 +344,7 @@ class PortfolioDisplay2State extends State<PortfolioDisplay2> {
                                                     style: TextStyle(
                                                       fontSize: 13 + appState.getTextSizeOffset(),
                                                     )),
-                                                Text(Utils.formatCurrency(dataManager.convert(token['dailyIncome']) * 7, dataManager.currencySymbol),
+                                                Text(CurrencyUtils.formatCurrency(dataManager.convert(token['dailyIncome']) * 7, dataManager.currencySymbol),
                                                     style: TextStyle(
                                                       fontSize: 13 + appState.getTextSizeOffset(),
                                                     )),
@@ -355,7 +356,7 @@ class PortfolioDisplay2State extends State<PortfolioDisplay2> {
                                                     style: TextStyle(
                                                       fontSize: 13 + appState.getTextSizeOffset(),
                                                     )),
-                                                Text(Utils.formatCurrency(dataManager.convert(token['monthlyIncome']), dataManager.currencySymbol),
+                                                Text(CurrencyUtils.formatCurrency(dataManager.convert(token['monthlyIncome']), dataManager.currencySymbol),
                                                     style: TextStyle(
                                                       fontSize: 13 + appState.getTextSizeOffset(),
                                                     )),
@@ -367,7 +368,7 @@ class PortfolioDisplay2State extends State<PortfolioDisplay2> {
                                                     style: TextStyle(
                                                       fontSize: 13 + appState.getTextSizeOffset(),
                                                     )),
-                                                Text(Utils.formatCurrency(dataManager.convert(token['yearlyIncome']), dataManager.currencySymbol),
+                                                Text(CurrencyUtils.formatCurrency(dataManager.convert(token['yearlyIncome']), dataManager.currencySymbol),
                                                     style: TextStyle(
                                                       fontSize: 13 + appState.getTextSizeOffset(),
                                                     )),

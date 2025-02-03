@@ -1,9 +1,9 @@
 import 'package:realtokens/generated/l10n.dart';
-import 'package:realtokens/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:provider/provider.dart';
-import 'package:realtokens/app_state.dart'; // Import AppState
+import 'package:realtokens/app_state.dart';
+import 'package:realtokens/utils/date_utils.dart'; // Import AppState
 
 class ServiceStatusPage extends StatelessWidget {
   const ServiceStatusPage({super.key});
@@ -103,7 +103,7 @@ class ServiceStatusPage extends StatelessWidget {
                           ),
                         ),
                         subtitle: Text(
-                          '${S.of(context).lastExecution} : ${Utils.formatReadableDateWithTime(time)}',
+                          '${S.of(context).lastExecution} : ${CustomDateUtils.formatReadableDateWithTime(time)}',
                           style: TextStyle(
                             fontSize: 14 + appState.getTextSizeOffset(), // Ajuste cette taille selon tes besoins
                           ),

@@ -3,9 +3,10 @@ import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:provider/provider.dart';
 import 'package:realtokens/app_state.dart';
 import 'package:realtokens/generated/l10n.dart';
-import 'package:realtokens/api/data_manager.dart';
+import 'package:realtokens/managers/data_manager.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:realtokens/utils/utils.dart';
+import 'package:realtokens/utils/currency_utils.dart';
+import 'package:realtokens/utils/url_utils.dart';
 
 class PropertiesForSaleRealt extends StatefulWidget {
   const PropertiesForSaleRealt({super.key});
@@ -203,7 +204,7 @@ class _PropertiesForSaleRealtState extends State<PropertiesForSaleRealt> {
                                   ),
                                 ),
                                 Text(
-                                  'Price: ${Utils.formatCurrency(tokenPrice, dataManager.currencySymbol)} Yield: ${annualPercentageYield.toStringAsFixed(2)}%',
+                                  'Price: ${CurrencyUtils.formatCurrency(tokenPrice, dataManager.currencySymbol)} Yield: ${annualPercentageYield.toStringAsFixed(2)}%',
                                   style: TextStyle(
                                     fontSize: 15 + appState.getTextSizeOffset(),
                                   ),
@@ -211,7 +212,7 @@ class _PropertiesForSaleRealtState extends State<PropertiesForSaleRealt> {
                                 const SizedBox(height: 8),
                                 Center(
                                   child: ElevatedButton(
-                                    onPressed: () => Utils.launchURL(property['marketplaceLink']),
+                                    onPressed: () => UrlUtils.launchURL(property['marketplaceLink']),
                                     style: ElevatedButton.styleFrom(
                                       foregroundColor: Colors.white,
                                       backgroundColor: Colors.blue,

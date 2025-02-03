@@ -3,14 +3,15 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
 import 'package:realtokens/app_state.dart';
 import 'package:realtokens/pages/portfolio/showTokenDetails.dart';
-import 'package:realtokens/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_marker_cluster/flutter_map_marker_cluster.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
+import 'package:realtokens/utils/ui_utils.dart';
+import 'package:realtokens/utils/url_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:realtokens/api/data_manager.dart';
+import 'package:realtokens/managers/data_manager.dart';
 
 class MapsPage extends StatefulWidget {
   const MapsPage({super.key});
@@ -99,7 +100,7 @@ class MapsPageState extends State<MapsPage> {
             child: Container(
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(color: Utils.getRentalStatusColor(rentedUnits, totalUnits), width: 3.0),
+                border: Border.all(color: UIUtils.getRentalStatusColor(rentedUnits, totalUnits), width: 3.0),
               ),
               child: ClipOval(
                 child: matchingToken['imageLink'] != null
@@ -219,7 +220,7 @@ class MapsPageState extends State<MapsPage> {
           ),
           // Switch pour basculer entre le mode sombre/clair et forcer le mode clair pour la carte
           Positioned(
-            top: Utils.getAppBarHeight(context),
+            top: UIUtils.getAppBarHeight(context),
             right: 16,
             child: Row(
               children: [
@@ -244,7 +245,7 @@ class MapsPageState extends State<MapsPage> {
           ),
           // Switch en haut à gauche pour basculer entre les tokens du portefeuille et tous les tokens
           Positioned(
-            top: Utils.getAppBarHeight(context), // Positionner juste en dessous de l'AppBar
+            top: UIUtils.getAppBarHeight(context), // Positionner juste en dessous de l'AppBar
             left: 16,
             child: Row(
               children: [
@@ -434,7 +435,7 @@ class MapsPageState extends State<MapsPage> {
                 icon: const Icon(Icons.streetview, color: Colors.blue),
                 onPressed: () {
                   final googleStreetViewUrl = 'https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=$lat,$lng';
-                  Utils.launchURL(googleStreetViewUrl);
+                  UrlUtils.launchURL(googleStreetViewUrl);
                 },
               ),
               const Text('View in Street View'),

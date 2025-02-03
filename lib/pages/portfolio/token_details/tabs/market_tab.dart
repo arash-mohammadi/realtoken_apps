@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:realtokens/api/data_manager.dart';
+import 'package:realtokens/managers/data_manager.dart';
 import 'package:realtokens/generated/l10n.dart';
 import 'package:realtokens/app_state.dart';
-import 'package:realtokens/utils/utils.dart';
+import 'package:realtokens/utils/currency_utils.dart';
+import 'package:realtokens/utils/date_utils.dart';
+import 'package:realtokens/utils/url_utils.dart';
 
 Widget buildMarketTab(BuildContext context, Map<String, dynamic> token) {
   final appState = Provider.of<AppState>(context, listen: false);
@@ -73,7 +75,7 @@ Widget buildMarketTab(BuildContext context, Map<String, dynamic> token) {
                               clipBehavior: Clip.none,
                               children: [
                                 Text(
-                                  Utils.formatReadableDate(offer['creationDate']),
+                                  CustomDateUtils.formatReadableDate(offer['creationDate']),
                                   style: TextStyle(
                                     fontSize: 12 + appState.getTextSizeOffset(),
                                     color: Colors.grey[600],
@@ -116,7 +118,7 @@ Widget buildMarketTab(BuildContext context, Map<String, dynamic> token) {
 
                           // Valeur du token
                           Text(
-                            '${S.of(context).token_value}: ${Utils.formatCurrency(dataManager.convert(offer['tokenValue']), dataManager.currencySymbol)}',
+                            '${S.of(context).token_value}: ${CurrencyUtils.formatCurrency(dataManager.convert(offer['tokenValue']), dataManager.currencySymbol)}',
                             style: TextStyle(
                               fontSize: 12 + appState.getTextSizeOffset(),
                               color: Colors.grey[600],
@@ -152,7 +154,7 @@ Widget buildMarketTab(BuildContext context, Map<String, dynamic> token) {
                           Center(
                             child: ElevatedButton(
                               onPressed: () {
-                                Utils.launchURL('https://yambyofferid.netlify.app/?offerId=${offer['id_offer']}');
+                                UrlUtils.launchURL('https://yambyofferid.netlify.app/?offerId=${offer['id_offer']}');
                               },
                               style: ElevatedButton.styleFrom(
                                 foregroundColor: Colors.white,

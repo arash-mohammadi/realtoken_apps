@@ -1,5 +1,5 @@
-import 'package:realtokens/utils/utils.dart';
 import 'package:flutter/material.dart';
+import 'package:realtokens/utils/ui_utils.dart';
 import 'bottom_bar.dart';
 import 'drawer.dart';
 import 'package:realtokens/pages/dashboard/dashboard_page.dart';
@@ -60,7 +60,7 @@ class _MyHomePageState extends State<MyHomePage> {
               child: BackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                 child: Container(
-                  height: Utils.getAppBarHeight(context),
+                  height: UIUtils.getAppBarHeight(context),
                   color: Theme.of(context).brightness == Brightness.dark ? Colors.black.withOpacity(0.3) : Colors.white.withOpacity(0.3),
                   child: AppBar(
                     forceMaterialTransparency: true,

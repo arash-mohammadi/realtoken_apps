@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-import 'package:realtokens/api/data_manager.dart';
+import 'package:realtokens/managers/data_manager.dart';
 import 'package:realtokens/generated/l10n.dart';
 import 'package:realtokens/app_state.dart';
-import 'package:realtokens/utils/utils.dart';
+import 'package:realtokens/models/roi_record.dart';
+import 'package:realtokens/utils/chart_utils.dart';
+import 'package:realtokens/utils/date_utils.dart';
 
 class RoiHistoryGraph extends StatelessWidget {
   final String selectedPeriod;
@@ -29,6 +31,7 @@ class RoiHistoryGraph extends StatelessWidget {
     // Récupérer les données pour les graphiques
     List<FlSpot> roiHistoryData = _buildRoiHistoryChartData(context, dataManager, selectedPeriod);
     List<BarChartGroupData> barChartData = _buildRoiHistoryBarChartData(context, dataManager, selectedPeriod);
+  List<String> dateLabels = _buildDateLabelsForRoi(context, dataManager, selectedPeriod);
 
     return Card(
       elevation: 0,
@@ -84,7 +87,7 @@ class RoiHistoryGraph extends StatelessWidget {
                 ),
               ],
             ),
-            Utils.buildPeriodSelector(
+            ChartUtils.buildPeriodSelector(
               context,
               selectedPeriod: selectedPeriod,
               onPeriodChanged: onPeriodChanged,
@@ -112,28 +115,30 @@ class RoiHistoryGraph extends StatelessWidget {
                                 ),
                               ),
                               bottomTitles: AxisTitles(
-                                sideTitles: SideTitles(
-                                  showTitles: true,
-                                  getTitlesWidget: (value, meta) {
-                                    List<String> labels = _buildDateLabelsForRoi(context, dataManager, selectedPeriod);
-                                    if (value.toInt() >= 0 && value.toInt() < labels.length) {
-                                      return Padding(
-                                        padding: const EdgeInsets.only(top: 10.0),
-                                        child: Transform.rotate(
-                                          angle: -0.5,
-                                          child: Text(
-                                            labels[value.toInt()],
-                                            style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
-                                          ),
-                                        ),
-                                      );
-                                    } else {
-                                      return const SizedBox.shrink();
-                                    }
-                                  },
-                                ),
-                              ),
-                              topTitles: AxisTitles(
+  sideTitles: SideTitles(
+    showTitles: true,
+    getTitlesWidget: (value, meta) {
+
+      if (value.toInt() >= 0 && value.toInt() < dateLabels.length) {
+        return Padding(
+          padding: const EdgeInsets.only(top: 10.0),
+          child: Transform.rotate(
+            angle: -0.5,
+            child: Text(
+              dateLabels[value.toInt()],
+              style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
+            ),
+          ),
+        );
+      } else {
+        return const SizedBox.shrink();
+      }
+    },
+    reservedSize: 30,
+    interval: (dateLabels.length / 10).ceil().toDouble(), // Afficher une étiquette toutes les N barres
+  ),
+),
+topTitles: AxisTitles(
                                 sideTitles: SideTitles(showTitles: false),
                               ),
                               rightTitles: AxisTitles(
@@ -200,7 +205,6 @@ class RoiHistoryGraph extends StatelessWidget {
                                     }
                                   },
                                   reservedSize: 30,
-                                  interval: 1,
                                 ),
                               ),
                               rightTitles: AxisTitles(
@@ -289,7 +293,7 @@ class RoiHistoryGraph extends StatelessWidget {
       if (selectedPeriod == S.of(context).day) {
         periodKey = DateFormat('yyyy/MM/dd').format(date); // Grouper par jour
       } else if (selectedPeriod == S.of(context).week) {
-        periodKey = "${date.year}-S${Utils.weekNumber(date).toString().padLeft(2, '0')}";
+        periodKey = "${date.year}-S${CustomDateUtils.weekNumber(date).toString().padLeft(2, '0')}";
       } else if (selectedPeriod == S.of(context).month) {
         periodKey = DateFormat('yyyy/MM').format(date);
       } else {
@@ -345,7 +349,7 @@ class RoiHistoryGraph extends StatelessWidget {
       if (selectedPeriod == S.of(context).day) {
         periodKey = DateFormat('yyyy/MM/dd').format(date); // Grouper par jour
       } else if (selectedPeriod == S.of(context).week) {
-        periodKey = "${date.year}-S${Utils.weekNumber(date).toString().padLeft(2, '0')}";
+        periodKey = "${date.year}-S${CustomDateUtils.weekNumber(date).toString().padLeft(2, '0')}";
       } else if (selectedPeriod == S.of(context).month) {
         periodKey = DateFormat('yyyy/MM').format(date);
       } else {

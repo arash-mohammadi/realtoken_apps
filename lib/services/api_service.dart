@@ -385,7 +385,7 @@ class ApiService {
     }
 
     // Sinon, récupérer les devises depuis l'API
-    final url = 'https://api.coingecko.com/api/v3/coins/xdai';
+    final url = 'https://api.coingecko.com/managers/v3/coins/xdai';
     final response = await http.get(Uri.parse(url));
 
     if (response.statusCode == 200) {

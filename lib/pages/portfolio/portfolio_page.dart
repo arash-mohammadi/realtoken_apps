@@ -1,8 +1,9 @@
-import 'package:realtokens/utils/utils.dart';
+import 'package:realtokens/utils/data_fetch_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:realtokens/utils/ui_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:realtokens/api/data_manager.dart';
+import 'package:realtokens/managers/data_manager.dart';
 import 'portfolio_display_1.dart';
 import 'portfolio_display_2.dart';
 import 'package:realtokens/generated/l10n.dart'; // Import pour les traductions
@@ -26,7 +27,7 @@ class PortfolioPageState extends State<PortfolioPage> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      Utils.loadData(context);
+      DataFetchUtils.loadData(context);
       _loadDisplayPreference();
       _loadFilterPreferences();
     });
@@ -232,7 +233,7 @@ class PortfolioPageState extends State<PortfolioPage> {
                     floating: true,
                     snap: true,
                     automaticallyImplyLeading: false,
-                    expandedHeight: Utils.getSliverAppBarHeight(context), // Hauteur étendue
+                    expandedHeight: UIUtils.getSliverAppBarHeight(context), // Hauteur étendue
                     flexibleSpace: FlexibleSpaceBar(
                       background: Container(
                         color: Theme.of(context).scaffoldBackgroundColor,

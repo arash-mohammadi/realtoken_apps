@@ -1,6 +1,6 @@
-import 'package:realtokens/api/data_manager.dart';
+import 'package:realtokens/managers/data_manager.dart';
 import 'package:realtokens/generated/l10n.dart';
-import 'package:realtokens/utils/utils.dart';
+import 'package:realtokens/utils/currency_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -46,12 +46,12 @@ class RealtPageState extends State<RealtPage> {
                 'investment', // Utilisation de S.of(context)
                 Icons.attach_money,
                 _buildValueBeforeText(
-                  Utils.formatCurrency(dataManager.convert(dataManager.totalRealtInvestment), dataManager.currencySymbol),
+                  CurrencyUtils.formatCurrency(dataManager.convert(dataManager.totalRealtInvestment), dataManager.currencySymbol),
                   S.of(context).totalInvestment,
                 ),
                 [
                   _buildValueBeforeText(
-                    Utils.formatCurrency(dataManager.convert(dataManager.netRealtRentYear), dataManager.currencySymbol),
+                    CurrencyUtils.formatCurrency(dataManager.convert(dataManager.netRealtRentYear), dataManager.currencySymbol),
                     'net rent',
                   ),
                 ],

@@ -2,9 +2,10 @@ import 'package:realtokens/generated/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:realtokens/api/data_manager.dart';
-import 'package:realtokens/utils/utils.dart';
-import 'package:realtokens/app_state.dart'; // Import AppState
+import 'package:realtokens/managers/data_manager.dart';
+import 'package:realtokens/app_state.dart';
+import 'package:realtokens/models/balance_record.dart';
+import 'package:realtokens/utils/currency_utils.dart'; // Import AppState
 
 class RmmStats extends StatefulWidget {
   const RmmStats({super.key});
@@ -244,7 +245,7 @@ class RmmStatsState extends State<RmmStats> {
               final value = spot.y;
 
               return LineTooltipItem(
-                '$barName: ${Utils.formatCurrency(dataManager.convert(value), dataManager.currencySymbol)}',
+                '$barName: ${CurrencyUtils.formatCurrency(dataManager.convert(value), dataManager.currencySymbol)}',
                 const TextStyle(color: Colors.white),
               );
             }).toList();
@@ -384,7 +385,7 @@ class RmmStatsState extends State<RmmStats> {
               final value = spot.y;
 
               return LineTooltipItem(
-                '$barName: ${Utils.formatCurrency(dataManager.convert(value), dataManager.currencySymbol)}',
+                '$barName: ${CurrencyUtils.formatCurrency(dataManager.convert(value), dataManager.currencySymbol)}',
                 const TextStyle(color: Colors.white),
               );
             }).toList();

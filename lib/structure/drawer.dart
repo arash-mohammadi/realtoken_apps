@@ -4,7 +4,6 @@ import 'package:realtokens/pages/links_page.dart';
 import 'package:realtokens/pages/propertiesForSale/propertiesForSell_select.dart';
 import 'package:realtokens/pages/support_page.dart';
 import 'package:realtokens/settings/service_status.dart';
-import 'package:realtokens/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:realtokens/settings/settings_page.dart';
@@ -19,6 +18,8 @@ import 'package:in_app_review/in_app_review.dart';
 import 'package:http/http.dart' as http;
 import 'package:package_info_plus/package_info_plus.dart';
 import 'dart:io';
+
+import 'package:realtokens/utils/url_utils.dart';
 
 class CustomDrawer extends StatefulWidget {
   final Function(bool) onThemeChanged;
@@ -128,7 +129,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                   ),
                   child: GestureDetector(
                     onTap: () {
-                      Utils.launchURL('https://realt.co/marketplace/');
+                      UrlUtils.launchURL('https://realt.co/marketplace/');
                     },
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,

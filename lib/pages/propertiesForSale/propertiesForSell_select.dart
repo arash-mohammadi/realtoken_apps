@@ -3,8 +3,8 @@ import 'package:provider/provider.dart';
 import 'package:realtokens/app_state.dart';
 import 'package:realtokens/pages/propertiesForSale/PropertiesForSaleRealt.dart';
 import 'package:realtokens/pages/propertiesForSale/PropertiesForSaleSecondary.dart';
-import 'package:realtokens/utils/utils.dart';
 import 'package:realtokens/generated/l10n.dart';
+import 'package:realtokens/utils/ui_utils.dart';
 
 class PropertiesForSalePage extends StatefulWidget {
   const PropertiesForSalePage({Key? key}) : super(key: key);
@@ -29,7 +29,7 @@ class _PropertiesForSalePageState extends State<PropertiesForSalePage> {
             SliverAppBar(
               floating: true,
               snap: true,
-              expandedHeight: Utils.getSliverAppBarHeight(context) - 40,
+              expandedHeight: UIUtils.getSliverAppBarHeight(context) - 40,
               automaticallyImplyLeading: false, // Supprime la flèche de retour
               flexibleSpace: FlexibleSpaceBar(
                 background: Container(

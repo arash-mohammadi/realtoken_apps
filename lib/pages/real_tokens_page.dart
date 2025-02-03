@@ -1,10 +1,11 @@
 import 'package:realtokens/generated/l10n.dart';
 import 'package:realtokens/pages/portfolio/showTokenDetails.dart';
-import 'package:realtokens/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:realtokens/api/data_manager.dart';
+import 'package:realtokens/managers/data_manager.dart';
+import 'package:realtokens/utils/currency_utils.dart';
+import 'package:realtokens/utils/ui_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class RealTokensPage extends StatefulWidget {
@@ -96,7 +97,7 @@ class RealTokensPageState extends State<RealTokensPage> {
                   floating: true,
                   snap: true,
                   automaticallyImplyLeading: false,
-                  expandedHeight: Utils.getSliverAppBarHeight(context),
+                  expandedHeight: UIUtils.getSliverAppBarHeight(context),
                   flexibleSpace: FlexibleSpaceBar(
                     background: Container(
                       color: Theme.of(context).cardColor,
@@ -274,8 +275,8 @@ class RealTokensPageState extends State<RealTokensPage> {
                                                 ],
                                               ),
                                               const SizedBox(height: 4),
-                                              Text('Asset price: ${Utils.formatCurrency(token['totalInvestment'], dataManager.currencySymbol)}'),
-                                              Text('Token price: ${Utils.formatCurrency(token['tokenPrice'], dataManager.currencySymbol)}'),
+                                              Text('Asset price: ${CurrencyUtils.formatCurrency(token['totalInvestment'], dataManager.currencySymbol)}'),
+                                              Text('Token price: ${CurrencyUtils.formatCurrency(token['tokenPrice'], dataManager.currencySymbol)}'),
                                               const SizedBox(height: 8),
                                               Text('Expected Yield: ${token['annualPercentageYield'].toStringAsFixed(2)} %'),
                                             ],

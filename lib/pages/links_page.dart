@@ -2,12 +2,12 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:realtokens/api/data_manager.dart';
+import 'package:realtokens/managers/data_manager.dart';
 import 'package:realtokens/app_state.dart';
 import 'package:realtokens/generated/l10n.dart';
-import 'package:realtokens/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:realtokens/utils/url_utils.dart';
 
 class LinksPage extends StatefulWidget {
   const LinksPage({super.key});
@@ -84,7 +84,7 @@ class RealtPageState extends State<LinksPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   GestureDetector(
-                    onTap: () => Utils.launchURL(linkUrl),
+                    onTap: () => UrlUtils.launchURL(linkUrl),
                     child: Text(
                       linkText,
                       style: const TextStyle(

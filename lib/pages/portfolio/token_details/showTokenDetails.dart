@@ -1,18 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:realtokens/pages/portfolio/token_details/tabs/others_tab.dart';
-import 'package:realtokens/utils/parameters.dart';
+import 'package:realtokens/utils/currency_utils.dart';
+import 'package:realtokens/utils/url_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:intl/intl.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:fl_chart/fl_chart.dart';
 import 'package:provider/provider.dart';
-import 'package:realtokens/api/data_manager.dart';
+import 'package:realtokens/managers/data_manager.dart';
 import 'package:realtokens/generated/l10n.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import '../FullScreenCarousel.dart';
-import 'package:realtokens/utils/utils.dart';
 import 'package:realtokens/app_state.dart';
 
 import 'tabs/property_tab.dart';
@@ -20,10 +18,6 @@ import 'tabs/finance_tab.dart';
 import 'tabs/market_tab.dart';
 import 'tabs/insights_tab.dart';
 import 'tabs/history_tab.dart';
-
-Future<List<Map<String, dynamic>>> _getFilteredOffers(DataManager dataManager, String tokenUuid) async {
-  return dataManager.yamMarket.where((offer) => offer['token_to_sell'] == tokenUuid.toLowerCase() || offer['token_to_buy'] == tokenUuid.toLowerCase()).toList();
-}
 
 void _openMapModal(BuildContext context, dynamic lat, dynamic lng) {
   final double? latitude = double.tryParse(lat.toString());
@@ -89,7 +83,7 @@ void _openMapModal(BuildContext context, dynamic lat, dynamic lng) {
                 child: FloatingActionButton(
                   onPressed: () {
                     final googleStreetViewUrl = 'https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=$latitude,$longitude';
-                    Utils.launchURL(googleStreetViewUrl);
+                    UrlUtils.launchURL(googleStreetViewUrl);
                   },
                   backgroundColor: Colors.blue,
                   child: const Icon(
@@ -106,43 +100,11 @@ void _openMapModal(BuildContext context, dynamic lat, dynamic lng) {
   );
 }
 
-String _formatSquareFeet(double sqft, bool convertToSquareMeters) {
-  if (convertToSquareMeters) {
-    double squareMeters = sqft * 0.092903;
-    return '${squareMeters.toStringAsFixed(2)} m²';
-  } else {
-    return '${sqft.toStringAsFixed(2)} sqft';
-  }
-}
-
 Future<void> showTokenDetails(BuildContext context, Map<String, dynamic> token) async {
   final dataManager = Provider.of<DataManager>(context, listen: false);
   final prefs = await SharedPreferences.getInstance();
   bool convertToSquareMeters = prefs.getBool('convertToSquareMeters') ?? false;
   final appState = Provider.of<AppState>(context, listen: false);
-  final ValueNotifier<bool> showDetailsNotifier = ValueNotifier<bool>(false);
-  final ValueNotifier<bool> showRentDetailsNotifier = ValueNotifier<bool>(false);
-  final ValueNotifier<bool> showTextField = ValueNotifier<bool>(false);
-  final Color listingFeeColor = Colors.red;
-  final Color maintenanceReserveColor = Colors.orange;
-  final Color renovationReserveColor = Colors.purple;
-  final Color miscellaneousCostsColor = Colors.amber;
-  final Color othersColor = Colors.grey;
-
-  double totalCosts = (token['realtListingFee']?.toDouble() ?? 0.0) +
-      (token['initialMaintenanceReserve']?.toDouble() ?? 0.0) +
-      (token['renovationReserve']?.toDouble() ?? 0.0) +
-      (token['miscellaneousCosts']?.toDouble() ?? 0.0);
-
-  double totalRentCosts = (token['propertyMaintenanceMonthly']?.toDouble() ?? 0.0) +
-      (token['propertyManagement']?.toDouble() ?? 0.0) +
-      (token['realtPlatform']?.toDouble() ?? 0.0) +
-      (token['insurance']?.toDouble() ?? 0.0) +
-      (token['propertyTaxes']?.toDouble() ?? 0.0);
-
-  final TextEditingController initPriceController = TextEditingController(
-    text: token['initPrice']?.toString() ?? '0.00',
-  );
 
   showModalBottomSheet(
     backgroundColor: Theme.of(context).cardColor,
@@ -222,7 +184,7 @@ Future<void> showTokenDetails(BuildContext context, Map<String, dynamic> token) 
                             ),
                             const SizedBox(width: 8),
                             Text(
-                              Utils.formatCurrency(dataManager.convert(token['totalValue']), dataManager.currencySymbol),
+                              CurrencyUtils.formatCurrency(dataManager.convert(token['totalValue']), dataManager.currencySymbol),
                               style: TextStyle(
                                 fontWeight: FontWeight.normal,
                                 color: Colors.grey,
@@ -273,7 +235,7 @@ Future<void> showTokenDetails(BuildContext context, Map<String, dynamic> token) 
                         SizedBox(
                           height: 36,
                           child: ElevatedButton(
-                            onPressed: () => Utils.launchURL(token['marketplaceLink']),
+                            onPressed: () => UrlUtils.launchURL(token['marketplaceLink']),
                             style: ElevatedButton.styleFrom(
                               foregroundColor: Colors.white,
                               backgroundColor: Colors.blue,

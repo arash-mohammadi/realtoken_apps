@@ -1,9 +1,9 @@
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:realtokens/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart'; // Pour accéder à AppState
 import 'package:realtokens/generated/l10n.dart'; // Importer pour les traductions
-import 'package:realtokens/app_state.dart'; // Importer pour accéder à l'offset de texte
+import 'package:realtokens/app_state.dart';
+import 'package:realtokens/utils/url_utils.dart'; // Importer pour accéder à l'offset de texte
 
 class AboutPage extends StatelessWidget {
   const AboutPage({super.key});
@@ -71,7 +71,7 @@ class AboutPage extends StatelessWidget {
                       'My linktree',
                       style: TextStyle(fontSize: 15 + appState.getTextSizeOffset()),
                     ),
-                    onTap: () => Utils.launchURL('https://linktr.ee/byackee'),
+                    onTap: () => UrlUtils.launchURL('https://linktr.ee/byackee'),
                     visualDensity: const VisualDensity(vertical: -4), // Réduction de l'espace vertical
                   ),
                 ],

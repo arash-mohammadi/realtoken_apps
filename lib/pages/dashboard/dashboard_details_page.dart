@@ -1,7 +1,8 @@
-import 'package:realtokens/utils/utils.dart';
+import 'package:realtokens/utils/currency_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:realtokens/api/data_manager.dart';
+import 'package:realtokens/managers/data_manager.dart';
+import 'package:realtokens/utils/date_utils.dart';
 
 class DashboardRentsDetailsPage extends StatelessWidget {
   const DashboardRentsDetailsPage({super.key});
@@ -53,8 +54,8 @@ class DashboardRentsDetailsPage extends StatelessWidget {
                       itemCount: dataManager.rentData.length,
                       itemBuilder: (context, index) {
                         final rentEntry = dataManager.rentData[index];
-                        final rentDate = Utils.formatDate(rentEntry['date']);
-                        final rentAmount = Utils.formatCurrency(dataManager.convert(rentEntry['rent']), dataManager.currencySymbol);
+                        final rentDate = CustomDateUtils.formatDate(rentEntry['date']);
+                        final rentAmount = CurrencyUtils.formatCurrency(dataManager.convert(rentEntry['rent']), dataManager.currencySymbol);
 
                         return Padding(
                           padding: const EdgeInsets.symmetric(vertical: 8.0), // Padding pour chaque ligne

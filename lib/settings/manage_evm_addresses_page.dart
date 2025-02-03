@@ -1,12 +1,11 @@
-import 'package:logger/logger.dart';
-import 'package:realtokens/utils/utils.dart';
-import 'package:provider/provider.dart';
+import 'package:logger/logger.dart';import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:realtokens/utils/data_fetch_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/services.dart'; // Pour copier dans le presse-papiers
-import 'package:realtokens/api/data_manager.dart';
-import 'package:realtokens/api/api_service.dart';
+import 'package:realtokens/managers/data_manager.dart';
+import 'package:realtokens/services/api_service.dart';
 import 'package:realtokens/app_state.dart'; // Import pour accéder à AppState
 
 class ManageEvmAddressesPage extends StatefulWidget {
@@ -106,7 +105,7 @@ class ManageEthAddressesPageState extends State<ManageEvmAddressesPage> {
 
     logger.i("test1232323");
     // Charger les données après les modifications
-    Utils.loadData(context);
+    DataFetchUtils.loadData(context);
   }
 
   String? _validateEVMAddress(String address) {

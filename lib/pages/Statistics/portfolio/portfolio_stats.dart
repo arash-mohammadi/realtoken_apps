@@ -1,16 +1,19 @@
 import 'package:flutter/services.dart';
 import 'package:realtokens/pages/Statistics/portfolio/Modal_others_pie.dart';
+import 'package:realtokens/utils/currency_utils.dart';
+import 'package:realtokens/utils/data_fetch_utils.dart';
+import 'package:realtokens/utils/date_utils.dart';
 import 'package:realtokens/utils/parameters.dart';
-import 'package:realtokens/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:realtokens/api/data_manager.dart';
+import 'package:realtokens/managers/data_manager.dart';
 import 'package:realtokens/generated/l10n.dart'; // Import pour les traductions
 import 'package:realtokens/app_state.dart'; // Import AppState
 import 'package:logger/logger.dart';
+import 'package:realtokens/utils/ui_utils.dart';
 
 class PortfolioStats extends StatefulWidget {
   const PortfolioStats({super.key});
@@ -34,7 +37,7 @@ class _PortfolioStats extends State<PortfolioStats> {
       try {
         final dataManager = Provider.of<DataManager>(context, listen: false);
         logger.i("Fetching rent data and property data...");
-        Utils.loadData(context);
+        DataFetchUtils.loadData(context);
         dataManager.fetchPropertyData();
       } catch (e, stacktrace) {
         logger.i("Error during initState: $e");
@@ -66,7 +69,7 @@ class _PortfolioStats extends State<PortfolioStats> {
       if (entry.containsKey('date') && entry.containsKey('rent')) {
         try {
           DateTime date = DateTime.parse(entry['date']);
-          String weekKey = "${date.year}-S${Utils.weekNumber(date).toString().padLeft(2, '0')}"; // Semaine formatée avec deux chiffres
+          String weekKey = "${date.year}-S${CustomDateUtils.weekNumber(date).toString().padLeft(2, '0')}"; // Semaine formatée avec deux chiffres
           groupedData[weekKey] = (groupedData[weekKey] ?? 0) + entry['rent'];
         } catch (e) {
           // En cas d'erreur de parsing de date ou autre, vous pouvez ignorer cette entrée ou la traiter différemment
@@ -304,7 +307,7 @@ class _PortfolioStats extends State<PortfolioStats> {
             ),
           ),
           Text(
-            Utils.getFormattedAmount(dataManager.convert(totalRent), dataManager.currencySymbol, true),
+            CurrencyUtils.getFormattedAmount(dataManager.convert(totalRent), dataManager.currencySymbol, true),
             style: TextStyle(
               fontSize: 14 + Provider.of<AppState>(context).getTextSizeOffset(),
               color: Colors.grey,
@@ -330,7 +333,7 @@ class _PortfolioStats extends State<PortfolioStats> {
           ),
         ),
         Text(
-          Utils.getFormattedAmount(dataManager.convert(selectedEntry.value), dataManager.currencySymbol, true),
+          CurrencyUtils.getFormattedAmount(dataManager.convert(selectedEntry.value), dataManager.currencySymbol, true),
           style: TextStyle(
             fontSize: 14 + Provider.of<AppState>(context).getTextSizeOffset(),
             color: Colors.grey,
@@ -509,8 +512,8 @@ class _PortfolioStats extends State<PortfolioStats> {
 
       // Obtenir la couleur de base et créer des nuances
       final Color baseColor = _getPropertyColor(data['propertyType']);
-      final Color lighterColor = Utils.shadeColor(baseColor, 1); // plus clair
-      final Color darkerColor = Utils.shadeColor(baseColor, 0.7); // plus foncé
+      final Color lighterColor = UIUtils.shadeColor(baseColor, 1); // plus clair
+      final Color darkerColor = UIUtils.shadeColor(baseColor, 0.7); // plus foncé
 
       return PieChartSectionData(
         value: data['count'].toDouble(),
@@ -736,8 +739,8 @@ print('propertyData: ${dataManager.propertyData}');
       final Color baseColor = generateColor(index);
 
       // Créer des nuances pour le gradient
-      final Color lighterColor = Utils.shadeColor(baseColor, 1);
-      final Color darkerColor = Utils.shadeColor(baseColor, 0.7);
+      final Color lighterColor = UIUtils.shadeColor(baseColor, 1);
+      final Color darkerColor = UIUtils.shadeColor(baseColor, 0.7);
 
       return PieChartSectionData(
         value: value.toDouble(),

@@ -1,16 +1,15 @@
 import 'dart:convert';
 import 'dart:io'; // Pour détecter la plateforme (Android/iOS)
 import 'package:realtokens/app_state.dart';
-import 'package:realtokens/utils/parameters.dart';
-import 'package:realtokens/utils/utils.dart';
-import 'package:flutter/material.dart';
+import 'package:realtokens/utils/data_fetch_utils.dart';
+import 'package:realtokens/utils/parameters.dart';import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:realtokens/api/data_manager.dart';
+import 'package:realtokens/managers/data_manager.dart';
 import 'package:realtokens/generated/l10n.dart'; // Importer le fichier généré pour les traductions
 import 'package:hive/hive.dart'; // Import pour Hive
 import 'package:provider/provider.dart';
-import '/api/api_service.dart';
+import '../services/api_service.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:path/path.dart' as path; // Ajoute cet import pour manipuler les chemins de fichiers
 import 'package:file_picker/file_picker.dart';
@@ -338,7 +337,7 @@ class _SettingsPageState extends State<SettingsPage> {
       );
       print('Erreur lors de l\'importation des données Hive depuis le fichier ZIP : $e');
     }
-    Utils.loadData(context);
+    DataFetchUtils.loadData(context);
   }
 
   void _showNumberPicker(BuildContext context) {

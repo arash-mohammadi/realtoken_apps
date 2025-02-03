@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:provider/provider.dart';
 import 'package:realtokens/app_state.dart';
-import 'package:realtokens/api/data_manager.dart';
-import 'package:realtokens/utils/utils.dart';
+import 'package:realtokens/managers/data_manager.dart';
 import 'package:realtokens/generated/l10n.dart';
+import 'package:realtokens/utils/currency_utils.dart';
+import 'package:realtokens/utils/data_fetch_utils.dart';
+import 'package:realtokens/utils/date_utils.dart';
+import 'package:realtokens/utils/url_utils.dart';
 
 class PropertiesForSaleSecondary extends StatefulWidget {
   const PropertiesForSaleSecondary({Key? key}) : super(key: key);
@@ -22,7 +25,7 @@ class _PropertiesForSaleSecondaryState extends State<PropertiesForSaleSecondary>
   @override
   void initState() {
     super.initState();
-    Utils.refreshData(context);
+    DataFetchUtils.refreshData(context);
 
     final box = Hive.box('realTokens');
     setState(() {
@@ -38,7 +41,7 @@ class _PropertiesForSaleSecondaryState extends State<PropertiesForSaleSecondary>
 
   Future<void> _refreshData() async {
     final dataManager = Provider.of<DataManager>(context, listen: false);
-    await Utils.refreshData(context);
+    await DataFetchUtils.refreshData(context);
     await dataManager.fetchAndStorePropertiesForSale();
 
     final box = Hive.box('realTokens');
@@ -87,7 +90,7 @@ class _PropertiesForSaleSecondaryState extends State<PropertiesForSaleSecondary>
                           ),
                         )
                       : Text(
-                          'Dernière mise à jour : ${Utils.formatReadableDateWithTime(lastUpdateTime!)}',
+                          'Dernière mise à jour : ${CustomDateUtils.formatReadableDateWithTime(lastUpdateTime!)}',
                           style: TextStyle(
                             fontSize: 14 + appState.getTextSizeOffset(),
                             color: Colors.grey[600],
@@ -209,7 +212,7 @@ class _PropertiesForSaleSecondaryState extends State<PropertiesForSaleSecondary>
                                               clipBehavior: Clip.none,
                                               children: [
                                                 Text(
-                                                  Utils.formatReadableDate(creationDate),
+                                                  CustomDateUtils.formatReadableDate(creationDate),
                                                   style: TextStyle(
                                                     fontSize: 12 + appState.getTextSizeOffset(),
                                                     color: Colors.grey[600],
@@ -248,7 +251,7 @@ class _PropertiesForSaleSecondaryState extends State<PropertiesForSaleSecondary>
                                           ),
                                         ),
                                         Text(
-                                          '${S.of(context).token_value}: ${Utils.formatCurrency(offer['tokenValue'], dataManager.currencySymbol)}',
+                                          '${S.of(context).token_value}: ${CurrencyUtils.formatCurrency(offer['tokenValue'], dataManager.currencySymbol)}',
                                           style: TextStyle(
                                             fontSize: 12 + appState.getTextSizeOffset(),
                                             color: Colors.grey[600],
@@ -280,7 +283,7 @@ class _PropertiesForSaleSecondaryState extends State<PropertiesForSaleSecondary>
                                         const SizedBox(height: 4),
                                         ElevatedButton(
                                           onPressed: () {
-                                            Utils.launchURL('https://yambyofferid.netlify.app/?offerId=${offer['id_offer']}');
+                                            UrlUtils.launchURL('https://yambyofferid.netlify.app/?offerId=${offer['id_offer']}');
                                           },
                                           style: ElevatedButton.styleFrom(
                                             foregroundColor: Colors.white,

@@ -2,12 +2,12 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:realtokens/api/data_manager.dart';
+import 'package:realtokens/managers/data_manager.dart';
 import 'package:realtokens/app_state.dart';
 import 'package:realtokens/generated/l10n.dart';
-import 'package:realtokens/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:realtokens/utils/url_utils.dart';
 
 class SupportPage extends StatefulWidget {
   const SupportPage({super.key});
@@ -96,7 +96,7 @@ class RealtPageState extends State<SupportPage> {
                         'My linktree',
                         style: TextStyle(fontSize: 13 + appState.getTextSizeOffset()),
                       ),
-                      onTap: () => Utils.launchURL('https://linktr.ee/byackee'),
+                      onTap: () => UrlUtils.launchURL('https://linktr.ee/byackee'),
                       visualDensity: const VisualDensity(vertical: -4), // Réduction de l'espace vertical
                     ),
                     const SizedBox(height: 20),
@@ -108,7 +108,7 @@ class RealtPageState extends State<SupportPage> {
                         children: [
                           ElevatedButton.icon(
                             onPressed: () {
-                              Utils.launchURL('https://paypal.me/byackee?country.x=FR&locale.x=fr_FR');
+                              UrlUtils.launchURL('https://paypal.me/byackee?country.x=FR&locale.x=fr_FR');
                             },
                             icon: const Icon(Icons.payment, color: Colors.white),
                             label: Text(
@@ -121,7 +121,7 @@ class RealtPageState extends State<SupportPage> {
                           ),
                           ElevatedButton.icon(
                             onPressed: () {
-                              Utils.launchURL('https://buymeacoffee.com/byackee');
+                              UrlUtils.launchURL('https://buymeacoffee.com/byackee');
                             },
                             icon: Image.asset(
                               'assets/bmc.png', // Chemin de votre image dans les assets
@@ -204,7 +204,7 @@ class RealtPageState extends State<SupportPage> {
                   const SizedBox(height: 10),
                   if (linkText != null && linkUrl != null)
                     GestureDetector(
-                      onTap: () => Utils.launchURL(linkUrl),
+                      onTap: () => UrlUtils.launchURL(linkUrl),
                       child: Text(
                         linkText,
                         style: TextStyle(

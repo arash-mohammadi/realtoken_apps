@@ -2,22 +2,27 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:realtokens/api/data_manager.dart';
+import 'package:realtokens/managers/data_manager.dart';
 import 'package:realtokens/app_state.dart';
 import 'package:realtokens/generated/l10n.dart';
-import 'package:realtokens/utils/utils.dart';
+import 'package:realtokens/models/balance_record.dart';
+import 'package:realtokens/utils/chart_utils.dart';
+import 'package:realtokens/utils/currency_utils.dart';
+import 'package:realtokens/utils/date_utils.dart';
 
 class WalletBalanceGraph extends StatelessWidget {
   final DataManager dataManager;
   final String selectedPeriod;
   final Function(String) onPeriodChanged;
   final bool isBarChart;
+  final Function(bool) onChartTypeChanged;
 
-  const WalletBalanceGraph({
+  const WalletBalanceGraph({super.key, 
     required this.dataManager,
     required this.selectedPeriod,
     required this.onPeriodChanged,
-    required this.isBarChart, required Null Function(dynamic isBarChart) onChartTypeChanged,
+    required this.isBarChart, 
+    required this.onChartTypeChanged,
   });
 
   @override
@@ -43,17 +48,43 @@ class WalletBalanceGraph extends StatelessWidget {
                 ),
                 const Spacer(),
                 IconButton(
-                  icon: const Icon(
-                    Icons.settings,
-                    size: 20.0,
-                  ),
+                  icon: const Icon(Icons.settings,size: 20.0),
                   onPressed: () {
-                    // Handle settings button press
+                    showModalBottomSheet(
+                      context: context,
+                      builder: (context) {
+                        return Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              ListTile(
+                                leading: const Icon(Icons.bar_chart, color: Colors.blue),
+                                title: Text(S.of(context).barChart),
+                                onTap: () {
+                                  onChartTypeChanged(true);
+                                  Navigator.of(context).pop();
+                                },
+                              ),
+                              ListTile(
+                                leading: const Icon(Icons.show_chart, color: Colors.green),
+                                title: Text(S.of(context).lineChart),
+                                onTap: () {
+                                  onChartTypeChanged(false);
+                                  Navigator.of(context).pop();
+                                },
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    );
                   },
+                
                 ),
               ],
             ),
-            Utils.buildPeriodSelector(
+            ChartUtils.buildPeriodSelector(
               context,
               selectedPeriod: selectedPeriod,
               onPeriodChanged: onPeriodChanged,
@@ -73,7 +104,7 @@ class WalletBalanceGraph extends StatelessWidget {
                               getTitlesWidget: (value, meta) {
                                 final displayValue = value >= 1000
                                     ? '${(value / 1000).toStringAsFixed(1)} k${dataManager.currencySymbol}'
-                                    : Utils.formatCurrency(value, dataManager.currencySymbol);
+                                    : CurrencyUtils.formatCurrency(value, dataManager.currencySymbol);
                                 return Text(
                                   displayValue,
                                   style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
@@ -133,7 +164,7 @@ class WalletBalanceGraph extends StatelessWidget {
                               getTitlesWidget: (value, meta) {
                                 final displayValue = value >= 1000
                                     ? '${(value / 1000).toStringAsFixed(1)} k${dataManager.currencySymbol}'
-                                    : Utils.formatCurrency(value, dataManager.currencySymbol);
+                                    : CurrencyUtils.formatCurrency(value, dataManager.currencySymbol);
                                 return Text(
                                   displayValue,
                                   style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
@@ -208,7 +239,7 @@ class WalletBalanceGraph extends StatelessWidget {
                                 final periodLabel = _buildDateLabelsForWallet(context, dataManager, selectedPeriod)[index];
 
                                 return LineTooltipItem(
-                                  '$periodLabel\n${Utils.formatCurrency(averageBalance, dataManager.currencySymbol)}',
+                                  '$periodLabel\n${CurrencyUtils.formatCurrency(averageBalance, dataManager.currencySymbol)}',
                                   const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                                 );
                               }).toList();
@@ -245,39 +276,15 @@ class WalletBalanceGraph extends StatelessWidget {
         .toList();
   }
 
-  List<FlSpot> _buildWalletBalanceChartData(BuildContext context, DataManager dataManager, String selectedPeriod) {
-    List<BalanceRecord> walletHistory = dataManager.walletBalanceHistory;
-
-    Map<String, List<double>> groupedData = {};
-    for (var record in walletHistory) {
-      DateTime date = record.timestamp;
-      String periodKey;
-
-      if (selectedPeriod == S.of(context).day) {
-        periodKey = DateFormat('yyyy/MM/dd').format(date);
-      } else if (selectedPeriod == S.of(context).week) {
-        periodKey = "${date.year}-S${Utils.weekNumber(date).toString().padLeft(2, '0')}";
-      } else if (selectedPeriod == S.of(context).month) {
-        periodKey = DateFormat('yyyy/MM').format(date);
-      } else {
-        periodKey = date.year.toString();
-      }
-
-      groupedData.putIfAbsent(periodKey, () => []).add(record.balance);
-    }
-
-    List<FlSpot> spots = [];
-    List<String> sortedKeys = groupedData.keys.toList()..sort();
-
-    for (int i = 0; i < sortedKeys.length; i++) {
-      String periodKey = sortedKeys[i];
-      List<double> balances = groupedData[periodKey]!;
-      double averageBalance = balances.reduce((a, b) => a + b) / balances.length;
-      spots.add(FlSpot(i.toDouble(), averageBalance));
-    }
-
-    return spots;
-  }
+ List<FlSpot> _buildWalletBalanceChartData(BuildContext context, DataManager dataManager, String selectedPeriod) {
+  return ChartUtils.buildHistoryChartData<BalanceRecord>(
+    context,
+    dataManager.walletBalanceHistory,
+    selectedPeriod,
+    (record) => record.balance,
+    (record) => record.timestamp,
+  );
+}
 
   List<String> _buildDateLabelsForWallet(BuildContext context, DataManager dataManager, String selectedPeriod) {
     List<BalanceRecord> walletHistory = dataManager.walletBalanceHistory;
@@ -290,7 +297,7 @@ class WalletBalanceGraph extends StatelessWidget {
       if (selectedPeriod == S.of(context).day) {
         periodKey = DateFormat('yyyy/MM/dd').format(date);
       } else if (selectedPeriod == S.of(context).week) {
-        periodKey = "${date.year}-S${Utils.weekNumber(date).toString().padLeft(2, '0')}";
+        periodKey = "${date.year}-S${CustomDateUtils.weekNumber(date).toString().padLeft(2, '0')}";
       } else if (selectedPeriod == S.of(context).month) {
         periodKey = DateFormat('yyyy/MM').format(date);
       } else {
@@ -303,4 +310,5 @@ class WalletBalanceGraph extends StatelessWidget {
     List<String> sortedKeys = groupedData.keys.toList()..sort();
     return sortedKeys;
   }
+
 }

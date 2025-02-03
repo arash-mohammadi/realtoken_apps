@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:realtokens/generated/l10n.dart';
 import 'package:realtokens/app_state.dart';
+import 'package:realtokens/utils/date_utils.dart';
+import 'package:realtokens/utils/location_utils.dart';
 import 'package:realtokens/utils/parameters.dart';
-import 'package:realtokens/utils/utils.dart';
+import 'package:realtokens/utils/ui_utils.dart';
 
 Widget buildPropertiesTab(BuildContext context, Map<String, dynamic> token, bool convertToSquareMeters) {
   final appState = Provider.of<AppState>(context, listen: false);
@@ -101,7 +103,7 @@ Widget _buildDetailRow(BuildContext context, String label, String value, {IconDa
         _buildDetailRow(
           context,
           S.of(context).lotSize,
-          Utils.formatSquareFeet(
+          LocationUtils.formatSquareFeet(
             token['lotSize']?.toDouble() ?? 0,
             convertToSquareMeters,
           ),
@@ -110,7 +112,7 @@ Widget _buildDetailRow(BuildContext context, String label, String value, {IconDa
         _buildDetailRow(
           context,
           S.of(context).squareFeet,
-          Utils.formatSquareFeet(
+          LocationUtils.formatSquareFeet(
             token['squareFeet']?.toDouble() ?? 0,
             convertToSquareMeters,
           ),
@@ -156,7 +158,7 @@ Widget _buildDetailRow(BuildContext context, String label, String value, {IconDa
               height: 12,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Utils.getRentalStatusColor(
+                color: UIUtils.getRentalStatusColor(
                   token['rentedUnits'] ?? 0,
                   token['totalUnits'] ?? 1,
                 ),
@@ -187,7 +189,7 @@ Widget _buildDetailRow(BuildContext context, String label, String value, {IconDa
             const SizedBox(width: 10),
             Spacer(),
             Text(
-              Utils.formatReadableDate(token['rentStartDate'] ?? ''),
+              CustomDateUtils.formatReadableDate(token['rentStartDate'] ?? ''),
               style: TextStyle(
                 fontSize: 13 + appState.getTextSizeOffset(),
               ),
