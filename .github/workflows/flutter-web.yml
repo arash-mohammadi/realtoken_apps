@@ -23,17 +23,33 @@ jobs:
       with:
         flutter-version: '3.24.4'  # La version Flutter que vous utilisez
 
-    - name: Install dependencies
+    # 🔥 Nettoie le projet et force la récupération des dépendances
+    - name: Clean Flutter project
+      run: flutter clean
+
+    - name: Get dependencies
       run: flutter pub get
+
+    # 🔥 Met à jour les dépendances pour éviter les erreurs avec Syncfusion
+    - name: Upgrade dependencies
+      run: flutter pub upgrade
+
+    # 🔥 Vérifie la version de Flutter (utile pour debug)
+    - name: Check Flutter version
+      run: flutter --version
+
+    # 🔥 Vérifie les fichiers présents dans le repo (pour voir si `Agenda.dart` est bien là)
+    - name: List project files
+      run: ls -R lib/structure/
 
     - name: Decode and write google-services.json
       run: |
           echo "GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID" > .env
           echo "THE_GRAPH_API_KEY=$THE_GRAPH_API_KEY" >> .env  # 🔥 Ajoute la seconde clé API
 
-
+    # 🔥 Compilation avec verbose pour voir les erreurs plus détaillées
     - name: Build web app
-      run: flutter build web --release --web-renderer html --base-href /realtoken_apps/
+      run: flutter build web --release --web-renderer html --base-href /realtoken_apps/ --verbose
 
     - name: Deploy to GitHub Pages
       uses: peaceiris/actions-gh-pages@v3
