@@ -22,7 +22,6 @@ class WalletStats extends StatefulWidget {
 }
 
 class _WalletStats extends State<WalletStats> {
-  final bool _showCumulativeRent = false; // État pour le switch
 
   late String _selectedRentPeriod;
   late String _selectedWalletPeriod;

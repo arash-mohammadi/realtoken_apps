@@ -54,7 +54,6 @@ class _PropertiesForSalePageState extends State<PropertiesForSalePage> {
   }
 
   Widget _buildPageSelector() {
-    final appState = Provider.of<AppState>(context);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0),

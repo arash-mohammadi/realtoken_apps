@@ -1,5 +1,4 @@
 import 'package:realtokens/managers/data_manager.dart';
-import 'package:realtokens/app_state.dart';
 import 'package:realtokens/generated/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -23,9 +22,6 @@ class RealtPageState extends State<LinksPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Accéder à DataManager pour récupérer les valeurs calculées
-    final appState = Provider.of<AppState>(context);
-
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).scaffoldBackgroundColor, // Définir le fond noir

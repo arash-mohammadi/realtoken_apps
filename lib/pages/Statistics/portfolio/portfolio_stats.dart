@@ -33,7 +33,6 @@ class _PortfolioStats extends State<PortfolioStats> {
 
     SchedulerBinding.instance.addPostFrameCallback((_) async {
       try {
-        final dataManager = Provider.of<DataManager>(context, listen: false);
         debugPrint("Fetching rent data and property data...");
         DataFetchUtils.loadData(context);
       } catch (e, stacktrace) {

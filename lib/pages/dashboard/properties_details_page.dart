@@ -1,18 +1,14 @@
-import 'package:realtokens/utils/currency_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:realtokens/managers/data_manager.dart';
-import 'package:realtokens/utils/date_utils.dart';
 import 'package:realtokens/generated/l10n.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:realtokens/app_state.dart';
-import 'package:realtokens/utils/ui_utils.dart';
 import 'package:syncfusion_flutter_gauges/gauges.dart';
 
 class PropertiesDetailsPage extends StatelessWidget {
   const PropertiesDetailsPage({super.key});
 
-  @override
   Widget _buildInfoCards(BuildContext context, DataManager dataManager, AppState appState) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 20.0),
@@ -237,7 +233,6 @@ class PropertiesDetailsPage extends StatelessWidget {
       ..sort((a, b) => b['count'].compareTo(a['count']));
 
     return sortedData.asMap().entries.map((entry) {
-      final index = entry.key;
       final data = entry.value;
       final double percentage = (data['count'] / dataManager.propertyData.fold(0.0, (double sum, item) => sum + item['count'])) * 100;
 

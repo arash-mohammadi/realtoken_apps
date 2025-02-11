@@ -4,7 +4,6 @@ import 'package:realtokens/utils/parameters.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:realtokens/app_state.dart';
 import 'package:realtokens/generated/l10n.dart';
-import 'package:realtokens/settings/theme.dart';
 
 class AppearanceSettingsPage extends StatefulWidget {
   @override

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:realtokens/app_state.dart';
-import 'package:realtokens/services/api_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:realtokens/generated/l10n.dart';
 

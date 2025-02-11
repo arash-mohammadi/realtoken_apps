@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:realtokens/managers/data_manager.dart';
 import 'package:realtokens/structure/agenda.dart';
 import 'package:realtokens/utils/ui_utils.dart';
-import 'package:table_calendar/table_calendar.dart';
-import 'package:intl/intl.dart';
+
 import 'bottom_bar.dart';
 import 'drawer.dart';
 import 'package:realtokens/pages/dashboard/dashboard_page.dart';
@@ -47,7 +46,8 @@ class _MyHomePageState extends State<MyHomePage> {
     final dataManager = Provider.of<DataManager>(context, listen: false);
     final portfolio = dataManager.portfolio;
 
-    print("📊 Portfolio avant d'ouvrir le modal : $portfolio"); // 🔍 Vérification
+    print(
+        "📊 Portfolio avant d'ouvrir le modal : $portfolio"); // 🔍 Vérification
 
     showModalBottomSheet(
       context: context,
@@ -57,7 +57,8 @@ class _MyHomePageState extends State<MyHomePage> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.8, // Modal limité à 60% de la hauteur
+        maxHeight: MediaQuery.of(context).size.height *
+            0.8, // Modal limité à 60% de la hauteur
       ),
       builder: (context) => AgendaCalendar(portfolio: portfolio),
     );
@@ -82,14 +83,19 @@ class _MyHomePageState extends State<MyHomePage> {
                 filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                 child: Container(
                   height: UIUtils.getAppBarHeight(context),
-                  color: Theme.of(context).brightness == Brightness.dark ? Colors.black.withOpacity(0.3) : Colors.white.withOpacity(0.3),
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.black.withOpacity(0.3)
+                      : Colors.white.withOpacity(0.3),
                   child: AppBar(
                     forceMaterialTransparency: true,
                     backgroundColor: Colors.transparent,
                     elevation: 0.5,
                     actions: [
                       IconButton(
-                        icon: Icon(Icons.calendar_today, size: 20, color: Theme.of(context).textTheme.bodyMedium?.color),
+                        icon: Icon(Icons.calendar_today,
+                            size: 20,
+                            color:
+                                Theme.of(context).textTheme.bodyMedium?.color),
                         onPressed: () => _openAgendaModal(context),
                       ),
                     ],
@@ -107,7 +113,9 @@ class _MyHomePageState extends State<MyHomePage> {
                 filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                 child: Container(
                   height: _getContainerHeight(context),
-                  color: Theme.of(context).brightness == Brightness.dark ? Colors.black.withOpacity(0.3) : Colors.white.withOpacity(0.3),
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.black.withOpacity(0.3)
+                      : Colors.white.withOpacity(0.3),
                   child: SafeArea(
                     top: false,
                     child: CustomBottomNavigationBar(

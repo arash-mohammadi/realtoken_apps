@@ -186,7 +186,6 @@ class _PropertiesForSaleSecondaryState extends State<PropertiesForSaleSecondary>
                                 ...offers.map((offer) {
                                   final offerId = offer['id_offer']?.toString() ?? 'N/A';
                                   final tokenAmount = offer['tokenAmount']?.toString() ?? '0';
-                                  final tokenValue = offer['tokenValue']?.toString() ?? '0.00';
                                   final creationDate = offer['creationDate'] ?? 'Unknown date';
                                   final delta = (offer['token_to_buy'] == null)
                                       ? ((offer['tokenValue'] / offer['tokenPrice'] - 1) * 100) // Formule inversée

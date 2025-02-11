@@ -441,6 +441,5 @@ class WalletBalanceGraph extends StatelessWidget {
   void _deleteBalanceRecord(DataManager dataManager, int index) {
     dataManager.walletBalanceHistory.removeAt(index);
     dataManager.saveWalletBalanceHistory(); // Sauvegarder la mise à jour dans Hive
-    dataManager.notifyListeners();
   }
 }

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:realtokens/app_state.dart';
 import 'package:realtokens/managers/data_manager.dart';
 import 'package:table_calendar/table_calendar.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:realtokens/generated/l10n.dart';
 
@@ -73,7 +72,6 @@ class AgendaCalendarState extends State<AgendaCalendar> {
 
   @override
   Widget build(BuildContext context) {
-    final appState = Provider.of<AppState>(context);
     final theme = Theme.of(context);
 
     return Padding(

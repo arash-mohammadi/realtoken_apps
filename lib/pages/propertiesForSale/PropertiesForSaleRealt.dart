@@ -76,9 +76,6 @@ class _PropertiesForSaleRealtState extends State<PropertiesForSaleRealt> {
     final dataManager = Provider.of<DataManager>(context);
     final propertiesForSale = dataManager.propertiesForSale;
 
-    // Récupère la largeur de l'écran
-    final screenWidth = MediaQuery.of(context).size.width;
-
     return Scaffold(
       body: propertiesForSale.isEmpty
           ? Center(

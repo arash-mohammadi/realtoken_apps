@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-// Import nécessaire pour SharedPreferences
-import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
 // Fonction pour récupérer la couleur enregistrée
 Future<Color> getSavedPrimaryColor() async {
   final prefs = await SharedPreferences.getInstance();

@@ -225,7 +225,7 @@ Widget buildFinanceTab(BuildContext context, Map<String, dynamic> token, bool co
                   _buildDetailRow(context, S.of(context).propertyTaxes, CurrencyUtils.formatCurrency(dataManager.convert(token['propertyTaxes'] ?? 0), dataManager.currencySymbol),
                       isNegative: true, color: Colors.red),
                   _buildDetailRow(context, S.of(context).others,
-                      CurrencyUtils.formatCurrency((dataManager.convert(token['grossRentMonth'] - token['netRentMonth'] - totalRentCosts) ?? 0), dataManager.currencySymbol),
+                      CurrencyUtils.formatCurrency((dataManager.convert(token['grossRentMonth'] - token['netRentMonth'] - totalRentCosts)), dataManager.currencySymbol),
                       isNegative: true, color: Colors.grey),
                 ],
               ),

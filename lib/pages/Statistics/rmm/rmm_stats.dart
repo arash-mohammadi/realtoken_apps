@@ -23,11 +23,8 @@ class RmmStatsState extends State<RmmStats> {
   @override
   Widget build(BuildContext context) {
     final dataManager = Provider.of<DataManager>(context);
-    final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
     final double fixedCardHeight = 380; // Hauteur fixe pour toutes les cartes
-
-    final appState = Provider.of<AppState>(context);
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
