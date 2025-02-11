@@ -12,7 +12,6 @@ import 'package:flutter/scheduler.dart';
 import 'package:realtokens/managers/data_manager.dart';
 import 'package:realtokens/generated/l10n.dart'; // Import pour les traductions
 import 'package:realtokens/app_state.dart'; // Import AppState
-import 'package:logger/logger.dart';
 import 'package:realtokens/utils/ui_utils.dart';
 
 class PortfolioStats extends StatefulWidget {
@@ -23,7 +22,6 @@ class PortfolioStats extends StatefulWidget {
 }
 
 class _PortfolioStats extends State<PortfolioStats> {
-  static final logger = Logger(); // Initialiser une instance de logger
 
   late String _selectedPeriod;
   late String _selectedFilter; // Ajoutez une variable pour le filtre
@@ -36,12 +34,11 @@ class _PortfolioStats extends State<PortfolioStats> {
     SchedulerBinding.instance.addPostFrameCallback((_) async {
       try {
         final dataManager = Provider.of<DataManager>(context, listen: false);
-        logger.i("Fetching rent data and property data...");
+        debugPrint("Fetching rent data and property data...");
         DataFetchUtils.loadData(context);
-        dataManager.fetchPropertyData();
       } catch (e, stacktrace) {
-        logger.i("Error during initState: $e");
-        logger.i("Stacktrace: $stacktrace");
+        debugPrint("Error during initState: $e");
+        debugPrint("Stacktrace: $stacktrace");
       }
     });
   }
@@ -73,7 +70,7 @@ class _PortfolioStats extends State<PortfolioStats> {
           groupedData[weekKey] = (groupedData[weekKey] ?? 0) + entry['rent'];
         } catch (e) {
           // En cas d'erreur de parsing de date ou autre, vous pouvez ignorer cette entrée ou la traiter différemment
-          logger.w("Erreur lors de la conversion de la date : ${entry['date']}");
+          debugPrint("❌ Erreur lors de la conversion de la date : ${entry['date']}");
         }
       }
     }
@@ -109,14 +106,9 @@ class _PortfolioStats extends State<PortfolioStats> {
     try {
       dataManager = Provider.of<DataManager>(context);
     } catch (e, stacktrace) {
-      logger.i("Error accessing DataManager: $e");
-      logger.i("Stacktrace: $stacktrace");
+      debugPrint("Error accessing DataManager: $e");
+      debugPrint("Stacktrace: $stacktrace");
       return Center(child: Text("Error loading data"));
-    }
-
-    // If dataManager is still null, return an error message
-    if (dataManager == null) {
-      return Center(child: Text("DataManager is unavailable"));
     }
 
     // Retrieve app state and grouped data
@@ -176,7 +168,7 @@ class _PortfolioStats extends State<PortfolioStats> {
     final appState = Provider.of<AppState>(context);
 
     return Card(
-      elevation: 0,
+      elevation: 0.5,
       color: Theme.of(context).cardColor,
       child: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -433,7 +425,7 @@ class _PortfolioStats extends State<PortfolioStats> {
     final appState = Provider.of<AppState>(context);
 
     return Card(
-      elevation: 0,
+      elevation: 0.5,
       color: Theme.of(context).cardColor,
       child: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -529,29 +521,55 @@ class _PortfolioStats extends State<PortfolioStats> {
     }).toList();
   }
 
-Widget _buildCenterTextToken(DataManager dataManager, int? selectedIndex) {
-  // Somme des valeurs de 'count'
-  final totalCount = dataManager.propertyData.fold(0.0, (double sum, item) {
-    final count = item['count'] ?? 0.0; // Utiliser 0.0 si 'count' est null
-    return sum + (count is String ? double.tryParse(count) ?? 0.0 : count);
-  });
+  Widget _buildCenterTextToken(DataManager dataManager, int? selectedIndex) {
+    // Somme des valeurs de 'count'
+    final totalCount = dataManager.propertyData.fold(0.0, (double sum, item) {
+      final count = item['count'] ?? 0.0; // Utiliser 0.0 si 'count' est null
+      return sum + (count is String ? double.tryParse(count) ?? 0.0 : count);
+    });
 
-print('propertyData: ${dataManager.propertyData}');
+    print('propertyData: ${dataManager.propertyData}');
 
-  if (selectedIndex == null) {
-    // Afficher la valeur totale si aucun segment n'est sélectionné
+    if (selectedIndex == null) {
+      // Afficher la valeur totale si aucun segment n'est sélectionné
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            'total',
+            style: TextStyle(
+              fontSize: 16 + Provider.of<AppState>(context).getTextSizeOffset(),
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          Text(
+            totalCount.toStringAsFixed(0),
+            style: TextStyle(
+              fontSize: 14 + Provider.of<AppState>(context).getTextSizeOffset(),
+              color: Colors.grey,
+            ),
+          ),
+        ],
+      );
+    }
+
+    // Afficher les détails du segment sélectionné
+    final sortedData = List<Map<String, dynamic>>.from(dataManager.propertyData)..sort((a, b) => b['count'].compareTo(a['count']));
+
+    final selectedData = sortedData[selectedIndex];
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          'total',
+          Parameters.getPropertyTypeName(selectedData['propertyType'], context),
           style: TextStyle(
             fontSize: 16 + Provider.of<AppState>(context).getTextSizeOffset(),
             fontWeight: FontWeight.bold,
           ),
         ),
         Text(
-          totalCount.toStringAsFixed(0),
+          selectedData['count'].toString(),
           style: TextStyle(
             fontSize: 14 + Provider.of<AppState>(context).getTextSizeOffset(),
             color: Colors.grey,
@@ -561,32 +579,6 @@ print('propertyData: ${dataManager.propertyData}');
     );
   }
 
-  // Afficher les détails du segment sélectionné
-  final sortedData = List<Map<String, dynamic>>.from(dataManager.propertyData)
-    ..sort((a, b) => b['count'].compareTo(a['count']));
-
-  final selectedData = sortedData[selectedIndex];
-
-  return Column(
-    mainAxisSize: MainAxisSize.min,
-    children: [
-      Text(
-        Parameters.getPropertyTypeName(selectedData['propertyType'], context),
-        style: TextStyle(
-          fontSize: 16 + Provider.of<AppState>(context).getTextSizeOffset(),
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-      Text(
-        selectedData['count'].toString(),
-        style: TextStyle(
-          fontSize: 14 + Provider.of<AppState>(context).getTextSizeOffset(),
-          color: Colors.grey,
-        ),
-      ),
-    ],
-  );
-}
   Widget _buildLegend(DataManager dataManager) {
     final appState = Provider.of<AppState>(context);
 
@@ -646,7 +638,7 @@ print('propertyData: ${dataManager.propertyData}');
     final appState = Provider.of<AppState>(context);
 
     return Card(
-      elevation: 0,
+      elevation: 0.5,
       color: Theme.of(context).cardColor,
       child: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -888,7 +880,7 @@ print('propertyData: ${dataManager.propertyData}');
     List<Map<String, dynamic>> othersDetails = []; // Pour stocker les détails de la section "Autres"
 
     return Card(
-      elevation: 0,
+      elevation: 0.5,
       color: Theme.of(context).cardColor,
       child: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -1213,7 +1205,7 @@ print('propertyData: ${dataManager.propertyData}');
     List<Map<String, dynamic>> othersDetails = []; // Pour stocker les détails de la section "Autres"
 
     return Card(
-      elevation: 0,
+      elevation: 0.5,
       color: Theme.of(context).cardColor,
       child: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -1558,4 +1550,5 @@ print('propertyData: ${dataManager.propertyData}');
         return Colors.grey;
     }
   }
+
 }

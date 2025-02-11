@@ -13,8 +13,7 @@ class PortfolioCard extends StatelessWidget {
   final bool isLoading;
   final BuildContext context; // Ajoutez le contexte ici
 
-
-const PortfolioCard({
+  const PortfolioCard({
     super.key,
     required this.showAmounts,
     required this.isLoading,
@@ -44,29 +43,16 @@ const PortfolioCard({
         highlightPercentage: true,
       ),
       [
-        UIUtils.buildValueBeforeText(
-          context,
-            CurrencyUtils.getFormattedAmount(dataManager.convert(dataManager.totalWalletValue), dataManager.currencySymbol, showAmounts),
-            S.of(context).totalPortfolio,
-            isLoading),
+        UIUtils.buildValueBeforeText(context, CurrencyUtils.getFormattedAmount(dataManager.convert(dataManager.totalWalletValue), dataManager.currencySymbol, showAmounts),
+            S.of(context).totalPortfolio, isLoading),
         _buildIndentedBalance(S.of(context).wallet, dataManager.convert(dataManager.walletValue), dataManager.currencySymbol, true, context, isLoading),
         _buildIndentedBalance(S.of(context).rmm, dataManager.convert(dataManager.rmmValue), dataManager.currencySymbol, true, context, isLoading),
         _buildIndentedBalance(S.of(context).rwaHoldings, dataManager.convert(dataManager.rwaHoldingsValue), dataManager.currencySymbol, true, context, isLoading),
         const SizedBox(height: 10),
-        _buildIndentedBalance(
-            S.of(context).depositBalance,
-            dataManager.convert(dataManager.totalUsdcDepositBalance + dataManager.totalXdaiDepositBalance),
-            dataManager.currencySymbol,
-            true,
-            context,
-            isLoading),
-        _buildIndentedBalance(
-            S.of(context).borrowBalance,
-            dataManager.convert(dataManager.totalUsdcBorrowBalance + dataManager.totalXdaiBorrowBalance),
-            dataManager.currencySymbol,
-            false,
-            context,
-            isLoading),
+        _buildIndentedBalance(S.of(context).depositBalance, dataManager.convert(dataManager.totalUsdcDepositBalance + dataManager.totalXdaiDepositBalance),
+            dataManager.currencySymbol, true, context, isLoading),
+        _buildIndentedBalance(S.of(context).borrowBalance, dataManager.convert(dataManager.totalUsdcBorrowBalance + dataManager.totalXdaiBorrowBalance), dataManager.currencySymbol,
+            false, context, isLoading),
       ],
       dataManager,
       context,
@@ -75,7 +61,6 @@ const PortfolioCard({
     );
   }
 
- 
   Widget _buildIndentedBalance(String label, double value, String symbol, bool isPositive, BuildContext context, bool isLoading) {
     final appState = Provider.of<AppState>(context);
     final theme = Theme.of(context);
@@ -120,78 +105,133 @@ const PortfolioCard({
   }
 
   Widget _buildVerticalGauge(double value, BuildContext context) {
+    // Utiliser une valeur par défaut si 'value' est NaN ou négatif
     double displayValue = value.isNaN || value < 0 ? 0 : value;
 
-    return SizedBox(
-      height: 100,
-      width: 90,
-      child: BarChart(
-        BarChartData(
-          alignment: BarChartAlignment.center,
-          maxY: 100,
-          barTouchData: BarTouchData(
-            enabled: true,
-            touchTooltipData: BarTouchTooltipData(
-              getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                return BarTooltipItem(
-                  '${rod.toY.toStringAsFixed(1)}%',
-                  const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                );
-              },
-            ),
-          ),
-          titlesData: FlTitlesData(
-            leftTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: false,
-                reservedSize: 30,
-                getTitlesWidget: (value, meta) {
-                  if (value % 25 == 0) {
-                    return Text(
-                      value.toInt().toString(),
-                      style: TextStyle(fontSize: 10, color: Colors.black54),
-                    );
-                  }
-                  return Container();
+    return Padding(
+      padding: const EdgeInsets.only(right: 1.0),
+      child: Column(
+        mainAxisSize: MainAxisSize.min, // Ajuster la taille de la colonne au contenu
+        children: [
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                "ROI", // Titre de la jauge
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Theme.of(context).textTheme.bodyLarge?.color),
+              ),
+              const SizedBox(width: 8), // Espacement entre le texte et l'icône
+              GestureDetector(
+                onTap: () {
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: Text(S.of(context).roiPerProperties), // Titre du popup
+                        content: Text(S.of(context).roiAlertInfo), // Texte du popup
+                        actions: <Widget>[
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop(); // Fermer le popup
+                            },
+                            child: Text('OK'),
+                          ),
+                        ],
+                      );
+                    },
+                  );
                 },
+                child: Icon(
+                  Icons.info_outline, // Icône à afficher
+                  size: 15, // Taille de l'icône
+                  color: Colors.grey, // Couleur de l'icône
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8), // Espacement entre le titre et la jauge
+          SizedBox(
+            height: 100, // Hauteur totale de la jauge
+            width: 90, // Largeur de la jauge
+            child: BarChart(
+              BarChartData(
+                alignment: BarChartAlignment.center,
+                maxY: 100, // Échelle sur 100%
+                barTouchData: BarTouchData(
+                  enabled: true, // Activer l'interaction pour l'animation au toucher
+                  touchTooltipData: BarTouchTooltipData(
+                    getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                      return BarTooltipItem(
+                        '${rod.toY.toStringAsFixed(1)}%',
+                        const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                titlesData: FlTitlesData(
+                  leftTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: false,
+                      reservedSize: 30,
+                      getTitlesWidget: (value, meta) {
+                        if (value % 25 == 0) {
+                          return Text(
+                            value.toInt().toString(),
+                            style: TextStyle(fontSize: 10, color: Colors.black54), // Définir la taille et couleur du texte
+                          );
+                        }
+                        return Container();
+                      },
+                    ),
+                  ),
+                  rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  bottomTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                ),
+                gridData: FlGridData(show: false), // Désactiver la grille
+                borderData: FlBorderData(show: false),
+                barGroups: [
+                  BarChartGroupData(
+                    x: 0,
+                    barRods: [
+                      BarChartRodData(
+                        toY: displayValue, // Utiliser la valeur corrigée
+                        width: 20, // Largeur de la barre
+                        borderRadius: BorderRadius.circular(10), // Bordures arrondies
+                        color: Colors.transparent, // Couleur transparente pour appliquer le dégradé
+                        gradient: LinearGradient(
+                          colors: [Theme.of(context).primaryColor, Theme.of(context).primaryColor.withOpacity(0.7)],
+                          begin: Alignment.bottomCenter,
+                          end: Alignment.topCenter,
+                        ),
+                        backDrawRodData: BackgroundBarChartRodData(
+                          show: true,
+                          toY: 100, // Fond de la jauge
+                          color: const Color.fromARGB(255, 78, 78, 78).withOpacity(0.3), // Couleur du fond grisé
+                        ),
+                        rodStackItems: [
+                          BarChartRodStackItem(0, displayValue, Colors.blueAccent.withOpacity(0.6)),
+                        ],
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
-            rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            bottomTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
           ),
-          gridData: FlGridData(show: false),
-          borderData: FlBorderData(show: false),
-          barGroups: [
-            BarChartGroupData(
-              x: 0,
-              barRods: [
-                BarChartRodData(
-                  toY: displayValue,
-                  width: 20,
-                  borderRadius: BorderRadius.circular(4),
-                  color: Colors.transparent,
-                  gradient: LinearGradient(
-                    colors: [Colors.blueAccent, Colors.lightBlueAccent],
-                    begin: Alignment.bottomCenter,
-                    end: Alignment.topCenter,
-                  ),
-                  backDrawRodData: BackgroundBarChartRodData(
-                    show: true,
-                    toY: 100,
-                    color: const Color.fromARGB(255, 78, 78, 78).withOpacity(0.3),
-                  ),
-                  rodStackItems: [
-                    BarChartRodStackItem(0, displayValue, Colors.blueAccent.withOpacity(0.6)),
-                  ],
-                ),
-              ],
+          const SizedBox(height: 8), // Espacement entre le titre et la jauge
+          Text(
+            "${displayValue.toStringAsFixed(1)}%", // Valeur de la barre affichée en dessous
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: Theme.of(context).textTheme.bodyMedium?.color, // Même couleur que la barre
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -199,5 +239,4 @@ const PortfolioCard({
   double _getPortfolioBarGraphData(DataManager dataManager) {
     return (dataManager.roiGlobalValue);
   }
-
 }

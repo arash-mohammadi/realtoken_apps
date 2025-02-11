@@ -14,6 +14,9 @@ class DashboardRentsDetailsPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Rents Details'),
+         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+         elevation: 0, // Supprime l'ombre par défaut
+  surfaceTintColor: Colors.transparent,
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0), // Padding général

@@ -1,4 +1,4 @@
-import 'package:logger/logger.dart';import 'package:provider/provider.dart';
+import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:realtokens/utils/data_fetch_utils.dart';
@@ -49,11 +49,9 @@ class ManageEthAddressesPageState extends State<ManageEvmAddressesPage> {
   }
 
   Future<void> _saveAddress(String address) async {
-    final logger = Logger(); // Initialiser une instance de logger
 
     // Normalisez l'adresse (par exemple, tout en minuscule)
     final normalizedAddress = address.toLowerCase();
-    logger.i("test");
 
     // Vérifiez si l'adresse existe déjà
     if (!ethAddresses.contains(normalizedAddress)) {
@@ -67,14 +65,14 @@ class ManageEthAddressesPageState extends State<ManageEvmAddressesPage> {
       // Sauvegardez les adresses dans SharedPreferences
       await prefs.setStringList('evmAddresses', ethAddresses);
 
-      logger.i("test1");
+      debugPrint("test1");
 
       // Lancez une tâche asynchrone pour gérer les appels API
       Future.microtask(() async {
         try {
-          logger.i("Fetching userId...");
+          debugPrint("Fetching userId...");
           final userId = await ApiService.fetchUserIdFromAddress(address);
-          logger.i("test2: userId = $userId");
+          debugPrint("test2: userId = $userId");
 
           if (userId != null) {
             // Récupérer les autres adresses associées au userId
@@ -92,8 +90,8 @@ class ManageEthAddressesPageState extends State<ManageEvmAddressesPage> {
             // Sauvegardez à nouveau les adresses mises à jour
             await prefs.setStringList('evmAddresses', ethAddresses);
           }
-        } catch (e, stack) {
-          logger.e("Error during userId fetch or address association: $e");
+        } catch (e) {
+          debugPrint("Error during userId fetch or address association: $e");
         }
       });
     } else {
@@ -103,7 +101,7 @@ class ManageEthAddressesPageState extends State<ManageEvmAddressesPage> {
       );
     }
 
-    logger.i("test1232323");
+    debugPrint("test1232323");
     // Charger les données après les modifications
     DataFetchUtils.loadData(context);
   }
@@ -193,7 +191,7 @@ class ManageEthAddressesPageState extends State<ManageEvmAddressesPage> {
                 ElevatedButton(
                   onPressed: _scanQRCode,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue, // Fond bleu
+                    backgroundColor: Theme.of(context).primaryColor, // Fond bleu
                     foregroundColor: Colors.white, // Icône blanche
                   ),
                   child: const Icon(Icons.qr_code_scanner),
@@ -214,7 +212,7 @@ class ManageEthAddressesPageState extends State<ManageEvmAddressesPage> {
                 }
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue, // Fond bleu
+                backgroundColor: Theme.of(context).primaryColor, // Fond bleu
                 foregroundColor: Colors.white, // Texte blanc
               ),
               child: Text(
@@ -256,7 +254,7 @@ class ManageEthAddressesPageState extends State<ManageEvmAddressesPage> {
                             ),
                           ),
                           IconButton(
-                            icon: const Icon(Icons.copy, color: Colors.blue),
+                            icon: Icon(Icons.copy, color: Theme.of(context).primaryColor),
                             onPressed: () {
                               Clipboard.setData(ClipboardData(text: address));
                               ScaffoldMessenger.of(context).showSnackBar(
@@ -341,7 +339,7 @@ class ManageEthAddressesPageState extends State<ManageEvmAddressesPage> {
                                           ),
                                         ),
                                         IconButton(
-                                          icon: const Icon(Icons.copy, color: Colors.blue),
+                                          icon: Icon(Icons.copy, color: Theme.of(context).primaryColor),
                                           onPressed: () {
                                             Clipboard.setData(ClipboardData(text: address));
                                             ScaffoldMessenger.of(context).showSnackBar(

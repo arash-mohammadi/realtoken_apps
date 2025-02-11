@@ -175,8 +175,8 @@ class PortfolioPageState extends State<PortfolioPage> {
     } else if (_sortOption == S.of(context).sortByValue) {
       filteredPortfolio.sort((a, b) => _isAscending ? a['totalValue'].compareTo(b['totalValue']) : b['totalValue'].compareTo(a['totalValue']));
     } else if (_sortOption == S.of(context).sortByAPY) {
-      filteredPortfolio.sort((a, b) =>
-          _isAscending ? a['annualPercentageYield'].compareTo(b['annualPercentageYield']) : b['annualPercentageYield'].compareTo(a['annualPercentageYield']));
+      filteredPortfolio
+          .sort((a, b) => _isAscending ? a['annualPercentageYield'].compareTo(b['annualPercentageYield']) : b['annualPercentageYield'].compareTo(a['annualPercentageYield']));
     } else if (_sortOption == S.of(context).sortByInitialLaunchDate) {
       filteredPortfolio.sort((a, b) {
         final dateA = a['initialLaunchDate'] != null ? DateTime.tryParse(a['initialLaunchDate']) : DateTime(1970);

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:realtokens/managers/data_manager.dart';
@@ -17,11 +18,12 @@ class WalletBalanceGraph extends StatelessWidget {
   final bool isBarChart;
   final Function(bool) onChartTypeChanged;
 
-  const WalletBalanceGraph({super.key, 
+  const WalletBalanceGraph({
+    super.key,
     required this.dataManager,
     required this.selectedPeriod,
     required this.onPeriodChanged,
-    required this.isBarChart, 
+    required this.isBarChart,
     required this.onChartTypeChanged,
   });
 
@@ -30,7 +32,7 @@ class WalletBalanceGraph extends StatelessWidget {
     final appState = Provider.of<AppState>(context);
 
     return Card(
-      elevation: 0,
+      elevation: 0.5,
       color: Theme.of(context).cardColor,
       child: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -48,7 +50,7 @@ class WalletBalanceGraph extends StatelessWidget {
                 ),
                 const Spacer(),
                 IconButton(
-                  icon: const Icon(Icons.settings,size: 20.0),
+                  icon: const Icon(Icons.settings, size: 20.0),
                   onPressed: () {
                     showModalBottomSheet(
                       context: context,
@@ -74,13 +76,21 @@ class WalletBalanceGraph extends StatelessWidget {
                                   Navigator.of(context).pop();
                                 },
                               ),
+                              const Divider(),
+                              ListTile(
+                                leading: const Icon(Icons.edit),
+                                title: Text(S.of(context).edit),
+                                onTap: () {
+                                  Navigator.of(context).pop();
+                                  _showEditModal(context, dataManager);
+                                },
+                              ),
                             ],
                           ),
                         );
                       },
                     );
                   },
-                
                 ),
               ],
             ),
@@ -255,7 +265,6 @@ class WalletBalanceGraph extends StatelessWidget {
     );
   }
 
-
   List<BarChartGroupData> _buildWalletBalanceBarChartData(BuildContext context, DataManager dataManager, String selectedPeriod) {
     List<FlSpot> walletBalanceData = _buildWalletBalanceChartData(context, dataManager, selectedPeriod);
     return walletBalanceData
@@ -276,15 +285,15 @@ class WalletBalanceGraph extends StatelessWidget {
         .toList();
   }
 
- List<FlSpot> _buildWalletBalanceChartData(BuildContext context, DataManager dataManager, String selectedPeriod) {
-  return ChartUtils.buildHistoryChartData<BalanceRecord>(
-    context,
-    dataManager.walletBalanceHistory,
-    selectedPeriod,
-    (record) => record.balance,
-    (record) => record.timestamp,
-  );
-}
+  List<FlSpot> _buildWalletBalanceChartData(BuildContext context, DataManager dataManager, String selectedPeriod) {
+    return ChartUtils.buildHistoryChartData<BalanceRecord>(
+      context,
+      dataManager.walletBalanceHistory,
+      selectedPeriod,
+      (record) => record.balance,
+      (record) => record.timestamp,
+    );
+  }
 
   List<String> _buildDateLabelsForWallet(BuildContext context, DataManager dataManager, String selectedPeriod) {
     List<BalanceRecord> walletHistory = dataManager.walletBalanceHistory;
@@ -311,4 +320,127 @@ class WalletBalanceGraph extends StatelessWidget {
     return sortedKeys;
   }
 
+  void _showEditModal(BuildContext context, DataManager dataManager) {
+    final appState = Provider.of<AppState>(context, listen: false);
+    showModalBottomSheet(
+      context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      isScrollControlled: true,
+      builder: (BuildContext context) {
+        final screenHeight = MediaQuery.of(context).size.height;
+        return Container(
+          height: screenHeight * 0.7,
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                S.of(context).editWalletBalance,
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: dataManager.walletBalanceHistory.length,
+                  itemBuilder: (context, index) {
+                    BalanceRecord record = dataManager.walletBalanceHistory[index];
+                    TextEditingController valueController = TextEditingController(text: record.balance.toString());
+                    TextEditingController dateController = TextEditingController(
+                      text: DateFormat('yyyy-MM-dd HH:mm:ss').format(record.timestamp),
+                    );
+
+                    return ListTile(
+                      title: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          // Editable date field
+                          Expanded(
+                            child: TextField(
+                              controller: dateController,
+                              keyboardType: TextInputType.datetime,
+                              textInputAction: TextInputAction.done,
+                              style: TextStyle(fontSize: 12 + appState.getTextSizeOffset()),
+                              decoration: InputDecoration(
+                                labelText: S.of(context).date,
+                                labelStyle: TextStyle(fontSize: 14 + appState.getTextSizeOffset()),
+                              ),
+                              onSubmitted: (value) {
+                                try {
+                                  DateTime newDate = DateFormat('yyyy-MM-dd HH:mm:ss').parse(value);
+                                  record.timestamp = newDate;
+                                  dataManager.saveWalletBalanceHistory();
+                                } catch (e) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text('invalidDateFormat')),
+                                  );
+                                }
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: TextField(
+                              controller: valueController,
+                              keyboardType: TextInputType.numberWithOptions(decimal: true),
+                              textInputAction: TextInputAction.done,
+                              inputFormatters: [
+                                FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                              ],
+                              style: TextStyle(fontSize: 12 + appState.getTextSizeOffset()),
+                              decoration: InputDecoration(
+                                labelText: S.of(context).balance,
+                                labelStyle: TextStyle(fontSize: 14 + appState.getTextSizeOffset()),
+                              ),
+                              onSubmitted: (value) {
+                                double? newValue = double.tryParse(value);
+                                if (newValue != null) {
+                                  record.balance = newValue;
+                                  dataManager.saveWalletBalanceHistory();
+                                  FocusScope.of(context).unfocus();
+                                }
+                              },
+                            ),
+                          ),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: SizedBox(
+                              width: 20,
+                              child: IconButton(
+                                icon: Icon(Icons.delete, color: Colors.red),
+                                iconSize: 18 + appState.getTextSizeOffset(),
+                                onPressed: () {
+                                  _deleteBalanceRecord(dataManager, index);
+                                  Navigator.pop(context);
+                                  _showEditModal(context, dataManager);
+                                },
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  dataManager.saveWalletBalanceHistory();
+                  Navigator.pop(context);
+                },
+                child: Text(S.of(context).save),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _deleteBalanceRecord(DataManager dataManager, int index) {
+    dataManager.walletBalanceHistory.removeAt(index);
+    dataManager.saveWalletBalanceHistory(); // Sauvegarder la mise à jour dans Hive
+    dataManager.notifyListeners();
+  }
 }

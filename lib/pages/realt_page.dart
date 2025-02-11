@@ -123,7 +123,7 @@ class RealtPageState extends State<RealtPage> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
-      elevation: 0,
+      elevation: 0.5,
       color: Theme.of(context).cardColor,
       child: Padding(
         padding: const EdgeInsets.all(12.0),

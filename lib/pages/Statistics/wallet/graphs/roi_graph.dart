@@ -16,12 +16,12 @@ class RoiHistoryGraph extends StatelessWidget {
   final Function(bool) onChartTypeChanged;
 
   const RoiHistoryGraph({
-    Key? key,
+    super.key,
     required this.selectedPeriod,
     required this.onPeriodChanged,
     required this.roiIsBarChart,
     required this.onChartTypeChanged,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -31,10 +31,10 @@ class RoiHistoryGraph extends StatelessWidget {
     // Récupérer les données pour les graphiques
     List<FlSpot> roiHistoryData = _buildRoiHistoryChartData(context, dataManager, selectedPeriod);
     List<BarChartGroupData> barChartData = _buildRoiHistoryBarChartData(context, dataManager, selectedPeriod);
-  List<String> dateLabels = _buildDateLabelsForRoi(context, dataManager, selectedPeriod);
+    List<String> dateLabels = _buildDateLabelsForRoi(context, dataManager, selectedPeriod);
 
     return Card(
-      elevation: 0,
+      elevation: 0.5,
       color: Theme.of(context).cardColor,
       child: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -115,30 +115,29 @@ class RoiHistoryGraph extends StatelessWidget {
                                 ),
                               ),
                               bottomTitles: AxisTitles(
-  sideTitles: SideTitles(
-    showTitles: true,
-    getTitlesWidget: (value, meta) {
-
-      if (value.toInt() >= 0 && value.toInt() < dateLabels.length) {
-        return Padding(
-          padding: const EdgeInsets.only(top: 10.0),
-          child: Transform.rotate(
-            angle: -0.5,
-            child: Text(
-              dateLabels[value.toInt()],
-              style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
-            ),
-          ),
-        );
-      } else {
-        return const SizedBox.shrink();
-      }
-    },
-    reservedSize: 30,
-    interval: (dateLabels.length / 10).ceil().toDouble(), // Afficher une étiquette toutes les N barres
-  ),
-),
-topTitles: AxisTitles(
+                                sideTitles: SideTitles(
+                                  showTitles: true,
+                                  getTitlesWidget: (value, meta) {
+                                    if (value.toInt() >= 0 && value.toInt() < dateLabels.length) {
+                                      return Padding(
+                                        padding: const EdgeInsets.only(top: 10.0),
+                                        child: Transform.rotate(
+                                          angle: -0.5,
+                                          child: Text(
+                                            dateLabels[value.toInt()],
+                                            style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
+                                          ),
+                                        ),
+                                      );
+                                    } else {
+                                      return const SizedBox.shrink();
+                                    }
+                                  },
+                                  reservedSize: 30,
+                                  interval: (dateLabels.length / 10).ceil().toDouble(), // Afficher une étiquette toutes les N barres
+                                ),
+                              ),
+                              topTitles: AxisTitles(
                                 sideTitles: SideTitles(showTitles: false),
                               ),
                               rightTitles: AxisTitles(
@@ -363,5 +362,4 @@ topTitles: AxisTitles(
     List<String> sortedKeys = groupedData.keys.toList()..sort();
     return sortedKeys;
   }
-
-  }
+}

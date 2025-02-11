@@ -1,5 +1,5 @@
 import 'package:realtokens/managers/data_manager.dart';
-import 'package:realtokens/pages/portfolio/showTokenDetails.dart';
+import 'package:realtokens/pages/portfolio/token_details/showTokenDetails.dart';
 import 'package:realtokens/utils/currency_utils.dart';
 import 'package:realtokens/utils/location_utils.dart';
 import 'package:flutter/material.dart';
@@ -36,7 +36,7 @@ class PortfolioDisplay1 extends StatelessWidget {
                   height: 10,
                   width: rentValue.clamp(0, 100) / 100 * maxWidth,
                   decoration: BoxDecoration(
-                    color: Colors.blue,
+                    color: Theme.of(context).primaryColor,
                     borderRadius: BorderRadius.circular(5),
                   ),
                 ),
@@ -49,7 +49,7 @@ class PortfolioDisplay1 extends StatelessWidget {
           style: TextStyle(
             fontSize: 11,
             fontWeight: FontWeight.bold,
-            color: Colors.blue,
+            color: Theme.of(context).primaryColor,
           ),
         ),
       ],
@@ -90,7 +90,7 @@ class PortfolioDisplay1 extends StatelessWidget {
                       },
                       style: ElevatedButton.styleFrom(
                         foregroundColor: Colors.white,
-                        backgroundColor: Colors.blue,
+                        backgroundColor: Theme.of(context).primaryColor,
                       ),
                       child: Text(
                         S.of(context).manageAddresses,
@@ -141,9 +141,8 @@ class PortfolioDisplay1 extends StatelessWidget {
                           child: Stack(
                             children: [
                               ColorFiltered(
-                                colorFilter: isFutureRentStart
-                                    ? const ColorFilter.mode(Colors.black45, BlendMode.darken)
-                                    : const ColorFilter.mode(Colors.transparent, BlendMode.multiply),
+                                colorFilter:
+                                    isFutureRentStart ? const ColorFilter.mode(Colors.black45, BlendMode.darken) : const ColorFilter.mode(Colors.transparent, BlendMode.multiply),
                                 child: SizedBox(
                                   width: 120,
                                   height: double.infinity,
@@ -262,7 +261,7 @@ class PortfolioDisplay1 extends StatelessWidget {
                         ),
                         Expanded(
                           child: Card(
-                            elevation: 0,
+                            elevation: 0.5,
                             margin: EdgeInsets.zero,
                             color: Theme.of(context).cardColor,
                             shape: const RoundedRectangleBorder(

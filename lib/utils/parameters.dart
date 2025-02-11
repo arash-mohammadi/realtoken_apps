@@ -4,12 +4,11 @@ import 'package:realtokens/generated/l10n.dart';
 class Parameters {
 //Parameters apiService
   static const Duration apiCacheDuration = Duration(hours: 1);
-  static const theGraphApiKey = 'c57eb2612e998502f4418378a4cb9f35';
-  static const String gnosisUrl = 'https://gateway-arbitrum.network.thegraph.com/managers/$theGraphApiKey/subgraphs/id/FPPoFB7S2dcCNrRyjM5QbaMwKqRZPdbTg8ysBrwXd4SP';
-  static const String etherumUrl =
-      'https://gateway-arbitrum.network.thegraph.com/managers/$theGraphApiKey/subgraphs/id/EVjGN4mMd9h9JfGR7yLC6T2xrJf9syhjQNboFb7GzxVW';
-  static const String rmmUrl = 'https://gateway-arbitrum.network.thegraph.com/managers/$theGraphApiKey/subgraphs/id/2dMMk7DbQYPX6Gi5siJm6EZ2gDQBF8nJcgKtpiPnPBsK';
-  static const String yamUrl = 'https://gateway-arbitrum.network.thegraph.com/managers/$theGraphApiKey/subgraphs/id/4eJa4rKCR5f8fq48BKbYBPvf7DWHppGZRvfiVUSFXBGR';
+  static const theGraphApiKey = '31d11fe883075678bdbd58b21aad2e32';
+  static const String gnosisUrl = 'https://gateway-arbitrum.network.thegraph.com/api/$theGraphApiKey/subgraphs/id/FPPoFB7S2dcCNrRyjM5QbaMwKqRZPdbTg8ysBrwXd4SP';
+  static const String etherumUrl = 'https://gateway-arbitrum.network.thegraph.com/api/$theGraphApiKey/subgraphs/id/EVjGN4mMd9h9JfGR7yLC6T2xrJf9syhjQNboFb7GzxVW';
+  static const String rmmUrl = 'https://gateway-arbitrum.network.thegraph.com/api/$theGraphApiKey/subgraphs/id/2dMMk7DbQYPX6Gi5siJm6EZ2gDQBF8nJcgKtpiPnPBsK';
+  static const String yamUrl = 'https://gateway-arbitrum.network.thegraph.com/api/$theGraphApiKey/subgraphs/id/4eJa4rKCR5f8fq48BKbYBPvf7DWHppGZRvfiVUSFXBGR';
   static const String realTokensUrl = 'https://api.pitsbi.io/api';
   static const String rentTrackerUrl = 'https://ehpst.duckdns.org/realt_rent_tracker/api';
 
@@ -100,7 +99,7 @@ class Parameters {
     'WY': 'Wyoming'
   };
 
-    static final Map<String, String> currencySymbols = {
+  static final Map<String, String> currencySymbols = {
     'usd': '\$',
     'eur': '€',
     'gbp': '£',

@@ -75,7 +75,7 @@ class StatsSelectorPageState extends State<StatsSelectorPage> {
         },
         child: Container(
           decoration: BoxDecoration(
-            color: isSelected ? Colors.blue : Theme.of(context).cardColor,
+            color: isSelected ? Theme.of(context).primaryColor : Theme.of(context).cardColor,
             borderRadius: BorderRadius.horizontal(
               left: isFirst ? const Radius.circular(8) : Radius.zero,
               right: isLast ? const Radius.circular(8) : Radius.zero,

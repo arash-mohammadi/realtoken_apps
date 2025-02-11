@@ -1,9 +1,9 @@
 import 'package:realtokens/generated/l10n.dart';
-import 'package:realtokens/pages/portfolio/showTokenDetails.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:realtokens/managers/data_manager.dart';
+import 'package:realtokens/pages/portfolio/token_details/showTokenDetails.dart';
 import 'package:realtokens/utils/currency_utils.dart';
 import 'package:realtokens/utils/ui_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -56,11 +56,10 @@ class RealTokensPageState extends State<RealTokensPage> {
     } else if (_sortOption == S.of(context).sortByValue) {
       filteredTokens.sort((a, b) => _isAscending ? a['totalValue'].compareTo(b['totalValue']) : b['totalValue'].compareTo(a['totalValue']));
     } else if (_sortOption == S.of(context).sortByAPY) {
-      filteredTokens.sort((a, b) =>
-          _isAscending ? a['annualPercentageYield'].compareTo(b['annualPercentageYield']) : b['annualPercentageYield'].compareTo(a['annualPercentageYield']));
-    } else if (_sortOption == S.of(context).sortByInitialLaunchDate) {
       filteredTokens
-          .sort((a, b) => _isAscending ? a['initialLaunchDate'].compareTo(b['initialLaunchDate']) : b['initialLaunchDate'].compareTo(a['initialLaunchDate']));
+          .sort((a, b) => _isAscending ? a['annualPercentageYield'].compareTo(b['annualPercentageYield']) : b['annualPercentageYield'].compareTo(a['annualPercentageYield']));
+    } else if (_sortOption == S.of(context).sortByInitialLaunchDate) {
+      filteredTokens.sort((a, b) => _isAscending ? a['initialLaunchDate'].compareTo(b['initialLaunchDate']) : b['initialLaunchDate'].compareTo(a['initialLaunchDate']));
     }
 
     return filteredTokens;
@@ -237,7 +236,7 @@ class RealTokensPageState extends State<RealTokensPage> {
                                     ),
                                     Expanded(
                                       child: Card(
-                                        elevation: 0,
+                                        elevation: 0.5,
                                         margin: EdgeInsets.zero,
                                         color: Theme.of(context).cardColor,
                                         shape: const RoundedRectangleBorder(

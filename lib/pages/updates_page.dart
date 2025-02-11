@@ -101,8 +101,8 @@ class _UpdatesPageState extends State<UpdatesPage> {
                               showUserTokensOnly = value;
                             });
                           },
-                          activeColor: Colors.blue,
-                          activeTrackColor: Colors.blue[200],
+                          activeColor: Theme.of(context).primaryColor,
+                          inactiveTrackColor: Colors.grey[300],
                         ),
                       ),
                     ],

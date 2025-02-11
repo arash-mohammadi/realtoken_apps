@@ -21,16 +21,10 @@ class RmmCard extends StatelessWidget {
       S.of(context).rmm,
       Icons.currency_exchange,
       UIUtils.buildValueBeforeText(
-        context,
-          ((dataManager.rmmValue * 0.7) / (dataManager.totalUsdcBorrowBalance + dataManager.totalXdaiBorrowBalance)).toStringAsFixed(1),
-          'Health factor',
-          isLoading),
+          context, ((dataManager.rmmValue * 0.7) / (dataManager.totalUsdcBorrowBalance + dataManager.totalXdaiBorrowBalance)).toStringAsFixed(1), 'Health factor', isLoading),
       [
         UIUtils.buildValueBeforeText(
-          context,
-            ((dataManager.totalUsdcBorrowBalance + dataManager.totalXdaiBorrowBalance) / dataManager.rmmValue * 100).toStringAsFixed(1),
-            'Current LTV',
-            isLoading),
+            context, ((dataManager.totalUsdcBorrowBalance + dataManager.totalXdaiBorrowBalance) / dataManager.rmmValue * 100).toStringAsFixed(1), 'Current LTV', isLoading),
         const SizedBox(height: 10),
         Text(
           '${S.of(context).timeBeforeLiquidation}: ${_calculateTimeBeforeLiquidationFormatted(
@@ -85,8 +79,7 @@ class RmmCard extends StatelessWidget {
 
   Widget _buildVerticalGauges(double factor, BuildContext context, DataManager dataManager) {
     double progress1 = (factor / 10).clamp(0.0, 1.0); // Jauge 1
-    double progress2 =
-        ((dataManager.totalUsdcBorrowBalance + dataManager.totalXdaiBorrowBalance) / dataManager.rmmValue * 100).clamp(0.0, 100.0) / 100; // Jauge 2 (en %)
+    double progress2 = ((dataManager.totalUsdcBorrowBalance + dataManager.totalXdaiBorrowBalance) / dataManager.rmmValue * 100).clamp(0.0, 100.0) / 100; // Jauge 2 (en %)
 
     // Couleur dynamique pour la première jauge
     Color progress1Color = Color.lerp(Colors.red, Colors.green, progress1)!;
@@ -95,7 +88,7 @@ class RmmCard extends StatelessWidget {
     Color progress2Color = Color.lerp(Colors.green.shade300, Colors.red, progress2)!;
 
     return SizedBox(
-      width: 100, // Largeur totale pour la disposition
+      width: 90, // Largeur totale pour la disposition
       height: 180, // Hauteur totale
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -124,7 +117,7 @@ class RmmCard extends StatelessWidget {
                     height: 100, // Hauteur totale de la jauge
                     decoration: BoxDecoration(
                       color: const Color.fromARGB(255, 78, 78, 78).withOpacity(0.3),
-                      borderRadius: BorderRadius.circular(5),
+                      borderRadius: BorderRadius.circular(10),
                     ),
                   ),
                   // Progression de la jauge
@@ -133,14 +126,14 @@ class RmmCard extends StatelessWidget {
                     height: progress1 * 100, // Hauteur dynamique
                     decoration: BoxDecoration(
                       color: progress1Color, // Couleur dynamique
-                      borderRadius: BorderRadius.circular(5),
+                      borderRadius: BorderRadius.circular(10),
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 5), // Espacement entre la jauge et le texte
               Text(
-                '${(progress1 * 10).toStringAsFixed(1)}',
+                (progress1 * 10).toStringAsFixed(1),
                 style: TextStyle(
                   fontSize: 12,
                   color: Theme.of(context).textTheme.bodyMedium?.color,
@@ -172,7 +165,7 @@ class RmmCard extends StatelessWidget {
                     height: 100, // Hauteur totale de la jauge
                     decoration: BoxDecoration(
                       color: const Color.fromARGB(255, 78, 78, 78).withOpacity(0.3),
-                      borderRadius: BorderRadius.circular(5),
+                      borderRadius: BorderRadius.circular(10),
                     ),
                   ),
                   // Progression de la jauge
@@ -181,7 +174,7 @@ class RmmCard extends StatelessWidget {
                     height: progress2 * 100, // Hauteur dynamique
                     decoration: BoxDecoration(
                       color: progress2Color, // Couleur dynamique
-                      borderRadius: BorderRadius.circular(5),
+                      borderRadius: BorderRadius.circular(10),
                     ),
                   ),
                 ],
@@ -201,7 +194,8 @@ class RmmCard extends StatelessWidget {
       ),
     );
   }
-String _calculateTimeBeforeLiquidationFormatted(double rmmValue, double usdcBorrow, double xdaiBorrow, double apy) {
+
+  String _calculateTimeBeforeLiquidationFormatted(double rmmValue, double usdcBorrow, double xdaiBorrow, double apy) {
     double totalBorrow = usdcBorrow + xdaiBorrow;
 
     if (totalBorrow == 0 || apy == 0) {

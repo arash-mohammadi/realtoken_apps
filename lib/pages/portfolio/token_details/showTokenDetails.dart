@@ -85,7 +85,7 @@ void _openMapModal(BuildContext context, dynamic lat, dynamic lng) {
                     final googleStreetViewUrl = 'https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=$latitude,$longitude';
                     UrlUtils.launchURL(googleStreetViewUrl);
                   },
-                  backgroundColor: Colors.blue,
+                  backgroundColor: Theme.of(context).primaryColor,
                   child: const Icon(
                     Icons.streetview,
                     color: Colors.white,
@@ -122,9 +122,7 @@ Future<void> showTokenDetails(BuildContext context, Map<String, dynamic> token) 
                 token['imageLink'] != null && token['imageLink'].isNotEmpty
                     ? GestureDetector(
                         onTap: () {
-                          final List<String> imageLinks = token['imageLink'] is String
-                              ? [token['imageLink']]
-                              : List<String>.from(token['imageLink']);
+                          final List<String> imageLinks = token['imageLink'] is String ? [token['imageLink']] : List<String>.from(token['imageLink']);
 
                           Navigator.of(context).push(
                             MaterialPageRoute(
@@ -140,10 +138,7 @@ Future<void> showTokenDetails(BuildContext context, Map<String, dynamic> token) 
                             enableInfiniteScroll: true,
                             enlargeCenterPage: true,
                           ),
-                          items: (token['imageLink'] is String
-                                  ? [token['imageLink']]
-                                  : List<String>.from(token['imageLink']))
-                              .map<Widget>((imageUrl) {
+                          items: (token['imageLink'] is String ? [token['imageLink']] : List<String>.from(token['imageLink'])).map<Widget>((imageUrl) {
                             return CachedNetworkImage(
                               imageUrl: imageUrl,
                               width: double.infinity,
@@ -197,8 +192,8 @@ Future<void> showTokenDetails(BuildContext context, Map<String, dynamic> token) 
                     : SizedBox.shrink(),
                 const SizedBox(height: 5),
                 TabBar(
-                  labelColor: Colors.blue,
-                  indicatorColor: Colors.blue,
+                  labelColor: Theme.of(context).primaryColor,
+                  indicatorColor: Theme.of(context).primaryColor,
                   unselectedLabelColor: Colors.grey,
                   labelStyle: TextStyle(fontSize: 13 + appState.getTextSizeOffset(), fontWeight: FontWeight.bold),
                   unselectedLabelStyle: TextStyle(fontSize: 13 + appState.getTextSizeOffset()),
@@ -216,12 +211,12 @@ Future<void> showTokenDetails(BuildContext context, Map<String, dynamic> token) 
                   height: MediaQuery.of(context).size.height * 0.35,
                   child: TabBarView(
                     children: [
-    buildPropertiesTab(context, token, convertToSquareMeters),
-    buildFinanceTab(context, token, convertToSquareMeters),
-    buildMarketTab(context, token),
-        buildOthersTab(context, token), // Ajoutez l'onglet Autres ici
-    buildInsightsTab(context, token),
-    buildHistoryTab(context, token),
+                      buildPropertiesTab(context, token, convertToSquareMeters),
+                      buildFinanceTab(context, token, convertToSquareMeters),
+                      buildMarketTab(context, token),
+                      buildOthersTab(context, token), // Ajoutez l'onglet Autres ici
+                      buildInsightsTab(context, token),
+                      buildHistoryTab(context, token, dataManager.isLoadingTransactions),
                     ],
                   ),
                 ),
@@ -238,7 +233,7 @@ Future<void> showTokenDetails(BuildContext context, Map<String, dynamic> token) 
                             onPressed: () => UrlUtils.launchURL(token['marketplaceLink']),
                             style: ElevatedButton.styleFrom(
                               foregroundColor: Colors.white,
-                              backgroundColor: Colors.blue,
+                              backgroundColor: Theme.of(context).primaryColor,
                               padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
                               textStyle: TextStyle(
                                 fontSize: 13 + appState.getTextSizeOffset(),

@@ -1,7 +1,3 @@
-import 'dart:io';
-
-import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
 import 'package:realtokens/managers/data_manager.dart';
 import 'package:realtokens/app_state.dart';
 import 'package:realtokens/generated/l10n.dart';
@@ -44,8 +40,9 @@ class RealtPageState extends State<LinksPage> {
                 const SizedBox(height: 10),
                 _buildCard('assets/icons/YAM.jpg', 'YAM (You And Me)', 'https://yam.realtoken.network', S.of(context).rmm_description),
                 const SizedBox(height: 10),
-                _buildCard('assets/logo_community.png', 'Wiki Community', 'https://community-realt.gitbook.io/tuto-community',
-                    S.of(context).wiki_community_description),
+                _buildCard('assets/logo_community.png', 'Wiki Community', 'https://community-realt.gitbook.io/tuto-community', S.of(context).wiki_community_description),
+                const SizedBox(height: 10),
+                _buildCard('assets/DAO.png', 'RealToken governance Forum', 'https://forum.realtoken.community', S.of(context).dao_description),
               ],
             )),
       ),
@@ -64,7 +61,7 @@ class RealtPageState extends State<LinksPage> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
-      elevation: 0,
+      elevation: 0.5,
       child: Padding(
         padding: const EdgeInsets.all(12.0),
         child: Row(

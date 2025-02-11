@@ -45,7 +45,7 @@ class _PropertiesForSaleRealtState extends State<PropertiesForSaleRealt> {
                   height: 14,
                   width: rentValue.clamp(0, 100) / 100 * maxWidth,
                   decoration: BoxDecoration(
-                    color: Colors.blue,
+                    color: Theme.of(context).primaryColor,
                     borderRadius: BorderRadius.circular(5),
                   ),
                 ),
@@ -118,7 +118,7 @@ class _PropertiesForSaleRealtState extends State<PropertiesForSaleRealt> {
                     },
                     child: Card(
                       color: Theme.of(context).cardColor,
-                      elevation: 0,
+                      elevation: 0.5,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -215,7 +215,7 @@ class _PropertiesForSaleRealtState extends State<PropertiesForSaleRealt> {
                                     onPressed: () => UrlUtils.launchURL(property['marketplaceLink']),
                                     style: ElevatedButton.styleFrom(
                                       foregroundColor: Colors.white,
-                                      backgroundColor: Colors.blue,
+                                      backgroundColor: Theme.of(context).primaryColor,
                                       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
                                       textStyle: TextStyle(
                                         fontSize: 13 + appState.getTextSizeOffset(),

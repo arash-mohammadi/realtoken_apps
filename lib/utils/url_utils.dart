@@ -1,9 +1,9 @@
-import 'package:realtokens/utils/logging_utils.dart';
+import 'package:flutter/foundation.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class UrlUtils {
   static Future<void> launchURL(String url) async {
-    LoggingUtils.logger.i('Tentative d\'ouverture de l\'URL: $url'); // Log pour capturer l'URL
+    debugPrint('Tentative d\'ouverture de l\'URL: $url'); // Log pour capturer l'URL
     final Uri uri = Uri.parse(url);
     try {
       if (await canLaunchUrl(uri)) {
@@ -15,7 +15,7 @@ class UrlUtils {
         throw 'Impossible de lancer l\'URL : $url';
       }
     } catch (e) {
-      LoggingUtils.logger.i('Erreur lors du lancement de l\'URL: $e');
+      debugPrint('Erreur lors du lancement de l\'URL: $e');
     }
   }
 }

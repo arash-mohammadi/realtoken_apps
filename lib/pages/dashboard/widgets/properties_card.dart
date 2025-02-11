@@ -20,9 +20,7 @@ class PropertiesCard extends StatelessWidget {
     return UIUtils.buildCard(
       S.of(context).properties,
       Icons.home,
-      UIUtils.buildValueBeforeText(
-        context,
-          '${(dataManager.rentedUnits / dataManager.totalUnits * 100).toStringAsFixed(2)}%', S.of(context).rented, isLoading),
+      UIUtils.buildValueBeforeText(context, '${(dataManager.rentedUnits / dataManager.totalUnits * 100).toStringAsFixed(2)}%', S.of(context).rented, isLoading),
       [
         UIUtils.buildTextWithShimmer(
           '${dataManager.totalTokenCount}',
@@ -120,11 +118,14 @@ class PropertiesCard extends StatelessWidget {
             ),
             PieChartSectionData(
               value: 100 - rentedPercentage,
-              color: Colors.blue, // Couleur pour les unités non louées
+              color: Theme.of(context).primaryColor, // Couleur pour les unités non louées
               title: '',
               radius: 17, // Taille de la section non louée
               gradient: LinearGradient(
-                colors: [Colors.blue.shade300, Colors.blue.shade700],
+                colors: [
+                  Theme.of(context).primaryColor.withOpacity(0.6), // Remplace Colors.blue.shade300
+                  Theme.of(context).primaryColor, // Remplace Colors.blue.shade700
+                ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),

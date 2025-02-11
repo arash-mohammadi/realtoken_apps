@@ -10,7 +10,7 @@ import 'package:realtokens/utils/date_utils.dart';
 import 'package:realtokens/utils/url_utils.dart';
 
 class PropertiesForSaleSecondary extends StatefulWidget {
-  const PropertiesForSaleSecondary({Key? key}) : super(key: key);
+  const PropertiesForSaleSecondary({super.key});
 
   @override
   _PropertiesForSaleSecondaryState createState() => _PropertiesForSaleSecondaryState();
@@ -127,15 +127,14 @@ class _PropertiesForSaleSecondaryState extends State<PropertiesForSaleSecondary>
                       itemBuilder: (context, index) {
                         String tokenKey = groupedOffers.keys.elementAt(index);
                         List<Map<String, dynamic>> offers = groupedOffers[tokenKey]!;
-                        final imageUrl = (offers.first['imageLink'] != null && offers.first['imageLink'] is List && offers.first['imageLink'].isNotEmpty)
-                            ? offers.first['imageLink'][0]
-                            : '';
+                        final imageUrl =
+                            (offers.first['imageLink'] != null && offers.first['imageLink'] is List && offers.first['imageLink'].isNotEmpty) ? offers.first['imageLink'][0] : '';
                         final shortName = offers.first['shortName'] ?? 'N/A';
                         final country = offers.first['country'] ?? 'USA';
 
                         return Card(
                           margin: const EdgeInsets.symmetric(vertical: 8),
-                          elevation: 0,
+                          elevation: 1,
                           color: Theme.of(context).cardColor,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -273,9 +272,7 @@ class _PropertiesForSaleSecondaryState extends State<PropertiesForSaleSecondary>
                                               style: TextStyle(
                                                 fontSize: 12 + appState.getTextSizeOffset(),
                                                 fontWeight: FontWeight.bold,
-                                                color: offer['token_to_buy'] == null
-                                                    ? (delta < 0 ? Colors.green : Colors.red)
-                                                    : (delta < 0 ? Colors.red : Colors.green),
+                                                color: offer['token_to_buy'] == null ? (delta < 0 ? Colors.green : Colors.red) : (delta < 0 ? Colors.red : Colors.green),
                                               ),
                                             ),
                                           ],
@@ -287,8 +284,7 @@ class _PropertiesForSaleSecondaryState extends State<PropertiesForSaleSecondary>
                                           },
                                           style: ElevatedButton.styleFrom(
                                             foregroundColor: Colors.white,
-                                            backgroundColor:
-                                                offer['token_to_buy'] == null ? Colors.blue : Colors.green, // Rouge pour "acheter" et bleu pour "vendre"
+                                            backgroundColor: offer['token_to_buy'] == null ? Colors.blue : Colors.green, // Rouge pour "acheter" et bleu pour "vendre"
                                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                             minimumSize: Size(80, 30),
                                           ),
@@ -300,7 +296,7 @@ class _PropertiesForSaleSecondaryState extends State<PropertiesForSaleSecondary>
                                       ],
                                     ),
                                   );
-                                }).toList(),
+                                }),
                               ],
                             ),
                           ),

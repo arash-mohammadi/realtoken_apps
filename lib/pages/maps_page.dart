@@ -2,12 +2,12 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
 import 'package:realtokens/app_state.dart';
-import 'package:realtokens/pages/portfolio/showTokenDetails.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_marker_cluster/flutter_map_marker_cluster.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
+import 'package:realtokens/pages/portfolio/token_details/showTokenDetails.dart';
 import 'package:realtokens/utils/ui_utils.dart';
 import 'package:realtokens/utils/url_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -60,8 +60,8 @@ class MapsPageState extends State<MapsPage> {
     } else if (_sortOption == 'Value') {
       filteredTokens.sort((a, b) => _isAscending ? a['totalValue'].compareTo(b['totalValue']) : b['totalValue'].compareTo(a['totalValue']));
     } else if (_sortOption == 'APY') {
-      filteredTokens.sort((a, b) =>
-          _isAscending ? a['annualPercentageYield'].compareTo(b['annualPercentageYield']) : b['annualPercentageYield'].compareTo(a['annualPercentageYield']));
+      filteredTokens
+          .sort((a, b) => _isAscending ? a['annualPercentageYield'].compareTo(b['annualPercentageYield']) : b['annualPercentageYield'].compareTo(a['annualPercentageYield']));
     }
 
     return filteredTokens;
@@ -235,7 +235,7 @@ class MapsPageState extends State<MapsPage> {
                       });
                       _saveThemePreference(); // Sauvegarder la préférence
                     },
-                    activeColor: Colors.blue,
+                    activeColor: Theme.of(context).primaryColor,
                     inactiveThumbColor: Colors.grey,
                     inactiveTrackColor: Colors.grey[300],
                   ),
@@ -258,7 +258,7 @@ class MapsPageState extends State<MapsPage> {
                         _showAllTokens = value;
                       });
                     },
-                    activeColor: Colors.blue, // Couleur du bouton en mode activé
+                    activeColor: Theme.of(context).primaryColor, // Couleur du bouton en mode activé
                     inactiveThumbColor: Colors.grey, // Couleur du bouton en mode désactivé
                   ),
                 ),

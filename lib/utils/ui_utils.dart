@@ -6,17 +6,15 @@ import 'package:provider/provider.dart';
 import 'package:realtokens/managers/data_manager.dart';
 import 'package:realtokens/app_state.dart';
 import 'package:realtokens/generated/l10n.dart';
-import 'package:realtokens/pages/dashboard/dashboard_details_page.dart';
+import 'package:realtokens/pages/dashboard/properties_details_page.dart';
+import 'package:realtokens/pages/dashboard/rent_details_page.dart';
 import 'package:shimmer/shimmer.dart';
 
 class UIUtils {
-
   static double getAppBarHeight(BuildContext context) {
-
     double pixelRatio = MediaQuery.of(context).devicePixelRatio; // Ratio de densité
     double longestSide = MediaQuery.of(context).size.longestSide * pixelRatio;
     double shortestSide = MediaQuery.of(context).size.shortestSide * pixelRatio;
-
 
     if (kIsWeb) {
       // Taille pour le Web, ajustée pour écrans larges
@@ -91,7 +89,7 @@ class UIUtils {
     }
   }
 
-    static Color shadeColor(Color color, double factor) {
+  static Color shadeColor(Color color, double factor) {
     return Color.fromRGBO(
       (color.red * factor).round(),
       (color.green * factor).round(),
@@ -126,7 +124,7 @@ class UIUtils {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
-      elevation: 0,
+      elevation: 0.5,
       color: Theme.of(context).cardColor,
       child: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -168,6 +166,21 @@ class UIUtils {
                           color: Colors.grey, // Couleur de l'icône
                         ),
                       ),
+                      if (title == S.of(context).properties)
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => PropertiesDetailsPage(),
+                            ),
+                          );
+                        },
+                        child: Icon(
+                          Icons.arrow_forward,
+                          size: 24, // Taille de l'icône
+                          color: Colors.grey, // Couleur de l'icône
+                        ),
+                      ),
                   ],
                 ),
                 const SizedBox(height: 10),
@@ -186,7 +199,8 @@ class UIUtils {
       ),
     );
   }
-   // Fonction pour obtenir la couleur en fonction du titre traduit
+
+  // Fonction pour obtenir la couleur en fonction du titre traduit
   static Color getIconColor(String title, BuildContext context) {
     final String translatedTitle = title.trim(); // Supprime les espaces éventuels
 
@@ -205,7 +219,7 @@ class UIUtils {
     }
   }
 
-   static Widget buildValueBeforeText(BuildContext context, String? value, String text, bool isLoading, {bool highlightPercentage = false}) {
+  static Widget buildValueBeforeText(BuildContext context, String? value, String text, bool isLoading, {bool highlightPercentage = false}) {
     final appState = Provider.of<AppState>(context);
     final theme = Theme.of(context);
 
@@ -315,7 +329,4 @@ class UIUtils {
       ],
     );
   }
-
-
-
 }

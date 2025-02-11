@@ -6,7 +6,6 @@ import 'package:flutter/scheduler.dart';
 import 'package:realtokens/managers/data_manager.dart';
 import 'package:realtokens/generated/l10n.dart';
 import 'package:realtokens/app_state.dart';
-import 'package:logger/logger.dart';
 import 'package:realtokens/utils/chart_utils.dart';
 import 'package:realtokens/utils/date_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -33,9 +32,7 @@ class RentGraph extends StatefulWidget {
   _RentGraphState createState() => _RentGraphState();
 }
 
-
 class _RentGraphState extends State<RentGraph> {
-  static final logger = Logger();
   late String _selectedRentPeriod;
   bool _showCumulativeRent = false;
   late SharedPreferences prefs;
@@ -52,39 +49,34 @@ class _RentGraphState extends State<RentGraph> {
 
   @override
   Widget build(BuildContext context) {
-        final appState = Provider.of<AppState>(context);
+    final appState = Provider.of<AppState>(context);
 
     DataManager? dataManager;
     try {
       dataManager = Provider.of<DataManager>(context);
-    } catch (e, stacktrace) {
-      logger.e("Error accessing DataManager: $e");
+    } catch (e) {
+      debugPrint("Error accessing DataManager: $e");
       return Center(child: Text("DataManager is unavailable"));
     }
-
-    if (dataManager == null) {
-      return Center(child: Text("DataManager is unavailable"));
-    }
-      const int maxPoints = 1000;
-
+    const int maxPoints = 1000;
 
     List<Map<String, dynamic>> groupedData = _groupRentDataByPeriod(dataManager);
 
-      List<Map<String, dynamic>> limitedData = groupedData.length > maxPoints ? groupedData.sublist(0, maxPoints) : groupedData;
+    List<Map<String, dynamic>> limitedData = groupedData.length > maxPoints ? groupedData.sublist(0, maxPoints) : groupedData;
 
- List<Map<String, dynamic>> convertedData = limitedData.map((entry) {
-        double convertedRent = dataManager!.convert(entry['rent'] ?? 0.0);
-        return {
-          'date': entry['date'],
-          'rent': convertedRent,
-          'cumulativeRent': entry['cumulativeRent'] ?? 0.0,
-        };
-      }).toList();
-          // Trier les données par date croissante
-      convertedData.sort((a, b) => a['date'].compareTo(b['date']));
+    List<Map<String, dynamic>> convertedData = limitedData.map((entry) {
+      double convertedRent = dataManager!.convert(entry['rent'] ?? 0.0);
+      return {
+        'date': entry['date'],
+        'rent': convertedRent,
+        'cumulativeRent': entry['cumulativeRent'] ?? 0.0,
+      };
+    }).toList();
+    // Trier les données par date croissante
+    convertedData.sort((a, b) => a['date'].compareTo(b['date']));
 
     return Card(
-      elevation: 0,
+      elevation: 0.5,
       color: Theme.of(context).cardColor,
       child: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -94,37 +86,35 @@ class _RentGraphState extends State<RentGraph> {
             Row(
               children: [
                 Text(
-                  _showCumulativeRent
-                      ? S.of(context).cumulativeRentGraph
-                      : S.of(context).groupedRentGraph,
+                  _showCumulativeRent ? S.of(context).cumulativeRentGraph : S.of(context).groupedRentGraph,
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 Spacer(),
                 Transform.scale(
-                    scale: 0.8, // Réduit la taille à 80% de la taille originale
-                    child: Switch(
-                      value: _showCumulativeRent,
-                      onChanged: (value) {
-                        setState(() {
-                          _showCumulativeRent = value;
-                        });
-                      },
-                      activeColor: Colors.blue, // Couleur d'accentuation en mode activé
-                      inactiveThumbColor: Colors.grey, // Couleur du bouton en mode désactivé
-                    ),
+                  scale: 0.8, // Réduit la taille à 80% de la taille originale
+                  child: Switch(
+                    value: _showCumulativeRent,
+                    onChanged: (value) {
+                      setState(() {
+                        _showCumulativeRent = value;
+                      });
+                    },
+                    activeColor: Theme.of(context).primaryColor, // Couleur d'accentuation en mode activé
+                    inactiveThumbColor: Colors.grey, // Couleur du bouton en mode désactivé
+                  ),
                 )
               ],
             ),
-          ChartUtils.buildPeriodSelector(
-            context,
-            selectedPeriod: _selectedRentPeriod,
-            onPeriodChanged: (period) {
-              setState(() {
-                _selectedRentPeriod = period;
-              });
-            },
-          ),
-                      const SizedBox(height: 20),
+            ChartUtils.buildPeriodSelector(
+              context,
+              selectedPeriod: _selectedRentPeriod,
+              onPeriodChanged: (period) {
+                setState(() {
+                  _selectedRentPeriod = period;
+                });
+              },
+            ),
+            const SizedBox(height: 20),
             SizedBox(
               height: 250,
               child: LineChart(
@@ -132,38 +122,38 @@ class _RentGraphState extends State<RentGraph> {
                   gridData: FlGridData(show: true, drawVerticalLine: false),
                   titlesData: FlTitlesData(
                     topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                      leftTitles: AxisTitles(
-                        sideTitles: SideTitles(
-                          showTitles: true,
-                          reservedSize: 45,
-                          getTitlesWidget: (value, meta) {
-                            // Calcul de la valeur la plus élevée dans les données
-                            final highestValue = convertedData.map((entry) => entry['rent']).reduce((a, b) => a > b ? a : b);
+                    leftTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        reservedSize: 45,
+                        getTitlesWidget: (value, meta) {
+                          // Calcul de la valeur la plus élevée dans les données
+                          final highestValue = convertedData.map((entry) => entry['rent']).reduce((a, b) => a > b ? a : b);
 
-                            // Si la valeur est la plus haute, on ne l'affiche pas
-                            if (value == highestValue) {
-                              return const SizedBox.shrink();
-                            }
+                          // Si la valeur est la plus haute, on ne l'affiche pas
+                          if (value == highestValue) {
+                            return const SizedBox.shrink();
+                          }
 
-                            // Vérifier si la valeur dépasse 1000 et formater en "1.0k" si nécessaire
-                            final displayValue = value >= 1000
-                                ? '${(value / 1000).toStringAsFixed(1)} k${dataManager!.currencySymbol}' // Formater en "1.0k"
-                                : '${value.toStringAsFixed(0)}${dataManager!.currencySymbol}'; // Limiter à 1 chiffre après la virgule
+                          // Vérifier si la valeur dépasse 1000 et formater en "1.0k" si nécessaire
+                          final displayValue = value >= 1000
+                              ? '${(value / 1000).toStringAsFixed(1)} k${dataManager!.currencySymbol}' // Formater en "1.0k"
+                              : '${value.toStringAsFixed(0)}${dataManager!.currencySymbol}'; // Limiter à 1 chiffre après la virgule
 
-                            return Transform.rotate(
-                              angle: -0.5,
-                              child: Text(
-                                displayValue,
-                                style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
-                              ),
-                            );
-                          },
-                        ),
+                          return Transform.rotate(
+                            angle: -0.5,
+                            child: Text(
+                              displayValue,
+                              style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
+                            ),
+                          );
+                        },
                       ),
-                      rightTitles: AxisTitles(
-                        sideTitles: SideTitles(showTitles: false),
-                      ),
-                      bottomTitles: AxisTitles(
+                    ),
+                    rightTitles: AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
+                    ),
+                    bottomTitles: AxisTitles(
                       sideTitles: SideTitles(
                         showTitles: true,
                         getTitlesWidget: (value, meta) {
@@ -184,19 +174,17 @@ class _RentGraphState extends State<RentGraph> {
                     ),
                   ),
                   borderData: FlBorderData(
-                          show: true,
-                          border: Border(
-                            left: BorderSide(color: Colors.transparent),
-                            bottom: BorderSide(color: Colors.blueGrey.shade700, width: 0.5),
-                            right: BorderSide(color: Colors.transparent),
-                            top: BorderSide(color: Colors.transparent),
-                          ),
-                        ),
+                    show: true,
+                    border: Border(
+                      left: BorderSide(color: Colors.transparent),
+                      bottom: BorderSide(color: Colors.blueGrey.shade700, width: 0.5),
+                      right: BorderSide(color: Colors.transparent),
+                      top: BorderSide(color: Colors.transparent),
+                    ),
+                  ),
                   lineBarsData: [
                     LineChartBarData(
-                      spots: _showCumulativeRent
-                          ? _buildCumulativeChartData(convertedData)
-                          : _buildChartData(convertedData),
+                      spots: _showCumulativeRent ? _buildCumulativeChartData(convertedData) : _buildChartData(convertedData),
                       isCurved: false,
                       barWidth: 2,
                       color: _showCumulativeRent ? Colors.green : Colors.blue,
@@ -215,7 +203,6 @@ class _RentGraphState extends State<RentGraph> {
                     ),
                   ],
                 ),
-                
               ),
             ),
           ],
@@ -237,54 +224,54 @@ class _RentGraphState extends State<RentGraph> {
   }
 
   List<Map<String, dynamic>> _groupByDay(List<Map<String, dynamic>> data) {
-  Map<String, double> groupedData = {};
-  for (var entry in data) {
-    DateTime date = DateTime.parse(entry['date']);
-    String dayKey = DateFormat('yyyy/MM/dd').format(date); // Format jour
-    groupedData[dayKey] = (groupedData[dayKey] ?? 0) + entry['rent'];
+    Map<String, double> groupedData = {};
+    for (var entry in data) {
+      DateTime date = DateTime.parse(entry['date']);
+      String dayKey = DateFormat('yyyy/MM/dd').format(date); // Format jour
+      groupedData[dayKey] = (groupedData[dayKey] ?? 0) + entry['rent'];
+    }
+    return groupedData.entries.map((entry) => {'date': entry.key, 'rent': entry.value}).toList();
   }
-  return groupedData.entries.map((entry) => {'date': entry.key, 'rent': entry.value}).toList();
-}
 
   List<Map<String, dynamic>> _groupByWeek(List<Map<String, dynamic>> data) {
-      Map<String, double> groupedData = {};
+    Map<String, double> groupedData = {};
 
-      for (var entry in data) {
-        if (entry.containsKey('date') && entry.containsKey('rent')) {
-          try {
-            DateTime date = DateTime.parse(entry['date']);
-            String weekKey = "${date.year}-S${CustomDateUtils.weekNumber(date).toString().padLeft(2, '0')}"; // Semaine formatée avec deux chiffres
-            groupedData[weekKey] = (groupedData[weekKey] ?? 0) + entry['rent'];
-          } catch (e) {
-            // En cas d'erreur de parsing de date ou autre, vous pouvez ignorer cette entrée ou la traiter différemment
-            logger.w("Erreur lors de la conversion de la date : ${entry['date']}");
-          }
+    for (var entry in data) {
+      if (entry.containsKey('date') && entry.containsKey('rent')) {
+        try {
+          DateTime date = DateTime.parse(entry['date']);
+          String weekKey = "${date.year}-S${CustomDateUtils.weekNumber(date).toString().padLeft(2, '0')}"; // Semaine formatée avec deux chiffres
+          groupedData[weekKey] = (groupedData[weekKey] ?? 0) + entry['rent'];
+        } catch (e) {
+          // En cas d'erreur de parsing de date ou autre, vous pouvez ignorer cette entrée ou la traiter différemment
+          debugPrint("❌ Erreur lors de la conversion de la date : ${entry['date']}");
         }
       }
-
-      // Conversion de groupedData en une liste de maps
-      return groupedData.entries.map((entry) => {'date': entry.key, 'rent': entry.value}).toList();
     }
 
-    List<Map<String, dynamic>> _groupByMonth(List<Map<String, dynamic>> data) {
-      Map<String, double> groupedData = {};
-      for (var entry in data) {
-        DateTime date = DateTime.parse(entry['date']);
-        String monthKey = DateFormat('yyyy/MM').format(date);
-        groupedData[monthKey] = (groupedData[monthKey] ?? 0) + entry['rent'];
-      }
-      return groupedData.entries.map((entry) => {'date': entry.key, 'rent': entry.value}).toList();
-    }
+    // Conversion de groupedData en une liste de maps
+    return groupedData.entries.map((entry) => {'date': entry.key, 'rent': entry.value}).toList();
+  }
 
-    List<Map<String, dynamic>> _groupByYear(List<Map<String, dynamic>> data) {
-      Map<String, double> groupedData = {};
-      for (var entry in data) {
-        DateTime date = DateTime.parse(entry['date']);
-        String yearKey = date.year.toString();
-        groupedData[yearKey] = (groupedData[yearKey] ?? 0) + entry['rent'];
-      }
-      return groupedData.entries.map((entry) => {'date': entry.key, 'rent': entry.value}).toList();
+  List<Map<String, dynamic>> _groupByMonth(List<Map<String, dynamic>> data) {
+    Map<String, double> groupedData = {};
+    for (var entry in data) {
+      DateTime date = DateTime.parse(entry['date']);
+      String monthKey = DateFormat('yyyy/MM').format(date);
+      groupedData[monthKey] = (groupedData[monthKey] ?? 0) + entry['rent'];
     }
+    return groupedData.entries.map((entry) => {'date': entry.key, 'rent': entry.value}).toList();
+  }
+
+  List<Map<String, dynamic>> _groupByYear(List<Map<String, dynamic>> data) {
+    Map<String, double> groupedData = {};
+    for (var entry in data) {
+      DateTime date = DateTime.parse(entry['date']);
+      String yearKey = date.year.toString();
+      groupedData[yearKey] = (groupedData[yearKey] ?? 0) + entry['rent'];
+    }
+    return groupedData.entries.map((entry) => {'date': entry.key, 'rent': entry.value}).toList();
+  }
 
   List<FlSpot> _buildChartData(List<Map<String, dynamic>> data) {
     List<FlSpot> spots = [];
@@ -295,9 +282,9 @@ class _RentGraphState extends State<RentGraph> {
     return spots;
   }
 
-   List<String> _buildDateLabels(List<Map<String, dynamic>> data) {
-      return data.map((entry) => entry['date'].toString()).toList();
-    }
+  List<String> _buildDateLabels(List<Map<String, dynamic>> data) {
+    return data.map((entry) => entry['date'].toString()).toList();
+  }
 
   List<FlSpot> _buildCumulativeChartData(List<Map<String, dynamic>> data) {
     List<FlSpot> spots = [];
@@ -309,6 +296,4 @@ class _RentGraphState extends State<RentGraph> {
     }
     return spots;
   }
-
-
-  }
+}

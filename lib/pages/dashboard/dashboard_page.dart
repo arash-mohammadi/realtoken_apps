@@ -10,7 +10,6 @@ import 'package:realtokens/generated/l10n.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shimmer/shimmer.dart';
 
-
 import 'widgets/portfolio_card.dart';
 import 'widgets/rmm_card.dart';
 import 'widgets/properties_card.dart';
@@ -56,7 +55,6 @@ class DashboardPageState extends State<DashboardPage> {
     });
   }
 
-   
   @override
   Widget build(BuildContext context) {
     final dataManager = Provider.of<DataManager>(context);
@@ -69,7 +67,6 @@ class DashboardPageState extends State<DashboardPage> {
 
     final lastRentReceived = _getLastRentReceived(dataManager);
     final totalRentReceived = CurrencyUtils.getFormattedAmount(dataManager.convert(dataManager.getTotalRentReceived()), dataManager.currencySymbol, _showAmounts);
-
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -95,7 +92,7 @@ class DashboardPageState extends State<DashboardPage> {
                         visibilityButton,
                       ],
                     ),
-if (!_isPageLoading && (dataManager.rentData.isEmpty || dataManager.walletValue == 0)) _buildNoWalletCard(context),
+                    if (!_isPageLoading && (dataManager.rentData.isEmpty || dataManager.walletValue == 0)) _buildNoWalletCard(context),
                     const SizedBox(height: 8),
                     RichText(
                       text: TextSpan(
@@ -104,14 +101,14 @@ if (!_isPageLoading && (dataManager.rentData.isEmpty || dataManager.walletValue 
                           TextSpan(
                             text: S.of(context).lastRentReceived,
                             style: TextStyle(
-                              fontSize: 15 + appState.getTextSizeOffset(),
+                              fontSize: 16 + appState.getTextSizeOffset(),
                               color: Theme.of(context).textTheme.bodyMedium?.color,
                             ),
                           ),
                           // Partie dynamique avec ou sans shimmer pour "lastRentReceived"
                           WidgetSpan(
                             alignment: PlaceholderAlignment.middle,
-                            child: dataManager.isLoading
+                            child: dataManager.isLoadingMain
                                 ? Shimmer.fromColors(
                                     baseColor: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.6) ?? Colors.grey[300]!,
                                     highlightColor: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.9) ?? Colors.grey[100]!,
@@ -141,7 +138,7 @@ if (!_isPageLoading && (dataManager.rentData.isEmpty || dataManager.walletValue 
                           // Partie dynamique avec ou sans shimmer pour "totalRentReceived"
                           WidgetSpan(
                             alignment: PlaceholderAlignment.middle,
-                            child: dataManager.isLoading
+                            child: dataManager.isLoadingMain
                                 ? Shimmer.fromColors(
                                     baseColor: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.2) ?? Colors.grey[300]!,
                                     highlightColor: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.4) ?? Colors.grey[100]!,
@@ -163,8 +160,12 @@ if (!_isPageLoading && (dataManager.rentData.isEmpty || dataManager.walletValue 
                         ],
                       ),
                     ),
-                                        const SizedBox(height: 8),
-                    PortfolioCard(showAmounts: _showAmounts, isLoading: _isPageLoading, context: context,),
+                    const SizedBox(height: 8),
+                    PortfolioCard(
+                      showAmounts: _showAmounts,
+                      isLoading: _isPageLoading,
+                      context: context,
+                    ),
                     const SizedBox(height: 8),
                     RmmCard(showAmounts: _showAmounts, isLoading: _isPageLoading),
                     const SizedBox(height: 8),
@@ -217,7 +218,7 @@ if (!_isPageLoading && (dataManager.rentData.isEmpty || dataManager.walletValue 
                   },
                   style: ElevatedButton.styleFrom(
                     foregroundColor: Colors.white,
-                    backgroundColor: Colors.blue,
+                    backgroundColor: Theme.of(context).primaryColor,
                   ),
                   child: Text(S.of(context).manageAddresses),
                 ),
@@ -229,7 +230,7 @@ if (!_isPageLoading && (dataManager.rentData.isEmpty || dataManager.walletValue 
     );
   }
 
-   // Récupère la dernière valeur de loyer
+  // Récupère la dernière valeur de loyer
   String _getLastRentReceived(DataManager dataManager) {
     final rentData = dataManager.rentData;
 

@@ -1,12 +1,50 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+// Import nécessaire pour SharedPreferences
+import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+// Fonction pour récupérer la couleur enregistrée
+Future<Color> getSavedPrimaryColor() async {
+  final prefs = await SharedPreferences.getInstance();
+  String colorName = prefs.getString('primaryColor') ?? 'blue';
+  return _getColorFromName(colorName);
+}
+
+// Fonction pour enregistrer la couleur choisie
+Future<void> savePrimaryColor(String colorName) async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setString('primaryColor', colorName);
+}
+
+// Fonction pour convertir le nom de la couleur en objet Color
+Color _getColorFromName(String colorName) {
+  switch (colorName) {
+    case 'yellow':
+      return Colors.yellow;
+    case 'orange':
+      return Colors.deepOrangeAccent;
+    case 'pink':
+      return Colors.pink;
+    case 'green':
+      return Colors.green;
+    case 'grey':
+      return Colors.grey;
+    case 'blueGrey':
+      return Colors.blueGrey;
+    default:
+      return Colors.blue;
+  }
+}
+
 class AppState extends ChangeNotifier with WidgetsBindingObserver {
   bool isDarkTheme = false;
   String themeMode = 'auto'; // light, dark, auto
   String selectedTextSize = 'normal'; // Default text size
   String selectedLanguage = 'en'; // Default language
   List<String>? evmAddresses; // Variable for storing EVM addresses
+  Color _primaryColor = Colors.blue; // Default primary color
 
   AppState() {
     _loadSettings();
@@ -19,6 +57,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     super.dispose();
   }
 
+  Color get primaryColor => _primaryColor;
+
   // Load settings from SharedPreferences
   Future<void> _loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
@@ -27,9 +67,16 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     selectedTextSize = prefs.getString('textSize') ?? 'normal';
     selectedLanguage = prefs.getString('language') ?? 'en';
     evmAddresses = prefs.getStringList('evmAddresses'); // Load EVM addresses
+    _primaryColor = await getSavedPrimaryColor(); // Load primary color
 
     _applyTheme(); // Apply the theme based on the loaded themeMode
     notifyListeners(); // Notify listeners to rebuild widgets
+  }
+
+  void updatePrimaryColor(String colorName) async {
+    await savePrimaryColor(colorName);
+    _primaryColor = _getColorFromName(colorName);
+    notifyListeners(); // 🔥 Met à jour immédiatement l'UI avec la nouvelle couleur
   }
 
   // Update theme mode and save to SharedPreferences

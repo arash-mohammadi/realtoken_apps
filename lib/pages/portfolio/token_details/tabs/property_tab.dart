@@ -11,58 +11,57 @@ Widget buildPropertiesTab(BuildContext context, Map<String, dynamic> token, bool
   final appState = Provider.of<AppState>(context, listen: false);
 
 // Méthode pour construire les lignes de détails
-Widget _buildDetailRow(BuildContext context, String label, String value, {IconData? icon, bool isNegative = false, Color? color, Widget? trailing}) {
-  final appState = Provider.of<AppState>(context, listen: false);
+  Widget buildDetailRow(BuildContext context, String label, String value, {IconData? icon, bool isNegative = false, Color? color, Widget? trailing}) {
+    final appState = Provider.of<AppState>(context, listen: false);
 
-  // Ajout du signe "-" et de la couleur rouge si isNegative est true
-  final displayValue = isNegative ? '-$value' : value;
-  final valueStyle = TextStyle(
-    fontSize: 13 + appState.getTextSizeOffset(),
-    color: isNegative ? Colors.red : Theme.of(context).textTheme.bodyMedium?.color, // couleur rouge si isNegative
-  );
+    // Ajout du signe "-" et de la couleur rouge si isNegative est true
+    final displayValue = isNegative ? '-$value' : value;
+    final valueStyle = TextStyle(
+      fontSize: 13 + appState.getTextSizeOffset(),
+      color: isNegative ? Colors.red : Theme.of(context).textTheme.bodyMedium?.color, // couleur rouge si isNegative
+    );
 
-  return Padding(
-    padding: const EdgeInsets.symmetric(vertical: 4.0),
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Row(
-          children: [
-            if (icon != null) // Affiche l'icône si elle est spécifiée
-              Icon(icon, size: 18, color: Colors.blueGrey),
-            if (isNegative) // Affiche la puce rouge uniquement si isNegative est true
-              Padding(
-                padding: const EdgeInsets.only(left: 4.0),
-                child: Icon(
-                  Icons.circle,
-                  size: 10,
-                  color: color ?? Colors.red,
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            children: [
+              if (icon != null) // Affiche l'icône si elle est spécifiée
+                Icon(icon, size: 18, color: Colors.blueGrey),
+              if (isNegative) // Affiche la puce rouge uniquement si isNegative est true
+                Padding(
+                  padding: const EdgeInsets.only(left: 4.0),
+                  child: Icon(
+                    Icons.circle,
+                    size: 10,
+                    color: color ?? Colors.red,
+                  ),
+                ),
+              SizedBox(width: icon != null || isNegative ? 8 : 0), // Espacement conditionnel entre l'icône et le texte
+              Text(
+                label,
+                style: TextStyle(
+                  fontWeight: isNegative ? FontWeight.normal : FontWeight.bold,
+                  fontSize: 13 + appState.getTextSizeOffset(),
                 ),
               ),
-            SizedBox(width: icon != null || isNegative ? 8 : 0), // Espacement conditionnel entre l'icône et le texte
-            Text(
-              label,
-              style: TextStyle(
-                fontWeight: isNegative ? FontWeight.normal : FontWeight.bold,
-                fontSize: 13 + appState.getTextSizeOffset(),
+              SizedBox(
+                height: 16 + appState.getTextSizeOffset(), // Hauteur constante pour le trailing
+                child: trailing ?? SizedBox(), // Si trailing est null, on met un espace vide
               ),
-            ),
-            SizedBox(
-              height: 16 + appState.getTextSizeOffset(), // Hauteur constante pour le trailing
-              child: trailing ?? SizedBox(), // Si trailing est null, on met un espace vide
-            ),
-          ],
-        ),
-        Row(
-          children: [
-            Text(displayValue, style: valueStyle), // Texte avec style conditionnel
-          ],
-        ),
-      ],
-    ),
-  );
-}
-
+            ],
+          ),
+          Row(
+            children: [
+              Text(displayValue, style: valueStyle), // Texte avec style conditionnel
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 
   return SingleChildScrollView(
     child: Column(
@@ -76,31 +75,31 @@ Widget _buildDetailRow(BuildContext context, String label, String value, {IconDa
           ),
         ),
         const SizedBox(height: 10),
-        _buildDetailRow(
+        buildDetailRow(
           context,
           S.of(context).constructionYear,
           token['constructionYear']?.toString() ?? S.of(context).notSpecified,
           icon: Icons.calendar_today,
         ),
-        _buildDetailRow(
+        buildDetailRow(
           context,
           S.of(context).propertyType,
           Parameters.getPropertyTypeName(token['propertyType'] ?? -1, context),
           icon: Icons.home,
         ),
-        _buildDetailRow(
+        buildDetailRow(
           context,
           S.of(context).rentalType,
           token['rentalType']?.toString() ?? S.of(context).notSpecified,
           icon: Icons.assignment,
         ),
-        _buildDetailRow(
+        buildDetailRow(
           context,
           S.of(context).bedroomBath,
           token['bedroomBath']?.toString() ?? S.of(context).notSpecified,
           icon: Icons.bed,
         ),
-        _buildDetailRow(
+        buildDetailRow(
           context,
           S.of(context).lotSize,
           LocationUtils.formatSquareFeet(
@@ -109,7 +108,7 @@ Widget _buildDetailRow(BuildContext context, String label, String value, {IconDa
           ),
           icon: Icons.landscape,
         ),
-        _buildDetailRow(
+        buildDetailRow(
           context,
           S.of(context).squareFeet,
           LocationUtils.formatSquareFeet(
@@ -206,7 +205,7 @@ Widget _buildDetailRow(BuildContext context, String label, String value, {IconDa
           ],
         ),
         const SizedBox(height: 6),
-        _buildDetailRow(
+        buildDetailRow(
           context,
           S.of(context).section8paid,
           '${((token['section8paid']) / (token['grossRentMonth']) * 100).toStringAsFixed(2)}%',
@@ -215,6 +214,4 @@ Widget _buildDetailRow(BuildContext context, String label, String value, {IconDa
       ],
     ),
   );
-
-  
 }

@@ -141,7 +141,7 @@ Widget _buildGaugeForROI(double roiValue, BuildContext context) {
                 height: 15,
                 width: roiValue.clamp(0, 100) / 100 * maxWidth,
                 decoration: BoxDecoration(
-                  color: Colors.blue,
+                  color: Theme.of(context).primaryColor,
                   borderRadius: BorderRadius.circular(5),
                 ),
               ),
@@ -307,7 +307,7 @@ Widget _buildYieldChart(BuildContext context, List<dynamic> yields) {
         lineBarsData: [
           LineChartBarData(
             spots: spots,
-            color: Colors.blue,
+            color: Theme.of(context).primaryColor,
             isCurved: true,
             barWidth: 2,
             belowBarData: BarAreaData(show: false),
@@ -455,7 +455,7 @@ Widget _buildPriceChart(BuildContext context, List<dynamic> prices) {
         lineBarsData: [
           LineChartBarData(
             spots: spots,
-            color: Colors.blue,
+            color: Theme.of(context).primaryColor,
             isCurved: true,
             barWidth: 2,
             belowBarData: BarAreaData(show: false),

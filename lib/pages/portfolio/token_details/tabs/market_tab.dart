@@ -51,7 +51,7 @@ Widget buildMarketTab(BuildContext context, Map<String, dynamic> token) {
                   return Card(
                     color: Colors.grey.withOpacity(0.1),
                     margin: const EdgeInsets.symmetric(vertical: 8),
-                    elevation: 0,
+                    elevation: 0.5,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -82,8 +82,7 @@ Widget buildMarketTab(BuildContext context, Map<String, dynamic> token) {
                                   ),
                                 ),
                                 // Icône du token de paiement (xDai ou USDC)
-                                if (offer['token_to_pay'] == '0x0ca4f5554dd9da6217d62d8df2816c82bba4157b' ||
-                                    offer['token_to_pay'] == '0xe91d153e0b41518a2ce8dd3d7944fa863463a97d')
+                                if (offer['token_to_pay'] == '0x0ca4f5554dd9da6217d62d8df2816c82bba4157b' || offer['token_to_pay'] == '0xe91d153e0b41518a2ce8dd3d7944fa863463a97d')
                                   Positioned(
                                     bottom: -30,
                                     child: Image.asset(

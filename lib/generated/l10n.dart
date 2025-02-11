@@ -18,14 +18,17 @@ class S {
   static S? _current;
 
   static S get current {
-    assert(_current != null, 'No instance of S was loaded. Try to initialize the S delegate before accessing S.current.');
+    assert(_current != null,
+        'No instance of S was loaded. Try to initialize the S delegate before accessing S.current.');
     return _current!;
   }
 
   static const AppLocalizationDelegate delegate = AppLocalizationDelegate();
 
   static Future<S> load(Locale locale) {
-    final name = (locale.countryCode?.isEmpty ?? false) ? locale.languageCode : locale.toString();
+    final name = (locale.countryCode?.isEmpty ?? false)
+        ? locale.languageCode
+        : locale.toString();
     final localeName = Intl.canonicalizedLocale(name);
     return initializeMessages(localeName).then((_) {
       Intl.defaultLocale = localeName;
@@ -38,7 +41,8 @@ class S {
 
   static S of(BuildContext context) {
     final instance = S.maybeOf(context);
-    assert(instance != null, 'No instance of S present in the widget tree. Did you add S.delegate in localizationsDelegates?');
+    assert(instance != null,
+        'No instance of S present in the widget tree. Did you add S.delegate in localizationsDelegates?');
     return instance!;
   }
 
@@ -2551,6 +2555,206 @@ class S {
     return Intl.message(
       'Actual Price',
       name: 'realtActualPrice',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Advanced`
+  String get advanced {
+    return Intl.message(
+      'Advanced',
+      name: 'advanced',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Personalization`
+  String get personalization {
+    return Intl.message(
+      'Personalization',
+      name: 'personalization',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Synchronization`
+  String get synchronization {
+    return Intl.message(
+      'Synchronization',
+      name: 'synchronization',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Notifications`
+  String get notifications {
+    return Intl.message(
+      'Notifications',
+      name: 'notifications',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Appearance`
+  String get appearance {
+    return Intl.message(
+      'Appearance',
+      name: 'appearance',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Google Drive Connection`
+  String get GDrive_connexion {
+    return Intl.message(
+      'Google Drive Connection',
+      name: 'GDrive_connexion',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Connected`
+  String get connected {
+    return Intl.message(
+      'Connected',
+      name: 'connected',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Not Connected`
+  String get notConnected {
+    return Intl.message(
+      'Not Connected',
+      name: 'notConnected',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Sync with Google Drive`
+  String get syncWithGoogleDrive {
+    return Intl.message(
+      'Sync with Google Drive',
+      name: 'syncWithGoogleDrive',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Local Storage`
+  String get localStorage {
+    return Intl.message(
+      'Local Storage',
+      name: 'localStorage',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Synchronization completed with Google Drive`
+  String get syncComplete {
+    return Intl.message(
+      'Synchronization completed with Google Drive',
+      name: 'syncComplete',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Connect to Google Drive before synchronization`
+  String get connectBeforeSync {
+    return Intl.message(
+      'Connect to Google Drive before synchronization',
+      name: 'connectBeforeSync',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Forum for proposals and discussion of realTokens DAO`
+  String get dao_description {
+    return Intl.message(
+      'Forum for proposals and discussion of realTokens DAO',
+      name: 'dao_description',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Internal Transfer`
+  String get internal_transfer {
+    return Intl.message(
+      'Internal Transfer',
+      name: 'internal_transfer',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Purchase`
+  String get purchase {
+    return Intl.message(
+      'Purchase',
+      name: 'purchase',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `YAM`
+  String get yam {
+    return Intl.message(
+      'YAM',
+      name: 'yam',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Quantity`
+  String get quantity {
+    return Intl.message(
+      'Quantity',
+      name: 'quantity',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Transaction Type`
+  String get transactionType {
+    return Intl.message(
+      'Transaction Type',
+      name: 'transactionType',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Price`
+  String get price {
+    return Intl.message(
+      'Price',
+      name: 'price',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Unknown transaction`
+  String get unknownTransaction {
+    return Intl.message(
+      'Unknown transaction',
+      name: 'unknownTransaction',
       desc: '',
       args: [],
     );

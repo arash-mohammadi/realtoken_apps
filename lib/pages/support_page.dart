@@ -176,7 +176,7 @@ class RealtPageState extends State<SupportPage> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
-      elevation: 0,
+      elevation: 0.5,
       child: Padding(
         padding: const EdgeInsets.all(12.0),
         child: Row(

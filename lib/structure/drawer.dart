@@ -1,5 +1,3 @@
-import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
 import 'package:realtokens/pages/links_page.dart';
 import 'package:realtokens/pages/propertiesForSale/propertiesForSell_select.dart';
 import 'package:realtokens/pages/support_page.dart';
@@ -124,8 +122,8 @@ class _CustomDrawerState extends State<CustomDrawer> {
             child: Column(
               children: <Widget>[
                 DrawerHeader(
-                  decoration: const BoxDecoration(
-                    color: Colors.blue,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).primaryColor,
                   ),
                   child: GestureDetector(
                     onTap: () {
@@ -345,7 +343,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const SettingsPage(),
+                        builder: (context) => SettingsPage(),
                       ),
                     );
                   },

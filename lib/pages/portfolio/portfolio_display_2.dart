@@ -1,6 +1,6 @@
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:realtokens/managers/data_manager.dart';
-import 'package:realtokens/pages/portfolio/showTokenDetails.dart';
+import 'package:realtokens/pages/portfolio/token_details/showTokenDetails.dart';
 import 'package:realtokens/utils/currency_utils.dart';
 import 'package:realtokens/utils/location_utils.dart';
 import 'package:flutter/material.dart';
@@ -46,7 +46,7 @@ class PortfolioDisplay2State extends State<PortfolioDisplay2> {
                   height: 15,
                   width: barWidth,
                   decoration: BoxDecoration(
-                    color: Colors.blue,
+                    color: Theme.of(context).primaryColor,
                     borderRadius: BorderRadius.circular(5),
                   ),
                 ),
@@ -111,7 +111,7 @@ class PortfolioDisplay2State extends State<PortfolioDisplay2> {
                             },
                             style: ElevatedButton.styleFrom(
                               foregroundColor: Colors.white,
-                              backgroundColor: Colors.blue, // Texte blanc
+                              backgroundColor: Theme.of(context).primaryColor, // Texte blanc
                             ),
                             child: Text(
                               S.of(context).manageAddresses, // Traduction pour "Gérer les adresses"
@@ -151,7 +151,7 @@ class PortfolioDisplay2State extends State<PortfolioDisplay2> {
                           onTap: () => showTokenDetails(context, token),
                           child: Card(
                             color: Theme.of(context).cardColor, // Appliquer la couleur du thème
-                            elevation: 0,
+                            elevation: 0.5,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),

@@ -7,7 +7,7 @@ import 'package:realtokens/generated/l10n.dart';
 import 'package:realtokens/utils/ui_utils.dart';
 
 class PropertiesForSalePage extends StatefulWidget {
-  const PropertiesForSalePage({Key? key}) : super(key: key);
+  const PropertiesForSalePage({super.key});
 
   @override
   _PropertiesForSalePageState createState() => _PropertiesForSalePageState();
@@ -80,7 +80,7 @@ class _PropertiesForSalePageState extends State<PropertiesForSalePage> {
         },
         child: Container(
           decoration: BoxDecoration(
-            color: isSelected ? Colors.blue : Theme.of(context).cardColor,
+            color: isSelected ? Theme.of(context).primaryColor: Theme.of(context).cardColor,
             borderRadius: BorderRadius.horizontal(
               left: isFirst ? const Radius.circular(8) : Radius.zero,
               right: isLast ? const Radius.circular(8) : Radius.zero,

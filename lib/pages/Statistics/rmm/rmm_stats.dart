@@ -1,11 +1,13 @@
-import 'package:realtokens/generated/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:intl/intl.dart'; // Add this import
+import 'package:realtokens/generated/l10n.dart';
 import 'package:realtokens/managers/data_manager.dart';
 import 'package:realtokens/app_state.dart';
 import 'package:realtokens/models/balance_record.dart';
-import 'package:realtokens/utils/currency_utils.dart'; // Import AppState
+import 'package:realtokens/utils/chart_utils.dart';
+import 'package:realtokens/utils/currency_utils.dart';
 
 class RmmStats extends StatefulWidget {
   const RmmStats({super.key});
@@ -15,7 +17,8 @@ class RmmStats extends StatefulWidget {
 }
 
 class RmmStatsState extends State<RmmStats> {
-  String selectedPeriod = 'hour'; // Par défaut, afficher par heure
+  String selectedDepositPeriod = 'hour'; // Période pour la carte des dépôts
+  String selectedBorrowPeriod = 'hour'; // Période pour la carte des emprunts
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +47,6 @@ class RmmStatsState extends State<RmmStats> {
             sliver: SliverGrid(
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: screenWidth > 700 ? 2 : 1,
-
                 mainAxisExtent: fixedCardHeight, // Hauteur fixe pour chaque carte
               ),
               delegate: SliverChildBuilderDelegate(
@@ -67,13 +69,13 @@ class RmmStatsState extends State<RmmStats> {
     );
   }
 
-// Fonction pour créer la carte APY en pleine largeur
+  // Fonction pour créer la carte APY en pleine largeur
   Widget _buildApyCard(DataManager dataManager, double screenWidth) {
     return SizedBox(
       height: 180,
       width: double.infinity,
       child: Card(
-        elevation: 0,
+        elevation: 0.5,
         color: Theme.of(context).cardColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         child: Padding(
@@ -127,12 +129,11 @@ class RmmStatsState extends State<RmmStats> {
     );
   }
 
-// Fonction pour créer la carte de dépôt (Deposit Balance Card)
   Widget _buildDepositBalanceCard(DataManager dataManager, double screenHeight) {
     return SizedBox(
       height: screenHeight,
       child: Card(
-        elevation: 0,
+        elevation: 0.5,
         color: Theme.of(context).cardColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         child: Padding(
@@ -144,10 +145,19 @@ class RmmStatsState extends State<RmmStats> {
                 S.of(context).depositBalance,
                 style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
+              ChartUtils.buildPeriodSelector(
+                context,
+                selectedPeriod: selectedDepositPeriod,
+                onPeriodChanged: (newPeriod) {
+                  setState(() {
+                    selectedDepositPeriod = newPeriod;
+                  });
+                },
+              ),
               const SizedBox(height: 10),
               Expanded(
                 child: FutureBuilder<Map<String, List<BalanceRecord>>>(
-                  future: _fetchAndAggregateBalanceHistories(dataManager),
+                  future: _fetchAndAggregateBalanceHistories(dataManager, selectedDepositPeriod),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const CircularProgressIndicator();
@@ -157,7 +167,7 @@ class RmmStatsState extends State<RmmStats> {
                       return const Text('Pas de données disponibles.');
                     } else {
                       final allHistories = snapshot.data!;
-                      return LineChart(_buildDepositChart(allHistories));
+                      return LineChart(_buildDepositChart(allHistories, selectedDepositPeriod));
                     }
                   },
                 ),
@@ -169,7 +179,57 @@ class RmmStatsState extends State<RmmStats> {
     );
   }
 
-  LineChartData _buildDepositChart(Map<String, List<BalanceRecord>> allHistories) {
+  Widget _buildBorrowBalanceCard(DataManager dataManager, double screenHeight) {
+    return SizedBox(
+      height: screenHeight,
+      child: Card(
+        elevation: 0.5,
+        color: Theme.of(context).cardColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                S.of(context).borrowBalance,
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              ChartUtils.buildPeriodSelector(
+                context,
+                selectedPeriod: selectedBorrowPeriod,
+                onPeriodChanged: (newPeriod) {
+                  setState(() {
+                    selectedBorrowPeriod = newPeriod;
+                  });
+                },
+              ),
+              const SizedBox(height: 10),
+              Expanded(
+                child: FutureBuilder<Map<String, List<BalanceRecord>>>(
+                  future: _fetchAndAggregateBalanceHistories(dataManager, selectedBorrowPeriod),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const CircularProgressIndicator();
+                    } else if (snapshot.hasError) {
+                      return Text('Erreur: ${snapshot.error}');
+                    } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                      return const Text('Pas de données disponibles.');
+                    } else {
+                      final allHistories = snapshot.data!;
+                      return LineChart(_buildBorrowChart(allHistories, selectedBorrowPeriod));
+                    }
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  LineChartData _buildDepositChart(Map<String, List<BalanceRecord>> allHistories, String selectedPeriod) {
     final dataManager = Provider.of<DataManager>(context);
     final appState = Provider.of<AppState>(context);
 
@@ -185,10 +245,30 @@ class RmmStatsState extends State<RmmStats> {
             showTitles: true,
             getTitlesWidget: (value, meta) {
               final date = DateTime.fromMillisecondsSinceEpoch(value.toInt());
+              String formattedDate;
+              switch (selectedPeriod) {
+                case 'hour':
+                  formattedDate = DateFormat('HH:mm').format(date);
+                  break;
+                case 'day':
+                  formattedDate = DateFormat('dd/MM').format(date);
+                  break;
+                case 'week':
+                  formattedDate = 'W${DateFormat('w').format(date)}';
+                  break;
+                case 'month':
+                  formattedDate = DateFormat('MM/yyyy').format(date);
+                  break;
+                case 'year':
+                  formattedDate = DateFormat('yyyy').format(date);
+                  break;
+                default:
+                  formattedDate = DateFormat('dd/MM').format(date);
+              }
               return Transform.rotate(
                 angle: -0.5,
                 child: Text(
-                  '${date.month}/${date.day}',
+                  formattedDate,
                   style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
                 ),
               );
@@ -200,9 +280,8 @@ class RmmStatsState extends State<RmmStats> {
             showTitles: true,
             reservedSize: 45,
             getTitlesWidget: (value, meta) {
-              final displayValue = value >= 1000
-                  ? '${(value / 1000).toStringAsFixed(1)} k${dataManager.currencySymbol}'
-                  : '${value.toStringAsFixed(2)}${dataManager.currencySymbol}';
+              final displayValue =
+                  value >= 1000 ? '${(value / 1000).toStringAsFixed(1)} k${dataManager.currencySymbol}' : '${value.toStringAsFixed(2)}${dataManager.currencySymbol}';
 
               return Transform.rotate(
                 angle: -0.5,
@@ -239,9 +318,8 @@ class RmmStatsState extends State<RmmStats> {
             final date = DateTime.fromMillisecondsSinceEpoch(timestamp);
             final formattedDate = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
 
-            // Génère des éléments de tooltip pour chaque spot
             final tooltipItems = touchedSpots.map((spot) {
-              final barName = spot.bar.color == Colors.blue ? "USDC" : "XDAI"; // Identifie l'élément
+              final barName = spot.bar.color == Colors.blue ? "USDC" : "XDAI";
               final value = spot.y;
 
               return LineTooltipItem(
@@ -250,10 +328,9 @@ class RmmStatsState extends State<RmmStats> {
               );
             }).toList();
 
-            // Ajoutez la date uniquement au premier élément
             if (tooltipItems.isNotEmpty) {
               tooltipItems[0] = LineTooltipItem(
-                '$formattedDate\n${tooltipItems[0].text}', // Ajouter la date au premier tooltip
+                '$formattedDate\n${tooltipItems[0].text}',
                 tooltipItems[0].textStyle,
               );
             }
@@ -266,49 +343,7 @@ class RmmStatsState extends State<RmmStats> {
     );
   }
 
-// Fonction pour créer la carte d'emprunt (Borrow Balance Card)
-  Widget _buildBorrowBalanceCard(DataManager dataManager, double screenHeight) {
-    return SizedBox(
-      height: screenHeight,
-      child: Card(
-        elevation: 0,
-        color: Theme.of(context).cardColor,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                S.of(context).borrowBalance,
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 10),
-              Expanded(
-                child: FutureBuilder<Map<String, List<BalanceRecord>>>(
-                  future: _fetchAndAggregateBalanceHistories(dataManager),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const CircularProgressIndicator();
-                    } else if (snapshot.hasError) {
-                      return Text('Erreur: ${snapshot.error}');
-                    } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                      return const Text('Pas de données disponibles.');
-                    } else {
-                      final allHistories = snapshot.data!;
-                      return LineChart(_buildBorrowChart(allHistories));
-                    }
-                  },
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  LineChartData _buildBorrowChart(Map<String, List<BalanceRecord>> allHistories) {
+  LineChartData _buildBorrowChart(Map<String, List<BalanceRecord>> allHistories, String selectedPeriod) {
     final dataManager = Provider.of<DataManager>(context);
     final appState = Provider.of<AppState>(context);
 
@@ -324,10 +359,30 @@ class RmmStatsState extends State<RmmStats> {
             showTitles: true,
             getTitlesWidget: (value, meta) {
               final date = DateTime.fromMillisecondsSinceEpoch(value.toInt());
+              String formattedDate;
+              switch (selectedPeriod) {
+                case 'hour':
+                  formattedDate = DateFormat('HH:mm').format(date);
+                  break;
+                case 'day':
+                  formattedDate = DateFormat('dd/MM').format(date);
+                  break;
+                case 'week':
+                  formattedDate = 'W${DateFormat('w').format(date)}';
+                  break;
+                case 'month':
+                  formattedDate = DateFormat('MM/yyyy').format(date);
+                  break;
+                case 'year':
+                  formattedDate = DateFormat('yyyy').format(date);
+                  break;
+                default:
+                  formattedDate = DateFormat('dd/MM').format(date);
+              }
               return Transform.rotate(
                 angle: -0.5,
                 child: Text(
-                  '${date.month}/${date.day}',
+                  formattedDate,
                   style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
                 ),
               );
@@ -339,9 +394,8 @@ class RmmStatsState extends State<RmmStats> {
             showTitles: true,
             reservedSize: 45,
             getTitlesWidget: (value, meta) {
-              final displayValue = value >= 1000
-                  ? '${(value / 1000).toStringAsFixed(1)} k${dataManager.currencySymbol}'
-                  : '${value.toStringAsFixed(2)}${dataManager.currencySymbol}';
+              final displayValue =
+                  value >= 1000 ? '${(value / 1000).toStringAsFixed(1)} k${dataManager.currencySymbol}' : '${value.toStringAsFixed(2)}${dataManager.currencySymbol}';
 
               return Transform.rotate(
                 angle: -0.5,
@@ -374,12 +428,10 @@ class RmmStatsState extends State<RmmStats> {
           getTooltipItems: (List<LineBarSpot> touchedSpots) {
             if (touchedSpots.isEmpty) return [];
 
-            // Récupère la date depuis le premier spot touché
             final timestamp = touchedSpots.first.x.toInt();
             final date = DateTime.fromMillisecondsSinceEpoch(timestamp);
             final formattedDate = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
 
-            // Génère un élément pour chaque spot touché
             final tooltipItems = touchedSpots.map((spot) {
               final barName = spot.bar.color == Colors.orange ? "USDC" : "XDAI";
               final value = spot.y;
@@ -390,7 +442,6 @@ class RmmStatsState extends State<RmmStats> {
               );
             }).toList();
 
-            // Ajoute la date en haut du tooltip
             if (tooltipItems.isNotEmpty) {
               tooltipItems[0] = LineTooltipItem(
                 '$formattedDate\n${tooltipItems[0].text}',
@@ -406,7 +457,7 @@ class RmmStatsState extends State<RmmStats> {
     );
   }
 
-// Fonction pour créer le tableau APY (peut être personnalisée selon les données à afficher)
+  // Fonction pour créer le tableau APY (peut être personnalisée selon les données à afficher)
   Widget _buildApyTable(DataManager dataManager) {
     return Table(
       border: TableBorder(
@@ -520,7 +571,7 @@ class RmmStatsState extends State<RmmStats> {
   }
 
   // Fonction pour récupérer et agréger les historiques des balances pour tous les types de tokens
-  Future<Map<String, List<BalanceRecord>>> _fetchAndAggregateBalanceHistories(DataManager dataManager) async {
+  Future<Map<String, List<BalanceRecord>>> _fetchAndAggregateBalanceHistories(DataManager dataManager, String selectedPeriod) async {
     Map<String, List<BalanceRecord>> allHistories = {};
 
     allHistories['usdcDeposit'] = await dataManager.getBalanceHistory('usdcDeposit');
@@ -567,6 +618,17 @@ class RmmStatsState extends State<RmmStats> {
             startOfWeek.day,
           );
           break;
+        case 'month':
+          truncatedToPeriod = DateTime(
+            record.timestamp.year,
+            record.timestamp.month,
+          );
+          break;
+        case 'year':
+          truncatedToPeriod = DateTime(
+            record.timestamp.year,
+          );
+          break;
         default:
           truncatedToPeriod = DateTime(
             record.timestamp.year,
@@ -594,4 +656,6 @@ class RmmStatsState extends State<RmmStats> {
 
     return averagedRecords;
   }
+
+  // Fonction pour créer le sélecteur de période
 }

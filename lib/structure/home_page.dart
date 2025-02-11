@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:realtokens/managers/data_manager.dart';
+import 'package:realtokens/structure/Agenda.dart';
 import 'package:realtokens/utils/ui_utils.dart';
+import 'package:table_calendar/table_calendar.dart';
+import 'package:intl/intl.dart';
 import 'bottom_bar.dart';
 import 'drawer.dart';
 import 'package:realtokens/pages/dashboard/dashboard_page.dart';
 import 'package:realtokens/pages/portfolio/portfolio_page.dart';
 import 'package:realtokens/pages/Statistics/stats_selector_page.dart';
 import 'package:realtokens/pages/maps_page.dart';
-import 'dart:ui'; // Import for blur effect
+import 'dart:ui';
 import 'package:provider/provider.dart';
-import 'package:realtokens/app_state.dart'; // Import the global AppState
+import 'package:realtokens/app_state.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key});
@@ -19,12 +23,10 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _selectedIndex = 0;
+  List<Map<String, dynamic>> portfolio = []; // Ajoute une variable portfolio
 
   double _getContainerHeight(BuildContext context) {
-    // Récupère le padding en bas de l'écran, qui est non nul pour les appareils avec un bouton virtuel
     double bottomPadding = MediaQuery.of(context).viewPadding.bottom;
-
-    // Si bottomPadding > 0, il y a un bouton virtuel (barre d'accueil), sinon bouton physique
     return bottomPadding > 0 ? 75 : 60;
   }
 
@@ -41,9 +43,29 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  void _openAgendaModal(BuildContext context) {
+    final dataManager = Provider.of<DataManager>(context, listen: false);
+    final portfolio = dataManager.portfolio;
+
+    print("📊 Portfolio avant d'ouvrir le modal : $portfolio"); // 🔍 Vérification
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Theme.of(context).cardColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.8, // Modal limité à 60% de la hauteur
+      ),
+      builder: (context) => AgendaCalendar(portfolio: portfolio),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final appState = Provider.of<AppState>(context); // Access AppState
+    final appState = Provider.of<AppState>(context);
 
     return Scaffold(
       body: Stack(
@@ -51,7 +73,6 @@ class _MyHomePageState extends State<MyHomePage> {
           Positioned.fill(
             child: _pages.elementAt(_selectedIndex),
           ),
-          // AppBar with blur effect
           Positioned(
             top: 0,
             left: 0,
@@ -65,13 +86,18 @@ class _MyHomePageState extends State<MyHomePage> {
                   child: AppBar(
                     forceMaterialTransparency: true,
                     backgroundColor: Colors.transparent,
-                    elevation: 0,
+                    elevation: 0.5,
+                    actions: [
+                      IconButton(
+                        icon: Icon(Icons.calendar_today, size: 20, color: Theme.of(context).textTheme.bodyMedium?.color),
+                        onPressed: () => _openAgendaModal(context),
+                      ),
+                    ],
                   ),
                 ),
               ),
             ),
           ),
-          // BottomNavigationBar with blur effect
           Positioned(
             bottom: 0,
             left: 0,
@@ -80,10 +106,10 @@ class _MyHomePageState extends State<MyHomePage> {
               child: BackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                 child: Container(
-                  height: _getContainerHeight(context), // Adjust height for blur
+                  height: _getContainerHeight(context),
                   color: Theme.of(context).brightness == Brightness.dark ? Colors.black.withOpacity(0.3) : Colors.white.withOpacity(0.3),
                   child: SafeArea(
-                    top: false, // Disable top SafeArea
+                    top: false,
                     child: CustomBottomNavigationBar(
                       selectedIndex: _selectedIndex,
                       onItemTapped: _onItemTapped,
@@ -97,7 +123,7 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       drawer: CustomDrawer(
         onThemeChanged: (value) {
-          appState.updateTheme(value); // Update theme using AppState
+          appState.updateTheme(value);
         },
       ),
     );

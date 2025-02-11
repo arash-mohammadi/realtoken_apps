@@ -1,7 +1,7 @@
 import 'package:intl/intl.dart';
 
 class CurrencyUtils {
- // Fonction de formatage des valeurs monétaires avec des espaces pour les milliers
+  // Fonction de formatage des valeurs monétaires avec des espaces pour les milliers
   static String formatCurrency(double value, String symbol) {
     final NumberFormat formatter = NumberFormat.currency(
       locale: 'fr_FR',

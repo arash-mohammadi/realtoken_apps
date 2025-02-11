@@ -28,8 +28,7 @@ Widget buildFinanceTab(BuildContext context, Map<String, dynamic> token, bool co
   return SingleChildScrollView(
     child: Column(
       children: [
-        _buildDetailRow(context, S.of(context).totalInvestment,
-            CurrencyUtils.formatCurrency(dataManager.convert(token['totalInvestment']), dataManager.currencySymbol),
+        _buildDetailRow(context, S.of(context).totalInvestment, CurrencyUtils.formatCurrency(dataManager.convert(token['totalInvestment']), dataManager.currencySymbol),
             icon: Icons.monetization_on),
 
         // Section des dépenses totales
@@ -56,8 +55,7 @@ Widget buildFinanceTab(BuildContext context, Map<String, dynamic> token, bool co
                 ],
               ),
               Text(
-                CurrencyUtils.formatCurrency(dataManager.convert(token['totalInvestment'] - token['underlyingAssetPrice']),
-                    dataManager.currencySymbol),
+                CurrencyUtils.formatCurrency(dataManager.convert(token['totalInvestment'] - token['underlyingAssetPrice']), dataManager.currencySymbol),
                 style: TextStyle(color: Colors.red),
               ),
             ],
@@ -103,8 +101,7 @@ Widget buildFinanceTab(BuildContext context, Map<String, dynamic> token, bool co
                   _buildDetailRow(
                     context,
                     S.of(context).others,
-                    CurrencyUtils.formatCurrency(dataManager.convert((token['totalInvestment'] - token['underlyingAssetPrice'] - totalCosts) ?? 0),
-                        dataManager.currencySymbol),
+                    CurrencyUtils.formatCurrency(dataManager.convert((token['totalInvestment'] - token['underlyingAssetPrice'] - totalCosts) ?? 0), dataManager.currencySymbol),
                     isNegative: true,
                     color: Colors.grey,
                   ),
@@ -166,15 +163,14 @@ Widget buildFinanceTab(BuildContext context, Map<String, dynamic> token, bool co
         ),
 
         const SizedBox(height: 2),
-        _buildDetailRow(context, S.of(context).underlyingAssetPrice,
-            CurrencyUtils.formatCurrency(dataManager.convert(token['underlyingAssetPrice'] ?? 0), dataManager.currencySymbol)),
+        _buildDetailRow(
+            context, S.of(context).underlyingAssetPrice, CurrencyUtils.formatCurrency(dataManager.convert(token['underlyingAssetPrice'] ?? 0), dataManager.currencySymbol)),
         const SizedBox(height: 2),
 
         const Divider(),
 
         // Section des loyers
-        _buildDetailRow(context, S.of(context).grossRentMonth,
-            CurrencyUtils.formatCurrency(dataManager.convert(token['grossRentMonth'] ?? 0), dataManager.currencySymbol),
+        _buildDetailRow(context, S.of(context).grossRentMonth, CurrencyUtils.formatCurrency(dataManager.convert(token['grossRentMonth'] ?? 0), dataManager.currencySymbol),
             icon: Icons.attach_money),
 
         // Détails des dépenses de loyer
@@ -219,25 +215,18 @@ Widget buildFinanceTab(BuildContext context, Map<String, dynamic> token, bool co
                   _buildDetailRow(context, S.of(context).propertyMaintenanceMonthly,
                       CurrencyUtils.formatCurrency(dataManager.convert(token['propertyMaintenanceMonthly'] ?? 0), dataManager.currencySymbol),
                       isNegative: true, color: Colors.deepOrange),
-                  _buildDetailRow(context, S.of(context).propertyManagement,
-                      CurrencyUtils.formatCurrency(dataManager.convert(token['propertyManagement'] ?? 0), dataManager.currencySymbol),
-                      isNegative: true, color: Colors.amber),
-                  _buildDetailRow(context, S.of(context).realtPlatform,
-                      CurrencyUtils.formatCurrency(dataManager.convert(token['realtPlatform'] ?? 0), dataManager.currencySymbol),
-                      isNegative: true, color: Colors.orange),
-                  _buildDetailRow(context, S.of(context).insurance,
-                      CurrencyUtils.formatCurrency(dataManager.convert(token['insurance'] ?? 0), dataManager.currencySymbol),
-                      isNegative: true, color: Colors.purple),
-                  _buildDetailRow(context, S.of(context).propertyTaxes,
-                      CurrencyUtils.formatCurrency(dataManager.convert(token['propertyTaxes'] ?? 0), dataManager.currencySymbol),
-                      isNegative: true, color: Colors.red),
                   _buildDetailRow(
-                      context,
-                      S.of(context).others,
-                      CurrencyUtils.formatCurrency((dataManager.convert(token['grossRentMonth'] - token['netRentMonth'] - totalRentCosts) ?? 0),
-                          dataManager.currencySymbol),
-                      isNegative: true,
-                      color: Colors.grey),
+                      context, S.of(context).propertyManagement, CurrencyUtils.formatCurrency(dataManager.convert(token['propertyManagement'] ?? 0), dataManager.currencySymbol),
+                      isNegative: true, color: Colors.amber),
+                  _buildDetailRow(context, S.of(context).realtPlatform, CurrencyUtils.formatCurrency(dataManager.convert(token['realtPlatform'] ?? 0), dataManager.currencySymbol),
+                      isNegative: true, color: Colors.orange),
+                  _buildDetailRow(context, S.of(context).insurance, CurrencyUtils.formatCurrency(dataManager.convert(token['insurance'] ?? 0), dataManager.currencySymbol),
+                      isNegative: true, color: Colors.purple),
+                  _buildDetailRow(context, S.of(context).propertyTaxes, CurrencyUtils.formatCurrency(dataManager.convert(token['propertyTaxes'] ?? 0), dataManager.currencySymbol),
+                      isNegative: true, color: Colors.red),
+                  _buildDetailRow(context, S.of(context).others,
+                      CurrencyUtils.formatCurrency((dataManager.convert(token['grossRentMonth'] - token['netRentMonth'] - totalRentCosts) ?? 0), dataManager.currencySymbol),
+                      isNegative: true, color: Colors.grey),
                 ],
               ),
             );
@@ -283,9 +272,7 @@ Widget buildFinanceTab(BuildContext context, Map<String, dynamic> token, bool co
               ),
             ),
             Expanded(
-              flex: totalRentCosts != 0
-                  ? (((token['grossRentMonth'] ?? 0.0) - (token['netRentMonth'] ?? 0.0) - totalRentCosts) / totalRentCosts * 100).round()
-                  : 0,
+              flex: totalRentCosts != 0 ? (((token['grossRentMonth'] ?? 0.0) - (token['netRentMonth'] ?? 0.0) - totalRentCosts) / totalRentCosts * 100).round() : 0,
               child: Container(
                 height: 10,
                 color: Colors.grey,
@@ -295,8 +282,7 @@ Widget buildFinanceTab(BuildContext context, Map<String, dynamic> token, bool co
         ),
 
         const SizedBox(height: 2),
-        _buildDetailRow(context, S.of(context).netRentMonth,
-            CurrencyUtils.formatCurrency(dataManager.convert(token['netRentMonth'] ?? 0), dataManager.currencySymbol)),
+        _buildDetailRow(context, S.of(context).netRentMonth, CurrencyUtils.formatCurrency(dataManager.convert(token['netRentMonth'] ?? 0), dataManager.currencySymbol)),
         const SizedBox(height: 2),
 
         const Divider(),
@@ -315,7 +301,7 @@ Widget buildFinanceTab(BuildContext context, Map<String, dynamic> token, bool co
             },
           ),
         ),
-         _buildDetailRow(
+        _buildDetailRow(
           context,
           S.of(context).realtActualPrice,
           CurrencyUtils.formatCurrency(dataManager.convert(token['tokenPrice']), dataManager.currencySymbol),
@@ -417,89 +403,89 @@ void _showEditPriceBottomModal(BuildContext context, Map<String, dynamic> token,
   );
 
   showModalBottomSheet(
-  context: context,
-  isScrollControlled: true,
-  builder: (BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
-      ),
-      child: Container(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Titre
-            Text(
-              S.of(context).initialPrice,
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+    context: context,
+    isScrollControlled: true,
+    builder: (BuildContext context) {
+      return Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: Container(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Titre
+              Text(
+                S.of(context).initialPrice,
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
-            SizedBox(height: 8), // Espacement entre le titre et la description
-            // Description
-            Text(
-              S.of(context).initialPriceModified_description,
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey,
+              SizedBox(height: 8), // Espacement entre le titre et la description
+              // Description
+              Text(
+                S.of(context).initialPriceModified_description,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey,
+                ),
+                textAlign: TextAlign.center,
               ),
-              textAlign: TextAlign.center,
-            ),
-            SizedBox(height: 16), // Espacement entre la description et le champ de texte
-            // Champ de texte
-            TextFormField(
-              controller: priceController,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                labelText: S.of(context).enterValidNumber,
-                border: OutlineInputBorder(),
-                suffixText: '\$',
+              SizedBox(height: 16), // Espacement entre la description et le champ de texte
+              // Champ de texte
+              TextFormField(
+                controller: priceController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  labelText: S.of(context).enterValidNumber,
+                  border: OutlineInputBorder(),
+                  suffixText: '\$',
+                ),
               ),
-            ),
-            SizedBox(height: 16), // Espacement entre le champ de texte et les boutons
-            // Boutons avec icônes
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                // Bouton pour sauvegarder avec une icône de validation
-                IconButton(
-                  onPressed: () {
-                    final newPrice = double.tryParse(priceController.text);
-                    if (newPrice != null) {
-                      dataManager.setCustomInitPrice(token['uuid'], newPrice);
+              SizedBox(height: 16), // Espacement entre le champ de texte et les boutons
+              // Boutons avec icônes
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  // Bouton pour sauvegarder avec une icône de validation
+                  IconButton(
+                    onPressed: () {
+                      final newPrice = double.tryParse(priceController.text);
+                      if (newPrice != null) {
+                        dataManager.setCustomInitPrice(token['uuid'], newPrice);
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(S.of(context).initialPriceUpdated)),
+                        );
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(S.of(context).enterValidNumber)),
+                        );
+                      }
+                    },
+                    icon: Icon(Icons.check, color: Colors.green), // Icône de validation
+                    tooltip: S.of(context).save, // Texte d'aide au survol
+                  ),
+                  // Bouton pour supprimer avec une icône de suppression
+                  IconButton(
+                    onPressed: () {
+                      dataManager.removeCustomInitPrice(token['uuid']);
                       Navigator.pop(context);
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(S.of(context).initialPriceUpdated)),
+                        SnackBar(content: Text(S.of(context).initialPriceRemoved)),
                       );
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(S.of(context).enterValidNumber)),
-                      );
-                    }
-                  },
-                  icon: Icon(Icons.check, color: Colors.green), // Icône de validation
-                  tooltip: S.of(context).save, // Texte d'aide au survol
-                ),
-                // Bouton pour supprimer avec une icône de suppression
-                IconButton(
-                  onPressed: () {
-                    dataManager.removeCustomInitPrice(token['uuid']);
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(S.of(context).initialPriceRemoved)),
-                    );
-                  },
-                  icon: Icon(Icons.delete, color: Colors.red), // Icône de suppression
-                  tooltip: 'delete', // Texte d'aide au survol
-                ),
-              ],
-            ),
-          ],
+                    },
+                    icon: Icon(Icons.delete, color: Colors.red), // Icône de suppression
+                    tooltip: 'delete', // Texte d'aide au survol
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
-      ),
-    );
-  },
-);
+      );
+    },
+  );
 }

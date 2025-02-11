@@ -1,7 +1,7 @@
 import 'package:intl/intl.dart';
 
 class CustomDateUtils {
-   // Méthode pour formater une date en une chaîne compréhensible
+  // Méthode pour formater une date en une chaîne compréhensible
   static String formatReadableDate(String dateString) {
     try {
       // Parse la date depuis le format donné

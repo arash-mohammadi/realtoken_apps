@@ -3,7 +3,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:realtokens/managers/data_manager.dart';
-import 'package:realtokens/generated/l10n.dart'; // Import pour les traductions
+import 'package:realtokens/generated/l10n.dart';
 import 'package:realtokens/app_state.dart';
 import 'package:realtokens/utils/chart_utils.dart';
 import 'package:realtokens/utils/date_utils.dart';
@@ -31,10 +31,10 @@ class ApyHistoryGraph extends StatelessWidget {
     List<BarChartGroupData> apyHistoryData = _buildApyHistoryBarChartData(context, dataManager, selectedPeriod);
     List<LineChartBarData> lineChartData = _buildApyHistoryLineChartData(context, dataManager, selectedPeriod);
 
-    int? selectedIndex; // Variable pour stocker l'index sélectionné
+    int? selectedIndex;
 
     return Card(
-      elevation: 0,
+      elevation: 0.5,
       color: Theme.of(context).cardColor,
       child: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -369,5 +369,4 @@ class ApyHistoryGraph extends StatelessWidget {
     final groupedData = _groupApyByDate(context, dataManager, selectedPeriod);
     return groupedData.keys.toList();
   }
-
-  }
+}

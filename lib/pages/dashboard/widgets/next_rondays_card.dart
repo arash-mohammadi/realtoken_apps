@@ -11,23 +11,21 @@ class NextRondaysCard extends StatelessWidget {
   final bool showAmounts;
   final bool isLoading;
 
-  const NextRondaysCard(
-      {super.key, required this.showAmounts, required this.isLoading});
+  const NextRondaysCard({super.key, required this.showAmounts, required this.isLoading});
 
   @override
   Widget build(BuildContext context) {
     final dataManager = Provider.of<DataManager>(context);
 
     return UIUtils.buildCard(
-                      S.of(context).nextRondays,
-                      Icons.trending_up,
-                      _buildCumulativeRentList(context, dataManager),
-                      [], // Pas d'autres enfants pour cette carte
-                      dataManager,
-                      context,
+      S.of(context).nextRondays,
+      Icons.trending_up,
+      _buildCumulativeRentList(context, dataManager),
+      [], // Pas d'autres enfants pour cette carte
+      dataManager,
+      context,
     );
-    
-    }
+  }
 
   Widget _buildCumulativeRentList(BuildContext context, dataManager) {
     final cumulativeRentEvolution = dataManager.getCumulativeRentEvolution();
@@ -45,28 +43,33 @@ class NextRondaysCard extends StatelessWidget {
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-  children: futureRentEvolution.map<Widget>((entry) {  // <Widget> ici est important
-        DateTime rentStartDate = entry['rentStartDate'];
+      children: futureRentEvolution
+          .map<Widget>((entry) {
+            // <Widget> ici est important
+            DateTime rentStartDate = entry['rentStartDate'];
 
-        // Vérifier si la date est déjà dans le Set
-        if (displayedDates.contains(rentStartDate)) {
-          return SizedBox.shrink(); // Ne rien afficher si la date est déjà affichée
-        } else {
-          // Ajouter la date au Set
-          displayedDates.add(rentStartDate);
+            // Vérifier si la date est déjà dans le Set
+            if (displayedDates.contains(rentStartDate)) {
+              return SizedBox.shrink(); // Ne rien afficher si la date est déjà affichée
+            } else {
+              // Ajouter la date au Set
+              displayedDates.add(rentStartDate);
 
-          // Vérifier si la date est "3000-01-01" et afficher 'date non connu'
-          String displayDate = rentStartDate == DateTime(3000, 1, 1) ? 'Date non communiquée' : DateFormat('yyyy-MM-dd').format(rentStartDate);
+              // Vérifier si la date est "3000-01-01" et afficher 'date non connu'
+              String displayDate = rentStartDate == DateTime(3000, 1, 1) ? 'Date non communiquée' : DateFormat('yyyy-MM-dd').format(rentStartDate);
 
-          // Afficher la date et le loyer cumulé
-          return Padding(
-            padding: const EdgeInsets.symmetric(vertical: 0),
-            child: Text(
-              '$displayDate: ${CurrencyUtils.getFormattedAmount(dataManager.convert(entry['cumulativeRent']), dataManager.currencySymbol, showAmounts)}',
-              style: TextStyle(fontSize: 13 + appState.getTextSizeOffset(), color: Theme.of(context).textTheme.bodyMedium?.color),
-            ),
-          );
-        }
-  }).toList().cast<Widget>(),  // <== Ajoutez .cast<Widget>() ici
+              // Afficher la date et le loyer cumulé
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 0),
+                child: Text(
+                  '$displayDate: ${CurrencyUtils.getFormattedAmount(dataManager.convert(entry['cumulativeRent']), dataManager.currencySymbol, showAmounts)}',
+                  style: TextStyle(fontSize: 13 + appState.getTextSizeOffset(), color: Theme.of(context).textTheme.bodyMedium?.color),
+                ),
+              );
+            }
+          })
+          .toList()
+          .cast<Widget>(), // <== Ajoutez .cast<Widget>() ici
     );
-  }}
+  }
+}

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:intl/intl.dart';
-import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 import 'package:realtokens/managers/data_manager.dart';
 import 'package:realtokens/generated/l10n.dart';
@@ -16,15 +15,14 @@ import 'graphs/roi_graph.dart';
 import 'graphs/wallet_balance_graph.dart';
 
 class WalletStats extends StatefulWidget {
-  const WalletStats({super.key});  
+  const WalletStats({super.key});
 
   @override
   _WalletStats createState() => _WalletStats();
 }
 
-class _WalletStats extends State<WalletStats> { 
-  static final logger = Logger(); // Initialiser une instance de logger
-  bool _showCumulativeRent = false; // État pour le switch
+class _WalletStats extends State<WalletStats> {
+  final bool _showCumulativeRent = false; // État pour le switch
 
   late String _selectedRentPeriod;
   late String _selectedWalletPeriod;
@@ -53,8 +51,8 @@ class _WalletStats extends State<WalletStats> {
         DataFetchUtils.loadData(context);
         dataManager.fetchPropertyData();
       } catch (e, stacktrace) {
-        logger.i("Error during initState: $e");
-        logger.i("Stacktrace: $stacktrace");
+        debugPrint("Error during initState: $e");
+        debugPrint("Stacktrace: $stacktrace");
       }
     });
   }
@@ -62,10 +60,10 @@ class _WalletStats extends State<WalletStats> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _selectedRentPeriod = S.of(context).month;
-    _selectedWalletPeriod = S.of(context).month;
-    _selectedRoiPeriod = S.of(context).month;
-    _selectedApyPeriod = S.of(context).month;
+    _selectedRentPeriod = S.of(context).week;
+    _selectedWalletPeriod = S.of(context).week;
+    _selectedRoiPeriod = S.of(context).week;
+    _selectedApyPeriod = S.of(context).week;
   }
 
   @override
@@ -75,7 +73,7 @@ class _WalletStats extends State<WalletStats> {
     final screenWidth = MediaQuery.of(context).size.width;
     final isWideScreen = screenWidth > 700;
     final double fixedCardHeight = 380;
-    bool _showCumulativeRent = false;
+    bool showCumulativeRent = false;
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -94,22 +92,22 @@ class _WalletStats extends State<WalletStats> {
                 (BuildContext context, int index) {
                   switch (index) {
                     case 0:
-  return RentGraph(
-    groupedData: groupedData,
-    dataManager: dataManager,
-    showCumulativeRent: _showCumulativeRent,
-    selectedPeriod: _selectedRentPeriod,
-    onPeriodChanged: (period) {
-      setState(() {
-        _selectedRentPeriod = period;
-      });
-    },
-    onCumulativeRentChanged: (value) {
-      setState(() {
-        _showCumulativeRent = value;
-      });
-    },
-  );
+                      return RentGraph(
+                        groupedData: groupedData,
+                        dataManager: dataManager,
+                        showCumulativeRent: showCumulativeRent,
+                        selectedPeriod: _selectedRentPeriod,
+                        onPeriodChanged: (period) {
+                          setState(() {
+                            _selectedRentPeriod = period;
+                          });
+                        },
+                        onCumulativeRentChanged: (value) {
+                          setState(() {
+                            showCumulativeRent = value;
+                          });
+                        },
+                      );
 
                     case 1:
                       return WalletBalanceGraph(
@@ -146,21 +144,21 @@ class _WalletStats extends State<WalletStats> {
                       );
                     case 3:
                       return ApyHistoryGraph(
-  dataManager: dataManager,
-  selectedPeriod: _selectedApyPeriod,
-  apyIsBarChart: apyIsBarChart, // Utilisation du bon paramètre
-  onPeriodChanged: (period) {
-    setState(() {
-      _selectedApyPeriod = period;
-    });
-  },
-  onChartTypeChanged: (isBarChart) {
-    setState(() {
-      apyIsBarChart = isBarChart;
-      _saveChartPreference('apyIsBarChart', apyIsBarChart);
-    });
-  },
-);
+                        dataManager: dataManager,
+                        selectedPeriod: _selectedApyPeriod,
+                        apyIsBarChart: apyIsBarChart, // Utilisation du bon paramètre
+                        onPeriodChanged: (period) {
+                          setState(() {
+                            _selectedApyPeriod = period;
+                          });
+                        },
+                        onChartTypeChanged: (isBarChart) {
+                          setState(() {
+                            apyIsBarChart = isBarChart;
+                            _saveChartPreference('apyIsBarChart', apyIsBarChart);
+                          });
+                        },
+                      );
 
                     default:
                       return Container();
@@ -175,7 +173,7 @@ class _WalletStats extends State<WalletStats> {
     );
   }
 
- List<Map<String, dynamic>> _groupRentDataByPeriod(DataManager dataManager) {
+  List<Map<String, dynamic>> _groupRentDataByPeriod(DataManager dataManager) {
     if (_selectedRentPeriod == S.of(context).day) {
       return _groupByDay(dataManager.rentData); // Ajouter une méthode _groupByDay
     } else if (_selectedRentPeriod == S.of(context).week) {
@@ -187,7 +185,7 @@ class _WalletStats extends State<WalletStats> {
     }
   }
 
- List<Map<String, dynamic>> _groupByDay(List<Map<String, dynamic>> data) {
+  List<Map<String, dynamic>> _groupByDay(List<Map<String, dynamic>> data) {
     Map<String, double> groupedData = {};
     for (var entry in data) {
       DateTime date = DateTime.parse(entry['date']);
@@ -208,7 +206,7 @@ class _WalletStats extends State<WalletStats> {
           groupedData[weekKey] = (groupedData[weekKey] ?? 0) + entry['rent'];
         } catch (e) {
           // En cas d'erreur de parsing de date ou autre, vous pouvez ignorer cette entrée ou la traiter différemment
-          logger.w("Erreur lors de la conversion de la date : ${entry['date']}");
+          debugPrint("❌ Erreur lors de la conversion de la date : ${entry['date']}");
         }
       }
     }
@@ -236,7 +234,6 @@ class _WalletStats extends State<WalletStats> {
     }
     return groupedData.entries.map((entry) => {'date': entry.key, 'rent': entry.value}).toList();
   }
-
 
   void _saveChartPreference(String key, bool value) {
     prefs.setBool(key, value);
