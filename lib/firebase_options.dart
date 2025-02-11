@@ -44,7 +44,7 @@ class DefaultFirebaseOptions {
     appId: '1:203512481394:android:aabe1e8dae6522499e64eb',
     messagingSenderId: '203512481394',
     projectId: 'realtoken-88d99',
-    storageBucket: 'realtoken-88d99.appspot.com',
+    storageBucket: 'realtoken-88d99.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
@@ -52,7 +52,8 @@ class DefaultFirebaseOptions {
     appId: '1:203512481394:ios:ab819e364326f6849e64eb',
     messagingSenderId: '203512481394',
     projectId: 'realtoken-88d99',
-    storageBucket: 'realtoken-88d99.appspot.com',
+    storageBucket: 'realtoken-88d99.firebasestorage.app',
+    iosClientId: '203512481394-6jfun8uvjj28nrdpg166j4k7htundoej.apps.googleusercontent.com',
     iosBundleId: 'com.example.realtApps',
   );
 
@@ -61,7 +62,8 @@ class DefaultFirebaseOptions {
     appId: '1:203512481394:ios:ab819e364326f6849e64eb',
     messagingSenderId: '203512481394',
     projectId: 'realtoken-88d99',
-    storageBucket: 'realtoken-88d99.appspot.com',
+    storageBucket: 'realtoken-88d99.firebasestorage.app',
+    iosClientId: '203512481394-6jfun8uvjj28nrdpg166j4k7htundoej.apps.googleusercontent.com',
     iosBundleId: 'com.example.realtApps',
   );
 
@@ -71,7 +73,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '203512481394',
     projectId: 'realtoken-88d99',
     authDomain: 'realtoken-88d99.firebaseapp.com',
-    storageBucket: 'realtoken-88d99.appspot.com',
+    storageBucket: 'realtoken-88d99.firebasestorage.app',
     measurementId: 'G-FFZ5JXX644',
   );
 
@@ -81,7 +83,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '203512481394',
     projectId: 'realtoken-88d99',
     authDomain: 'realtoken-88d99.firebaseapp.com',
-    storageBucket: 'realtoken-88d99.appspot.com',
+    storageBucket: 'realtoken-88d99.firebasestorage.app',
     measurementId: 'G-5JHBXTPHV3',
   );
+
 }

@@ -402,7 +402,7 @@ class ApiService {
 
 // Récupérer le userId associé à une adresse Ethereum
   static Future<String?> fetchUserIdFromAddress(String address) async {
-    const url = Parameters.gnosisUrl;
+    var url = Parameters.gnosisUrl;
 
     final query = '''
     {
@@ -432,7 +432,7 @@ class ApiService {
 
   // Récupérer les adresses associées à un userId
   static Future<List<String>> fetchAddressesForUserId(String userId) async {
-    const url = Parameters.gnosisUrl;
+    var url = Parameters.gnosisUrl;
 
     final query = '''
     {

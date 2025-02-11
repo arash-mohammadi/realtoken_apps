@@ -5,6 +5,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:realtokens/services/google_drive_service.dart';
 import 'package:realtokens/structure/home_page.dart';
+import 'package:realtokens/utils/parameters.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'managers/data_manager.dart';
 import 'settings/theme.dart';
@@ -23,8 +24,14 @@ void main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
-// 🔥 Charger les variables d'environnement depuis .env
-  await dotenv.load();
+try {
+    await dotenv.load(fileName: "env_config.txt");  // 🔥 Nouveau fichier
+    debugPrint("✅ Variables d'environnement chargées avec succès !");
+  } catch (e) {
+    debugPrint("❌ Erreur lors du chargement de dotenv: $e");
+  }
+
+  Parameters.initialize();  // 🔥 Initialise les valeurs de `Parameters`
 
   try {
     if (Firebase.apps.isEmpty) {

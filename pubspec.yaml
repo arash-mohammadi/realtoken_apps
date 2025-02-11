@@ -64,6 +64,7 @@ dev_dependencies:
 
 flutter:
   assets:
+    - env_config.txt
     - assets/logo.png
     - assets/logo_community.png
     - assets/RealT_Logo.png
