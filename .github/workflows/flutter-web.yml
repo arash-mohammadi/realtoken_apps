@@ -38,10 +38,6 @@ jobs:
     - name: Check Flutter version
       run: flutter --version
 
-    # 🔥 Vérifie les fichiers présents dans le repo (pour voir si `Agenda.dart` est bien là)
-    - name: List project files
-      run: ls -R lib/structure/
-
     - name: Decode and write google-services.json
       run: |
           echo "GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID" > env_config.txt
