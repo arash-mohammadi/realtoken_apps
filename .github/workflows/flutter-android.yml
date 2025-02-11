@@ -37,8 +37,8 @@ jobs:
 
     - name: Decode and write google-services.json
       run: |
-          echo "GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID" > .env
-          echo "THE_GRAPH_API_KEY=$THE_GRAPH_API_KEY" >> .env  # 🔥 Ajoute la seconde clé API
+          echo "GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID" > env_config.txt
+          echo "THE_GRAPH_API_KEY=$THE_GRAPH_API_KEY" >> env_config.txt  # 🔥 Ajoute la seconde clé API
 
     - name: Decode and add the signing key
       run: |
