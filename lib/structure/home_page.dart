@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:realtokens/managers/data_manager.dart';
-import 'package:realtokens/structure/Agenda.dart';
+import 'package:realtokens/structure/agenda.dart';
 import 'package:realtokens/utils/ui_utils.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:intl/intl.dart';
