@@ -21,7 +21,7 @@ jobs:
     - name: Setup Flutter
       uses: subosito/flutter-action@v2
       with:
-        flutter-version: '3.24.4'  # La version Flutter que vous utilisez
+        flutter-version: '3.27.4'  # La version Flutter que vous utilisez
 
     # 🔥 Nettoie le projet et force la récupération des dépendances
     - name: Clean Flutter project

@@ -63,4 +63,4 @@ test/**/build/
 *.key
 *.pem
 
-.env
+env_config.txt
