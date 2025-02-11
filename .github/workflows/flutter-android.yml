@@ -33,12 +33,13 @@ jobs:
       run: flutter pub get
 
     - name: Create .env file  # 🔥 Génère un fichier .env à partir du secret
-      run: echo "GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID" > .env
+       run: |
+          echo "GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID" > env_config.txt
+          echo "THE_GRAPH_API_KEY=$THE_GRAPH_API_KEY" >> env_config.txt  # 🔥 Ajoute la seconde clé API
 
     - name: Decode and write google-services.json
       run: |
-          echo "GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID" > env_config.txt
-          echo "THE_GRAPH_API_KEY=$THE_GRAPH_API_KEY" >> env_config.txt  # 🔥 Ajoute la seconde clé API
+          echo "${{ secrets.GOOGLE_SERVICES_JSON }}" | base64 --decode > android/app/google-services.json
 
     - name: Decode and add the signing key
       run: |
