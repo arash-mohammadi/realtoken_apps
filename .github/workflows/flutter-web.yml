@@ -7,9 +7,6 @@ on:
 
 jobs:
   build:
-    env:
-      THE_GRAPH_API_KEY: ${{ secrets.THE_GRAPH_API_KEY }}
-      GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }} 
 
     name: Build Flutter Web
     runs-on: ubuntu-latest
@@ -38,10 +35,15 @@ jobs:
     - name: Check Flutter version
       run: flutter --version
 
+    - name: Create .env file  # 🔥 Génère un fichier .env à partir du secret
+      run: |
+          echo "GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}" > env_config.txt
+          echo "THE_GRAPH_API_KEY=${{ secrets.THE_GRAPH_API_KEY }}" >> env_config.txt
+          echo "THE_GRAPH_API_KEY2=${{ secrets.THE_GRAPH_API_KEY }}" >> env_config.txt
+
     - name: Decode and write google-services.json
       run: |
-          echo "GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID" > env_config.txt
-          echo "THE_GRAPH_API_KEY=$THE_GRAPH_API_KEY" >> env_config.txt  # 🔥 Ajoute la seconde clé API
+          echo "${{ secrets.GOOGLE_SERVICES_JSON }}" | base64 --decode > android/app/google-services.json
 
     # 🔥 Compilation avec verbose pour voir les erreurs plus détaillées
     - name: Build web app
