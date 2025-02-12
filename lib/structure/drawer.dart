@@ -349,6 +349,16 @@ class _CustomDrawerState extends State<CustomDrawer> {
                   },
                 ),
                 ListTile(
+                  leading: const Icon(Icons.settings),
+                  title: Text(
+                    'Changelog',
+                    style: TextStyle(fontSize: 15 + appState.getTextSizeOffset()),
+                  ),
+                  onTap: () {
+                    UrlUtils.launchURL('https://realtokens.canny.io/changelog');
+                  },
+                ),
+                ListTile(
                   leading: const Icon(Icons.info),
                   title: Text(
                     S.of(context).about,
