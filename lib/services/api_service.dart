@@ -61,6 +61,14 @@ class ApiService {
 
     if (response.statusCode == 200) {
       debugPrint("✅ apiService: fetchTokensFromUrl -> requete lancée avec success");
+
+      final decodedResponse = json.decode(response.body);
+
+if (decodedResponse.containsKey('errors')) {
+  debugPrint("❌ ERREUR API: ${json.encode(decodedResponse['errors'])}");
+  throw Exception("Erreur API: ${json.encode(decodedResponse['errors'])}");
+}
+
       final data = json.decode(response.body)['data']['accounts'];
       box.put('cachedTokenData_$cacheKey', json.encode(data));
       box.put('lastFetchTime_$cacheKey', now.toIso8601String());

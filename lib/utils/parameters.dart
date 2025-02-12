@@ -17,7 +17,7 @@ class Parameters {
 
   // ✅ Méthode d'initialisation
   static void initialize() {
-    theGraphApiKey = (dotenv.env['THE_GRAPH_API_KEY'] ?? dotenv.env['THE_GRAPH_API_KEY2'])!;
+    theGraphApiKey = dotenv.env['THE_GRAPH_API_KEY'] ?? 'b8000c7c715b9d07f79e5988b6adeaa0';
 
     gnosisUrl = 'https://gateway-arbitrum.network.thegraph.com/api/$theGraphApiKey/subgraphs/id/FPPoFB7S2dcCNrRyjM5QbaMwKqRZPdbTg8ysBrwXd4SP';
     etherumUrl = 'https://gateway-arbitrum.network.thegraph.com/api/$theGraphApiKey/subgraphs/id/EVjGN4mMd9h9JfGR7yLC6T2xrJf9syhjQNboFb7GzxVW';

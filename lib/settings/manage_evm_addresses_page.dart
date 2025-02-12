@@ -1,23 +1,24 @@
 import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:realtokens/app_state.dart';
+import 'package:realtokens/managers/data_manager.dart';
+import 'package:realtokens/services/api_service.dart';
 import 'package:realtokens/utils/data_fetch_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/services.dart'; // Pour copier dans le presse-papiers
-import 'package:realtokens/managers/data_manager.dart';
-import 'package:realtokens/services/api_service.dart';
-import 'package:realtokens/app_state.dart'; // Import pour accéder à AppState
+
 
 class ManageEvmAddressesPage extends StatefulWidget {
   const ManageEvmAddressesPage({super.key});
 
   @override
-  ManageEthAddressesPageState createState() => ManageEthAddressesPageState();
+  ManageEvmAddressesPageState createState() => ManageEvmAddressesPageState();
 }
 
-class ManageEthAddressesPageState extends State<ManageEvmAddressesPage> {
-  final TextEditingController _ethAddressController = TextEditingController();
-  List<String> ethAddresses = [];
+class ManageEvmAddressesPageState extends State<ManageEvmAddressesPage> {
+  final TextEditingController _evmAddressController = TextEditingController();
+  List<String> evmAddresses = [];
 
   @override
   void initState() {
@@ -27,21 +28,21 @@ class ManageEthAddressesPageState extends State<ManageEvmAddressesPage> {
 
   @override
   void dispose() {
-    _ethAddressController.dispose();
+    _evmAddressController.dispose();
     super.dispose();
   }
 
   Future<void> _loadSavedAddresses() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      ethAddresses = prefs.getStringList('evmAddresses') ?? [];
+      evmAddresses = prefs.getStringList('evmAddresses') ?? [];
     });
   }
 
-  String? _extractEthereumAddress(String scannedData) {
-    // Vérifiez si le code scanné contient une adresse Ethereum valide
-    RegExp ethAddressRegExp = RegExp(r'(0x[a-fA-F0-9]{40})');
-    final match = ethAddressRegExp.firstMatch(scannedData);
+  String? _extractEvmereumAddress(String scannedData) {
+    // Vérifiez si le code scanné contient une adresse Evmereum valide
+    RegExp evmAddressRegExp = RegExp(r'(0x[a-fA-F0-9]{40})');
+    final match = evmAddressRegExp.firstMatch(scannedData);
     if (match != null) {
       return match.group(0); // Retourne la première adresse valide
     }
@@ -49,61 +50,30 @@ class ManageEthAddressesPageState extends State<ManageEvmAddressesPage> {
   }
 
   Future<void> _saveAddress(String address) async {
-
-    // Normalisez l'adresse (par exemple, tout en minuscule)
-    final normalizedAddress = address.toLowerCase();
-
-    // Vérifiez si l'adresse existe déjà
-    if (!ethAddresses.contains(normalizedAddress)) {
+    if (!evmAddresses.contains(address)) {
       final prefs = await SharedPreferences.getInstance();
-
-      // Ajoutez l'adresse normalisée à la liste
       setState(() {
-        ethAddresses.add(normalizedAddress);
+        evmAddresses.add(address.toLowerCase());
       });
+      await prefs.setStringList('evmAddresses', evmAddresses);
 
-      // Sauvegardez les adresses dans SharedPreferences
-      await prefs.setStringList('evmAddresses', ethAddresses);
+      final dataManager = Provider.of<DataManager>(context, listen: false);
 
-      debugPrint("test1");
+      // Récupérer le userId associé à l'adresse via ApiService
+      final userId = await ApiService.fetchUserIdFromAddress(address);
+      if (userId != null) {
+        // Récupérer les autres adresses associées au userId
+        final associatedAddresses = await ApiService.fetchAddressesForUserId(userId);
+        dataManager.addAddressesForUserId(userId, associatedAddresses);
 
-      // Lancez une tâche asynchrone pour gérer les appels API
-      Future.microtask(() async {
-        try {
-          debugPrint("Fetching userId...");
-          final userId = await ApiService.fetchUserIdFromAddress(address);
-          debugPrint("test2: userId = $userId");
+        setState(() {
+          evmAddresses.addAll(associatedAddresses.where((addr) => !evmAddresses.contains(addr)));
+        });
 
-          if (userId != null) {
-            // Récupérer les autres adresses associées au userId
-            final associatedAddresses = await ApiService.fetchAddressesForUserId(userId);
-
-            // Ajoutez les nouvelles adresses associées, uniquement si elles n'existent pas
-            if (mounted) {
-              setState(() {
-                ethAddresses.addAll(associatedAddresses
-                    .map((addr) => addr.toLowerCase()) // Normalisez les adresses associées
-                    .where((addr) => !ethAddresses.contains(addr))); // Filtrez les doublons
-              });
-            }
-
-            // Sauvegardez à nouveau les adresses mises à jour
-            await prefs.setStringList('evmAddresses', ethAddresses);
-          }
-        } catch (e) {
-          debugPrint("Error during userId fetch or address association: $e");
-        }
-      });
-    } else {
-      // Affichez un message ou une alerte si l'adresse existe déjà
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Address already exists')),
-      );
+        await prefs.setStringList('evmAddresses', evmAddresses);
+      }
+      DataFetchUtils.loadData(context);
     }
-
-    debugPrint("test1232323");
-    // Charger les données après les modifications
-    DataFetchUtils.loadData(context);
   }
 
   String? _validateEVMAddress(String address) {
@@ -126,7 +96,7 @@ class ManageEthAddressesPageState extends State<ManageEvmAddressesPage> {
             for (final barcode in barcodes) {
               if (barcode.rawValue != null) {
                 final String code = barcode.rawValue!;
-                final String? extractedAddress = _extractEthereumAddress(code);
+                final String? extractedAddress = _extractEvmereumAddress(code);
                 if (extractedAddress != null) {
                   _saveAddress(extractedAddress);
                   isAddressSaved = true;
@@ -151,9 +121,9 @@ class ManageEthAddressesPageState extends State<ManageEvmAddressesPage> {
   Future<void> _deleteAddress(int index) async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      ethAddresses.removeAt(index);
+      evmAddresses.removeAt(index);
     });
-    await prefs.setStringList('evmAddresses', ethAddresses);
+    await prefs.setStringList('evmAddresses', evmAddresses);
   }
 
   @override
@@ -165,7 +135,7 @@ class ManageEthAddressesPageState extends State<ManageEvmAddressesPage> {
     final List linkedAddresses = dataManager.getAllUserIds().expand((userId) => dataManager.getAddressesForUserId(userId) ?? []).toList();
 
     // Filtrer les adresses non liées
-    final unlinkedAddresses = ethAddresses.where((address) => !linkedAddresses.contains(address)).toList();
+    final unlinkedAddresses = evmAddresses.where((address) => !linkedAddresses.contains(address)).toList();
 
     return Scaffold(
       appBar: AppBar(
@@ -180,7 +150,7 @@ class ManageEthAddressesPageState extends State<ManageEvmAddressesPage> {
               children: [
                 Expanded(
                   child: TextField(
-                    controller: _ethAddressController,
+                    controller: _evmAddressController,
                     decoration: const InputDecoration(
                       labelText: 'Wallet Address',
                       border: OutlineInputBorder(),
@@ -191,7 +161,7 @@ class ManageEthAddressesPageState extends State<ManageEvmAddressesPage> {
                 ElevatedButton(
                   onPressed: _scanQRCode,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).primaryColor, // Fond bleu
+                    backgroundColor: Colors.blue, // Fond bleu
                     foregroundColor: Colors.white, // Icône blanche
                   ),
                   child: const Icon(Icons.qr_code_scanner),
@@ -201,10 +171,10 @@ class ManageEthAddressesPageState extends State<ManageEvmAddressesPage> {
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
-                String enteredAddress = _ethAddressController.text;
+                String enteredAddress = _evmAddressController.text;
                 if (_validateEVMAddress(enteredAddress) == null) {
                   _saveAddress(enteredAddress);
-                  _ethAddressController.clear();
+                  _evmAddressController.clear();
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Invalid wallet address')),
@@ -212,7 +182,7 @@ class ManageEthAddressesPageState extends State<ManageEvmAddressesPage> {
                 }
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Theme.of(context).primaryColor, // Fond bleu
+                backgroundColor: Colors.blue, // Fond bleu
                 foregroundColor: Colors.white, // Texte blanc
               ),
               child: Text(
@@ -254,7 +224,7 @@ class ManageEthAddressesPageState extends State<ManageEvmAddressesPage> {
                             ),
                           ),
                           IconButton(
-                            icon: Icon(Icons.copy, color: Theme.of(context).primaryColor),
+                            icon: const Icon(Icons.copy, color: Colors.blue),
                             onPressed: () {
                               Clipboard.setData(ClipboardData(text: address));
                               ScaffoldMessenger.of(context).showSnackBar(
@@ -339,7 +309,7 @@ class ManageEthAddressesPageState extends State<ManageEvmAddressesPage> {
                                           ),
                                         ),
                                         IconButton(
-                                          icon: Icon(Icons.copy, color: Theme.of(context).primaryColor),
+                                          icon: const Icon(Icons.copy, color: Colors.blue),
                                           onPressed: () {
                                             Clipboard.setData(ClipboardData(text: address));
                                             ScaffoldMessenger.of(context).showSnackBar(
