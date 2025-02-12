@@ -86,5 +86,4 @@ class DefaultFirebaseOptions {
     storageBucket: 'realtoken-88d99.firebasestorage.app',
     measurementId: 'G-5JHBXTPHV3',
   );
-
 }

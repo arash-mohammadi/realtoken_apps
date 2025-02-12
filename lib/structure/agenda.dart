@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:realtokens/app_state.dart';
 import 'package:realtokens/managers/data_manager.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -31,6 +32,7 @@ class AgendaCalendarState extends State<AgendaCalendar> {
 
   Map<DateTime, List<Map<String, dynamic>>> _extractTransactions(List<Map<String, dynamic>> portfolio) {
     Map<DateTime, List<Map<String, dynamic>>> events = {};
+    final dataManager = Provider.of<DataManager>(context, listen: false);
 
     for (var token in portfolio) {
       if (token.containsKey('transactions') && token['transactions'] is List) {
@@ -39,11 +41,12 @@ class AgendaCalendarState extends State<AgendaCalendar> {
             DateTime date = transaction['dateTime'] is String ? DateTime.parse(transaction['dateTime']) : transaction['dateTime'];
             DateTime normalizedDate = DateTime(date.year, date.month, date.day);
             events.putIfAbsent(normalizedDate, () => []);
-            
+
             // 🔥 Ajout du `transactionType` localisé
             events[normalizedDate]!.add({
               'type': 'transaction',
               'amount': transaction['amount'],
+              'price': '${dataManager.convert(transaction['price'] ?? token['tokenPrice']).toStringAsFixed(2)} ${dataManager.currencySymbol}',
               'date': date.toIso8601String(),
               'fullName': token['fullName'],
               'transactionType': transaction['transactionType'] ?? S.of(context).unknownTransaction,
@@ -72,6 +75,8 @@ class AgendaCalendarState extends State<AgendaCalendar> {
 
   @override
   Widget build(BuildContext context) {
+    final appState = Provider.of<AppState>(context);
+    final dataManager = Provider.of<DataManager>(context, listen: false);
     final theme = Theme.of(context);
 
     return Padding(
@@ -116,12 +121,9 @@ class AgendaCalendarState extends State<AgendaCalendar> {
                 List<Widget> markers = [];
 
                 bool hasRent = events.any((e) => (e as Map<String, dynamic>)['type'] == 'rent');
-                bool hasPurchase = events.any((e) =>
-                    (e as Map<String, dynamic>)['type'] == 'transaction' && e['transactionType'] == S.of(context).purchase);
-                bool hasYAM = events.any((e) =>
-                    (e as Map<String, dynamic>)['type'] == 'transaction' && e['transactionType'] == S.of(context).yam);
-                bool hasTransfer = events.any((e) =>
-                    (e as Map<String, dynamic>)['type'] == 'transaction' && e['transactionType'] == S.of(context).internal_transfer);
+                bool hasPurchase = events.any((e) => (e as Map<String, dynamic>)['type'] == 'transaction' && e['transactionType'] == S.of(context).purchase);
+                bool hasYAM = events.any((e) => (e as Map<String, dynamic>)['type'] == 'transaction' && e['transactionType'] == S.of(context).yam);
+                bool hasTransfer = events.any((e) => (e as Map<String, dynamic>)['type'] == 'transaction' && e['transactionType'] == S.of(context).internal_transfer);
 
                 if (hasRent) {
                   markers.add(Container(width: 8, height: 8, decoration: BoxDecoration(color: Colors.green, shape: BoxShape.circle)));
@@ -147,26 +149,65 @@ class AgendaCalendarState extends State<AgendaCalendar> {
                     itemCount: _events[_selectedDay]!.length,
                     itemBuilder: (context, index) {
                       final event = _events[_selectedDay]![index] as Map<String, dynamic>;
+                      final type = event['type'];
+                      final fullName = event.containsKey('fullName') ? event['fullName'] : "N/A";
+                      final date = event['date'];
+                      final price = event['price'];
                       final amount = event['amount'] ?? 0.0;
                       final transactionType = event.containsKey('transactionType') ? event['transactionType'] : S.of(context).unknownTransaction;
 
-                      return Card(
-                        color: Theme.of(context).scaffoldBackgroundColor,
-                        child: ListTile(
-                          leading: Icon(
-                            transactionType == S.of(context).purchase ? Icons.shopping_cart :
-                            transactionType == S.of(context).internal_transfer ? Icons.swap_horiz :
-                            transactionType == S.of(context).yam ? Icons.price_change :
-                            Icons.attach_money,
-                            color: transactionType == S.of(context).purchase ? Colors.blue :
-                            transactionType == S.of(context).internal_transfer ? Colors.grey :
-                            transactionType == S.of(context).yam ? Colors.orange :
-                            Colors.green,
-                          ),
-                          title: Text("${S.of(context).transactionType}: $transactionType"),
-                          subtitle: Text("${S.of(context).quantity}: $amount"),
-                        ),
-                      );
+                      return type == 'transaction'
+                          ? Card(
+                              color: Theme.of(context).scaffoldBackgroundColor,
+                              child: ListTile(
+                                leading: Icon(
+                                  transactionType == S.of(context).purchase
+                                      ? Icons.shopping_cart
+                                      : transactionType == S.of(context).internal_transfer
+                                          ? Icons.swap_horiz
+                                          : transactionType == S.of(context).yam
+                                              ? Icons.price_change
+                                              : Icons.attach_money,
+                                  color: transactionType == S.of(context).purchase
+                                      ? Colors.blue
+                                      : transactionType == S.of(context).internal_transfer
+                                          ? Colors.grey
+                                          : transactionType == S.of(context).yam
+                                              ? Colors.orange
+                                              : Colors.green,
+                                ),
+                                title: Text(fullName),
+                                subtitle: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start, // Pour aligner le texte à gauche
+                                  children: [
+                                    Text("${S.of(context).transactionType}: $transactionType"),
+                                    Text("${S.of(context).quantity}: $amount"),
+                                    Text("${S.of(context).price}: $price"),
+                                  ],
+                                ),
+                              ))
+                          : Card(
+                              color: Theme.of(context).scaffoldBackgroundColor,
+                              child: ListTile(
+                                leading: Icon(
+                                  Icons.circle,
+                                  color: Colors.green,
+                                ),
+                                title: Text(S.of(context).rents,
+                                    style: TextStyle(
+                                      fontSize: 14 + appState.getTextSizeOffset(),
+                                      fontWeight: FontWeight.bold,
+                                      color: Theme.of(context).textTheme.bodyMedium?.color,
+                                    )),
+                                subtitle: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start, // Pour aligner le texte à gauche
+                                  children: [
+                                    Text("${S.of(context).amount}: ${dataManager.convert(amount)} ${dataManager.currencySymbol}"),
+                                  ],
+                                ),
+                              ),
+                            );
+                      ;
                     },
                   )
                 : Center(child: Text(S.of(context).unknownTransaction)),

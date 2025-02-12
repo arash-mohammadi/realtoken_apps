@@ -54,7 +54,6 @@ class _PropertiesForSalePageState extends State<PropertiesForSalePage> {
   }
 
   Widget _buildPageSelector() {
-
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0),
       child: Row(
@@ -79,7 +78,7 @@ class _PropertiesForSalePageState extends State<PropertiesForSalePage> {
         },
         child: Container(
           decoration: BoxDecoration(
-            color: isSelected ? Theme.of(context).primaryColor: Theme.of(context).cardColor,
+            color: isSelected ? Theme.of(context).primaryColor : Theme.of(context).cardColor,
             borderRadius: BorderRadius.horizontal(
               left: isFirst ? const Radius.circular(8) : Radius.zero,
               right: isLast ? const Radius.circular(8) : Radius.zero,

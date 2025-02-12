@@ -14,7 +14,6 @@ class DataFetchUtils {
     dataManager.fetchAndStoreAllTokens();
     dataManager.fetchAndStoreYamMarketData();
     dataManager.fetchAndStorePropertiesForSale();
-    
   }
 
   static Future<void> refreshData(BuildContext context) async {
@@ -24,7 +23,7 @@ class DataFetchUtils {
     await dataManager.updateSecondaryInformations(context, forceFetch: true);
     await dataManager.fetchRentData(forceFetch: true);
     await dataManager.fetchAndCalculateData(forceFetch: true);
-            dataManager.fetchPropertyData();
+    dataManager.fetchPropertyData();
     await dataManager.updatedDetailRentVariables(forceFetch: true);
     await dataManager.fetchAndStoreAllTokens();
     await dataManager.fetchAndStoreYamMarketData();

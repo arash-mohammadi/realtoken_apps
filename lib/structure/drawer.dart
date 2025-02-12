@@ -349,7 +349,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                   },
                 ),
                 ListTile(
-                  leading: const Icon(Icons.settings),
+                  leading: const Icon(Icons.update),
                   title: Text(
                     'Changelog',
                     style: TextStyle(fontSize: 15 + appState.getTextSizeOffset()),

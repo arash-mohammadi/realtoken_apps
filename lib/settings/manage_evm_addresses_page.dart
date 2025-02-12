@@ -8,7 +8,6 @@ import 'package:realtokens/utils/data_fetch_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/services.dart'; // Pour copier dans le presse-papiers
 
-
 class ManageEvmAddressesPage extends StatefulWidget {
   const ManageEvmAddressesPage({super.key});
 

@@ -7,7 +7,6 @@ import 'package:hive/hive.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiService {
-
   // Méthode factorisée pour fetch les tokens depuis The Graph
   static Future<List<dynamic>> fetchTokensFromUrl(String url, String cacheKey, {bool forceFetch = false}) async {
     debugPrint("🚀 apiService: fetchTokensFromUrl -> Lancement de la requete");
@@ -64,10 +63,10 @@ class ApiService {
 
       final decodedResponse = json.decode(response.body);
 
-if (decodedResponse.containsKey('errors')) {
-  debugPrint("❌ ERREUR API: ${json.encode(decodedResponse['errors'])}");
-  throw Exception("Erreur API: ${json.encode(decodedResponse['errors'])}");
-}
+      if (decodedResponse.containsKey('errors')) {
+        debugPrint("❌ ERREUR API: ${json.encode(decodedResponse['errors'])}");
+        throw Exception("Erreur API: ${json.encode(decodedResponse['errors'])}");
+      }
 
       final data = json.decode(response.body)['data']['accounts'];
       box.put('cachedTokenData_$cacheKey', json.encode(data));
@@ -245,7 +244,7 @@ if (decodedResponse.containsKey('errors')) {
     // Si lastFetchTime est déjà défini et que le temps minimum n'est pas atteint, on vérifie d'abord la validité du cache
     if (!forceFetch && lastFetchTime != null) {
       final DateTime lastFetch = DateTime.parse(lastFetchTime);
-      if (now.difference(lastFetch) < Duration(minutes: 5)) {
+      if (now.difference(lastFetch) < Parameters.apiCacheDuration) {
         if (cachedData != null) {
           debugPrint("🛑 apiService: fetchYamMarket -> Requête annulée, temps minimum pas atteint");
           return [];
@@ -865,7 +864,7 @@ if (decodedResponse.containsKey('errors')) {
     }
   }
 
-static Future<List<dynamic>> fetchYamWalletsTransactions({
+  static Future<List<dynamic>> fetchYamWalletsTransactions({
     bool forceFetch = false,
   }) async {
     debugPrint("🚀 apiService: fetchYamWalletsTransactions -> Lancement de la requête");

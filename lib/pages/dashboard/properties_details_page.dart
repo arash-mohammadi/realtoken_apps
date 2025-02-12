@@ -34,7 +34,7 @@ class PropertiesDetailsPage extends StatelessWidget {
   Widget _buildCard(BuildContext context, String value, String label, AppState appState) {
     return Card(
       elevation: 0.5,
-            color: Theme.of(context).cardColor,
+      color: Theme.of(context).cardColor,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(12.0),
@@ -100,7 +100,7 @@ class PropertiesDetailsPage extends StatelessWidget {
     );
   }
 
- Widget _buildRentedUnitsGauge(BuildContext context, DataManager dataManager, AppState appState) {
+  Widget _buildRentedUnitsGauge(BuildContext context, DataManager dataManager, AppState appState) {
     final double rentedPercentage = (dataManager.rentedUnits / dataManager.totalUnits) * 100;
     Color gaugeColor = _getGaugeColor(rentedPercentage);
 
@@ -197,6 +197,7 @@ class PropertiesDetailsPage extends StatelessWidget {
       return Colors.green;
     }
   }
+
   Widget _buildTokenDistributionCard(BuildContext context, DataManager dataManager, AppState appState) {
     return Card(
       elevation: 0,
@@ -229,8 +230,7 @@ class PropertiesDetailsPage extends StatelessWidget {
   }
 
   List<PieChartSectionData> _buildDonutChartData(DataManager dataManager) {
-    final sortedData = List<Map<String, dynamic>>.from(dataManager.propertyData)
-      ..sort((a, b) => b['count'].compareTo(a['count']));
+    final sortedData = List<Map<String, dynamic>>.from(dataManager.propertyData)..sort((a, b) => b['count'].compareTo(a['count']));
 
     return sortedData.asMap().entries.map((entry) {
       final data = entry.value;

@@ -155,75 +155,74 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
           ),
           SizedBox(height: 16),
           Card(
-  color: Theme.of(context).cardColor,
-  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-  child: ListTile(
-    title: Text(
-      S.of(context).language,
-      style: TextStyle(fontSize: 16.0 + appState.getTextSizeOffset()),
-    ),
-    trailing: DropdownButton<String>(
-      value: appState.selectedLanguage,
-      items: Parameters.languages.map((String languageCode) {
-        return DropdownMenuItem<String>(
-          value: languageCode,
-          child: Text(
-            languageCode == 'en'
-                ? S.of(context).english
-                : languageCode == 'fr'
-                    ? S.of(context).french
-                    : languageCode == 'es'
-                        ? S.of(context).spanish
-                        : languageCode == 'it'
-                            ? S.of(context).italian
-                            : languageCode == 'pt'
-                                ? S.of(context).portuguese
-                                : languageCode == 'zh'
-                                    ? S.of(context).chinese
-                                    : S.of(context).english,
-            style: TextStyle(fontSize: 15.0 + appState.getTextSizeOffset()),
-          ),
-        );
-      }).toList(),
-      onChanged: (String? newValue) {
-        if (newValue != null) {
-          appState.updateLanguage(newValue);
-          String languageName;
+            color: Theme.of(context).cardColor,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            child: ListTile(
+              title: Text(
+                S.of(context).language,
+                style: TextStyle(fontSize: 16.0 + appState.getTextSizeOffset()),
+              ),
+              trailing: DropdownButton<String>(
+                value: appState.selectedLanguage,
+                items: Parameters.languages.map((String languageCode) {
+                  return DropdownMenuItem<String>(
+                    value: languageCode,
+                    child: Text(
+                      languageCode == 'en'
+                          ? S.of(context).english
+                          : languageCode == 'fr'
+                              ? S.of(context).french
+                              : languageCode == 'es'
+                                  ? S.of(context).spanish
+                                  : languageCode == 'it'
+                                      ? S.of(context).italian
+                                      : languageCode == 'pt'
+                                          ? S.of(context).portuguese
+                                          : languageCode == 'zh'
+                                              ? S.of(context).chinese
+                                              : S.of(context).english,
+                      style: TextStyle(fontSize: 15.0 + appState.getTextSizeOffset()),
+                    ),
+                  );
+                }).toList(),
+                onChanged: (String? newValue) {
+                  if (newValue != null) {
+                    appState.updateLanguage(newValue);
+                    String languageName;
 
-          switch (newValue) {
-            case 'en':
-              languageName = S.of(context).english;
-              break;
-            case 'fr':
-              languageName = S.of(context).french;
-              break;
-            case 'es':
-              languageName = S.of(context).spanish;
-              break;
-            case 'it':
-              languageName = S.of(context).italian;
-              break;
-            case 'pt':
-              languageName = S.of(context).portuguese;
-              break;
-            case 'zh':
-              languageName = S.of(context).chinese;
-              break;
-            default:
-              languageName = S.of(context).english;
-              break;
-          }
+                    switch (newValue) {
+                      case 'en':
+                        languageName = S.of(context).english;
+                        break;
+                      case 'fr':
+                        languageName = S.of(context).french;
+                        break;
+                      case 'es':
+                        languageName = S.of(context).spanish;
+                        break;
+                      case 'it':
+                        languageName = S.of(context).italian;
+                        break;
+                      case 'pt':
+                        languageName = S.of(context).portuguese;
+                        break;
+                      case 'zh':
+                        languageName = S.of(context).chinese;
+                        break;
+                      default:
+                        languageName = S.of(context).english;
+                        break;
+                    }
 
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(S.of(context).languageUpdated(languageName))),
-          );
-        }
-      },
-    ),
-  ),
-)
-
-          ],
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(S.of(context).languageUpdated(languageName))),
+                    );
+                  }
+                },
+              ),
+            ),
+          )
+        ],
       ),
     );
   }

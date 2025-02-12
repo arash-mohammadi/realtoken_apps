@@ -49,7 +49,7 @@ Widget buildMarketTab(BuildContext context, Map<String, dynamic> token) {
                       : ((offer['tokenValue'] / offer['tokenPrice'] - 1) * 100); // Calcul du delta pour les offres d'achat
 
                   return Card(
-                    color: Colors.grey.withOpacity(0.1),
+                    color: Theme.of(context).scaffoldBackgroundColor,
                     margin: const EdgeInsets.symmetric(vertical: 8),
                     elevation: 0.5,
                     shape: RoundedRectangleBorder(

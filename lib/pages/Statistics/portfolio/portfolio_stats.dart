@@ -22,7 +22,6 @@ class PortfolioStats extends StatefulWidget {
 }
 
 class _PortfolioStats extends State<PortfolioStats> {
-
   late String _selectedPeriod;
   late String _selectedFilter; // Ajoutez une variable pour le filtre
 
@@ -1181,11 +1180,14 @@ class _PortfolioStats extends State<PortfolioStats> {
       ));
     }
 
-    return Flexible(
+    return SizedBox(
+      width: double.infinity, // Permet d'occuper toute la largeur de la carte
       child: SingleChildScrollView(
+        scrollDirection: Axis.vertical, // Scroll vertical si nécessaire
         child: Wrap(
-          spacing: 8.0,
-          runSpacing: 4.0,
+          spacing: 8.0, // Espacement horizontal entre les éléments
+          runSpacing: 4.0, // Espacement vertical (retour à la ligne automatique)
+          alignment: WrapAlignment.start, // Alignement des éléments au début
           children: legendItems,
         ),
       ),
@@ -1549,5 +1551,4 @@ class _PortfolioStats extends State<PortfolioStats> {
         return Colors.grey;
     }
   }
-
 }

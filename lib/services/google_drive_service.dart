@@ -119,7 +119,7 @@ class GoogleDriveService {
     debugPrint("📌 Contenu fusionné après merge (avant stockage dans Hive) : ${jsonEncode(mergedData)}");
     await _storeMergedDataInHive(mergedData);
 
-    DataFetchUtils.loadData(context);
+    DataFetchUtils.refreshData(context);
 
     // Si les données locales sont vides après fusion, ne pas uploader
     if (mergedData.isEmpty) {

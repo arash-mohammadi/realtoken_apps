@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:realtokens/managers/data_manager.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:realtokens/generated/l10n.dart';
 import 'package:realtokens/app_state.dart';
 
 Widget buildHistoryTab(BuildContext context, Map<String, dynamic> token, bool isLoadingTransactions) {
   final appState = Provider.of<AppState>(context, listen: false);
-  final theme = Theme.of(context);
+  final dataManager = Provider.of<DataManager>(context, listen: false);
 
   return SingleChildScrollView(
     child: Column(
@@ -30,7 +31,7 @@ Widget buildHistoryTab(BuildContext context, Map<String, dynamic> token, bool is
             itemCount: 5, // Placeholder pour 5 items simulés
             itemBuilder: (context, index) {
               return Card(
-                color: theme.scaffoldBackgroundColor,
+                color: Theme.of(context).scaffoldBackgroundColor,
                 margin: const EdgeInsets.symmetric(vertical: 5.0),
                 child: ListTile(
                   leading: Shimmer.fromColors(
@@ -74,15 +75,11 @@ Widget buildHistoryTab(BuildContext context, Map<String, dynamic> token, bool is
             itemCount: token['transactions'].length,
             itemBuilder: (context, index) {
               final transaction = token['transactions'][index];
-              final price = transaction['price'] ?? 0.0;
+              final price = '${dataManager.convert(transaction['price'] ?? token['tokenPrice']).toStringAsFixed(2)} ${dataManager.currencySymbol}';
               final amount = transaction['amount'] ?? 0.0;
-              final transactionType = transaction.containsKey('transactionType') 
-                  ? transaction['transactionType'] 
-                  : S.of(context).unknownTransaction;
+              final transactionType = transaction.containsKey('transactionType') ? transaction['transactionType'] : S.of(context).unknownTransaction;
 
-              final dateTime = transaction['dateTime'] != null
-                  ? DateFormat('yyyy-MM-dd HH:mm').format(transaction['dateTime'])
-                  : S.of(context).unknownDate;
+              final dateTime = transaction['dateTime'] != null ? DateFormat('yyyy-MM-dd HH:mm').format(transaction['dateTime']) : S.of(context).unknownDate;
 
               IconData icon;
               Color iconColor;
@@ -102,7 +99,7 @@ Widget buildHistoryTab(BuildContext context, Map<String, dynamic> token, bool is
               }
 
               return Card(
-                color: theme.scaffoldBackgroundColor,
+                color: Theme.of(context).scaffoldBackgroundColor,
                 margin: const EdgeInsets.symmetric(vertical: 5.0),
                 child: ListTile(
                   leading: Icon(icon, color: iconColor),

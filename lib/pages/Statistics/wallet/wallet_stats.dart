@@ -22,7 +22,6 @@ class WalletStats extends StatefulWidget {
 }
 
 class _WalletStats extends State<WalletStats> {
-
   late String _selectedRentPeriod;
   late String _selectedWalletPeriod;
   late String _selectedRoiPeriod;

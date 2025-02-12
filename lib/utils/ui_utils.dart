@@ -166,7 +166,7 @@ class UIUtils {
                           color: Colors.grey, // Couleur de l'icône
                         ),
                       ),
-                      if (title == S.of(context).properties)
+                    if (title == S.of(context).properties)
                       GestureDetector(
                         onTap: () {
                           Navigator.of(context).push(

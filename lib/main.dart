@@ -34,12 +34,15 @@ try {
   Parameters.initialize();  // 🔥 Initialise les valeurs de `Parameters`
 
   try {
-    if (Firebase.apps.isEmpty) {
-      await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-    }
-  } catch (e) {
-    debugPrint(e as String?);
+  if (Firebase.apps.isEmpty) {
+    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+    debugPrint("✅ Firebase initialisé !");
   }
+} catch (e, stacktrace) {
+  debugPrint("❌ Erreur Firebase : $e");
+  debugPrint("📌 Stacktrace : $stacktrace");
+}
+
 
   final GoogleSignIn googleSignIn = GoogleSignIn(
     clientId: dotenv.env['GOOGLE_CLIENT_ID'] ?? "",
