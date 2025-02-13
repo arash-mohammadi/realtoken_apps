@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:realtokens/managers/data_manager.dart';
 import 'package:realtokens/services/api_service.dart';
+import 'package:realtokens/utils/currency_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:realtokens/app_state.dart';
 import 'package:realtokens/generated/l10n.dart';
@@ -74,18 +75,22 @@ class _PersonalizationSettingsPageState extends State<PersonalizationSettingsPag
                 style: TextStyle(fontSize: 16.0 + appState.getTextSizeOffset()),
               ),
               trailing: _currencies.isNotEmpty
-                  ? DropdownButton<String>(
-                      value: Parameters.selectedCurrency,
-                      items: _currencies.keys.map((String key) {
-                        return DropdownMenuItem<String>(
-                          value: key,
-                          child: Text(key.toUpperCase()),
+                  ? Consumer<CurrencyProvider>(
+                      builder: (context, currencyProvider, child) {
+                        return DropdownButton<String>(
+                          value: currencyProvider.selectedCurrency, // ✅ Maintenant l'UI est réactive
+                          items: _currencies.keys.map((String key) {
+                            return DropdownMenuItem<String>(
+                              value: key,
+                              child: Text(key.toUpperCase()),
+                            );
+                          }).toList(),
+                          onChanged: (String? newValue) {
+                            if (newValue != null) {
+                              Provider.of<CurrencyProvider>(context, listen: false).updateConversionRate(newValue, _currencies);
+                            }
+                          },
                         );
-                      }).toList(),
-                      onChanged: (String? newValue) {
-                        if (newValue != null) {
-                          _saveCurrency(newValue);
-                        }
                       },
                     )
                   : const CircularProgressIndicator(),
@@ -113,12 +118,8 @@ class _PersonalizationSettingsPageState extends State<PersonalizationSettingsPag
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('selectedCurrency', currency);
 
-    final dataManager = Provider.of<DataManager>(context, listen: false);
-    dataManager.updateConversionRate(currency, Parameters.selectedCurrency, _currencies);
-
-    setState(() {
-      Parameters.selectedCurrency = currency;
-    });
+    // ✅ Utilisation correcte du Provider avec `listen: false`
+    Provider.of<CurrencyProvider>(context, listen: false).updateConversionRate(currency, _currencies);
   }
 
   Future<void> _loadSettings() async {

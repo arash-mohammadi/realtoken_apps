@@ -23,36 +23,37 @@ class PortfolioCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dataManager = Provider.of<DataManager>(context);
+    final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
 
     return UIUtils.buildCard(
       S.of(context).portfolio,
       Icons.dashboard,
       UIUtils.buildValueBeforeText(
         context,
-        CurrencyUtils.getFormattedAmount(
-            dataManager.convert(dataManager.yamTotalValue +
+        currencyUtils.getFormattedAmount(
+            currencyUtils.convert(dataManager.yamTotalValue +
                 dataManager.rwaHoldingsValue +
                 dataManager.totalUsdcDepositBalance +
                 dataManager.totalXdaiDepositBalance -
                 dataManager.totalUsdcBorrowBalance -
                 dataManager.totalXdaiBorrowBalance),
-            dataManager.currencySymbol,
+            currencyUtils.currencySymbol,
             showAmounts),
         'projection YAM (${(((dataManager.yamTotalValue + dataManager.rwaHoldingsValue + dataManager.totalUsdcDepositBalance + dataManager.totalXdaiDepositBalance - dataManager.totalUsdcBorrowBalance - dataManager.totalXdaiBorrowBalance) / dataManager.totalWalletValue - 1) * 100).toStringAsFixed(0)}%)',
         isLoading,
         highlightPercentage: true,
       ),
       [
-        UIUtils.buildValueBeforeText(context, CurrencyUtils.getFormattedAmount(dataManager.convert(dataManager.totalWalletValue), dataManager.currencySymbol, showAmounts),
+        UIUtils.buildValueBeforeText(context, currencyUtils.getFormattedAmount(currencyUtils.convert(dataManager.totalWalletValue), currencyUtils.currencySymbol, showAmounts),
             S.of(context).totalPortfolio, isLoading),
-        _buildIndentedBalance(S.of(context).wallet, dataManager.convert(dataManager.walletValue), dataManager.currencySymbol, true, context, isLoading),
-        _buildIndentedBalance(S.of(context).rmm, dataManager.convert(dataManager.rmmValue), dataManager.currencySymbol, true, context, isLoading),
-        _buildIndentedBalance(S.of(context).rwaHoldings, dataManager.convert(dataManager.rwaHoldingsValue), dataManager.currencySymbol, true, context, isLoading),
+        _buildIndentedBalance(S.of(context).wallet, currencyUtils.convert(dataManager.walletValue), currencyUtils.currencySymbol, true, context, isLoading),
+        _buildIndentedBalance(S.of(context).rmm, currencyUtils.convert(dataManager.rmmValue), currencyUtils.currencySymbol, true, context, isLoading),
+        _buildIndentedBalance(S.of(context).rwaHoldings, currencyUtils.convert(dataManager.rwaHoldingsValue), currencyUtils.currencySymbol, true, context, isLoading),
         const SizedBox(height: 10),
-        _buildIndentedBalance(S.of(context).depositBalance, dataManager.convert(dataManager.totalUsdcDepositBalance + dataManager.totalXdaiDepositBalance),
-            dataManager.currencySymbol, true, context, isLoading),
-        _buildIndentedBalance(S.of(context).borrowBalance, dataManager.convert(dataManager.totalUsdcBorrowBalance + dataManager.totalXdaiBorrowBalance), dataManager.currencySymbol,
-            false, context, isLoading),
+        _buildIndentedBalance(S.of(context).depositBalance, currencyUtils.convert(dataManager.totalUsdcDepositBalance + dataManager.totalXdaiDepositBalance),
+            currencyUtils.currencySymbol, true, context, isLoading),
+        _buildIndentedBalance(S.of(context).borrowBalance, currencyUtils.convert(dataManager.totalUsdcBorrowBalance + dataManager.totalXdaiBorrowBalance),
+            currencyUtils.currencySymbol, false, context, isLoading),
       ],
       dataManager,
       context,
@@ -63,10 +64,11 @@ class PortfolioCard extends StatelessWidget {
 
   Widget _buildIndentedBalance(String label, double value, String symbol, bool isPositive, BuildContext context, bool isLoading) {
     final appState = Provider.of<AppState>(context);
+    final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
     final theme = Theme.of(context);
 
     String formattedAmount = showAmounts
-        ? (isPositive ? "+ ${CurrencyUtils.formatCurrency(value, symbol)}" : "- ${CurrencyUtils.formatCurrency(value, symbol)}")
+        ? (isPositive ? "+ ${currencyUtils.formatCurrency(value, symbol)}" : "- ${currencyUtils.formatCurrency(value, symbol)}")
         : (isPositive ? "+ " : "- ") + ('*' * 10);
 
     return Padding(

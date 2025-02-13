@@ -17,6 +17,7 @@ class RentsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dataManager = Provider.of<DataManager>(context);
+    final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
     final appState = Provider.of<AppState>(context);
 
     return UIUtils.buildCard(
@@ -62,21 +63,21 @@ class RentsCard extends StatelessWidget {
         ),
         const SizedBox(height: 10),
         UIUtils.buildTextWithShimmer(
-          CurrencyUtils.getFormattedAmount(dataManager.convert(dataManager.dailyRent), dataManager.currencySymbol, showAmounts),
+          currencyUtils.getFormattedAmount(currencyUtils.convert(dataManager.dailyRent), currencyUtils.currencySymbol, showAmounts),
           S.of(context).daily,
           dataManager.isLoadingMain,
           context,
         ),
         UIUtils.buildTextWithShimmer(
-          CurrencyUtils.getFormattedAmount(dataManager.convert(dataManager.weeklyRent), dataManager.currencySymbol, showAmounts),
+          currencyUtils.getFormattedAmount(currencyUtils.convert(dataManager.weeklyRent), currencyUtils.currencySymbol, showAmounts),
           S.of(context).weekly,
           dataManager.isLoadingMain,
           context,
         ),
         UIUtils.buildTextWithShimmer(
-          CurrencyUtils.getFormattedAmount(
-            dataManager.convert(dataManager.monthlyRent),
-            dataManager.currencySymbol,
+          currencyUtils.getFormattedAmount(
+            currencyUtils.convert(dataManager.monthlyRent),
+            currencyUtils.currencySymbol,
             showAmounts,
           ),
           S.of(context).monthly,
@@ -84,7 +85,7 @@ class RentsCard extends StatelessWidget {
           context,
         ),
         UIUtils.buildTextWithShimmer(
-          CurrencyUtils.getFormattedAmount(dataManager.convert(dataManager.yearlyRent), dataManager.currencySymbol, showAmounts),
+          currencyUtils.getFormattedAmount(currencyUtils.convert(dataManager.yearlyRent), currencyUtils.currencySymbol, showAmounts),
           S.of(context).annually,
           dataManager.isLoadingMain,
           context,
@@ -98,6 +99,8 @@ class RentsCard extends StatelessWidget {
   }
 
   Widget _buildMiniGraphForRendement(List<Map<String, dynamic>> data, BuildContext context, DataManager dataManager) {
+    final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
+
     return Align(
       alignment: Alignment.center,
       child: SizedBox(
@@ -115,7 +118,7 @@ class RentsCard extends StatelessWidget {
             lineBarsData: [
               LineChartBarData(
                 spots: List.generate(data.length, (index) {
-                  double roundedValue = double.parse(dataManager.convert(data[index]['amount']).toStringAsFixed(2));
+                  double roundedValue = double.parse(currencyUtils.convert(data[index]['amount']).toStringAsFixed(2));
                   return FlSpot(index.toDouble(), roundedValue);
                 }),
                 isCurved: true,
@@ -152,7 +155,7 @@ class RentsCard extends StatelessWidget {
                     final amount = touchedSpot.y.toStringAsFixed(2);
 
                     return LineTooltipItem(
-                      '$weekLabel\n$amount ${dataManager.currencySymbol}',
+                      '$weekLabel\n$amount ${currencyUtils.currencySymbol}',
                       const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,

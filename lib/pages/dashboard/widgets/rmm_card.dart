@@ -15,6 +15,7 @@ class RmmCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dataManager = Provider.of<DataManager>(context);
+    final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
     final appState = Provider.of<AppState>(context);
 
     return UIUtils.buildCard(
@@ -39,25 +40,25 @@ class RmmCard extends StatelessWidget {
           ),
         ),
         UIUtils.buildTextWithShimmer(
-          CurrencyUtils.getFormattedAmount(dataManager.convert(dataManager.totalXdaiDepositBalance), dataManager.currencySymbol, showAmounts),
+          currencyUtils.getFormattedAmount(currencyUtils.convert(dataManager.totalXdaiDepositBalance), currencyUtils.currencySymbol, showAmounts),
           'Xdai ${S.of(context).depositBalance}',
           isLoading,
           context,
         ),
         UIUtils.buildTextWithShimmer(
-          CurrencyUtils.getFormattedAmount(dataManager.convert(dataManager.totalUsdcDepositBalance), dataManager.currencySymbol, showAmounts),
+          currencyUtils.getFormattedAmount(currencyUtils.convert(dataManager.totalUsdcDepositBalance), currencyUtils.currencySymbol, showAmounts),
           'USDC ${S.of(context).depositBalance}',
           isLoading,
           context,
         ),
         UIUtils.buildTextWithShimmer(
-          CurrencyUtils.getFormattedAmount(dataManager.convert(dataManager.totalUsdcBorrowBalance), dataManager.currencySymbol, showAmounts),
+          currencyUtils.getFormattedAmount(currencyUtils.convert(dataManager.totalUsdcBorrowBalance), currencyUtils.currencySymbol, showAmounts),
           'USDC ${S.of(context).borrowBalance}',
           isLoading,
           context,
         ),
         UIUtils.buildTextWithShimmer(
-          CurrencyUtils.getFormattedAmount(dataManager.convert(dataManager.totalXdaiBorrowBalance), dataManager.currencySymbol, showAmounts),
+          currencyUtils.getFormattedAmount(currencyUtils.convert(dataManager.totalXdaiBorrowBalance), currencyUtils.currencySymbol, showAmounts),
           'Xdai ${S.of(context).borrowBalance}',
           isLoading,
           context,

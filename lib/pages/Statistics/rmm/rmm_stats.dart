@@ -227,8 +227,8 @@ class RmmStatsState extends State<RmmStats> {
   }
 
   LineChartData _buildDepositChart(Map<String, List<BalanceRecord>> allHistories, String selectedPeriod) {
-    final dataManager = Provider.of<DataManager>(context);
     final appState = Provider.of<AppState>(context);
+    final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
 
     final maxY = _getMaxY(allHistories, ['usdcDeposit', 'xdaiDeposit']);
     final maxX = allHistories.values.expand((e) => e).map((e) => e.timestamp.millisecondsSinceEpoch.toDouble()).reduce((a, b) => a > b ? a : b);
@@ -278,7 +278,7 @@ class RmmStatsState extends State<RmmStats> {
             reservedSize: 45,
             getTitlesWidget: (value, meta) {
               final displayValue =
-                  value >= 1000 ? '${(value / 1000).toStringAsFixed(1)} k${dataManager.currencySymbol}' : '${value.toStringAsFixed(2)}${dataManager.currencySymbol}';
+                  value >= 1000 ? '${(value / 1000).toStringAsFixed(1)} k${currencyUtils.currencySymbol}' : '${value.toStringAsFixed(2)}${currencyUtils.currencySymbol}';
 
               return Transform.rotate(
                 angle: -0.5,
@@ -320,7 +320,7 @@ class RmmStatsState extends State<RmmStats> {
               final value = spot.y;
 
               return LineTooltipItem(
-                '$barName: ${CurrencyUtils.formatCurrency(dataManager.convert(value), dataManager.currencySymbol)}',
+                '$barName: ${currencyUtils.formatCurrency(currencyUtils.convert(value), currencyUtils.currencySymbol)}',
                 const TextStyle(color: Colors.white),
               );
             }).toList();
@@ -341,7 +341,7 @@ class RmmStatsState extends State<RmmStats> {
   }
 
   LineChartData _buildBorrowChart(Map<String, List<BalanceRecord>> allHistories, String selectedPeriod) {
-    final dataManager = Provider.of<DataManager>(context);
+    final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
     final appState = Provider.of<AppState>(context);
 
     final maxY = _getMaxY(allHistories, ['usdcBorrow', 'xdaiBorrow']);
@@ -392,7 +392,7 @@ class RmmStatsState extends State<RmmStats> {
             reservedSize: 45,
             getTitlesWidget: (value, meta) {
               final displayValue =
-                  value >= 1000 ? '${(value / 1000).toStringAsFixed(1)} k${dataManager.currencySymbol}' : '${value.toStringAsFixed(2)}${dataManager.currencySymbol}';
+                  value >= 1000 ? '${(value / 1000).toStringAsFixed(1)} k${currencyUtils.currencySymbol}' : '${value.toStringAsFixed(2)}${currencyUtils.currencySymbol}';
 
               return Transform.rotate(
                 angle: -0.5,
@@ -434,7 +434,7 @@ class RmmStatsState extends State<RmmStats> {
               final value = spot.y;
 
               return LineTooltipItem(
-                '$barName: ${CurrencyUtils.formatCurrency(dataManager.convert(value), dataManager.currencySymbol)}',
+                '$barName: ${currencyUtils.formatCurrency(currencyUtils.convert(value), currencyUtils.currencySymbol)}',
                 const TextStyle(color: Colors.white),
               );
             }).toList();

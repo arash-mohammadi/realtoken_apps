@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:realtokens/app_state.dart';
 import 'package:realtokens/managers/data_manager.dart';
+import 'package:realtokens/utils/currency_utils.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:provider/provider.dart';
 import 'package:realtokens/generated/l10n.dart';
@@ -32,7 +33,7 @@ class AgendaCalendarState extends State<AgendaCalendar> {
 
   Map<DateTime, List<Map<String, dynamic>>> _extractTransactions(List<Map<String, dynamic>> portfolio) {
     Map<DateTime, List<Map<String, dynamic>>> events = {};
-    final dataManager = Provider.of<DataManager>(context, listen: false);
+    final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
 
     for (var token in portfolio) {
       if (token.containsKey('transactions') && token['transactions'] is List) {
@@ -46,7 +47,7 @@ class AgendaCalendarState extends State<AgendaCalendar> {
             events[normalizedDate]!.add({
               'type': 'transaction',
               'amount': transaction['amount'],
-              'price': '${dataManager.convert(transaction['price'] ?? token['tokenPrice']).toStringAsFixed(2)} ${dataManager.currencySymbol}',
+              'price': '${currencyUtils.convert(transaction['price'] ?? token['tokenPrice']).toStringAsFixed(2)} ${currencyUtils.currencySymbol}',
               'date': date.toIso8601String(),
               'fullName': token['fullName'],
               'transactionType': transaction['transactionType'] ?? S.of(context).unknownTransaction,
@@ -76,7 +77,7 @@ class AgendaCalendarState extends State<AgendaCalendar> {
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
-    final dataManager = Provider.of<DataManager>(context, listen: false);
+    final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
     final theme = Theme.of(context);
 
     return Padding(
@@ -202,7 +203,7 @@ class AgendaCalendarState extends State<AgendaCalendar> {
                                 subtitle: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start, // Pour aligner le texte à gauche
                                   children: [
-                                    Text("${S.of(context).amount}: ${dataManager.convert(amount)} ${dataManager.currencySymbol}"),
+                                    Text("${S.of(context).amount}: ${currencyUtils.convert(amount)} ${currencyUtils.currencySymbol}"),
                                   ],
                                 ),
                               ),

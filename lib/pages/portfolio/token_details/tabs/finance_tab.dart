@@ -8,6 +8,7 @@ import 'package:realtokens/utils/currency_utils.dart';
 Widget buildFinanceTab(BuildContext context, Map<String, dynamic> token, bool convertToSquareMeters) {
   final appState = Provider.of<AppState>(context, listen: false);
   final dataManager = Provider.of<DataManager>(context, listen: false);
+  final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
 
   // Calculate the total costs
   double totalCosts = (token['realtListingFee']?.toDouble() ?? 0.0) +
@@ -28,7 +29,7 @@ Widget buildFinanceTab(BuildContext context, Map<String, dynamic> token, bool co
   return SingleChildScrollView(
     child: Column(
       children: [
-        _buildDetailRow(context, S.of(context).totalInvestment, CurrencyUtils.formatCurrency(dataManager.convert(token['totalInvestment']), dataManager.currencySymbol),
+        _buildDetailRow(context, S.of(context).totalInvestment, currencyUtils.formatCurrency(currencyUtils.convert(token['totalInvestment']), currencyUtils.currencySymbol),
             icon: Icons.monetization_on),
 
         // Section des dépenses totales
@@ -55,7 +56,7 @@ Widget buildFinanceTab(BuildContext context, Map<String, dynamic> token, bool co
                 ],
               ),
               Text(
-                CurrencyUtils.formatCurrency(dataManager.convert(token['totalInvestment'] - token['underlyingAssetPrice']), dataManager.currencySymbol),
+                currencyUtils.formatCurrency(currencyUtils.convert(token['totalInvestment'] - token['underlyingAssetPrice']), currencyUtils.currencySymbol),
                 style: TextStyle(color: Colors.red),
               ),
             ],
@@ -73,35 +74,35 @@ Widget buildFinanceTab(BuildContext context, Map<String, dynamic> token, bool co
                   _buildDetailRow(
                     context,
                     S.of(context).realtListingFee,
-                    CurrencyUtils.formatCurrency(dataManager.convert(token['realtListingFee'] ?? 0), dataManager.currencySymbol),
+                    currencyUtils.formatCurrency(currencyUtils.convert(token['realtListingFee'] ?? 0), currencyUtils.currencySymbol),
                     isNegative: true,
                     color: Colors.red,
                   ),
                   _buildDetailRow(
                     context,
                     S.of(context).initialMaintenanceReserve,
-                    CurrencyUtils.formatCurrency(dataManager.convert(token['initialMaintenanceReserve'] ?? 0), dataManager.currencySymbol),
+                    currencyUtils.formatCurrency(currencyUtils.convert(token['initialMaintenanceReserve'] ?? 0), currencyUtils.currencySymbol),
                     isNegative: true,
                     color: Colors.orange,
                   ),
                   _buildDetailRow(
                     context,
                     S.of(context).renovationReserve,
-                    CurrencyUtils.formatCurrency(dataManager.convert(token['renovationReserve'] ?? 0), dataManager.currencySymbol),
+                    currencyUtils.formatCurrency(currencyUtils.convert(token['renovationReserve'] ?? 0), currencyUtils.currencySymbol),
                     isNegative: true,
                     color: Colors.purple,
                   ),
                   _buildDetailRow(
                     context,
                     S.of(context).miscellaneousCosts,
-                    CurrencyUtils.formatCurrency(dataManager.convert(token['miscellaneousCosts'] ?? 0), dataManager.currencySymbol),
+                    currencyUtils.formatCurrency(currencyUtils.convert(token['miscellaneousCosts'] ?? 0), currencyUtils.currencySymbol),
                     isNegative: true,
                     color: Colors.amber,
                   ),
                   _buildDetailRow(
                     context,
                     S.of(context).others,
-                    CurrencyUtils.formatCurrency(dataManager.convert((token['totalInvestment'] - token['underlyingAssetPrice'] - totalCosts) ?? 0), dataManager.currencySymbol),
+                    currencyUtils.formatCurrency(currencyUtils.convert((token['totalInvestment'] - token['underlyingAssetPrice'] - totalCosts) ?? 0), currencyUtils.currencySymbol),
                     isNegative: true,
                     color: Colors.grey,
                   ),
@@ -164,13 +165,13 @@ Widget buildFinanceTab(BuildContext context, Map<String, dynamic> token, bool co
 
         const SizedBox(height: 2),
         _buildDetailRow(
-            context, S.of(context).underlyingAssetPrice, CurrencyUtils.formatCurrency(dataManager.convert(token['underlyingAssetPrice'] ?? 0), dataManager.currencySymbol)),
+            context, S.of(context).underlyingAssetPrice, currencyUtils.formatCurrency(currencyUtils.convert(token['underlyingAssetPrice'] ?? 0), currencyUtils.currencySymbol)),
         const SizedBox(height: 2),
 
         const Divider(),
 
         // Section des loyers
-        _buildDetailRow(context, S.of(context).grossRentMonth, CurrencyUtils.formatCurrency(dataManager.convert(token['grossRentMonth'] ?? 0), dataManager.currencySymbol),
+        _buildDetailRow(context, S.of(context).grossRentMonth, currencyUtils.formatCurrency(currencyUtils.convert(token['grossRentMonth'] ?? 0), currencyUtils.currencySymbol),
             icon: Icons.attach_money),
 
         // Détails des dépenses de loyer
@@ -197,7 +198,7 @@ Widget buildFinanceTab(BuildContext context, Map<String, dynamic> token, bool co
                 ],
               ),
               Text(
-                '- ${CurrencyUtils.formatCurrency(dataManager.convert(token['grossRentMonth'] - token['netRentMonth']), dataManager.currencySymbol)}',
+                '- ${currencyUtils.formatCurrency(currencyUtils.convert(token['grossRentMonth'] - token['netRentMonth']), currencyUtils.currencySymbol)}',
                 style: TextStyle(color: Colors.red),
               ),
             ],
@@ -213,19 +214,21 @@ Widget buildFinanceTab(BuildContext context, Map<String, dynamic> token, bool co
               child: Column(
                 children: [
                   _buildDetailRow(context, S.of(context).propertyMaintenanceMonthly,
-                      CurrencyUtils.formatCurrency(dataManager.convert(token['propertyMaintenanceMonthly'] ?? 0), dataManager.currencySymbol),
+                      currencyUtils.formatCurrency(currencyUtils.convert(token['propertyMaintenanceMonthly'] ?? 0), currencyUtils.currencySymbol),
                       isNegative: true, color: Colors.deepOrange),
-                  _buildDetailRow(
-                      context, S.of(context).propertyManagement, CurrencyUtils.formatCurrency(dataManager.convert(token['propertyManagement'] ?? 0), dataManager.currencySymbol),
+                  _buildDetailRow(context, S.of(context).propertyManagement,
+                      currencyUtils.formatCurrency(currencyUtils.convert(token['propertyManagement'] ?? 0), currencyUtils.currencySymbol),
                       isNegative: true, color: Colors.amber),
-                  _buildDetailRow(context, S.of(context).realtPlatform, CurrencyUtils.formatCurrency(dataManager.convert(token['realtPlatform'] ?? 0), dataManager.currencySymbol),
+                  _buildDetailRow(
+                      context, S.of(context).realtPlatform, currencyUtils.formatCurrency(currencyUtils.convert(token['realtPlatform'] ?? 0), currencyUtils.currencySymbol),
                       isNegative: true, color: Colors.orange),
-                  _buildDetailRow(context, S.of(context).insurance, CurrencyUtils.formatCurrency(dataManager.convert(token['insurance'] ?? 0), dataManager.currencySymbol),
+                  _buildDetailRow(context, S.of(context).insurance, currencyUtils.formatCurrency(currencyUtils.convert(token['insurance'] ?? 0), currencyUtils.currencySymbol),
                       isNegative: true, color: Colors.purple),
-                  _buildDetailRow(context, S.of(context).propertyTaxes, CurrencyUtils.formatCurrency(dataManager.convert(token['propertyTaxes'] ?? 0), dataManager.currencySymbol),
+                  _buildDetailRow(
+                      context, S.of(context).propertyTaxes, currencyUtils.formatCurrency(currencyUtils.convert(token['propertyTaxes'] ?? 0), currencyUtils.currencySymbol),
                       isNegative: true, color: Colors.red),
                   _buildDetailRow(context, S.of(context).others,
-                      CurrencyUtils.formatCurrency((dataManager.convert(token['grossRentMonth'] - token['netRentMonth'] - totalRentCosts)), dataManager.currencySymbol),
+                      currencyUtils.formatCurrency((currencyUtils.convert(token['grossRentMonth'] - token['netRentMonth'] - totalRentCosts)), currencyUtils.currencySymbol),
                       isNegative: true, color: Colors.grey),
                 ],
               ),
@@ -282,7 +285,7 @@ Widget buildFinanceTab(BuildContext context, Map<String, dynamic> token, bool co
         ),
 
         const SizedBox(height: 2),
-        _buildDetailRow(context, S.of(context).netRentMonth, CurrencyUtils.formatCurrency(dataManager.convert(token['netRentMonth'] ?? 0), dataManager.currencySymbol)),
+        _buildDetailRow(context, S.of(context).netRentMonth, currencyUtils.formatCurrency(currencyUtils.convert(token['netRentMonth'] ?? 0), currencyUtils.currencySymbol)),
         const SizedBox(height: 2),
 
         const Divider(),
@@ -291,7 +294,7 @@ Widget buildFinanceTab(BuildContext context, Map<String, dynamic> token, bool co
         _buildDetailRow(
           context,
           S.of(context).initialPrice,
-          CurrencyUtils.formatCurrency(dataManager.convert(token['initPrice']), dataManager.currencySymbol),
+          currencyUtils.formatCurrency(currencyUtils.convert(token['initPrice']), currencyUtils.currencySymbol),
           icon: Icons.price_change_sharp,
           trailing: IconButton(
             padding: EdgeInsets.zero,
@@ -304,7 +307,7 @@ Widget buildFinanceTab(BuildContext context, Map<String, dynamic> token, bool co
         _buildDetailRow(
           context,
           S.of(context).realtActualPrice,
-          CurrencyUtils.formatCurrency(dataManager.convert(token['tokenPrice']), dataManager.currencySymbol),
+          currencyUtils.formatCurrency(currencyUtils.convert(token['tokenPrice']), currencyUtils.currencySymbol),
           icon: Icons.price_change_sharp,
         ),
 
@@ -314,7 +317,7 @@ Widget buildFinanceTab(BuildContext context, Map<String, dynamic> token, bool co
           Text('  YAM ', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13 + appState.getTextSizeOffset())),
           Spacer(),
           Text(
-            '${CurrencyUtils.formatCurrency(dataManager.convert((token['yamAverageValue'])), dataManager.currencySymbol)} (${((token['yamAverageValue'] / token['initPrice'] - 1) * 100).toStringAsFixed(0)}%)',
+            '${currencyUtils.formatCurrency(currencyUtils.convert((token['yamAverageValue'])), currencyUtils.currencySymbol)} (${((token['yamAverageValue'] / token['initPrice'] - 1) * 100).toStringAsFixed(0)}%)',
             style: TextStyle(
               fontSize: 13 + appState.getTextSizeOffset(),
               color: (token['yamAverageValue'] * token['amount']) > token['totalValue'] ? Colors.green : Colors.red,
@@ -330,7 +333,7 @@ Widget buildFinanceTab(BuildContext context, Map<String, dynamic> token, bool co
         _buildDetailRow(
           context,
           S.of(context).totalRentReceived,
-          CurrencyUtils.formatCurrency(dataManager.convert(token['totalRentReceived'] ?? 0), dataManager.currencySymbol),
+          currencyUtils.formatCurrency(currencyUtils.convert(token['totalRentReceived'] ?? 0), currencyUtils.currencySymbol),
           icon: Icons.receipt_long,
         ),
         _buildDetailRow(

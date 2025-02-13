@@ -24,6 +24,7 @@ class RealtPageState extends State<RealtPage> {
   Widget build(BuildContext context) {
     // Accéder à DataManager pour récupérer les valeurs calculées
     final dataManager = Provider.of<DataManager>(context);
+    final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
 
     return Scaffold(
       appBar: AppBar(
@@ -46,12 +47,12 @@ class RealtPageState extends State<RealtPage> {
                 'investment', // Utilisation de S.of(context)
                 Icons.attach_money,
                 _buildValueBeforeText(
-                  CurrencyUtils.formatCurrency(dataManager.convert(dataManager.totalRealtInvestment), dataManager.currencySymbol),
+                  currencyUtils.formatCurrency(currencyUtils.convert(dataManager.totalRealtInvestment), currencyUtils.currencySymbol),
                   S.of(context).totalInvestment,
                 ),
                 [
                   _buildValueBeforeText(
-                    CurrencyUtils.formatCurrency(dataManager.convert(dataManager.netRealtRentYear), dataManager.currencySymbol),
+                    currencyUtils.formatCurrency(currencyUtils.convert(dataManager.netRealtRentYear), currencyUtils.currencySymbol),
                     'net rent',
                   ),
                 ],

@@ -5,6 +5,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:realtokens/services/google_drive_service.dart';
 import 'package:realtokens/structure/home_page.dart';
+import 'package:realtokens/utils/currency_utils.dart';
 import 'package:realtokens/utils/parameters.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'managers/data_manager.dart';
@@ -17,32 +18,30 @@ import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'app_state.dart';
 import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';  // 👈 Importation de dotenv
+import 'package:flutter_dotenv/flutter_dotenv.dart'; // 👈 Importation de dotenv
 
 void main() async {
-  
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
-try {
-    await dotenv.load(fileName: "env_config.txt");  // 🔥 Nouveau fichier
-    debugPrint("✅ Variables d'environnement chargées avec succès !");
+  try {
+    await dotenv.load(fileName: "env_config.txt"); // 🔥 Nouveau fichier
+    //debugPrint("✅ Variables d'environnement chargées avec succès !");
   } catch (e) {
-    debugPrint("❌ Erreur lors du chargement de dotenv: $e");
+    //debugPrint("❌ Erreur lors du chargement de dotenv: $e");
   }
 
-  Parameters.initialize();  // 🔥 Initialise les valeurs de `Parameters`
+  Parameters.initialize(); // 🔥 Initialise les valeurs de `Parameters`
 
   try {
-  if (Firebase.apps.isEmpty) {
-    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-    debugPrint("✅ Firebase initialisé !");
+    if (Firebase.apps.isEmpty) {
+      await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+      //debugPrint("✅ Firebase initialisé !");
+    }
+  } catch (e, stacktrace) {
+    //debugPrint("❌ Erreur Firebase : $e");
+    //debugPrint("📌 Stacktrace : $stacktrace");
   }
-} catch (e, stacktrace) {
-  debugPrint("❌ Erreur Firebase : $e");
-  debugPrint("📌 Stacktrace : $stacktrace");
-}
-
 
   final GoogleSignIn googleSignIn = GoogleSignIn(
     clientId: dotenv.env['GOOGLE_CLIENT_ID'] ?? "",
@@ -71,6 +70,11 @@ try {
   ]);
 
   final dataManager = DataManager();
+  final currencyProvider = CurrencyProvider();
+
+  // ✅ Attendre que `loadSelectedCurrency()` récupère la bonne valeur avant de démarrer l'app
+  await currencyProvider.loadSelectedCurrency();
+
   final prefs = await SharedPreferences.getInstance();
   final bool autoSyncEnabled = prefs.getBool('autoSync') ?? false;
 
@@ -80,6 +84,7 @@ try {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => dataManager),
+        ChangeNotifierProvider(create: (_) => CurrencyProvider()), // ✅ Assurez-vous que CurrencyProvider est bien ici
         ChangeNotifierProvider(create: (_) => AppState()),
       ],
       child: MyApp(autoSyncEnabled: autoSyncEnabled),
@@ -127,15 +132,15 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
     OneSignal.initialize("e7059f66-9c12-4d21-a078-edaf1a203dea");
     OneSignal.Notifications.requestPermission(true);
     OneSignal.Notifications.addForegroundWillDisplayListener((event) {
-      debugPrint('Notification reçue en premier plan : ${event.notification.jsonRepresentation()}');
+      //debugPrint('Notification reçue en premier plan : ${event.notification.jsonRepresentation()}');
       event.preventDefault();
       event.notification.display();
     });
     OneSignal.Notifications.addClickListener((event) {
-      debugPrint('Notification cliquée : ${event.notification.jsonRepresentation()}');
+      //debugPrint('Notification cliquée : ${event.notification.jsonRepresentation()}');
     });
     OneSignal.User.pushSubscription.addObserver((state) {
-      debugPrint('Utilisateur inscrit aux notifications : ${state.current.jsonRepresentation()}');
+      //debugPrint('Utilisateur inscrit aux notifications : ${state.current.jsonRepresentation()}');
     });
   }
 
@@ -153,14 +158,15 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
   }
 
   void _reloadData() async {
-    debugPrint("🔄 Vérification avant mise à jour des données...");
+    //debugPrint("🔄 Vérification avant mise à jour des données...");
+    final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
 
     await _loadAutoSyncPreference(); // 🔥 Charger la valeur de autoSync depuis SharedPreferences
 
     await Future.wait([
       dataManager.updateMainInformations(),
       dataManager.updateSecondaryInformations(context),
-      dataManager.loadSelectedCurrency(),
+      currencyUtils.loadSelectedCurrency(),
       dataManager.loadUserIdToAddresses(),
     ]);
     await dataManager.fetchAndCalculateData();
@@ -186,11 +192,11 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
     if (_isGoogleDriveConnected) {
       final now = DateTime.now();
       if (_lastSyncTime == null || now.difference(_lastSyncTime!).inHours > 1) {
-        debugPrint("🔄 Synchronisation avec Google Drive en cours...");
+        //debugPrint("🔄 Synchronisation avec Google Drive en cours...");
         await _googleDriveService.syncGoogleDrive(context);
         _lastSyncTime = now;
       } else {
-        debugPrint("✅ Synchronisation non nécessaire");
+        //debugPrint("✅ Synchronisation non nécessaire");
       }
     }
   }

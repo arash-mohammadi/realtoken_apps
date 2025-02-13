@@ -415,7 +415,7 @@ class _SynchronizationSettingsPageState extends State<SynchronizationSettingsPag
       );
       print('Erreur lors de l\'importation des données Hive depuis le fichier ZIP : $e');
     }
-    DataFetchUtils.loadData(context);
+    DataFetchUtils.refreshData(context);
   }
 
   dynamic sanitizeValue(dynamic value) {

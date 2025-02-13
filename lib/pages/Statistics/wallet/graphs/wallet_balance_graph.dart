@@ -30,6 +30,7 @@ class WalletBalanceGraph extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
+    final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
 
     return Card(
       elevation: 0.5,
@@ -113,8 +114,8 @@ class WalletBalanceGraph extends StatelessWidget {
                               reservedSize: 45,
                               getTitlesWidget: (value, meta) {
                                 final displayValue = value >= 1000
-                                    ? '${(value / 1000).toStringAsFixed(1)} k${dataManager.currencySymbol}'
-                                    : CurrencyUtils.formatCurrency(value, dataManager.currencySymbol);
+                                    ? '${(value / 1000).toStringAsFixed(1)} k${currencyUtils.currencySymbol}'
+                                    : currencyUtils.formatCurrency(value, currencyUtils.currencySymbol);
                                 return Text(
                                   displayValue,
                                   style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
@@ -173,8 +174,8 @@ class WalletBalanceGraph extends StatelessWidget {
                               reservedSize: 45,
                               getTitlesWidget: (value, meta) {
                                 final displayValue = value >= 1000
-                                    ? '${(value / 1000).toStringAsFixed(1)} k${dataManager.currencySymbol}'
-                                    : CurrencyUtils.formatCurrency(value, dataManager.currencySymbol);
+                                    ? '${(value / 1000).toStringAsFixed(1)} k${currencyUtils.currencySymbol}'
+                                    : currencyUtils.formatCurrency(value, currencyUtils.currencySymbol);
                                 return Text(
                                   displayValue,
                                   style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
@@ -249,7 +250,7 @@ class WalletBalanceGraph extends StatelessWidget {
                                 final periodLabel = _buildDateLabelsForWallet(context, dataManager, selectedPeriod)[index];
 
                                 return LineTooltipItem(
-                                  '$periodLabel\n${CurrencyUtils.formatCurrency(averageBalance, dataManager.currencySymbol)}',
+                                  '$periodLabel\n${currencyUtils.formatCurrency(averageBalance, currencyUtils.currencySymbol)}',
                                   const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                                 );
                               }).toList();

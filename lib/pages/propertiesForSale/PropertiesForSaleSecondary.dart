@@ -54,6 +54,7 @@ class _PropertiesForSaleSecondaryState extends State<PropertiesForSaleSecondary>
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
     final dataManager = Provider.of<DataManager>(context);
+    final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
 
     // Filtrer les offres en fonction du champ `shortName`
     final groupedOffers = <String, List<Map<String, dynamic>>>{};
@@ -249,7 +250,7 @@ class _PropertiesForSaleSecondaryState extends State<PropertiesForSaleSecondary>
                                           ),
                                         ),
                                         Text(
-                                          '${S.of(context).token_value}: ${CurrencyUtils.formatCurrency(offer['tokenValue'], dataManager.currencySymbol)}',
+                                          '${S.of(context).token_value}: ${currencyUtils.formatCurrency(offer['tokenValue'], currencyUtils.currencySymbol)}',
                                           style: TextStyle(
                                             fontSize: 12 + appState.getTextSizeOffset(),
                                             color: Colors.grey[600],

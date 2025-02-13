@@ -264,7 +264,7 @@ class RoiHistoryGraph extends StatelessWidget {
                               ),
                               touchCallback: (FlTouchEvent event, LineTouchResponse? touchResponse) {
                                 if (touchResponse != null && touchResponse.lineBarSpots != null) {
-                                  debugPrint('Point touché : ${touchResponse.lineBarSpots?.first.x}');
+                                  //debugPrint('Point touché : ${touchResponse.lineBarSpots?.first.x}');
                                 }
                               },
                               handleBuiltInTouches: true,

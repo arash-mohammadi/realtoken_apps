@@ -59,7 +59,7 @@ class PortfolioDisplay1 extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
-    final dataManager = Provider.of<DataManager>(context, listen: false);
+    final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -316,13 +316,13 @@ class PortfolioDisplay1 extends StatelessWidget {
                                     ],
                                   ),
                                   Text(
-                                    '${S.of(context).totalValue}: ${CurrencyUtils.formatCurrency(dataManager.convert((token['totalValue'])), dataManager.currencySymbol)}',
+                                    '${S.of(context).totalValue}: ${currencyUtils.formatCurrency(currencyUtils.convert((token['totalValue'])), currencyUtils.currencySymbol)}',
                                     style: TextStyle(
                                       fontSize: 13 + appState.getTextSizeOffset(),
                                     ),
                                   ),
                                   Text(
-                                    'YAM: ${CurrencyUtils.formatCurrency(dataManager.convert((token['yamAverageValue'] * token['amount'])), dataManager.currencySymbol)} (${((token['yamAverageValue'] / token['tokenPrice'] - 1) * 100).toStringAsFixed(0)}%)',
+                                    'YAM: ${currencyUtils.formatCurrency(currencyUtils.convert((token['yamAverageValue'] * token['amount'])), currencyUtils.currencySymbol)} (${((token['yamAverageValue'] / token['tokenPrice'] - 1) * 100).toStringAsFixed(0)}%)',
                                     style: TextStyle(
                                       fontSize: 13 + appState.getTextSizeOffset(),
                                       color: (token['yamAverageValue'] * token['amount']) >= token['totalValue']
@@ -354,21 +354,21 @@ class PortfolioDisplay1 extends StatelessWidget {
                                         Column(
                                           children: [
                                             Text(S.of(context).week, style: TextStyle(fontSize: 13 + appState.getTextSizeOffset())),
-                                            Text(CurrencyUtils.formatCurrency(dataManager.convert(token['dailyIncome']) * 7, dataManager.currencySymbol),
+                                            Text(currencyUtils.formatCurrency(currencyUtils.convert(token['dailyIncome']) * 7, currencyUtils.currencySymbol),
                                                 style: TextStyle(fontSize: 13 + appState.getTextSizeOffset())),
                                           ],
                                         ),
                                         Column(
                                           children: [
                                             Text(S.of(context).month, style: TextStyle(fontSize: 13 + appState.getTextSizeOffset())),
-                                            Text(CurrencyUtils.formatCurrency(dataManager.convert(token['monthlyIncome']), dataManager.currencySymbol),
+                                            Text(currencyUtils.formatCurrency(currencyUtils.convert(token['monthlyIncome']), currencyUtils.currencySymbol),
                                                 style: TextStyle(fontSize: 13 + appState.getTextSizeOffset())),
                                           ],
                                         ),
                                         Column(
                                           children: [
                                             Text(S.of(context).year, style: TextStyle(fontSize: 13 + appState.getTextSizeOffset())),
-                                            Text(CurrencyUtils.formatCurrency(dataManager.convert(token['yearlyIncome']), dataManager.currencySymbol),
+                                            Text(currencyUtils.formatCurrency(currencyUtils.convert(token['yearlyIncome']), currencyUtils.currencySymbol),
                                                 style: TextStyle(fontSize: 13 + appState.getTextSizeOffset())),
                                           ],
                                         ),

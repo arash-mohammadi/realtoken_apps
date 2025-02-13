@@ -41,7 +41,7 @@ class GoogleDriveService {
 
   Future<void> deleteFileFromGoogleDrive(String fileName) async {
     if (_driveApi == null) {
-      debugPrint("❌ Google Drive API non initialisée.");
+      //debugPrint("❌ Google Drive API non initialisée.");
       return;
     }
 
@@ -53,7 +53,7 @@ class GoogleDriveService {
       );
 
       if (fileList.files == null || fileList.files!.isEmpty) {
-        debugPrint("❌ Aucun fichier trouvé avec le nom : $fileName");
+        //debugPrint("❌ Aucun fichier trouvé avec le nom : $fileName");
         return;
       }
 
@@ -61,9 +61,9 @@ class GoogleDriveService {
       final String fileId = fileList.files!.first.id!;
       await _driveApi!.files.delete(fileId);
 
-      debugPrint("✅ Fichier '$fileName' supprimé avec succès de Google Drive.");
+      //debugPrint("✅ Fichier '$fileName' supprimé avec succès de Google Drive.");
     } catch (e) {
-      debugPrint("❌ Erreur lors de la suppression du fichier : $e");
+      //debugPrint("❌ Erreur lors de la suppression du fichier : $e");
     }
   }
 
@@ -88,11 +88,11 @@ class GoogleDriveService {
 
   Future<void> syncGoogleDrive(BuildContext context) async {
     if (_driveApi == null) {
-      debugPrint("❌ Google Drive n'est pas connecté !");
+      //debugPrint("❌ Google Drive n'est pas connecté !");
       return;
     }
 
-    debugPrint("🔄 Téléchargement des données depuis Google Drive...");
+    //debugPrint("🔄 Téléchargement des données depuis Google Drive...");
     Map<String, dynamic>? driveData = await downloadBackupFromGoogleDrive();
 
     if (driveData != null) {
@@ -102,39 +102,39 @@ class GoogleDriveService {
       }
     }
 
-    debugPrint("📂 Chargement des données locales...");
+    //debugPrint("📂 Chargement des données locales...");
     Map<String, dynamic> localData = await _loadLocalData();
 
     // Si les données locales sont vides, on ne fait que l'importation sans upload
     if (localData.isEmpty && driveData != null) {
-      debugPrint("📥 Importation des données de Google Drive dans l'application...");
+      //debugPrint("📥 Importation des données de Google Drive dans l'application...");
       await _restoreLocalBackup("${(await getApplicationDocumentsDirectory()).path}/realToken_Backup.zip");
       return;
     }
 
-    debugPrint("🔀 Fusion des données...");
+    //debugPrint("🔀 Fusion des données...");
     Map<String, dynamic> mergedData = _mergeData(localData, driveData);
 
     // 🔹 Assurer que les données sont bien enregistrées dans Hive
-    debugPrint("📌 Contenu fusionné après merge (avant stockage dans Hive) : ${jsonEncode(mergedData)}");
+    //debugPrint("📌 Contenu fusionné après merge (avant stockage dans Hive) : ${jsonEncode(mergedData)}");
     await _storeMergedDataInHive(mergedData);
 
     DataFetchUtils.refreshData(context);
 
     // Si les données locales sont vides après fusion, ne pas uploader
     if (mergedData.isEmpty) {
-      debugPrint("⚠️ Aucune donnée à sauvegarder sur Google Drive.");
+      //debugPrint("⚠️ Aucune donnée à sauvegarder sur Google Drive.");
       return;
     }
 
-    debugPrint("📤 Envoi des données fusionnées sur Google Drive...");
+    //debugPrint("📤 Envoi des données fusionnées sur Google Drive...");
     await backupToGoogleDrive();
 
-    debugPrint("✅ Synchronisation avec Google Drive terminée.");
+    //debugPrint("✅ Synchronisation avec Google Drive terminée.");
   }
 
   Future<void> _storeMergedDataInHive(Map<String, dynamic> mergedData) async {
-    debugPrint("📦 Stockage des données fusionnées dans Hive...");
+    //debugPrint("📦 Stockage des données fusionnées dans Hive...");
 
     var balanceHistoryBox = await Hive.openBox('balanceHistory');
     var walletValueArchiveBox = await Hive.openBox('walletValueArchive');
@@ -145,7 +145,7 @@ class GoogleDriveService {
 
     Future<void> storeWithoutDuplicates(Box box, String key) async {
       if (mergedData.containsKey(key)) {
-        // debugPrint("🔍 Clés à stocker dans '$key' : ${mergedData[key].keys}");
+        // //debugPrint("🔍 Clés à stocker dans '$key' : ${mergedData[key].keys}");
 
         Map<String, dynamic> existingData = Map<String, dynamic>.from(box.toMap());
         Map<String, dynamic> newData = Map<String, dynamic>.from(mergedData[key]);
@@ -153,7 +153,7 @@ class GoogleDriveService {
         newData.forEach((dataKey, value) {
           // ✅ Si la clé n'existe pas, on l'ajoute directement
           if (!existingData.containsKey(dataKey)) {
-            debugPrint("📝 Ajout dans '$key' : $dataKey -> $value");
+            //debugPrint("📝 Ajout dans '$key' : $dataKey -> $value");
             box.put(dataKey, value);
           } else {
             // ✅ Si la clé existe, comparer les timestamps
@@ -172,7 +172,7 @@ class GoogleDriveService {
                   bool exists = updatedList.any((existingItem) => existingItem is Map && existingItem.containsKey('timestamp') && existingItem['timestamp'] == newTimestamp);
 
                   if (!exists) {
-                    debugPrint("➕ Ajouté (nouveau timestamp) dans '$key' : $newItem");
+                    //debugPrint("➕ Ajouté (nouveau timestamp) dans '$key' : $newItem");
                     updatedList.add(newItem);
                   }
                 }
@@ -183,20 +183,20 @@ class GoogleDriveService {
               // Gérer les objets Map individuellement
               value.forEach((subKey, subValue) {
                 if (!existingValue.containsKey(subKey) || (existingValue[subKey]['timestamp'] ?? '') < (subValue['timestamp'] ?? '')) {
-                  debugPrint("🔄 Mise à jour (timestamp plus récent) dans '$key' : $subKey -> $subValue");
+                  //debugPrint("🔄 Mise à jour (timestamp plus récent) dans '$key' : $subKey -> $subValue");
                   existingValue[subKey] = subValue;
                 }
               });
               box.put(dataKey, existingValue);
             } else {
-              debugPrint("⚠️ Valeur ignorée (format non pris en charge) : $dataKey -> $value");
+              //debugPrint("⚠️ Valeur ignorée (format non pris en charge) : $dataKey -> $value");
             }
           }
         });
 
-        // debugPrint("📊 Contenu final de Hive pour '$key' : ${box.toMap()}");
+        // //debugPrint("📊 Contenu final de Hive pour '$key' : ${box.toMap()}");
       } else {
-        debugPrint("⚠️ Aucun nouveau contenu pour '$key', pas d'ajout.");
+        //debugPrint("⚠️ Aucun nouveau contenu pour '$key', pas d'ajout.");
       }
     }
 
@@ -207,7 +207,7 @@ class GoogleDriveService {
     await storeWithoutDuplicates(customApyBox, 'apyValueArchive');
     await storeWithoutDuplicates(customYamBox, 'customYam');
 
-    debugPrint("✅ Stockage terminé.");
+    //debugPrint("✅ Stockage terminé.");
   }
 
   /// Télécharger et lire les données de Google Drive
@@ -215,24 +215,24 @@ class GoogleDriveService {
   /// Télécharger un fichier depuis Google Drive et retourner les données sous forme de Map
   Future<Map<String, dynamic>?> downloadBackupFromGoogleDrive() async {
     if (_driveApi == null) {
-      debugPrint("❌ Google Drive API non initialisée.");
+      //debugPrint("❌ Google Drive API non initialisée.");
       return null;
     }
 
     try {
-      debugPrint("🔽 Recherche du fichier sur Google Drive...");
+      //debugPrint("🔽 Recherche du fichier sur Google Drive...");
       final drive.FileList fileList = await _driveApi!.files.list(
         q: "name = 'realToken_Backup.zip' and 'appDataFolder' in parents",
         spaces: 'appDataFolder',
       );
 
       if (fileList.files == null || fileList.files!.isEmpty) {
-        debugPrint("❌ Aucun fichier trouvé sur Google Drive !");
+        //debugPrint("❌ Aucun fichier trouvé sur Google Drive !");
         return null;
       }
 
       final String fileId = fileList.files!.first.id!;
-      debugPrint("📂 Fichier trouvé: ID = $fileId, téléchargement en cours...");
+      //debugPrint("📂 Fichier trouvé: ID = $fileId, téléchargement en cours...");
 
       final drive.Media fileData = await _driveApi!.files.get(
         fileId,
@@ -248,12 +248,12 @@ class GoogleDriveService {
       }
 
       await localFile.writeAsBytes(dataStore);
-      debugPrint("✅ Téléchargement terminé, fichier sauvegardé localement");
+      //debugPrint("✅ Téléchargement terminé, fichier sauvegardé localement");
 
       // Extraire et nettoyer les données du fichier ZIP
       return await _extractAndCleanBackupData(localFile.path);
     } catch (e) {
-      debugPrint("❌ Erreur lors du téléchargement depuis Google Drive : $e");
+      //debugPrint("❌ Erreur lors du téléchargement depuis Google Drive : $e");
       return null;
     }
   }
@@ -263,7 +263,7 @@ class GoogleDriveService {
     final File zipFile = File(zipFilePath);
 
     if (!await zipFile.exists()) {
-      debugPrint("❌ Le fichier ZIP n'existe pas !");
+      //debugPrint("❌ Le fichier ZIP n'existe pas !");
       return null;
     }
 
@@ -276,7 +276,7 @@ class GoogleDriveService {
       final String fileName = file.name;
       final String jsonContent = utf8.decode(file.content as List<int>);
 
-      debugPrint("📂 Fichier extrait : $fileName");
+      //debugPrint("📂 Fichier extrait : $fileName");
 
       // Nettoyer les chaînes JSON corrompues
       dynamic cleanedData = cleanJsonString(jsonContent);
@@ -284,11 +284,11 @@ class GoogleDriveService {
       if (cleanedData is Map || cleanedData is List) {
         extractedData[fileName] = cleanedData;
       } else {
-        debugPrint("⚠️ Le fichier $fileName ne contient pas de JSON valide.");
+        //debugPrint("⚠️ Le fichier $fileName ne contient pas de JSON valide.");
       }
     }
 
-    debugPrint("✅ Extraction et nettoyage terminés, données récupérées "); //: $extractedData
+    //debugPrint("✅ Extraction et nettoyage terminés, données récupérées "); //: $extractedData
     return extractedData;
   }
 
@@ -298,7 +298,7 @@ class GoogleDriveService {
     final File zipFile = File(zipFilePath);
 
     if (!await zipFile.exists()) {
-      debugPrint("❌ Le fichier ZIP n'existe pas !");
+      //debugPrint("❌ Le fichier ZIP n'existe pas !");
       return null;
     }
 
@@ -311,7 +311,7 @@ class GoogleDriveService {
       final String fileName = file.name;
       final String jsonContent = utf8.decode(file.content as List<int>);
 
-      debugPrint("📂 Fichier extrait : $fileName");
+      //debugPrint("📂 Fichier extrait : $fileName");
 
       // Nettoyer les chaînes JSON corrompues
       dynamic cleanedData = cleanJsonString(jsonContent);
@@ -319,11 +319,11 @@ class GoogleDriveService {
       if (cleanedData is Map || cleanedData is List) {
         extractedData[fileName] = cleanedData;
       } else {
-        debugPrint("⚠️ Le fichier $fileName ne contient pas de JSON valide.");
+        //debugPrint("⚠️ Le fichier $fileName ne contient pas de JSON valide.");
       }
     }
 
-    debugPrint("✅ Extraction terminée, données récupérées : $extractedData");
+    //debugPrint("✅ Extraction terminée, données récupérées : $extractedData");
     return extractedData;
   }
 
@@ -335,7 +335,7 @@ class GoogleDriveService {
           return jsonDecode(value);
         }
       } catch (e) {
-        debugPrint("❌ Erreur lors du nettoyage de la chaîne JSON : $e");
+        //debugPrint("❌ Erreur lors du nettoyage de la chaîne JSON : $e");
       }
     }
     return value;
@@ -347,12 +347,12 @@ class GoogleDriveService {
     final File zipFile = File(zipFilePath);
 
     if (!await zipFile.exists()) {
-      debugPrint("❌ Le fichier ZIP n'existe pas !");
+      //debugPrint("❌ Le fichier ZIP n'existe pas !");
       return;
     }
 
     try {
-      debugPrint("📦 Extraction du fichier ZIP...");
+      //debugPrint("📦 Extraction du fichier ZIP...");
       final List<int> bytes = zipFile.readAsBytesSync();
       final Archive archive = ZipDecoder().decodeBytes(bytes);
 
@@ -360,44 +360,44 @@ class GoogleDriveService {
         String jsonContent = utf8.decode(file.content as List<int>);
 
         if (file.name == 'balanceHistoryBackup.json') {
-          debugPrint("📥 Chargement des données de balanceHistory...");
+          //debugPrint("📥 Chargement des données de balanceHistory...");
           var box = await Hive.openBox('balanceHistory');
           await box.putAll(jsonDecode(jsonContent));
         } else if (file.name == 'walletValueArchiveBackup.json') {
-          debugPrint("📥 Chargement des données de walletValueArchive...");
+          //debugPrint("📥 Chargement des données de walletValueArchive...");
           var box = await Hive.openBox('walletValueArchive');
           await box.putAll(jsonDecode(jsonContent));
         } else if (file.name == 'customInitPricesBackup.json') {
-          debugPrint("📥 Chargement des données de customInitPrices...");
+          //debugPrint("📥 Chargement des données de customInitPrices...");
           var box = await Hive.openBox('customInitPrices');
           await box.putAll(jsonDecode(jsonContent));
         } else if (file.name == 'customRoiBackup.json') {
-          debugPrint("📥 Chargement des données de roiValueArchive...");
+          //debugPrint("📥 Chargement des données de roiValueArchive...");
           var box = await Hive.openBox('roiValueArchive');
           await box.putAll(jsonDecode(jsonContent));
         } else if (file.name == 'customApyBackup.json') {
-          debugPrint("📥 Chargement des données de apyValueArchive...");
+          //debugPrint("📥 Chargement des données de apyValueArchive...");
           var box = await Hive.openBox('apyValueArchive');
           await box.putAll(jsonDecode(jsonContent));
         } else if (file.name == 'customYamBackup.json') {
-          debugPrint("📥 Chargement des données de YamMarket...");
+          //debugPrint("📥 Chargement des données de YamMarket...");
           var box = await Hive.openBox('YamMarket');
           await box.putAll(jsonDecode(jsonContent));
         } else if (file.name == 'preferencesBackup.json') {
-          debugPrint("📥 Chargement des préférences depuis Google Drive...");
+          //debugPrint("📥 Chargement des préférences depuis Google Drive...");
           Map<String, dynamic> drivePreferences = jsonDecode(jsonContent);
 
           if (drivePreferences.isNotEmpty) {
             _storeMergedPreferences(drivePreferences);
           } else {
-            debugPrint("⚠️ Google Drive ne contient pas de préférences, on garde celles en local.");
+            //debugPrint("⚠️ Google Drive ne contient pas de préférences, on garde celles en local.");
           }
         }
       }
 
-      debugPrint("✅ Restauration terminée.");
+      //debugPrint("✅ Restauration terminée.");
     } catch (e) {
-      debugPrint("❌ Erreur lors de la restauration : $e");
+      //debugPrint("❌ Erreur lors de la restauration : $e");
     }
   }
 
@@ -434,7 +434,7 @@ class GoogleDriveService {
   }
 
   Future<void> _storeMergedPreferences(Map<String, dynamic> mergedPreferences) async {
-    debugPrint("📦 Sauvegarde des préférences fusionnées dans SharedPreferences...");
+    //debugPrint("📦 Sauvegarde des préférences fusionnées dans SharedPreferences...");
 
     final prefs = await SharedPreferences.getInstance();
 
@@ -465,16 +465,16 @@ class GoogleDriveService {
     // 🔹 Stocker la préférence de conversion en mètres carrés
     await prefs.setBool('convertToSquareMeters', mergedPreferences['convertToSquareMeters'] ?? false);
 
-    debugPrint("✅ Sauvegarde des préférences terminée !");
+    //debugPrint("✅ Sauvegarde des préférences terminée !");
   }
 
   dynamic decodeJsonIfNeeded(dynamic data, String key) {
     if (data is String) {
       try {
-        debugPrint("🔍 Tentative de décodage JSON pour '$key'...");
+        //debugPrint("🔍 Tentative de décodage JSON pour '$key'...");
         return jsonDecode(data); // Décodage de la chaîne en JSON
       } catch (e) {
-        debugPrint("❌ Erreur lors du décodage de '$key' : $e");
+        //debugPrint("❌ Erreur lors du décodage de '$key' : $e");
         return {}; // Retourner un objet vide pour éviter les erreurs
       }
     }
@@ -484,17 +484,17 @@ class GoogleDriveService {
   /// Fusionner les données locales et celles de Google Drive
   Map<String, dynamic> _mergeData(Map<String, dynamic> localData, Map<String, dynamic>? driveData) {
     if (driveData == null) {
-      debugPrint("⚠️ Aucune donnée trouvée sur Google Drive, utilisation des données locales.");
+      //debugPrint("⚠️ Aucune donnée trouvée sur Google Drive, utilisation des données locales.");
       return localData;
     }
 
-    debugPrint("🔄 Fusion des données locales et Drive...");
+    //debugPrint("🔄 Fusion des données locales et Drive...");
 
     Map<String, dynamic> mergedData = Map<String, dynamic>.from(localData);
 
     void mergeBox(String boxKey, String backupKey) {
       if (!driveData.containsKey(backupKey) || driveData[backupKey] == null) {
-        debugPrint("⚠️ Clé '$backupKey' absente ou vide dans Google Drive, rien à fusionner.");
+        //debugPrint("⚠️ Clé '$backupKey' absente ou vide dans Google Drive, rien à fusionner.");
         return;
       }
 
@@ -502,7 +502,7 @@ class GoogleDriveService {
       var driveBoxData = driveData[backupKey];
 
       if (driveBoxData is! Map) {
-        debugPrint("⚠️ Mauvais format pour '$backupKey', conversion en Map vide.");
+        //debugPrint("⚠️ Mauvais format pour '$backupKey', conversion en Map vide.");
         driveBoxData = <String, dynamic>{};
       }
 
@@ -510,16 +510,16 @@ class GoogleDriveService {
 
       driveBoxMap.forEach((key, driveList) {
         if (key == null || key.toString().trim().isEmpty) {
-          debugPrint("⚠️ Ignoré : Clé vide dans '$backupKey'.");
+          //debugPrint("⚠️ Ignoré : Clé vide dans '$backupKey'.");
           return;
         }
 
         // Correction si driveList est un Map au lieu d'une liste
         if (driveList is Map) {
-          debugPrint("⚠️ Correction : '$key' est une Map, on la transforme en Liste.");
+          //debugPrint("⚠️ Correction : '$key' est une Map, on la transforme en Liste.");
           driveList = driveList.entries.map((e) => {'key': e.key, 'value': e.value}).toList();
         } else if (driveList is! List) {
-          debugPrint("⚠️ '$key' a un type inattendu (${driveList.runtimeType}), conversion en liste vide.");
+          //debugPrint("⚠️ '$key' a un type inattendu (${driveList.runtimeType}), conversion en liste vide.");
           driveList = [];
         }
 
@@ -528,7 +528,7 @@ class GoogleDriveService {
 
         // Vérification si mergedData[boxKey][key] est bien une liste
         if (mergedData[boxKey][key] is! List) {
-          debugPrint("⚠️ Correction : '$key' contient un mauvais type dans Hive, conversion en liste vide.");
+          //debugPrint("⚠️ Correction : '$key' contient un mauvais type dans Hive, conversion en liste vide.");
           mergedData[boxKey][key] = [];
         }
 
@@ -561,7 +561,7 @@ class GoogleDriveService {
 
     // 🔹 Fusionner les préférences
     if (driveData.containsKey('preferencesBackup.json')) {
-      debugPrint("🔹 Fusion des préférences...");
+      //debugPrint("🔹 Fusion des préférences...");
       Map<String, dynamic> drivePreferences = Map<String, dynamic>.from(driveData['preferencesBackup.json'] ?? {});
       Map<String, dynamic> localPreferences = Map<String, dynamic>.from(localData['preferences'] ?? {});
 
@@ -579,7 +579,7 @@ class GoogleDriveService {
       _storeMergedPreferences(mergedPreferences);
     }
 
-    debugPrint("✅ Fusion terminée.");
+    //debugPrint("✅ Fusion terminée.");
     return mergedData;
   }
 
@@ -587,7 +587,7 @@ class GoogleDriveService {
   /// Sauvegarde et envoi sur Google Drive
   Future<void> backupToGoogleDrive() async {
     if (_driveApi == null) {
-      debugPrint("❌ Google Drive API non initialisée.");
+      //debugPrint("❌ Google Drive API non initialisée.");
       return;
     }
 
@@ -645,29 +645,29 @@ class GoogleDriveService {
       final media = drive.Media(zipFile.openRead(), await zipFile.length());
       await _driveApi!.files.create(fileToUpload, uploadMedia: media);
 
-      debugPrint("✅ Fichier sauvegardé sur Google Drive.");
+      //debugPrint("✅ Fichier sauvegardé sur Google Drive.");
     } catch (e) {
-      debugPrint("❌ Erreur lors de la sauvegarde sur Google Drive : $e");
+      //debugPrint("❌ Erreur lors de la sauvegarde sur Google Drive : $e");
     }
   }
 
   Future<void> importFromGoogleDrive() async {
     if (_driveApi == null) {
-      debugPrint("❌ Google Drive API non initialisée.");
+      //debugPrint("❌ Google Drive API non initialisée.");
       return;
     }
 
     try {
-      debugPrint("🔽 Recherche du fichier sur Google Drive...");
+      //debugPrint("🔽 Recherche du fichier sur Google Drive...");
       final drive.FileList fileList = await _driveApi!.files.list(spaces: 'appDataFolder');
 
       if (fileList.files == null || fileList.files!.isEmpty) {
-        debugPrint("❌ Aucun fichier trouvé sur Google Drive !");
+        //debugPrint("❌ Aucun fichier trouvé sur Google Drive !");
         return;
       }
 
       final String fileId = fileList.files!.first.id!;
-      debugPrint("📂 Fichier trouvé: ID = $fileId, téléchargement en cours...");
+      //debugPrint("📂 Fichier trouvé: ID = $fileId, téléchargement en cours...");
 
       final drive.Media fileData = await _driveApi!.files.get(fileId, downloadOptions: drive.DownloadOptions.fullMedia) as drive.Media;
       final directory = await getApplicationDocumentsDirectory();
@@ -679,12 +679,12 @@ class GoogleDriveService {
       }
 
       await localFile.writeAsBytes(dataStore);
-      debugPrint("✅ Téléchargement terminé, fichier sauvegardé localement : ${localFile.path}");
+      //debugPrint("✅ Téléchargement terminé, fichier sauvegardé localement : ${localFile.path}");
 
-      debugPrint("📦 Extraction et fusion des données...");
+      //debugPrint("📦 Extraction et fusion des données...");
       await _restoreLocalBackup(localFile.path);
     } catch (e) {
-      debugPrint("❌ Erreur lors du téléchargement depuis Google Drive : $e");
+      //debugPrint("❌ Erreur lors du téléchargement depuis Google Drive : $e");
     }
   }
 }

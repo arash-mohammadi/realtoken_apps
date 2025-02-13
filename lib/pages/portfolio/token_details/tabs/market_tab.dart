@@ -10,6 +10,7 @@ import 'package:realtokens/utils/url_utils.dart';
 Widget buildMarketTab(BuildContext context, Map<String, dynamic> token) {
   final appState = Provider.of<AppState>(context, listen: false);
   final dataManager = Provider.of<DataManager>(context, listen: false);
+  final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
 
   return SingleChildScrollView(
     child: Column(
@@ -117,7 +118,7 @@ Widget buildMarketTab(BuildContext context, Map<String, dynamic> token) {
 
                           // Valeur du token
                           Text(
-                            '${S.of(context).token_value}: ${CurrencyUtils.formatCurrency(dataManager.convert(offer['tokenValue']), dataManager.currencySymbol)}',
+                            '${S.of(context).token_value}: ${currencyUtils.formatCurrency(currencyUtils.convert(offer['tokenValue']), currencyUtils.currencySymbol)}',
                             style: TextStyle(
                               fontSize: 12 + appState.getTextSizeOffset(),
                               color: Colors.grey[600],
@@ -184,5 +185,19 @@ Widget buildMarketTab(BuildContext context, Map<String, dynamic> token) {
 
 // Fonction pour récupérer les offres filtrées
 Future<List<Map<String, dynamic>>> _getFilteredOffers(DataManager dataManager, String tokenUuid) async {
-  return dataManager.yamMarket.where((offer) => offer['token_to_sell'] == tokenUuid.toLowerCase() || offer['token_to_buy'] == tokenUuid.toLowerCase()).toList();
+  print("Nombre d'offres dans yamMarket : ${dataManager.yamMarket.length}");
+  print("UUID du token recherché : $tokenUuid");
+
+  List<Map<String, dynamic>> filteredOffers = dataManager.yamMarket.where(
+    (offer) {
+      bool match = offer['token_to_sell'] == tokenUuid.toLowerCase() || offer['token_to_buy'] == tokenUuid.toLowerCase();
+      if (match) {
+        print("Offre correspondante trouvée : $offer");
+      }
+      return match;
+    },
+  ).toList();
+
+  print("Nombre d'offres après filtrage : ${filteredOffers.length}");
+  return filteredOffers;
 }

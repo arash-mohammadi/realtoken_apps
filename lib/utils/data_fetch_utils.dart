@@ -6,7 +6,7 @@ class DataFetchUtils {
   static Future<void> loadData(BuildContext context) async {
     final dataManager = Provider.of<DataManager>(context, listen: false);
     await dataManager.updateMainInformations();
-    dataManager.updateSecondaryInformations(context);
+    await dataManager.updateSecondaryInformations(context);
     dataManager.fetchRentData(); //f Charger les données de loyer
     dataManager.fetchAndCalculateData(); // Charger les données du portefeuille
     dataManager.fetchPropertyData();

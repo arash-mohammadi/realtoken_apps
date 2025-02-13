@@ -32,11 +32,11 @@ class _PortfolioStats extends State<PortfolioStats> {
 
     SchedulerBinding.instance.addPostFrameCallback((_) async {
       try {
-        debugPrint("Fetching rent data and property data...");
+        //debugPrint("Fetching rent data and property data...");
         DataFetchUtils.loadData(context);
       } catch (e, stacktrace) {
-        debugPrint("Error during initState: $e");
-        debugPrint("Stacktrace: $stacktrace");
+        //debugPrint("Error during initState: $e");
+        //debugPrint("Stacktrace: $stacktrace");
       }
     });
   }
@@ -68,7 +68,7 @@ class _PortfolioStats extends State<PortfolioStats> {
           groupedData[weekKey] = (groupedData[weekKey] ?? 0) + entry['rent'];
         } catch (e) {
           // En cas d'erreur de parsing de date ou autre, vous pouvez ignorer cette entrée ou la traiter différemment
-          debugPrint("❌ Erreur lors de la conversion de la date : ${entry['date']}");
+          //debugPrint("❌ Erreur lors de la conversion de la date : ${entry['date']}");
         }
       }
     }
@@ -104,8 +104,8 @@ class _PortfolioStats extends State<PortfolioStats> {
     try {
       dataManager = Provider.of<DataManager>(context);
     } catch (e, stacktrace) {
-      debugPrint("Error accessing DataManager: $e");
-      debugPrint("Stacktrace: $stacktrace");
+      //debugPrint("Error accessing DataManager: $e");
+      //debugPrint("Stacktrace: $stacktrace");
       return Center(child: Text("Error loading data"));
     }
 
@@ -283,7 +283,7 @@ class _PortfolioStats extends State<PortfolioStats> {
   Widget _buildCenterText(DataManager dataManager, int? selectedIndex) {
     final Map<String, double> groupedData = _groupRentDataBySelectedFilter(dataManager);
     final totalRent = groupedData.values.fold(0.0, (sum, value) => sum + value);
-
+    final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
     if (selectedIndex == null) {
       // Afficher la valeur totale si aucun segment n'est sélectionné
       return Column(
@@ -297,7 +297,7 @@ class _PortfolioStats extends State<PortfolioStats> {
             ),
           ),
           Text(
-            CurrencyUtils.getFormattedAmount(dataManager.convert(totalRent), dataManager.currencySymbol, true),
+            currencyUtils.getFormattedAmount(currencyUtils.convert(totalRent), currencyUtils.currencySymbol, true),
             style: TextStyle(
               fontSize: 14 + Provider.of<AppState>(context).getTextSizeOffset(),
               color: Colors.grey,
@@ -323,7 +323,7 @@ class _PortfolioStats extends State<PortfolioStats> {
           ),
         ),
         Text(
-          CurrencyUtils.getFormattedAmount(dataManager.convert(selectedEntry.value), dataManager.currencySymbol, true),
+          currencyUtils.getFormattedAmount(currencyUtils.convert(selectedEntry.value), currencyUtils.currencySymbol, true),
           style: TextStyle(
             fontSize: 14 + Provider.of<AppState>(context).getTextSizeOffset(),
             color: Colors.grey,

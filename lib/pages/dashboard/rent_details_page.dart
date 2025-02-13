@@ -10,6 +10,7 @@ class DashboardRentsDetailsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dataManager = Provider.of<DataManager>(context);
+    final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
 
     return Scaffold(
       appBar: AppBar(
@@ -58,7 +59,7 @@ class DashboardRentsDetailsPage extends StatelessWidget {
                       itemBuilder: (context, index) {
                         final rentEntry = dataManager.rentData[index];
                         final rentDate = CustomDateUtils.formatDate(rentEntry['date']);
-                        final rentAmount = CurrencyUtils.formatCurrency(dataManager.convert(rentEntry['rent']), dataManager.currencySymbol);
+                        final rentAmount = currencyUtils.formatCurrency(currencyUtils.convert(rentEntry['rent']), currencyUtils.currencySymbol);
 
                         return Padding(
                           padding: const EdgeInsets.symmetric(vertical: 8.0), // Padding pour chaque ligne

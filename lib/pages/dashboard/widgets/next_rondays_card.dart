@@ -28,6 +28,8 @@ class NextRondaysCard extends StatelessWidget {
   }
 
   Widget _buildCumulativeRentList(BuildContext context, dataManager) {
+    final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
+
     final cumulativeRentEvolution = dataManager.getCumulativeRentEvolution();
     DateTime today = DateTime.now();
     final appState = Provider.of<AppState>(context);
@@ -62,7 +64,7 @@ class NextRondaysCard extends StatelessWidget {
               return Padding(
                 padding: const EdgeInsets.symmetric(vertical: 0),
                 child: Text(
-                  '$displayDate: ${CurrencyUtils.getFormattedAmount(dataManager.convert(entry['cumulativeRent']), dataManager.currencySymbol, showAmounts)}',
+                  '$displayDate: ${currencyUtils.getFormattedAmount(currencyUtils.convert(entry['cumulativeRent']), currencyUtils.currencySymbol, showAmounts)}',
                   style: TextStyle(fontSize: 13 + appState.getTextSizeOffset(), color: Theme.of(context).textTheme.bodyMedium?.color),
                 ),
               );

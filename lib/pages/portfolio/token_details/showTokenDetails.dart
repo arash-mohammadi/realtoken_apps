@@ -102,6 +102,7 @@ void _openMapModal(BuildContext context, dynamic lat, dynamic lng) {
 
 Future<void> showTokenDetails(BuildContext context, Map<String, dynamic> token) async {
   final dataManager = Provider.of<DataManager>(context, listen: false);
+  final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
   final prefs = await SharedPreferences.getInstance();
   bool convertToSquareMeters = prefs.getBool('convertToSquareMeters') ?? false;
   final appState = Provider.of<AppState>(context, listen: false);
@@ -179,7 +180,7 @@ Future<void> showTokenDetails(BuildContext context, Map<String, dynamic> token) 
                             ),
                             const SizedBox(width: 8),
                             Text(
-                              CurrencyUtils.formatCurrency(dataManager.convert(token['totalValue']), dataManager.currencySymbol),
+                              currencyUtils.formatCurrency(currencyUtils.convert(token['totalValue']), currencyUtils.currencySymbol),
                               style: TextStyle(
                                 fontWeight: FontWeight.normal,
                                 color: Colors.grey,

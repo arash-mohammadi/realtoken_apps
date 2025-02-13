@@ -49,8 +49,8 @@ class _WalletStats extends State<WalletStats> {
         DataFetchUtils.loadData(context);
         dataManager.fetchPropertyData();
       } catch (e, stacktrace) {
-        debugPrint("Error during initState: $e");
-        debugPrint("Stacktrace: $stacktrace");
+        //debugPrint("Error during initState: $e");
+        //debugPrint("Stacktrace: $stacktrace");
       }
     });
   }
@@ -204,7 +204,7 @@ class _WalletStats extends State<WalletStats> {
           groupedData[weekKey] = (groupedData[weekKey] ?? 0) + entry['rent'];
         } catch (e) {
           // En cas d'erreur de parsing de date ou autre, vous pouvez ignorer cette entrée ou la traiter différemment
-          debugPrint("❌ Erreur lors de la conversion de la date : ${entry['date']}");
+          //debugPrint("❌ Erreur lors de la conversion de la date : ${entry['date']}");
         }
       }
     }

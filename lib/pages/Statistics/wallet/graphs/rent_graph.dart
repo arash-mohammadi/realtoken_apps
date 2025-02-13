@@ -7,6 +7,7 @@ import 'package:realtokens/managers/data_manager.dart';
 import 'package:realtokens/generated/l10n.dart';
 import 'package:realtokens/app_state.dart';
 import 'package:realtokens/utils/chart_utils.dart';
+import 'package:realtokens/utils/currency_utils.dart';
 import 'package:realtokens/utils/date_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -50,12 +51,13 @@ class _RentGraphState extends State<RentGraph> {
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
+    final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
 
     DataManager? dataManager;
     try {
       dataManager = Provider.of<DataManager>(context);
     } catch (e) {
-      debugPrint("Error accessing DataManager: $e");
+      //debugPrint("Error accessing DataManager: $e");
       return Center(child: Text("DataManager is unavailable"));
     }
     const int maxPoints = 1000;
@@ -65,7 +67,7 @@ class _RentGraphState extends State<RentGraph> {
     List<Map<String, dynamic>> limitedData = groupedData.length > maxPoints ? groupedData.sublist(0, maxPoints) : groupedData;
 
     List<Map<String, dynamic>> convertedData = limitedData.map((entry) {
-      double convertedRent = dataManager!.convert(entry['rent'] ?? 0.0);
+      double convertedRent = currencyUtils.convert(entry['rent'] ?? 0.0);
       return {
         'date': entry['date'],
         'rent': convertedRent,
@@ -137,8 +139,8 @@ class _RentGraphState extends State<RentGraph> {
 
                           // Vérifier si la valeur dépasse 1000 et formater en "1.0k" si nécessaire
                           final displayValue = value >= 1000
-                              ? '${(value / 1000).toStringAsFixed(1)} k${dataManager!.currencySymbol}' // Formater en "1.0k"
-                              : '${value.toStringAsFixed(0)}${dataManager!.currencySymbol}'; // Limiter à 1 chiffre après la virgule
+                              ? '${(value / 1000).toStringAsFixed(1)} k${currencyUtils.currencySymbol}' // Formater en "1.0k"
+                              : '${value.toStringAsFixed(0)}${currencyUtils.currencySymbol}'; // Limiter à 1 chiffre après la virgule
 
                           return Transform.rotate(
                             angle: -0.5,
@@ -244,7 +246,7 @@ class _RentGraphState extends State<RentGraph> {
           groupedData[weekKey] = (groupedData[weekKey] ?? 0) + entry['rent'];
         } catch (e) {
           // En cas d'erreur de parsing de date ou autre, vous pouvez ignorer cette entrée ou la traiter différemment
-          debugPrint("❌ Erreur lors de la conversion de la date : ${entry['date']}");
+          //debugPrint("❌ Erreur lors de la conversion de la date : ${entry['date']}");
         }
       }
     }

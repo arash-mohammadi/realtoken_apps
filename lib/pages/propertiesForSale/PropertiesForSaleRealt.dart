@@ -74,6 +74,7 @@ class _PropertiesForSaleRealtState extends State<PropertiesForSaleRealt> {
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
     final dataManager = Provider.of<DataManager>(context);
+    final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
     final propertiesForSale = dataManager.propertiesForSale;
 
     return Scaffold(
@@ -201,7 +202,7 @@ class _PropertiesForSaleRealtState extends State<PropertiesForSaleRealt> {
                                   ),
                                 ),
                                 Text(
-                                  'Price: ${CurrencyUtils.formatCurrency(tokenPrice, dataManager.currencySymbol)} Yield: ${annualPercentageYield.toStringAsFixed(2)}%',
+                                  'Price: ${currencyUtils.formatCurrency(tokenPrice, currencyUtils.currencySymbol)} Yield: ${annualPercentageYield.toStringAsFixed(2)}%',
                                   style: TextStyle(
                                     fontSize: 15 + appState.getTextSizeOffset(),
                                   ),

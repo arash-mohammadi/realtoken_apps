@@ -88,6 +88,7 @@ class RealTokensPageState extends State<RealTokensPage> {
         builder: (context, dataManager, child) {
           final filteredAndSortedTokens = _filterAndSortTokens(dataManager);
           final uniqueCities = _getUniqueCities(dataManager.allTokens);
+          final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
 
           return NestedScrollView(
             headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
@@ -274,8 +275,8 @@ class RealTokensPageState extends State<RealTokensPage> {
                                                 ],
                                               ),
                                               const SizedBox(height: 4),
-                                              Text('Asset price: ${CurrencyUtils.formatCurrency(token['totalInvestment'], dataManager.currencySymbol)}'),
-                                              Text('Token price: ${CurrencyUtils.formatCurrency(token['tokenPrice'], dataManager.currencySymbol)}'),
+                                              Text('Asset price: ${currencyUtils.formatCurrency(token['totalInvestment'], currencyUtils.currencySymbol)}'),
+                                              Text('Token price: ${currencyUtils.formatCurrency(token['tokenPrice'], currencyUtils.currencySymbol)}'),
                                               const SizedBox(height: 8),
                                               Text('Expected Yield: ${token['annualPercentageYield'].toStringAsFixed(2)} %'),
                                             ],

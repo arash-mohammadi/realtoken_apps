@@ -58,6 +58,8 @@ class DashboardPageState extends State<DashboardPage> {
   @override
   Widget build(BuildContext context) {
     final dataManager = Provider.of<DataManager>(context);
+    final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
+
     final appState = Provider.of<AppState>(context);
 
     IconButton visibilityButton = IconButton(
@@ -66,7 +68,7 @@ class DashboardPageState extends State<DashboardPage> {
     );
 
     final lastRentReceived = _getLastRentReceived(dataManager);
-    final totalRentReceived = CurrencyUtils.getFormattedAmount(dataManager.convert(dataManager.getTotalRentReceived()), dataManager.currencySymbol, _showAmounts);
+    final totalRentReceived = currencyUtils.getFormattedAmount(currencyUtils.convert(dataManager.getTotalRentReceived()), currencyUtils.currencySymbol, _showAmounts);
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -233,6 +235,7 @@ class DashboardPageState extends State<DashboardPage> {
   // Récupère la dernière valeur de loyer
   String _getLastRentReceived(DataManager dataManager) {
     final rentData = dataManager.rentData;
+    final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
 
     if (rentData.isEmpty) {
       return S.of(context).noRentReceived;
@@ -242,6 +245,6 @@ class DashboardPageState extends State<DashboardPage> {
     final lastRent = rentData.first['rent'];
 
     // Utiliser _getFormattedAmount pour masquer ou afficher la valeur
-    return CurrencyUtils.getFormattedAmount(dataManager.convert(lastRent), dataManager.currencySymbol, _showAmounts);
+    return currencyUtils.getFormattedAmount(currencyUtils.convert(lastRent), currencyUtils.currencySymbol, _showAmounts);
   }
 }

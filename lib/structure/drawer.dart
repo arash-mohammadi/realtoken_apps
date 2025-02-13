@@ -59,7 +59,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
         }
       }
     } catch (e) {
-      debugPrint('Erreur lors de la récupération des versions : $e');
+      //debugPrint('Erreur lors de la récupération des versions : $e');
     }
   }
 
