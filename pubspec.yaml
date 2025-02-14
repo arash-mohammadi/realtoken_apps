@@ -1,0 +1,108 @@
+name: realtokens
+description: "A community app for RealT"
+# The following line prevents the package from being accidentally published to
+# pub.dev using `flutter pub publish`. This is preferred for private packages.
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+
+version: 1.7.2+41
+
+environment:
+  sdk: ^3.5.3
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  firebase_core: ^2.32.0
+  firebase_analytics: ^10.10.7
+  firebase_crashlytics: ^3.5.7
+  intl: ^0.19.0
+  path_provider: ^2.1.4
+  shared_preferences: ^2.0.11
+  hive: ^2.0.0
+  hive_flutter: ^1.1.0
+  http: ^1.2.2
+  flutter_map: ^7.0.2
+  flutter_map_marker_popup: ^7.0.0
+  flutter_map_marker_cluster: ^1.4.0
+  latlong2: ^0.9.0
+  cached_network_image: ^3.0.0
+  cupertino_icons: ^1.0.8
+  url_launcher: ^6.3.1
+  fl_chart: ^0.69.0
+  flutter_launcher_icons: ^0.14.1
+  provider: ^6.1.2
+  mobile_scanner: ^5.2.3
+  carousel_slider: ^5.0.0
+  flutter_native_splash: ^2.4.1
+  logger: ^2.4.0
+  share_plus: ^10.1.0
+  file_picker: ^8.1.3
+  archive: ^3.6.1
+  flutter_map_tile_caching: ^9.1.3
+  in_app_review: ^2.0.9
+  package_info_plus: ^8.1.1
+  flutter_staggered_grid_view: ^0.7.0
+  onesignal_flutter: ^5.2.7 
+  shimmer: ^3.0.0
+  google_sign_in: ^6.1.5
+  googleapis: ^11.0.0
+  googleapis_auth: ^1.4.1
+  table_calendar: ^3.1.3
+  syncfusion_flutter_gauges: ^28.2.4
+  flutter_dotenv: ^5.0.2
+
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  hive_generator: ^2.0.1
+  build_runner: ^2.0.0
+  flutter_lints: ^5.0.0
+  intl_utils: ^2.8.7
+
+flutter:
+  assets:
+    - env_config.txt
+    - assets/logo.png
+    - assets/logo_community.png
+    - assets/RealT_Logo.png
+    - assets/DAO.png
+    - assets/ethereum.png
+    - assets/gnosis.png
+    - assets/bmc.png
+    - assets/icons/xdai.png
+    - assets/icons/RMM.jpg
+    - assets/icons/YAM.jpg
+    - assets/icons/usdc.png
+    - assets/country/usa.png
+    - assets/country/panama.png
+    - assets/country/suisse.png
+
+  uses-material-design: true
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/logo_community.png"
+  remove_alpha_ios: true  
+  web:
+    generate: true
+  
+flutter_intl:
+  enabled: true
+  arb_dir: lib/l10n  # Directory where your .arb files are stored
+  output_dir: lib/generated  # Directory for the generated localization file
+
+flutter_native_splash:
+  color: "#ffffff"
+  color_dark: "#121212"
+  image: assets/logo_community.png
+  android: true
+  web: true
+  android_gravity: center
+  ios: true
+  android_12:
+    icon_background_color: "#ffffff" # Arrière-plan de l'icône pour Android 12+
+  ios_content_mode: center

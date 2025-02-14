@@ -1,0 +1,90 @@
+import 'package:realtokens/utils/currency_utils.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:realtokens/managers/data_manager.dart';
+import 'package:realtokens/utils/date_utils.dart';
+
+class DashboardRentsDetailsPage extends StatelessWidget {
+  const DashboardRentsDetailsPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final dataManager = Provider.of<DataManager>(context);
+    final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Rents Details'),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        elevation: 0, // Supprime l'ombre par défaut
+        surfaceTintColor: Colors.transparent,
+      ),
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0), // Padding général
+        child: dataManager.rentData.isEmpty
+            ? Center(
+                child: Text(
+                  'No rent data available.',
+                  style: Theme.of(context).textTheme.bodyLarge,
+                ),
+              )
+            : Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Titres des colonnes
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Date',
+                          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                        ),
+                        Text(
+                          'Montant',
+                          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Divider(), // Ligne de séparation entre les titres et les données
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: dataManager.rentData.length,
+                      itemBuilder: (context, index) {
+                        final rentEntry = dataManager.rentData[index];
+                        final rentDate = CustomDateUtils.formatDate(rentEntry['date']);
+                        final rentAmount = currencyUtils.formatCurrency(currencyUtils.convert(rentEntry['rent']), currencyUtils.currencySymbol);
+
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8.0), // Padding pour chaque ligne
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                rentDate,
+                                style: Theme.of(context).textTheme.bodyLarge,
+                              ),
+                              Text(
+                                rentAmount,
+                                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+      ),
+    );
+  }
+}
