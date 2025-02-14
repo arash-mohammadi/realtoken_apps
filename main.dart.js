@@ -37377,7 +37377,7 @@ d=!a
 if(d&&h!=null)if(e.dW(A.bW(h)).a<36e8)if(f!=null){q=[]
 s=1
 break}s=3
-return A.l(A.r6(A.dr("https://api.pitsbi.io/api/last_get_realTokens",0,null)),$async$V9)
+return A.l(A.r6(A.dr("https://api.pitsbi.io/api/last_get_realTokens_mobileapps",0,null)),$async$V9)
 case 3:p=c
 s=p.b===200?4:6
 break
@@ -37414,7 +37414,7 @@ d=new A.aN(Date.now(),0,!1)
 if(!a&&g!=null)if(d.dW(A.bW(g)).a<36e8)if(e!=null){q=[]
 s=1
 break}s=3
-return A.l(A.r6(A.dr("https://api.pitsbi.io/api/last_update_yam_offers",0,null)),$async$Vd)
+return A.l(A.r6(A.dr("https://api.pitsbi.io/api/last_update_yam_offers__mobileapps",0,null)),$async$Vd)
 case 3:p=c
 s=p.b===200?4:6
 break
@@ -37424,7 +37424,7 @@ if(f!=null&&e!=null){m=A.bW(f)
 if(m.a===n.a&&m.b===n.b){q=[]
 s=1
 break}}s=7
-return A.l(A.r6(A.dr("https://api.pitsbi.io/api/get_yam_offers",0,null)),$async$Vd)
+return A.l(A.r6(A.dr("https://api.pitsbi.io/api/get_yam_offers_mobileapps",0,null)),$async$Vd)
 case 7:l=c
 if(l.b===200){k=B.y.bV(0,A.h9(A.h7(l.e).c.a.h(0,"charset")).bV(0,l.w))
 j=h.$ti.c
