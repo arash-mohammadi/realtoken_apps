@@ -1,7 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:realtokens/generated/l10n.dart'; // Import pour les traductions
-import 'package:realtokens/app_state.dart'; // Importer AppState
 
 class CustomBottomNavigationBar extends StatelessWidget {
   final int selectedIndex;
@@ -10,42 +7,25 @@ class CustomBottomNavigationBar extends StatelessWidget {
   const CustomBottomNavigationBar({
     required this.selectedIndex,
     required this.onItemTapped,
-    super.key,
-  });
+    Key? key,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final appState = Provider.of<AppState>(context); // Récupérer AppState
-    final double textSizeOffset = appState.getTextSizeOffset(); // Obtenir l'offset de taille de texte
-
     return BottomNavigationBar(
-      items: <BottomNavigationBarItem>[
-        BottomNavigationBarItem(
-          icon: Icon(Icons.dashboard, size: 24.0 + textSizeOffset), // Ajuster la taille de l'icône
-          label: S.of(context).dashboard, // Traduction pour "Dashboard"
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.account_balance_wallet, size: 24.0 + textSizeOffset), // Ajuster la taille de l'icône
-          label: S.of(context).portfolio, // Traduction pour "Portfolio"
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.bar_chart, size: 24.0 + textSizeOffset), // Ajuster la taille de l'icône
-          label: S.of(context).statistics, // Traduction pour "Statistiques"
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.map, size: 24.0 + textSizeOffset), // Ajuster la taille de l'icône
-          label: S.of(context).maps, // Traduction pour "Maps"
-        ),
+      items: const <BottomNavigationBarItem>[
+        BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Dashboard'),
+        BottomNavigationBarItem(icon: Icon(Icons.pie_chart), label: 'Portfolio'),
+        BottomNavigationBarItem(icon: Icon(Icons.bar_chart), label: 'Statistiques'),
+        BottomNavigationBarItem(icon: Icon(Icons.map), label: 'Maps'),
       ],
       currentIndex: selectedIndex,
-      elevation: 0.5,
+      elevation: 0,
       selectedItemColor: Theme.of(context).primaryColor,
       unselectedItemColor: Colors.grey,
       backgroundColor: Colors.transparent,
       type: BottomNavigationBarType.fixed,
       onTap: onItemTapped,
-      selectedLabelStyle: TextStyle(fontSize: 14.0 + textSizeOffset), // Ajuster la taille du texte sélectionné
-      unselectedLabelStyle: TextStyle(fontSize: 12.0 + textSizeOffset), // Ajuster la taille du texte non sélectionné
     );
   }
 }

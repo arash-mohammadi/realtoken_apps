@@ -99,9 +99,10 @@ class AgendaCalendarState extends State<AgendaCalendar> {
                 _focusedDay = focusedDay;
               });
             },
+            rowHeight: 40,
             startingDayOfWeek: StartingDayOfWeek.monday,
             calendarStyle: CalendarStyle(
-              markersMaxCount: 2,
+              markersMaxCount: 3,
               markerDecoration: BoxDecoration(
                 shape: BoxShape.circle,
               ),
@@ -177,13 +178,13 @@ class AgendaCalendarState extends State<AgendaCalendar> {
                                               ? Colors.orange
                                               : Colors.green,
                                 ),
-                                title: Text(fullName),
+                                title: Text(fullName, style: TextStyle(fontSize: 13 + appState.getTextSizeOffset(), fontWeight: FontWeight.bold)),
                                 subtitle: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start, // Pour aligner le texte à gauche
                                   children: [
-                                    Text("${S.of(context).transactionType}: $transactionType"),
-                                    Text("${S.of(context).quantity}: $amount"),
-                                    Text("${S.of(context).price}: $price"),
+                                    Text("${S.of(context).transactionType}: $transactionType", style: TextStyle(fontSize: 13 + appState.getTextSizeOffset())),
+                                    Text("${S.of(context).quantity}: $amount",style: TextStyle(fontSize: 13 + appState.getTextSizeOffset())),
+                                    Text("${S.of(context).price}: $price", style: TextStyle(fontSize: 13 + appState.getTextSizeOffset())),
                                   ],
                                 ),
                               ))
@@ -191,19 +192,19 @@ class AgendaCalendarState extends State<AgendaCalendar> {
                               color: Theme.of(context).scaffoldBackgroundColor,
                               child: ListTile(
                                 leading: Icon(
-                                  Icons.circle,
+                                  Icons.attach_money,
                                   color: Colors.green,
                                 ),
                                 title: Text(S.of(context).rents,
                                     style: TextStyle(
-                                      fontSize: 14 + appState.getTextSizeOffset(),
+                                      fontSize: 13 + appState.getTextSizeOffset(),
                                       fontWeight: FontWeight.bold,
                                       color: Theme.of(context).textTheme.bodyMedium?.color,
                                     )),
                                 subtitle: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start, // Pour aligner le texte à gauche
                                   children: [
-                                    Text("${S.of(context).amount}: ${currencyUtils.convert(amount)} ${currencyUtils.currencySymbol}"),
+                                    Text("${S.of(context).amount}: ${currencyUtils.convert(amount).toStringAsFixed(2)} ${currencyUtils.currencySymbol}", style: TextStyle(fontSize: 13 + appState.getTextSizeOffset())),
                                   ],
                                 ),
                               ),

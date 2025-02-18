@@ -34,6 +34,8 @@ class DataManager extends ChangeNotifier {
   double totalUsdcBorrowBalance = 0;
   double totalXdaiDepositBalance = 0;
   double totalXdaiBorrowBalance = 0;
+  double gnosisUsdcBalance = 0;
+  double gnosisXdaiBalance = 0;
   int totalRealtTokens = 0;
   double totalRealtInvestment = 0.0;
   double netRealtRentYear = 0.0;
@@ -85,17 +87,16 @@ class DataManager extends ChangeNotifier {
   Map<String, List<Map<String, dynamic>>> transactionsByToken = {};
 
   var customInitPricesBox = Hive.box('CustomInitPrices');
-
   final String rwaTokenAddress = '0x0675e8f4a52ea6c845cb6427af03616a2af42170';
 
   DateTime? lastArchiveTime; // Variable pour stocker le dernier archivage
+  DateTime? _lastUpdated; // Stocker la dernière mise à jour
+  final Duration _updateCooldown = Duration(minutes: 5); // Délai minimal avant la prochaine mise à jour
 
   DataManager() {
     loadCustomInitPrices(); // Charger les prix personnalisés lors de l'initialisation
   }
 
-  DateTime? _lastUpdated; // Stocker la dernière mise à jour
-  final Duration _updateCooldown = Duration(minutes: 5); // Délai minimal avant la prochaine mise à jour
 
   Future<void> updateMainInformations({bool forceFetch = false}) async {
     var box = Hive.box('realTokens'); // Ouvrir la boîte Hive pour le cache
@@ -176,59 +177,70 @@ class DataManager extends ChangeNotifier {
   }
 
   Future<void> updateSecondaryInformations(BuildContext context, {bool forceFetch = false}) async {
-    var box = Hive.box('realTokens'); // Ouvrir la boîte Hive pour le cache
+  var box = Hive.box('realTokens'); // Ouvrir la boîte Hive pour le cache
 
-    // Mise à jour des données YAM Market
-    var yamWalletsTransactionsData = await ApiService.fetchYamWalletsTransactions(forceFetch: forceFetch);
-    if (yamWalletsTransactionsData.isNotEmpty) {
-      debugPrint("✅ Mise à jour des données YAM Wallets Transactions avec de nouvelles valeurs.");
-      box.put('cachedWalletsTransactions', json.encode(yamWalletsTransactionsData));
-      yamWalletsTransactionsFetched = yamWalletsTransactionsData.cast<Map<String, dynamic>>(); // Remplacez par votre variable de stockage
+  // Fonction générique pour fetch + cache
+  Future<void> fetchData({
+    required Future<List<dynamic>> Function() apiCall,
+    required String cacheKey,
+    required void Function(List<Map<String, dynamic>>) updateVariable,
+    required String debugName,
+  }) async {
+    try {
+      var data = await apiCall();
+      if (data.isNotEmpty) {
+        debugPrint("✅ Mise à jour des données $debugName.");
+        box.put(cacheKey, json.encode(data));
+        updateVariable(List<Map<String, dynamic>>.from(data));
+      } else {
+        debugPrint("⚠️ Pas de nouvelles données $debugName, chargement du cache...");
+        var cachedData = box.get(cacheKey);
+        if (cachedData != null) {
+          updateVariable(List<Map<String, dynamic>>.from(json.decode(cachedData)));
+        }
+      }
       notifyListeners();
-    } else {
-      debugPrint("Les données YAM Wallets Transactions sont vides, pas de mise à jour.");
+    } catch (e) {
+      debugPrint("❌ Erreur lors de la mise à jour $debugName : $e");
     }
-
-    // Mise à jour des données YAM Market
-    var yamMarketData = await ApiService.fetchYamMarket(forceFetch: forceFetch);
-    if (yamMarketData.isNotEmpty) {
-      debugPrint("✅ Mise à jour des données YAM Market avec de nouvelles valeurs.");
-      box.put('cachedYamMarket', json.encode(yamMarketData));
-      yamMarketFetched = yamMarketData.cast<Map<String, dynamic>>(); // Remplacez par votre variable de stockage
-      notifyListeners();
-    } else {
-      debugPrint("Les données YAM Market sont vides, pas de mise à jour.");
-    }
-
-    // Mise à jour des Yam Volumes History
-    var yamHistoryData = await ApiService.fetchTokenVolumes(forceFetch: forceFetch);
-    if (yamHistoryData.isNotEmpty) {
-      debugPrint("✅ Mise à jour de l'historiques YAM avec de nouvelles valeurs.");
-
-      // Sauvegarder les balances dans Hive
-      box.put('yamHistory', json.encode(yamHistoryData));
-      rmmBalances = yamHistoryData.cast<Map<String, dynamic>>();
-      fetchYamHistory();
-      notifyListeners(); // Notifier les listeners après la mise à jour
-    } else {
-      debugPrint("Les RMM Balances sont vides, pas de mise à jour.");
-    }
-
-    // Mise à jour des transactions History
-    var transactionsHistoryData = await ApiService.fetchTransactionsHistory(portfolio: portfolio, forceFetch: forceFetch);
-    if (transactionsHistoryData.isNotEmpty) {
-      debugPrint("✅ Mise à jour de l'historique des transactions avec de nouvelles valeurs.");
-
-      // Sauvegarder les balances dans Hive
-      box.put('transactionsHistory', json.encode(transactionsHistoryData));
-      transactionsHistory = transactionsHistoryData.cast<Map<String, dynamic>>();
-      await processTransactionsHistory(context, transactionsHistory, yamWalletsTransactionsFetched);
-      notifyListeners(); // Notifier les listeners après la mise à jour
-    } else {
-      debugPrint("L'historique des transactions est vide, pas de mise à jour.");
-    }
-    isLoadingSecondary = false;
   }
+
+  // Exécution des mises à jour en parallèle
+  await Future.wait([
+    fetchData(
+      apiCall: () => ApiService.fetchYamWalletsTransactions(forceFetch: forceFetch),
+      cacheKey: 'cachedWalletsTransactions',
+      updateVariable: (data) => yamWalletsTransactionsFetched = data,
+      debugName: "YAM Wallets Transactions"
+    ),
+    fetchData(
+      apiCall: () => ApiService.fetchYamMarket(forceFetch: forceFetch),
+      cacheKey: 'cachedYamMarket',
+      updateVariable: (data) => yamMarketFetched = data,
+      debugName: "YAM Market"
+    ),
+    fetchData(
+      apiCall: () => ApiService.fetchTokenVolumes(forceFetch: forceFetch),
+      cacheKey: 'yamHistory',
+      updateVariable: (data) {
+        rmmBalances = data;
+        fetchYamHistory();
+      },
+      debugName: "YAM Volumes History"
+    ),
+    fetchData(
+      apiCall: () => ApiService.fetchTransactionsHistory(portfolio: portfolio, forceFetch: forceFetch),
+      cacheKey: 'transactionsHistory',
+      updateVariable: (data) async {
+        transactionsHistory = data;
+        await processTransactionsHistory(context, transactionsHistory, yamWalletsTransactionsFetched);
+      },
+      debugName: "Transactions History"
+    ),
+  ]);
+
+  isLoadingSecondary = false;
+}
 
   Future<void> loadWalletBalanceHistory() async {
     try {
@@ -1034,7 +1046,6 @@ class DataManager extends ChangeNotifier {
   }
 
   // Méthode pour extraire les mises à jour récentes sur les 30 derniers jours
-
   List<Map<String, dynamic>> _extractRecentUpdates(List<dynamic> realTokensRaw) {
     final List<Map<String, dynamic>> realTokens = realTokensRaw.cast<Map<String, dynamic>>();
     List<Map<String, dynamic>> recentUpdates = [];
@@ -1318,6 +1329,9 @@ class DataManager extends ChangeNotifier {
       double usdcBorrowSum = 0;
       double xdaiDepositSum = 0;
       double xdaiBorrowSum = 0;
+      double gnosisUsdcSum = 0;
+      double gnosisXdaiSum = 0;
+
       String? timestamp;
 
       // Cumuler les balances de tous les wallets pour chaque type de token
@@ -1326,6 +1340,8 @@ class DataManager extends ChangeNotifier {
         usdcBorrowSum += balance['usdcBorrowBalance'];
         xdaiDepositSum += balance['xdaiDepositBalance'];
         xdaiBorrowSum += balance['xdaiBorrowBalance'];
+        gnosisUsdcSum += balance['gnosisUsdcBalance'];
+        gnosisXdaiSum += balance['gnosisXdaiBalance'];
         timestamp = balance['timestamp']; // Dernier timestamp
       }
 
@@ -1345,6 +1361,8 @@ class DataManager extends ChangeNotifier {
       totalUsdcBorrowBalance = usdcBorrowSum;
       totalXdaiDepositBalance = xdaiDepositSum;
       totalXdaiBorrowBalance = xdaiBorrowSum;
+      gnosisXdaiBalance = gnosisXdaiSum;
+      gnosisUsdcBalance = gnosisUsdcSum;
 
       notifyListeners(); // Notifier l'interface que les données ont été mises à jour
 

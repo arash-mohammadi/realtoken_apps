@@ -1,13 +1,18 @@
+// rmm_stats.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:intl/intl.dart'; // Add this import
+import 'package:intl/intl.dart';
 import 'package:realtokens/generated/l10n.dart';
 import 'package:realtokens/managers/data_manager.dart';
 import 'package:realtokens/app_state.dart';
 import 'package:realtokens/models/balance_record.dart';
 import 'package:realtokens/utils/chart_utils.dart';
 import 'package:realtokens/utils/currency_utils.dart';
+
+// Importation des widgets graphiques
+import 'deposit_chart.dart';
+import 'borrow_chart.dart';
 
 class RmmStats extends StatefulWidget {
   const RmmStats({super.key});
@@ -17,34 +22,44 @@ class RmmStats extends StatefulWidget {
 }
 
 class RmmStatsState extends State<RmmStats> {
-  String selectedDepositPeriod = 'hour'; // Période pour la carte des dépôts
-  String selectedBorrowPeriod = 'hour'; // Période pour la carte des emprunts
+  String selectedDepositPeriod = '';
+  String selectedBorrowPeriod = '';
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Si aucune valeur n'est encore définie, on affecte la valeur par défaut.
+    if (selectedDepositPeriod.isEmpty) {
+      selectedDepositPeriod = S.of(context).week; // Valeur par défaut pour "Day"
+    }
+    if (selectedBorrowPeriod.isEmpty) {
+      selectedBorrowPeriod = S.of(context).week; // Valeur par défaut pour "Week"
+    }
+  }
   @override
   Widget build(BuildContext context) {
     final dataManager = Provider.of<DataManager>(context);
     final screenWidth = MediaQuery.of(context).size.width;
-    final double fixedCardHeight = 380; // Hauteur fixe pour toutes les cartes
+    final double fixedCardHeight = 380;
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: CustomScrollView(
         slivers: [
-          // Carte APY en pleine largeur en haut
+          // Carte APY
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.all(8.0),
               child: _buildApyCard(dataManager, screenWidth),
             ),
           ),
-
-          // Grille des autres cartes
+          // Grille des cartes de dépôts et emprunts
           SliverPadding(
             padding: const EdgeInsets.only(top: 8, left: 8, right: 8, bottom: 80),
             sliver: SliverGrid(
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: screenWidth > 700 ? 2 : 1,
-                mainAxisExtent: fixedCardHeight, // Hauteur fixe pour chaque carte
+                mainAxisExtent: fixedCardHeight,
               ),
               delegate: SliverChildBuilderDelegate(
                 (BuildContext context, int index) {
@@ -57,7 +72,7 @@ class RmmStatsState extends State<RmmStats> {
                       return Container();
                   }
                 },
-                childCount: 2, // Nombre total de cartes dans la grille
+                childCount: 2,
               ),
             ),
           ),
@@ -66,7 +81,6 @@ class RmmStatsState extends State<RmmStats> {
     );
   }
 
-  // Fonction pour créer la carte APY en pleine largeur
   Widget _buildApyCard(DataManager dataManager, double screenWidth) {
     return SizedBox(
       height: 180,
@@ -85,18 +99,16 @@ class RmmStatsState extends State<RmmStats> {
                     onTap: () {
                       showDialog(
                         context: context,
-                        builder: (BuildContext context) {
+                        builder: (context) {
                           return AlertDialog(
                             title: const Text('Explication APY Moyen'),
                             content: const Text(
                               'L’APY moyen est calculé en moyenne sur les variations de balance entre plusieurs paires de données. '
                               'Les valeurs avec des variations anormales (dépôts ou retraits) sont écartées.',
                             ),
-                            actions: <Widget>[
+                            actions: [
                               TextButton(
-                                onPressed: () {
-                                  Navigator.of(context).pop();
-                                },
+                                onPressed: () => Navigator.of(context).pop(),
                                 child: const Text('OK'),
                               ),
                             ],
@@ -126,9 +138,9 @@ class RmmStatsState extends State<RmmStats> {
     );
   }
 
-  Widget _buildDepositBalanceCard(DataManager dataManager, double screenHeight) {
+  Widget _buildDepositBalanceCard(DataManager dataManager, double cardHeight) {
     return SizedBox(
-      height: screenHeight,
+      height: cardHeight,
       child: Card(
         elevation: 0.5,
         color: Theme.of(context).cardColor,
@@ -164,7 +176,10 @@ class RmmStatsState extends State<RmmStats> {
                       return const Text('Pas de données disponibles.');
                     } else {
                       final allHistories = snapshot.data!;
-                      return LineChart(_buildDepositChart(allHistories, selectedDepositPeriod));
+                      return DepositChart(
+                        allHistories: allHistories,
+                        selectedPeriod: selectedDepositPeriod,
+                      );
                     }
                   },
                 ),
@@ -176,9 +191,9 @@ class RmmStatsState extends State<RmmStats> {
     );
   }
 
-  Widget _buildBorrowBalanceCard(DataManager dataManager, double screenHeight) {
+  Widget _buildBorrowBalanceCard(DataManager dataManager, double cardHeight) {
     return SizedBox(
-      height: screenHeight,
+      height: cardHeight,
       child: Card(
         elevation: 0.5,
         color: Theme.of(context).cardColor,
@@ -214,7 +229,10 @@ class RmmStatsState extends State<RmmStats> {
                       return const Text('Pas de données disponibles.');
                     } else {
                       final allHistories = snapshot.data!;
-                      return LineChart(_buildBorrowChart(allHistories, selectedBorrowPeriod));
+                      return BorrowChart(
+                        allHistories: allHistories,
+                        selectedPeriod: selectedBorrowPeriod,
+                      );
                     }
                   },
                 ),
@@ -226,240 +244,11 @@ class RmmStatsState extends State<RmmStats> {
     );
   }
 
-  LineChartData _buildDepositChart(Map<String, List<BalanceRecord>> allHistories, String selectedPeriod) {
-    final appState = Provider.of<AppState>(context);
-    final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
-
-    final maxY = _getMaxY(allHistories, ['usdcDeposit', 'xdaiDeposit']);
-    final maxX = allHistories.values.expand((e) => e).map((e) => e.timestamp.millisecondsSinceEpoch.toDouble()).reduce((a, b) => a > b ? a : b);
-    final minX = allHistories.values.expand((e) => e).map((e) => e.timestamp.millisecondsSinceEpoch.toDouble()).reduce((a, b) => a < b ? a : b);
-
-    return LineChartData(
-      gridData: FlGridData(show: true, drawVerticalLine: false),
-      titlesData: FlTitlesData(
-        bottomTitles: AxisTitles(
-          sideTitles: SideTitles(
-            showTitles: true,
-            getTitlesWidget: (value, meta) {
-              final date = DateTime.fromMillisecondsSinceEpoch(value.toInt());
-              String formattedDate;
-              switch (selectedPeriod) {
-                case 'hour':
-                  formattedDate = DateFormat('HH:mm').format(date);
-                  break;
-                case 'day':
-                  formattedDate = DateFormat('dd/MM').format(date);
-                  break;
-                case 'week':
-                  formattedDate = 'W${DateFormat('w').format(date)}';
-                  break;
-                case 'month':
-                  formattedDate = DateFormat('MM/yyyy').format(date);
-                  break;
-                case 'year':
-                  formattedDate = DateFormat('yyyy').format(date);
-                  break;
-                default:
-                  formattedDate = DateFormat('dd/MM').format(date);
-              }
-              return Transform.rotate(
-                angle: -0.5,
-                child: Text(
-                  formattedDate,
-                  style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
-                ),
-              );
-            },
-          ),
-        ),
-        leftTitles: AxisTitles(
-          sideTitles: SideTitles(
-            showTitles: true,
-            reservedSize: 45,
-            getTitlesWidget: (value, meta) {
-              final displayValue =
-                  value >= 1000 ? '${(value / 1000).toStringAsFixed(1)} k${currencyUtils.currencySymbol}' : '${value.toStringAsFixed(2)}${currencyUtils.currencySymbol}';
-
-              return Transform.rotate(
-                angle: -0.5,
-                child: Text(
-                  displayValue,
-                  style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
-                ),
-              );
-            },
-          ),
-        ),
-        rightTitles: AxisTitles(
-          sideTitles: SideTitles(showTitles: false),
-        ),
-        topTitles: AxisTitles(
-          sideTitles: SideTitles(showTitles: false),
-        ),
-      ),
-      borderData: FlBorderData(show: false),
-      minX: minX,
-      maxX: maxX,
-      minY: 0,
-      maxY: maxY,
-      lineBarsData: [
-        _buildLineBarData(allHistories['usdcDeposit']!, Colors.blue, "USDC Deposit"),
-        _buildLineBarData(allHistories['xdaiDeposit']!, Colors.green, "xDai Deposit"),
-      ],
-      lineTouchData: LineTouchData(
-        touchTooltipData: LineTouchTooltipData(
-          getTooltipItems: (List<LineBarSpot> touchedSpots) {
-            if (touchedSpots.isEmpty) return [];
-
-            final timestamp = touchedSpots.first.x.toInt();
-            final date = DateTime.fromMillisecondsSinceEpoch(timestamp);
-            final formattedDate = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
-
-            final tooltipItems = touchedSpots.map((spot) {
-              final barName = spot.bar.color == Colors.blue ? "USDC" : "XDAI";
-              final value = spot.y;
-
-              return LineTooltipItem(
-                '$barName: ${currencyUtils.formatCurrency(currencyUtils.convert(value), currencyUtils.currencySymbol)}',
-                const TextStyle(color: Colors.white),
-              );
-            }).toList();
-
-            if (tooltipItems.isNotEmpty) {
-              tooltipItems[0] = LineTooltipItem(
-                '$formattedDate\n${tooltipItems[0].text}',
-                tooltipItems[0].textStyle,
-              );
-            }
-
-            return tooltipItems;
-          },
-        ),
-        handleBuiltInTouches: true,
-      ),
-    );
-  }
-
-  LineChartData _buildBorrowChart(Map<String, List<BalanceRecord>> allHistories, String selectedPeriod) {
-    final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
-    final appState = Provider.of<AppState>(context);
-
-    final maxY = _getMaxY(allHistories, ['usdcBorrow', 'xdaiBorrow']);
-    final maxX = allHistories.values.expand((e) => e).map((e) => e.timestamp.millisecondsSinceEpoch.toDouble()).reduce((a, b) => a > b ? a : b);
-    final minX = allHistories.values.expand((e) => e).map((e) => e.timestamp.millisecondsSinceEpoch.toDouble()).reduce((a, b) => a < b ? a : b);
-
-    return LineChartData(
-      gridData: FlGridData(show: true, drawVerticalLine: false),
-      titlesData: FlTitlesData(
-        bottomTitles: AxisTitles(
-          sideTitles: SideTitles(
-            showTitles: true,
-            getTitlesWidget: (value, meta) {
-              final date = DateTime.fromMillisecondsSinceEpoch(value.toInt());
-              String formattedDate;
-              switch (selectedPeriod) {
-                case 'hour':
-                  formattedDate = DateFormat('HH:mm').format(date);
-                  break;
-                case 'day':
-                  formattedDate = DateFormat('dd/MM').format(date);
-                  break;
-                case 'week':
-                  formattedDate = 'W${DateFormat('w').format(date)}';
-                  break;
-                case 'month':
-                  formattedDate = DateFormat('MM/yyyy').format(date);
-                  break;
-                case 'year':
-                  formattedDate = DateFormat('yyyy').format(date);
-                  break;
-                default:
-                  formattedDate = DateFormat('dd/MM').format(date);
-              }
-              return Transform.rotate(
-                angle: -0.5,
-                child: Text(
-                  formattedDate,
-                  style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
-                ),
-              );
-            },
-          ),
-        ),
-        leftTitles: AxisTitles(
-          sideTitles: SideTitles(
-            showTitles: true,
-            reservedSize: 45,
-            getTitlesWidget: (value, meta) {
-              final displayValue =
-                  value >= 1000 ? '${(value / 1000).toStringAsFixed(1)} k${currencyUtils.currencySymbol}' : '${value.toStringAsFixed(2)}${currencyUtils.currencySymbol}';
-
-              return Transform.rotate(
-                angle: -0.5,
-                child: Text(
-                  displayValue,
-                  style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
-                ),
-              );
-            },
-          ),
-        ),
-        rightTitles: AxisTitles(
-          sideTitles: SideTitles(showTitles: false),
-        ),
-        topTitles: AxisTitles(
-          sideTitles: SideTitles(showTitles: false),
-        ),
-      ),
-      borderData: FlBorderData(show: false),
-      minX: minX,
-      maxX: maxX,
-      minY: 0,
-      maxY: maxY,
-      lineBarsData: [
-        _buildLineBarData(allHistories['usdcBorrow']!, Colors.orange, "USDC Borrow"),
-        _buildLineBarData(allHistories['xdaiBorrow']!, Colors.red, "xDai Borrow"),
-      ],
-      lineTouchData: LineTouchData(
-        touchTooltipData: LineTouchTooltipData(
-          getTooltipItems: (List<LineBarSpot> touchedSpots) {
-            if (touchedSpots.isEmpty) return [];
-
-            final timestamp = touchedSpots.first.x.toInt();
-            final date = DateTime.fromMillisecondsSinceEpoch(timestamp);
-            final formattedDate = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
-
-            final tooltipItems = touchedSpots.map((spot) {
-              final barName = spot.bar.color == Colors.orange ? "USDC" : "XDAI";
-              final value = spot.y;
-
-              return LineTooltipItem(
-                '$barName: ${currencyUtils.formatCurrency(currencyUtils.convert(value), currencyUtils.currencySymbol)}',
-                const TextStyle(color: Colors.white),
-              );
-            }).toList();
-
-            if (tooltipItems.isNotEmpty) {
-              tooltipItems[0] = LineTooltipItem(
-                '$formattedDate\n${tooltipItems[0].text}',
-                tooltipItems[0].textStyle,
-              );
-            }
-
-            return tooltipItems;
-          },
-        ),
-        handleBuiltInTouches: true,
-      ),
-    );
-  }
-
-  // Fonction pour créer le tableau APY (peut être personnalisée selon les données à afficher)
   Widget _buildApyTable(DataManager dataManager) {
     return Table(
       border: TableBorder(
         horizontalInside: BorderSide(
-          color: Colors.black.withOpacity(0.3), // Couleur du fond grisé
+          color: Colors.black.withOpacity(0.3),
           width: 1,
         ),
       ),
@@ -533,42 +322,8 @@ class RmmStatsState extends State<RmmStats> {
     );
   }
 
-  // Fonction pour calculer un intervalle adapté à l'axe vertical gauche
-  double _getMaxY(Map<String, List<BalanceRecord>> allHistories, List<String> types) {
-    double maxY = types.expand((type) => allHistories[type] ?? []).map((record) => record.balance).reduce((a, b) => a > b ? a : b);
-    return maxY > 0 ? maxY * 1.2 : 10; // Ajouter 20% de marge ou fixer une valeur par défaut si tout est à 0
-  }
-
-  // Fonction pour créer une ligne pour un type de token spécifique
-  LineChartBarData _buildLineBarData(List<BalanceRecord> history, Color color, String label) {
-    return LineChartBarData(
-      spots: history
-          .map((record) => FlSpot(
-                record.timestamp.millisecondsSinceEpoch.toDouble(),
-                double.parse(record.balance.toStringAsFixed(2)), // Limiter à 2 décimales
-              ))
-          .toList(),
-      isCurved: false,
-      dotData: FlDotData(show: false), // Afficher les points sur chaque valeur
-      barWidth: 2,
-      isStrokeCapRound: false,
-      color: color,
-      belowBarData: BarAreaData(
-        show: true,
-        gradient: LinearGradient(
-          colors: [
-            color.withOpacity(0.2),
-            color.withOpacity(0),
-          ],
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-        ),
-      ),
-    );
-  }
-
-  // Fonction pour récupérer et agréger les historiques des balances pour tous les types de tokens
-  Future<Map<String, List<BalanceRecord>>> _fetchAndAggregateBalanceHistories(DataManager dataManager, String selectedPeriod) async {
+  Future<Map<String, List<BalanceRecord>>> _fetchAndAggregateBalanceHistories(
+      DataManager dataManager, String selectedPeriod) async {
     Map<String, List<BalanceRecord>> allHistories = {};
 
     allHistories['usdcDeposit'] = await dataManager.getBalanceHistory('usdcDeposit');
@@ -583,76 +338,58 @@ class RmmStatsState extends State<RmmStats> {
     return allHistories;
   }
 
-  // Fonction pour regrouper les données par période (heure, jour, semaine) et calculer la moyenne
-  Future<List<BalanceRecord>> _aggregateByPeriod(List<BalanceRecord> records, String period) async {
-    Map<DateTime, List<double>> groupedByPeriod = {};
+Future<List<BalanceRecord>> _aggregateByPeriod(List<BalanceRecord> records, String period) async {
+  Map<DateTime, List<double>> groupedByPeriod = {};
 
-    for (var record in records) {
-      DateTime truncatedToPeriod;
+  for (var record in records) {
+    DateTime truncatedToPeriod;
 
-      switch (period) {
-        case 'hour':
-          truncatedToPeriod = DateTime(
-            record.timestamp.year,
-            record.timestamp.month,
-            record.timestamp.day,
-            record.timestamp.hour,
-          );
-          break;
-        case 'day':
-          truncatedToPeriod = DateTime(
-            record.timestamp.year,
-            record.timestamp.month,
-            record.timestamp.day,
-          );
-          break;
-        case 'week':
-          final date = record.timestamp;
-          final startOfWeek = date.subtract(Duration(days: date.weekday - 1));
-          truncatedToPeriod = DateTime(
-            startOfWeek.year,
-            startOfWeek.month,
-            startOfWeek.day,
-          );
-          break;
-        case 'month':
-          truncatedToPeriod = DateTime(
-            record.timestamp.year,
-            record.timestamp.month,
-          );
-          break;
-        case 'year':
-          truncatedToPeriod = DateTime(
-            record.timestamp.year,
-          );
-          break;
-        default:
-          truncatedToPeriod = DateTime(
-            record.timestamp.year,
-            record.timestamp.month,
-            record.timestamp.day,
-            record.timestamp.hour,
-          );
-      }
-
-      if (!groupedByPeriod.containsKey(truncatedToPeriod)) {
-        groupedByPeriod[truncatedToPeriod] = [];
-      }
-      groupedByPeriod[truncatedToPeriod]!.add(record.balance);
+    if (period == S.of(context).day) {
+      truncatedToPeriod = DateTime(
+        record.timestamp.year,
+        record.timestamp.month,
+        record.timestamp.day,
+      );
+    } else if (period == S.of(context).week) {
+      final date = record.timestamp;
+      final startOfWeek = date.subtract(Duration(days: date.weekday - 1));
+      truncatedToPeriod = DateTime(
+        startOfWeek.year,
+        startOfWeek.month,
+        startOfWeek.day,
+      );
+    } else if (period == S.of(context).month) {
+      truncatedToPeriod = DateTime(
+        record.timestamp.year,
+        record.timestamp.month,
+      );
+    } else if (period == S.of(context).year) {
+      truncatedToPeriod = DateTime(
+        record.timestamp.year,
+      );
+    } else {
+      // Valeur par défaut (ici on considère le jour)
+      truncatedToPeriod = DateTime(
+        record.timestamp.year,
+        record.timestamp.month,
+        record.timestamp.day,
+      );
     }
 
-    List<BalanceRecord> averagedRecords = [];
-    groupedByPeriod.forEach((timestamp, balances) {
-      double averageBalance = balances.reduce((a, b) => a + b) / balances.length;
-      averagedRecords.add(BalanceRecord(
-        tokenType: records.first.tokenType,
-        balance: averageBalance,
-        timestamp: timestamp,
-      ));
-    });
-
-    return averagedRecords;
+    groupedByPeriod.putIfAbsent(truncatedToPeriod, () => []).add(record.balance);
   }
 
-  // Fonction pour créer le sélecteur de période
+  List<BalanceRecord> averagedRecords = [];
+  groupedByPeriod.forEach((timestamp, balances) {
+    double averageBalance = balances.reduce((a, b) => a + b) / balances.length;
+    averagedRecords.add(BalanceRecord(
+      tokenType: records.first.tokenType,
+      balance: averageBalance,
+      timestamp: timestamp,
+    ));
+  });
+
+  return averagedRecords;
+}
+
 }
