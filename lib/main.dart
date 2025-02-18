@@ -1,6 +1,5 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:realtokens/services/google_drive_service.dart';
@@ -43,13 +42,6 @@ void main() async {
     debugPrint("📌 Stacktrace : $stacktrace");
   }
 
-  final GoogleSignIn googleSignIn = GoogleSignIn(
-    clientId: dotenv.env['GOOGLE_CLIENT_ID'] ?? "",
-    scopes: [
-      'email',
-      'https://www.googleapis.com/auth/drive.file',
-    ],
-  );
 
   await Hive.initFlutter();
 
