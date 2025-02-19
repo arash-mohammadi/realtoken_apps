@@ -107,7 +107,11 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
     dataManager = Provider.of<DataManager>(context, listen: false);
     _checkGoogleDriveConnection();
     _autoSyncEnabled = widget.autoSyncEnabled;
+    if (!kIsWeb) {
     initOneSignal();
+  } else {
+    debugPrint("🚫 OneSignal non activé sur le Web.");
+  }
   }
 
   Future<void> _checkGoogleDriveConnection() async {
@@ -118,6 +122,10 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
   }
 
   void initOneSignal() {
+    if (kIsWeb) {
+    debugPrint("🚫 OneSignal désactivé sur le Web");
+    return; // Ne pas exécuter OneSignal sur le Web
+  }
     OneSignal.Debug.setLogLevel(OSLogLevel.verbose);
     OneSignal.Debug.setAlertLevel(OSLogLevel.none);
     OneSignal.consentRequired(_requireConsent);
