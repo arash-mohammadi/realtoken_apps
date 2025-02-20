@@ -1,6 +1,7 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:realtokens/managers/data_manager.dart';
-import 'package:realtokens/pages/portfolio/token_details/showTokenDetails.dart';
+import 'package:realtokens/modals/token_details/showTokenDetails.dart';
 import 'package:realtokens/utils/currency_utils.dart';
 import 'package:realtokens/utils/location_utils.dart';
 import 'package:flutter/material.dart';
@@ -8,7 +9,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:provider/provider.dart'; // Pour accéder à DataManager
 import 'package:realtokens/generated/l10n.dart'; // Import des traductions
 import 'package:realtokens/settings/manage_evm_addresses_page.dart'; // Import de la page de gestion des adresses EVM
-import 'package:realtokens/app_state.dart'; // Import de AppState
+import 'package:realtokens/app_state.dart';
+import 'package:show_network_image/show_network_image.dart'; // Import de AppState
 
 class PortfolioDisplay2 extends StatefulWidget {
   final List<Map<String, dynamic>> portfolio;
@@ -162,7 +164,7 @@ class PortfolioDisplay2State extends State<PortfolioDisplay2> {
                                 Stack(
                                   children: [
                                     AspectRatio(
-                                      aspectRatio: 16 / 9, // Assurer que l'image prend toute la largeur de la carte
+                                      aspectRatio: 16 / 9, // Assure que l'image prend toute la largeur de la carte
                                       child: ClipRRect(
                                         borderRadius: const BorderRadius.only(
                                           topLeft: Radius.circular(12),
@@ -172,15 +174,38 @@ class PortfolioDisplay2State extends State<PortfolioDisplay2> {
                                           colorFilter: isFutureRentStart
                                               ? const ColorFilter.mode(Colors.black45, BlendMode.darken)
                                               : const ColorFilter.mode(Colors.transparent, BlendMode.multiply),
-                                          child: CachedNetworkImage(
-                                            imageUrl: token['imageLink'][0] ?? '',
-                                            fit: BoxFit.cover,
-                                            errorWidget: (context, url, error) => const Icon(Icons.error),
+                                          child: SizedBox(
+                                            child: ClipRRect(
+                                              borderRadius: BorderRadius.circular(12),
+                                              child: kIsWeb
+                                                  ? ShowNetworkImage(
+                                                      imageSrc: token['imageLink'][0],
+                                                      mobileBoxFit: BoxFit.fill,
+                                                    )
+                                                  : CachedNetworkImage(
+                                                      imageUrl: token['imageLink'][0],
+                                                      fit: BoxFit.cover,
+                                                      errorWidget: (context, url, error) => const Icon(Icons.error),
+                                                    ),
+                                            ),
                                           ),
                                         ),
                                       ),
                                     ),
-                                    // Afficher un texte en superposition si 'rent_start' est dans le futur
+
+                                    // ✅ Superposition d'un GestureDetector transparent uniquement sur Web
+                                    if (kIsWeb)
+                                      Positioned.fill(
+                                        child: GestureDetector(
+                                          behavior: HitTestBehavior.translucent, // Capture le clic même sur les parties transparentes
+                                          onTap: () {
+                                            print("✅ Image cliquée sur Web !");
+                                            showTokenDetails(context, token);
+                                          },
+                                        ),
+                                      ),
+
+                                    // ✅ Afficher un texte en superposition si 'rent_start' est dans le futur
                                     if (isFutureRentStart)
                                       Positioned.fill(
                                         child: Center(

@@ -1,5 +1,6 @@
+import 'package:flutter/foundation.dart';
 import 'package:realtokens/managers/data_manager.dart';
-import 'package:realtokens/pages/portfolio/token_details/showTokenDetails.dart';
+import 'package:realtokens/modals/token_details/showTokenDetails.dart';
 import 'package:realtokens/utils/currency_utils.dart';
 import 'package:realtokens/utils/location_utils.dart';
 import 'package:flutter/material.dart';
@@ -9,6 +10,7 @@ import 'package:realtokens/generated/l10n.dart';
 import 'package:realtokens/settings/manage_evm_addresses_page.dart';
 import 'package:realtokens/app_state.dart';
 import 'package:realtokens/utils/ui_utils.dart';
+import 'package:show_network_image/show_network_image.dart';
 
 class PortfolioDisplay1 extends StatelessWidget {
   final List<Map<String, dynamic>> portfolio;
@@ -131,7 +133,7 @@ class PortfolioDisplay1 extends StatelessWidget {
                     onTap: () => showTokenDetails(context, token),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
+                      children: <Widget>[
                         // Image avec la ville et le statut de location
                         ClipRRect(
                           borderRadius: const BorderRadius.only(
@@ -144,16 +146,34 @@ class PortfolioDisplay1 extends StatelessWidget {
                                 colorFilter:
                                     isFutureRentStart ? const ColorFilter.mode(Colors.black45, BlendMode.darken) : const ColorFilter.mode(Colors.transparent, BlendMode.multiply),
                                 child: SizedBox(
-                                  width: 120,
+                                  width: kIsWeb ? 150 : 120,
                                   height: double.infinity,
-                                  child: CachedNetworkImage(
-                                    imageUrl: (token['imageLink'] != null && token['imageLink'].isNotEmpty) ? token['imageLink'][0] : '',
-                                    fit: BoxFit.cover,
-                                    errorWidget: (context, url, error) => const Icon(Icons.error),
-                                  ),
+                                  child: kIsWeb
+                                      ? ShowNetworkImage(
+                                          imageSrc: token['imageLink'][0],
+                                          mobileBoxFit: BoxFit.cover,
+                                        )
+                                      : CachedNetworkImage(
+                                          imageUrl: token['imageLink'][0],
+                                          fit: BoxFit.cover,
+                                          errorWidget: (context, url, error) => const Icon(Icons.error),
+                                        ),
                                 ),
                               ),
-                              // Superposition du texte si 'rent_start' est dans le futur
+
+                              // ✅ Superposition d'un GestureDetector transparent uniquement sur Web
+                              if (kIsWeb)
+                                Positioned.fill(
+                                  child: GestureDetector(
+                                    behavior: HitTestBehavior.translucent, // Capture le clic même sur les parties transparentes
+                                    onTap: () {
+                                      print("✅ Image cliquée sur Web !");
+                                      showTokenDetails(context, token);
+                                    },
+                                  ),
+                                ),
+
+                              // ✅ Superposition du texte si 'rent_start' est dans le futur
                               if (isFutureRentStart)
                                 Positioned.fill(
                                   child: Center(
@@ -161,7 +181,7 @@ class PortfolioDisplay1 extends StatelessWidget {
                                       color: Colors.black54,
                                       padding: const EdgeInsets.all(8.0),
                                       child: Text(
-                                        S.of(context).rentStartFuture, // Texte indiquant que le loyer commence dans le futur
+                                        S.of(context).rentStartFuture,
                                         style: TextStyle(
                                           color: Colors.white,
                                           fontWeight: FontWeight.bold,
@@ -171,91 +191,6 @@ class PortfolioDisplay1 extends StatelessWidget {
                                     ),
                                   ),
                                 ),
-                              // Indicateur isWallet / isRMM en haut à gauche
-                              if (isWallet || isRMM)
-                                Positioned(
-                                  top: 4,
-                                  left: 4,
-                                  child: Row(
-                                    children: [
-                                      if (isWallet)
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 2.0),
-                                          decoration: BoxDecoration(
-                                            color: Colors.grey,
-                                            shape: BoxShape.rectangle,
-                                            borderRadius: BorderRadius.circular(8.0),
-                                          ),
-                                          child: Text(
-                                            S.of(context).wallet,
-                                            style: TextStyle(
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 10 + appState.getTextSizeOffset(),
-                                            ),
-                                          ),
-                                        ),
-                                      const SizedBox(width: 4),
-                                      if (isRMM)
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 2.0),
-                                          decoration: BoxDecoration(
-                                            color: const Color.fromARGB(255, 165, 100, 21),
-                                            shape: BoxShape.rectangle,
-                                            borderRadius: BorderRadius.circular(8.0),
-                                          ),
-                                          child: Text(
-                                            'RMM',
-                                            style: TextStyle(
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 10 + appState.getTextSizeOffset(),
-                                            ),
-                                          ),
-                                        ),
-                                    ],
-                                  ),
-                                ),
-                              Positioned(
-                                bottom: 0,
-                                left: 0,
-                                right: 0,
-                                child: Container(
-                                  padding: const EdgeInsets.all(6),
-                                  color: Colors.black54,
-                                  child: Stack(
-                                    children: [
-                                      Positioned(
-                                        left: 0,
-                                        top: 0,
-                                        bottom: 0,
-                                        child: Container(
-                                          width: 12,
-                                          height: 12,
-                                          decoration: BoxDecoration(
-                                            shape: BoxShape.circle,
-                                            color: UIUtils.getRentalStatusColor(
-                                              token['rentedUnits'] ?? 0,
-                                              token['totalUnits'] ?? 1,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      Center(
-                                        child: Text(
-                                          city,
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 14 + appState.getTextSizeOffset(),
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                          textAlign: TextAlign.center,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
                             ],
                           ),
                         ),

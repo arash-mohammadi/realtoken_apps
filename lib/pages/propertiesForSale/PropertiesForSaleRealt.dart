@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:provider/provider.dart';
@@ -7,6 +8,7 @@ import 'package:realtokens/managers/data_manager.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:realtokens/utils/currency_utils.dart';
 import 'package:realtokens/utils/url_utils.dart';
+import 'package:show_network_image/show_network_image.dart';
 
 class PropertiesForSaleRealt extends StatefulWidget {
   const PropertiesForSaleRealt({super.key});
@@ -132,11 +134,16 @@ class _PropertiesForSaleRealtState extends State<PropertiesForSaleRealt> {
                                     topLeft: Radius.circular(12),
                                     topRight: Radius.circular(12),
                                   ),
-                                  child: CachedNetworkImage(
-                                    imageUrl: imageUrl,
-                                    fit: BoxFit.cover,
-                                    errorWidget: (context, url, error) => const Icon(Icons.error),
-                                  ),
+                                  child: kIsWeb
+                                      ? ShowNetworkImage(
+                                          imageSrc: imageUrl,
+                                          mobileBoxFit: BoxFit.cover,
+                                        )
+                                      : CachedNetworkImage(
+                                          imageUrl: imageUrl,
+                                          fit: BoxFit.cover,
+                                          errorWidget: (context, url, error) => const Icon(Icons.error),
+                                        ),
                                 ),
                               ),
                             ],

@@ -1146,6 +1146,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.0"
+  show_network_image:
+    dependency: "direct main"
+    description:
+      name: show_network_image
+      sha256: "82305adf8ec1758783c549e32a4be1545d09f25ecb6e5bec9858b86021d24cfb"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.2"
   simple_gesture_detector:
     dependency: transitive
     description:

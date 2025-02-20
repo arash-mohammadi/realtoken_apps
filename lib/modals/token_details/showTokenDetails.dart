@@ -1,6 +1,7 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:realtokens/pages/portfolio/token_details/tabs/others_tab.dart';
+import 'package:realtokens/modals/token_details/tabs/others_tab.dart';
 import 'package:realtokens/utils/currency_utils.dart';
 import 'package:realtokens/utils/url_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -10,7 +11,8 @@ import 'package:provider/provider.dart';
 import 'package:realtokens/managers/data_manager.dart';
 import 'package:realtokens/generated/l10n.dart';
 import 'package:carousel_slider/carousel_slider.dart';
-import '../FullScreenCarousel.dart';
+import 'package:show_network_image/show_network_image.dart';
+import '../../pages/portfolio/FullScreenCarousel.dart';
 import 'package:realtokens/app_state.dart';
 
 import 'tabs/property_tab.dart';
@@ -140,10 +142,39 @@ Future<void> showTokenDetails(BuildContext context, Map<String, dynamic> token) 
                             enlargeCenterPage: true,
                           ),
                           items: (token['imageLink'] is String ? [token['imageLink']] : List<String>.from(token['imageLink'])).map<Widget>((imageUrl) {
-                            return CachedNetworkImage(
-                              imageUrl: imageUrl,
-                              width: double.infinity,
-                              fit: BoxFit.cover,
+                            return Stack(
+                              // ✅ Superposition pour capturer le clic uniquement sur Web
+                              children: [
+                                // ✅ Image affichée normalement
+                                kIsWeb
+                                    ? ShowNetworkImage(imageSrc: imageUrl, mobileBoxFit: BoxFit.cover, mobileWidth: double.infinity)
+                                    : CachedNetworkImage(
+                                        imageUrl: imageUrl,
+                                        width: double.infinity,
+                                        fit: BoxFit.cover,
+                                        errorWidget: (context, url, error) => const Icon(Icons.error),
+                                      ),
+
+                                // ✅ Superposition d'un GestureDetector transparent uniquement sur Web
+                                if (kIsWeb)
+                                  Positioned.fill(
+                                    child: GestureDetector(
+                                      behavior: HitTestBehavior.translucent, // Capture le clic même sur les parties transparentes
+                                      onTap: () {
+                                        print("✅ Image cliquée sur Web !");
+                                        final List<String> imageLinks = token['imageLink'] is String ? [token['imageLink']] : List<String>.from(token['imageLink']);
+
+                                        Navigator.of(context).push(
+                                          MaterialPageRoute(
+                                            builder: (_) => FullScreenCarousel(
+                                              imageLinks: imageLinks,
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                              ],
                             );
                           }).toList(),
                         ),

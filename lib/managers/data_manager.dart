@@ -85,6 +85,7 @@ class DataManager extends ChangeNotifier {
   List<Map<String, dynamic>> yamHistory = [];
   List<Map<String, dynamic>> transactionsHistory = [];
   Map<String, List<Map<String, dynamic>>> transactionsByToken = {};
+  List<String> evmAddresses = [];
 
   var customInitPricesBox = Hive.box('CustomInitPrices');
   final String rwaTokenAddress = '0x0675e8f4a52ea6c845cb6427af03616a2af42170';
@@ -97,9 +98,9 @@ class DataManager extends ChangeNotifier {
     loadCustomInitPrices(); // Charger les prix personnalisés lors de l'initialisation
   }
 
-
   Future<void> updateMainInformations({bool forceFetch = false}) async {
     var box = Hive.box('realTokens'); // Ouvrir la boîte Hive pour le cache
+    final prefs = await SharedPreferences.getInstance();
 
     // Vérifier si une mise à jour est nécessaire
     if (!forceFetch && _lastUpdated != null && DateTime.now().difference(_lastUpdated!) < _updateCooldown) {
@@ -110,6 +111,10 @@ class DataManager extends ChangeNotifier {
     _lastUpdated = DateTime.now();
     debugPrint("🔄 Début de la mise à jour des informations principales...");
 
+    // Charger les adresses
+      evmAddresses = prefs.getStringList('evmAddresses') ?? [];
+    
+  
     // Fonction générique pour fetch + cache
     Future<void> fetchData({
       required Future<List<dynamic>> Function() apiCall,
@@ -177,70 +182,66 @@ class DataManager extends ChangeNotifier {
   }
 
   Future<void> updateSecondaryInformations(BuildContext context, {bool forceFetch = false}) async {
-  var box = Hive.box('realTokens'); // Ouvrir la boîte Hive pour le cache
+    var box = Hive.box('realTokens'); // Ouvrir la boîte Hive pour le cache
 
-  // Fonction générique pour fetch + cache
-  Future<void> fetchData({
-    required Future<List<dynamic>> Function() apiCall,
-    required String cacheKey,
-    required void Function(List<Map<String, dynamic>>) updateVariable,
-    required String debugName,
-  }) async {
-    try {
-      var data = await apiCall();
-      if (data.isNotEmpty) {
-        debugPrint("✅ Mise à jour des données $debugName.");
-        box.put(cacheKey, json.encode(data));
-        updateVariable(List<Map<String, dynamic>>.from(data));
-      } else {
-        debugPrint("⚠️ Pas de nouvelles données $debugName, chargement du cache...");
-        var cachedData = box.get(cacheKey);
-        if (cachedData != null) {
-          updateVariable(List<Map<String, dynamic>>.from(json.decode(cachedData)));
+    // Fonction générique pour fetch + cache
+    Future<void> fetchData({
+      required Future<List<dynamic>> Function() apiCall,
+      required String cacheKey,
+      required void Function(List<Map<String, dynamic>>) updateVariable,
+      required String debugName,
+    }) async {
+      try {
+        var data = await apiCall();
+        if (data.isNotEmpty) {
+          debugPrint("✅ Mise à jour des données $debugName.");
+          box.put(cacheKey, json.encode(data));
+          updateVariable(List<Map<String, dynamic>>.from(data));
+        } else {
+          debugPrint("⚠️ Pas de nouvelles données $debugName, chargement du cache...");
+          var cachedData = box.get(cacheKey);
+          if (cachedData != null) {
+            updateVariable(List<Map<String, dynamic>>.from(json.decode(cachedData)));
+          }
         }
+        notifyListeners();
+      } catch (e) {
+        debugPrint("❌ Erreur lors de la mise à jour $debugName : $e");
       }
-      notifyListeners();
-    } catch (e) {
-      debugPrint("❌ Erreur lors de la mise à jour $debugName : $e");
     }
+
+    // Exécution des mises à jour en parallèle
+    await Future.wait([
+      fetchData(
+          apiCall: () => ApiService.fetchYamWalletsTransactions(forceFetch: forceFetch),
+          cacheKey: 'cachedWalletsTransactions',
+          updateVariable: (data) => yamWalletsTransactionsFetched = data,
+          debugName: "YAM Wallets Transactions"),
+      fetchData(
+          apiCall: () => ApiService.fetchYamMarket(forceFetch: forceFetch),
+          cacheKey: 'cachedYamMarket',
+          updateVariable: (data) => yamMarketFetched = data,
+          debugName: "YAM Market"),
+      fetchData(
+          apiCall: () => ApiService.fetchTokenVolumes(forceFetch: forceFetch),
+          cacheKey: 'yamHistory',
+          updateVariable: (data) {
+            rmmBalances = data;
+            fetchYamHistory();
+          },
+          debugName: "YAM Volumes History"),
+      fetchData(
+          apiCall: () => ApiService.fetchTransactionsHistory(portfolio: portfolio, forceFetch: forceFetch),
+          cacheKey: 'transactionsHistory',
+          updateVariable: (data) async {
+            transactionsHistory = data;
+            await processTransactionsHistory(context, transactionsHistory, yamWalletsTransactionsFetched);
+          },
+          debugName: "Transactions History"),
+    ]);
+
+    isLoadingSecondary = false;
   }
-
-  // Exécution des mises à jour en parallèle
-  await Future.wait([
-    fetchData(
-      apiCall: () => ApiService.fetchYamWalletsTransactions(forceFetch: forceFetch),
-      cacheKey: 'cachedWalletsTransactions',
-      updateVariable: (data) => yamWalletsTransactionsFetched = data,
-      debugName: "YAM Wallets Transactions"
-    ),
-    fetchData(
-      apiCall: () => ApiService.fetchYamMarket(forceFetch: forceFetch),
-      cacheKey: 'cachedYamMarket',
-      updateVariable: (data) => yamMarketFetched = data,
-      debugName: "YAM Market"
-    ),
-    fetchData(
-      apiCall: () => ApiService.fetchTokenVolumes(forceFetch: forceFetch),
-      cacheKey: 'yamHistory',
-      updateVariable: (data) {
-        rmmBalances = data;
-        fetchYamHistory();
-      },
-      debugName: "YAM Volumes History"
-    ),
-    fetchData(
-      apiCall: () => ApiService.fetchTransactionsHistory(portfolio: portfolio, forceFetch: forceFetch),
-      cacheKey: 'transactionsHistory',
-      updateVariable: (data) async {
-        transactionsHistory = data;
-        await processTransactionsHistory(context, transactionsHistory, yamWalletsTransactionsFetched);
-      },
-      debugName: "Transactions History"
-    ),
-  ]);
-
-  isLoadingSecondary = false;
-}
 
   Future<void> loadWalletBalanceHistory() async {
     try {
@@ -427,7 +428,7 @@ class DataManager extends ChangeNotifier {
       for (var realToken in realTokens.cast<Map<String, dynamic>>()) {
         // Vérification: Ne pas ajouter si totalTokens est 0 ou si fullName commence par "OLD-"
         // Récupérer la valeur customisée de initPrice si elle existe
-        final tokenContractAddress = realToken['uuid'] ?? ''; // Utiliser l'adresse du contrat du token
+        final tokenContractAddress = realToken['uuid'].toLowerCase() ?? ''; // Utiliser l'adresse du contrat du token
 
         if (realToken['totalTokens'] != null &&
             realToken['totalTokens'] > 0 &&
@@ -446,7 +447,7 @@ class DataManager extends ChangeNotifier {
           String city = parts3.length >= 2 ? parts[1].trim() : 'Unknown';
 
           allTokensList.add({
-            'uuid': tokenContractAddress,
+            'uuid': tokenContractAddress.toLowerCase(),
             'shortName': realToken['shortName'],
             'fullName': realToken['fullName'],
             'country': country,
@@ -651,7 +652,7 @@ class DataManager extends ChangeNotifier {
         uniqueWalletTokens.add(tokenAddress); // Ajouter à l'ensemble des tokens uniques
 
         final matchingRealToken = realTokens.cast<Map<String, dynamic>>().firstWhere(
-              (realToken) => realToken['uuid'].toLowerCase() == tokenAddress,
+              (realToken) => realToken['uuid'].toLowerCase() == tokenAddress.toLowerCase(),
               orElse: () => <String, dynamic>{},
             );
 
@@ -696,7 +697,7 @@ class DataManager extends ChangeNotifier {
             }
           }
           double totalRentReceived = 0.0;
-          final tokenContractAddress = matchingRealToken['uuid'] ?? ''; // Utiliser l'adresse du contrat du token
+          final tokenContractAddress = matchingRealToken['uuid'].toLowerCase() ?? ''; // Utiliser l'adresse du contrat du token
 
           double? customInitPrice = customInitPrices[tokenContractAddress];
           double initPrice = customInitPrice ?? (matchingRealToken['historic']['init_price'] as num?)?.toDouble() ?? 0.0;
@@ -721,7 +722,7 @@ class DataManager extends ChangeNotifier {
           // Ajouter au Portfolio
           newPortfolio.add({
             'id': matchingRealToken['id'],
-            'uuid': tokenContractAddress,
+            'uuid': tokenContractAddress.toLowerCase(),
             'shortName': matchingRealToken['shortName'],
             'fullName': matchingRealToken['fullName'],
             'country': country,
@@ -1143,11 +1144,17 @@ class DataManager extends ChangeNotifier {
     });
   }
 
-  Future<void> processTransactionsHistory(BuildContext context, List<Map<String, dynamic>> transactionsHistory, List<Map<String, dynamic>> yamTransactions) async {
+
+
+Future<void> processTransactionsHistory(BuildContext context, List<Map<String, dynamic>> transactionsHistory, List<Map<String, dynamic>> yamTransactions) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final Set<String> evmAddresses = Set.from(prefs.getStringList('evmAddresses') ?? []);
 
     Map<String, List<Map<String, dynamic>>> tempTransactionsByToken = {};
+
+    debugPrint("📌 Début du traitement des transactions...");
+    debugPrint("📊 Nombre de transactionsHistory: ${transactionsHistory.length}");
+    debugPrint("📊 Nombre de yamTransactions: ${yamTransactions.length}");
 
     for (var transaction in transactionsHistory) {
       final String? tokenId = transaction['token']?['id']?.toLowerCase();
@@ -1157,6 +1164,7 @@ class DataManager extends ChangeNotifier {
       final String? transactionId = transaction['id'];
 
       if (tokenId == null || timestamp == null || amountStr == null || transactionId == null) {
+        debugPrint("⚠️ Transaction ignorée (champ manquant): $transaction");
         continue;
       }
 
@@ -1166,14 +1174,17 @@ class DataManager extends ChangeNotifier {
         final bool isInternalTransfer = evmAddresses.contains(sender);
         String transactionType = isInternalTransfer ? S.of(context).internal_transfer : S.of(context).purchase;
 
+        debugPrint("🔍 Traitement transaction ID: $transactionId, Token: $tokenId, Amount: $amount");
+
+        // Vérifier s'il existe une transaction YAM correspondante
         final matchingYamTransaction = yamTransactions.firstWhere(
           (yamTransaction) {
             final String? yamId = yamTransaction['id'];
             if (yamId == null || yamId.isEmpty) return false;
             final String yamIdTrimmed = yamId.substring(0, yamId.length - 10);
-            final bool containsId = transactionId.startsWith(yamIdTrimmed);
-            // debugPrint("🔎 Comparing YAM ID: $yamIdTrimmed with Transaction ID: $transactionId -> Match: $containsId");
-            return containsId;
+            final bool match = transactionId.startsWith(yamIdTrimmed);
+            debugPrint("🔎 Comparaison YAM ID: $yamIdTrimmed avec Transaction ID: $transactionId -> Match: $match");
+            return match;
           },
           orElse: () => {},
         );
@@ -1185,9 +1196,10 @@ class DataManager extends ChangeNotifier {
           if (rawPrice != null && priceDecimals != null) {
             price = double.tryParse(rawPrice)! / (pow(10, priceDecimals));
           }
-          if (price != null) {
-            transactionType = S.of(context).yam;
-          }
+          transactionType = S.of(context).yam;
+          debugPrint("✅ Correspondance YAM trouvée ! Prix: $price");
+        } else {
+          debugPrint("❌ Aucune correspondance YAM trouvée.");
         }
 
         tempTransactionsByToken.putIfAbsent(tokenId, () => []).add({
@@ -1197,10 +1209,50 @@ class DataManager extends ChangeNotifier {
           "price": price,
         });
       } catch (e) {
+        debugPrint("❗ Erreur lors du traitement de la transaction ID: $transactionId -> $e");
         continue;
       }
     }
 
+    // Ajouter les transactions YAM qui n'ont pas été trouvées dans transactionsHistory
+    debugPrint("📌 Vérification des transactions YAM non trouvées dans transactionsHistory...");
+    for (var yamTransaction in yamTransactions) {
+      final String? yamId = yamTransaction['id'];
+      if (yamId == null || yamId.isEmpty) continue;
+
+      final String yamIdTrimmed = yamId.substring(0, yamId.length - 10);
+      final bool alreadyExists = transactionsHistory.any(
+          (transaction) => transaction['id']?.startsWith(yamIdTrimmed) ?? false);
+
+      if (!alreadyExists) {
+        final String? yamTimestamp = yamTransaction['createdAtTimestamp'];
+        final String? yamPriceStr = yamTransaction['price'];
+        final String? yamQuantityStr = yamTransaction['quantity'];
+        final int? yamPriceDecimals = int.tryParse(yamTransaction['offer']?['buyerToken']?['decimals'] ?? '6');
+        final int? yamQuantityDecimals = int.tryParse(yamTransaction['offer']?['offerToken']?['decimals'] ?? '18');
+
+        if (yamTimestamp == null || yamPriceStr == null || yamPriceDecimals == null || yamQuantityStr == null || yamQuantityDecimals == null) {
+          debugPrint("⚠️ Transaction YAM ignorée (champ manquant): $yamTransaction");
+          continue;
+        }
+
+        final int timestampMs = int.parse(yamTimestamp) * 1000;
+        final double price = double.tryParse(yamPriceStr)! / (pow(10, yamPriceDecimals));
+        final double quantity = double.tryParse(yamQuantityStr)! / (pow(10, yamQuantityDecimals));
+
+        final String tokenAddress = yamTransaction['offer']?['offerToken']?['address']?.toLowerCase() ?? 'unknown';
+        debugPrint("➕ Ajout d'une nouvelle transaction YAM | ID: $yamId, Token: $tokenAddress, Amount: $quantity, Price: $price");
+
+        tempTransactionsByToken.putIfAbsent(tokenAddress, () => []).add({
+          "amount": quantity,
+          "dateTime": DateTime.fromMillisecondsSinceEpoch(timestampMs),
+          "transactionType": S.of(context).yam,
+          "price": price,
+        });
+      }
+    }
+
+    debugPrint("✅ Fin du traitement des transactions.");
     transactionsByToken.addAll(tempTransactionsByToken);
     isLoadingTransactions = false;
   }
@@ -1317,8 +1369,20 @@ class DataManager extends ChangeNotifier {
     await prefs.clear(); // Si vous voulez vider toutes les préférences
 
     // Vider les caches Hive
-    var box = Hive.box('realTokens');
-    await box.clear(); // Vider la boîte Hive utilisée pour le cache des tokens
+     List<String> boxNames = [
+    'balanceHistory',
+    'walletValueArchive',
+    'roiValueArchive',
+    'apyValueArchive',
+    'customInitPrices',
+    'YamMarket',
+    'YamHistory'
+  ];
+
+  await Future.wait(boxNames.map((name) async {
+    var box = await Hive.openBox(name);
+    await box.clear();
+  }));
 
     debugPrint('Toutes les données ont été réinitialisées.');
   }
@@ -1754,7 +1818,7 @@ class DataManager extends ChangeNotifier {
         //debugPrint("🔍 Traitement de l'offre ID: ${offer['id_offer']} - Token Sell: ${offer['token_to_sell']} - Token Buy: ${offer['token_to_buy']}");
 
         // Vérifier si le token de l'offre correspond à un token de allTokens
-        final matchingToken = allTokens.firstWhere((token) => token['uuid'] == offer['token_to_sell'] || token['uuid'] == offer['token_to_buy'], orElse: () {
+        final matchingToken = allTokens.firstWhere((token) => token['uuid'] == offer['token_to_sell'].toLowerCase() || token['uuid'].toLowerCase() == offer['token_to_buy'].toLowerCase(), orElse: () {
           //debugPrint("⚠️ Aucun token correspondant trouvé pour l'offre ${offer['id_offer']}. UUIDs: sell=${offer['token_to_sell']}, buy=${offer['token_to_buy']}");
           return <String, dynamic>{};
         });

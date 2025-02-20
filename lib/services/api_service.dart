@@ -61,8 +61,8 @@ class ApiService {
 
         if (decodedResponse.containsKey('errors')) {
           final errorMessage = json.encode(decodedResponse['errors']);
-            if ((errorMessage.contains('spend limit exceeded') || errorMessage.contains('API key not found')) && !useAlternativeKey) {
-              debugPrint("🔄 TheGraph API limit exceeded or  not found , switching to alternative API key...");
+          if ((errorMessage.contains('spend limit exceeded') || errorMessage.contains('API key not found')) && !useAlternativeKey) {
+            debugPrint("🔄 TheGraph API limit exceeded or  not found , switching to alternative API key...");
             return await fetchTokensFromUrl(subgraphId, cacheKey, forceFetch: forceFetch, useAlternativeKey: true);
           }
           throw Exception("Erreur API: $errorMessage");
@@ -271,7 +271,7 @@ class ApiService {
       // Comparaison entre la date de la dernière mise à jour et la date stockée localement
       if (lastUpdateTime != null && cachedData != null) {
         final DateTime lastExecutionDate = DateTime.parse(lastUpdateTime);
-        if (lastExecutionDate.isAtSameMomentAs(lastUpdateDate)) { 
+        if (lastExecutionDate.isAtSameMomentAs(lastUpdateDate)) {
           //debugPrint("🛑 apiService: fetchYamMarket -> Requête annulée, données déjà à jour");
           return [];
         }
@@ -299,7 +299,7 @@ class ApiService {
     }
   }
   // Récupérer les données de loyer pour chaque wallet et les fusionner avec cache
-  
+
   static Future<List<Map<String, dynamic>>> fetchRentData({bool forceFetch = false}) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     List<String> wallets = prefs.getStringList('evmAddresses') ?? [];
@@ -441,8 +441,8 @@ class ApiService {
 
         if (data.containsKey('errors')) {
           final errorMessage = json.encode(data['errors']);
-            if ((errorMessage.contains('spend limit exceeded') || errorMessage.contains('API key not found')) && !useAlternativeKey) {
-              debugPrint("🔄 TheGraph API limit exceeded or  not found , switching to alternative API key...");
+          if ((errorMessage.contains('spend limit exceeded') || errorMessage.contains('API key not found')) && !useAlternativeKey) {
+            debugPrint("🔄 TheGraph API limit exceeded or  not found , switching to alternative API key...");
             return await fetchUserIdFromAddress(address, useAlternativeKey: true);
           }
           throw Exception("Erreur API: $errorMessage");
@@ -483,8 +483,8 @@ class ApiService {
 
         if (data.containsKey('errors')) {
           final errorMessage = json.encode(data['errors']);
-            if ((errorMessage.contains('spend limit exceeded') || errorMessage.contains('API key not found')) && !useAlternativeKey) {
-              debugPrint("🔄 TheGraph API limit exceeded or  not found , switching to alternative API key...");
+          if ((errorMessage.contains('spend limit exceeded') || errorMessage.contains('API key not found')) && !useAlternativeKey) {
+            debugPrint("🔄 TheGraph API limit exceeded or  not found , switching to alternative API key...");
             return await fetchAddressesForUserId(userId, useAlternativeKey: true);
           }
           throw Exception("Erreur API: $errorMessage");
@@ -501,73 +501,72 @@ class ApiService {
     }
   }
 
- static Future<List<Map<String, dynamic>>> fetchRmmBalances({bool forceFetch = false}) async {
-  final prefs = await SharedPreferences.getInstance();
-  List<String> evmAddresses = prefs.getStringList('evmAddresses') ?? [];
+  static Future<List<Map<String, dynamic>>> fetchRmmBalances({bool forceFetch = false}) async {
+    final prefs = await SharedPreferences.getInstance();
+    List<String> evmAddresses = prefs.getStringList('evmAddresses') ?? [];
 
-  if (evmAddresses.isEmpty) {
-    debugPrint("⚠️ apiService: fetchRMMBalances -> wallet non renseigné");
-    return [];
-  }
-
-  // Contrats pour USDC & XDAI (dépôt et emprunt)
-  const String usdcDepositContract = '0xed56f76e9cbc6a64b821e9c016eafbd3db5436d1';
-  const String usdcBorrowContract  = '0x69c731ae5f5356a779f44c355abb685d84e5e9e6';
-  const String xdaiDepositContract = '0x0ca4f5554dd9da6217d62d8df2816c82bba4157b';
-  const String xdaiBorrowContract  = '0x9908801df7902675c3fedd6fea0294d18d5d5d34';
-
-  // Contrats pour USDC & XDAI sur Gnosis (remplacer les adresses par celles du réseau Gnosis)
-  const String gnosisUsdcContract = '0xDDAfbb505ad214D7b80b1f830fcCc89B60fb7A83';
-
-  List<Map<String, dynamic>> allBalances = [];
-
-  for (var address in evmAddresses) {
-    // Requêtes pour USDC et XDAI sur le réseau d'origine
-    final usdcDepositResponse = await _fetchBalance(usdcDepositContract, address, forceFetch: forceFetch);
-    final usdcBorrowResponse  = await _fetchBalance(usdcBorrowContract, address, forceFetch: forceFetch);
-    final xdaiDepositResponse = await _fetchBalance(xdaiDepositContract, address, forceFetch: forceFetch);
-    final xdaiBorrowResponse  = await _fetchBalance(xdaiBorrowContract, address, forceFetch: forceFetch);
-    // Requêtes pour USDC et XDAI sur Gnosis
-    final gnosisUsdcResponse = await _fetchBalance(gnosisUsdcContract, address, forceFetch: forceFetch);
-    final gnosisXdaiResponse = await _fetchNativeBalance(address, forceFetch: forceFetch);
-
-    // Vérification que toutes les requêtes ont retourné une valeur
-    if (usdcDepositResponse != null &&
-        usdcBorrowResponse != null &&
-        xdaiDepositResponse != null &&
-        xdaiBorrowResponse != null &&
-        gnosisUsdcResponse != null &&
-        gnosisXdaiResponse != null) {
-
-      final timestamp = DateTime.now().toIso8601String();
-
-      // Conversion des balances en double (USDC : 6 décimales, XDAI : 18 décimales)
-      double usdcDepositBalance = (usdcDepositResponse / BigInt.from(1e6));
-      double usdcBorrowBalance  = (usdcBorrowResponse  / BigInt.from(1e6));
-      double xdaiDepositBalance = (xdaiDepositResponse / BigInt.from(1e18));
-      double xdaiBorrowBalance  = (xdaiBorrowResponse  / BigInt.from(1e18));
-      double gnosisUsdcBalance  = (gnosisUsdcResponse  / BigInt.from(1e6));
-      double gnosisXdaiBalance  = (gnosisXdaiResponse  / BigInt.from(1e18));
-
-      // Ajout des données dans la liste
-      allBalances.add({
-        'address': address,
-        'usdcDepositBalance': usdcDepositBalance,
-        'usdcBorrowBalance': usdcBorrowBalance,
-        'xdaiDepositBalance': xdaiDepositBalance,
-        'xdaiBorrowBalance': xdaiBorrowBalance,
-        'gnosisUsdcBalance': gnosisUsdcBalance,
-        'gnosisXdaiBalance': gnosisXdaiBalance,
-        'timestamp': timestamp,
-      });
-    } else {
-      throw Exception('Failed to fetch balances for address: $address');
+    if (evmAddresses.isEmpty) {
+      debugPrint("⚠️ apiService: fetchRMMBalances -> wallet non renseigné");
+      return [];
     }
-  }
-  return allBalances;
-}
 
-/// Fonction pour récupérer le solde d'un token ERC20 (via eth_call)
+    // Contrats pour USDC & XDAI (dépôt et emprunt)
+    const String usdcDepositContract = '0xed56f76e9cbc6a64b821e9c016eafbd3db5436d1';
+    const String usdcBorrowContract = '0x69c731ae5f5356a779f44c355abb685d84e5e9e6';
+    const String xdaiDepositContract = '0x0ca4f5554dd9da6217d62d8df2816c82bba4157b';
+    const String xdaiBorrowContract = '0x9908801df7902675c3fedd6fea0294d18d5d5d34';
+
+    // Contrats pour USDC & XDAI sur Gnosis (remplacer les adresses par celles du réseau Gnosis)
+    const String gnosisUsdcContract = '0xDDAfbb505ad214D7b80b1f830fcCc89B60fb7A83';
+
+    List<Map<String, dynamic>> allBalances = [];
+
+    for (var address in evmAddresses) {
+      // Requêtes pour USDC et XDAI sur le réseau d'origine
+      final usdcDepositResponse = await _fetchBalance(usdcDepositContract, address, forceFetch: forceFetch);
+      final usdcBorrowResponse = await _fetchBalance(usdcBorrowContract, address, forceFetch: forceFetch);
+      final xdaiDepositResponse = await _fetchBalance(xdaiDepositContract, address, forceFetch: forceFetch);
+      final xdaiBorrowResponse = await _fetchBalance(xdaiBorrowContract, address, forceFetch: forceFetch);
+      // Requêtes pour USDC et XDAI sur Gnosis
+      final gnosisUsdcResponse = await _fetchBalance(gnosisUsdcContract, address, forceFetch: forceFetch);
+      final gnosisXdaiResponse = await _fetchNativeBalance(address, forceFetch: forceFetch);
+
+      // Vérification que toutes les requêtes ont retourné une valeur
+      if (usdcDepositResponse != null &&
+          usdcBorrowResponse != null &&
+          xdaiDepositResponse != null &&
+          xdaiBorrowResponse != null &&
+          gnosisUsdcResponse != null &&
+          gnosisXdaiResponse != null) {
+        final timestamp = DateTime.now().toIso8601String();
+
+        // Conversion des balances en double (USDC : 6 décimales, XDAI : 18 décimales)
+        double usdcDepositBalance = (usdcDepositResponse / BigInt.from(1e6));
+        double usdcBorrowBalance = (usdcBorrowResponse / BigInt.from(1e6));
+        double xdaiDepositBalance = (xdaiDepositResponse / BigInt.from(1e18));
+        double xdaiBorrowBalance = (xdaiBorrowResponse / BigInt.from(1e18));
+        double gnosisUsdcBalance = (gnosisUsdcResponse / BigInt.from(1e6));
+        double gnosisXdaiBalance = (gnosisXdaiResponse / BigInt.from(1e18));
+
+        // Ajout des données dans la liste
+        allBalances.add({
+          'address': address,
+          'usdcDepositBalance': usdcDepositBalance,
+          'usdcBorrowBalance': usdcBorrowBalance,
+          'xdaiDepositBalance': xdaiDepositBalance,
+          'xdaiBorrowBalance': xdaiBorrowBalance,
+          'gnosisUsdcBalance': gnosisUsdcBalance,
+          'gnosisXdaiBalance': gnosisXdaiBalance,
+          'timestamp': timestamp,
+        });
+      } else {
+        throw Exception('Failed to fetch balances for address: $address');
+      }
+    }
+    return allBalances;
+  }
+
+  /// Fonction pour récupérer le solde d'un token ERC20 (via eth_call)
   static Future<BigInt?> _fetchBalance(String contract, String address, {bool forceFetch = false}) async {
     final String cacheKey = 'cachedBalance_${contract}_$address';
     final box = await Hive.openBox('balanceCache'); // Remplacez par le système de stockage persistant que vous utilisez
@@ -628,50 +627,50 @@ class ApiService {
     return null;
   }
 
-/// Fonction pour récupérer le solde du token natif (xDAI) via eth_getBalance
-static Future<BigInt?> _fetchNativeBalance(String address, {bool forceFetch = false}) async {
-  final String cacheKey = 'cachedNativeBalance_$address';
-  final box = await Hive.openBox('balanceCache');
-  final now = DateTime.now();
+  /// Fonction pour récupérer le solde du token natif (xDAI) via eth_getBalance
+  static Future<BigInt?> _fetchNativeBalance(String address, {bool forceFetch = false}) async {
+    final String cacheKey = 'cachedNativeBalance_$address';
+    final box = await Hive.openBox('balanceCache');
+    final now = DateTime.now();
 
-  final String? lastFetchTime = box.get('lastFetchTime_$cacheKey');
+    final String? lastFetchTime = box.get('lastFetchTime_$cacheKey');
 
-  if (!forceFetch && lastFetchTime != null) {
-    final DateTime lastFetch = DateTime.parse(lastFetchTime);
-    if (now.difference(lastFetch) < Parameters.apiCacheDuration) {
-      final cachedData = box.get(cacheKey);
-      if (cachedData != null) {
-        debugPrint("🛑 apiService: fetchNativeBalance -> Cache utilisé");
-        return BigInt.tryParse(cachedData);
+    if (!forceFetch && lastFetchTime != null) {
+      final DateTime lastFetch = DateTime.parse(lastFetchTime);
+      if (now.difference(lastFetch) < Parameters.apiCacheDuration) {
+        final cachedData = box.get(cacheKey);
+        if (cachedData != null) {
+          debugPrint("🛑 apiService: fetchNativeBalance -> Cache utilisé");
+          return BigInt.tryParse(cachedData);
+        }
       }
     }
-  }
 
-  final response = await http.post(
-    Uri.parse('https://rpc.gnosischain.com'),
-    headers: {'Content-Type': 'application/json'},
-    body: json.encode({
-      "jsonrpc": "2.0",
-      "method": "eth_getBalance",
-      "params": [address, "latest"],
-      "id": 1
-    }),
-  );
+    final response = await http.post(
+      Uri.parse('https://rpc.gnosischain.com'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        "jsonrpc": "2.0",
+        "method": "eth_getBalance",
+        "params": [address, "latest"],
+        "id": 1
+      }),
+    );
 
-  if (response.statusCode == 200) {
-    final responseBody = json.decode(response.body);
-    final result = responseBody['result'];
-    debugPrint("🚀 apiService: RPC Gnosis -> Requête eth_getBalance lancée");
+    if (response.statusCode == 200) {
+      final responseBody = json.decode(response.body);
+      final result = responseBody['result'];
+      debugPrint("🚀 apiService: RPC Gnosis -> Requête eth_getBalance lancée");
 
-    if (result != null && result != "0x") {
-      final balance = BigInt.parse(result.substring(2), radix: 16);
-      await box.put(cacheKey, balance.toString());
-      await box.put('lastFetchTime_$cacheKey', now.toIso8601String());
-      return balance;
+      if (result != null && result != "0x") {
+        final balance = BigInt.parse(result.substring(2), radix: 16);
+        await box.put(cacheKey, balance.toString());
+        await box.put('lastFetchTime_$cacheKey', now.toIso8601String());
+        return balance;
+      }
     }
+    return null;
   }
-  return null;
-}
 
   // Nouvelle méthode pour récupérer les détails des loyers
   static Future<List<Map<String, dynamic>>> fetchDetailedRentDataForAllWallets({bool forceFetch = false}) async {
@@ -827,8 +826,8 @@ static Future<BigInt?> _fetchNativeBalance(String address, {bool forceFetch = fa
 
         if (decodedResponse.containsKey('errors')) {
           final errorMessage = json.encode(decodedResponse['errors']);
-            if ((errorMessage.contains('spend limit exceeded') || errorMessage.contains('API key not found')) && !useAlternativeKey) {
-              debugPrint("🔄 TheGraph API limit exceeded or  not found , switching to alternative API key...");
+          if ((errorMessage.contains('spend limit exceeded') || errorMessage.contains('API key not found')) && !useAlternativeKey) {
+            debugPrint("🔄 TheGraph API limit exceeded or  not found , switching to alternative API key...");
             return await fetchTokenVolumes(forceFetch: forceFetch, useAlternativeKey: true);
           }
           throw Exception("Erreur API: $errorMessage");
@@ -922,8 +921,8 @@ static Future<BigInt?> _fetchNativeBalance(String address, {bool forceFetch = fa
         final decodedResponse = json.decode(response.body);
         if (decodedResponse.containsKey('errors')) {
           final errorMessage = json.encode(decodedResponse['errors']);
-            if ((errorMessage.contains('spend limit exceeded') || errorMessage.contains('API key not found')) && !useAlternativeKey) {
-              debugPrint("🔄 TheGraph API limit exceeded or  not found , switching to alternative API key...");
+          if ((errorMessage.contains('spend limit exceeded') || errorMessage.contains('API key not found')) && !useAlternativeKey) {
+            debugPrint("🔄 TheGraph API limit exceeded or  not found , switching to alternative API key...");
             return await fetchTransactionsHistory(portfolio: portfolio, forceFetch: forceFetch, useAlternativeKey: true);
           }
           throw Exception("Erreur API: $errorMessage");

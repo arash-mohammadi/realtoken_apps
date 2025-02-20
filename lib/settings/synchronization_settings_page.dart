@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:provider/provider.dart';
@@ -343,10 +344,15 @@ class _SynchronizationSettingsPageState extends State<SynchronizationSettingsPag
 
       if (result != null) {
         // Obtenir le fichier sélectionné
-        File zipFile = File(result.files.single.path!);
+        List<int> bytes;
+        if (kIsWeb) {
+          bytes = result.files.single.bytes!;
+        } else {
+          File zipFile = File(result.files.single.path!);
+          bytes = await zipFile.readAsBytes();
+        }
 
         // Lire le fichier ZIP et le décompresser
-        List<int> bytes = zipFile.readAsBytesSync();
         Archive archive = ZipDecoder().decodeBytes(bytes);
 
         // Parcourir les fichiers dans l'archive ZIP

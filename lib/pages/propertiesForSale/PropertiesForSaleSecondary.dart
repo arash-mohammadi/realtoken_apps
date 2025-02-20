@@ -1,3 +1,5 @@
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:provider/provider.dart';
@@ -8,6 +10,7 @@ import 'package:realtokens/utils/currency_utils.dart';
 import 'package:realtokens/utils/data_fetch_utils.dart';
 import 'package:realtokens/utils/date_utils.dart';
 import 'package:realtokens/utils/url_utils.dart';
+import 'package:show_network_image/show_network_image.dart';
 
 class PropertiesForSaleSecondary extends StatefulWidget {
   const PropertiesForSaleSecondary({super.key});
@@ -146,11 +149,24 @@ class _PropertiesForSaleSecondaryState extends State<PropertiesForSaleSecondary>
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 if (imageUrl.isNotEmpty)
-                                  Image.network(
-                                    imageUrl,
-                                    height: 150,
-                                    width: double.infinity,
-                                    fit: BoxFit.cover,
+                                  AspectRatio(
+                                    aspectRatio: 16 / 9,
+                                    child: ClipRRect(
+                                      borderRadius: const BorderRadius.only(
+                                        topLeft: Radius.circular(12),
+                                        topRight: Radius.circular(12),
+                                      ),
+                                      child: kIsWeb
+                                          ? ShowNetworkImage(
+                                              imageSrc: imageUrl,
+                                              mobileBoxFit: BoxFit.cover,
+                                            )
+                                          : CachedNetworkImage(
+                                              imageUrl: imageUrl,
+                                              fit: BoxFit.cover,
+                                              errorWidget: (context, url, error) => const Icon(Icons.error),
+                                            ),
+                                    ),
                                   ),
                                 const SizedBox(height: 10),
                                 Row(

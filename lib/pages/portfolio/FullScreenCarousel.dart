@@ -1,6 +1,8 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:show_network_image/show_network_image.dart';
 
 class FullScreenCarousel extends StatelessWidget {
   final List<String> imageLinks;
@@ -37,11 +39,16 @@ class FullScreenCarousel extends StatelessWidget {
               panEnabled: true, // Permet de déplacer l'image
               minScale: 0.8, // Zoom minimal
               maxScale: 4.0, // Zoom maximal
-              child: CachedNetworkImage(
-                imageUrl: imageUrl,
-                width: double.infinity,
-                fit: BoxFit.contain,
-              ),
+              child: kIsWeb
+                  ? ShowNetworkImage(
+                      imageSrc: imageUrl,
+                      mobileBoxFit: BoxFit.contain,
+                    )
+                  : CachedNetworkImage(
+                      imageUrl: imageUrl,
+                      fit: BoxFit.contain,
+                      errorWidget: (context, url, error) => const Icon(Icons.error),
+                    ),
             );
           }).toList(),
         ),

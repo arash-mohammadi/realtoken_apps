@@ -42,7 +42,6 @@ void main() async {
     debugPrint("📌 Stacktrace : $stacktrace");
   }
 
-
   await Hive.initFlutter();
 
   if (!kIsWeb) {
@@ -108,10 +107,10 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
     _checkGoogleDriveConnection();
     _autoSyncEnabled = widget.autoSyncEnabled;
     if (!kIsWeb) {
-    initOneSignal();
-  } else {
-    debugPrint("🚫 OneSignal non activé sur le Web.");
-  }
+      initOneSignal();
+    } else {
+      debugPrint("🚫 OneSignal non activé sur le Web.");
+    }
   }
 
   Future<void> _checkGoogleDriveConnection() async {
@@ -123,9 +122,9 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
   void initOneSignal() {
     if (kIsWeb) {
-    debugPrint("🚫 OneSignal désactivé sur le Web");
-    return; // Ne pas exécuter OneSignal sur le Web
-  }
+      debugPrint("🚫 OneSignal désactivé sur le Web");
+      return; // Ne pas exécuter OneSignal sur le Web
+    }
     OneSignal.Debug.setLogLevel(OSLogLevel.verbose);
     OneSignal.Debug.setAlertLevel(OSLogLevel.none);
     OneSignal.consentRequired(_requireConsent);

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:realtokens/managers/data_manager.dart';
-import 'package:realtokens/structure/agenda.dart';
+import 'package:realtokens/modals/agenda.dart';
 import 'package:realtokens/utils/currency_utils.dart';
 import 'package:realtokens/utils/ui_utils.dart';
 
@@ -64,10 +64,9 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _showWalletPopup(BuildContext context) {
-        final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
+    final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
 
-    final RenderBox renderBox =
-        _walletIconKey.currentContext!.findRenderObject() as RenderBox;
+    final RenderBox renderBox = _walletIconKey.currentContext!.findRenderObject() as RenderBox;
     final Offset position = renderBox.localToGlobal(Offset.zero);
     final double iconSize = renderBox.size.height;
 
@@ -76,13 +75,12 @@ class _MyHomePageState extends State<MyHomePage> {
     final double xdaiBalance = dataManager.gnosisXdaiBalance;
 
     showMenu(
-      
       context: context,
       color: Theme.of(context).cardColor,
       position: RelativeRect.fromLTRB(
-        position.dx, 
+        position.dx,
         position.dy + iconSize, // Juste en dessous de l'icône
-        position.dx + renderBox.size.width, 
+        position.dx + renderBox.size.width,
         position.dy + iconSize + 50, // Ajuste la hauteur
       ),
       items: [
@@ -91,20 +89,14 @@ class _MyHomePageState extends State<MyHomePage> {
             borderRadius: BorderRadius.circular(12), // Coins arrondis
             child: Container(
               padding: const EdgeInsets.all(12),
-              
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text("💰 Solde Wallet",
-                      style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                          color: Theme.of(context).textTheme.bodyMedium?.color)),
+                  Text("💰 Solde Wallet", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Theme.of(context).textTheme.bodyMedium?.color)),
                   const Divider(),
                   Row(
                     children: [
-                      Image.asset('assets/icons/usdc.png',
-                          width: 20, height: 20),
+                      Image.asset('assets/icons/usdc.png', width: 20, height: 20),
                       const SizedBox(width: 8),
                       Text(currencyUtils.formatCurrency(currencyUtils.convert(usdcBalance), currencyUtils.currencySymbol),
                           style: TextStyle(fontSize: 14, color: Theme.of(context).textTheme.bodyMedium?.color)),
@@ -113,10 +105,9 @@ class _MyHomePageState extends State<MyHomePage> {
                   const SizedBox(height: 6),
                   Row(
                     children: [
-                      Image.asset('assets/icons/xdai.png',
-                          width: 20, height: 20),
+                      Image.asset('assets/icons/xdai.png', width: 20, height: 20),
                       const SizedBox(width: 8),
-                      Text(currencyUtils.formatCurrency(currencyUtils.convert(xdaiBalance) , currencyUtils.currencySymbol),
+                      Text(currencyUtils.formatCurrency(currencyUtils.convert(xdaiBalance), currencyUtils.currencySymbol),
                           style: TextStyle(fontSize: 14, color: Theme.of(context).textTheme.bodyMedium?.color)),
                     ],
                   ),
@@ -133,10 +124,9 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
     final dataManager = Provider.of<DataManager>(context);
-        final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
+    final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
 
-    final double walletTotal =
-        dataManager.gnosisUsdcBalance + dataManager.gnosisXdaiBalance;
+    final double walletTotal = dataManager.gnosisUsdcBalance + dataManager.gnosisXdaiBalance;
 
     return Scaffold(
       body: Stack(
@@ -153,9 +143,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                 child: Container(
                   height: UIUtils.getAppBarHeight(context),
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? Colors.black.withOpacity(0.3)
-                      : Colors.white.withOpacity(0.3),
+                  color: Theme.of(context).brightness == Brightness.dark ? Colors.black.withOpacity(0.3) : Colors.white.withOpacity(0.3),
                   child: AppBar(
                     forceMaterialTransparency: true,
                     backgroundColor: Colors.transparent,
@@ -206,9 +194,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                 child: Container(
                   height: _getContainerHeight(context),
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? Colors.black.withOpacity(0.3)
-                      : Colors.white.withOpacity(0.3),
+                  color: Theme.of(context).brightness == Brightness.dark ? Colors.black.withOpacity(0.3) : Colors.white.withOpacity(0.3),
                   child: SafeArea(
                     top: false,
                     child: CustomBottomNavigationBar(

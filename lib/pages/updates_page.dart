@@ -1,8 +1,11 @@
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/foundation.dart';
 import 'package:realtokens/app_state.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:realtokens/managers/data_manager.dart'; // Assurez-vous d'importer votre DataManager
-import 'package:realtokens/generated/l10n.dart'; // Import pour les traductions
+import 'package:realtokens/generated/l10n.dart';
+import 'package:show_network_image/show_network_image.dart'; // Import pour les traductions
 
 class UpdatesPage extends StatefulWidget {
   const UpdatesPage({super.key});
@@ -150,11 +153,24 @@ class _UpdatesPageState extends State<UpdatesPage> {
                         children: [
                           // Afficher l'image du token si elle est disponible
                           if (imageUrl != S.of(context).noImageAvailable)
-                            Image.network(
-                              imageUrl,
-                              height: 100,
-                              width: double.infinity, // Prendre toute la largeur disponible
-                              fit: BoxFit.cover,
+                            AspectRatio(
+                              aspectRatio: 16 / 9,
+                              child: ClipRRect(
+                                borderRadius: const BorderRadius.only(
+                                  topLeft: Radius.circular(12),
+                                  topRight: Radius.circular(12),
+                                ),
+                                child: kIsWeb
+                                    ? ShowNetworkImage(
+                                        imageSrc: imageUrl,
+                                        mobileBoxFit: BoxFit.cover,
+                                      )
+                                    : CachedNetworkImage(
+                                        imageUrl: imageUrl,
+                                        fit: BoxFit.cover,
+                                        errorWidget: (context, url, error) => const Icon(Icons.error),
+                                      ),
+                              ),
                             ),
                           const SizedBox(height: 8),
                           // Afficher le nom du token

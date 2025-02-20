@@ -6,11 +6,12 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_marker_cluster/flutter_map_marker_cluster.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
-import 'package:realtokens/pages/portfolio/token_details/showTokenDetails.dart';
+import 'package:realtokens/modals/token_details/showTokenDetails.dart';
 import 'package:realtokens/utils/ui_utils.dart';
 import 'package:realtokens/utils/url_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:realtokens/managers/data_manager.dart';
+import 'package:show_network_image/show_network_image.dart';
 
 class MapsPage extends StatefulWidget {
   const MapsPage({super.key});
@@ -93,30 +94,58 @@ class MapsPageState extends State<MapsPage> {
           width: 40.0, // Augmentez cette valeur pour une image plus grande
           height: 40.0, // Augmentez cette valeur pour une image plus grande
           point: LatLng(lat, lng),
-          child: GestureDetector(
-            onTap: () => _showMarkerPopup(context, matchingToken),
-            child: Container(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: UIUtils.getRentalStatusColor(rentedUnits, totalUnits), width: 3.0),
-              ),
-              child: ClipOval(
-                child: matchingToken['imageLink'] != null
-                    ? CachedNetworkImage(
-                        imageUrl: matchingToken['imageLink'][0],
-                        fit: BoxFit.cover, // Cette propriété remplit tout l'espace
-                        placeholder: (context, url) => CircularProgressIndicator(),
-                        errorWidget: (context, url, error) => Icon(
-                          Icons.error,
-                          color: Colors.red,
-                        ),
-                      )
-                    : Icon(
-                        Icons.location_on,
-                        color: color,
-                        size: 40.0,
-                      ),
-              ),
+          child: MouseRegion(
+            cursor: SystemMouseCursors.click,
+            child: Stack(
+              children: [
+                // ✅ Conteneur avec bordure circulaire
+                Container(
+                  width: 40.0, // Augmentez cette valeur pour une image plus grande
+                  height: 40.0, // Augmentez cette valeur pour une image plus grande
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: UIUtils.getRentalStatusColor(rentedUnits, totalUnits),
+                      width: 3.0,
+                    ),
+                  ),
+                  child: ClipOval(
+                    child: matchingToken['imageLink'] != null
+                        ? kIsWeb
+                            ? ShowNetworkImage(
+                                imageSrc: matchingToken['imageLink'][0],
+                                mobileBoxFit: BoxFit.cover,
+                                mobileWidth: 40,
+                                mobileHeight: 40,
+                              )
+                            : CachedNetworkImage(
+                                imageUrl: matchingToken['imageLink'][0],
+                                fit: BoxFit.cover,
+                                placeholder: (context, url) => const CircularProgressIndicator(),
+                                errorWidget: (context, url, error) => const Icon(
+                                  Icons.error,
+                                  color: Colors.red,
+                                ),
+                              )
+                        : Icon(
+                            Icons.location_on,
+                            color: color,
+                            size: 40.0,
+                          ),
+                  ),
+                ),
+
+                // ✅ Clic capté par ce conteneur transparent superposé
+                Positioned.fill(
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.translucent,
+                    onTap: () {
+                      print("✅ Clic détecté avec bordure !");
+                      _showMarkerPopup(context, matchingToken);
+                    },
+                  ),
+                ),
+              ],
             ),
           ),
           key: ValueKey(matchingToken),

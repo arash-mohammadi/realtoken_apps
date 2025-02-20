@@ -33,7 +33,7 @@ class DepositChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final appState     = Provider.of<AppState>(context);
+    final appState = Provider.of<AppState>(context);
     final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
 
     // Regroupement des données de dépôts par période.
@@ -95,9 +95,8 @@ class DepositChart extends StatelessWidget {
               showTitles: true,
               reservedSize: 45,
               getTitlesWidget: (value, meta) {
-                final displayValue = value >= 1000
-                    ? '${(value / 1000).toStringAsFixed(1)} k${currencyUtils.currencySymbol}'
-                    : '${value.toStringAsFixed(2)}${currencyUtils.currencySymbol}';
+                final displayValue =
+                    value >= 1000 ? '${(value / 1000).toStringAsFixed(1)} k${currencyUtils.currencySymbol}' : '${value.toStringAsFixed(2)}${currencyUtils.currencySymbol}';
                 return Transform.rotate(
                   angle: -0.5,
                   child: Text(
@@ -159,45 +158,45 @@ class DepositChart extends StatelessWidget {
           ),
         ],
         lineTouchData: LineTouchData(
-  touchTooltipData: LineTouchTooltipData(
-    getTooltipItems: (touchedSpots) {
-      if (touchedSpots.isEmpty) return [];
-      final int index = touchedSpots.first.spotIndex;
-      if (index < 0 || index >= groups.length) return [];
-      final group = groups[index];
-      String periodLabel;
-      if (selectedPeriod == S.of(context).day) {
-        periodLabel = DateFormat('dd/MM/yyyy').format(group.groupDate);
-      } else if (selectedPeriod == S.of(context).week) {
-        periodLabel = 'W${CustomDateUtils.weekNumber(group.groupDate).toString().padLeft(2, '0')}';
-      } else if (selectedPeriod == S.of(context).month) {
-        periodLabel = DateFormat('MM/yyyy').format(group.groupDate);
-      } else if (selectedPeriod == S.of(context).year) {
-        periodLabel = DateFormat('yyyy').format(group.groupDate);
-      } else {
-        periodLabel = DateFormat('dd/MM/yyyy').format(group.groupDate);
-      }
-      final tooltipText =
-          "$periodLabel\nUSDC: ${currencyUtils.formatCurrency(currencyUtils.convert(group.usdc), currencyUtils.currencySymbol)}\nxDai: ${currencyUtils.formatCurrency(currencyUtils.convert(group.xdai), currencyUtils.currencySymbol)}";
-      return touchedSpots.map((spot) {
-        if (identical(spot, touchedSpots.first)) {
-          return LineTooltipItem(
-            tooltipText,
-            TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              fontSize: 10 + appState.getTextSizeOffset(),
-            ),
-          );
-        } else {
-          return LineTooltipItem('', const TextStyle(fontSize: 0));
-        }
-      }).toList();
-    },
-  ),
-  handleBuiltInTouches: true,
-),
-),
+          touchTooltipData: LineTouchTooltipData(
+            getTooltipItems: (touchedSpots) {
+              if (touchedSpots.isEmpty) return [];
+              final int index = touchedSpots.first.spotIndex;
+              if (index < 0 || index >= groups.length) return [];
+              final group = groups[index];
+              String periodLabel;
+              if (selectedPeriod == S.of(context).day) {
+                periodLabel = DateFormat('dd/MM/yyyy').format(group.groupDate);
+              } else if (selectedPeriod == S.of(context).week) {
+                periodLabel = 'W${CustomDateUtils.weekNumber(group.groupDate).toString().padLeft(2, '0')}';
+              } else if (selectedPeriod == S.of(context).month) {
+                periodLabel = DateFormat('MM/yyyy').format(group.groupDate);
+              } else if (selectedPeriod == S.of(context).year) {
+                periodLabel = DateFormat('yyyy').format(group.groupDate);
+              } else {
+                periodLabel = DateFormat('dd/MM/yyyy').format(group.groupDate);
+              }
+              final tooltipText =
+                  "$periodLabel\nUSDC: ${currencyUtils.formatCurrency(currencyUtils.convert(group.usdc), currencyUtils.currencySymbol)}\nxDai: ${currencyUtils.formatCurrency(currencyUtils.convert(group.xdai), currencyUtils.currencySymbol)}";
+              return touchedSpots.map((spot) {
+                if (identical(spot, touchedSpots.first)) {
+                  return LineTooltipItem(
+                    tooltipText,
+                    TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 10 + appState.getTextSizeOffset(),
+                    ),
+                  );
+                } else {
+                  return LineTooltipItem('', const TextStyle(fontSize: 0));
+                }
+              }).toList();
+            },
+          ),
+          handleBuiltInTouches: true,
+        ),
+      ),
     );
   }
 

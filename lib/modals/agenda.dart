@@ -183,7 +183,7 @@ class AgendaCalendarState extends State<AgendaCalendar> {
                                   crossAxisAlignment: CrossAxisAlignment.start, // Pour aligner le texte à gauche
                                   children: [
                                     Text("${S.of(context).transactionType}: $transactionType", style: TextStyle(fontSize: 13 + appState.getTextSizeOffset())),
-                                    Text("${S.of(context).quantity}: $amount",style: TextStyle(fontSize: 13 + appState.getTextSizeOffset())),
+                                    Text("${S.of(context).quantity}: $amount", style: TextStyle(fontSize: 13 + appState.getTextSizeOffset())),
                                     Text("${S.of(context).price}: $price", style: TextStyle(fontSize: 13 + appState.getTextSizeOffset())),
                                   ],
                                 ),
@@ -204,7 +204,8 @@ class AgendaCalendarState extends State<AgendaCalendar> {
                                 subtitle: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start, // Pour aligner le texte à gauche
                                   children: [
-                                    Text("${S.of(context).amount}: ${currencyUtils.convert(amount).toStringAsFixed(2)} ${currencyUtils.currencySymbol}", style: TextStyle(fontSize: 13 + appState.getTextSizeOffset())),
+                                    Text("${S.of(context).amount}: ${currencyUtils.convert(amount).toStringAsFixed(2)} ${currencyUtils.currencySymbol}",
+                                        style: TextStyle(fontSize: 13 + appState.getTextSizeOffset())),
                                   ],
                                 ),
                               ),

@@ -1,12 +1,14 @@
+import 'package:flutter/foundation.dart';
 import 'package:realtokens/generated/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:realtokens/managers/data_manager.dart';
-import 'package:realtokens/pages/portfolio/token_details/showTokenDetails.dart';
+import 'package:realtokens/modals/token_details/showTokenDetails.dart';
 import 'package:realtokens/utils/currency_utils.dart';
 import 'package:realtokens/utils/ui_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:show_network_image/show_network_image.dart';
 
 class RealTokensPage extends StatefulWidget {
   const RealTokensPage({super.key});
@@ -228,11 +230,23 @@ class RealTokensPageState extends State<RealTokensPage> {
                                         topLeft: Radius.circular(12),
                                         bottomLeft: Radius.circular(12),
                                       ),
-                                      child: CachedNetworkImage(
-                                        imageUrl: token['imageLink'][0] ?? '',
-                                        width: 150,
-                                        fit: BoxFit.cover,
-                                        errorWidget: (context, url, error) => const Icon(Icons.error),
+                                      child: SizedBox(
+                                        width: 150, // 🔥 Définit une largeur explicite
+                                        child: ClipRRect(
+                                          borderRadius: BorderRadius.circular(12),
+                                          child: kIsWeb
+                                              ? ShowNetworkImage(
+                                                  imageSrc: token['imageLink'][0],
+                                                  mobileBoxFit: BoxFit.cover,
+                                                  mobileWidth: 150,
+                                                )
+                                              : CachedNetworkImage(
+                                                  imageUrl: token['imageLink'][0],
+                                                  width: 150,
+                                                  fit: BoxFit.cover,
+                                                  errorWidget: (context, url, error) => const Icon(Icons.error),
+                                                ),
+                                        ),
                                       ),
                                     ),
                                     Expanded(

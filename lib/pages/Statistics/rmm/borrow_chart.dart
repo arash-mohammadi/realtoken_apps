@@ -33,7 +33,7 @@ class BorrowChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final appState     = Provider.of<AppState>(context);
+    final appState = Provider.of<AppState>(context);
     final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
 
     // Regroupe les données d'emprunt par période.
@@ -95,9 +95,8 @@ class BorrowChart extends StatelessWidget {
               showTitles: true,
               reservedSize: 45,
               getTitlesWidget: (value, meta) {
-                final displayValue = value >= 1000
-                    ? '${(value / 1000).toStringAsFixed(1)} k${currencyUtils.currencySymbol}'
-                    : '${value.toStringAsFixed(2)}${currencyUtils.currencySymbol}';
+                final displayValue =
+                    value >= 1000 ? '${(value / 1000).toStringAsFixed(1)} k${currencyUtils.currencySymbol}' : '${value.toStringAsFixed(2)}${currencyUtils.currencySymbol}';
                 return Transform.rotate(
                   angle: -0.5,
                   child: Text(

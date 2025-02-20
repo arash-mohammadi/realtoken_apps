@@ -94,7 +94,7 @@ class DashboardPageState extends State<DashboardPage> {
                         visibilityButton,
                       ],
                     ),
-                    if (!_isPageLoading && (dataManager.rentData.isEmpty || dataManager.walletValue == 0)) _buildNoWalletCard(context),
+                    if (!_isPageLoading && (dataManager.evmAddresses.isEmpty)) _buildNoWalletCard(context),
                     const SizedBox(height: 8),
                     RichText(
                       text: TextSpan(
@@ -192,7 +192,7 @@ class DashboardPageState extends State<DashboardPage> {
   Widget _buildNoWalletCard(BuildContext context) {
     return Center(
       child: Card(
-        color: Colors.orange[200],
+        color: Theme.of(context).primaryColor.withOpacity(0.4),
         child: Padding(
           padding: const EdgeInsets.all(8.0),
           child: Column(

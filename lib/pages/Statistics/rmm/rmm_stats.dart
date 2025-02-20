@@ -36,6 +36,7 @@ class RmmStatsState extends State<RmmStats> {
       selectedBorrowPeriod = S.of(context).week; // Valeur par défaut pour "Week"
     }
   }
+
   @override
   Widget build(BuildContext context) {
     final dataManager = Provider.of<DataManager>(context);
@@ -322,8 +323,7 @@ class RmmStatsState extends State<RmmStats> {
     );
   }
 
-  Future<Map<String, List<BalanceRecord>>> _fetchAndAggregateBalanceHistories(
-      DataManager dataManager, String selectedPeriod) async {
+  Future<Map<String, List<BalanceRecord>>> _fetchAndAggregateBalanceHistories(DataManager dataManager, String selectedPeriod) async {
     Map<String, List<BalanceRecord>> allHistories = {};
 
     allHistories['usdcDeposit'] = await dataManager.getBalanceHistory('usdcDeposit');
@@ -338,58 +338,57 @@ class RmmStatsState extends State<RmmStats> {
     return allHistories;
   }
 
-Future<List<BalanceRecord>> _aggregateByPeriod(List<BalanceRecord> records, String period) async {
-  Map<DateTime, List<double>> groupedByPeriod = {};
+  Future<List<BalanceRecord>> _aggregateByPeriod(List<BalanceRecord> records, String period) async {
+    Map<DateTime, List<double>> groupedByPeriod = {};
 
-  for (var record in records) {
-    DateTime truncatedToPeriod;
+    for (var record in records) {
+      DateTime truncatedToPeriod;
 
-    if (period == S.of(context).day) {
-      truncatedToPeriod = DateTime(
-        record.timestamp.year,
-        record.timestamp.month,
-        record.timestamp.day,
-      );
-    } else if (period == S.of(context).week) {
-      final date = record.timestamp;
-      final startOfWeek = date.subtract(Duration(days: date.weekday - 1));
-      truncatedToPeriod = DateTime(
-        startOfWeek.year,
-        startOfWeek.month,
-        startOfWeek.day,
-      );
-    } else if (period == S.of(context).month) {
-      truncatedToPeriod = DateTime(
-        record.timestamp.year,
-        record.timestamp.month,
-      );
-    } else if (period == S.of(context).year) {
-      truncatedToPeriod = DateTime(
-        record.timestamp.year,
-      );
-    } else {
-      // Valeur par défaut (ici on considère le jour)
-      truncatedToPeriod = DateTime(
-        record.timestamp.year,
-        record.timestamp.month,
-        record.timestamp.day,
-      );
+      if (period == S.of(context).day) {
+        truncatedToPeriod = DateTime(
+          record.timestamp.year,
+          record.timestamp.month,
+          record.timestamp.day,
+        );
+      } else if (period == S.of(context).week) {
+        final date = record.timestamp;
+        final startOfWeek = date.subtract(Duration(days: date.weekday - 1));
+        truncatedToPeriod = DateTime(
+          startOfWeek.year,
+          startOfWeek.month,
+          startOfWeek.day,
+        );
+      } else if (period == S.of(context).month) {
+        truncatedToPeriod = DateTime(
+          record.timestamp.year,
+          record.timestamp.month,
+        );
+      } else if (period == S.of(context).year) {
+        truncatedToPeriod = DateTime(
+          record.timestamp.year,
+        );
+      } else {
+        // Valeur par défaut (ici on considère le jour)
+        truncatedToPeriod = DateTime(
+          record.timestamp.year,
+          record.timestamp.month,
+          record.timestamp.day,
+        );
+      }
+
+      groupedByPeriod.putIfAbsent(truncatedToPeriod, () => []).add(record.balance);
     }
 
-    groupedByPeriod.putIfAbsent(truncatedToPeriod, () => []).add(record.balance);
+    List<BalanceRecord> averagedRecords = [];
+    groupedByPeriod.forEach((timestamp, balances) {
+      double averageBalance = balances.reduce((a, b) => a + b) / balances.length;
+      averagedRecords.add(BalanceRecord(
+        tokenType: records.first.tokenType,
+        balance: averageBalance,
+        timestamp: timestamp,
+      ));
+    });
+
+    return averagedRecords;
   }
-
-  List<BalanceRecord> averagedRecords = [];
-  groupedByPeriod.forEach((timestamp, balances) {
-    double averageBalance = balances.reduce((a, b) => a + b) / balances.length;
-    averagedRecords.add(BalanceRecord(
-      tokenType: records.first.tokenType,
-      balance: averageBalance,
-      timestamp: timestamp,
-    ));
-  });
-
-  return averagedRecords;
-}
-
 }
