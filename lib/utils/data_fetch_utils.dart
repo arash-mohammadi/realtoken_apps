@@ -5,15 +5,18 @@ import 'package:realtokens/managers/data_manager.dart';
 class DataFetchUtils {
   static Future<void> loadData(BuildContext context) async {
     final dataManager = Provider.of<DataManager>(context, listen: false);
-    await dataManager.updateMainInformations();
-    await dataManager.updateSecondaryInformations(context);
-    dataManager.fetchRentData(); //f Charger les données de loyer
-    dataManager.fetchAndCalculateData(); // Charger les données du portefeuille
-    dataManager.fetchPropertyData();
-    dataManager.updatedDetailRentVariables();
-    dataManager.fetchAndStoreAllTokens();
-    dataManager.fetchAndStoreYamMarketData();
-    dataManager.fetchAndStorePropertiesForSale();
+    await dataManager.loadWalletsAddresses();
+    if (dataManager.evmAddresses.isNotEmpty) {
+      await dataManager.updateMainInformations();
+      await dataManager.updateSecondaryInformations(context);
+      dataManager.fetchRentData(); //f Charger les données de loyer
+      dataManager.fetchAndCalculateData(); // Charger les données du portefeuille
+      dataManager.fetchPropertyData();
+      dataManager.updatedDetailRentVariables();
+      dataManager.fetchAndStoreAllTokens();
+      dataManager.fetchAndStoreYamMarketData();
+      dataManager.fetchAndStorePropertiesForSale();
+    }
   }
 
   static Future<void> refreshData(BuildContext context) async {

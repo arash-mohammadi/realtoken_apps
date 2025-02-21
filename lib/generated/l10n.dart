@@ -2276,10 +2276,10 @@ class S {
     );
   }
 
-  /// `YAMM offers related to token`
+  /// `YAM offers related to token`
   String get secondary_offers_related_to_token {
     return Intl.message(
-      'YAMM offers related to token',
+      'YAM offers related to token',
       name: 'secondary_offers_related_to_token',
       desc: '',
       args: [],

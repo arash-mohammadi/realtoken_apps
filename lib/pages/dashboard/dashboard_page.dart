@@ -89,7 +89,7 @@ class DashboardPageState extends State<DashboardPage> {
                       children: [
                         Text(
                           S.of(context).hello,
-                          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Theme.of(context).textTheme.bodyLarge?.color),
+                          style: TextStyle(fontSize: 24 + appState.getTextSizeOffset(), fontWeight: FontWeight.bold, color: Theme.of(context).textTheme.bodyLarge?.color),
                         ),
                         visibilityButton,
                       ],

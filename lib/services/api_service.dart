@@ -791,14 +791,19 @@ class ApiService {
     final String limitDate = DateTime.now().subtract(Duration(days: daysLimit)).toIso8601String().split('T').first;
     final apiUrl = Parameters.getGraphUrl(Parameters.yamSubgraphId, useAlternativeKey: useAlternativeKey);
 
-    try {
-      final response = await http.post(
-        Uri.parse(apiUrl),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({
-          "query": '''
-            query GetTokenVolumes(\$stables: [String!], \$limitDate: String!) {
-              tokens(first: 1000) {
+    List<dynamic> allTokens = [];
+    int skip = 0;
+    bool hasMoreData = true;
+
+    while (hasMoreData) {
+      try {
+        final response = await http.post(
+          Uri.parse(apiUrl),
+          headers: {'Content-Type': 'application/json'},
+          body: json.encode({
+            "query": '''
+            query GetTokenVolumes(\$stables: [String!], \$limitDate: String!, \$skip: Int!) {
+              tokens(first: 1000, skip: \$skip) {
                 id
                 decimals
                 volumes(where: { token_in: \$stables }) {
@@ -814,39 +819,54 @@ class ApiService {
               }
             }
           ''',
-          "variables": {
-            "stables": Parameters.stables,
-            "limitDate": limitDate,
+            "variables": {
+              "stables": Parameters.stables,
+              "limitDate": limitDate,
+              "skip": skip,
+            }
+          }),
+        );
+
+        if (response.statusCode == 200) {
+          final decodedResponse = json.decode(response.body);
+
+          if (decodedResponse.containsKey('errors')) {
+            final errorMessage = json.encode(decodedResponse['errors']);
+            if ((errorMessage.contains('spend limit exceeded') || errorMessage.contains('API key not found')) && !useAlternativeKey) {
+              debugPrint("🔄 TheGraph API limit exceeded or API key not found, switching to alternative API key...");
+              return await fetchTokenVolumes(forceFetch: forceFetch, useAlternativeKey: true);
+            }
+            throw Exception("Erreur API: $errorMessage");
           }
-        }),
-      );
 
-      if (response.statusCode == 200) {
-        final decodedResponse = json.decode(response.body);
+          if (decodedResponse['data'] != null && decodedResponse['data']['tokens'] != null) {
+            final List<dynamic> tokens = decodedResponse['data']['tokens'];
 
-        if (decodedResponse.containsKey('errors')) {
-          final errorMessage = json.encode(decodedResponse['errors']);
-          if ((errorMessage.contains('spend limit exceeded') || errorMessage.contains('API key not found')) && !useAlternativeKey) {
-            debugPrint("🔄 TheGraph API limit exceeded or  not found , switching to alternative API key...");
-            return await fetchTokenVolumes(forceFetch: forceFetch, useAlternativeKey: true);
+            allTokens.addAll(tokens);
+
+            // Si on récupère moins de 1000 éléments, on arrête la pagination
+            if (tokens.length < 1000) {
+              hasMoreData = false;
+            } else {
+              skip += 1000; // Passer aux tokens suivants
+            }
+          } else {
+            hasMoreData = false; // Arrêter si aucune donnée
           }
-          throw Exception("Erreur API: $errorMessage");
+        } else {
+          throw Exception('Échec de la requête fetchTokenVolumes');
         }
-
-        if (decodedResponse['data'] != null && decodedResponse['data']['tokens'] != null) {
-          final List<dynamic> tokens = decodedResponse['data']['tokens'];
-          box.put('cachedTokenVolumesData', json.encode(tokens));
-          box.put('lastTokenVolumesFetchTime', now.toIso8601String());
-          box.put('lastExecutionTime_YAM transactions', now.toIso8601String());
-          return tokens;
-        }
-        return [];
-      } else {
-        throw Exception('Échec de la requête fetchTokenVolumes');
+      } catch (e) {
+        throw Exception('Échec de la récupération des volumes de tokens: $e');
       }
-    } catch (e) {
-      throw Exception('Échec de la récupération des volumes de tokens: $e');
     }
+
+    // Sauvegarde des données en cache
+    box.put('cachedTokenVolumesData', json.encode(allTokens));
+    box.put('lastTokenVolumesFetchTime', now.toIso8601String());
+    box.put('lastExecutionTime_YAM transactions', now.toIso8601String());
+
+    return allTokens;
   }
 
   static Future<List<dynamic>> fetchTransactionsHistory({
@@ -880,13 +900,19 @@ class ApiService {
     }
 
     final apiUrl = Parameters.getGraphUrl(Parameters.gnosisSubgraphId, useAlternativeKey: useAlternativeKey);
-    try {
-      final response = await http.post(
-        Uri.parse(apiUrl),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({
-          "query": '''
-            query GetTransferEvents(\$tokenAddresses: [String!], \$destinations: [String!]) {
+
+    List<dynamic> allTransferEvents = [];
+    int skip = 0;
+    bool hasMoreData = true;
+
+    while (hasMoreData) {
+      try {
+        final response = await http.post(
+          Uri.parse(apiUrl),
+          headers: {'Content-Type': 'application/json'},
+          body: json.encode({
+            "query": '''
+            query GetTransferEvents(\$tokenAddresses: [String!], \$destinations: [String!], \$skip: Int!) {
               transferEvents(
                 where: {
                   token_in: \$tokenAddresses,
@@ -895,6 +921,7 @@ class ApiService {
                 orderBy: timestamp
                 orderDirection: desc
                 first: 1000
+                skip: \$skip
               ) {
                 id
                 token {
@@ -910,35 +937,49 @@ class ApiService {
               }
             }
           ''',
-          "variables": {
-            "tokenAddresses": tokenAddresses,
-            "destinations": destinations,
-          }
-        }),
-      );
+            "variables": {
+              "tokenAddresses": tokenAddresses,
+              "destinations": destinations,
+              "skip": skip,
+            }
+          }),
+        );
 
-      if (response.statusCode == 200) {
-        final decodedResponse = json.decode(response.body);
-        if (decodedResponse.containsKey('errors')) {
-          final errorMessage = json.encode(decodedResponse['errors']);
-          if ((errorMessage.contains('spend limit exceeded') || errorMessage.contains('API key not found')) && !useAlternativeKey) {
-            debugPrint("🔄 TheGraph API limit exceeded or  not found , switching to alternative API key...");
-            return await fetchTransactionsHistory(portfolio: portfolio, forceFetch: forceFetch, useAlternativeKey: true);
+        if (response.statusCode == 200) {
+          final decodedResponse = json.decode(response.body);
+
+          if (decodedResponse.containsKey('errors')) {
+            final errorMessage = json.encode(decodedResponse['errors']);
+            if ((errorMessage.contains('spend limit exceeded') || errorMessage.contains('API key not found')) && !useAlternativeKey) {
+              debugPrint("🔄 TheGraph API limit exceeded or API key not found, switching to alternative API key...");
+              return await fetchTransactionsHistory(portfolio: portfolio, forceFetch: forceFetch, useAlternativeKey: true);
+            }
+            throw Exception("Erreur API: $errorMessage");
           }
-          throw Exception("Erreur API: $errorMessage");
+
+          final List<dynamic> transferEvents = decodedResponse['data']['transferEvents'] ?? [];
+          allTransferEvents.addAll(transferEvents);
+
+          // Si on récupère moins de 1000 résultats, il n'y en a plus à récupérer
+          if (transferEvents.length < 1000) {
+            hasMoreData = false;
+          } else {
+            skip += 1000; // Passer aux résultats suivants
+          }
+        } else {
+          throw Exception('Échec de la requête fetchTransactionsHistory');
         }
-
-        final List<dynamic> transferEvents = decodedResponse['data']['transferEvents'] ?? [];
-        box.put('cachedTransactionsHistoryData', json.encode(transferEvents));
-        box.put('transactionsHistoryFetchTime', now.toIso8601String());
-        box.put('lastExecutionTime_Wallets Transactions', now.toIso8601String());
-        return transferEvents;
-      } else {
-        throw Exception('Échec de la requête fetchTransactionsHistory');
+      } catch (e) {
+        throw Exception('Échec de la récupération de l\'historique des transactions: $e');
       }
-    } catch (e) {
-      throw Exception('Échec de la récupération de l\'historique des transactions: $e');
     }
+
+    // Sauvegarde des données en cache
+    box.put('cachedTransactionsHistoryData', json.encode(allTransferEvents));
+    box.put('transactionsHistoryFetchTime', now.toIso8601String());
+    box.put('lastExecutionTime_Wallets Transactions', now.toIso8601String());
+
+    return allTransferEvents;
   }
 
   static Future<List<dynamic>> fetchYamWalletsTransactions({
@@ -956,15 +997,19 @@ class ApiService {
     final apiUrl = Parameters.getGraphUrl(Parameters.yamSubgraphId, useAlternativeKey: useAlternativeKey);
 
     for (String address in destinations) {
-      try {
-        final response = await http.post(
-          Uri.parse(apiUrl),
-          headers: {'Content-Type': 'application/json'},
-          body: json.encode({
-            "query": '''
-              query GetYamTransactions(\$accountId: String!) {
+      int skip = 0; // Début de la pagination
+      bool hasMoreData = true; // Flag pour savoir s'il y a encore des données à récupérer
+
+      while (hasMoreData) {
+        try {
+          final response = await http.post(
+            Uri.parse(apiUrl),
+            headers: {'Content-Type': 'application/json'},
+            body: json.encode({
+              "query": '''
+              query GetYamTransactions(\$accountId: String!, \$skip: Int!) {
                 account(id: \$accountId) {
-                  transactions {
+                  transactions(first: 1000, skip: \$skip) {
                     id
                     price
                     quantity
@@ -980,33 +1025,45 @@ class ApiService {
                 }
               }
             ''',
-            "variables": {
-              "accountId": address,
+              "variables": {
+                "accountId": address,
+                "skip": skip,
+              }
+            }),
+          );
+
+          if (response.statusCode == 200) {
+            final decodedResponse = json.decode(response.body);
+
+            if (decodedResponse.containsKey('errors')) {
+              final errorMessage = json.encode(decodedResponse['errors']);
+              if ((errorMessage.contains('spend limit exceeded') || errorMessage.contains('API key not found')) && !useAlternativeKey) {
+                debugPrint("🔄 TheGraph API limit exceeded or API key not found, switching to alternative API key...");
+                return await fetchYamWalletsTransactions(forceFetch: forceFetch, useAlternativeKey: true);
+              }
+              throw Exception("Erreur API: $errorMessage");
             }
-          }),
-        );
 
-        if (response.statusCode == 200) {
-          final decodedResponse = json.decode(response.body);
+            if (decodedResponse['data'] != null && decodedResponse['data']['account'] != null) {
+              final List<dynamic> transactions = decodedResponse['data']['account']['transactions'] ?? [];
 
-          if (decodedResponse.containsKey('errors')) {
-            final errorMessage = json.encode(decodedResponse['errors']);
-            if ((errorMessage.contains('spend limit exceeded') || errorMessage.contains('API key not found')) && !useAlternativeKey) {
-              debugPrint("🔄 TheGraph API limit exceeded or  not found , switching to alternative API key...");
-              return await fetchYamWalletsTransactions(forceFetch: forceFetch, useAlternativeKey: true);
+              allYamTransactions.addAll(transactions);
+
+              // S'il y a moins de 1000 transactions, on arrête la pagination
+              if (transactions.length < 1000) {
+                hasMoreData = false;
+              } else {
+                skip += 1000; // Passer aux transactions suivantes
+              }
+            } else {
+              hasMoreData = false; // Arrêter si aucune donnée
             }
-            throw Exception("Erreur API: $errorMessage");
+          } else {
+            throw Exception('Échec de la requête fetchYamWalletsTransactions pour l\'adresse: $address');
           }
-
-          if (decodedResponse['data'] != null && decodedResponse['data']['account'] != null) {
-            final List<dynamic> transactions = decodedResponse['data']['account']['transactions'] ?? [];
-            allYamTransactions.addAll(transactions);
-          }
-        } else {
-          throw Exception('Échec de la requête fetchYamWalletsTransactions pour l\'adresse: $address');
+        } catch (e) {
+          throw Exception('Échec de la récupération des transactions YAM: $e');
         }
-      } catch (e) {
-        throw Exception('Échec de la récupération des transactions YAM: $e');
       }
     }
 

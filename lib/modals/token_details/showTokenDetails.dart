@@ -188,12 +188,37 @@ Future<void> showTokenDetails(BuildContext context, Map<String, dynamic> token) 
                       ),
                 const SizedBox(height: 10),
                 Center(
-                  child: Text(
-                    token['fullName'],
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15 + appState.getTextSizeOffset(),
-                    ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min, // Ajuste la taille du Row au contenu
+                    mainAxisAlignment: MainAxisAlignment.center, // Centre horizontalement
+                    crossAxisAlignment: CrossAxisAlignment.center, // Centre verticalement
+                    children: [
+                      if (token['country'] != null) // Vérifie si le pays est disponible
+                        Padding(
+                          padding: const EdgeInsets.only(right: 4.0), // Espacement entre l'image et le texte
+                          child: Image.asset(
+                            'assets/country/${token['country'].toLowerCase()}.png',
+                            width: 26 + appState.getTextSizeOffset(),
+                            height: 26 + appState.getTextSizeOffset(),
+                            errorBuilder: (context, error, stackTrace) {
+                              return const Icon(Icons.flag, size: 24); // Icône par défaut si l'image est introuvable
+                            },
+                          ),
+                        ),
+                      Expanded(
+                        // Empêche le texte de dépasser et ajoute les "..."
+                        child: Text(
+                          token['fullName'] ?? S.of(context).nameUnavailable,
+                          style: TextStyle(
+                            fontSize: 15 + appState.getTextSizeOffset(),
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).textTheme.bodyLarge?.color,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis, // Ajoute les "..." si le texte dépasse
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 token['amount'] != null

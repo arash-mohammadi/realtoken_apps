@@ -224,7 +224,7 @@
   "creation_date": "Creation Date",
   "buy_token": "Buy",
   "sell_token": "Sell",
-    "secondary_offers_related_to_token": "YAMM offers related to token",
+    "secondary_offers_related_to_token": "YAM offers related to token",
   "error_occurred": "Error: {error}",
   "properties_for_sale": "Properties For Sale",
   "realt": "RealT",

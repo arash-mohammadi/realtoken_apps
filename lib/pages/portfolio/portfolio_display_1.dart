@@ -218,11 +218,11 @@ class PortfolioDisplay1 extends StatelessWidget {
                                           children: [
                                             if (token['country'] != null) // Vérifie si le pays est disponible
                                               Padding(
-                                                padding: const EdgeInsets.only(right: 8.0), // Espacement entre l'image et le texte
+                                                padding: const EdgeInsets.only(right: 4.0), // Espacement entre l'image et le texte
                                                 child: Image.asset(
                                                   'assets/country/${token['country'].toLowerCase()}.png',
-                                                  width: 18,
-                                                  height: 18,
+                                                  width: 26 + appState.getTextSizeOffset(),
+                                                  height: 26 + appState.getTextSizeOffset(),
                                                   errorBuilder: (context, error, stackTrace) {
                                                     return const Icon(Icons.flag, size: 24); // Icône par défaut si l'image est introuvable
                                                   },

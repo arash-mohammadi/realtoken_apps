@@ -4,7 +4,7 @@ description: "A community app for RealT"
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
-version: 1.7.4+43 
+version: 1.7.5+44 
 
 environment:
   sdk: ^3.5.3
@@ -80,6 +80,7 @@ flutter:
     - assets/country/usa.png
     - assets/country/panama.png
     - assets/country/suisse.png
+    - assets/country/colombia.png
 
   uses-material-design: true
 

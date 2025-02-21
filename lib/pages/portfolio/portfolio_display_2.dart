@@ -239,11 +239,11 @@ class PortfolioDisplay2State extends State<PortfolioDisplay2> {
                                               children: [
                                                 if (token['country'] != null) // Vérifie si le pays est disponible
                                                   Padding(
-                                                    padding: const EdgeInsets.only(right: 8.0), // Espacement entre l'image et le texte
+                                                    padding: const EdgeInsets.only(right: 4.0), // Espacement entre l'image et le texte
                                                     child: Image.asset(
                                                       'assets/country/${token['country'].toLowerCase()}.png',
-                                                      width: 24,
-                                                      height: 24,
+                                                      width: 26 + appState.getTextSizeOffset(),
+                                                      height: 26 + appState.getTextSizeOffset(),
                                                       errorBuilder: (context, error, stackTrace) {
                                                         return const Icon(Icons.flag, size: 24); // Affiche une icône par défaut si l'image est introuvable
                                                       },

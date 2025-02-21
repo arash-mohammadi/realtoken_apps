@@ -73,6 +73,7 @@ class _MyHomePageState extends State<MyHomePage> {
     final dataManager = Provider.of<DataManager>(context, listen: false);
     final double usdcBalance = dataManager.gnosisUsdcBalance;
     final double xdaiBalance = dataManager.gnosisXdaiBalance;
+    final appState = Provider.of<AppState>(context);
 
     showMenu(
       context: context,
@@ -92,23 +93,24 @@ class _MyHomePageState extends State<MyHomePage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text("💰 Solde Wallet", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Theme.of(context).textTheme.bodyMedium?.color)),
+                  Text("💰 Solde Wallet",
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14 + appState.getTextSizeOffset(), color: Theme.of(context).textTheme.bodyMedium?.color)),
                   const Divider(),
                   Row(
                     children: [
-                      Image.asset('assets/icons/usdc.png', width: 20, height: 20),
+                      Image.asset('assets/icons/usdc.png', width: 20 + appState.getTextSizeOffset(), height: 20 + appState.getTextSizeOffset()),
                       const SizedBox(width: 8),
                       Text(currencyUtils.formatCurrency(currencyUtils.convert(usdcBalance), currencyUtils.currencySymbol),
-                          style: TextStyle(fontSize: 14, color: Theme.of(context).textTheme.bodyMedium?.color)),
+                          style: TextStyle(fontSize: 14 + appState.getTextSizeOffset(), color: Theme.of(context).textTheme.bodyMedium?.color)),
                     ],
                   ),
                   const SizedBox(height: 6),
                   Row(
                     children: [
-                      Image.asset('assets/icons/xdai.png', width: 20, height: 20),
+                      Image.asset('assets/icons/xdai.png', width: 20 + appState.getTextSizeOffset(), height: 20 + appState.getTextSizeOffset()),
                       const SizedBox(width: 8),
                       Text(currencyUtils.formatCurrency(currencyUtils.convert(xdaiBalance), currencyUtils.currencySymbol),
-                          style: TextStyle(fontSize: 14, color: Theme.of(context).textTheme.bodyMedium?.color)),
+                          style: TextStyle(fontSize: 14 + appState.getTextSizeOffset(), color: Theme.of(context).textTheme.bodyMedium?.color)),
                     ],
                   ),
                 ],
