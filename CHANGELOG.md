@@ -18,7 +18,7 @@
 ### Added
 
 - add events calendar (properties purchases, YAM, rents)
-<img src="https://github.com/user-attachments/assets/31b9aaeb-f9da-47ad-8036-1ef79c02e922" width="200" style="margin-left: 20px;">
+![Description](https://github.com/user-attachments/assets/31b9aaeb-f9da-47ad-8036-1ef79c02e922)
 
 - add support theme color
 <img src="https://github.com/user-attachments/assets/869eff20-1b88-45d2-983f-eed1b561713d"  width="200" style="margin-left: 20px;">
