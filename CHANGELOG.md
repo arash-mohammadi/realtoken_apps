@@ -21,7 +21,7 @@
 ![Description](https://github.com/user-attachments/assets/31b9aaeb-f9da-47ad-8036-1ef79c02e922?s=50)
 
 - add support theme color
-![Description](https://github.com/user-attachments/assets/869eff20-1b88-45d2-983f-eed1b561713d?s=200)
+![Description](https://github.com/user-attachments/assets/869eff20-1b88-45d2-983f-eed1b561713d?s=50)
 
 - add period selector for all graph
 ![Description](https://github.com/user-attachments/assets/979430e3-7092-4c15-bcb5-8a0319edb7ab?s=200)
