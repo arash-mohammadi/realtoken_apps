@@ -252,91 +252,80 @@ class _RentGraphState extends State<RentGraph> {
   }
 
   List<Map<String, dynamic>> _groupByDay(List<Map<String, dynamic>> data) {
-  Map<String, double> groupedData = {};
-  for (var entry in data) {
-    DateTime date = DateTime.parse(entry['date']);
-    String dayKey = DateFormat('yyyy/MM/dd').format(date); // Format jour
-    groupedData[dayKey] = (groupedData[dayKey] ?? 0) + entry['rent'];
+    Map<String, double> groupedData = {};
+    for (var entry in data) {
+      DateTime date = DateTime.parse(entry['date']);
+      String dayKey = DateFormat('yyyy/MM/dd').format(date); // Format jour
+      groupedData[dayKey] = (groupedData[dayKey] ?? 0) + entry['rent'];
+    }
+    // Conversion de la Map en liste
+    List<Map<String, dynamic>> list = groupedData.entries.map((entry) => {'date': entry.key, 'rent': entry.value}).toList();
+    // Trier la liste par date croissante
+    list.sort((a, b) => DateFormat('yyyy/MM/dd').parse(a['date']).compareTo(DateFormat('yyyy/MM/dd').parse(b['date'])));
+    return list;
   }
-  // Conversion de la Map en liste
-  List<Map<String, dynamic>> list =
-      groupedData.entries.map((entry) => {'date': entry.key, 'rent': entry.value}).toList();
-  // Trier la liste par date croissante
-  list.sort((a, b) =>
-      DateFormat('yyyy/MM/dd').parse(a['date']).compareTo(DateFormat('yyyy/MM/dd').parse(b['date'])));
-  return list;
-}
 
+  List<Map<String, dynamic>> _groupByWeek(List<Map<String, dynamic>> data) {
+    Map<String, double> groupedData = {};
 
-List<Map<String, dynamic>> _groupByWeek(List<Map<String, dynamic>> data) {
-  Map<String, double> groupedData = {};
-
-  for (var entry in data) {
-    if (entry.containsKey('date') && entry.containsKey('rent')) {
-      try {
-        DateTime date = DateTime.parse(entry['date']);
-        String weekKey = "${date.year}-S${CustomDateUtils.weekNumber(date).toString().padLeft(2, '0')}";
-        groupedData[weekKey] = (groupedData[weekKey] ?? 0) + entry['rent'];
-      } catch (e) {
-        debugPrint("❌ Erreur lors de la conversion de la date : ${entry['date']}");
+    for (var entry in data) {
+      if (entry.containsKey('date') && entry.containsKey('rent')) {
+        try {
+          DateTime date = DateTime.parse(entry['date']);
+          String weekKey = "${date.year}-S${CustomDateUtils.weekNumber(date).toString().padLeft(2, '0')}";
+          groupedData[weekKey] = (groupedData[weekKey] ?? 0) + entry['rent'];
+        } catch (e) {
+          debugPrint("❌ Erreur lors de la conversion de la date : ${entry['date']}");
+        }
       }
     }
+
+    // Conversion de la Map en liste de maps
+    List<Map<String, dynamic>> list = groupedData.entries.map((entry) => {'date': entry.key, 'rent': entry.value}).toList();
+
+    // Tri de la liste par année puis par numéro de semaine
+    list.sort((a, b) {
+      final aParts = a['date'].split('-S');
+      final bParts = b['date'].split('-S');
+      int aYear = int.parse(aParts[0]);
+      int bYear = int.parse(bParts[0]);
+      int aWeek = int.parse(aParts[1]);
+      int bWeek = int.parse(bParts[1]);
+      int cmp = aYear.compareTo(bYear);
+      if (cmp == 0) {
+        cmp = aWeek.compareTo(bWeek);
+      }
+      return cmp;
+    });
+
+    return list;
   }
 
-  // Conversion de la Map en liste de maps
-  List<Map<String, dynamic>> list = groupedData.entries
-      .map((entry) => {'date': entry.key, 'rent': entry.value})
-      .toList();
-
-  // Tri de la liste par année puis par numéro de semaine
-  list.sort((a, b) {
-    final aParts = a['date'].split('-S');
-    final bParts = b['date'].split('-S');
-    int aYear = int.parse(aParts[0]);
-    int bYear = int.parse(bParts[0]);
-    int aWeek = int.parse(aParts[1]);
-    int bWeek = int.parse(bParts[1]);
-    int cmp = aYear.compareTo(bYear);
-    if (cmp == 0) {
-      cmp = aWeek.compareTo(bWeek);
+  List<Map<String, dynamic>> _groupByMonth(List<Map<String, dynamic>> data) {
+    Map<String, double> groupedData = {};
+    for (var entry in data) {
+      DateTime date = DateTime.parse(entry['date']);
+      String monthKey = DateFormat('yyyy/MM').format(date);
+      groupedData[monthKey] = (groupedData[monthKey] ?? 0) + entry['rent'];
     }
-    return cmp;
-  });
-
-  return list;
-}
-
- List<Map<String, dynamic>> _groupByMonth(List<Map<String, dynamic>> data) {
-  Map<String, double> groupedData = {};
-  for (var entry in data) {
-    DateTime date = DateTime.parse(entry['date']);
-    String monthKey = DateFormat('yyyy/MM').format(date);
-    groupedData[monthKey] = (groupedData[monthKey] ?? 0) + entry['rent'];
+    // Conversion en liste et tri par date croissante
+    List<Map<String, dynamic>> list = groupedData.entries.map((entry) => {'date': entry.key, 'rent': entry.value}).toList();
+    list.sort((a, b) => DateFormat('yyyy/MM').parse(a['date']).compareTo(DateFormat('yyyy/MM').parse(b['date'])));
+    return list;
   }
-  // Conversion en liste et tri par date croissante
-  List<Map<String, dynamic>> list = groupedData.entries
-      .map((entry) => {'date': entry.key, 'rent': entry.value})
-      .toList();
-  list.sort((a, b) => DateFormat('yyyy/MM')
-      .parse(a['date'])
-      .compareTo(DateFormat('yyyy/MM').parse(b['date'])));
-  return list;
-}
 
-List<Map<String, dynamic>> _groupByYear(List<Map<String, dynamic>> data) {
-  Map<String, double> groupedData = {};
-  for (var entry in data) {
-    DateTime date = DateTime.parse(entry['date']);
-    String yearKey = date.year.toString();
-    groupedData[yearKey] = (groupedData[yearKey] ?? 0) + entry['rent'];
+  List<Map<String, dynamic>> _groupByYear(List<Map<String, dynamic>> data) {
+    Map<String, double> groupedData = {};
+    for (var entry in data) {
+      DateTime date = DateTime.parse(entry['date']);
+      String yearKey = date.year.toString();
+      groupedData[yearKey] = (groupedData[yearKey] ?? 0) + entry['rent'];
+    }
+    // Conversion en liste et tri par année croissante
+    List<Map<String, dynamic>> list = groupedData.entries.map((entry) => {'date': entry.key, 'rent': entry.value}).toList();
+    list.sort((a, b) => int.parse(a['date']).compareTo(int.parse(b['date'])));
+    return list;
   }
-  // Conversion en liste et tri par année croissante
-  List<Map<String, dynamic>> list = groupedData.entries
-      .map((entry) => {'date': entry.key, 'rent': entry.value})
-      .toList();
-  list.sort((a, b) => int.parse(a['date']).compareTo(int.parse(b['date'])));
-  return list;
-}
 
   List<FlSpot> _buildChartData(List<Map<String, dynamic>> data) {
     List<FlSpot> spots = [];

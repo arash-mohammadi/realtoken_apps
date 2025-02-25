@@ -276,7 +276,7 @@ class DataManager extends ChangeNotifier {
     }
   }
 
-Future<void> loadRentedHistory() async {
+  Future<void> loadRentedHistory() async {
     try {
       var box = Hive.box('rentedArchive'); // Ouvrir la boîte Hive
       List<dynamic>? rentedHistoryJson = box.get('rented_history'); // Récupérer les données sauvegardées
@@ -348,7 +348,7 @@ Future<void> loadRentedHistory() async {
     notifyListeners(); // Notifier les listeners de tout changement
   }
 
-    Future<void> saveRentedHistory() async {
+  Future<void> saveRentedHistory() async {
     var box = Hive.box('rentedArchive');
     List<Map<String, dynamic>> rentedHistoryJson = rentedHistory.map((record) => record.toJson()).toList();
     await box.put('rented_history', rentedHistoryJson);
@@ -1522,13 +1522,14 @@ Future<void> loadRentedHistory() async {
     await box.put('balanceHistory_totalWalletValue', balanceHistoryJsonToSave); // Stocker dans la nouvelle boîte
   }
 
-Future<void> archiveRentedValue(double rentedValue) async {
+  Future<void> archiveRentedValue(double rentedValue) async {
     try {
       var box = Hive.box('rentedArchive'); // Ouvrir une nouvelle boîte dédiée
 
       // Charger l'historique existant depuis Hive
       List<dynamic>? rentedHistoryJson = box.get('rented_history');
-      List<RentedRecord> rentedHistory = rentedHistoryJson != null ? rentedHistoryJson.map((recordJson) => RentedRecord.fromJson(Map<String, dynamic>.from(recordJson))).toList() : [];
+      List<RentedRecord> rentedHistory =
+          rentedHistoryJson != null ? rentedHistoryJson.map((recordJson) => RentedRecord.fromJson(Map<String, dynamic>.from(recordJson))).toList() : [];
 
       // Vérifier le dernier enregistrement
       if (rentedHistory.isNotEmpty) {
@@ -1559,7 +1560,6 @@ Future<void> archiveRentedValue(double rentedValue) async {
       debugPrint('Erreur lors de l\'archivage de la valeur ROI : $e');
     }
   }
-
 
   Future<void> archiveRoiValue(double roiValue) async {
     try {

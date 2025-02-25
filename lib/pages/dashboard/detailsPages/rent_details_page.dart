@@ -6,7 +6,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:realtokens/generated/l10n.dart';
 import 'package:realtokens/managers/data_manager.dart';
-import 'package:realtokens/pages/Statistics/wallet/rent_graph.dart';
+import 'package:realtokens/pages/Statistics/wallet/charts/rent_graph.dart';
 import 'package:realtokens/utils/currency_utils.dart';
 import 'package:realtokens/utils/date_utils.dart';
 import 'package:share_plus/share_plus.dart';
@@ -44,12 +44,8 @@ class DashboardRentsDetailsPage extends StatelessWidget {
       String monthKey = DateFormat('yyyy/MM').format(date);
       groupedData[monthKey] = (groupedData[monthKey] ?? 0) + entry['rent'];
     }
-    List<Map<String, dynamic>> list = groupedData.entries
-        .map((e) => {'date': e.key, 'rent': e.value})
-        .toList();
-    list.sort((a, b) => DateFormat('yyyy/MM')
-        .parse(a['date'])
-        .compareTo(DateFormat('yyyy/MM').parse(b['date'])));
+    List<Map<String, dynamic>> list = groupedData.entries.map((e) => {'date': e.key, 'rent': e.value}).toList();
+    list.sort((a, b) => DateFormat('yyyy/MM').parse(a['date']).compareTo(DateFormat('yyyy/MM').parse(b['date'])));
     return list;
   }
 
@@ -81,6 +77,11 @@ class DashboardRentsDetailsPage extends StatelessWidget {
                 await file.writeAsString(csvData);
                 await Share.shareXFiles(
                   [XFile(filePath)],
+                  sharePositionOrigin: Rect.fromCenter(
+                    center: MediaQuery.of(context).size.center(Offset.zero),
+                    width: 100,
+                    height: 100,
+                  ),
                 );
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(

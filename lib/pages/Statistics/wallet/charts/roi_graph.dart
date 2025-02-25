@@ -5,21 +5,21 @@ import 'package:intl/intl.dart';
 import 'package:realtokens/managers/data_manager.dart';
 import 'package:realtokens/generated/l10n.dart';
 import 'package:realtokens/app_state.dart';
-import 'package:realtokens/models/rented_record.dart';
+import 'package:realtokens/models/roi_record.dart';
 import 'package:realtokens/utils/chart_utils.dart';
 import 'package:realtokens/utils/date_utils.dart';
 
-class RentedHistoryGraph extends StatelessWidget {
+class RoiHistoryGraph extends StatelessWidget {
   final String selectedPeriod;
   final Function(String) onPeriodChanged;
-  final bool rentedIsBarChart;
+  final bool roiIsBarChart;
   final Function(bool) onChartTypeChanged;
 
-  const RentedHistoryGraph({
+  const RoiHistoryGraph({
     super.key,
     required this.selectedPeriod,
     required this.onPeriodChanged,
-    required this.rentedIsBarChart,
+    required this.roiIsBarChart,
     required this.onChartTypeChanged,
   });
 
@@ -29,9 +29,9 @@ class RentedHistoryGraph extends StatelessWidget {
     final dataManager = Provider.of<DataManager>(context);
 
     // Récupérer les données pour les graphiques
-    List<FlSpot> rentedHistoryData = _buildRentedHistoryChartData(context, dataManager, selectedPeriod);
-    List<BarChartGroupData> barChartData = _buildRentedHistoryBarChartData(context, dataManager, selectedPeriod);
-    List<String> dateLabels = _buildDateLabelsForRented(context, dataManager, selectedPeriod);
+    List<FlSpot> roiHistoryData = _buildRoiHistoryChartData(context, dataManager, selectedPeriod);
+    List<BarChartGroupData> barChartData = _buildRoiHistoryBarChartData(context, dataManager, selectedPeriod);
+    List<String> dateLabels = _buildDateLabelsForRoi(context, dataManager, selectedPeriod);
 
     return Card(
       elevation: 0.5,
@@ -44,7 +44,7 @@ class RentedHistoryGraph extends StatelessWidget {
             Row(
               children: [
                 Text(
-                  'S.of(context).rentedHistory', // Titre principal
+                  S.of(context).roiHistory, // Titre principal
                   style: TextStyle(
                     fontSize: 20 + appState.getTextSizeOffset(),
                     fontWeight: FontWeight.bold,
@@ -97,7 +97,7 @@ class RentedHistoryGraph extends StatelessWidget {
               height: 250,
               child: StatefulBuilder(
                 builder: (context, setState) {
-                  return rentedIsBarChart
+                  return roiIsBarChart
                       ? BarChart(
                           BarChartData(
                             gridData: FlGridData(show: true, drawVerticalLine: false),
@@ -166,7 +166,7 @@ class RentedHistoryGraph extends StatelessWidget {
                                   showTitles: true,
                                   reservedSize: 45,
                                   getTitlesWidget: (value, meta) {
-                                    final highestValue = rentedHistoryData.map((e) => e.y).reduce((a, b) => a > b ? a : b);
+                                    final highestValue = roiHistoryData.map((e) => e.y).reduce((a, b) => a > b ? a : b);
 
                                     if (value == highestValue) {
                                       return const SizedBox.shrink();
@@ -186,7 +186,7 @@ class RentedHistoryGraph extends StatelessWidget {
                                 sideTitles: SideTitles(
                                   showTitles: true,
                                   getTitlesWidget: (value, meta) {
-                                    List<String> labels = _buildDateLabelsForRented(context, dataManager, selectedPeriod);
+                                    List<String> labels = _buildDateLabelsForRoi(context, dataManager, selectedPeriod);
 
                                     if (value.toInt() >= 0 && value.toInt() < labels.length) {
                                       return Padding(
@@ -220,12 +220,12 @@ class RentedHistoryGraph extends StatelessWidget {
                               ),
                             ),
                             minX: 0,
-                            maxX: (rentedHistoryData.length - 1).toDouble(),
+                            maxX: (roiHistoryData.length - 1).toDouble(),
                             minY: 0,
                             maxY: 100,
                             lineBarsData: [
                               LineChartBarData(
-                                spots: rentedHistoryData,
+                                spots: roiHistoryData,
                                 isCurved: false,
                                 barWidth: 2,
                                 color: Colors.cyan,
@@ -251,7 +251,7 @@ class RentedHistoryGraph extends StatelessWidget {
                                   return touchedSpots.map((touchedSpot) {
                                     final index = touchedSpot.x.toInt();
                                     final value = touchedSpot.y;
-                                    final date = _buildDateLabelsForRented(context, dataManager, selectedPeriod)[index];
+                                    final date = _buildDateLabelsForRoi(context, dataManager, selectedPeriod)[index];
 
                                     final formattedValue = '${value.toStringAsFixed(2)}%';
 
@@ -280,68 +280,66 @@ class RentedHistoryGraph extends StatelessWidget {
     );
   }
 
-  List<FlSpot> _buildRentedHistoryChartData(BuildContext context, DataManager dataManager, String selectedPeriod) {
-  List<RentedRecord> rentedHistory = dataManager.rentedHistory;
+  List<FlSpot> _buildRoiHistoryChartData(BuildContext context, DataManager dataManager, String selectedPeriod) {
+    List<RoiRecord> roiHistory = dataManager.roiHistory;
 
-  // Grouper les données en fonction de la période sélectionnée
-  Map<String, List<double>> groupedData = {};
-  for (var record in rentedHistory) {
-    DateTime date = record.timestamp;
-    String periodKey;
+    // Grouper les données en fonction de la période sélectionnée
+    Map<String, List<double>> groupedData = {};
+    for (var record in roiHistory) {
+      DateTime date = record.timestamp;
+      String periodKey;
 
-    if (selectedPeriod == S.of(context).day) {
-      periodKey = DateFormat('yyyy/MM/dd').format(date); // Grouper par jour
-    } else if (selectedPeriod == S.of(context).week) {
-      periodKey = "${date.year}-S${CustomDateUtils.weekNumber(date).toString().padLeft(2, '0')}";
-    } else if (selectedPeriod == S.of(context).month) {
-      periodKey = DateFormat('yyyy/MM').format(date);
-    } else {
-      periodKey = date.year.toString();
+      if (selectedPeriod == S.of(context).day) {
+        periodKey = DateFormat('yyyy/MM/dd').format(date); // Grouper par jour
+      } else if (selectedPeriod == S.of(context).week) {
+        periodKey = "${date.year}-S${CustomDateUtils.weekNumber(date).toString().padLeft(2, '0')}";
+      } else if (selectedPeriod == S.of(context).month) {
+        periodKey = DateFormat('yyyy/MM').format(date);
+      } else {
+        periodKey = date.year.toString();
+      }
+
+      groupedData.putIfAbsent(periodKey, () => []).add(record.roi);
     }
 
-    groupedData.putIfAbsent(periodKey, () => []).add(record.percentage);
+    // Calculer la moyenne pour chaque période et trier les clés en ordre chronologique
+    List<FlSpot> spots = [];
+    List<String> sortedKeys = groupedData.keys.toList();
+    if (selectedPeriod == S.of(context).day) {
+      sortedKeys.sort((a, b) => DateFormat('yyyy/MM/dd').parse(a).compareTo(DateFormat('yyyy/MM/dd').parse(b)));
+    } else if (selectedPeriod == S.of(context).week) {
+      sortedKeys.sort((a, b) {
+        final partsA = a.split('-S');
+        final partsB = b.split('-S');
+        int yearA = int.parse(partsA[0]);
+        int weekA = int.parse(partsA[1]);
+        int yearB = int.parse(partsB[0]);
+        int weekB = int.parse(partsB[1]);
+        int cmp = yearA.compareTo(yearB);
+        if (cmp == 0) {
+          cmp = weekA.compareTo(weekB);
+        }
+        return cmp;
+      });
+    } else if (selectedPeriod == S.of(context).month) {
+      sortedKeys.sort((a, b) => DateFormat('yyyy/MM').parse(a).compareTo(DateFormat('yyyy/MM').parse(b)));
+    } else {
+      sortedKeys.sort((a, b) => int.parse(a).compareTo(int.parse(b)));
+    }
+
+    for (int i = 0; i < sortedKeys.length; i++) {
+      String periodKey = sortedKeys[i];
+      List<double> rois = groupedData[periodKey]!;
+      double averageRoi = rois.reduce((a, b) => a + b) / rois.length; // Calcul de la moyenne
+      spots.add(FlSpot(i.toDouble(), averageRoi));
+    }
+
+    return spots;
   }
 
-  // Calculer la moyenne pour chaque période et trier les clés en ordre chronologique
-  List<FlSpot> spots = [];
-  List<String> sortedKeys = groupedData.keys.toList();
-  if (selectedPeriod == S.of(context).day) {
-    sortedKeys.sort((a, b) =>
-        DateFormat('yyyy/MM/dd').parse(a).compareTo(DateFormat('yyyy/MM/dd').parse(b)));
-  } else if (selectedPeriod == S.of(context).week) {
-    sortedKeys.sort((a, b) {
-      final partsA = a.split('-S');
-      final partsB = b.split('-S');
-      int yearA = int.parse(partsA[0]);
-      int weekA = int.parse(partsA[1]);
-      int yearB = int.parse(partsB[0]);
-      int weekB = int.parse(partsB[1]);
-      int cmp = yearA.compareTo(yearB);
-      if (cmp == 0) {
-        cmp = weekA.compareTo(weekB);
-      }
-      return cmp;
-    });
-  } else if (selectedPeriod == S.of(context).month) {
-    sortedKeys.sort((a, b) =>
-        DateFormat('yyyy/MM').parse(a).compareTo(DateFormat('yyyy/MM').parse(b)));
-  } else {
-    sortedKeys.sort((a, b) => int.parse(a).compareTo(int.parse(b)));
-  }
-
-  for (int i = 0; i < sortedKeys.length; i++) {
-    String periodKey = sortedKeys[i];
-    List<double> renteds = groupedData[periodKey]!;
-    double averageRented = renteds.reduce((a, b) => a + b) / renteds.length; // Calcul de la moyenne
-    spots.add(FlSpot(i.toDouble(), averageRented));
-  }
-
-  return spots;
-}
-
-  List<BarChartGroupData> _buildRentedHistoryBarChartData(BuildContext context, DataManager dataManager, String selectedPeriod) {
-    List<FlSpot> rentedHistoryData = _buildRentedHistoryChartData(context, dataManager, selectedPeriod);
-    return rentedHistoryData
+  List<BarChartGroupData> _buildRoiHistoryBarChartData(BuildContext context, DataManager dataManager, String selectedPeriod) {
+    List<FlSpot> roiHistoryData = _buildRoiHistoryChartData(context, dataManager, selectedPeriod);
+    return roiHistoryData
         .asMap()
         .entries
         .map(
@@ -359,54 +357,52 @@ class RentedHistoryGraph extends StatelessWidget {
         .toList();
   }
 
-  List<String> _buildDateLabelsForRented(BuildContext context, DataManager dataManager, String selectedPeriod) {
-  List<RentedRecord> rentedHistory = dataManager.rentedHistory;
+  List<String> _buildDateLabelsForRoi(BuildContext context, DataManager dataManager, String selectedPeriod) {
+    List<RoiRecord> roiHistory = dataManager.roiHistory;
 
-  // Grouper les données en fonction de la période sélectionnée
-  Map<String, List<double>> groupedData = {};
-  for (var record in rentedHistory) {
-    DateTime date = record.timestamp;
-    String periodKey;
+    // Grouper les données en fonction de la période sélectionnée
+    Map<String, List<double>> groupedData = {};
+    for (var record in roiHistory) {
+      DateTime date = record.timestamp;
+      String periodKey;
 
-    if (selectedPeriod == S.of(context).day) {
-      periodKey = DateFormat('yyyy/MM/dd').format(date); // Grouper par jour
-    } else if (selectedPeriod == S.of(context).week) {
-      periodKey = "${date.year}-S${CustomDateUtils.weekNumber(date).toString().padLeft(2, '0')}";
-    } else if (selectedPeriod == S.of(context).month) {
-      periodKey = DateFormat('yyyy/MM').format(date);
-    } else {
-      periodKey = date.year.toString();
+      if (selectedPeriod == S.of(context).day) {
+        periodKey = DateFormat('yyyy/MM/dd').format(date); // Grouper par jour
+      } else if (selectedPeriod == S.of(context).week) {
+        periodKey = "${date.year}-S${CustomDateUtils.weekNumber(date).toString().padLeft(2, '0')}";
+      } else if (selectedPeriod == S.of(context).month) {
+        periodKey = DateFormat('yyyy/MM').format(date);
+      } else {
+        periodKey = date.year.toString();
+      }
+
+      groupedData.putIfAbsent(periodKey, () => []).add(record.roi);
     }
 
-    groupedData.putIfAbsent(periodKey, () => []).add(record.percentage);
-  }
+    // Trier les clés en ordre croissant
+    List<String> sortedKeys = groupedData.keys.toList();
+    if (selectedPeriod == S.of(context).day) {
+      sortedKeys.sort((a, b) => DateFormat('yyyy/MM/dd').parse(a).compareTo(DateFormat('yyyy/MM/dd').parse(b)));
+    } else if (selectedPeriod == S.of(context).week) {
+      sortedKeys.sort((a, b) {
+        final partsA = a.split('-S');
+        final partsB = b.split('-S');
+        int yearA = int.parse(partsA[0]);
+        int weekA = int.parse(partsA[1]);
+        int yearB = int.parse(partsB[0]);
+        int weekB = int.parse(partsB[1]);
+        int cmp = yearA.compareTo(yearB);
+        if (cmp == 0) {
+          cmp = weekA.compareTo(weekB);
+        }
+        return cmp;
+      });
+    } else if (selectedPeriod == S.of(context).month) {
+      sortedKeys.sort((a, b) => DateFormat('yyyy/MM').parse(a).compareTo(DateFormat('yyyy/MM').parse(b)));
+    } else {
+      sortedKeys.sort((a, b) => int.parse(a).compareTo(int.parse(b)));
+    }
 
-  // Trier les clés en ordre crentedssant
-  List<String> sortedKeys = groupedData.keys.toList();
-  if (selectedPeriod == S.of(context).day) {
-    sortedKeys.sort((a, b) =>
-        DateFormat('yyyy/MM/dd').parse(a).compareTo(DateFormat('yyyy/MM/dd').parse(b)));
-  } else if (selectedPeriod == S.of(context).week) {
-    sortedKeys.sort((a, b) {
-      final partsA = a.split('-S');
-      final partsB = b.split('-S');
-      int yearA = int.parse(partsA[0]);
-      int weekA = int.parse(partsA[1]);
-      int yearB = int.parse(partsB[0]);
-      int weekB = int.parse(partsB[1]);
-      int cmp = yearA.compareTo(yearB);
-      if (cmp == 0) {
-        cmp = weekA.compareTo(weekB);
-      }
-      return cmp;
-    });
-  } else if (selectedPeriod == S.of(context).month) {
-    sortedKeys.sort((a, b) =>
-        DateFormat('yyyy/MM').parse(a).compareTo(DateFormat('yyyy/MM').parse(b)));
-  } else {
-    sortedKeys.sort((a, b) => int.parse(a).compareTo(int.parse(b)));
+    return sortedKeys;
   }
-
-  return sortedKeys;
-}
 }

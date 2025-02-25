@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:realtokens/managers/data_manager.dart';
 import 'package:realtokens/generated/l10n.dart';
-import 'package:fl_chart/fl_chart.dart';
-import 'package:realtokens/app_state.dart';
+import 'package:realtokens/pages/Statistics/portfolio/charts/token_distribution_chart.dart';
 import 'package:syncfusion_flutter_gauges/gauges.dart';
+import 'package:realtokens/app_state.dart';
 
 class PropertiesDetailsPage extends StatelessWidget {
   const PropertiesDetailsPage({super.key});
@@ -91,9 +91,12 @@ class PropertiesDetailsPage extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildRentedUnitsGauge(context, dataManager, appState),
-                  _buildInfoCards(context, dataManager, appState), // Ajout des cartes
-                  SizedBox(height: 20),
-                  _buildTokenDistributionCard(context, dataManager, appState),
+                  _buildInfoCards(context, dataManager, appState),
+                  SizedBox(height: 10),
+                  SizedBox(
+                    height: 400, // Hauteur fixe pour éviter le problème de layout
+                    child: TokenDistributionCard(dataManager: dataManager),
+                  ),
                 ],
               ),
       ),
@@ -195,89 +198,6 @@ class PropertiesDetailsPage extends StatelessWidget {
       return Colors.orange;
     } else {
       return Colors.green;
-    }
-  }
-
-  Widget _buildTokenDistributionCard(BuildContext context, DataManager dataManager, AppState appState) {
-    return Card(
-      elevation: 0,
-      color: Theme.of(context).cardColor,
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              S.of(context).tokenDistribution,
-              style: TextStyle(fontSize: 20 + appState.getTextSizeOffset(), fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 20),
-            SizedBox(
-              height: 200,
-              child: PieChart(
-                PieChartData(
-                  sections: _buildDonutChartData(dataManager),
-                  centerSpaceRadius: 70,
-                  sectionsSpace: 2,
-                  borderData: FlBorderData(show: false),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  List<PieChartSectionData> _buildDonutChartData(DataManager dataManager) {
-    final sortedData = List<Map<String, dynamic>>.from(dataManager.propertyData)..sort((a, b) => b['count'].compareTo(a['count']));
-
-    return sortedData.asMap().entries.map((entry) {
-      final data = entry.value;
-      final double percentage = (data['count'] / dataManager.propertyData.fold(0.0, (double sum, item) => sum + item['count'])) * 100;
-
-      return PieChartSectionData(
-        value: data['count'].toDouble(),
-        title: '${percentage.toStringAsFixed(1)}%',
-        color: _getPropertyColor(data['propertyType']),
-        radius: 40,
-        titleStyle: const TextStyle(
-          fontSize: 10,
-          color: Colors.white,
-          fontWeight: FontWeight.bold,
-        ),
-      );
-    }).toList();
-  }
-
-  Color _getPropertyColor(int propertyType) {
-    switch (propertyType) {
-      case 1:
-        return Colors.blue;
-      case 2:
-        return Colors.green;
-      case 3:
-        return Colors.orange;
-      case 4:
-        return Colors.red;
-      case 5:
-        return Colors.purple;
-      case 6:
-        return Colors.yellow;
-      case 7:
-        return Colors.teal;
-      case 8:
-        return Colors.brown;
-      case 9:
-        return Colors.pink;
-      case 10:
-        return Colors.cyan;
-      case 11:
-        return Colors.lime;
-      case 12:
-        return Colors.indigo;
-      default:
-        return Colors.grey;
     }
   }
 }

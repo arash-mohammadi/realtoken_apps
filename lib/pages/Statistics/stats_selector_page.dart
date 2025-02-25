@@ -23,9 +23,9 @@ class StatsSelectorPageState extends State<StatsSelectorPage> {
         headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
           return <Widget>[
             SliverAppBar(
-              floating: false,
-              snap: false,
-              expandedHeight: UIUtils.getSliverAppBarHeight(context),
+              floating: true,
+              snap: true,
+              expandedHeight: UIUtils.getSliverAppBarHeight(context) + 10,
               flexibleSpace: FlexibleSpaceBar(
                 background: Container(
                   color: Theme.of(context).scaffoldBackgroundColor,
@@ -50,48 +50,45 @@ class StatsSelectorPageState extends State<StatsSelectorPage> {
   }
 
   Widget _buildStatsSelector() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-      child: Row(
+    return Center(
+      // Centrer horizontalement
+      child: Wrap(
+        spacing: 8.0, // Espacement entre les chips
         children: [
-          _buildStatsButton('WalletStats', 'Wallet', isFirst: true), // Nouveau bouton
-          _buildStatsButton('PortfolioStats', 'Portfolio'),
-          _buildStatsButton('RMMStats', 'RMM', isLast: true),
+          _buildStatsChip('WalletStats', 'Wallet'),
+          _buildStatsChip('PortfolioStats', 'Portfolio'),
+          _buildStatsChip('RMMStats', 'RMM'),
         ],
       ),
     );
   }
 
-  Widget _buildStatsButton(String value, String label, {bool isFirst = false, bool isLast = false}) {
-    bool isSelected = _selectedStats == value;
+  Widget _buildStatsChip(String value, String label) {
     final appState = Provider.of<AppState>(context);
+    bool isSelected = _selectedStats == value;
 
-    return Expanded(
-      child: GestureDetector(
-        onTap: () {
-          setState(() {
-            _selectedStats = value;
-          });
-        },
-        child: Container(
-          decoration: BoxDecoration(
-            color: isSelected ? Theme.of(context).primaryColor : Theme.of(context).cardColor,
-            borderRadius: BorderRadius.horizontal(
-              left: isFirst ? const Radius.circular(8) : Radius.zero,
-              right: isLast ? const Radius.circular(8) : Radius.zero,
-            ),
-          ),
-          padding: const EdgeInsets.symmetric(vertical: 4),
-          alignment: Alignment.center,
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 16 + appState.getTextSizeOffset(),
-              color: isSelected ? Colors.white : Theme.of(context).primaryColor,
-              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-            ),
-          ),
+    return ActionChip(
+      // Utilisation de ActionChip
+      label: Text(
+        label,
+        style: TextStyle(
+          fontSize: 16 + appState.getTextSizeOffset(),
+          color: isSelected ? Colors.white : Theme.of(context).primaryColor,
+          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
         ),
+      ),
+      onPressed: () {
+        setState(() {
+          _selectedStats = value;
+        });
+      },
+      backgroundColor: isSelected ? Theme.of(context).primaryColor : Theme.of(context).cardColor,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10), // Bords arrondis
+      ),
+      padding: EdgeInsets.symmetric(
+        horizontal: isSelected ? 80 : 5, // Agrandir davantage le chip sélectionné
+        vertical: 5, // Augmenter la hauteur des chips
       ),
     );
   }

@@ -75,12 +75,9 @@ class MapsPageState extends State<MapsPage> {
 
     final tokensToShow = _showAllTokens ? _filterAndSortTokens(dataManager.allTokens) : _filterAndSortTokens(dataManager.portfolio);
 
-final displayedTokens = _showWhitelistedTokens
-    ? tokensToShow.where((token) =>
-         dataManager.whitelistTokens.any(
-           (w) => w['token'].toLowerCase() == token['uuid'].toLowerCase()))
-      .toList()
-    : tokensToShow;
+    final displayedTokens = _showWhitelistedTokens
+        ? tokensToShow.where((token) => dataManager.whitelistTokens.any((w) => w['token'].toLowerCase() == token['uuid'].toLowerCase())).toList()
+        : tokensToShow;
 
     if (displayedTokens.isEmpty) {
       return const Center(child: Text('No tokens available'));
@@ -280,51 +277,51 @@ final displayedTokens = _showWhitelistedTokens
             ),
           ),
           // Switch en haut à gauche pour basculer entre les tokens du portefeuille et tous les tokens
-         // Switch en haut à gauche pour basculer entre le portefeuille/all tokens et le filtrage whitelist
-Positioned(
-  top: UIUtils.getAppBarHeight(context),
-  left: 16,
-  child: Row(
-    children: [
-      // Switch pour Portfolio / All Tokens
-      Transform.scale(
-        scale: 0.8,
-        child: Switch(
-          value: _showAllTokens,
-          onChanged: (value) {
-            setState(() {
-              _showAllTokens = value;
-            });
-          },
-          activeColor: Theme.of(context).primaryColor,
-          inactiveThumbColor: Colors.grey,
-        ),
-      ),
-      const SizedBox(width: 4),
-      Text(_showAllTokens ? 'All Tokens' : 'Portfolio'),
-      
-      const SizedBox(width: 20),
-      
-      // Switch pour afficher uniquement les tokens whitelist
-      Transform.scale(
-        scale: 0.8,
-        child: Switch(
-          value: _showWhitelistedTokens,
-          onChanged: (value) {
-            setState(() {
-              _showWhitelistedTokens = value;
-            });
-          },
-          activeColor: Theme.of(context).primaryColor,
-          inactiveThumbColor: Colors.grey,
-        ),
-      ),
-      const SizedBox(width: 4),
-      Text(_showWhitelistedTokens ? 'Whitelist' : 'Tous'),
-    ],
-  ),
-),
- // Légende en bas à gauche
+          // Switch en haut à gauche pour basculer entre le portefeuille/all tokens et le filtrage whitelist
+          Positioned(
+            top: UIUtils.getAppBarHeight(context),
+            left: 16,
+            child: Row(
+              children: [
+                // Switch pour Portfolio / All Tokens
+                Transform.scale(
+                  scale: 0.8,
+                  child: Switch(
+                    value: _showAllTokens,
+                    onChanged: (value) {
+                      setState(() {
+                        _showAllTokens = value;
+                      });
+                    },
+                    activeColor: Theme.of(context).primaryColor,
+                    inactiveThumbColor: Colors.grey,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Text(_showAllTokens ? 'All Tokens' : 'Portfolio'),
+
+                const SizedBox(width: 20),
+
+                // Switch pour afficher uniquement les tokens whitelist
+                Transform.scale(
+                  scale: 0.8,
+                  child: Switch(
+                    value: _showWhitelistedTokens,
+                    onChanged: (value) {
+                      setState(() {
+                        _showWhitelistedTokens = value;
+                      });
+                    },
+                    activeColor: Theme.of(context).primaryColor,
+                    inactiveThumbColor: Colors.grey,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Text(_showWhitelistedTokens ? 'Whitelist' : 'Tous'),
+              ],
+            ),
+          ),
+          // Légende en bas à gauche
           Positioned(
             bottom: 90, // Remonter la légende pour la placer au-dessus de la BottomBar
             left: 16,
@@ -438,7 +435,7 @@ Positioned(
         final lng = double.tryParse(matchingToken['lng']) ?? 0.0;
 
         return AlertDialog(
-backgroundColor: Theme.of(context).cardColor,
+          backgroundColor: Theme.of(context).cardColor,
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.center,

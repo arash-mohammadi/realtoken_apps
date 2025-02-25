@@ -339,12 +339,12 @@ class ApyHistoryGraph extends StatelessWidget {
 
   Map<String, Map<String, double>> _groupApyByDate(BuildContext context, DataManager dataManager, String selectedPeriod) {
     Map<String, Map<String, double>> groupedData = {};
-    
-// Copie et tri de la liste par date croissante
-  List sortedRecords = List.from(dataManager.apyHistory);
-  sortedRecords.sort((a, b) => a.timestamp.compareTo(b.timestamp));
 
-  for (var record in sortedRecords) {
+// Copie et tri de la liste par date croissante
+    List sortedRecords = List.from(dataManager.apyHistory);
+    sortedRecords.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+
+    for (var record in sortedRecords) {
       DateTime date = record.timestamp;
       String periodKey;
 

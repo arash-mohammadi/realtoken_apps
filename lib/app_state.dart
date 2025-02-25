@@ -20,9 +20,9 @@ Color _getColorFromName(String colorName) {
     case 'yellow':
       return Colors.yellow;
     case 'orange':
-      return Colors.deepOrangeAccent;
+      return Color.fromRGBO(237, 137, 32, 1);
     case 'pink':
-      return Colors.pink;
+      return Colors.purple;
     case 'green':
       return Colors.green;
     case 'grey':

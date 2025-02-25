@@ -4,16 +4,16 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:realtokens/managers/data_manager.dart';
 import 'package:realtokens/generated/l10n.dart';
-import 'package:realtokens/pages/Statistics/wallet/rented_graph.dart';
+import 'package:realtokens/pages/Statistics/portfolio/charts/rented_graph.dart';
 import 'package:realtokens/utils/data_fetch_utils.dart';
 import 'package:realtokens/utils/date_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 // Import des fichiers de graphiques
-import 'apy_graph.dart';
-import 'rent_graph.dart';
-import 'roi_graph.dart';
-import 'wallet_balance_graph.dart';
+import 'charts/apy_graph.dart';
+import 'charts/rent_graph.dart';
+import 'charts/roi_graph.dart';
+import 'charts/wallet_balance_graph.dart';
 
 class WalletStats extends StatefulWidget {
   const WalletStats({super.key});
@@ -79,7 +79,7 @@ class _WalletStats extends State<WalletStats> {
       body: CustomScrollView(
         slivers: [
           SliverPadding(
-            padding: const EdgeInsets.only(top: 16.0, bottom: 80.0, left: 8.0, right: 8.0),
+            padding: const EdgeInsets.only(top: 8.0, bottom: 80.0, left: 8.0, right: 8.0),
             sliver: SliverGrid(
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: isWideScreen ? 2 : 1,
@@ -158,26 +158,9 @@ class _WalletStats extends State<WalletStats> {
                           });
                         },
                       );
-  case 4:
-                      return RentedHistoryGraph(
-                        selectedPeriod: _selectedRoiPeriod,
-                        onPeriodChanged: (period) {
-                          setState(() {
-                            _selectedRoiPeriod = period;
-                          });
-                        },
-                        rentedIsBarChart: roiIsBarChart,
-                        onChartTypeChanged: (isBarChart) {
-                          setState(() {
-                            roiIsBarChart = isBarChart;
-                            _saveChartPreference('roiIsBarChart', roiIsBarChart);
-                          });
-                        },
-                      );
                     default:
                       return Container();
                   }
-                  
                 },
                 childCount: 5,
               ),

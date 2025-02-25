@@ -29,19 +29,22 @@ class _PropertiesForSalePageState extends State<PropertiesForSalePage> {
             SliverAppBar(
               floating: true,
               snap: true,
-              expandedHeight: UIUtils.getSliverAppBarHeight(context) - 40,
+              expandedHeight: UIUtils.getSliverAppBarHeight(context) - 25,
               automaticallyImplyLeading: false, // Supprime la flèche de retour
               flexibleSpace: FlexibleSpaceBar(
-                background: Container(
-                  color: Theme.of(context).scaffoldBackgroundColor,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: _buildPageSelector(),
-                      ),
-                    ],
+                background: SafeArea(
+                  // Utiliser SafeArea pour éviter le chevauchement
+                  child: Container(
+                    color: Theme.of(context).scaffoldBackgroundColor,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: _buildPageSelector(),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -54,47 +57,44 @@ class _PropertiesForSalePageState extends State<PropertiesForSalePage> {
   }
 
   Widget _buildPageSelector() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-      child: Row(
+    return Center(
+      // Centrer horizontalement
+      child: Wrap(
+        spacing: 8.0, // Espacement entre les chips
         children: [
-          _buildPageButton('RealT', S.of(context).realt, isFirst: true),
-          _buildPageButton('Secondary', S.of(context).secondary, isLast: true),
+          _buildPageChip('RealT', S.of(context).realt),
+          _buildPageChip('Secondary', S.of(context).secondary),
         ],
       ),
     );
   }
 
-  Widget _buildPageButton(String value, String label, {bool isFirst = false, bool isLast = false}) {
+  Widget _buildPageChip(String value, String label) {
     final appState = Provider.of<AppState>(context);
+    bool isSelected = _selectedPage == value;
 
-    final isSelected = _selectedPage == value;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () {
-          setState(() {
-            _selectedPage = value;
-          });
-        },
-        child: Container(
-          decoration: BoxDecoration(
-            color: isSelected ? Theme.of(context).primaryColor : Theme.of(context).cardColor,
-            borderRadius: BorderRadius.horizontal(
-              left: isFirst ? const Radius.circular(8) : Radius.zero,
-              right: isLast ? const Radius.circular(8) : Radius.zero,
-            ),
-          ),
-          padding: const EdgeInsets.symmetric(vertical: 4),
-          alignment: Alignment.center,
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 16 + appState.getTextSizeOffset(),
-              color: isSelected ? Colors.white : Theme.of(context).primaryColor,
-              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-            ),
-          ),
+    return ActionChip(
+      // Utilisation de ActionChip
+      label: Text(
+        label,
+        style: TextStyle(
+          fontSize: 16 + appState.getTextSizeOffset(),
+          color: isSelected ? Colors.white : Theme.of(context).primaryColor,
+          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
         ),
+      ),
+      onPressed: () {
+        setState(() {
+          _selectedPage = value;
+        });
+      },
+      backgroundColor: isSelected ? Theme.of(context).primaryColor : Theme.of(context).cardColor,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10), // Bords arrondis
+      ),
+      padding: EdgeInsets.symmetric(
+        horizontal: isSelected ? 80 : 5, // Agrandir davantage le chip sélectionné
+        vertical: 5, // Augmenter la hauteur des chips
       ),
     );
   }

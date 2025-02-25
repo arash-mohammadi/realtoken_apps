@@ -88,7 +88,7 @@ class _PropertiesForSaleRealtState extends State<PropertiesForSaleRealt> {
               ),
             )
           : AlignedGridView.count(
-              padding: const EdgeInsets.only(top: 20, bottom: 80),
+              padding: const EdgeInsets.only(top: 10, bottom: 80),
               crossAxisCount: MediaQuery.of(context).size.width > 700 ? 2 : 1, // Nombre de colonnes selon la largeur de l'écran
 
               itemCount: propertiesForSale.length,

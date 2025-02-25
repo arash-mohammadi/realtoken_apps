@@ -14,8 +14,8 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
   late String _selectedColor;
   final Map<String, Color> _colorOptions = {
     'blue': Colors.blue,
-    'orange': Colors.deepOrangeAccent,
-    'pink': Colors.pink,
+    'orange': Color.fromRGBO(237, 137, 32, 1),
+    'pink': Colors.purple,
     'green': Colors.green,
     'grey': Colors.grey,
     'blueGrey': Colors.blueGrey,

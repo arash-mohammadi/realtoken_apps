@@ -325,7 +325,15 @@ class _SynchronizationSettingsPageState extends State<SynchronizationSettingsPag
 
       // Partager le fichier ZIP
       XFile xfile = XFile(zipFilePath);
-      await Share.shareXFiles([xfile]);
+      await Share.shareXFiles(
+        [xfile],
+        sharePositionOrigin: Rect.fromCenter(
+          center: MediaQuery.of(context).size.center(Offset.zero),
+          width: 100,
+          height: 100,
+        ),
+      );
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('All data successfully exported')),
       );

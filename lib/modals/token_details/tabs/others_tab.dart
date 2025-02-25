@@ -143,8 +143,7 @@ Widget buildOthersTab(BuildContext context, Map<String, dynamic> token) {
           ],
         ),
         const SizedBox(height: 10),
-       
-  
+
         Row(
           children: [
             Icon(
@@ -154,9 +153,7 @@ Widget buildOthersTab(BuildContext context, Map<String, dynamic> token) {
             ),
             const SizedBox(width: 8),
             Text(
-              isInWallet
-                  ? S.of(context).presentInWallet
-                  : S.of(context).filterNotInWallet,
+              isInWallet ? S.of(context).presentInWallet : S.of(context).filterNotInWallet,
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 color: isInWallet ? Colors.green : Colors.red,
