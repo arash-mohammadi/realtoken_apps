@@ -95,12 +95,16 @@ class DepositChart extends StatelessWidget {
               showTitles: true,
               reservedSize: 45,
               getTitlesWidget: (value, meta) {
-                final displayValue =
-                    value >= 1000 ? '${(value / 1000).toStringAsFixed(1)} k${currencyUtils.currencySymbol}' : '${value.toStringAsFixed(2)}${currencyUtils.currencySymbol}';
+                final formattedValue = currencyUtils.getFormattedAmount(
+                  value,
+                  currencyUtils.currencySymbol,
+                  appState.showAmounts, // Applique le masquage des montants
+                );
+
                 return Transform.rotate(
                   angle: -0.5,
                   child: Text(
-                    displayValue,
+                    formattedValue,
                     style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
                   ),
                 );
@@ -176,8 +180,9 @@ class DepositChart extends StatelessWidget {
               } else {
                 periodLabel = DateFormat('dd/MM/yyyy').format(group.groupDate);
               }
-              final tooltipText =
-                  "$periodLabel\nUSDC: ${currencyUtils.formatCurrency(currencyUtils.convert(group.usdc), currencyUtils.currencySymbol)}\nxDai: ${currencyUtils.formatCurrency(currencyUtils.convert(group.xdai), currencyUtils.currencySymbol)}";
+              final tooltipText = "$periodLabel\n"
+                  "USDC: ${currencyUtils.getFormattedAmount(currencyUtils.convert(group.usdc), currencyUtils.currencySymbol, appState.showAmounts)}\n"
+                  "xDai: ${currencyUtils.getFormattedAmount(currencyUtils.convert(group.xdai), currencyUtils.currencySymbol, appState.showAmounts)}";
               return touchedSpots.map((spot) {
                 if (identical(spot, touchedSpots.first)) {
                   return LineTooltipItem(

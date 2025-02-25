@@ -1,3 +1,4 @@
+import 'package:realtokens/pages/changelog_page.dart';
 import 'package:realtokens/pages/links_page.dart';
 import 'package:realtokens/pages/propertiesForSale/propertiesForSell_select.dart';
 import 'package:realtokens/pages/support_page.dart';
@@ -5,7 +6,7 @@ import 'package:realtokens/settings/service_status.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:realtokens/settings/settings_page.dart';
-import 'package:realtokens/pages/real_tokens_page.dart';
+import 'package:realtokens/pages/realtokens_page.dart';
 import 'package:realtokens/about.dart';
 import 'package:realtokens/pages/updates_page.dart';
 import 'package:realtokens/pages/realt_page.dart';
@@ -355,9 +356,19 @@ class _CustomDrawerState extends State<CustomDrawer> {
                     style: TextStyle(fontSize: 15 + appState.getTextSizeOffset()),
                   ),
                   onTap: () {
-                    UrlUtils.launchURL('https://realtokens.canny.io/changelog');
+                    showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      builder: (BuildContext context) {
+                        return SizedBox(
+                          height: MediaQuery.of(context).size.height * 0.8,
+                          child: const ChangelogPage(), // votre widget qui affiche le changelog
+                        );
+                      },
+                    );
                   },
                 ),
+
                 ListTile(
                   leading: const Icon(Icons.info),
                   title: Text(

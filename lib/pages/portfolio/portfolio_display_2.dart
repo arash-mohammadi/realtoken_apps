@@ -312,7 +312,11 @@ class PortfolioDisplay2State extends State<PortfolioDisplay2> {
                                       const SizedBox(height: 8),
 
                                       Text(
-                                        '${S.of(context).totalValue}: ${currencyUtils.formatCurrency(currencyUtils.convert(token['totalValue']), currencyUtils.currencySymbol)}',
+                                        '${S.of(context).totalValue}: ${currencyUtils.getFormattedAmount(
+                                          currencyUtils.convert(token['totalValue']),
+                                          currencyUtils.currencySymbol,
+                                          appState.showAmounts, // Utilisation de showAmounts pour masquer/afficher les valeurs
+                                        )}',
                                         style: TextStyle(
                                           fontSize: 15 + appState.getTextSizeOffset(),
                                         ),
@@ -321,11 +325,10 @@ class PortfolioDisplay2State extends State<PortfolioDisplay2> {
                                         'YAM: ${currencyUtils.formatCurrency(currencyUtils.convert((token['yamAverageValue'] * token['amount'])), currencyUtils.currencySymbol)} (${((token['yamAverageValue'] / token['tokenPrice'] - 1) * 100).toStringAsFixed(0)}%)',
                                         style: TextStyle(
                                           fontSize: 13 + appState.getTextSizeOffset(),
-                                          color: (token['yamAverageValue'] * token['amount']) >= token['totalValue']
-                                              ? Colors.green // Texte vert si la condition est vraie
-                                              : Colors.red, // Texte rouge si la condition est fausse
+                                          color: (token['yamAverageValue'] * token['amount']) >= token['totalValue'] ? Colors.green : Colors.red,
                                         ),
                                       ),
+
                                       Text(
                                         '${S.of(context).amount}: ${token['amount'].toStringAsFixed(2)} / ${token['totalTokens']}',
                                         style: TextStyle(
@@ -357,10 +360,8 @@ class PortfolioDisplay2State extends State<PortfolioDisplay2> {
                                                     style: TextStyle(
                                                       fontSize: 13 + appState.getTextSizeOffset(),
                                                     )),
-                                                Text(currencyUtils.formatCurrency(currencyUtils.convert(token['dailyIncome']), currencyUtils.currencySymbol),
-                                                    style: TextStyle(
-                                                      fontSize: 13 + appState.getTextSizeOffset(),
-                                                    )),
+                                                Text(currencyUtils.getFormattedAmount(
+                                                    currencyUtils.convert(token['dailyIncome']), currencyUtils.currencySymbol, appState.showAmounts)),
                                               ],
                                             ),
                                             Column(
@@ -369,7 +370,9 @@ class PortfolioDisplay2State extends State<PortfolioDisplay2> {
                                                     style: TextStyle(
                                                       fontSize: 13 + appState.getTextSizeOffset(),
                                                     )),
-                                                Text(currencyUtils.formatCurrency(currencyUtils.convert(token['dailyIncome']) * 7, currencyUtils.currencySymbol),
+                                                Text(
+                                                    currencyUtils.getFormattedAmount(
+                                                        currencyUtils.convert(token['dailyIncome']), currencyUtils.currencySymbol, appState.showAmounts),
                                                     style: TextStyle(
                                                       fontSize: 13 + appState.getTextSizeOffset(),
                                                     )),
@@ -381,7 +384,9 @@ class PortfolioDisplay2State extends State<PortfolioDisplay2> {
                                                     style: TextStyle(
                                                       fontSize: 13 + appState.getTextSizeOffset(),
                                                     )),
-                                                Text(currencyUtils.formatCurrency(currencyUtils.convert(token['monthlyIncome']), currencyUtils.currencySymbol),
+                                                Text(
+                                                    currencyUtils.getFormattedAmount(
+                                                        currencyUtils.convert(token['monthlyIncome']), currencyUtils.currencySymbol, appState.showAmounts),
                                                     style: TextStyle(
                                                       fontSize: 13 + appState.getTextSizeOffset(),
                                                     )),
@@ -393,7 +398,9 @@ class PortfolioDisplay2State extends State<PortfolioDisplay2> {
                                                     style: TextStyle(
                                                       fontSize: 13 + appState.getTextSizeOffset(),
                                                     )),
-                                                Text(currencyUtils.formatCurrency(currencyUtils.convert(token['yearlyIncome']), currencyUtils.currencySymbol),
+                                                Text(
+                                                    currencyUtils.getFormattedAmount(
+                                                        currencyUtils.convert(token['yearlyIncome']), currencyUtils.currencySymbol, appState.showAmounts),
                                                     style: TextStyle(
                                                       fontSize: 13 + appState.getTextSizeOffset(),
                                                     )),

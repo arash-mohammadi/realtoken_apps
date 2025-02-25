@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:realtokens/generated/l10n.dart';
+import 'package:realtokens/models/rented_record.dart';
 import 'package:realtokens/utils/parameters.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/api_service.dart';
@@ -76,6 +77,7 @@ class DataManager extends ChangeNotifier {
   List<BalanceRecord> walletBalanceHistory = [];
   List<RoiRecord> roiHistory = [];
   List<ApyRecord> apyHistory = [];
+  List<RentedRecord> rentedHistory = [];
   Map<String, double> customInitPrices = {};
   List<Map<String, dynamic>> propertiesForSale = [];
   List<Map<String, dynamic>> propertiesForSaleFetched = [];
@@ -86,6 +88,7 @@ class DataManager extends ChangeNotifier {
   List<Map<String, dynamic>> yamHistory = [];
   List<Map<String, dynamic>> transactionsHistory = [];
   Map<String, List<Map<String, dynamic>>> transactionsByToken = {};
+  List<Map<String, dynamic>> whitelistTokens = [];
 
   var customInitPricesBox = Hive.box('CustomInitPrices');
   final String rwaTokenAddress = '0x0675e8f4a52ea6c845cb6427af03616a2af42170';
@@ -172,10 +175,17 @@ class DataManager extends ChangeNotifier {
           cacheKey: 'cachedPropertiesForSaleData',
           updateVariable: (data) => propertiesForSaleFetched = data,
           debugName: "Propriétés en vente"),
+      // Ajout de l'appel pour récupérer les tokens whitelistés pour chaque wallet
+      fetchData(
+          apiCall: () => ApiService.fetchWhitelistTokens(forceFetch: forceFetch),
+          cacheKey: 'cachedWhitelistTokens',
+          updateVariable: (data) => whitelistTokens = data,
+          debugName: "Whitelist")
     ]);
 
     // Charger les historiques
     loadWalletBalanceHistory();
+    loadRentedHistory();
     loadRoiHistory();
     loadApyHistory();
 
@@ -266,13 +276,33 @@ class DataManager extends ChangeNotifier {
     }
   }
 
+Future<void> loadRentedHistory() async {
+    try {
+      var box = Hive.box('rentedArchive'); // Ouvrir la boîte Hive
+      List<dynamic>? rentedHistoryJson = box.get('rented_history'); // Récupérer les données sauvegardées
+
+      if (rentedHistoryJson != null) {
+        rentedHistory = rentedHistoryJson.map((recordJson) {
+          return RentedRecord.fromJson(Map<String, dynamic>.from(recordJson));
+        }).toList();
+
+        notifyListeners(); // Notifier les listeners après la mise à jour
+
+        debugPrint('✅ Données de l\'historique du portefeuille chargées avec succès.');
+      } else {
+        debugPrint('⚠️ Aucune donnée d\'historique trouvée.');
+      }
+    } catch (e) {
+      debugPrint('Erreur lors du chargement des données de l\'historique du portefeuille : $e');
+    }
+  }
+
   Future<void> loadRoiHistory() async {
     try {
       var box = Hive.box('roiValueArchive'); // Ouvrir la boîte Hive
       List<dynamic>? roiHistoryJson = box.get('roi_history'); // Récupérer les données sauvegardées
 
       if (roiHistoryJson != null) {
-        // Convertir chaque élément JSON en objet BalanceRecord et l'ajouter à walletBalanceHistory
         roiHistory = roiHistoryJson.map((recordJson) {
           return RoiRecord.fromJson(Map<String, dynamic>.from(recordJson));
         }).toList();
@@ -315,6 +345,13 @@ class DataManager extends ChangeNotifier {
     var box = Hive.box('walletValueArchive');
     List<Map<String, dynamic>> balanceHistoryJson = walletBalanceHistory.map((record) => record.toJson()).toList();
     await box.put('balanceHistory_totalWalletValue', balanceHistoryJson);
+    notifyListeners(); // Notifier les listeners de tout changement
+  }
+
+    Future<void> saveRentedHistory() async {
+    var box = Hive.box('rentedArchive');
+    List<Map<String, dynamic>> rentedHistoryJson = rentedHistory.map((record) => record.toJson()).toList();
+    await box.put('rented_history', rentedHistoryJson);
     notifyListeners(); // Notifier les listeners de tout changement
   }
 
@@ -545,6 +582,7 @@ class DataManager extends ChangeNotifier {
     netRealtRentYear = tempNetRentYear;
     totalRealtUnits = tempTotalUnits;
     rentedRealtUnits = tempRentedUnits;
+    archiveRentedValue(rentedRealtUnits / totalRealtUnits * 100);
     averageRealtAnnualYield = yieldCount > 0 ? tempAnnualYieldSum / yieldCount : 0.0;
 
     // Notifie les widgets que les données ont changé
@@ -1484,6 +1522,45 @@ class DataManager extends ChangeNotifier {
     await box.put('balanceHistory_totalWalletValue', balanceHistoryJsonToSave); // Stocker dans la nouvelle boîte
   }
 
+Future<void> archiveRentedValue(double rentedValue) async {
+    try {
+      var box = Hive.box('rentedArchive'); // Ouvrir une nouvelle boîte dédiée
+
+      // Charger l'historique existant depuis Hive
+      List<dynamic>? rentedHistoryJson = box.get('rented_history');
+      List<RentedRecord> rentedHistory = rentedHistoryJson != null ? rentedHistoryJson.map((recordJson) => RentedRecord.fromJson(Map<String, dynamic>.from(recordJson))).toList() : [];
+
+      // Vérifier le dernier enregistrement
+      if (rentedHistory.isNotEmpty) {
+        RentedRecord lastRecord = rentedHistory.last;
+        DateTime lastTimestamp = lastRecord.timestamp;
+
+        // Vérifier si la différence est inférieure à 1 heure
+        if (DateTime.now().difference(lastTimestamp).inHours < 1) {
+          // Si moins d'une heure, ne rien faire
+          debugPrint('Dernière archive récente, aucun nouvel enregistrement ajouté.');
+          return; // Sortir de la fonction sans ajouter d'enregistrement
+        }
+      }
+
+      // Ajouter le nouvel enregistrement à l'historique
+      RentedRecord newRecord = RentedRecord(
+        percentage: double.parse(rentedValue.toStringAsFixed(3)), // S'assurer que roi est un double
+        timestamp: DateTime.now(),
+      );
+      rentedHistory.add(newRecord);
+
+      // Sauvegarder la liste mise à jour dans Hive
+      List<Map<String, dynamic>> rentedHistoryJsonToSave = rentedHistory.map((record) => record.toJson()).toList();
+
+      await box.put('rented_history', rentedHistoryJsonToSave); // Stocker dans la nouvelle boîte
+      debugPrint('Nouvel enregistrement ROI ajouté et sauvegardé avec succès.');
+    } catch (e) {
+      debugPrint('Erreur lors de l\'archivage de la valeur ROI : $e');
+    }
+  }
+
+
   Future<void> archiveRoiValue(double roiValue) async {
     try {
       var box = Hive.box('roiValueArchive'); // Ouvrir une nouvelle boîte dédiée
@@ -1746,7 +1823,10 @@ class DataManager extends ChangeNotifier {
       if (propertiesForSaleFetched.isNotEmpty) {
         propertiesForSale = propertiesForSaleFetched.map((property) {
           // Chercher le RealToken correspondant à partir de realTokens en comparant `title` et `fullName`
-          final matchingToken = allTokens.firstWhere((token) => token['fullName'] == property['title'], orElse: () => <String, dynamic>{});
+          final matchingToken = allTokens.firstWhere(
+            (token) => property['title'] != null && token['shortName'] != null && property['title'].toString().contains(token['shortName'].toString()),
+            orElse: () => <String, dynamic>{},
+          );
 
           return {
             'title': property['title'],
@@ -1833,8 +1913,8 @@ class DataManager extends ChangeNotifier {
           'tokenToPay': offer['token_to_pay'],
           'imageLink': matchingToken['imageLink'],
           'holderAddress': offer['holder_address'],
-          'tokenAmount': tokenAmount,
-          'tokenPrice': matchingToken['tokenPrice'],
+          'token_amount': offer['token_amount'],
+          'token_price': matchingToken['tokenPrice'],
           'annualPercentageYield': matchingToken['annualPercentageYield'],
           'tokenDigit': offer['token_digit'],
           'creationDate': offer['creation_date'],
@@ -1843,7 +1923,7 @@ class DataManager extends ChangeNotifier {
           'token_to_buy': offer['token_to_buy'],
           'id_offer': offer['id_offer'],
           'tokenToPayDigit': offer['token_to_pay_digit'],
-          'tokenValue': tokenValue,
+          'token_value': offer['token_value'],
           'blockNumber': offer['block_number'],
           'supp': offer['supp'],
           'timsync': offer['timsync'],

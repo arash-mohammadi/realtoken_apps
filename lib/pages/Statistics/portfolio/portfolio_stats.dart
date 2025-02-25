@@ -1,5 +1,5 @@
 import 'package:flutter/services.dart';
-import 'package:realtokens/pages/Statistics/portfolio/Modal_others_pie.dart';
+import 'package:realtokens/modals/Modal_others_pie.dart';
 import 'package:realtokens/utils/currency_utils.dart';
 import 'package:realtokens/utils/data_fetch_utils.dart';
 import 'package:realtokens/utils/date_utils.dart';

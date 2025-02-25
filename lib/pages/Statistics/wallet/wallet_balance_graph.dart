@@ -113,11 +113,14 @@ class WalletBalanceGraph extends StatelessWidget {
                               showTitles: true,
                               reservedSize: 45,
                               getTitlesWidget: (value, meta) {
-                                final displayValue = value >= 1000
-                                    ? '${(value / 1000).toStringAsFixed(1)} k${currencyUtils.currencySymbol}'
-                                    : currencyUtils.formatCurrency(value, currencyUtils.currencySymbol);
+                                final formattedValue = currencyUtils.getFormattedAmount(
+                                  value,
+                                  currencyUtils.currencySymbol,
+                                  appState.showAmounts, // Appliquer le masquage des montants
+                                );
+
                                 return Text(
-                                  displayValue,
+                                  formattedValue,
                                   style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
                                 );
                               },
@@ -173,11 +176,14 @@ class WalletBalanceGraph extends StatelessWidget {
                               showTitles: true,
                               reservedSize: 45,
                               getTitlesWidget: (value, meta) {
-                                final displayValue = value >= 1000
-                                    ? '${(value / 1000).toStringAsFixed(1)} k${currencyUtils.currencySymbol}'
-                                    : currencyUtils.formatCurrency(value, currencyUtils.currencySymbol);
+                                final formattedValue = currencyUtils.getFormattedAmount(
+                                  value,
+                                  currencyUtils.currencySymbol,
+                                  appState.showAmounts, // Appliquer le masquage des montants
+                                );
+
                                 return Text(
-                                  displayValue,
+                                  formattedValue,
                                   style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
                                 );
                               },
@@ -249,8 +255,14 @@ class WalletBalanceGraph extends StatelessWidget {
                                 final averageBalance = touchedSpot.y;
                                 final periodLabel = _buildDateLabelsForWallet(context, dataManager, selectedPeriod)[index];
 
+                                final formattedValue = currencyUtils.getFormattedAmount(
+                                  averageBalance,
+                                  currencyUtils.currencySymbol,
+                                  appState.showAmounts, // Appliquer le masquage des montants
+                                );
+
                                 return LineTooltipItem(
-                                  '$periodLabel\n${currencyUtils.formatCurrency(averageBalance, currencyUtils.currencySymbol)}',
+                                  '$periodLabel\n$formattedValue',
                                   const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                                 );
                               }).toList();

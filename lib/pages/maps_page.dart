@@ -7,6 +7,7 @@ import 'package:flutter_map_marker_cluster/flutter_map_marker_cluster.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 import 'package:realtokens/modals/token_details/showTokenDetails.dart';
+import 'package:realtokens/utils/currency_utils.dart';
 import 'package:realtokens/utils/ui_utils.dart';
 import 'package:realtokens/utils/url_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -23,6 +24,7 @@ class MapsPage extends StatefulWidget {
 class MapsPageState extends State<MapsPage> {
   final PopupController _popupController = PopupController();
   bool _showAllTokens = false;
+  bool _showWhitelistedTokens = false;
   final String _searchQuery = '';
   final String _sortOption = 'Name';
   final bool _isAscending = true;
@@ -73,7 +75,14 @@ class MapsPageState extends State<MapsPage> {
 
     final tokensToShow = _showAllTokens ? _filterAndSortTokens(dataManager.allTokens) : _filterAndSortTokens(dataManager.portfolio);
 
-    if (tokensToShow.isEmpty) {
+final displayedTokens = _showWhitelistedTokens
+    ? tokensToShow.where((token) =>
+         dataManager.whitelistTokens.any(
+           (w) => w['token'].toLowerCase() == token['uuid'].toLowerCase()))
+      .toList()
+    : tokensToShow;
+
+    if (displayedTokens.isEmpty) {
       return const Center(child: Text('No tokens available'));
     }
 
@@ -158,7 +167,7 @@ class MapsPageState extends State<MapsPage> {
       }
     }
 
-    for (var token in tokensToShow) {
+    for (var token in displayedTokens) {
       final isWallet = token['source'] == 'Wallet';
       final isRMM = token['source'] == 'RMM';
 
@@ -271,29 +280,51 @@ class MapsPageState extends State<MapsPage> {
             ),
           ),
           // Switch en haut à gauche pour basculer entre les tokens du portefeuille et tous les tokens
-          Positioned(
-            top: UIUtils.getAppBarHeight(context), // Positionner juste en dessous de l'AppBar
-            left: 16,
-            child: Row(
-              children: [
-                Transform.scale(
-                  scale: 0.8, // Réduit la taille du Switch à 80%
-                  child: Switch(
-                    value: _showAllTokens,
-                    onChanged: (value) {
-                      setState(() {
-                        _showAllTokens = value;
-                      });
-                    },
-                    activeColor: Theme.of(context).primaryColor, // Couleur du bouton en mode activé
-                    inactiveThumbColor: Colors.grey, // Couleur du bouton en mode désactivé
-                  ),
-                ),
-                Text(_showAllTokens ? 'All Tokens' : 'Portfolio'),
-              ],
-            ),
-          ),
-          // Légende en bas à gauche
+         // Switch en haut à gauche pour basculer entre le portefeuille/all tokens et le filtrage whitelist
+Positioned(
+  top: UIUtils.getAppBarHeight(context),
+  left: 16,
+  child: Row(
+    children: [
+      // Switch pour Portfolio / All Tokens
+      Transform.scale(
+        scale: 0.8,
+        child: Switch(
+          value: _showAllTokens,
+          onChanged: (value) {
+            setState(() {
+              _showAllTokens = value;
+            });
+          },
+          activeColor: Theme.of(context).primaryColor,
+          inactiveThumbColor: Colors.grey,
+        ),
+      ),
+      const SizedBox(width: 4),
+      Text(_showAllTokens ? 'All Tokens' : 'Portfolio'),
+      
+      const SizedBox(width: 20),
+      
+      // Switch pour afficher uniquement les tokens whitelist
+      Transform.scale(
+        scale: 0.8,
+        child: Switch(
+          value: _showWhitelistedTokens,
+          onChanged: (value) {
+            setState(() {
+              _showWhitelistedTokens = value;
+            });
+          },
+          activeColor: Theme.of(context).primaryColor,
+          inactiveThumbColor: Colors.grey,
+        ),
+      ),
+      const SizedBox(width: 4),
+      Text(_showWhitelistedTokens ? 'Whitelist' : 'Tous'),
+    ],
+  ),
+),
+ // Légende en bas à gauche
           Positioned(
             bottom: 90, // Remonter la légende pour la placer au-dessus de la BottomBar
             left: 16,
@@ -388,15 +419,26 @@ class MapsPageState extends State<MapsPage> {
   }
 
   void _showMarkerPopup(BuildContext context, dynamic matchingToken) {
+    // Récupérer le DataManager pour accéder au portefeuille et à la whitelist
+    final dataManager = Provider.of<DataManager>(context, listen: false);
+    final bool isInWallet = dataManager.portfolio.any(
+      (portfolioItem) => portfolioItem['uuid'].toLowerCase() == matchingToken['uuid'].toLowerCase(),
+    );
+    final bool isWhitelisted = dataManager.whitelistTokens.any(
+      (whitelisted) => whitelisted['token'].toLowerCase() == matchingToken['uuid'].toLowerCase(),
+    );
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
+        final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
         final rentedUnits = matchingToken['rentedUnits'] ?? 0;
         final totalUnits = matchingToken['totalUnits'] ?? 1;
         final lat = double.tryParse(matchingToken['lat']) ?? 0.0;
         final lng = double.tryParse(matchingToken['lng']) ?? 0.0;
 
         return AlertDialog(
+backgroundColor: Theme.of(context).cardColor,
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -408,8 +450,8 @@ class MapsPageState extends State<MapsPage> {
                     imageUrl: matchingToken['imageLink'][0],
                     width: 200,
                     fit: BoxFit.cover,
-                    placeholder: (context, url) => CircularProgressIndicator(),
-                    errorWidget: (context, url, error) => Icon(
+                    placeholder: (context, url) => const CircularProgressIndicator(),
+                    errorWidget: (context, url, error) => const Icon(
                       Icons.error,
                       color: Colors.red,
                     ),
@@ -426,7 +468,8 @@ class MapsPageState extends State<MapsPage> {
                   textAlign: TextAlign.center,
                 ),
               ),
-              const SizedBox(height: 8.0),
+              // Affichage des infos "token in wallet" et "whitelist"
+
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -434,7 +477,7 @@ class MapsPageState extends State<MapsPage> {
                     'Token Price: ',
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  Text('${matchingToken['tokenPrice'] ?? 'N/A'}'),
+                  Text(currencyUtils.formatCurrency(currencyUtils.convert(matchingToken['tokenPrice']), currencyUtils.currencySymbol)),
                 ],
               ),
               Row(
@@ -444,7 +487,7 @@ class MapsPageState extends State<MapsPage> {
                     'Token Yield: ',
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  Text('${matchingToken['annualPercentageYield'] != null ? matchingToken['annualPercentageYield'].toStringAsFixed(2) : 'N/A'}'),
+                  Text('${matchingToken['annualPercentageYield'] != null ? matchingToken['annualPercentageYield'].toStringAsFixed(2) : 'N/A'}%'),
                 ],
               ),
               Row(
@@ -455,6 +498,36 @@ class MapsPageState extends State<MapsPage> {
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                   Text('$rentedUnits / $totalUnits'),
+                ],
+              ),
+              const SizedBox(height: 12.0),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    isInWallet ? Icons.account_balance_wallet : Icons.account_balance_wallet_outlined,
+                    color: isInWallet ? Colors.green : Colors.grey,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    isInWallet ? "Présent dans wallet" : "Non présent dans wallet",
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    isWhitelisted ? Icons.check_circle : Icons.cancel,
+                    color: isWhitelisted ? Colors.green : Colors.red,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    isWhitelisted ? "Token whitelisté" : "Token non whitelisté",
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
                 ],
               ),
               const SizedBox(height: 16.0),

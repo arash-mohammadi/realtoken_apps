@@ -1,5 +1,5 @@
 # Indique la version minimale d'iOS supportée par votre application
-platform :ios, '13.0'
+platform :ios, '15.6'
 
 # Désactive les statistiques CocoaPods pour améliorer les temps de build
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'

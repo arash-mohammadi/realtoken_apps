@@ -383,6 +383,61 @@ class ApiService {
     return mergedRentData;
   }
 
+  static Future<List<Map<String, dynamic>>> fetchWhitelistTokens({bool forceFetch = false}) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String> wallets = prefs.getStringList('evmAddresses') ?? [];
+
+    if (wallets.isEmpty) {
+      return []; // Pas d'exécution si aucun wallet n'est renseigné
+    }
+
+    var box = Hive.box('realTokens');
+    final DateTime now = DateTime.now();
+
+    // Vérification du cache global pour la whitelist
+    final lastFetchTime = box.get('lastWhitelistFetchTime');
+    if (!forceFetch && lastFetchTime != null) {
+      final DateTime lastFetch = DateTime.parse(lastFetchTime);
+      if (now.difference(lastFetch) < Parameters.apiCacheDuration) {
+        final cachedData = box.get('cachedWhitelistData');
+        if (cachedData != null) {
+          debugPrint("🛑 apiService: fetchWhitelistTokens -> Requête annulée, temps minimum pas atteint");
+          return List<Map<String, dynamic>>.from(json.decode(cachedData));
+        }
+      }
+    }
+
+    List<Map<String, dynamic>> mergedWhitelistTokens = [];
+
+    // Parcourir chaque wallet pour récupérer ses tokens whitelistés
+    for (String wallet in wallets) {
+      final url = '${Parameters.rentTrackerUrl}/whitelist2/$wallet';
+      final response = await http.get(Uri.parse(url));
+
+      // En cas de code 429, on peut mettre en cache l'heure et interrompre la boucle
+      if (response.statusCode == 429) {
+        debugPrint('⚠️ apiService: fetchWhitelistTokens -> 429 Too Many Requests pour wallet: $wallet');
+        box.put('lastWhitelistFetchTime', now.toIso8601String());
+        break;
+      }
+
+      if (response.statusCode == 200) {
+        debugPrint("🚀 apiService: fetchWhitelistTokens -> Requête réussie pour wallet: $wallet");
+        List<Map<String, dynamic>> whitelistData = List<Map<String, dynamic>>.from(json.decode(response.body));
+        mergedWhitelistTokens.addAll(whitelistData);
+      } else {
+        throw Exception('Erreur: Impossible de récupérer les tokens whitelistés pour wallet: $wallet (code ${response.statusCode})');
+      }
+    }
+
+    // Optionnel : vous pouvez trier ou filtrer mergedWhitelistTokens si nécessaire
+    // Mise à jour du cache après la récupération des données
+    box.put('cachedWhitelistData', json.encode(mergedWhitelistTokens));
+    box.put('lastWhitelistFetchTime', now.toIso8601String());
+
+    return mergedWhitelistTokens;
+  }
+
   static Future<Map<String, dynamic>> fetchCurrencies() async {
     final prefs = await SharedPreferences.getInstance();
 

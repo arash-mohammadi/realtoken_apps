@@ -41,6 +41,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   String selectedLanguage = 'en'; // Default language
   List<String>? evmAddresses; // Variable for storing EVM addresses
   Color _primaryColor = Colors.blue; // Default primary color
+  bool _showAmounts = true; // Par défaut, les montants sont visibles
 
   AppState() {
     _loadSettings();
@@ -54,6 +55,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   Color get primaryColor => _primaryColor;
+  bool get showAmounts => _showAmounts; // Getter pour accéder à l'état
 
   // Load settings from SharedPreferences
   Future<void> _loadSettings() async {
@@ -64,6 +66,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     selectedLanguage = prefs.getString('language') ?? 'en';
     evmAddresses = prefs.getStringList('evmAddresses'); // Load EVM addresses
     _primaryColor = await getSavedPrimaryColor(); // Load primary color
+    _showAmounts = prefs.getBool('showAmounts') ?? true; // Charge la préférence du montant affiché
 
     _applyTheme(); // Apply the theme based on the loaded themeMode
     notifyListeners(); // Notify listeners to rebuild widgets
@@ -73,6 +76,13 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     await savePrimaryColor(colorName);
     _primaryColor = _getColorFromName(colorName);
     notifyListeners(); // 🔥 Met à jour immédiatement l'UI avec la nouvelle couleur
+  }
+
+  void toggleShowAmounts() async {
+    _showAmounts = !_showAmounts;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('showAmounts', _showAmounts); // Sauvegarde la préférence utilisateur
+    notifyListeners(); // Notifie les widgets dépendants
   }
 
   // Update theme mode and save to SharedPreferences

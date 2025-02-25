@@ -189,24 +189,24 @@ Future<void> showTokenDetails(BuildContext context, Map<String, dynamic> token) 
                 const SizedBox(height: 10),
                 Center(
                   child: Row(
-                    mainAxisSize: MainAxisSize.min, // Ajuste la taille du Row au contenu
+                    mainAxisSize: MainAxisSize.min, // Ajuste la taille au contenu
                     mainAxisAlignment: MainAxisAlignment.center, // Centre horizontalement
                     crossAxisAlignment: CrossAxisAlignment.center, // Centre verticalement
                     children: [
-                      if (token['country'] != null) // Vérifie si le pays est disponible
+                      if (token['country'] != null)
                         Padding(
-                          padding: const EdgeInsets.only(right: 4.0), // Espacement entre l'image et le texte
+                          padding: const EdgeInsets.only(right: 4.0),
                           child: Image.asset(
                             'assets/country/${token['country'].toLowerCase()}.png',
                             width: 26 + appState.getTextSizeOffset(),
                             height: 26 + appState.getTextSizeOffset(),
                             errorBuilder: (context, error, stackTrace) {
-                              return const Icon(Icons.flag, size: 24); // Icône par défaut si l'image est introuvable
+                              return const Icon(Icons.flag, size: 24);
                             },
                           ),
                         ),
-                      Expanded(
-                        // Empêche le texte de dépasser et ajoute les "..."
+                      Flexible(
+                        // Remplace `Expanded`
                         child: Text(
                           token['fullName'] ?? S.of(context).nameUnavailable,
                           style: TextStyle(
@@ -215,7 +215,7 @@ Future<void> showTokenDetails(BuildContext context, Map<String, dynamic> token) 
                             color: Theme.of(context).textTheme.bodyLarge?.color,
                           ),
                           maxLines: 1,
-                          overflow: TextOverflow.ellipsis, // Ajoute les "..." si le texte dépasse
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],
@@ -265,19 +265,19 @@ Future<void> showTokenDetails(BuildContext context, Map<String, dynamic> token) 
                 ),
                 const SizedBox(height: 10),
                 SizedBox(
-                  height: MediaQuery.of(context).size.height * 0.35,
+                  height: MediaQuery.of(context).size.height * 0.4,
                   child: TabBarView(
                     children: [
                       buildPropertiesTab(context, token, convertToSquareMeters),
                       buildFinanceTab(context, token, convertToSquareMeters),
-                      buildMarketTab(context, token),
+                      MarketTab(token: token),
                       buildOthersTab(context, token), // Ajoutez l'onglet Autres ici
                       buildInsightsTab(context, token),
                       buildHistoryTab(context, token, dataManager.isLoadingTransactions),
                     ],
                   ),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 0),
                 Center(
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
@@ -285,7 +285,7 @@ Future<void> showTokenDetails(BuildContext context, Map<String, dynamic> token) 
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         SizedBox(
-                          height: 36,
+                          height: 32,
                           child: ElevatedButton(
                             onPressed: () => UrlUtils.launchURL(token['marketplaceLink']),
                             style: ElevatedButton.styleFrom(
@@ -301,7 +301,7 @@ Future<void> showTokenDetails(BuildContext context, Map<String, dynamic> token) 
                         ),
                         const SizedBox(width: 10),
                         SizedBox(
-                          height: 36,
+                          height: 32,
                           child: ElevatedButton(
                             onPressed: () => _openMapModal(context, token['lat'], token['lng']),
                             style: ElevatedButton.styleFrom(

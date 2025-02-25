@@ -129,23 +129,22 @@ class _RentGraphState extends State<RentGraph> {
                         showTitles: true,
                         reservedSize: 45,
                         getTitlesWidget: (value, meta) {
-                          // Calcul de la valeur la plus élevée dans les données
                           final highestValue = convertedData.map((entry) => entry['rent']).reduce((a, b) => a > b ? a : b);
 
-                          // Si la valeur est la plus haute, on ne l'affiche pas
                           if (value == highestValue) {
                             return const SizedBox.shrink();
                           }
 
-                          // Vérifier si la valeur dépasse 1000 et formater en "1.0k" si nécessaire
-                          final displayValue = value >= 1000
-                              ? '${(value / 1000).toStringAsFixed(1)} k${currencyUtils.currencySymbol}' // Formater en "1.0k"
-                              : '${value.toStringAsFixed(0)}${currencyUtils.currencySymbol}'; // Limiter à 1 chiffre après la virgule
+                          final formattedValue = currencyUtils.getFormattedAmount(
+                            value,
+                            currencyUtils.currencySymbol,
+                            appState.showAmounts, // Appliquer le masquage des montants
+                          );
 
                           return Transform.rotate(
                             angle: -0.5,
                             child: Text(
-                              displayValue,
+                              formattedValue,
                               style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
                             ),
                           );
@@ -159,17 +158,20 @@ class _RentGraphState extends State<RentGraph> {
                       sideTitles: SideTitles(
                         showTitles: true,
                         getTitlesWidget: (value, meta) {
-                          List<String> labels = _buildDateLabels(groupedData);
+                          List<String> labels = _buildDateLabels(convertedData);
                           if (value.toInt() >= 0 && value.toInt() < labels.length) {
                             return Padding(
                               padding: const EdgeInsets.only(top: 10.0),
                               child: Transform.rotate(
                                 angle: -0.5,
-                                child: Text(labels[value.toInt()], style: TextStyle(fontSize: 10)),
+                                child: Text(
+                                  labels[value.toInt()],
+                                  style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
+                                ),
                               ),
                             );
                           } else {
-                            return const Text('');
+                            return const SizedBox.shrink();
                           }
                         },
                       ),
@@ -204,6 +206,30 @@ class _RentGraphState extends State<RentGraph> {
                       ),
                     ),
                   ],
+                  lineTouchData: LineTouchData(
+                    touchTooltipData: LineTouchTooltipData(
+                      getTooltipItems: (List<LineBarSpot> touchedSpots) {
+                        return touchedSpots.map((touchedSpot) {
+                          final index = touchedSpot.x.toInt();
+                          final periodLabel = _buildDateLabels(convertedData)[index];
+
+                          final formattedValue = currencyUtils.getFormattedAmount(
+                            touchedSpot.y,
+                            currencyUtils.currencySymbol,
+                            appState.showAmounts, // Applique le masquage des montants
+                          );
+
+                          return LineTooltipItem(
+                            '$periodLabel\n$formattedValue',
+                            const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          );
+                        }).toList();
+                      },
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -226,54 +252,91 @@ class _RentGraphState extends State<RentGraph> {
   }
 
   List<Map<String, dynamic>> _groupByDay(List<Map<String, dynamic>> data) {
-    Map<String, double> groupedData = {};
-    for (var entry in data) {
-      DateTime date = DateTime.parse(entry['date']);
-      String dayKey = DateFormat('yyyy/MM/dd').format(date); // Format jour
-      groupedData[dayKey] = (groupedData[dayKey] ?? 0) + entry['rent'];
-    }
-    return groupedData.entries.map((entry) => {'date': entry.key, 'rent': entry.value}).toList();
+  Map<String, double> groupedData = {};
+  for (var entry in data) {
+    DateTime date = DateTime.parse(entry['date']);
+    String dayKey = DateFormat('yyyy/MM/dd').format(date); // Format jour
+    groupedData[dayKey] = (groupedData[dayKey] ?? 0) + entry['rent'];
   }
+  // Conversion de la Map en liste
+  List<Map<String, dynamic>> list =
+      groupedData.entries.map((entry) => {'date': entry.key, 'rent': entry.value}).toList();
+  // Trier la liste par date croissante
+  list.sort((a, b) =>
+      DateFormat('yyyy/MM/dd').parse(a['date']).compareTo(DateFormat('yyyy/MM/dd').parse(b['date'])));
+  return list;
+}
 
-  List<Map<String, dynamic>> _groupByWeek(List<Map<String, dynamic>> data) {
-    Map<String, double> groupedData = {};
 
-    for (var entry in data) {
-      if (entry.containsKey('date') && entry.containsKey('rent')) {
-        try {
-          DateTime date = DateTime.parse(entry['date']);
-          String weekKey = "${date.year}-S${CustomDateUtils.weekNumber(date).toString().padLeft(2, '0')}"; // Semaine formatée avec deux chiffres
-          groupedData[weekKey] = (groupedData[weekKey] ?? 0) + entry['rent'];
-        } catch (e) {
-          // En cas d'erreur de parsing de date ou autre, vous pouvez ignorer cette entrée ou la traiter différemment
-          debugPrint("❌ Erreur lors de la conversion de la date : ${entry['date']}");
-        }
+List<Map<String, dynamic>> _groupByWeek(List<Map<String, dynamic>> data) {
+  Map<String, double> groupedData = {};
+
+  for (var entry in data) {
+    if (entry.containsKey('date') && entry.containsKey('rent')) {
+      try {
+        DateTime date = DateTime.parse(entry['date']);
+        String weekKey = "${date.year}-S${CustomDateUtils.weekNumber(date).toString().padLeft(2, '0')}";
+        groupedData[weekKey] = (groupedData[weekKey] ?? 0) + entry['rent'];
+      } catch (e) {
+        debugPrint("❌ Erreur lors de la conversion de la date : ${entry['date']}");
       }
     }
-
-    // Conversion de groupedData en une liste de maps
-    return groupedData.entries.map((entry) => {'date': entry.key, 'rent': entry.value}).toList();
   }
 
-  List<Map<String, dynamic>> _groupByMonth(List<Map<String, dynamic>> data) {
-    Map<String, double> groupedData = {};
-    for (var entry in data) {
-      DateTime date = DateTime.parse(entry['date']);
-      String monthKey = DateFormat('yyyy/MM').format(date);
-      groupedData[monthKey] = (groupedData[monthKey] ?? 0) + entry['rent'];
+  // Conversion de la Map en liste de maps
+  List<Map<String, dynamic>> list = groupedData.entries
+      .map((entry) => {'date': entry.key, 'rent': entry.value})
+      .toList();
+
+  // Tri de la liste par année puis par numéro de semaine
+  list.sort((a, b) {
+    final aParts = a['date'].split('-S');
+    final bParts = b['date'].split('-S');
+    int aYear = int.parse(aParts[0]);
+    int bYear = int.parse(bParts[0]);
+    int aWeek = int.parse(aParts[1]);
+    int bWeek = int.parse(bParts[1]);
+    int cmp = aYear.compareTo(bYear);
+    if (cmp == 0) {
+      cmp = aWeek.compareTo(bWeek);
     }
-    return groupedData.entries.map((entry) => {'date': entry.key, 'rent': entry.value}).toList();
-  }
+    return cmp;
+  });
 
-  List<Map<String, dynamic>> _groupByYear(List<Map<String, dynamic>> data) {
-    Map<String, double> groupedData = {};
-    for (var entry in data) {
-      DateTime date = DateTime.parse(entry['date']);
-      String yearKey = date.year.toString();
-      groupedData[yearKey] = (groupedData[yearKey] ?? 0) + entry['rent'];
-    }
-    return groupedData.entries.map((entry) => {'date': entry.key, 'rent': entry.value}).toList();
+  return list;
+}
+
+ List<Map<String, dynamic>> _groupByMonth(List<Map<String, dynamic>> data) {
+  Map<String, double> groupedData = {};
+  for (var entry in data) {
+    DateTime date = DateTime.parse(entry['date']);
+    String monthKey = DateFormat('yyyy/MM').format(date);
+    groupedData[monthKey] = (groupedData[monthKey] ?? 0) + entry['rent'];
   }
+  // Conversion en liste et tri par date croissante
+  List<Map<String, dynamic>> list = groupedData.entries
+      .map((entry) => {'date': entry.key, 'rent': entry.value})
+      .toList();
+  list.sort((a, b) => DateFormat('yyyy/MM')
+      .parse(a['date'])
+      .compareTo(DateFormat('yyyy/MM').parse(b['date'])));
+  return list;
+}
+
+List<Map<String, dynamic>> _groupByYear(List<Map<String, dynamic>> data) {
+  Map<String, double> groupedData = {};
+  for (var entry in data) {
+    DateTime date = DateTime.parse(entry['date']);
+    String yearKey = date.year.toString();
+    groupedData[yearKey] = (groupedData[yearKey] ?? 0) + entry['rent'];
+  }
+  // Conversion en liste et tri par année croissante
+  List<Map<String, dynamic>> list = groupedData.entries
+      .map((entry) => {'date': entry.key, 'rent': entry.value})
+      .toList();
+  list.sort((a, b) => int.parse(a['date']).compareTo(int.parse(b['date'])));
+  return list;
+}
 
   List<FlSpot> _buildChartData(List<Map<String, dynamic>> data) {
     List<FlSpot> spots = [];

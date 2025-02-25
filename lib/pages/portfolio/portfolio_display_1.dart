@@ -251,18 +251,20 @@ class PortfolioDisplay1 extends StatelessWidget {
                                     ],
                                   ),
                                   Text(
-                                    '${S.of(context).totalValue}: ${currencyUtils.formatCurrency(currencyUtils.convert((token['totalValue'])), currencyUtils.currencySymbol)}',
+                                    '${S.of(context).totalValue}: ${currencyUtils.getFormattedAmount(
+                                      currencyUtils.convert(token['totalValue']),
+                                      currencyUtils.currencySymbol,
+                                      appState.showAmounts, // Utilisation de showAmounts pour masquer/afficher les valeurs
+                                    )}',
                                     style: TextStyle(
                                       fontSize: 13 + appState.getTextSizeOffset(),
                                     ),
                                   ),
                                   Text(
-                                    'YAM: ${currencyUtils.formatCurrency(currencyUtils.convert((token['yamAverageValue'] * token['amount'])), currencyUtils.currencySymbol)} (${((token['yamAverageValue'] / token['tokenPrice'] - 1) * 100).toStringAsFixed(0)}%)',
+                                    'YAM: ${currencyUtils.getFormattedAmount(currencyUtils.convert((token['yamAverageValue'] * token['amount'])), currencyUtils.currencySymbol, appState.showAmounts)} (${((token['yamAverageValue'] / token['tokenPrice'] - 1) * 100).toStringAsFixed(0)}%)',
                                     style: TextStyle(
                                       fontSize: 13 + appState.getTextSizeOffset(),
-                                      color: (token['yamAverageValue'] * token['amount']) >= token['totalValue']
-                                          ? Colors.green // Texte vert si la condition est vraie
-                                          : Colors.red, // Texte rouge si la condition est fausse
+                                      color: (token['yamAverageValue'] * token['amount']) >= token['totalValue'] ? Colors.green : Colors.red,
                                     ),
                                   ),
                                   Text(
@@ -289,22 +291,21 @@ class PortfolioDisplay1 extends StatelessWidget {
                                         Column(
                                           children: [
                                             Text(S.of(context).week, style: TextStyle(fontSize: 13 + appState.getTextSizeOffset())),
-                                            Text(currencyUtils.formatCurrency(currencyUtils.convert(token['dailyIncome']) * 7, currencyUtils.currencySymbol),
-                                                style: TextStyle(fontSize: 13 + appState.getTextSizeOffset())),
+                                            Text(currencyUtils.getFormattedAmount(currencyUtils.convert(token['dailyIncome']), currencyUtils.currencySymbol, appState.showAmounts)),
                                           ],
                                         ),
                                         Column(
                                           children: [
                                             Text(S.of(context).month, style: TextStyle(fontSize: 13 + appState.getTextSizeOffset())),
-                                            Text(currencyUtils.formatCurrency(currencyUtils.convert(token['monthlyIncome']), currencyUtils.currencySymbol),
-                                                style: TextStyle(fontSize: 13 + appState.getTextSizeOffset())),
+                                            Text(currencyUtils.getFormattedAmount(
+                                                currencyUtils.convert(token['monthlyIncome']), currencyUtils.currencySymbol, appState.showAmounts)),
                                           ],
                                         ),
                                         Column(
                                           children: [
                                             Text(S.of(context).year, style: TextStyle(fontSize: 13 + appState.getTextSizeOffset())),
-                                            Text(currencyUtils.formatCurrency(currencyUtils.convert(token['yearlyIncome']), currencyUtils.currencySymbol),
-                                                style: TextStyle(fontSize: 13 + appState.getTextSizeOffset())),
+                                            Text(
+                                                currencyUtils.getFormattedAmount(currencyUtils.convert(token['yearlyIncome']), currencyUtils.currencySymbol, appState.showAmounts)),
                                           ],
                                         ),
                                       ],

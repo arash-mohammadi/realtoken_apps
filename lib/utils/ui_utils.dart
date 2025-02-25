@@ -6,8 +6,8 @@ import 'package:provider/provider.dart';
 import 'package:realtokens/managers/data_manager.dart';
 import 'package:realtokens/app_state.dart';
 import 'package:realtokens/generated/l10n.dart';
-import 'package:realtokens/pages/dashboard/properties_details_page.dart';
-import 'package:realtokens/pages/dashboard/rent_details_page.dart';
+import 'package:realtokens/pages/dashboard/detailsPages/properties_details_page.dart';
+import 'package:realtokens/pages/dashboard/detailsPages/rent_details_page.dart';
 import 'package:shimmer/shimmer.dart';
 
 class UIUtils {

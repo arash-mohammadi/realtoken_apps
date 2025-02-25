@@ -18,14 +18,17 @@ class S {
   static S? _current;
 
   static S get current {
-    assert(_current != null, 'No instance of S was loaded. Try to initialize the S delegate before accessing S.current.');
+    assert(_current != null,
+        'No instance of S was loaded. Try to initialize the S delegate before accessing S.current.');
     return _current!;
   }
 
   static const AppLocalizationDelegate delegate = AppLocalizationDelegate();
 
   static Future<S> load(Locale locale) {
-    final name = (locale.countryCode?.isEmpty ?? false) ? locale.languageCode : locale.toString();
+    final name = (locale.countryCode?.isEmpty ?? false)
+        ? locale.languageCode
+        : locale.toString();
     final localeName = Intl.canonicalizedLocale(name);
     return initializeMessages(localeName).then((_) {
       Intl.defaultLocale = localeName;
@@ -38,7 +41,8 @@ class S {
 
   static S of(BuildContext context) {
     final instance = S.maybeOf(context);
-    assert(instance != null, 'No instance of S present in the widget tree. Did you add S.delegate in localizationsDelegates?');
+    assert(instance != null,
+        'No instance of S present in the widget tree. Did you add S.delegate in localizationsDelegates?');
     return instance!;
   }
 
@@ -2753,6 +2757,316 @@ class S {
       name: 'unknownTransaction',
       desc: '',
       args: [],
+    );
+  }
+
+  /// `Offers List`
+  String get offers_list_header {
+    return Intl.message(
+      'Offers List',
+      name: 'offers_list_header',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `All`
+  String get choice_all {
+    return Intl.message(
+      'All',
+      name: 'choice_all',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Buy`
+  String get choice_buy {
+    return Intl.message(
+      'Buy',
+      name: 'choice_buy',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Sell`
+  String get choice_sell {
+    return Intl.message(
+      'Sell',
+      name: 'choice_sell',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Sort:`
+  String get sort_label {
+    return Intl.message(
+      'Sort:',
+      name: 'sort_label',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Date`
+  String get sort_date {
+    return Intl.message(
+      'Date',
+      name: 'sort_date',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Delta`
+  String get sort_delta {
+    return Intl.message(
+      'Delta',
+      name: 'sort_delta',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Token not whitelisted, offer disabled`
+  String get not_whitelisted_warning {
+    return Intl.message(
+      'Token not whitelisted, offer disabled',
+      name: 'not_whitelisted_warning',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `RealTokens`
+  String get appTitle {
+    return Intl.message(
+      'RealTokens',
+      name: 'appTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Not in wallet`
+  String get filterNotInWallet {
+    return Intl.message(
+      'Not in wallet',
+      name: 'filterNotInWallet',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Show only whitelisted`
+  String get showOnlyWhitelisted {
+    return Intl.message(
+      'Show only whitelisted',
+      name: 'showOnlyWhitelisted',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No tokens found`
+  String get noTokensFound {
+    return Intl.message(
+      'No tokens found',
+      name: 'noTokensFound',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Present in wallet`
+  String get presentInWallet {
+    return Intl.message(
+      'Present in wallet',
+      name: 'presentInWallet',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Asset Price`
+  String get assetPrice {
+    return Intl.message(
+      'Asset Price',
+      name: 'assetPrice',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Token Price`
+  String get tokenPrice {
+    return Intl.message(
+      'Token Price',
+      name: 'tokenPrice',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Expected Yield`
+  String get expectedYield {
+    return Intl.message(
+      'Expected Yield',
+      name: 'expectedYield',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Token whitelisted`
+  String get tokenWhitelisted {
+    return Intl.message(
+      'Token whitelisted',
+      name: 'tokenWhitelisted',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Token not whitelisted`
+  String get tokenNotWhitelisted {
+    return Intl.message(
+      'Token not whitelisted',
+      name: 'tokenNotWhitelisted',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Whitelist Information`
+  String get whitelistInfoTitle {
+    return Intl.message(
+      'Whitelist Information',
+      name: 'whitelistInfoTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `If your token is whitelisted, you can purchase on the secondary market.\n\nIf your token is not whitelisted, you cannot purchase on the secondary market.\n\nYou can request whitelist in your personal space on relationnel.co.`
+  String get whitelistInfoContent {
+    return Intl.message(
+      'If your token is whitelisted, you can purchase on the secondary market.\n\nIf your token is not whitelisted, you cannot purchase on the secondary market.\n\nYou can request whitelist in your personal space on relationnel.co.',
+      name: 'whitelistInfoContent',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `OK`
+  String get ok {
+    return Intl.message(
+      'OK',
+      name: 'ok',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Search by name...`
+  String get search_hint {
+    return Intl.message(
+      'Search by name...',
+      name: 'search_hint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Last update:`
+  String get last_update {
+    return Intl.message(
+      'Last update:',
+      name: 'last_update',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `All`
+  String get all {
+    return Intl.message(
+      'All',
+      name: 'all',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Buy`
+  String get buy {
+    return Intl.message(
+      'Buy',
+      name: 'buy',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Sell`
+  String get sell {
+    return Intl.message(
+      'Sell',
+      name: 'sell',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Current Price:`
+  String get current_price {
+    return Intl.message(
+      'Current Price:',
+      name: 'current_price',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Offer Price:`
+  String get offer_price {
+    return Intl.message(
+      'Offer Price:',
+      name: 'offer_price',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Current Yield:`
+  String get current_yield {
+    return Intl.message(
+      'Current Yield:',
+      name: 'current_yield',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `New Yield:`
+  String get new_yield {
+    return Intl.message(
+      'New Yield:',
+      name: 'new_yield',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `ROI: {weeks} weeks`
+  String roi_label(Object weeks) {
+    return Intl.message(
+      'ROI: $weeks weeks',
+      name: 'roi_label',
+      desc: '',
+      args: [weeks],
     );
   }
 

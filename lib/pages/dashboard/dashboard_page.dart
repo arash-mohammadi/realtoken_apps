@@ -25,33 +25,16 @@ class DashboardPage extends StatefulWidget {
 }
 
 class DashboardPageState extends State<DashboardPage> {
-  bool _showAmounts = true;
   bool _isPageLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _loadPrivacyMode();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await DataFetchUtils.loadData(context);
       setState(() {
         _isPageLoading = false;
       });
-    });
-  }
-
-  void _toggleAmountsVisibility() async {
-    setState(() {
-      _showAmounts = !_showAmounts;
-    });
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('showAmounts', _showAmounts);
-  }
-
-  Future<void> _loadPrivacyMode() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _showAmounts = prefs.getBool('showAmounts') ?? true;
     });
   }
 
@@ -62,13 +45,8 @@ class DashboardPageState extends State<DashboardPage> {
 
     final appState = Provider.of<AppState>(context);
 
-    IconButton visibilityButton = IconButton(
-      icon: Icon(_showAmounts ? Icons.visibility : Icons.visibility_off),
-      onPressed: _toggleAmountsVisibility,
-    );
-
     final lastRentReceived = _getLastRentReceived(dataManager);
-    final totalRentReceived = currencyUtils.getFormattedAmount(currencyUtils.convert(dataManager.getTotalRentReceived()), currencyUtils.currencySymbol, _showAmounts);
+    final totalRentReceived = currencyUtils.getFormattedAmount(currencyUtils.convert(dataManager.getTotalRentReceived()), currencyUtils.currencySymbol, appState.showAmounts);
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -91,7 +69,6 @@ class DashboardPageState extends State<DashboardPage> {
                           S.of(context).hello,
                           style: TextStyle(fontSize: 24 + appState.getTextSizeOffset(), fontWeight: FontWeight.bold, color: Theme.of(context).textTheme.bodyLarge?.color),
                         ),
-                        visibilityButton,
                       ],
                     ),
                     if (!_isPageLoading && (dataManager.evmAddresses.isEmpty)) _buildNoWalletCard(context),
@@ -164,20 +141,20 @@ class DashboardPageState extends State<DashboardPage> {
                     ),
                     const SizedBox(height: 8),
                     PortfolioCard(
-                      showAmounts: _showAmounts,
+                      showAmounts: appState.showAmounts,
                       isLoading: _isPageLoading,
                       context: context,
                     ),
                     const SizedBox(height: 8),
-                    RmmCard(showAmounts: _showAmounts, isLoading: _isPageLoading),
+                    RmmCard(showAmounts: appState.showAmounts, isLoading: _isPageLoading),
                     const SizedBox(height: 8),
-                    PropertiesCard(showAmounts: _showAmounts, isLoading: _isPageLoading),
+                    PropertiesCard(showAmounts: appState.showAmounts, isLoading: _isPageLoading),
                     const SizedBox(height: 8),
-                    TokensCard(showAmounts: _showAmounts, isLoading: _isPageLoading),
+                    TokensCard(showAmounts: appState.showAmounts, isLoading: _isPageLoading),
                     const SizedBox(height: 8),
-                    RentsCard(showAmounts: _showAmounts, isLoading: _isPageLoading),
+                    RentsCard(showAmounts: appState.showAmounts, isLoading: _isPageLoading),
                     const SizedBox(height: 8),
-                    NextRondaysCard(showAmounts: _showAmounts, isLoading: _isPageLoading),
+                    NextRondaysCard(showAmounts: appState.showAmounts, isLoading: _isPageLoading),
                     const SizedBox(height: 80),
                   ],
                 ),
@@ -236,6 +213,7 @@ class DashboardPageState extends State<DashboardPage> {
   String _getLastRentReceived(DataManager dataManager) {
     final rentData = dataManager.rentData;
     final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
+    final appState = Provider.of<AppState>(context);
 
     if (rentData.isEmpty) {
       return S.of(context).noRentReceived;
@@ -245,6 +223,6 @@ class DashboardPageState extends State<DashboardPage> {
     final lastRent = rentData.first['rent'];
 
     // Utiliser _getFormattedAmount pour masquer ou afficher la valeur
-    return currencyUtils.getFormattedAmount(currencyUtils.convert(lastRent), currencyUtils.currencySymbol, _showAmounts);
+    return currencyUtils.getFormattedAmount(currencyUtils.convert(lastRent), currencyUtils.currencySymbol, appState.showAmounts);
   }
 }

@@ -4,7 +4,7 @@ description: "A community app for RealT"
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
-version: 1.7.5+44 
+version: 1.8.0+45 
 
 environment:
   sdk: ^3.5.3
@@ -14,9 +14,9 @@ dependencies:
     sdk: flutter
   flutter_localizations:
     sdk: flutter
-  firebase_core: ^2.32.0
-  firebase_analytics: ^10.10.7
-  firebase_crashlytics: ^3.5.7
+  firebase_core: ^3.12.0
+  firebase_analytics: ^11.4.3
+  firebase_crashlytics: ^4.3.3
   intl: ^0.19.0
   path_provider: ^2.1.4
   shared_preferences: ^2.0.11
@@ -30,30 +30,30 @@ dependencies:
   cached_network_image: ^3.0.0
   cupertino_icons: ^1.0.8
   url_launcher: ^6.3.1
-  fl_chart: ^0.69.0
+  fl_chart: ^0.70.2
   flutter_launcher_icons: ^0.14.1
   provider: ^6.1.2
-  mobile_scanner: ^5.2.3
+  mobile_scanner: ^6.0.6
   carousel_slider: ^5.0.0
   flutter_native_splash: ^2.4.1
   logger: ^2.4.0
   share_plus: ^10.1.0
-  file_picker: ^8.1.3
-  archive: ^3.6.1
-  flutter_map_tile_caching: ^9.1.3
+  file_picker: ^9.0.1
+  archive: ^4.0.3
+  flutter_map_tile_caching: ^10.0.0
   in_app_review: ^2.0.9
   package_info_plus: ^8.1.1
   flutter_staggered_grid_view: ^0.7.0
   onesignal_flutter: ^5.2.7 
   shimmer: ^3.0.0
   google_sign_in: ^6.1.5
-  googleapis: ^11.0.0
+  googleapis: ^13.2.0
   googleapis_auth: ^1.4.1
   table_calendar: ^3.1.3
   syncfusion_flutter_gauges: ^28.2.4
   flutter_dotenv: ^5.0.2
   show_network_image: ^0.0.2
-
+  flutter_markdown: ^0.7.6+2
 
 dev_dependencies:
   flutter_test:
@@ -77,6 +77,7 @@ flutter:
     - assets/icons/RMM.jpg
     - assets/icons/YAM.jpg
     - assets/icons/usdc.png
+    - assets/icons/excel.png
     - assets/country/usa.png
     - assets/country/panama.png
     - assets/country/suisse.png

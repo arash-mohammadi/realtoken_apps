@@ -95,7 +95,9 @@ class _PropertiesForSaleRealtState extends State<PropertiesForSaleRealt> {
               itemBuilder: (context, index) {
                 final property = propertiesForSale[index];
 
-                final imageUrl = property['imageLink'][0];
+                final imageUrl = (property['imageLink'] != null && property['imageLink'] is List && property['imageLink'].isNotEmpty)
+                    ? property['imageLink'][0]
+                    : ''; // Une image par défaut en cas d'erreur
                 final title = property['shortName'] ?? S.of(context).nameUnavailable;
                 final double stock = (property['stock'] as num?)?.toDouble() ?? 0.0;
 

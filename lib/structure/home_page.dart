@@ -65,6 +65,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void _showWalletPopup(BuildContext context) {
     final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
+    final appState = Provider.of<AppState>(context, listen: false);
 
     final RenderBox renderBox = _walletIconKey.currentContext!.findRenderObject() as RenderBox;
     final Offset position = renderBox.localToGlobal(Offset.zero);
@@ -73,7 +74,6 @@ class _MyHomePageState extends State<MyHomePage> {
     final dataManager = Provider.of<DataManager>(context, listen: false);
     final double usdcBalance = dataManager.gnosisUsdcBalance;
     final double xdaiBalance = dataManager.gnosisXdaiBalance;
-    final appState = Provider.of<AppState>(context);
 
     showMenu(
       context: context,
@@ -156,18 +156,22 @@ class _MyHomePageState extends State<MyHomePage> {
                         key: _walletIconKey, // Associe la clé pour obtenir la position
                         icon: Icon(
                           Icons.account_balance_wallet,
-                          size: 20,
+                          size: 21 + appState.getTextSizeOffset(),
                           color: Theme.of(context).textTheme.bodyMedium?.color,
                         ),
                         onPressed: () => _showWalletPopup(context),
                       ),
                       Padding(
-                        padding: const EdgeInsets.only(right: 8.0),
+                        padding: const EdgeInsets.only(right: 4.0),
                         child: Center(
                           child: Text(
-                            currencyUtils.formatCurrency(currencyUtils.convert(walletTotal), currencyUtils.currencySymbol),
+                            currencyUtils.getFormattedAmount(
+                              currencyUtils.convert(walletTotal),
+                              currencyUtils.currencySymbol,
+                              appState.showAmounts, // Utilisation de showAmounts
+                            ),
                             style: TextStyle(
-                              fontSize: 16,
+                              fontSize: 16 + appState.getTextSizeOffset(),
                               color: Theme.of(context).textTheme.bodyMedium?.color,
                             ),
                           ),
@@ -176,10 +180,18 @@ class _MyHomePageState extends State<MyHomePage> {
                       IconButton(
                         icon: Icon(
                           Icons.calendar_today,
-                          size: 20,
+                          size: 19 + appState.getTextSizeOffset(),
                           color: Theme.of(context).textTheme.bodyMedium?.color,
                         ),
                         onPressed: () => _openAgendaModal(context),
+                      ),
+                      IconButton(
+                        icon: Icon(
+                          appState.showAmounts ? Icons.visibility : Icons.visibility_off,
+                          size: 22 + appState.getTextSizeOffset(),
+                          color: Theme.of(context).textTheme.bodyMedium?.color,
+                        ),
+                        onPressed: () => appState.toggleShowAmounts(),
                       ),
                     ],
                   ),
