@@ -64,8 +64,8 @@ class _PropertiesForSalePageState extends State<PropertiesForSalePage> {
               ),
             );
           },
-          child: _selectedPage == 'RealT'
-              ? const PropertiesForSaleRealt(key: ValueKey('RealT'))
+          child: _selectedPage == 'RealT' 
+              ? const PropertiesForSaleRealt(key: ValueKey('RealT')) 
               : const PropertiesForSaleSecondary(key: ValueKey('Secondary')),
         ),
       ),
@@ -81,50 +81,84 @@ class _PropertiesForSalePageState extends State<PropertiesForSalePage> {
     );
   }
 
+  double _calculateTextWidth(BuildContext context, String text, TextStyle style) {
+    final TextPainter textPainter = TextPainter(
+      text: TextSpan(text: text, style: style),
+      maxLines: 1,
+      textDirection: TextDirection.ltr,
+    )..layout();
+
+    return textPainter.width + 24; // Ajout de padding pour l'esthétique
+  }
+
   Widget _buildPageChip(String value, String label) {
     final appState = Provider.of<AppState>(context);
     bool isSelected = _selectedPage == value;
 
-    return Expanded(
-      flex: isSelected ? 3 : 1, // Le chip sélectionné prend plus d’espace
-      child: GestureDetector(
-        onTap: () {
-          setState(() {
-            _selectedPage = value;
-          });
-        },
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 500),
-          curve: Curves.easeInOut,
-          height: 40,
-          margin: const EdgeInsets.symmetric(horizontal: 2),
-          decoration: BoxDecoration(
-            color: isSelected ? Theme.of(context).primaryColor : Theme.of(context).cardColor,
-            borderRadius: BorderRadius.circular(10),
-            boxShadow: isSelected
-                ? [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
-                      blurRadius: 6,
-                      offset: const Offset(0, 3),
-                    )
-                  ]
-                : [],
-          ),
-          child: AnimatedDefaultTextStyle(
-            duration: const Duration(milliseconds: 500),
-            curve: Curves.easeInOut,
-            style: TextStyle(
-              fontSize: isSelected ? 18 + appState.getTextSizeOffset() : 16 + appState.getTextSizeOffset(),
-              color: isSelected ? Colors.white : Theme.of(context).primaryColor,
-              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-            ),
-            child: Center(
-              child: Text(label),
-            ),
-          ),
-        ),
-      ),
+    double textSizeOffset = appState.getTextSizeOffset();
+    TextStyle textStyle = TextStyle(
+      fontSize: (isSelected ? 18 : 16) + textSizeOffset,
+      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
     );
+
+    double minWidth = _calculateTextWidth(context, label, textStyle);
+
+    return isSelected
+        ? Expanded( // La Chip sélectionnée prend tout l’espace restant
+            child: GestureDetector(
+              onTap: () {
+                setState(() {
+                  _selectedPage = value;
+                });
+              },
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 500),
+                curve: Curves.easeInOut,
+                height: 40,
+                margin: const EdgeInsets.symmetric(horizontal: 4),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).primaryColor,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Center(
+                  child: AnimatedDefaultTextStyle(
+                    duration: const Duration(milliseconds: 500),
+                    curve: Curves.easeInOut,
+                    style: textStyle.copyWith(color: Colors.white),
+                    child: Text(label),
+                  ),
+                ),
+              ),
+            ),
+          )
+        : ConstrainedBox( // Les Chips non sélectionnées ont une largeur minimale
+            constraints: BoxConstraints(minWidth: minWidth),
+            child: GestureDetector(
+              onTap: () {
+                setState(() {
+                  _selectedPage = value;
+                });
+              },
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 500),
+                curve: Curves.easeInOut,
+                height: 40,
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                margin: const EdgeInsets.symmetric(horizontal: 4),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).cardColor,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Center(
+                  child: AnimatedDefaultTextStyle(
+                    duration: const Duration(milliseconds: 500),
+                    curve: Curves.easeInOut,
+                    style: textStyle.copyWith(color: Theme.of(context).primaryColor),
+                    child: Text(label),
+                  ),
+                ),
+              ),
+            ),
+          );
   }
 }

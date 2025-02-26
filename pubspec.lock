@@ -901,10 +901,11 @@ packages:
   onesignal_flutter:
     dependency: "direct main"
     description:
-      name: onesignal_flutter
-      sha256: c60e253f4bfdbd2bd25c47e491bfd4ab8bd0336ad288b2873bd81f839b07ad8e
-      url: "https://pub.dev"
-    source: hosted
+      path: "."
+      ref: HEAD
+      resolved-ref: "1b728a59a5dbe42474f1179edbdbebb5a259c9d4"
+      url: "https://github.com/milansurelia/OneSignal-Flutter-SDK.git"
+    source: git
     version: "5.2.9"
   package_config:
     dependency: transitive

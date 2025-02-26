@@ -25,7 +25,7 @@ class StatsSelectorPageState extends State<StatsSelectorPage> {
             SliverAppBar(
               floating: true,
               snap: true,
-              expandedHeight: UIUtils.getSliverAppBarHeight(context) + 50,
+              expandedHeight: UIUtils.getSliverAppBarHeight(context) + 10,
               flexibleSpace: FlexibleSpaceBar(
                 background: Container(
                   color: Theme.of(context).scaffoldBackgroundColor,
@@ -74,51 +74,84 @@ class StatsSelectorPageState extends State<StatsSelectorPage> {
   }
 
   Widget _buildStatsChip(String value, String label) {
-    final appState = Provider.of<AppState>(context);
-    bool isSelected = _selectedStats == value;
+  final appState = Provider.of<AppState>(context);
+  bool isSelected = _selectedStats == value;
 
-    return Expanded(
-      flex: isSelected ? 3 : 1,
-      child: GestureDetector(
-        onTap: () {
-          setState(() {
-            _selectedStats = value;
-          });
-        },
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 500),
-          curve: Curves.easeInOut,
-          height: 40,
-          margin: const EdgeInsets.symmetric(horizontal: 2),
-          decoration: BoxDecoration(
-            color: isSelected ? Theme.of(context).primaryColor : Theme.of(context).cardColor,
-            borderRadius: BorderRadius.circular(10),
-            boxShadow: isSelected
-                ? [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
-                      blurRadius: 6,
-                      offset: const Offset(0, 3),
-                    )
-                  ]
-                : [],
-          ),
-          child: AnimatedDefaultTextStyle(
-            duration: const Duration(milliseconds: 500),
-            curve: Curves.easeInOut,
-            style: TextStyle(
-              fontSize: isSelected ? 18 + appState.getTextSizeOffset() : 16 + appState.getTextSizeOffset(),
-              color: isSelected ? Colors.white : Theme.of(context).primaryColor,
-              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-            ),
-            child: Center(
-              child: Text(label),
+  double textSizeOffset = appState.getTextSizeOffset();
+  TextStyle textStyle = TextStyle(
+    fontSize: (isSelected ? 18 : 16) + textSizeOffset,
+    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+  );
+
+  double minWidth = _calculateTextWidth(context, label, textStyle);
+
+  return isSelected
+      ? Expanded( // La chip sélectionnée prend toute la place restante
+          child: GestureDetector(
+            onTap: () {
+              setState(() {
+                _selectedStats = value;
+              });
+            },
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 500),
+              curve: Curves.easeInOut,
+              height: 40,
+              margin: const EdgeInsets.symmetric(horizontal: 4),
+              decoration: BoxDecoration(
+                color: Theme.of(context).primaryColor,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Center(
+                child: AnimatedDefaultTextStyle(
+                  duration: const Duration(milliseconds: 500),
+                  curve: Curves.easeInOut,
+                  style: textStyle.copyWith(color: Colors.white),
+                  child: Text(label),
+                ),
+              ),
             ),
           ),
-        ),
-      ),
-    );
-  }
+        )
+      : ConstrainedBox( // Les chips non sélectionnées ont une largeur minimale
+          constraints: BoxConstraints(minWidth: minWidth),
+          child: GestureDetector(
+            onTap: () {
+              setState(() {
+                _selectedStats = value;
+              });
+            },
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 500),
+              curve: Curves.easeInOut,
+              height: 40,
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              margin: const EdgeInsets.symmetric(horizontal: 4),
+              decoration: BoxDecoration(
+                color: Theme.of(context).cardColor,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Center(
+                child: AnimatedDefaultTextStyle(
+                  duration: const Duration(milliseconds: 500),
+                  curve: Curves.easeInOut,
+                  style: textStyle.copyWith(color: Theme.of(context).primaryColor),
+                  child: Text(label),
+                ),
+              ),
+            ),
+          ),
+        );
+}
+double _calculateTextWidth(BuildContext context, String text, TextStyle style) {
+  final TextPainter textPainter = TextPainter(
+    text: TextSpan(text: text, style: style),
+    maxLines: 1,
+    textDirection: TextDirection.ltr,
+  )..layout();
+
+  return textPainter.width + 24; // Ajout de padding pour éviter que le texte touche les bords
+}
 
   Widget _getSelectedStatsPage() {
     switch (_selectedStats) {

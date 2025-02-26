@@ -30,7 +30,7 @@ class RmmStatsState extends State<RmmStats> {
 
   bool healthAndLtvIsBarChart = true;
 
- @override
+  @override
   void initState() {
     super.initState();
     _initPrefs();
@@ -43,7 +43,7 @@ class RmmStatsState extends State<RmmStats> {
       healthAndLtvIsBarChart = prefs.getBool('healthAndLtvIsBarChart') ?? true;
     });
   }
-  
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -58,7 +58,6 @@ class RmmStatsState extends State<RmmStats> {
     }
 
     _selectedHealthAndLtvPeriod = S.of(context).week;
-
   }
 
   @override
@@ -92,7 +91,7 @@ class RmmStatsState extends State<RmmStats> {
                     case 1:
                       return _buildBorrowBalanceCard(dataManager, 380);
                     case 2:
-                                            return _buildHealthAndLtvHistoryCard(dataManager);
+                      return _buildHealthAndLtvHistoryCard(dataManager);
 
                     default:
                       return Container();
@@ -108,27 +107,26 @@ class RmmStatsState extends State<RmmStats> {
   }
 
   Widget _buildHealthAndLtvHistoryCard(DataManager dataManager) {
-  return SizedBox(
-    height: 380,
-    child: HealthAndLtvHistoryGraph(
-      dataManager: dataManager,
-      selectedPeriod: selectedHealthAndLtvPeriod,
-      healthAndLtvIsBarChart: healthAndLtvIsBarChart,
-      onPeriodChanged: (newPeriod) {
-        setState(() {
-          selectedHealthAndLtvPeriod = newPeriod;
-        });
-      },
-      onChartTypeChanged: (isBarChart) {
-        setState(() {
-          healthAndLtvIsBarChart = isBarChart;
-          prefs.setBool('healthAndLtvIsBarChart', isBarChart);
-        });
-      },
-    ),
-  );
-}
-
+    return SizedBox(
+      height: 380,
+      child: HealthAndLtvHistoryGraph(
+        dataManager: dataManager,
+        selectedPeriod: selectedHealthAndLtvPeriod,
+        healthAndLtvIsBarChart: healthAndLtvIsBarChart,
+        onPeriodChanged: (newPeriod) {
+          setState(() {
+            selectedHealthAndLtvPeriod = newPeriod;
+          });
+        },
+        onChartTypeChanged: (isBarChart) {
+          setState(() {
+            healthAndLtvIsBarChart = isBarChart;
+            prefs.setBool('healthAndLtvIsBarChart', isBarChart);
+          });
+        },
+      ),
+    );
+  }
 
   Widget _buildApyCard(DataManager dataManager, double screenWidth) {
     return SizedBox(
@@ -187,7 +185,7 @@ class RmmStatsState extends State<RmmStats> {
     );
   }
 
-   Widget _buildApyTable(DataManager dataManager) {
+  Widget _buildApyTable(DataManager dataManager) {
     return Table(
       border: TableBorder(
         horizontalInside: BorderSide(
@@ -265,7 +263,7 @@ class RmmStatsState extends State<RmmStats> {
     );
   }
 
-Widget _buildDepositBalanceCard(DataManager dataManager, double cardHeight) {
+  Widget _buildDepositBalanceCard(DataManager dataManager, double cardHeight) {
     return SizedBox(
       height: cardHeight,
       child: Card(
@@ -318,7 +316,7 @@ Widget _buildDepositBalanceCard(DataManager dataManager, double cardHeight) {
     );
   }
 
-Future<Map<String, List<BalanceRecord>>> _fetchAndAggregateBalanceHistories(DataManager dataManager, String selectedPeriod) async {
+  Future<Map<String, List<BalanceRecord>>> _fetchAndAggregateBalanceHistories(DataManager dataManager, String selectedPeriod) async {
     Map<String, List<BalanceRecord>> allHistories = {};
 
     allHistories['usdcDeposit'] = await dataManager.getBalanceHistory('usdcDeposit');
@@ -387,7 +385,7 @@ Future<Map<String, List<BalanceRecord>>> _fetchAndAggregateBalanceHistories(Data
     return averagedRecords;
   }
 
- Widget _buildBorrowBalanceCard(DataManager dataManager, double cardHeight) {
+  Widget _buildBorrowBalanceCard(DataManager dataManager, double cardHeight) {
     return SizedBox(
       height: cardHeight,
       child: Card(
@@ -439,7 +437,7 @@ Future<Map<String, List<BalanceRecord>>> _fetchAndAggregateBalanceHistories(Data
       ),
     );
   }
-  
+
   void _saveChartPreference(String key, bool value) {
     prefs.setBool(key, value);
   }

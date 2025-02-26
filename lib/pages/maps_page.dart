@@ -276,7 +276,6 @@ class MapsPageState extends State<MapsPage> {
               ],
             ),
           ),
-          // Switch en haut à gauche pour basculer entre les tokens du portefeuille et tous les tokens
           // Switch en haut à gauche pour basculer entre le portefeuille/all tokens et le filtrage whitelist
           Positioned(
             top: UIUtils.getAppBarHeight(context),

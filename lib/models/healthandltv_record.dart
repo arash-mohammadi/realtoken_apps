@@ -2,7 +2,7 @@ class HealthAndLtvRecord {
   double healthFactor; // Correction ici
   double ltv;
   DateTime timestamp;
- 
+
   HealthAndLtvRecord({
     required this.healthFactor, // Correction ici
     required this.ltv,

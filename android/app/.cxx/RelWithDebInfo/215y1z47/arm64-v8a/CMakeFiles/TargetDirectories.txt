@@ -1,0 +1,2 @@
+/Users/byackee/Documents/GitHub/realtoken_apps/android/app/.cxx/RelWithDebInfo/215y1z47/arm64-v8a/CMakeFiles/edit_cache.dir
+/Users/byackee/Documents/GitHub/realtoken_apps/android/app/.cxx/RelWithDebInfo/215y1z47/arm64-v8a/CMakeFiles/rebuild_cache.dir

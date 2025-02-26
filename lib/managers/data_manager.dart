@@ -344,7 +344,7 @@ class DataManager extends ChangeNotifier {
     }
   }
 
-Future<void> loadHealthAndLtvHistory() async {
+  Future<void> loadHealthAndLtvHistory() async {
     try {
       var box = Hive.box('HealthAndLtvValueArchive'); // Ouvrir la boîte Hive
       List<dynamic>? healthAndLtvHistoryJson = box.get('healthAndLtv_history'); // Récupérer les données sauvegardées
@@ -1697,13 +1697,14 @@ Future<void> loadHealthAndLtvHistory() async {
     }
   }
 
- Future<void> archiveHealthAndLtvValue(double healtFactorValue, double ltvValue) async {
+  Future<void> archiveHealthAndLtvValue(double healtFactorValue, double ltvValue) async {
     try {
       var box = Hive.box('HealthAndLtvValueArchive'); // Ouvrir une nouvelle boîte dédiée
 
       // Charger l'historique existant depuis Hive
       List<dynamic>? healthAndLtvHistoryJson = box.get('healthAndLtv_history');
-      List<HealthAndLtvRecord> healthAndLtvHistory = healthAndLtvHistoryJson != null ? healthAndLtvHistoryJson.map((recordJson) => HealthAndLtvRecord.fromJson(Map<String, dynamic>.from(recordJson))).toList() : [];
+      List<HealthAndLtvRecord> healthAndLtvHistory =
+          healthAndLtvHistoryJson != null ? healthAndLtvHistoryJson.map((recordJson) => HealthAndLtvRecord.fromJson(Map<String, dynamic>.from(recordJson))).toList() : [];
 
       // Vérifier le dernier enregistrement
       if (healthAndLtvHistory.isNotEmpty) {
