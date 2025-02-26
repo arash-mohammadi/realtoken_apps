@@ -56,6 +56,7 @@ void main() async {
     Hive.openBox('roiValueArchive'),
     Hive.openBox('apyValueArchive'),
     Hive.openBox('rentedArchive'),
+    Hive.openBox('HealthAndLtvValueArchive'),
     Hive.openBox('customInitPrices'),
     Hive.openBox('YamMarket'),
     Hive.openBox('YamHistory'),

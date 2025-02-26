@@ -44,7 +44,7 @@ class RentedHistoryGraph extends StatelessWidget {
             Row(
               children: [
                 Text(
-                  S.of(context).rentedUnits, // Titre principal
+                  '${S.of(context).rentedUnits} (%)', // Titre principal
                   style: TextStyle(
                     fontSize: 20 + appState.getTextSizeOffset(),
                     fontWeight: FontWeight.bold,

@@ -20,8 +20,8 @@ class _PropertiesForSalePageState extends State<PropertiesForSalePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor, // Définir le fond noir
-        title: Text(S.of(context).properties_for_sale), // Titre de la page
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        title: Text(S.of(context).properties_for_sale),
       ),
       body: NestedScrollView(
         headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
@@ -30,17 +30,16 @@ class _PropertiesForSalePageState extends State<PropertiesForSalePage> {
               floating: true,
               snap: true,
               expandedHeight: UIUtils.getSliverAppBarHeight(context) - 25,
-              automaticallyImplyLeading: false, // Supprime la flèche de retour
+              automaticallyImplyLeading: false,
               flexibleSpace: FlexibleSpaceBar(
                 background: SafeArea(
-                  // Utiliser SafeArea pour éviter le chevauchement
                   child: Container(
                     color: Theme.of(context).scaffoldBackgroundColor,
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         Padding(
-                          padding: const EdgeInsets.all(8.0),
+                          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
                           child: _buildPageSelector(),
                         ),
                       ],
@@ -51,21 +50,34 @@ class _PropertiesForSalePageState extends State<PropertiesForSalePage> {
             ),
           ];
         },
-        body: _selectedPage == 'RealT' ? const PropertiesForSaleRealt() : const PropertiesForSaleSecondary(),
+        body: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 500),
+          transitionBuilder: (Widget child, Animation<double> animation) {
+            return FadeTransition(
+              opacity: animation,
+              child: SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0.2, 0),
+                  end: Offset.zero,
+                ).animate(animation),
+                child: child,
+              ),
+            );
+          },
+          child: _selectedPage == 'RealT'
+              ? const PropertiesForSaleRealt(key: ValueKey('RealT'))
+              : const PropertiesForSaleSecondary(key: ValueKey('Secondary')),
+        ),
       ),
     );
   }
 
   Widget _buildPageSelector() {
-    return Center(
-      // Centrer horizontalement
-      child: Wrap(
-        spacing: 8.0, // Espacement entre les chips
-        children: [
-          _buildPageChip('RealT', S.of(context).realt),
-          _buildPageChip('Secondary', S.of(context).secondary),
-        ],
-      ),
+    return Row(
+      children: [
+        _buildPageChip('RealT', S.of(context).realt),
+        _buildPageChip('Secondary', S.of(context).secondary),
+      ],
     );
   }
 
@@ -73,28 +85,45 @@ class _PropertiesForSalePageState extends State<PropertiesForSalePage> {
     final appState = Provider.of<AppState>(context);
     bool isSelected = _selectedPage == value;
 
-    return ActionChip(
-      // Utilisation de ActionChip
-      label: Text(
-        label,
-        style: TextStyle(
-          fontSize: 16 + appState.getTextSizeOffset(),
-          color: isSelected ? Colors.white : Theme.of(context).primaryColor,
-          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+    return Expanded(
+      flex: isSelected ? 3 : 1, // Le chip sélectionné prend plus d’espace
+      child: GestureDetector(
+        onTap: () {
+          setState(() {
+            _selectedPage = value;
+          });
+        },
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.easeInOut,
+          height: 40,
+          margin: const EdgeInsets.symmetric(horizontal: 2),
+          decoration: BoxDecoration(
+            color: isSelected ? Theme.of(context).primaryColor : Theme.of(context).cardColor,
+            borderRadius: BorderRadius.circular(10),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.2),
+                      blurRadius: 6,
+                      offset: const Offset(0, 3),
+                    )
+                  ]
+                : [],
+          ),
+          child: AnimatedDefaultTextStyle(
+            duration: const Duration(milliseconds: 500),
+            curve: Curves.easeInOut,
+            style: TextStyle(
+              fontSize: isSelected ? 18 + appState.getTextSizeOffset() : 16 + appState.getTextSizeOffset(),
+              color: isSelected ? Colors.white : Theme.of(context).primaryColor,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            ),
+            child: Center(
+              child: Text(label),
+            ),
+          ),
         ),
-      ),
-      onPressed: () {
-        setState(() {
-          _selectedPage = value;
-        });
-      },
-      backgroundColor: isSelected ? Theme.of(context).primaryColor : Theme.of(context).cardColor,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10), // Bords arrondis
-      ),
-      padding: EdgeInsets.symmetric(
-        horizontal: isSelected ? 80 : 5, // Agrandir davantage le chip sélectionné
-        vertical: 5, // Augmenter la hauteur des chips
       ),
     );
   }

@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:realtokens/generated/l10n.dart';
+import 'package:realtokens/models/healthandltv_record.dart';
 import 'package:realtokens/models/rented_record.dart';
 import 'package:realtokens/utils/parameters.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -51,6 +52,8 @@ class DataManager extends ChangeNotifier {
   double xdaiDepositApy = 0.0;
   double xdaiBorrowApy = 0.0;
   double apyAverage = 0.0;
+  double healthFactor = 0.0;
+  double ltv = 0.0;
   int walletTokenCount = 0;
   int rmmTokenCount = 0;
   int totalTokenCount = 0;
@@ -77,6 +80,7 @@ class DataManager extends ChangeNotifier {
   List<BalanceRecord> walletBalanceHistory = [];
   List<RoiRecord> roiHistory = [];
   List<ApyRecord> apyHistory = [];
+  List<HealthAndLtvRecord> healthAndLtvHistory = [];
   List<RentedRecord> rentedHistory = [];
   Map<String, double> customInitPrices = {};
   List<Map<String, dynamic>> propertiesForSale = [];
@@ -188,7 +192,7 @@ class DataManager extends ChangeNotifier {
     loadRentedHistory();
     loadRoiHistory();
     loadApyHistory();
-
+    loadHealthAndLtvHistory();
     isLoadingMain = false;
   }
 
@@ -337,6 +341,28 @@ class DataManager extends ChangeNotifier {
       }
     } catch (e) {
       debugPrint('Erreur lors du chargement des données de l\'historique APY : $e');
+    }
+  }
+
+Future<void> loadHealthAndLtvHistory() async {
+    try {
+      var box = Hive.box('HealthAndLtvValueArchive'); // Ouvrir la boîte Hive
+      List<dynamic>? healthAndLtvHistoryJson = box.get('healthAndLtv_history'); // Récupérer les données sauvegardées
+
+      if (healthAndLtvHistoryJson != null) {
+        // Charger l'historique
+        healthAndLtvHistory = healthAndLtvHistoryJson.map((recordJson) {
+          return HealthAndLtvRecord.fromJson(Map<String, dynamic>.from(recordJson));
+        }).toList();
+
+        notifyListeners(); // Notifier les listeners après la mise à jour
+
+        debugPrint('Données de l\'historique healthAndLtv chargées avec succès.');
+      } else {
+        debugPrint('⚠️ Aucune donnée d\'historique healthAndLtv trouvée.');
+      }
+    } catch (e) {
+      debugPrint('Erreur lors du chargement des données de l\'historique healthAndLtv : $e');
     }
   }
 
@@ -582,8 +608,9 @@ class DataManager extends ChangeNotifier {
     netRealtRentYear = tempNetRentYear;
     totalRealtUnits = tempTotalUnits;
     rentedRealtUnits = tempRentedUnits;
-    archiveRentedValue(rentedRealtUnits / totalRealtUnits * 100);
     averageRealtAnnualYield = yieldCount > 0 ? tempAnnualYieldSum / yieldCount : 0.0;
+
+    archiveRentedValue(rentedRealtUnits / totalRealtUnits * 100);
 
     // Notifie les widgets que les données ont changé
     notifyListeners();
@@ -1048,6 +1075,9 @@ class DataManager extends ChangeNotifier {
 
     archiveApyValue(netGlobalApy, averageAnnualYield);
 
+    healthFactor = (rmmValue * 0.7) / (totalUsdcBorrowBalance + totalXdaiBorrowBalance);
+    ltv = ((totalUsdcBorrowBalance + totalXdaiBorrowBalance) / rmmValue * 100);
+    archiveHealthAndLtvValue(healthFactor, ltv);
     // Notify listeners that data has changed
     notifyListeners();
   }
@@ -1664,6 +1694,45 @@ class DataManager extends ChangeNotifier {
       //debugPrint( 'Nouvelle balance ajoutée et sauvegardée avec succès pour $tokenType.');
     } catch (e) {
       debugPrint('Erreur lors de l\'archivage de la balance pour $tokenType : $e');
+    }
+  }
+
+ Future<void> archiveHealthAndLtvValue(double healtFactorValue, double ltvValue) async {
+    try {
+      var box = Hive.box('HealthAndLtvValueArchive'); // Ouvrir une nouvelle boîte dédiée
+
+      // Charger l'historique existant depuis Hive
+      List<dynamic>? healthAndLtvHistoryJson = box.get('healthAndLtv_history');
+      List<HealthAndLtvRecord> healthAndLtvHistory = healthAndLtvHistoryJson != null ? healthAndLtvHistoryJson.map((recordJson) => HealthAndLtvRecord.fromJson(Map<String, dynamic>.from(recordJson))).toList() : [];
+
+      // Vérifier le dernier enregistrement
+      if (healthAndLtvHistory.isNotEmpty) {
+        HealthAndLtvRecord lastRecord = healthAndLtvHistory.last;
+        DateTime lastTimestamp = lastRecord.timestamp;
+
+        // Vérifier si la différence est inférieure à 1 heure
+        if (DateTime.now().difference(lastTimestamp).inHours < 1) {
+          // Si moins d'une heure, ne rien faire
+          debugPrint('Dernier enregistrement récent, aucun nouvel enregistrement ajouté.');
+          return; // Sortir de la fonction
+        }
+      }
+
+      // Ajouter un nouvel enregistrement avec des valeurs formatées en double
+      HealthAndLtvRecord newRecord = HealthAndLtvRecord(
+        healthFactor: double.parse(healtFactorValue.toStringAsFixed(3)), // Conversion en double avec précision
+        ltv: double.parse(ltvValue.toStringAsFixed(3)), // Conversion en double avec précision
+        timestamp: DateTime.now(),
+      );
+      healthAndLtvHistory.add(newRecord);
+
+      // Sauvegarder dans Hive
+      List<Map<String, dynamic>> healthAndLtvHistoryJsonToSave = healthAndLtvHistory.map((record) => record.toJson()).toList();
+      await box.put('healthAndLtv_history', healthAndLtvHistoryJsonToSave);
+
+      debugPrint('Nouvel enregistrement APY ajouté et sauvegardé avec succès.');
+    } catch (e) {
+      debugPrint('Erreur lors de l\'archivage des valeurs APY : $e');
     }
   }
 

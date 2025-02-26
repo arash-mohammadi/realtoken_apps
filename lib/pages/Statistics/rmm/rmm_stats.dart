@@ -1,4 +1,3 @@
-// rmm_stats.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -7,12 +6,12 @@ import 'package:realtokens/generated/l10n.dart';
 import 'package:realtokens/managers/data_manager.dart';
 import 'package:realtokens/app_state.dart';
 import 'package:realtokens/models/balance_record.dart';
+import 'package:realtokens/pages/Statistics/rmm/borrow_chart.dart';
+import 'package:realtokens/pages/Statistics/rmm/deposit_chart.dart';
+import 'package:realtokens/pages/Statistics/rmm/healthFactorLtv_graph.dart';
 import 'package:realtokens/utils/chart_utils.dart';
 import 'package:realtokens/utils/currency_utils.dart';
-
-// Importation des widgets graphiques
-import 'deposit_chart.dart';
-import 'borrow_chart.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class RmmStats extends StatefulWidget {
   const RmmStats({super.key});
@@ -24,37 +23,60 @@ class RmmStats extends StatefulWidget {
 class RmmStatsState extends State<RmmStats> {
   String selectedDepositPeriod = '';
   String selectedBorrowPeriod = '';
+  String selectedHealthAndLtvPeriod = '';
+  late String _selectedHealthAndLtvPeriod;
 
+  late SharedPreferences prefs;
+
+  bool healthAndLtvIsBarChart = true;
+
+ @override
+  void initState() {
+    super.initState();
+    _initPrefs();
+  }
+
+  Future<void> _initPrefs() async {
+    prefs = await SharedPreferences.getInstance();
+    setState(() {
+      // Charger la préférence stockée, si elle existe, sinon utiliser true par défaut
+      healthAndLtvIsBarChart = prefs.getBool('healthAndLtvIsBarChart') ?? true;
+    });
+  }
+  
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Si aucune valeur n'est encore définie, on affecte la valeur par défaut.
     if (selectedDepositPeriod.isEmpty) {
-      selectedDepositPeriod = S.of(context).week; // Valeur par défaut pour "Day"
+      selectedDepositPeriod = S.of(context).week;
     }
     if (selectedBorrowPeriod.isEmpty) {
-      selectedBorrowPeriod = S.of(context).week; // Valeur par défaut pour "Week"
+      selectedBorrowPeriod = S.of(context).week;
     }
+    if (selectedHealthAndLtvPeriod.isEmpty) {
+      selectedHealthAndLtvPeriod = S.of(context).week;
+    }
+
+    _selectedHealthAndLtvPeriod = S.of(context).week;
+
   }
 
   @override
   Widget build(BuildContext context) {
     final dataManager = Provider.of<DataManager>(context);
     final screenWidth = MediaQuery.of(context).size.width;
-    final double fixedCardHeight = 380;
+    const double fixedCardHeight = 380;
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: CustomScrollView(
         slivers: [
-          // Carte APY
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.all(8.0),
-              child: _buildApyCard(dataManager, screenWidth),
+              child: _buildApyCard(dataManager, 380),
             ),
           ),
-          // Grille des cartes de dépôts et emprunts
           SliverPadding(
             padding: const EdgeInsets.only(top: 8, left: 8, right: 8, bottom: 80),
             sliver: SliverGrid(
@@ -69,11 +91,14 @@ class RmmStatsState extends State<RmmStats> {
                       return _buildDepositBalanceCard(dataManager, 380);
                     case 1:
                       return _buildBorrowBalanceCard(dataManager, 380);
+                    case 2:
+                                            return _buildHealthAndLtvHistoryCard(dataManager);
+
                     default:
                       return Container();
                   }
                 },
-                childCount: 2,
+                childCount: 3,
               ),
             ),
           ),
@@ -81,6 +106,29 @@ class RmmStatsState extends State<RmmStats> {
       ),
     );
   }
+
+  Widget _buildHealthAndLtvHistoryCard(DataManager dataManager) {
+  return SizedBox(
+    height: 380,
+    child: HealthAndLtvHistoryGraph(
+      dataManager: dataManager,
+      selectedPeriod: selectedHealthAndLtvPeriod,
+      healthAndLtvIsBarChart: healthAndLtvIsBarChart,
+      onPeriodChanged: (newPeriod) {
+        setState(() {
+          selectedHealthAndLtvPeriod = newPeriod;
+        });
+      },
+      onChartTypeChanged: (isBarChart) {
+        setState(() {
+          healthAndLtvIsBarChart = isBarChart;
+          prefs.setBool('healthAndLtvIsBarChart', isBarChart);
+        });
+      },
+    ),
+  );
+}
+
 
   Widget _buildApyCard(DataManager dataManager, double screenWidth) {
     return SizedBox(
@@ -139,113 +187,7 @@ class RmmStatsState extends State<RmmStats> {
     );
   }
 
-  Widget _buildDepositBalanceCard(DataManager dataManager, double cardHeight) {
-    return SizedBox(
-      height: cardHeight,
-      child: Card(
-        elevation: 0.5,
-        color: Theme.of(context).cardColor,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                S.of(context).depositBalance,
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              ChartUtils.buildPeriodSelector(
-                context,
-                selectedPeriod: selectedDepositPeriod,
-                onPeriodChanged: (newPeriod) {
-                  setState(() {
-                    selectedDepositPeriod = newPeriod;
-                  });
-                },
-              ),
-              const SizedBox(height: 10),
-              Expanded(
-                child: FutureBuilder<Map<String, List<BalanceRecord>>>(
-                  future: _fetchAndAggregateBalanceHistories(dataManager, selectedDepositPeriod),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const CircularProgressIndicator();
-                    } else if (snapshot.hasError) {
-                      return Text('Erreur: ${snapshot.error}');
-                    } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                      return const Text('Pas de données disponibles.');
-                    } else {
-                      final allHistories = snapshot.data!;
-                      return DepositChart(
-                        allHistories: allHistories,
-                        selectedPeriod: selectedDepositPeriod,
-                      );
-                    }
-                  },
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBorrowBalanceCard(DataManager dataManager, double cardHeight) {
-    return SizedBox(
-      height: cardHeight,
-      child: Card(
-        elevation: 0.5,
-        color: Theme.of(context).cardColor,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                S.of(context).borrowBalance,
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              ChartUtils.buildPeriodSelector(
-                context,
-                selectedPeriod: selectedBorrowPeriod,
-                onPeriodChanged: (newPeriod) {
-                  setState(() {
-                    selectedBorrowPeriod = newPeriod;
-                  });
-                },
-              ),
-              const SizedBox(height: 10),
-              Expanded(
-                child: FutureBuilder<Map<String, List<BalanceRecord>>>(
-                  future: _fetchAndAggregateBalanceHistories(dataManager, selectedBorrowPeriod),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const CircularProgressIndicator();
-                    } else if (snapshot.hasError) {
-                      return Text('Erreur: ${snapshot.error}');
-                    } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                      return const Text('Pas de données disponibles.');
-                    } else {
-                      final allHistories = snapshot.data!;
-                      return BorrowChart(
-                        allHistories: allHistories,
-                        selectedPeriod: selectedBorrowPeriod,
-                      );
-                    }
-                  },
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildApyTable(DataManager dataManager) {
+   Widget _buildApyTable(DataManager dataManager) {
     return Table(
       border: TableBorder(
         horizontalInside: BorderSide(
@@ -323,7 +265,60 @@ class RmmStatsState extends State<RmmStats> {
     );
   }
 
-  Future<Map<String, List<BalanceRecord>>> _fetchAndAggregateBalanceHistories(DataManager dataManager, String selectedPeriod) async {
+Widget _buildDepositBalanceCard(DataManager dataManager, double cardHeight) {
+    return SizedBox(
+      height: cardHeight,
+      child: Card(
+        elevation: 0.5,
+        color: Theme.of(context).cardColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                S.of(context).depositBalance,
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              ChartUtils.buildPeriodSelector(
+                context,
+                selectedPeriod: selectedDepositPeriod,
+                onPeriodChanged: (newPeriod) {
+                  setState(() {
+                    selectedDepositPeriod = newPeriod;
+                  });
+                },
+              ),
+              const SizedBox(height: 10),
+              Expanded(
+                child: FutureBuilder<Map<String, List<BalanceRecord>>>(
+                  future: _fetchAndAggregateBalanceHistories(dataManager, selectedDepositPeriod),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const CircularProgressIndicator();
+                    } else if (snapshot.hasError) {
+                      return Text('Erreur: ${snapshot.error}');
+                    } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                      return const Text('Pas de données disponibles.');
+                    } else {
+                      final allHistories = snapshot.data!;
+                      return DepositChart(
+                        allHistories: allHistories,
+                        selectedPeriod: selectedDepositPeriod,
+                      );
+                    }
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+Future<Map<String, List<BalanceRecord>>> _fetchAndAggregateBalanceHistories(DataManager dataManager, String selectedPeriod) async {
     Map<String, List<BalanceRecord>> allHistories = {};
 
     allHistories['usdcDeposit'] = await dataManager.getBalanceHistory('usdcDeposit');
@@ -390,5 +385,62 @@ class RmmStatsState extends State<RmmStats> {
     });
 
     return averagedRecords;
+  }
+
+ Widget _buildBorrowBalanceCard(DataManager dataManager, double cardHeight) {
+    return SizedBox(
+      height: cardHeight,
+      child: Card(
+        elevation: 0.5,
+        color: Theme.of(context).cardColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                S.of(context).borrowBalance,
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              ChartUtils.buildPeriodSelector(
+                context,
+                selectedPeriod: selectedBorrowPeriod,
+                onPeriodChanged: (newPeriod) {
+                  setState(() {
+                    selectedBorrowPeriod = newPeriod;
+                  });
+                },
+              ),
+              const SizedBox(height: 10),
+              Expanded(
+                child: FutureBuilder<Map<String, List<BalanceRecord>>>(
+                  future: _fetchAndAggregateBalanceHistories(dataManager, selectedBorrowPeriod),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const CircularProgressIndicator();
+                    } else if (snapshot.hasError) {
+                      return Text('Erreur: ${snapshot.error}');
+                    } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                      return const Text('Pas de données disponibles.');
+                    } else {
+                      final allHistories = snapshot.data!;
+                      return BorrowChart(
+                        allHistories: allHistories,
+                        selectedPeriod: selectedBorrowPeriod,
+                      );
+                    }
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+  
+  void _saveChartPreference(String key, bool value) {
+    prefs.setBool(key, value);
   }
 }

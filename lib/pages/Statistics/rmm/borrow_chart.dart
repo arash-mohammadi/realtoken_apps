@@ -41,21 +41,27 @@ class BorrowChart extends StatelessWidget {
     final minX = 0.0;
     final maxX = groups.isNotEmpty ? (groups.length - 1).toDouble() : 0.0;
 
-    // Construction des spots pour chaque série.
-    final usdcSpots = <FlSpot>[];
-    final xdaiSpots = <FlSpot>[];
-    for (int i = 0; i < groups.length; i++) {
-      usdcSpots.add(FlSpot(i.toDouble(), groups[i].usdc));
-      xdaiSpots.add(FlSpot(i.toDouble(), groups[i].xdai));
-    }
+// Construction des spots pour chaque série.
+final usdcSpots = <FlSpot>[];
+final xdaiSpots = <FlSpot>[];
+for (int i = 0; i < groups.length; i++) {
+  final group = groups[i];
+  final convertedUsdc = currencyUtils.convert(group.usdc);
+  final convertedXdai = currencyUtils.convert(group.xdai);
+  usdcSpots.add(FlSpot(i.toDouble(), convertedUsdc));
+  // On additionne les montants convertis pour décaler la courbe xDai.
+  xdaiSpots.add(FlSpot(i.toDouble(), convertedUsdc + convertedXdai));
+}
 
-    // Calcul de la valeur maximale pour l'axe vertical (avec une marge de 20%).
-    double calculatedMaxY = 0;
-    for (final group in groups) {
-      calculatedMaxY = group.usdc > calculatedMaxY ? group.usdc : calculatedMaxY;
-      calculatedMaxY = group.xdai > calculatedMaxY ? group.xdai : calculatedMaxY;
-    }
-    final maxY = calculatedMaxY > 0 ? calculatedMaxY * 1.2 : 10.0;
+ double calculatedMaxY = 0;
+for (final group in groups) {
+  final convertedUsdc = currencyUtils.convert(group.usdc);
+  final convertedXdai = currencyUtils.convert(group.xdai);
+  final stackedValue = convertedUsdc + convertedXdai;
+  calculatedMaxY = stackedValue > calculatedMaxY ? stackedValue : calculatedMaxY;
+}
+final maxY = calculatedMaxY > 0 ? calculatedMaxY * 1.1 : 10.0;
+
 
     return LineChart(
       LineChartData(
@@ -208,44 +214,44 @@ class BorrowChart extends StatelessWidget {
 
   /// Regroupe les enregistrements d'emprunt (USDC et xDai) par période.
   List<_BorrowGroup> _groupBorrows(BuildContext context) {
-    Map<DateTime, _BorrowGroup> groups = {};
+  Map<DateTime, _BorrowGroup> groups = {};
 
-    void addRecord(BalanceRecord record, String tokenKey) {
-      final DateTime groupDate = _truncateDate(record.timestamp, context);
-      if (!groups.containsKey(groupDate)) {
-        groups[groupDate] = _BorrowGroup(groupDate: groupDate, usdc: 0, xdai: 0);
-      }
-      final currentGroup = groups[groupDate]!;
-      if (tokenKey == 'usdc') {
-        groups[groupDate] = _BorrowGroup(
-          groupDate: groupDate,
-          usdc: currentGroup.usdc + record.balance,
-          xdai: currentGroup.xdai,
-        );
-      } else if (tokenKey == 'xdai') {
-        groups[groupDate] = _BorrowGroup(
-          groupDate: groupDate,
-          usdc: currentGroup.usdc,
-          xdai: currentGroup.xdai + record.balance,
-        );
-      }
+  void addRecord(BalanceRecord record, String tokenKey) {
+    final DateTime groupDate = _truncateDate(record.timestamp, context);
+    if (!groups.containsKey(groupDate)) {
+      groups[groupDate] = _BorrowGroup(groupDate: groupDate, usdc: 0, xdai: 0);
     }
-
-    if (allHistories['usdcBorrow'] != null) {
-      for (var record in allHistories['usdcBorrow']!) {
-        addRecord(record, 'usdc');
-      }
+    final currentGroup = groups[groupDate]!;
+    if (tokenKey == 'usdc') {
+      groups[groupDate] = _BorrowGroup(
+        groupDate: groupDate,
+        usdc: currentGroup.usdc + record.balance,
+        xdai: currentGroup.xdai,
+      );
+    } else if (tokenKey == 'xdai') {
+      groups[groupDate] = _BorrowGroup(
+        groupDate: groupDate,
+        usdc: currentGroup.usdc,
+        xdai: currentGroup.xdai + record.balance,
+      );
     }
-    if (allHistories['xdaiBorrow'] != null) {
-      for (var record in allHistories['xdaiBorrow']!) {
-        addRecord(record, 'xdai');
-      }
-    }
-
-    List<_BorrowGroup> groupList = groups.values.toList();
-    groupList.sort((a, b) => a.groupDate.compareTo(b.groupDate));
-    return groupList;
   }
+
+  if (allHistories['usdcBorrow'] != null) {
+    for (var record in allHistories['usdcBorrow']!) {
+      addRecord(record, 'usdc');
+    }
+  }
+  if (allHistories['xdaiBorrow'] != null) {
+    for (var record in allHistories['xdaiBorrow']!) {
+      addRecord(record, 'xdai');
+    }
+  }
+
+  List<_BorrowGroup> groupList = groups.values.toList();
+  groupList.sort((a, b) => a.groupDate.compareTo(b.groupDate));
+  return groupList;
+}
 
   /// Tronque une date selon la période sélectionnée.
   DateTime _truncateDate(DateTime date, BuildContext context) {

@@ -41,21 +41,28 @@ class DepositChart extends StatelessWidget {
     final minX = 0.0;
     final maxX = groups.isNotEmpty ? (groups.length - 1).toDouble() : 0.0;
 
-    // Construction des spots pour chaque série en utilisant l'indice du groupe.
+    // Construction des spots pour chaque série en appliquant la conversion
+    // et en empilant la courbe xDai sur la courbe USDC.
     final usdcSpots = <FlSpot>[];
     final xdaiSpots = <FlSpot>[];
     for (int i = 0; i < groups.length; i++) {
-      usdcSpots.add(FlSpot(i.toDouble(), groups[i].usdc));
-      xdaiSpots.add(FlSpot(i.toDouble(), groups[i].xdai));
+      final group = groups[i];
+      final convertedUsdc = currencyUtils.convert(group.usdc);
+      final convertedXdai = currencyUtils.convert(group.xdai);
+      usdcSpots.add(FlSpot(i.toDouble(), convertedUsdc));
+      // La courbe xDai démarre à partir de la courbe USDC.
+      xdaiSpots.add(FlSpot(i.toDouble(), convertedUsdc + convertedXdai));
     }
 
     // Calcul de la valeur maximale pour l'axe vertical (avec une marge de 20%).
     double calculatedMaxY = 0;
     for (final group in groups) {
-      calculatedMaxY = group.usdc > calculatedMaxY ? group.usdc : calculatedMaxY;
-      calculatedMaxY = group.xdai > calculatedMaxY ? group.xdai : calculatedMaxY;
+      final convertedUsdc = currencyUtils.convert(group.usdc);
+      final convertedXdai = currencyUtils.convert(group.xdai);
+      final stackedValue = convertedUsdc + convertedXdai;
+      calculatedMaxY = stackedValue > calculatedMaxY ? stackedValue : calculatedMaxY;
     }
-    final maxY = calculatedMaxY > 0 ? calculatedMaxY * 1.2 : 10.0;
+    final maxY = calculatedMaxY > 0 ? calculatedMaxY * 1.1 : 10.0;
 
     return LineChart(
       LineChartData(
@@ -98,9 +105,8 @@ class DepositChart extends StatelessWidget {
                 final formattedValue = currencyUtils.getFormattedAmount(
                   value,
                   currencyUtils.currencySymbol,
-                  appState.showAmounts, // Applique le masquage des montants
+                  appState.showAmounts,
                 );
-
                 return Transform.rotate(
                   angle: -0.5,
                   child: Text(

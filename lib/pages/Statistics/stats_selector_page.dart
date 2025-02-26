@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:realtokens/pages/Statistics/rmm/rmm_stats.dart';
 import 'package:realtokens/pages/Statistics/portfolio/portfolio_stats.dart';
-import 'package:realtokens/pages/Statistics/wallet/wallet_stats.dart'; // Assurez-vous que cette page existe
+import 'package:realtokens/pages/Statistics/wallet/wallet_stats.dart';
 import 'package:provider/provider.dart';
 import 'package:realtokens/app_state.dart';
 import 'package:realtokens/utils/ui_utils.dart';
@@ -14,7 +14,7 @@ class StatsSelectorPage extends StatefulWidget {
 }
 
 class StatsSelectorPageState extends State<StatsSelectorPage> {
-  String _selectedStats = 'WalletStats'; // Valeur par défaut
+  String _selectedStats = 'WalletStats';
 
   @override
   Widget build(BuildContext context) {
@@ -25,16 +25,15 @@ class StatsSelectorPageState extends State<StatsSelectorPage> {
             SliverAppBar(
               floating: true,
               snap: true,
-              expandedHeight: UIUtils.getSliverAppBarHeight(context) + 10,
+              expandedHeight: UIUtils.getSliverAppBarHeight(context) + 50,
               flexibleSpace: FlexibleSpaceBar(
                 background: Container(
                   color: Theme.of(context).scaffoldBackgroundColor,
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.end,
-                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Padding(
-                        padding: const EdgeInsets.all(8.0),
+                        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
                         child: _buildStatsSelector(),
                       ),
                     ],
@@ -44,22 +43,33 @@ class StatsSelectorPageState extends State<StatsSelectorPage> {
             ),
           ];
         },
-        body: _getSelectedStatsPage(), // Appelle une méthode pour obtenir la page sélectionnée
+        body: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 500),
+          transitionBuilder: (Widget child, Animation<double> animation) {
+            return FadeTransition(
+              opacity: animation,
+              child: SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0.2, 0),
+                  end: Offset.zero,
+                ).animate(animation),
+                child: child,
+              ),
+            );
+          },
+          child: _getSelectedStatsPage(),
+        ),
       ),
     );
   }
 
   Widget _buildStatsSelector() {
-    return Center(
-      // Centrer horizontalement
-      child: Wrap(
-        spacing: 8.0, // Espacement entre les chips
-        children: [
-          _buildStatsChip('WalletStats', 'Wallet'),
-          _buildStatsChip('PortfolioStats', 'Portfolio'),
-          _buildStatsChip('RMMStats', 'RMM'),
-        ],
-      ),
+    return Row(
+      children: [
+        _buildStatsChip('WalletStats', 'Wallet'),
+        _buildStatsChip('PortfolioStats', 'Portfolio'),
+        _buildStatsChip('RMMStats', 'RMM'),
+      ],
     );
   }
 
@@ -67,28 +77,45 @@ class StatsSelectorPageState extends State<StatsSelectorPage> {
     final appState = Provider.of<AppState>(context);
     bool isSelected = _selectedStats == value;
 
-    return ActionChip(
-      // Utilisation de ActionChip
-      label: Text(
-        label,
-        style: TextStyle(
-          fontSize: 16 + appState.getTextSizeOffset(),
-          color: isSelected ? Colors.white : Theme.of(context).primaryColor,
-          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+    return Expanded(
+      flex: isSelected ? 3 : 1,
+      child: GestureDetector(
+        onTap: () {
+          setState(() {
+            _selectedStats = value;
+          });
+        },
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.easeInOut,
+          height: 40,
+          margin: const EdgeInsets.symmetric(horizontal: 2),
+          decoration: BoxDecoration(
+            color: isSelected ? Theme.of(context).primaryColor : Theme.of(context).cardColor,
+            borderRadius: BorderRadius.circular(10),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.2),
+                      blurRadius: 6,
+                      offset: const Offset(0, 3),
+                    )
+                  ]
+                : [],
+          ),
+          child: AnimatedDefaultTextStyle(
+            duration: const Duration(milliseconds: 500),
+            curve: Curves.easeInOut,
+            style: TextStyle(
+              fontSize: isSelected ? 18 + appState.getTextSizeOffset() : 16 + appState.getTextSizeOffset(),
+              color: isSelected ? Colors.white : Theme.of(context).primaryColor,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            ),
+            child: Center(
+              child: Text(label),
+            ),
+          ),
         ),
-      ),
-      onPressed: () {
-        setState(() {
-          _selectedStats = value;
-        });
-      },
-      backgroundColor: isSelected ? Theme.of(context).primaryColor : Theme.of(context).cardColor,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10), // Bords arrondis
-      ),
-      padding: EdgeInsets.symmetric(
-        horizontal: isSelected ? 80 : 5, // Agrandir davantage le chip sélectionné
-        vertical: 5, // Augmenter la hauteur des chips
       ),
     );
   }
@@ -96,13 +123,13 @@ class StatsSelectorPageState extends State<StatsSelectorPage> {
   Widget _getSelectedStatsPage() {
     switch (_selectedStats) {
       case 'WalletStats':
-        return const WalletStats(); // Affiche la page Wallet Stats
+        return const WalletStats(key: ValueKey('WalletStats'));
       case 'PortfolioStats':
-        return const PortfolioStats();
+        return const PortfolioStats(key: ValueKey('PortfolioStats'));
       case 'RMMStats':
-        return const RmmStats();
+        return const RmmStats(key: ValueKey('RMMStats'));
       default:
-        return const PortfolioStats();
+        return const PortfolioStats(key: ValueKey('PortfolioStats'));
     }
   }
 }
