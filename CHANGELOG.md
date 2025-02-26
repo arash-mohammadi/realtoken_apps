@@ -2,20 +2,20 @@
 
 ### Added
 - Add CSV export functionality in rent detail page
-- Add support of whitelist functionality
+- Add support of whitelist functionality https://github.com/RealToken-Community/realtoken_apps/issues/12
 - Add filter and sort on YAM offers in secondary market page & property market tab
-- Add new graph history in porfolio (rented percentage)
+- Add new graph history in porfolio (rented percentage) https://github.com/RealToken-Community/realtoken_apps/issues/26
   
 ### Changed
 - Improve YAM offers (add informations like ROI, new yield,  etc..)
 - improve visual aspect and user interface
-- Improve Realtokens listpage
+- Improve Realtokens listpage https://github.com/RealToken-Community/realtoken_apps/issues/17
   - (add whitelist & present in wallet informations)
   - support 2 columns on large screen
 - Optimize code
 
 ### Fixed
-- Fix wrong date sort in some graphs
+- Fix wrong date sort in some graphs https://github.com/RealToken-Community/realtoken_apps/issues/34
 - Fix few others  minors bugs
 
 ### Screenshots
@@ -43,8 +43,8 @@
 ## [1.7.0] - 2025-02-09
 
 ### Added
-- add events calendar (properties purchases, YAM, rents)
-- add support theme color
+- add events calendar (properties purchases, YAM, rents) https://github.com/RealToken-Community/realtoken_apps/issues/25
+- add support theme color  https://github.com/RealToken-Community/realtoken_apps/issues/22
 - add period selector for all graph
   
 
