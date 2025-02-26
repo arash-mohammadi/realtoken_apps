@@ -4,28 +4,26 @@
 - Add CSV export functionality in rent detail page
 - Add support of whitelist functionality
 - Add filter and sort on YAM offers in secondary market page & property market tab
-  
-![IMG_1540](https://github.com/user-attachments/assets/650d9c7d-3b5d-45c9-bdf2-842d2af5fdc2)
-
 - Add new graph history in porfolio (rented percentage)
   
-![IMG_1537](https://github.com/user-attachments/assets/355741b9-6182-4db7-857a-122e984e8c31)
-
 ### Changed
 - Improve YAM offers (add informations like ROI, new yield,  etc..)
   
-![IMG_1539](https://github.com/user-attachments/assets/0566b602-c50b-4d63-8795-ccb4b719ddf7)
 - improve visual aspect and user interface
 - Improve Realtokens listpage
   - (add whitelist & present in wallet informations)
   - support 2 columns on large screen
-    
-![IMG_1542](https://github.com/user-attachments/assets/7cafec0e-50ee-4a36-bbc9-5d5f9094e9ed)
 - Optimize code
 
 ### Fixed
 - Fix wrong date sort in some graphs
 - Fix few others  minors bugs
+### Screenshots
+<img "src=https://github.com/user-attachments/assets/650d9c7d-3b5d-45c9-bdf2-842d2af5fdc2" width="300" />
+<img "src="https://github.com/user-attachments/assets/355741b9-6182-4db7-857a-122e984e8c31" width="300" />
+![IMG_1542](https://github.com/user-attachments/assets/7cafec0e-50ee-4a36-bbc9-5d5f9094e9ed?s=100)
+![IMG_1539](https://github.com/user-attachments/assets/0566b602-c50b-4d63-8795-ccb4b719ddf7?s=100)
+
 
 ## [1.7.5] - 2025-02-22
 
