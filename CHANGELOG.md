@@ -8,6 +8,7 @@
   
 ### Changed
 - Improve YAM offers (add informations like ROI, new yield,  etc..)
+- Improve  Rents details page
 - improve visual aspect and user interface
 - Improve Realtokens listpage https://github.com/RealToken-Community/realtoken_apps/issues/17
   - (add whitelist & present in wallet informations)
