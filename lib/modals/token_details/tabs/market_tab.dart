@@ -11,7 +11,7 @@ class MarketTab extends StatefulWidget {
   final Map<String, dynamic> token;
   final bool isModal;
 
-  const MarketTab({Key? key, required this.token, this.isModal = false}) : super(key: key);
+  const MarketTab({super.key, required this.token, this.isModal = false});
 
   @override
   _MarketTabState createState() => _MarketTabState();
@@ -287,7 +287,7 @@ class _MarketTabState extends State<MarketTab> {
                   ),
                 ),
                 Text(
-                  '${currencyUtils.formatCurrency(initialPrice, currencyUtils.currencySymbol)}',
+                  currencyUtils.formatCurrency(initialPrice, currencyUtils.currencySymbol),
                   style: TextStyle(
                     fontSize: 14 + appState.getTextSizeOffset(),
                     fontWeight: FontWeight.bold,
@@ -307,7 +307,7 @@ class _MarketTabState extends State<MarketTab> {
                   ),
                 ),
                 Text(
-                  '${currencyUtils.formatCurrency(offerPrice, currencyUtils.currencySymbol)}',
+                  currencyUtils.formatCurrency(offerPrice, currencyUtils.currencySymbol),
                   style: TextStyle(
                     fontSize: 14 + appState.getTextSizeOffset(),
                     fontWeight: FontWeight.bold,
@@ -671,7 +671,7 @@ class _MarketTabState extends State<MarketTab> {
                               ),
                             ),
                             Text(
-                              '${currencyUtils.formatCurrency(initialPrice, currencyUtils.currencySymbol)}',
+                              currencyUtils.formatCurrency(initialPrice, currencyUtils.currencySymbol),
                               style: TextStyle(
                                 fontSize: 14 + appState.getTextSizeOffset(),
                                 fontWeight: FontWeight.bold,
@@ -692,7 +692,7 @@ class _MarketTabState extends State<MarketTab> {
                               ),
                             ),
                             Text(
-                              '${currencyUtils.formatCurrency(offerPrice, currencyUtils.currencySymbol)}',
+                              currencyUtils.formatCurrency(offerPrice, currencyUtils.currencySymbol),
                               style: TextStyle(
                                 fontSize: 14 + appState.getTextSizeOffset(),
                                 fontWeight: FontWeight.bold,

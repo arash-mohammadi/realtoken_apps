@@ -1,5 +1,4 @@
 import 'package:flutter/foundation.dart';
-import 'package:realtokens/managers/data_manager.dart';
 import 'package:realtokens/modals/token_details/showTokenDetails.dart';
 import 'package:realtokens/utils/currency_utils.dart';
 import 'package:realtokens/utils/location_utils.dart';
@@ -9,7 +8,6 @@ import 'package:provider/provider.dart';
 import 'package:realtokens/generated/l10n.dart';
 import 'package:realtokens/settings/manage_evm_addresses_page.dart';
 import 'package:realtokens/app_state.dart';
-import 'package:realtokens/utils/ui_utils.dart';
 import 'package:show_network_image/show_network_image.dart';
 
 class PortfolioDisplay1 extends StatelessWidget {

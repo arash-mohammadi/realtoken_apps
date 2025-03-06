@@ -4,7 +4,6 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:realtokens/managers/data_manager.dart';
 import 'package:realtokens/generated/l10n.dart';
-import 'package:realtokens/pages/Statistics/portfolio/charts/rented_graph.dart';
 import 'package:realtokens/utils/data_fetch_utils.dart';
 import 'package:realtokens/utils/date_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';

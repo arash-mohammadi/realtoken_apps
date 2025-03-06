@@ -472,47 +472,62 @@ class ApiService {
 
   // Récupérer le userId associé à une adresse Ethereum
   static Future<String?> fetchUserIdFromAddress(String address, {bool useAlternativeKey = false}) async {
-    final apiUrl = Parameters.getGraphUrl(Parameters.gnosisSubgraphId, useAlternativeKey: useAlternativeKey);
+  final apiUrl = Parameters.getGraphUrl(Parameters.gnosisSubgraphId, useAlternativeKey: useAlternativeKey);
 
-    final query = '''
-    {
-      account(id: "\$address") {
-        userIds {
-          userId
-        }
+  final query = '''
+  {
+    account(id: "$address") {
+      userIds {
+        userId
       }
-    }
-    ''';
-
-    try {
-      final response = await http.post(
-        Uri.parse(apiUrl),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({"query": query}),
-      );
-
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-
-        if (data.containsKey('errors')) {
-          final errorMessage = json.encode(data['errors']);
-          if ((errorMessage.contains('spend limit exceeded') || errorMessage.contains('API key not found')) && !useAlternativeKey) {
-            debugPrint("🔄 TheGraph API limit exceeded or  not found , switching to alternative API key...");
-            return await fetchUserIdFromAddress(address, useAlternativeKey: true);
-          }
-          throw Exception("Erreur API: $errorMessage");
-        }
-
-        final userIds = data['data']['account']['userIds'];
-        if (userIds != null && userIds.isNotEmpty) {
-          return userIds.first['userId'];
-        }
-      }
-      return null;
-    } catch (e) {
-      throw Exception('Échec de la récupération de userId: $e');
     }
   }
+  ''';
+
+
+  debugPrint("Envoi de la requête vers $apiUrl avec l'adresse $address");
+
+  try {
+    final response = await http.post(
+      Uri.parse(apiUrl),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({"query": query}),
+    );
+    
+    debugPrint("Réponse reçue: ${response.statusCode}");
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      debugPrint("Données reçues: $data");
+
+      if (data.containsKey('errors')) {
+        final errorMessage = json.encode(data['errors']);
+        debugPrint("Erreur dans la réponse de l'API: $errorMessage");
+
+        if ((errorMessage.contains('spend limit exceeded') || errorMessage.contains('API key not found')) && !useAlternativeKey) {
+          debugPrint("🔄 TheGraph API limit exceeded or not found, switching to alternative API key...");
+          return await fetchUserIdFromAddress(address, useAlternativeKey: true);
+        }
+        throw Exception("Erreur API: $errorMessage");
+      }
+
+      final userIds = data['data']['account']['userIds'];
+      if (userIds != null && userIds.isNotEmpty) {
+        final userId = userIds.first['userId'];
+        debugPrint("UserId trouvé: $userId");
+        return userId;
+      } else {
+        debugPrint("Aucun userId trouvé pour l'adresse $address");
+      }
+    } else {
+      debugPrint("Statut HTTP inattendu: ${response.statusCode}");
+    }
+    return null;
+  } catch (e) {
+    debugPrint("Exception attrapée dans fetchUserIdFromAddress: $e");
+    throw Exception('Échec de la récupération de userId: $e');
+  }
+}
 
   // Récupérer les adresses associées à un userId
   static Future<List<String>> fetchAddressesForUserId(String userId, {bool useAlternativeKey = false}) async {
@@ -520,7 +535,7 @@ class ApiService {
 
     final query = '''
     {
-      accounts(where: { userIds: ["0x296033cb983747b68911244ec1a3f01d7708851b-\$userId"] }) {
+      accounts(where: { userIds: ["0x296033cb983747b68911244ec1a3f01d7708851b-$userId"] }) {
         address
       }
     }

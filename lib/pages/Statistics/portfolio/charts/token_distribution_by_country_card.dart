@@ -10,7 +10,7 @@ import 'package:realtokens/utils/parameters.dart';
 class TokenDistributionByCountryCard extends StatefulWidget {
   final DataManager dataManager;
 
-  const TokenDistributionByCountryCard({required this.dataManager});
+  const TokenDistributionByCountryCard({super.key, required this.dataManager});
 
   @override
   _TokenDistributionByCountryCardState createState() => _TokenDistributionByCountryCardState();

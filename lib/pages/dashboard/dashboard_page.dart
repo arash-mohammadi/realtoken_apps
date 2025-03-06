@@ -7,7 +7,6 @@ import 'package:realtokens/utils/currency_utils.dart';
 import 'package:realtokens/utils/data_fetch_utils.dart';
 import 'package:realtokens/utils/ui_utils.dart';
 import 'package:realtokens/generated/l10n.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shimmer/shimmer.dart';
 
 import 'widgets/portfolio_card.dart';

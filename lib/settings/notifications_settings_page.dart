@@ -5,6 +5,8 @@ import 'package:realtokens/app_state.dart';
 import 'package:realtokens/generated/l10n.dart';
 
 class NotificationsSettingsPage extends StatefulWidget {
+  const NotificationsSettingsPage({super.key});
+
   @override
   _NotificationsSettingsPageState createState() => _NotificationsSettingsPageState();
 }

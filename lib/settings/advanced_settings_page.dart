@@ -5,6 +5,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:realtokens/generated/l10n.dart';
 
 class AdvancedSettingsPage extends StatefulWidget {
+  const AdvancedSettingsPage({super.key});
+
   @override
   _AdvancedSettingsPageState createState() => _AdvancedSettingsPageState();
 }

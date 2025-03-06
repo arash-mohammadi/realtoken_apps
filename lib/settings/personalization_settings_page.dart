@@ -9,6 +9,8 @@ import 'package:realtokens/generated/l10n.dart';
 import 'package:realtokens/utils/parameters.dart';
 
 class PersonalizationSettingsPage extends StatefulWidget {
+  const PersonalizationSettingsPage({super.key});
+
   @override
   _PersonalizationSettingsPageState createState() => _PersonalizationSettingsPageState();
 }

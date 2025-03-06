@@ -509,7 +509,7 @@ class GoogleDriveService {
       Map<String, dynamic> driveBoxMap = Map<String, dynamic>.from(driveBoxData);
 
       driveBoxMap.forEach((key, driveList) {
-        if (key == null || key.toString().trim().isEmpty) {
+        if (key.toString().trim().isEmpty) {
           debugPrint("⚠️ Ignoré : Clé vide dans '$backupKey'.");
           return;
         }
@@ -635,7 +635,7 @@ class GoogleDriveService {
       final directory = await getApplicationDocumentsDirectory();
       final zipFilePath = path.join(directory.path, 'realToken_Backup.zip');
       final zipFile = File(zipFilePath);
-      await zipFile.writeAsBytes(ZipEncoder().encode(archive)!);
+      await zipFile.writeAsBytes(ZipEncoder().encode(archive));
 
       // Envoyer le fichier ZIP sur Google Drive
       final drive.File fileToUpload = drive.File();

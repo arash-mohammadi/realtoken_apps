@@ -1,6 +1,5 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
-import 'package:realtokens/managers/data_manager.dart';
 import 'package:realtokens/modals/token_details/showTokenDetails.dart';
 import 'package:realtokens/utils/currency_utils.dart';
 import 'package:realtokens/utils/location_utils.dart';

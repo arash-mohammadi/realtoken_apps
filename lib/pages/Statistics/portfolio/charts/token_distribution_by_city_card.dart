@@ -10,7 +10,7 @@ import 'package:realtokens/modals/modal_others_pie.dart'; // Assurez-vous que ce
 class TokenDistributionByCityCard extends StatefulWidget {
   final DataManager dataManager;
 
-  const TokenDistributionByCityCard({required this.dataManager});
+  const TokenDistributionByCityCard({super.key, required this.dataManager});
 
   @override
   _TokenDistributionByCityCardState createState() => _TokenDistributionByCityCardState();

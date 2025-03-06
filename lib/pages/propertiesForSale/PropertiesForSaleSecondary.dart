@@ -408,7 +408,7 @@ final bool isWhitelisted = dataManager.whitelistTokens.any((whitelisted) =>
                                         return _buildPurchaseOfferCard(context, appState, currencyUtils, offer, isTokenWhitelisted);
                                       }
                                     }
-                                  }).toList(),
+                                  }),
                                 ],
                               ),
                             ),
@@ -548,7 +548,7 @@ final bool isWhitelisted = dataManager.whitelistTokens.any((whitelisted) =>
                                 ),
                               ),
                               Text(
-                                '${currencyUtils.formatCurrency(initialPrice, currencyUtils.currencySymbol)}',
+                                currencyUtils.formatCurrency(initialPrice, currencyUtils.currencySymbol),
                                 style: TextStyle(
                                   fontSize: 14 + appState.getTextSizeOffset(),
                                   fontWeight: FontWeight.bold,
@@ -568,7 +568,7 @@ final bool isWhitelisted = dataManager.whitelistTokens.any((whitelisted) =>
                                 ),
                               ),
                               Text(
-                                '${currencyUtils.formatCurrency(offerPrice, currencyUtils.currencySymbol)}',
+                                currencyUtils.formatCurrency(offerPrice, currencyUtils.currencySymbol),
                                 style: TextStyle(
                                   fontSize: 14 + appState.getTextSizeOffset(),
                                   fontWeight: FontWeight.bold,

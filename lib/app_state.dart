@@ -17,8 +17,8 @@ Future<void> savePrimaryColor(String colorName) async {
 // Fonction pour convertir le nom de la couleur en objet Color
 Color _getColorFromName(String colorName) {
   switch (colorName) {
-    case 'yellow':
-      return Colors.yellow;
+    case 'blue':
+      return Colors.blue;
     case 'orange':
       return Color.fromRGBO(237, 137, 32, 1);
     case 'pink':
@@ -29,6 +29,24 @@ Color _getColorFromName(String colorName) {
       return Colors.grey;
     case 'blueGrey':
       return Colors.blueGrey;
+    case 'red':
+      return Colors.red;
+    case 'teal':
+      return Colors.teal;
+    case 'indigo':
+      return Colors.indigo;
+    case 'amber':
+      return Colors.amber;
+    case 'deepPurple':
+      return Colors.deepPurple;
+    case 'lightBlue':
+      return Colors.lightBlue;
+    case 'lime':
+      return Colors.lime;
+    case 'brown':
+      return Colors.brown;
+    case 'cyan':
+      return Colors.cyan;
     default:
       return Colors.blue;
   }

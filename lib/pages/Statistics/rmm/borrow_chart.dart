@@ -28,8 +28,8 @@ class BorrowChart extends StatelessWidget {
   const BorrowChart({
     required this.allHistories,
     required this.selectedPeriod,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {

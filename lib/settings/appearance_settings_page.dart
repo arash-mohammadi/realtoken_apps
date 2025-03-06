@@ -6,6 +6,8 @@ import 'package:realtokens/app_state.dart';
 import 'package:realtokens/generated/l10n.dart';
 
 class AppearanceSettingsPage extends StatefulWidget {
+  const AppearanceSettingsPage({super.key});
+
   @override
   _AppearanceSettingsPageState createState() => _AppearanceSettingsPageState();
 }
@@ -19,6 +21,15 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
     'green': Colors.green,
     'grey': Colors.grey,
     'blueGrey': Colors.blueGrey,
+    'red': Colors.red,
+    'teal': Colors.teal,
+    'indigo': Colors.indigo,
+    'amber': Colors.amber,
+    'deepPurple': Colors.deepPurple,
+    'lightBlue': Colors.lightBlue,
+    'lime': Colors.lime,
+    'brown': Colors.brown,
+    'cyan': Colors.cyan,
   };
 
   @override
@@ -100,15 +111,16 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
                 children: [
                   Text("Couleur principale", style: TextStyle(fontSize: 16.0 + appState.getTextSizeOffset())),
                   SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    alignment: WrapAlignment.center,
                     children: _colorOptions.entries.map((entry) {
                       return GestureDetector(
                         onTap: () => _updatePrimaryColor(entry.key),
                         child: Container(
                           width: 40,
                           height: 40,
-                          margin: EdgeInsets.symmetric(horizontal: 8),
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             color: entry.value,

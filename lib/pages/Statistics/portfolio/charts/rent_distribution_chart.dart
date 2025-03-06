@@ -11,7 +11,7 @@ import 'package:realtokens/utils/currency_utils.dart';
 class RentDistributionCard extends StatefulWidget {
   final DataManager dataManager;
 
-  const RentDistributionCard({required this.dataManager});
+  const RentDistributionCard({super.key, required this.dataManager});
 
   @override
   _RentDistributionCardState createState() => _RentDistributionCardState();

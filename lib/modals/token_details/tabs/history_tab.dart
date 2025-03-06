@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:realtokens/managers/data_manager.dart';
 import 'package:realtokens/utils/currency_utils.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:realtokens/generated/l10n.dart';

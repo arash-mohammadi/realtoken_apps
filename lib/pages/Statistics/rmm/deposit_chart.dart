@@ -28,8 +28,8 @@ class DepositChart extends StatelessWidget {
   const DepositChart({
     required this.allHistories,
     required this.selectedPeriod,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {

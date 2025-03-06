@@ -3,7 +3,7 @@ import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:http/http.dart' as http;
 
 class ChangelogPage extends StatefulWidget {
-  const ChangelogPage({Key? key}) : super(key: key);
+  const ChangelogPage({super.key});
 
   @override
   _ChangelogPageState createState() => _ChangelogPageState();

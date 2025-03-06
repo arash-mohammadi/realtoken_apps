@@ -10,7 +10,7 @@ import 'package:realtokens/utils/parameters.dart';
 class TokenDistributionCard extends StatefulWidget {
   final DataManager dataManager;
 
-  const TokenDistributionCard({required this.dataManager});
+  const TokenDistributionCard({super.key, required this.dataManager});
 
   @override
   _TokenDistributionCardState createState() => _TokenDistributionCardState();

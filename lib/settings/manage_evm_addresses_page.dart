@@ -59,7 +59,7 @@ class ManageEvmAddressesPageState extends State<ManageEvmAddressesPage> {
       final dataManager = Provider.of<DataManager>(context, listen: false);
 
       // Récupérer le userId associé à l'adresse via ApiService
-      final userId = await ApiService.fetchUserIdFromAddress(address);
+      final userId = await ApiService.fetchUserIdFromAddress(address.toLowerCase());
       if (userId != null) {
         // Récupérer les autres adresses associées au userId
         final associatedAddresses = await ApiService.fetchAddressesForUserId(userId);

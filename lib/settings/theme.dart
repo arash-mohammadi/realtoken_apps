@@ -5,7 +5,6 @@ ThemeData getLightTheme(Color primaryColor) {
     primaryColor: primaryColor,
     scaffoldBackgroundColor: Colors.grey[100],
     cardColor: Colors.white,
-    dialogBackgroundColor: Colors.white,
     secondaryHeaderColor: Colors.grey[300],
     textTheme: TextTheme(
       bodyLarge: TextStyle(color: Colors.black),
@@ -22,7 +21,7 @@ ThemeData getLightTheme(Color primaryColor) {
     ),
     drawerTheme: DrawerThemeData(
       backgroundColor: Colors.white,
-    ),
+    ), dialogTheme: DialogThemeData(backgroundColor: Colors.white),
   );
 }
 
@@ -32,7 +31,6 @@ ThemeData getDarkTheme(Color primaryColor) {
     primaryColor: primaryColor,
     scaffoldBackgroundColor: Colors.black,
     cardColor: Colors.grey[900],
-    dialogBackgroundColor: Colors.black,
     secondaryHeaderColor: Color.fromARGB(255, 78, 78, 78).withOpacity(0.4),
     textTheme: TextTheme(
       bodyLarge: TextStyle(color: Colors.white),
@@ -49,6 +47,6 @@ ThemeData getDarkTheme(Color primaryColor) {
     ),
     drawerTheme: DrawerThemeData(
       backgroundColor: Colors.grey[900],
-    ),
+    ), dialogTheme: DialogThemeData(backgroundColor: Colors.black),
   );
 }

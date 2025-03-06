@@ -205,7 +205,7 @@ class _HealthAndLtvHistoryGraphState extends State<HealthAndLtvHistoryGraph> {
                               reservedSize: 45,
                               getTitlesWidget: (value, meta) {
                                 return Text(
-                                  showHealthFactor ? '${value.toStringAsFixed(0)}' : '${value.toStringAsFixed(0)}%',
+                                  showHealthFactor ? value.toStringAsFixed(0) : '${value.toStringAsFixed(0)}%',
                                   style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
                                 );
                               },
@@ -281,7 +281,7 @@ class _HealthAndLtvHistoryGraphState extends State<HealthAndLtvHistoryGraph> {
                               reservedSize: 45,
                               getTitlesWidget: (value, meta) {
                                 return Text(
-                                  showHealthFactor ? '${value.toStringAsFixed(0)}' : '${value.toStringAsFixed(0)}%',
+                                  showHealthFactor ? value.toStringAsFixed(0) : '${value.toStringAsFixed(0)}%',
                                   style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
                                 );
                               },

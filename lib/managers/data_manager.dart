@@ -263,19 +263,15 @@ class DataManager extends ChangeNotifier {
       var box = Hive.box('walletValueArchive'); // Ouvrir la boîte Hive
       List<dynamic>? balanceHistoryJson = box.get('balanceHistory_totalWalletValue'); // Récupérer les données sauvegardées
 
-      if (balanceHistoryJson != null) {
-        // Convertir chaque élément JSON en objet BalanceRecord et l'ajouter à walletBalanceHistory
-        walletBalanceHistory = balanceHistoryJson.map((recordJson) {
-          return BalanceRecord.fromJson(Map<String, dynamic>.from(recordJson));
-        }).toList();
+      // Convertir chaque élément JSON en objet BalanceRecord et l'ajouter à walletBalanceHistory
+      walletBalanceHistory = balanceHistoryJson!.map((recordJson) {
+        return BalanceRecord.fromJson(Map<String, dynamic>.from(recordJson));
+      }).toList();
 
-        notifyListeners(); // Notifier les listeners après la mise à jour
+      notifyListeners(); // Notifier les listeners après la mise à jour
 
-        debugPrint('✅ Données de l\'historique du portefeuille chargées avec succès.');
-      } else {
-        debugPrint('⚠️ Aucune donnée d\'historique trouvée.');
-      }
-    } catch (e) {
+      debugPrint('✅ Données de l\'historique du portefeuille chargées avec succès.');
+        } catch (e) {
       debugPrint('Erreur lors du chargement des données de l\'historique du portefeuille : $e');
     }
   }
@@ -285,18 +281,14 @@ class DataManager extends ChangeNotifier {
       var box = Hive.box('rentedArchive'); // Ouvrir la boîte Hive
       List<dynamic>? rentedHistoryJson = box.get('rented_history'); // Récupérer les données sauvegardées
 
-      if (rentedHistoryJson != null) {
-        rentedHistory = rentedHistoryJson.map((recordJson) {
-          return RentedRecord.fromJson(Map<String, dynamic>.from(recordJson));
-        }).toList();
+      rentedHistory = rentedHistoryJson!.map((recordJson) {
+        return RentedRecord.fromJson(Map<String, dynamic>.from(recordJson));
+      }).toList();
 
-        notifyListeners(); // Notifier les listeners après la mise à jour
+      notifyListeners(); // Notifier les listeners après la mise à jour
 
-        debugPrint('✅ Données de l\'historique du portefeuille chargées avec succès.');
-      } else {
-        debugPrint('⚠️ Aucune donnée d\'historique trouvée.');
-      }
-    } catch (e) {
+      debugPrint('✅ Données de l\'historique du portefeuille chargées avec succès.');
+        } catch (e) {
       debugPrint('Erreur lors du chargement des données de l\'historique du portefeuille : $e');
     }
   }
@@ -306,18 +298,14 @@ class DataManager extends ChangeNotifier {
       var box = Hive.box('roiValueArchive'); // Ouvrir la boîte Hive
       List<dynamic>? roiHistoryJson = box.get('roi_history'); // Récupérer les données sauvegardées
 
-      if (roiHistoryJson != null) {
-        roiHistory = roiHistoryJson.map((recordJson) {
-          return RoiRecord.fromJson(Map<String, dynamic>.from(recordJson));
-        }).toList();
+      roiHistory = roiHistoryJson!.map((recordJson) {
+        return RoiRecord.fromJson(Map<String, dynamic>.from(recordJson));
+      }).toList();
 
-        notifyListeners(); // Notifier les listeners après la mise à jour
+      notifyListeners(); // Notifier les listeners après la mise à jour
 
-        debugPrint('Données de l\'historique du ROI chargées avec succès.');
-      } else {
-        debugPrint('⚠️ Aucune donnée d\'historique ROI trouvée.');
-      }
-    } catch (e) {
+      debugPrint('Données de l\'historique du ROI chargées avec succès.');
+        } catch (e) {
       debugPrint('Erreur lors du chargement des données de l\'historique du ROI : $e');
     }
   }
@@ -327,19 +315,15 @@ class DataManager extends ChangeNotifier {
       var box = Hive.box('apyValueArchive'); // Ouvrir la boîte Hive
       List<dynamic>? apyHistoryJson = box.get('apy_history'); // Récupérer les données sauvegardées
 
-      if (apyHistoryJson != null) {
-        // Charger l'historique
-        apyHistory = apyHistoryJson.map((recordJson) {
-          return ApyRecord.fromJson(Map<String, dynamic>.from(recordJson));
-        }).toList();
+      // Charger l'historique
+      apyHistory = apyHistoryJson!.map((recordJson) {
+        return ApyRecord.fromJson(Map<String, dynamic>.from(recordJson));
+      }).toList();
 
-        notifyListeners(); // Notifier les listeners après la mise à jour
+      notifyListeners(); // Notifier les listeners après la mise à jour
 
-        debugPrint('Données de l\'historique APY chargées avec succès.');
-      } else {
-        debugPrint('⚠️ Aucune donnée d\'historique APY trouvée.');
-      }
-    } catch (e) {
+      debugPrint('Données de l\'historique APY chargées avec succès.');
+        } catch (e) {
       debugPrint('Erreur lors du chargement des données de l\'historique APY : $e');
     }
   }
@@ -349,19 +333,15 @@ class DataManager extends ChangeNotifier {
       var box = Hive.box('HealthAndLtvValueArchive'); // Ouvrir la boîte Hive
       List<dynamic>? healthAndLtvHistoryJson = box.get('healthAndLtv_history'); // Récupérer les données sauvegardées
 
-      if (healthAndLtvHistoryJson != null) {
-        // Charger l'historique
-        healthAndLtvHistory = healthAndLtvHistoryJson.map((recordJson) {
-          return HealthAndLtvRecord.fromJson(Map<String, dynamic>.from(recordJson));
-        }).toList();
+      // Charger l'historique
+      healthAndLtvHistory = healthAndLtvHistoryJson!.map((recordJson) {
+        return HealthAndLtvRecord.fromJson(Map<String, dynamic>.from(recordJson));
+      }).toList();
 
-        notifyListeners(); // Notifier les listeners après la mise à jour
+      notifyListeners(); // Notifier les listeners après la mise à jour
 
-        debugPrint('Données de l\'historique healthAndLtv chargées avec succès.');
-      } else {
-        debugPrint('⚠️ Aucune donnée d\'historique healthAndLtv trouvée.');
-      }
-    } catch (e) {
+      debugPrint('Données de l\'historique healthAndLtv chargées avec succès.');
+        } catch (e) {
       debugPrint('Erreur lors du chargement des données de l\'historique healthAndLtv : $e');
     }
   }
@@ -1507,14 +1487,12 @@ class DataManager extends ChangeNotifier {
 
     // Récupérer les données depuis Hive
     List<dynamic>? balanceHistoryJson = box.get('balanceHistory_$tokenType');
-    if (balanceHistoryJson != null) {
-      // Convertir chaque élément JSON en objet BalanceRecord
-      return balanceHistoryJson
-          .map((recordJson) => BalanceRecord.fromJson(Map<String, dynamic>.from(recordJson)))
-          .where((record) => record.tokenType == tokenType) // Filtrer par tokenType
-          .toList();
-    }
-
+    // Convertir chaque élément JSON en objet BalanceRecord
+    return balanceHistoryJson
+        !.map((recordJson) => BalanceRecord.fromJson(Map<String, dynamic>.from(recordJson)))
+        .where((record) => record.tokenType == tokenType) // Filtrer par tokenType
+        .toList();
+  
     return []; // Retourne une liste vide si aucun historique n'est trouvé
   }
 
@@ -1941,9 +1919,9 @@ class DataManager extends ChangeNotifier {
       debugPrint("⚠️ Aucune donnée YamMarket en cache.");
     }
 
-    double _totalTokenValue = 0.0;
-    int _totalOffers = 0;
-    double _totalTokenAmount = 0.0;
+    double totalTokenValue = 0.0;
+    int totalOffers = 0;
+    double totalTokenAmount = 0.0;
 
     List<Map<String, dynamic>> allOffersList = [];
 
@@ -1969,9 +1947,9 @@ class DataManager extends ChangeNotifier {
         // Récupérer et convertir les valeurs nécessaires
         double tokenAmount = (offer['token_amount'] ?? 0.0).toDouble();
         double tokenValue = (offer['token_value'] ?? 0.0).toDouble();
-        _totalTokenValue += tokenValue;
-        _totalTokenAmount += tokenAmount;
-        _totalOffers += 1;
+        totalTokenValue += tokenValue;
+        totalTokenAmount += tokenAmount;
+        totalOffers += 1;
 
         // Ajouter l'offre traitée à la liste
         allOffersList.add({

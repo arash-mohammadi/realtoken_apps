@@ -223,124 +223,176 @@ class _SynchronizationSettingsPageState extends State<SynchronizationSettingsPag
     );
   }
 
-  Future<void> shareZippedHiveData() async {
-    try {
-      // Ouvrir les deux boîtes Hive
-      var balanceHistoryBox = await Hive.openBox('balanceHistory');
-      var walletValueArchiveBox = await Hive.openBox('walletValueArchive');
-      var customInitPricesBox = await Hive.openBox('customInitPrices');
-      var customRoiBox = await Hive.openBox('roiValueArchive');
-      var customApyBox = await Hive.openBox('apyValueArchive');
-      var customYamBox = await Hive.openBox('YamMarket');
+ Future<void> shareZippedHiveData() async {
+  try {
+    debugPrint("=== Étape 1: Ouverture des boîtes Hive ===");
+    // Ouverture des boîtes Hive
+    var balanceHistoryBox = await Hive.openBox('balanceHistory');
+    var walletValueArchiveBox = await Hive.openBox('walletValueArchive');
+    var customInitPricesBox = await Hive.openBox('customInitPrices');
+    var customRoiBox = await Hive.openBox('roiValueArchive');
+    var customApyBox = await Hive.openBox('apyValueArchive');
+    var customYamBox = await Hive.openBox('YamMarket');
+    var customHealthAndLtvBox = await Hive.openBox('HealthAndLtvValueArchive');
+    debugPrint("Hive boxes ouverts.");
+    debugPrint("Contenu de balanceHistoryBox: ${balanceHistoryBox.toMap()}");
+    debugPrint("Contenu de walletValueArchiveBox: ${walletValueArchiveBox.toMap()}");
+    debugPrint("Contenu de customInitPricesBox: ${customInitPricesBox.toMap()}");
+    debugPrint("Contenu de customRoiBox: ${customRoiBox.toMap()}");
+    debugPrint("Contenu de customApyBox: ${customApyBox.toMap()}");
+    debugPrint("Contenu de customYamBox: ${customYamBox.toMap()}");
+    debugPrint("Contenu de customHealthAndLtvBox : ${customHealthAndLtvBox .toMap()}");
 
-      // Récupérer les données de chaque boîte Hive
-      Map balanceHistoryData = sanitizeValue(balanceHistoryBox.toMap());
-      Map walletValueArchiveData = sanitizeValue(walletValueArchiveBox.toMap());
-      Map customInitPricesData = sanitizeValue(customInitPricesBox.toMap());
-      Map customRoiData = sanitizeValue(customRoiBox.toMap());
-      Map customApyData = sanitizeValue(customApyBox.toMap());
-      Map customYamData = sanitizeValue(customYamBox.toMap());
+    debugPrint("=== Étape 2: Récupération et sanitisation des données Hive ===");
+    Map balanceHistoryData = sanitizeValue(balanceHistoryBox.toMap());
+    Map walletValueArchiveData = sanitizeValue(walletValueArchiveBox.toMap());
+    Map customInitPricesData = sanitizeValue(customInitPricesBox.toMap());
+    Map customRoiData = sanitizeValue(customRoiBox.toMap());
+    Map customApyData = sanitizeValue(customApyBox.toMap());
+    Map customYamData = sanitizeValue(customYamBox.toMap());
+    Map customHealthAndLtvData = sanitizeValue(customHealthAndLtvBox.toMap());
+    debugPrint("Données récupérées:\n balanceHistoryData: $balanceHistoryData\n walletValueArchiveData: $walletValueArchiveData\n customInitPricesData: $customInitPricesData\n customRoiData: $customRoiData\n customApyData: $customApyData\n customYamData: $customYamData");
 
-      // Convertir les données en JSON
-      String balanceHistoryJson = jsonEncode(balanceHistoryData);
-      String walletValueArchiveJson = jsonEncode(walletValueArchiveData);
-      String customInitPricesJson = jsonEncode(customInitPricesData);
-      String customRoiJson = jsonEncode(customRoiData);
-      String customApyJson = jsonEncode(customApyData);
-      String customYamJson = jsonEncode(customYamData);
+    debugPrint("=== Étape 3: Conversion des données en JSON ===");
+    String balanceHistoryJson = jsonEncode(balanceHistoryData);
+    String walletValueArchiveJson = jsonEncode(walletValueArchiveData);
+    String customInitPricesJson = jsonEncode(customInitPricesData);
+    String customRoiJson = jsonEncode(customRoiData);
+    String customApyJson = jsonEncode(customApyData);
+    String customYamJson = jsonEncode(customYamData);
+    String customHealthAndLtvJson = jsonEncode(customHealthAndLtvData);
+    debugPrint("JSON balanceHistoryJson: $balanceHistoryJson");
+    debugPrint("JSON walletValueArchiveJson: $walletValueArchiveJson");
+    debugPrint("JSON customInitPricesJson: $customInitPricesJson");
+    debugPrint("JSON customRoiJson: $customRoiJson");
+    debugPrint("JSON customApyJson: $customApyJson");
+    debugPrint("JSON customYamJson: $customYamJson");
+    debugPrint("JSON customHealthAndLtvJson: $customHealthAndLtvJson");
 
-      // Obtenir les données des SharedPreferences
-      final prefs = await SharedPreferences.getInstance();
-      List<String> ethAddresses = prefs.getStringList('evmAddresses') ?? [];
-      String? userIdToAddresses = prefs.getString('userIdToAddresses');
-      String? selectedCurrency = prefs.getString('selectedCurrency');
-      bool convertToSquareMeters = prefs.getBool('convertToSquareMeters') ?? false;
+    // Récupérer et convertir les SharedPreferences
+    final prefs = await SharedPreferences.getInstance();
+    List<String> ethAddresses = prefs.getStringList('evmAddresses') ?? [];
+    String? userIdToAddresses = prefs.getString('userIdToAddresses');
+    String? selectedCurrency = prefs.getString('selectedCurrency');
+    bool convertToSquareMeters = prefs.getBool('convertToSquareMeters') ?? false;
+    Map<String, dynamic> preferencesData = {
+      'ethAddresses': ethAddresses,
+      'userIdToAddresses': userIdToAddresses,
+      'selectedCurrency': selectedCurrency,
+      'convertToSquareMeters': convertToSquareMeters
+    };
+    String preferencesJson = jsonEncode(preferencesData);
+    debugPrint("JSON preferencesJson: $preferencesJson");
 
-      // Créer un Map pour les préférences
-      Map<String, dynamic> preferencesData = {
-        'ethAddresses': ethAddresses,
-        'userIdToAddresses': userIdToAddresses,
-        'selectedCurrency': selectedCurrency,
-        'convertToSquareMeters': convertToSquareMeters
-      };
+    debugPrint("=== Étape 4: Création et écriture des fichiers JSON ===");
+    // Obtenir le répertoire de documents
+    Directory directory = await getApplicationDocumentsDirectory();
+    String balanceHistoryFilePath = path.join(directory.path, 'balanceHistoryBackup.json');
+    String walletValueArchiveFilePath = path.join(directory.path, 'walletValueArchiveBackup.json');
+    String customInitPricesFilePath = path.join(directory.path, 'customInitPricesBackup.json');
+    String customRoiFilePath = path.join(directory.path, 'customRoiBackup.json');
+    String customApyFilePath = path.join(directory.path, 'customApyBackup.json');
+    String customYamFilePath = path.join(directory.path, 'customYamBackup.json');
+    String customHealthAndLtvFilePath = path.join(directory.path, 'customHealthAndLtvBackup.json');
+    String preferencesFilePath = path.join(directory.path, 'preferencesBackup.json');
 
-      // Convertir les préférences en JSON
-      String preferencesJson = jsonEncode(preferencesData);
+    File balanceHistoryFile = File(balanceHistoryFilePath);
+    File walletValueArchiveFile = File(walletValueArchiveFilePath);
+    File customInitPricesFile = File(customInitPricesFilePath);
+    File customRoiFile = File(customRoiFilePath);
+    File customApyFile = File(customApyFilePath);
+    File customYamFile = File(customYamFilePath);
+    File customHealthAndLtvFile = File(customHealthAndLtvFilePath);
+    File preferencesFile = File(preferencesFilePath);
 
-      // Obtenir le répertoire des documents de l'application
-      Directory directory = await getApplicationDocumentsDirectory();
+    await balanceHistoryFile.writeAsString(balanceHistoryJson);
+    await walletValueArchiveFile.writeAsString(walletValueArchiveJson);
+    await customInitPricesFile.writeAsString(customInitPricesJson);
+    await customRoiFile.writeAsString(customRoiJson);
+    await customApyFile.writeAsString(customApyJson);
+    await customYamFile.writeAsString(customYamJson);
+    await customHealthAndLtvFile.writeAsString(customHealthAndLtvJson);
+    await preferencesFile.writeAsString(preferencesJson);
 
-      // Créer des fichiers JSON dans ce répertoire pour chaque boîte et les préférences
-      String balanceHistoryFilePath = path.join(directory.path, 'balanceHistoryBackup.json');
-      String walletValueArchiveFilePath = path.join(directory.path, 'walletValueArchiveBackup.json');
-      String customInitPricesFilePath = path.join(directory.path, 'customInitPricesBackup.json');
-      String customRoiFilePath = path.join(directory.path, 'customRoiBackup.json');
-      String customApyFilePath = path.join(directory.path, 'customApyBackup.json');
-      String customYamFilePath = path.join(directory.path, 'customYamBackup.json');
+    debugPrint("Fichiers JSON écrits:");
+    debugPrint("balanceHistory: $balanceHistoryFilePath (taille: ${balanceHistoryFile.lengthSync()} octets)");
+    debugPrint("walletValueArchive: $walletValueArchiveFilePath (taille: ${walletValueArchiveFile.lengthSync()} octets)");
+    debugPrint("customInitPrices: $customInitPricesFilePath (taille: ${customInitPricesFile.lengthSync()} octets)");
+    debugPrint("customRoi: $customRoiFilePath (taille: ${customRoiFile.lengthSync()} octets)");
+    debugPrint("customApy: $customApyFilePath (taille: ${customApyFile.lengthSync()} octets)");
+    debugPrint("customYam: $customYamFilePath (taille: ${customYamFile.lengthSync()} octets)");
+    debugPrint("customHealthAndLtv: $customHealthAndLtvFilePath (taille: ${customHealthAndLtvFile.lengthSync()} octets)");
+    debugPrint("preferences: $preferencesFilePath (taille: ${preferencesFile.lengthSync()} octets)");
 
-      String preferencesFilePath = path.join(directory.path, 'preferencesBackup.json');
+    debugPrint("=== Étape 5: Construction de l'archive ZIP ===");
+    final archive = Archive();
+    archive.addFile(ArchiveFile(
+      'balanceHistoryBackup.json',
+      balanceHistoryFile.lengthSync(),
+      balanceHistoryFile.readAsBytesSync(),
+    ));
+    archive.addFile(ArchiveFile(
+      'walletValueArchiveBackup.json',
+      walletValueArchiveFile.lengthSync(),
+      walletValueArchiveFile.readAsBytesSync(),
+    ));
+    archive.addFile(ArchiveFile(
+      'customInitPricesBackup.json',
+      customInitPricesFile.lengthSync(),
+      customInitPricesFile.readAsBytesSync(),
+    ));
+    archive.addFile(ArchiveFile(
+      'customRoiBackup.json',
+      customRoiFile.lengthSync(),
+      customRoiFile.readAsBytesSync(),
+    ));
+    archive.addFile(ArchiveFile(
+      'customApyBackup.json',
+      customApyFile.lengthSync(),
+      customApyFile.readAsBytesSync(),
+    ));
+    archive.addFile(ArchiveFile(
+      'customYamBackup.json',
+      customYamFile.lengthSync(),
+      customYamFile.readAsBytesSync(),
+    ));
+    archive.addFile(ArchiveFile(
+      'customHealthAndLtvBackup.json',
+      customHealthAndLtvFile.lengthSync(),
+      customHealthAndLtvFile.readAsBytesSync(),
+    ));
+    archive.addFile(ArchiveFile(
+      'preferencesBackup.json',
+      preferencesFile.lengthSync(),
+      preferencesFile.readAsBytesSync(),
+    ));
+    debugPrint("Archive construite avec succès. Nombre de fichiers ajoutés: ${archive.length}");
 
-      File balanceHistoryFile = File(balanceHistoryFilePath);
-      File walletValueArchiveFile = File(walletValueArchiveFilePath);
-      File customInitPricesFile = File(customInitPricesFilePath);
-      File customRoiFile = File(customRoiFilePath);
-      File customApyFile = File(customApyFilePath);
-      File customYamFile = File(customYamFilePath);
+    debugPrint("=== Étape 6: Encodage de l'archive en ZIP ===");
+    String zipFilePath = path.join(directory.path, 'realToken_Backup.zip');
+    final zipData = ZipEncoder().encode(archive);
+    File(zipFilePath).writeAsBytesSync(zipData!);
+    debugPrint("Fichier ZIP créé: $zipFilePath (taille: ${File(zipFilePath).lengthSync()} octets)");
 
-      File preferencesFile = File(preferencesFilePath);
+    debugPrint("=== Étape 7: Partage du fichier ZIP ===");
+    XFile xfile = XFile(zipFilePath);
+    await Share.shareXFiles(
+      [xfile],
+      sharePositionOrigin: Rect.fromCenter(
+        center: MediaQuery.of(context).size.center(Offset.zero),
+        width: 100,
+        height: 100,
+      ),
+    );
+    debugPrint("Fichier ZIP partagé avec succès.");
 
-      // Écrire les données JSON dans les fichiers
-      await balanceHistoryFile.writeAsString(balanceHistoryJson);
-      await walletValueArchiveFile.writeAsString(walletValueArchiveJson);
-      await customInitPricesFile.writeAsString(customInitPricesJson);
-      await customRoiFile.writeAsString(customRoiJson);
-      await customApyFile.writeAsString(customApyJson);
-      await customYamFile.writeAsString(customYamJson);
-
-      await preferencesFile.writeAsString(preferencesJson);
-
-      // Créer un fichier ZIP dans le même répertoire
-      String zipFilePath = path.join(directory.path, 'realToken_Backup.zip');
-
-      // Utiliser archive pour compresser les fichiers JSON dans un fichier zip
-      final archive = Archive();
-
-      // Ajouter chaque fichier JSON à l'archive
-      archive.addFile(ArchiveFile('balanceHistoryBackup.json', balanceHistoryFile.lengthSync(), balanceHistoryFile.readAsBytesSync()));
-      archive.addFile(ArchiveFile('walletValueArchiveBackup.json', walletValueArchiveFile.lengthSync(), walletValueArchiveFile.readAsBytesSync()));
-      archive.addFile(ArchiveFile('customInitPricesBackup.json', customInitPricesFile.lengthSync(), customInitPricesFile.readAsBytesSync()));
-      archive.addFile(ArchiveFile('customRoiBackup.json', customRoiFile.lengthSync(), customRoiFile.readAsBytesSync()));
-      archive.addFile(ArchiveFile('customApyBackup.json', customApyFile.lengthSync(), customApyFile.readAsBytesSync()));
-      archive.addFile(ArchiveFile('customYamBackup.json', customYamFile.lengthSync(), customYamFile.readAsBytesSync()));
-
-      archive.addFile(ArchiveFile('preferencesBackup.json', preferencesFile.lengthSync(), preferencesFile.readAsBytesSync()));
-
-      // Écrire le fichier zip
-      final zipEncoder = ZipFileEncoder();
-      zipEncoder.create(zipFilePath);
-      for (var file in [balanceHistoryFile, walletValueArchiveFile, customInitPricesFile, customRoiFile, customApyFile, customYamFile, preferencesFile]) {
-        zipEncoder.addFile(file);
-      }
-      zipEncoder.close();
-
-      // Partager le fichier ZIP
-      XFile xfile = XFile(zipFilePath);
-      await Share.shareXFiles(
-        [xfile],
-        sharePositionOrigin: Rect.fromCenter(
-          center: MediaQuery.of(context).size.center(Offset.zero),
-          width: 100,
-          height: 100,
-        ),
-      );
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('All data successfully exported')),
-      );
-    } catch (e) {
-      print('Erreur lors du partage des données Hive : $e');
-    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('All data successfully exported')),
+    );
+  } catch (e) {
+    debugPrint("Erreur lors du partage des données Hive : $e");
   }
+}
 
   Future<void> importZippedHiveData() async {
     try {

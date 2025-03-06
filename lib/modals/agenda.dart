@@ -119,7 +119,7 @@ class AgendaCalendarState extends State<AgendaCalendar> {
             ),
             calendarBuilders: CalendarBuilders(
               markerBuilder: (context, date, events) {
-                if (events == null || events.isEmpty) return null;
+                if (events.isEmpty) return null;
                 List<Widget> markers = [];
 
                 bool hasRent = events.any((e) => (e as Map<String, dynamic>)['type'] == 'rent');
@@ -150,7 +150,7 @@ class AgendaCalendarState extends State<AgendaCalendar> {
                 ? ListView.builder(
                     itemCount: _events[_selectedDay]!.length,
                     itemBuilder: (context, index) {
-                      final event = _events[_selectedDay]![index] as Map<String, dynamic>;
+                      final event = _events[_selectedDay]![index];
                       final type = event['type'];
                       final fullName = event.containsKey('fullName') ? event['fullName'] : "N/A";
                       final date = event['date'];
@@ -210,7 +210,6 @@ class AgendaCalendarState extends State<AgendaCalendar> {
                                 ),
                               ),
                             );
-                      ;
                     },
                   )
                 : Center(child: Text(S.of(context).unknownTransaction)),
