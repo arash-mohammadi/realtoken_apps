@@ -2,7 +2,8 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:realtokens/generated/l10n.dart';
 
-void showOtherDetailsModal(BuildContext context, dataManager, List<Map<String, dynamic>> othersDetails, String key) {
+void showOtherDetailsModal(BuildContext context, dataManager,
+    List<Map<String, dynamic>> othersDetails, String key) {
   showModalBottomSheet(
     context: context,
     isScrollControlled: true, // Permet de contrôler la taille de la modale
@@ -45,8 +46,10 @@ void showOtherDetailsModal(BuildContext context, dataManager, List<Map<String, d
   );
 }
 
-List<PieChartSectionData> _buildOtherDetailsDonutData(List<Map<String, dynamic>> othersDetails, String key) {
-  final List<Color> sectionColors = Colors.primaries; // Utilisez une palette de couleurs
+List<PieChartSectionData> _buildOtherDetailsDonutData(
+    List<Map<String, dynamic>> othersDetails, String key) {
+  final List<Color> sectionColors =
+      Colors.primaries; // Utilisez une palette de couleurs
   final Set<String> uniqueEntries = {};
 
   return othersDetails
@@ -57,7 +60,10 @@ List<PieChartSectionData> _buildOtherDetailsDonutData(List<Map<String, dynamic>>
         final String entryName = entry.value[key] ?? 'Unknown';
 
         if (uniqueEntries.add(entryName)) {
-          final double percentage = (entry.value['count'] / othersDetails.fold<double>(0.0, (sum, e) => sum + e['count'])) * 100;
+          final double percentage = (entry.value['count'] /
+                  othersDetails.fold<double>(
+                      0.0, (sum, e) => sum + e['count'])) *
+              100;
 
           return PieChartSectionData(
             value: entry.value['count'].toDouble(),
@@ -79,7 +85,8 @@ List<PieChartSectionData> _buildOtherDetailsDonutData(List<Map<String, dynamic>>
       .cast<PieChartSectionData>();
 }
 
-Widget _buildLegendForModal(List<Map<String, dynamic>> othersDetails, String key) {
+Widget _buildLegendForModal(
+    List<Map<String, dynamic>> othersDetails, String key) {
   final List<Color> sectionColors = Colors.primaries;
   final Set<String> uniqueEntries = {};
 

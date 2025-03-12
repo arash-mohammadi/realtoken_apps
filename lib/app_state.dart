@@ -63,12 +63,14 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
 
   AppState() {
     _loadSettings();
-    WidgetsBinding.instance.addObserver(this); // Add observer to listen to system changes
+    WidgetsBinding.instance
+        .addObserver(this); // Add observer to listen to system changes
   }
 
   @override
   void dispose() {
-    WidgetsBinding.instance.removeObserver(this); // Remove observer when AppState is disposed
+    WidgetsBinding.instance
+        .removeObserver(this); // Remove observer when AppState is disposed
     super.dispose();
   }
 
@@ -84,7 +86,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     selectedLanguage = prefs.getString('language') ?? 'en';
     evmAddresses = prefs.getStringList('evmAddresses'); // Load EVM addresses
     _primaryColor = await getSavedPrimaryColor(); // Load primary color
-    _showAmounts = prefs.getBool('showAmounts') ?? true; // Charge la préférence du montant affiché
+    _showAmounts = prefs.getBool('showAmounts') ??
+        true; // Charge la préférence du montant affiché
 
     _applyTheme(); // Apply the theme based on the loaded themeMode
     notifyListeners(); // Notify listeners to rebuild widgets
@@ -99,7 +102,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   void toggleShowAmounts() async {
     _showAmounts = !_showAmounts;
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('showAmounts', _showAmounts); // Sauvegarde la préférence utilisateur
+    await prefs.setBool(
+        'showAmounts', _showAmounts); // Sauvegarde la préférence utilisateur
     notifyListeners(); // Notifie les widgets dépendants
   }
 
@@ -138,7 +142,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   // Update dark/light theme directly and save to SharedPreferences (for manual switch)
   void updateTheme(bool value) async {
     isDarkTheme = value;
-    themeMode = value ? 'dark' : 'light'; // Set theme mode based on manual selection
+    themeMode =
+        value ? 'dark' : 'light'; // Set theme mode based on manual selection
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('isDarkTheme', value);
     await prefs.setString('themeMode', themeMode); // Save theme mode

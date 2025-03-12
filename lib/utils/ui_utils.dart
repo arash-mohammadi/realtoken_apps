@@ -8,11 +8,13 @@ import 'package:realtokens/app_state.dart';
 import 'package:realtokens/generated/l10n.dart';
 import 'package:realtokens/pages/dashboard/detailsPages/properties_details_page.dart';
 import 'package:realtokens/pages/dashboard/detailsPages/rent_details_page.dart';
+import 'package:realtokens/pages/dashboard/detailsPages/rmm_details_page.dart';
 import 'package:shimmer/shimmer.dart';
 
 class UIUtils {
   static double getAppBarHeight(BuildContext context) {
-    double pixelRatio = MediaQuery.of(context).devicePixelRatio; // Ratio de densité
+    double pixelRatio =
+        MediaQuery.of(context).devicePixelRatio; // Ratio de densité
     double longestSide = MediaQuery.of(context).size.longestSide * pixelRatio;
     double shortestSide = MediaQuery.of(context).size.shortestSide * pixelRatio;
 
@@ -35,13 +37,19 @@ class UIUtils {
 
       if (shortestSide >= 1500) {
         // Tablettes (toute orientation)
-        return orientation == Orientation.portrait ? kToolbarHeight : kToolbarHeight; // Exemple d'ajustement en paysage
+        return orientation == Orientation.portrait
+            ? kToolbarHeight
+            : kToolbarHeight; // Exemple d'ajustement en paysage
       } else if (longestSide > 2000) {
         // Grands téléphones
-        return orientation == Orientation.portrait ? kToolbarHeight + 40 : kToolbarHeight; // Exemple d'ajustement en paysage
+        return orientation == Orientation.portrait
+            ? kToolbarHeight + 40
+            : kToolbarHeight; // Exemple d'ajustement en paysage
       } else {
         // Taille par défaut pour les téléphones standards
-        return orientation == Orientation.portrait ? kToolbarHeight : kToolbarHeight - 10; // Exemple d'ajustement en paysage
+        return orientation == Orientation.portrait
+            ? kToolbarHeight
+            : kToolbarHeight - 10; // Exemple d'ajustement en paysage
       }
     } else {
       // Par défaut pour desktop
@@ -52,7 +60,8 @@ class UIUtils {
   static double getSliverAppBarHeight(BuildContext context) {
     double baseHeight = getAppBarHeight(context);
 
-    double pixelRatio = MediaQuery.of(context).devicePixelRatio; // Ratio de densité
+    double pixelRatio =
+        MediaQuery.of(context).devicePixelRatio; // Ratio de densité
     double longestSide = MediaQuery.of(context).size.longestSide * pixelRatio;
     double shortestSide = MediaQuery.of(context).size.shortestSide * pixelRatio;
 
@@ -75,13 +84,21 @@ class UIUtils {
 
       if (shortestSide >= 1500) {
         // Tablettes
-        return orientation == Orientation.portrait ? baseHeight + 25 : baseHeight + 25; // Ajustement en paysage pour les tablettes
+        return orientation == Orientation.portrait
+            ? baseHeight + 25
+            : baseHeight + 25; // Ajustement en paysage pour les tablettes
       } else if (longestSide > 2500) {
         // Grands téléphones
-        return orientation == Orientation.portrait ? baseHeight - 15 : baseHeight + 40; // Ajustement en paysage pour les grands téléphones
+        return orientation == Orientation.portrait
+            ? baseHeight - 15
+            : baseHeight +
+                40; // Ajustement en paysage pour les grands téléphones
       } else {
         // Taille par défaut pour téléphones standards
-        return orientation == Orientation.portrait ? baseHeight + 30 : baseHeight + 45; // Ajustement en paysage pour téléphones standards
+        return orientation == Orientation.portrait
+            ? baseHeight + 30
+            : baseHeight +
+                45; // Ajustement en paysage pour téléphones standards
       }
     } else {
       // Par défaut pour desktop
@@ -139,9 +156,11 @@ class UIUtils {
                     Icon(
                       icon,
                       size: 24 + appState.getTextSizeOffset(),
-                      color: getIconColor(title, context), // Appelle une fonction pour déterminer la couleur
+                      color: getIconColor(title,
+                          context), // Appelle une fonction pour déterminer la couleur
                     ),
-                    const SizedBox(width: 8), // Espacement entre l'icône et le texte
+                    const SizedBox(
+                        width: 8), // Espacement entre l'icône et le texte
                     Text(
                       title,
                       style: TextStyle(
@@ -150,13 +169,15 @@ class UIUtils {
                         color: Theme.of(context).textTheme.bodyLarge?.color,
                       ),
                     ),
-                    const SizedBox(width: 12), // Espacement entre le texte et l'icône
+                    const SizedBox(
+                        width: 12), // Espacement entre le texte et l'icône
                     if (title == S.of(context).rents)
                       GestureDetector(
                         onTap: () {
                           Navigator.of(context).push(
                             MaterialPageRoute(
-                              builder: (context) => const DashboardRentsDetailsPage(),
+                              builder: (context) =>
+                                  const DashboardRentsDetailsPage(),
                             ),
                           );
                         },
@@ -181,6 +202,21 @@ class UIUtils {
                           color: Colors.grey, // Couleur de l'icône
                         ),
                       ),
+                    if (title == S.of(context).rmm)
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => RmmWalletDetailsPage(),
+                            ),
+                          );
+                        },
+                        child: Icon(
+                          Icons.arrow_forward,
+                          size: 24, // Taille de l'icône
+                          color: Colors.grey, // Couleur de l'icône
+                        ),
+                      ),
                   ],
                 ),
                 const SizedBox(height: 10),
@@ -193,7 +229,8 @@ class UIUtils {
               ],
             ),
             const Spacer(),
-            if (hasGraph && rightWidget != null) rightWidget, // Affiche le graphique
+            if (hasGraph && rightWidget != null)
+              rightWidget, // Affiche le graphique
           ],
         ),
       ),
@@ -202,7 +239,8 @@ class UIUtils {
 
   // Fonction pour obtenir la couleur en fonction du titre traduit
   static Color getIconColor(String title, BuildContext context) {
-    final String translatedTitle = title.trim(); // Supprime les espaces éventuels
+    final String translatedTitle =
+        title.trim(); // Supprime les espaces éventuels
 
     if (translatedTitle == S.of(context).rents) {
       return Colors.green;
@@ -219,7 +257,9 @@ class UIUtils {
     }
   }
 
-  static Widget buildValueBeforeText(BuildContext context, String? value, String text, bool isLoading, {bool highlightPercentage = false}) {
+  static Widget buildValueBeforeText(
+      BuildContext context, String? value, String text, bool isLoading,
+      {bool highlightPercentage = false}) {
     final appState = Provider.of<AppState>(context);
     final theme = Theme.of(context);
 
@@ -240,8 +280,12 @@ class UIUtils {
       children: [
         isLoading
             ? Shimmer.fromColors(
-                baseColor: theme.textTheme.bodyMedium?.color?.withOpacity(0.2) ?? Colors.grey[300]!,
-                highlightColor: theme.textTheme.bodyMedium?.color?.withOpacity(0.6) ?? Colors.grey[100]!,
+                baseColor:
+                    theme.textTheme.bodyMedium?.color?.withOpacity(0.2) ??
+                        Colors.grey[300]!,
+                highlightColor:
+                    theme.textTheme.bodyMedium?.color?.withOpacity(0.6) ??
+                        Colors.grey[100]!,
                 child: Container(
                   width: 50,
                   height: 16,
@@ -290,12 +334,16 @@ class UIUtils {
     );
   }
 
-  static Widget buildTextWithShimmer(String? value, String label, bool isLoading, BuildContext context) {
+  static Widget buildTextWithShimmer(
+      String? value, String label, bool isLoading, BuildContext context) {
     final theme = Theme.of(context);
 
     // Couleurs pour le shimmer adaptées au thème
-    final baseColor = theme.textTheme.bodyMedium?.color?.withOpacity(0.2) ?? Colors.grey[300]!;
-    final highlightColor = theme.textTheme.bodyMedium?.color?.withOpacity(0.4) ?? Colors.grey[100]!;
+    final baseColor = theme.textTheme.bodyMedium?.color?.withOpacity(0.2) ??
+        Colors.grey[300]!;
+    final highlightColor =
+        theme.textTheme.bodyMedium?.color?.withOpacity(0.4) ??
+            Colors.grey[100]!;
 
     return Row(
       children: [

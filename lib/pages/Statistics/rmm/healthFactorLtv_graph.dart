@@ -25,7 +25,8 @@ class HealthAndLtvHistoryGraph extends StatefulWidget {
   });
 
   @override
-  _HealthAndLtvHistoryGraphState createState() => _HealthAndLtvHistoryGraphState();
+  _HealthAndLtvHistoryGraphState createState() =>
+      _HealthAndLtvHistoryGraphState();
 }
 
 class _HealthAndLtvHistoryGraphState extends State<HealthAndLtvHistoryGraph> {
@@ -49,7 +50,8 @@ class _HealthAndLtvHistoryGraphState extends State<HealthAndLtvHistoryGraph> {
     List<FlSpot> spots = [];
     int index = 0;
     groupedData.forEach((date, values) {
-      double metricValue = showHealthFactor ? values['healtFactor']! : values['ltv']!;
+      double metricValue =
+          showHealthFactor ? values['healtFactor']! : values['ltv']!;
       spots.add(FlSpot(index.toDouble(), metricValue));
       index++;
     });
@@ -61,7 +63,8 @@ class _HealthAndLtvHistoryGraphState extends State<HealthAndLtvHistoryGraph> {
         barWidth: 2,
         belowBarData: BarAreaData(
           show: true,
-          color: (showHealthFactor ? Colors.blue : Colors.green).withOpacity(0.1),
+          color:
+              (showHealthFactor ? Colors.blue : Colors.green).withOpacity(0.1),
         ),
         dotData: FlDotData(show: false),
       ),
@@ -71,7 +74,8 @@ class _HealthAndLtvHistoryGraphState extends State<HealthAndLtvHistoryGraph> {
     List<BarChartGroupData> barGroups = [];
     index = 0;
     groupedData.forEach((date, values) {
-      double metricValue = showHealthFactor ? values['healtFactor']! : values['ltv']!;
+      double metricValue =
+          showHealthFactor ? values['healtFactor']! : values['ltv']!;
       barGroups.add(
         BarChartGroupData(
           x: index,
@@ -88,7 +92,8 @@ class _HealthAndLtvHistoryGraphState extends State<HealthAndLtvHistoryGraph> {
                 BarChartRodStackItem(
                   0,
                   metricValue,
-                  (showHealthFactor ? Colors.blue : Colors.green).withOpacity(0.8),
+                  (showHealthFactor ? Colors.blue : Colors.green)
+                      .withOpacity(0.8),
                 ),
               ],
             ),
@@ -128,7 +133,8 @@ class _HealthAndLtvHistoryGraphState extends State<HealthAndLtvHistoryGraph> {
                     children: [
                       Text(
                         'HF',
-                        style: TextStyle(fontSize: 14 + appState.getTextSizeOffset()),
+                        style: TextStyle(
+                            fontSize: 14 + appState.getTextSizeOffset()),
                       ),
                       Switch(
                         value: showHealthFactor,
@@ -142,7 +148,8 @@ class _HealthAndLtvHistoryGraphState extends State<HealthAndLtvHistoryGraph> {
                       ),
                       Text(
                         'LTV',
-                        style: TextStyle(fontSize: 14 + appState.getTextSizeOffset()),
+                        style: TextStyle(
+                            fontSize: 14 + appState.getTextSizeOffset()),
                       ),
                     ],
                   ),
@@ -160,7 +167,8 @@ class _HealthAndLtvHistoryGraphState extends State<HealthAndLtvHistoryGraph> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               ListTile(
-                                leading: const Icon(Icons.bar_chart, color: Colors.blue),
+                                leading: const Icon(Icons.bar_chart,
+                                    color: Colors.blue),
                                 title: Text(S.of(context).barChart),
                                 onTap: () {
                                   widget.onChartTypeChanged(true);
@@ -168,7 +176,8 @@ class _HealthAndLtvHistoryGraphState extends State<HealthAndLtvHistoryGraph> {
                                 },
                               ),
                               ListTile(
-                                leading: const Icon(Icons.show_chart, color: Colors.green),
+                                leading: const Icon(Icons.show_chart,
+                                    color: Colors.green),
                                 title: Text(S.of(context).lineChart),
                                 onTap: () {
                                   widget.onChartTypeChanged(false);
@@ -197,7 +206,8 @@ class _HealthAndLtvHistoryGraphState extends State<HealthAndLtvHistoryGraph> {
               child: widget.healthAndLtvIsBarChart
                   ? BarChart(
                       BarChartData(
-                        gridData: FlGridData(show: true, drawVerticalLine: false),
+                        gridData:
+                            FlGridData(show: true, drawVerticalLine: false),
                         titlesData: FlTitlesData(
                           leftTitles: AxisTitles(
                             sideTitles: SideTitles(
@@ -205,8 +215,12 @@ class _HealthAndLtvHistoryGraphState extends State<HealthAndLtvHistoryGraph> {
                               reservedSize: 45,
                               getTitlesWidget: (value, meta) {
                                 return Text(
-                                  showHealthFactor ? value.toStringAsFixed(0) : '${value.toStringAsFixed(0)}%',
-                                  style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
+                                  showHealthFactor
+                                      ? value.toStringAsFixed(0)
+                                      : '${value.toStringAsFixed(0)}%',
+                                  style: TextStyle(
+                                      fontSize:
+                                          10 + appState.getTextSizeOffset()),
                                 );
                               },
                             ),
@@ -215,19 +229,23 @@ class _HealthAndLtvHistoryGraphState extends State<HealthAndLtvHistoryGraph> {
                             sideTitles: SideTitles(
                               showTitles: true,
                               getTitlesWidget: (value, meta) {
-                                List<String> labels = _buildDateLabelsForHealthAndLtv(
+                                List<String> labels =
+                                    _buildDateLabelsForHealthAndLtv(
                                   context,
                                   widget.dataManager,
                                   widget.selectedPeriod,
                                 );
-                                if (value.toInt() >= 0 && value.toInt() < labels.length) {
+                                if (value.toInt() >= 0 &&
+                                    value.toInt() < labels.length) {
                                   return Padding(
                                     padding: const EdgeInsets.only(top: 10.0),
                                     child: Transform.rotate(
                                       angle: -0.5,
                                       child: Text(
                                         labels[value.toInt()],
-                                        style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
+                                        style: TextStyle(
+                                            fontSize: 10 +
+                                                appState.getTextSizeOffset()),
                                       ),
                                     ),
                                   );
@@ -248,7 +266,8 @@ class _HealthAndLtvHistoryGraphState extends State<HealthAndLtvHistoryGraph> {
                           show: true,
                           border: Border(
                             left: BorderSide(color: Colors.transparent),
-                            bottom: BorderSide(color: Colors.blueGrey.shade700, width: 0.5),
+                            bottom: BorderSide(
+                                color: Colors.blueGrey.shade700, width: 0.5),
                             right: BorderSide(color: Colors.transparent),
                             top: BorderSide(color: Colors.transparent),
                           ),
@@ -260,7 +279,9 @@ class _HealthAndLtvHistoryGraphState extends State<HealthAndLtvHistoryGraph> {
                           touchTooltipData: BarTouchTooltipData(
                             getTooltipItem: (group, groupIndex, rod, rodIndex) {
                               double metricValue = rod.rodStackItems[0].toY;
-                              String tooltip = showHealthFactor ? 'HF: ${metricValue.toStringAsFixed(2)}' : 'LTV: ${metricValue.toStringAsFixed(2)}%';
+                              String tooltip = showHealthFactor
+                                  ? 'HF: ${metricValue.toStringAsFixed(2)}'
+                                  : 'LTV: ${metricValue.toStringAsFixed(2)}%';
                               return BarTooltipItem(
                                 tooltip,
                                 const TextStyle(color: Colors.white),
@@ -273,7 +294,8 @@ class _HealthAndLtvHistoryGraphState extends State<HealthAndLtvHistoryGraph> {
                     )
                   : LineChart(
                       LineChartData(
-                        gridData: FlGridData(show: true, drawVerticalLine: false),
+                        gridData:
+                            FlGridData(show: true, drawVerticalLine: false),
                         titlesData: FlTitlesData(
                           leftTitles: AxisTitles(
                             sideTitles: SideTitles(
@@ -281,8 +303,12 @@ class _HealthAndLtvHistoryGraphState extends State<HealthAndLtvHistoryGraph> {
                               reservedSize: 45,
                               getTitlesWidget: (value, meta) {
                                 return Text(
-                                  showHealthFactor ? value.toStringAsFixed(0) : '${value.toStringAsFixed(0)}%',
-                                  style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
+                                  showHealthFactor
+                                      ? value.toStringAsFixed(0)
+                                      : '${value.toStringAsFixed(0)}%',
+                                  style: TextStyle(
+                                      fontSize:
+                                          10 + appState.getTextSizeOffset()),
                                 );
                               },
                             ),
@@ -291,19 +317,23 @@ class _HealthAndLtvHistoryGraphState extends State<HealthAndLtvHistoryGraph> {
                             sideTitles: SideTitles(
                               showTitles: true,
                               getTitlesWidget: (value, meta) {
-                                List<String> labels = _buildDateLabelsForHealthAndLtv(
+                                List<String> labels =
+                                    _buildDateLabelsForHealthAndLtv(
                                   context,
                                   widget.dataManager,
                                   widget.selectedPeriod,
                                 );
-                                if (value.toInt() >= 0 && value.toInt() < labels.length) {
+                                if (value.toInt() >= 0 &&
+                                    value.toInt() < labels.length) {
                                   return Padding(
                                     padding: const EdgeInsets.only(top: 10.0),
                                     child: Transform.rotate(
                                       angle: -0.5,
                                       child: Text(
                                         labels[value.toInt()],
-                                        style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
+                                        style: TextStyle(
+                                            fontSize: 10 +
+                                                appState.getTextSizeOffset()),
                                       ),
                                     ),
                                   );
@@ -324,7 +354,8 @@ class _HealthAndLtvHistoryGraphState extends State<HealthAndLtvHistoryGraph> {
                           show: true,
                           border: Border(
                             left: BorderSide(color: Colors.transparent),
-                            bottom: BorderSide(color: Colors.blueGrey.shade700, width: 0.5),
+                            bottom: BorderSide(
+                                color: Colors.blueGrey.shade700, width: 0.5),
                             right: BorderSide(color: Colors.transparent),
                             top: BorderSide(color: Colors.transparent),
                           ),
@@ -356,7 +387,8 @@ class _HealthAndLtvHistoryGraphState extends State<HealthAndLtvHistoryGraph> {
       if (selectedPeriod == S.of(context).day) {
         periodKey = DateFormat('yyyy/MM/dd').format(date);
       } else if (selectedPeriod == S.of(context).week) {
-        periodKey = "${date.year}-S${CustomDateUtils.weekNumber(date).toString().padLeft(2, '0')}";
+        periodKey =
+            "${date.year}-S${CustomDateUtils.weekNumber(date).toString().padLeft(2, '0')}";
       } else if (selectedPeriod == S.of(context).month) {
         periodKey = DateFormat('yyyy/MM').format(date);
       } else {
@@ -377,7 +409,8 @@ class _HealthAndLtvHistoryGraphState extends State<HealthAndLtvHistoryGraph> {
     DataManager dataManager,
     String selectedPeriod,
   ) {
-    final groupedData = _groupHealthAndLtvByDate(context, dataManager, selectedPeriod);
+    final groupedData =
+        _groupHealthAndLtvByDate(context, dataManager, selectedPeriod);
     return groupedData.keys.toList();
   }
 }

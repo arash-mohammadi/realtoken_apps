@@ -11,6 +11,7 @@ import '../services/api_service.dart';
 import '../models/balance_record.dart';
 import '../models/roi_record.dart';
 import '../models/apy_record.dart';
+import 'archive_manager.dart';
 
 class DataManager extends ChangeNotifier {
   List<String> evmAddresses = [];
@@ -19,6 +20,7 @@ class DataManager extends ChangeNotifier {
   double netGlobalApy = 0;
   double walletValue = 0;
   double rmmValue = 0;
+  Map<String, double> perWalletRmmValues = {};
   double rwaHoldingsValue = 0;
   int rentedUnits = 0;
   int totalUnits = 0;
@@ -65,15 +67,15 @@ class DataManager extends ChangeNotifier {
   List<Map<String, dynamic>> detailedRentData = [];
   List<Map<String, dynamic>> propertyData = [];
   List<Map<String, dynamic>> rmmBalances = [];
-  List<Map<String, dynamic>> _allTokens = []; // Liste privée pour tous les tokens
+  List<Map<String, dynamic>> perWalletBalances = [];
+  List<Map<String, dynamic>> _allTokens =
+      []; // Liste privée pour tous les tokens
   List<Map<String, dynamic>> get allTokens => _allTokens;
   List<Map<String, dynamic>> _portfolio = [];
   List<Map<String, dynamic>> get portfolio => _portfolio;
   List<Map<String, dynamic>> _recentUpdates = [];
   List<Map<String, dynamic>> get recentUpdates => _recentUpdates;
-  List<Map<String, dynamic>> walletTokensGnosis = [];
-  List<Map<String, dynamic>> walletTokensEtherum = [];
-  List<Map<String, dynamic>> rmmTokens = [];
+  List<Map<String, dynamic>> walletTokens = [];
   List<Map<String, dynamic>> realTokens = [];
   List<Map<String, dynamic>> tempRentData = [];
   List<BalanceRecord> balanceHistory = [];
@@ -95,11 +97,12 @@ class DataManager extends ChangeNotifier {
   List<Map<String, dynamic>> whitelistTokens = [];
 
   var customInitPricesBox = Hive.box('CustomInitPrices');
-  final String rwaTokenAddress = '0x0675e8f4a52ea6c845cb6427af03616a2af42170';
 
   DateTime? lastArchiveTime; // Variable pour stocker le dernier archivage
   DateTime? _lastUpdated; // Stocker la dernière mise à jour
-  final Duration _updateCooldown = Duration(minutes: 5); // Délai minimal avant la prochaine mise à jour
+  final Duration _updateCooldown =
+      Duration(minutes: 5); // Délai minimal avant la prochaine mise à jour
+  final ArchiveManager _archiveManager = ArchiveManager();
 
   DataManager() {
     loadCustomInitPrices(); // Charger les prix personnalisés lors de l'initialisation
@@ -115,7 +118,9 @@ class DataManager extends ChangeNotifier {
     var box = Hive.box('realTokens'); // Ouvrir la boîte Hive pour le cache
 
     // Vérifier si une mise à jour est nécessaire
-    if (!forceFetch && _lastUpdated != null && DateTime.now().difference(_lastUpdated!) < _updateCooldown) {
+    if (!forceFetch &&
+        _lastUpdated != null &&
+        DateTime.now().difference(_lastUpdated!) < _updateCooldown) {
       debugPrint("⏳ Mise à jour ignorée : déjà effectuée récemment.");
       return;
     }
@@ -137,10 +142,12 @@ class DataManager extends ChangeNotifier {
           box.put(cacheKey, json.encode(data));
           updateVariable(List<Map<String, dynamic>>.from(data));
         } else {
-          debugPrint("⚠️ Pas de nouvelles données $debugName, chargement du cache...");
+          debugPrint(
+              "⚠️ Pas de nouvelles données $debugName, chargement du cache...");
           var cachedData = box.get(cacheKey);
           if (cachedData != null) {
-            updateVariable(List<Map<String, dynamic>>.from(json.decode(cachedData)));
+            updateVariable(
+                List<Map<String, dynamic>>.from(json.decode(cachedData)));
           }
         }
         notifyListeners();
@@ -152,18 +159,16 @@ class DataManager extends ChangeNotifier {
     // Exécution des mises à jour en parallèle
     await Future.wait([
       fetchData(
-          apiCall: () => ApiService.fetchTokensFromGnosis(forceFetch: forceFetch),
-          cacheKey: 'cachedTokenData_gnosis',
-          updateVariable: (data) => walletTokensGnosis = data,
-          debugName: "Gnosis"),
+          apiCall: () => ApiService.fetchWalletTokens(forceFetch: forceFetch),
+          cacheKey: 'cachedTokenData_tokens',
+          updateVariable: (data) => walletTokens = data,
+          debugName: "Tokens"),
+
       fetchData(
-          apiCall: () => ApiService.fetchTokensFromEtherum(forceFetch: forceFetch),
-          cacheKey: 'cachedTokenData_etherum',
-          updateVariable: (data) => walletTokensEtherum = data,
-          debugName: "Ethereum"),
-      fetchData(apiCall: () => ApiService.fetchRMMTokens(forceFetch: forceFetch), cacheKey: 'cachedRMMData', updateVariable: (data) => rmmTokens = data, debugName: "RMM"),
-      fetchData(
-          apiCall: () => ApiService.fetchRealTokens(forceFetch: forceFetch), cacheKey: 'cachedRealTokens', updateVariable: (data) => realTokens = data, debugName: "RealTokens"),
+          apiCall: () => ApiService.fetchRealTokens(forceFetch: forceFetch),
+          cacheKey: 'cachedRealTokens',
+          updateVariable: (data) => realTokens = data,
+          debugName: "RealTokens"),
       fetchData(
           apiCall: () => ApiService.fetchRmmBalances(forceFetch: forceFetch),
           cacheKey: 'rmmBalances',
@@ -173,7 +178,10 @@ class DataManager extends ChangeNotifier {
           },
           debugName: "RMM Balances"),
       fetchData(
-          apiCall: () => ApiService.fetchRentData(forceFetch: forceFetch), cacheKey: 'tempRentData', updateVariable: (data) => tempRentData = data, debugName: "Loyer temporaire"),
+          apiCall: () => ApiService.fetchRentData(forceFetch: forceFetch),
+          cacheKey: 'tempRentData',
+          updateVariable: (data) => tempRentData = data,
+          debugName: "Loyer temporaire"),
       fetchData(
           apiCall: () => ApiService.fetchPropertiesForSale(),
           cacheKey: 'cachedPropertiesForSaleData',
@@ -181,7 +189,8 @@ class DataManager extends ChangeNotifier {
           debugName: "Propriétés en vente"),
       // Ajout de l'appel pour récupérer les tokens whitelistés pour chaque wallet
       fetchData(
-          apiCall: () => ApiService.fetchWhitelistTokens(forceFetch: forceFetch),
+          apiCall: () =>
+              ApiService.fetchWhitelistTokens(forceFetch: forceFetch),
           cacheKey: 'cachedWhitelistTokens',
           updateVariable: (data) => whitelistTokens = data,
           debugName: "Whitelist")
@@ -196,7 +205,8 @@ class DataManager extends ChangeNotifier {
     isLoadingMain = false;
   }
 
-  Future<void> updateSecondaryInformations(BuildContext context, {bool forceFetch = false}) async {
+  Future<void> updateSecondaryInformations(BuildContext context,
+      {bool forceFetch = false}) async {
     var box = Hive.box('realTokens'); // Ouvrir la boîte Hive pour le cache
 
     // Fonction générique pour fetch + cache
@@ -213,10 +223,12 @@ class DataManager extends ChangeNotifier {
           box.put(cacheKey, json.encode(data));
           updateVariable(List<Map<String, dynamic>>.from(data));
         } else {
-          debugPrint("⚠️ Pas de nouvelles données $debugName, chargement du cache...");
+          debugPrint(
+              "⚠️ Pas de nouvelles données $debugName, chargement du cache...");
           var cachedData = box.get(cacheKey);
           if (cachedData != null) {
-            updateVariable(List<Map<String, dynamic>>.from(json.decode(cachedData)));
+            updateVariable(
+                List<Map<String, dynamic>>.from(json.decode(cachedData)));
           }
         }
         notifyListeners();
@@ -228,7 +240,8 @@ class DataManager extends ChangeNotifier {
     // Exécution des mises à jour en parallèle
     await Future.wait([
       fetchData(
-          apiCall: () => ApiService.fetchYamWalletsTransactions(forceFetch: forceFetch),
+          apiCall: () =>
+              ApiService.fetchYamWalletsTransactions(forceFetch: forceFetch),
           cacheKey: 'cachedWalletsTransactions',
           updateVariable: (data) => yamWalletsTransactionsFetched = data,
           debugName: "YAM Wallets Transactions"),
@@ -246,11 +259,13 @@ class DataManager extends ChangeNotifier {
           },
           debugName: "YAM Volumes History"),
       fetchData(
-          apiCall: () => ApiService.fetchTransactionsHistory(portfolio: portfolio, forceFetch: forceFetch),
+          apiCall: () => ApiService.fetchTransactionsHistory(
+              portfolio: portfolio, forceFetch: forceFetch),
           cacheKey: 'transactionsHistory',
           updateVariable: (data) async {
             transactionsHistory = data;
-            await processTransactionsHistory(context, transactionsHistory, yamWalletsTransactionsFetched);
+            await processTransactionsHistory(
+                context, transactionsHistory, yamWalletsTransactionsFetched);
           },
           debugName: "Transactions History"),
     ]);
@@ -261,7 +276,8 @@ class DataManager extends ChangeNotifier {
   Future<void> loadWalletBalanceHistory() async {
     try {
       var box = Hive.box('walletValueArchive'); // Ouvrir la boîte Hive
-      List<dynamic>? balanceHistoryJson = box.get('balanceHistory_totalWalletValue'); // Récupérer les données sauvegardées
+      List<dynamic>? balanceHistoryJson = box.get(
+          'balanceHistory_totalWalletValue'); // Récupérer les données sauvegardées
 
       // Convertir chaque élément JSON en objet BalanceRecord et l'ajouter à walletBalanceHistory
       walletBalanceHistory = balanceHistoryJson!.map((recordJson) {
@@ -270,16 +286,19 @@ class DataManager extends ChangeNotifier {
 
       notifyListeners(); // Notifier les listeners après la mise à jour
 
-      debugPrint('✅ Données de l\'historique du portefeuille chargées avec succès.');
-        } catch (e) {
-      debugPrint('Erreur lors du chargement des données de l\'historique du portefeuille : $e');
+      debugPrint(
+          '✅ Données de l\'historique du portefeuille chargées avec succès.');
+    } catch (e) {
+      debugPrint(
+          'Erreur lors du chargement des données de l\'historique du portefeuille : $e');
     }
   }
 
   Future<void> loadRentedHistory() async {
     try {
       var box = Hive.box('rentedArchive'); // Ouvrir la boîte Hive
-      List<dynamic>? rentedHistoryJson = box.get('rented_history'); // Récupérer les données sauvegardées
+      List<dynamic>? rentedHistoryJson =
+          box.get('rented_history'); // Récupérer les données sauvegardées
 
       rentedHistory = rentedHistoryJson!.map((recordJson) {
         return RentedRecord.fromJson(Map<String, dynamic>.from(recordJson));
@@ -287,16 +306,19 @@ class DataManager extends ChangeNotifier {
 
       notifyListeners(); // Notifier les listeners après la mise à jour
 
-      debugPrint('✅ Données de l\'historique du portefeuille chargées avec succès.');
-        } catch (e) {
-      debugPrint('Erreur lors du chargement des données de l\'historique du portefeuille : $e');
+      debugPrint(
+          '✅ Données de l\'historique du portefeuille chargées avec succès.');
+    } catch (e) {
+      debugPrint(
+          'Erreur lors du chargement des données de l\'historique du portefeuille : $e');
     }
   }
 
   Future<void> loadRoiHistory() async {
     try {
       var box = Hive.box('roiValueArchive'); // Ouvrir la boîte Hive
-      List<dynamic>? roiHistoryJson = box.get('roi_history'); // Récupérer les données sauvegardées
+      List<dynamic>? roiHistoryJson =
+          box.get('roi_history'); // Récupérer les données sauvegardées
 
       roiHistory = roiHistoryJson!.map((recordJson) {
         return RoiRecord.fromJson(Map<String, dynamic>.from(recordJson));
@@ -305,15 +327,17 @@ class DataManager extends ChangeNotifier {
       notifyListeners(); // Notifier les listeners après la mise à jour
 
       debugPrint('Données de l\'historique du ROI chargées avec succès.');
-        } catch (e) {
-      debugPrint('Erreur lors du chargement des données de l\'historique du ROI : $e');
+    } catch (e) {
+      debugPrint(
+          'Erreur lors du chargement des données de l\'historique du ROI : $e');
     }
   }
 
   Future<void> loadApyHistory() async {
     try {
       var box = Hive.box('apyValueArchive'); // Ouvrir la boîte Hive
-      List<dynamic>? apyHistoryJson = box.get('apy_history'); // Récupérer les données sauvegardées
+      List<dynamic>? apyHistoryJson =
+          box.get('apy_history'); // Récupérer les données sauvegardées
 
       // Charger l'historique
       apyHistory = apyHistoryJson!.map((recordJson) {
@@ -323,40 +347,46 @@ class DataManager extends ChangeNotifier {
       notifyListeners(); // Notifier les listeners après la mise à jour
 
       debugPrint('Données de l\'historique APY chargées avec succès.');
-        } catch (e) {
-      debugPrint('Erreur lors du chargement des données de l\'historique APY : $e');
+    } catch (e) {
+      debugPrint(
+          'Erreur lors du chargement des données de l\'historique APY : $e');
     }
   }
 
   Future<void> loadHealthAndLtvHistory() async {
     try {
       var box = Hive.box('HealthAndLtvValueArchive'); // Ouvrir la boîte Hive
-      List<dynamic>? healthAndLtvHistoryJson = box.get('healthAndLtv_history'); // Récupérer les données sauvegardées
+      List<dynamic>? healthAndLtvHistoryJson =
+          box.get('healthAndLtv_history'); // Récupérer les données sauvegardées
 
       // Charger l'historique
       healthAndLtvHistory = healthAndLtvHistoryJson!.map((recordJson) {
-        return HealthAndLtvRecord.fromJson(Map<String, dynamic>.from(recordJson));
+        return HealthAndLtvRecord.fromJson(
+            Map<String, dynamic>.from(recordJson));
       }).toList();
 
       notifyListeners(); // Notifier les listeners après la mise à jour
 
       debugPrint('Données de l\'historique healthAndLtv chargées avec succès.');
-        } catch (e) {
-      debugPrint('Erreur lors du chargement des données de l\'historique healthAndLtv : $e');
+    } catch (e) {
+      debugPrint(
+          'Erreur lors du chargement des données de l\'historique healthAndLtv : $e');
     }
   }
 
   // Sauvegarde l'historique des balances dans Hive
   Future<void> saveWalletBalanceHistory() async {
     var box = Hive.box('walletValueArchive');
-    List<Map<String, dynamic>> balanceHistoryJson = walletBalanceHistory.map((record) => record.toJson()).toList();
+    List<Map<String, dynamic>> balanceHistoryJson =
+        walletBalanceHistory.map((record) => record.toJson()).toList();
     await box.put('balanceHistory_totalWalletValue', balanceHistoryJson);
     notifyListeners(); // Notifier les listeners de tout changement
   }
 
   Future<void> saveRentedHistory() async {
     var box = Hive.box('rentedArchive');
-    List<Map<String, dynamic>> rentedHistoryJson = rentedHistory.map((record) => record.toJson()).toList();
+    List<Map<String, dynamic>> rentedHistoryJson =
+        rentedHistory.map((record) => record.toJson()).toList();
     await box.put('rented_history', rentedHistoryJson);
     notifyListeners(); // Notifier les listeners de tout changement
   }
@@ -366,9 +396,11 @@ class DataManager extends ChangeNotifier {
 
     try {
       // Mise à jour des détails de loyer détaillés
-      var detailedRentDataResult = await ApiService.fetchDetailedRentDataForAllWallets();
+      var detailedRentDataResult =
+          await ApiService.fetchDetailedRentDataForAllWallets();
       if (detailedRentDataResult.isNotEmpty) {
-        debugPrint("Mise à jour des détails de loyer avec de nouvelles valeurs.");
+        debugPrint(
+            "Mise à jour des détails de loyer avec de nouvelles valeurs.");
         box.put('detailedRentData', json.encode(detailedRentDataResult));
         detailedRentData = detailedRentDataResult.cast<Map<String, dynamic>>();
         notifyListeners(); // Notifier les listeners après la mise à jour
@@ -395,7 +427,8 @@ class DataManager extends ChangeNotifier {
   Future<void> saveUserIdToAddresses() async {
     final prefs = await SharedPreferences.getInstance();
     final userIdToAddressesJson = userIdToAddresses.map((userId, addresses) {
-      return MapEntry(userId, jsonEncode(addresses)); // Encoder les adresses en JSON
+      return MapEntry(
+          userId, jsonEncode(addresses)); // Encoder les adresses en JSON
     });
 
     prefs.setString('userIdToAddresses', jsonEncode(userIdToAddressesJson));
@@ -421,7 +454,8 @@ class DataManager extends ChangeNotifier {
     if (userIdToAddresses.containsKey(userId)) {
       userIdToAddresses[userId]!.remove(address);
       if (userIdToAddresses[userId]!.isEmpty) {
-        userIdToAddresses.remove(userId); // Supprimer le userId si plus d'adresses
+        userIdToAddresses
+            .remove(userId); // Supprimer le userId si plus d'adresses
       }
       saveUserIdToAddresses(); // Sauvegarder après suppression
       notifyListeners();
@@ -461,7 +495,8 @@ class DataManager extends ChangeNotifier {
 
     final cachedRealTokens = box.get('cachedRealTokens');
     if (cachedRealTokens != null) {
-      realTokens = List<Map<String, dynamic>>.from(json.decode(cachedRealTokens));
+      realTokens =
+          List<Map<String, dynamic>>.from(json.decode(cachedRealTokens));
       debugPrint("Données RealTokens en cache utilisées.");
     }
     List<Map<String, dynamic>> allTokensList = [];
@@ -472,21 +507,26 @@ class DataManager extends ChangeNotifier {
       for (var realToken in realTokens.cast<Map<String, dynamic>>()) {
         // Vérification: Ne pas ajouter si totalTokens est 0 ou si fullName commence par "OLD-"
         // Récupérer la valeur customisée de initPrice si elle existe
-        final tokenContractAddress = realToken['uuid'].toLowerCase() ?? ''; // Utiliser l'adresse du contrat du token
+        final tokenContractAddress = realToken['uuid'].toLowerCase() ??
+            ''; // Utiliser l'adresse du contrat du token
 
         if (realToken['totalTokens'] != null &&
             realToken['totalTokens'] > 0 &&
             realToken['fullName'] != null &&
             !realToken['fullName'].startsWith('OLD-') &&
-            realToken['uuid'].toLowerCase() != rwaTokenAddress.toLowerCase()) {
+            realToken['uuid'].toLowerCase() !=
+                Parameters.rwaTokenAddress.toLowerCase()) {
           double? customInitPrice = customInitPrices[tokenContractAddress];
-          double initPrice = customInitPrice ?? (realToken['historic']['init_price'] as num?)?.toDouble() ?? 0.0;
+          double initPrice = customInitPrice ??
+              (realToken['historic']['init_price'] as num?)?.toDouble() ??
+              0.0;
 
           String fullName = realToken['fullName'];
           List<String> parts = fullName.split(',');
           String country = parts.length == 4 ? parts[3].trim() : 'USA';
           List<String> parts2 = fullName.split(',');
-          String regionCode = parts2.length >= 3 ? parts[2].trim().substring(0, 2) : 'unknown';
+          String regionCode =
+              parts2.length >= 3 ? parts[2].trim().substring(0, 2) : 'unknown';
           List<String> parts3 = fullName.split(',');
           String city = parts3.length >= 2 ? parts[1].trim() : 'Unknown';
 
@@ -505,9 +545,12 @@ class DataManager extends ChangeNotifier {
             'totalValue': realToken['totalInvestment'],
             'amount': 0.0,
             'annualPercentageYield': realToken['annualPercentageYield'],
-            'dailyIncome': realToken['netRentDayPerToken'] * realToken['totalTokens'],
-            'monthlyIncome': realToken['netRentMonthPerToken'] * realToken['totalTokens'],
-            'yearlyIncome': realToken['netRentYearPerToken'] * realToken['totalTokens'],
+            'dailyIncome':
+                realToken['netRentDayPerToken'] * realToken['totalTokens'],
+            'monthlyIncome':
+                realToken['netRentMonthPerToken'] * realToken['totalTokens'],
+            'yearlyIncome':
+                realToken['netRentYearPerToken'] * realToken['totalTokens'],
             'initialLaunchDate': realToken['initialLaunchDate']?['date'],
             'totalInvestment': realToken['totalInvestment'],
             'underlyingAssetPrice': realToken['underlyingAssetPrice'] ?? 0.0,
@@ -530,7 +573,8 @@ class DataManager extends ChangeNotifier {
             'initPrice': initPrice,
             'totalRentReceived': 0.0,
             'initialTotalValue': initPrice,
-            'propertyMaintenanceMonthly': realToken['propertyMaintenanceMonthly'],
+            'propertyMaintenanceMonthly':
+                realToken['propertyMaintenanceMonthly'],
             'propertyManagement': realToken['propertyManagement'],
             'realtPlatform': realToken['realtPlatform'],
             'insurance': realToken['insurance'],
@@ -547,8 +591,10 @@ class DataManager extends ChangeNotifier {
 
           tempTotalTokens += 1; // Conversion explicite en int
           tempTotalInvestment += realToken['totalInvestment'] ?? 0.0;
-          tempNetRentYear += realToken['netRentYearPerToken'] * (realToken['totalTokens'] as num).toInt();
-          tempTotalUnits += (realToken['totalUnits'] as num?)?.toInt() ?? 0; // Conversion en int avec vérification
+          tempNetRentYear += realToken['netRentYearPerToken'] *
+              (realToken['totalTokens'] as num).toInt();
+          tempTotalUnits += (realToken['totalUnits'] as num?)?.toInt() ??
+              0; // Conversion en int avec vérification
           tempRentedUnits += (realToken['rentedUnits'] as num?)?.toInt() ?? 0;
           // Gérer le cas où tokenPrice est soit un num soit une liste
           dynamic tokenPriceData = realToken['tokenPrice'];
@@ -556,9 +602,11 @@ class DataManager extends ChangeNotifier {
           int totalTokens = (realToken['totalTokens'] as num).toInt();
 
           if (tokenPriceData is List && tokenPriceData.isNotEmpty) {
-            tokenPrice = (tokenPriceData.first as num).toDouble(); // Utiliser le premier élément de la liste
+            tokenPrice = (tokenPriceData.first as num)
+                .toDouble(); // Utiliser le premier élément de la liste
           } else if (tokenPriceData is num) {
-            tokenPrice = tokenPriceData.toDouble(); // Utiliser directement si c'est un num
+            tokenPrice = tokenPriceData
+                .toDouble(); // Utiliser directement si c'est un num
           }
 
           tempInitialPrice += initPrice * totalTokens;
@@ -578,7 +626,8 @@ class DataManager extends ChangeNotifier {
 
     // Mettre à jour la liste des tokens
     _allTokens = allTokensList;
-    debugPrint("Tokens récupérés: ${allTokensList.length}"); // Vérifiez que vous obtenez bien des tokens
+    debugPrint(
+        "Tokens récupérés: ${allTokensList.length}"); // Vérifiez que vous obtenez bien des tokens
 
     // Mise à jour des variables partagées
     totalRealtTokens = tempTotalTokens; //en retire le RWA token dans le calcul
@@ -588,9 +637,11 @@ class DataManager extends ChangeNotifier {
     netRealtRentYear = tempNetRentYear;
     totalRealtUnits = tempTotalUnits;
     rentedRealtUnits = tempRentedUnits;
-    averageRealtAnnualYield = yieldCount > 0 ? tempAnnualYieldSum / yieldCount : 0.0;
+    averageRealtAnnualYield =
+        yieldCount > 0 ? tempAnnualYieldSum / yieldCount : 0.0;
 
-    archiveRentedValue(rentedRealtUnits / totalRealtUnits * 100);
+    _archiveManager
+        .archiveRentedValue(rentedRealtUnits / totalRealtUnits * 100);
 
     // Notifie les widgets que les données ont changé
     notifyListeners();
@@ -605,65 +656,19 @@ class DataManager extends ChangeNotifier {
     yamTotalValue = 0.0;
 
     // Charger les données en cache si disponibles
-    final cachedGnosisTokens = box.get('cachedTokenData_gnosis');
-    if (cachedGnosisTokens != null) {
-      walletTokensGnosis = List<Map<String, dynamic>>.from(json.decode(cachedGnosisTokens));
-      debugPrint("✅ Données Gnosis en cache utilisées.");
+    final cachedTokens = box.get('cachedTokenData_tokens');
+    if (cachedTokens != null) {
+      walletTokens = List<Map<String, dynamic>>.from(json.decode(cachedTokens));
+      debugPrint("✅ Données Tokens en cache utilisées.");
     }
 
-    final cachedEtherumTokens = box.get('cachedTokenData_ethereum');
-    if (cachedEtherumTokens != null) {
-      walletTokensEtherum = List<Map<String, dynamic>>.from(json.decode(cachedEtherumTokens));
-      debugPrint("✅ Données Etherum en cache utilisées.");
-    }
-
-    final cachedRMMTokens = box.get('cachedRMMData');
-    if (cachedRMMTokens != null) {
-      rmmTokens = List<Map<String, dynamic>>.from(json.decode(cachedRMMTokens));
-      debugPrint("✅ Données RMM en cache utilisées.");
-    }
-
-    final cachedRealTokens = box.get('cachedRealTokens');
-    if (cachedRealTokens != null) {
-      realTokens = List<Map<String, dynamic>>.from(json.decode(cachedRealTokens));
-      debugPrint("✅ Données RealTokens en cache utilisées.");
-    }
-
-    final cachedDetailedRentData = box.get('detailedRentData');
-    if (cachedDetailedRentData != null) {
-      detailedRentData = List<Map<String, dynamic>>.from(json.decode(cachedDetailedRentData));
-      debugPrint("✅ Données Rent en cache utilisées.");
-    }
-
-    // Fusionner les tokens de Gnosis et d'Etherum
-    final walletTokens = [...walletTokensGnosis, ...walletTokensEtherum];
-
-    // Vérifier les données récupérées et loguer si elles sont vides
-    if (walletTokensGnosis.isEmpty) {
-      debugPrint("⚠️ Aucun wallet récupéré depuis Gnosis.");
+    if (walletTokens.isEmpty) {
+      debugPrint("⚠️ Aucun token récupéré depuis l'API.");
     } else {
-      debugPrint("Nombre de wallets récupérés depuis Gnosis: ${walletTokensGnosis.length}");
+      debugPrint("Nombre de tokens récupérés: ${walletTokens.length}");
     }
 
-    if (walletTokensEtherum.isEmpty) {
-      debugPrint("⚠️ Aucun wallet récupéré depuis Etherum.");
-    } else {
-      debugPrint("Nombre de wallets récupérés depuis Etherum: ${walletTokensEtherum.length}");
-    }
-
-    if (rmmTokens.isEmpty) {
-      debugPrint("⚠️ Aucun token dans le RMM.");
-    } else {
-      debugPrint("Nombre de tokens dans le RMM récupérés: ${rmmTokens.length}");
-    }
-
-    if (realTokens.isEmpty) {
-      debugPrint("⚠️ Aucun RealToken trouvé.");
-    } else {
-      debugPrint("Nombre de RealTokens récupérés: ${realTokens.length}");
-    }
-
-    // Variables temporaires pour calculer les valeurs
+    // Variables temporaires de calcul global
     double walletValueSum = 0.0;
     double rmmValueSum = 0.0;
     double rwaValue = 0.0;
@@ -676,293 +681,188 @@ class DataManager extends ChangeNotifier {
     int yieldCount = 0;
     List<Map<String, dynamic>> newPortfolio = [];
 
-    // Réinitialisation des compteurs de tokens et unités
+    // Réinitialisation des compteurs globaux
     walletTokenCount = 0;
     rmmTokenCount = 0;
     rentedUnits = 0;
     totalUnits = 0;
 
-    // Utilisation des ensembles pour stocker les adresses uniques
+    // Sets pour stocker les tokens et adresses uniques
     Set<String> uniqueWalletTokens = {};
     Set<String> uniqueRmmTokens = {};
-    Set<String> uniqueRentedUnitAddresses = {}; // Pour stocker les adresses uniques avec unités louées
-    Set<String> uniqueTotalUnitAddresses = {}; // Pour stocker les adresses uniques avec unités totales
+    Set<String> uniqueRentedUnitAddresses = {};
+    Set<String> uniqueTotalUnitAddresses = {};
 
-    // **Itérer sur chaque wallet** pour récupérer tous les tokens
-    for (var wallet in walletTokens) {
-      final walletBalances = wallet['balances'];
+    // Fonction locale pour parser le fullName
+    Map<String, String> parseFullName(String fullName) {
+      final parts = fullName.split(',');
+      final country = parts.length == 4 ? parts[3].trim() : 'USA';
+      final regionCode =
+          parts.length >= 3 ? parts[2].trim().substring(0, 2) : 'unknown';
+      final city = parts.length >= 2 ? parts[1].trim() : 'Unknown City';
+      return {
+        'country': country,
+        'regionCode': regionCode,
+        'city': city,
+      };
+    }
 
-      // Process wallet tokens (pour Dashboard et Portfolio)
-      for (var walletToken in walletBalances) {
-        final tokenAddress = walletToken['token']['address'].toLowerCase();
-        uniqueWalletTokens.add(tokenAddress); // Ajouter à l'ensemble des tokens uniques
-
-        final matchingRealToken = realTokens.cast<Map<String, dynamic>>().firstWhere(
-              (realToken) => realToken['uuid'].toLowerCase() == tokenAddress,
-              orElse: () => <String, dynamic>{},
-            );
-
-        if (matchingRealToken.isNotEmpty) {
-          final double tokenPrice = matchingRealToken['tokenPrice'] ?? 0.0;
-          //debugPrint("$matchingRealToken['uuid'] -> ${matchingRealToken['tokenPrice']}");
-          final double tokenValue = (double.parse(walletToken['amount']) * tokenPrice);
-
-          // Compter les unités louées et totales si elles n'ont pas déjà été comptées
-          if (!uniqueRentedUnitAddresses.contains(tokenAddress)) {
-            rentedUnits += (matchingRealToken['rentedUnits'] ?? 0) as int;
-            uniqueRentedUnitAddresses.add(tokenAddress); // Marquer cette adresse comme comptée pour les unités louées
-          }
-          if (!uniqueTotalUnitAddresses.contains(tokenAddress)) {
-            totalUnits += (matchingRealToken['totalUnits'] ?? 0) as int;
-            uniqueTotalUnitAddresses.add(tokenAddress); // Marquer cette adresse comme comptée pour les unités totales
-          }
-
-          if (tokenAddress == rwaTokenAddress.toLowerCase()) {
-            rwaValue += tokenValue;
-          } else {
-            walletValueSum += tokenValue;
-            walletTokensSum += double.parse(walletToken['amount']);
-
-            // Récupérer la date d'aujourd'hui
-            final today = DateTime.now();
-
-            // Convertir la chaîne de date 'initialLaunchDate' en objet DateTime
-            final launchDateString = matchingRealToken['rentStartDate']?['date'];
-            if (launchDateString != null) {
-              final launchDate = DateTime.tryParse(launchDateString);
-
-              // Comparer la date de lancement avec aujourd'hui
-              if (launchDate != null && launchDate.isBefore(today)) {
-                // Ajouter uniquement si la date de lancement est dans le passé
-                annualYieldSum += matchingRealToken['annualPercentageYield'];
-                yieldCount++;
-                dailyRentSum += matchingRealToken['netRentDayPerToken'] * double.parse(walletToken['amount']);
-                monthlyRentSum += matchingRealToken['netRentMonthPerToken'] * double.parse(walletToken['amount']);
-                yearlyRentSum += matchingRealToken['netRentYearPerToken'] * double.parse(walletToken['amount']);
-              }
-            }
-          }
-          double totalRentReceived = 0.0;
-          final tokenContractAddress = matchingRealToken['uuid'].toLowerCase() ?? ''; // Utiliser l'adresse du contrat du token
-
-          double? customInitPrice = customInitPrices[tokenContractAddress];
-          double initPrice = customInitPrice ?? (matchingRealToken['historic']['init_price'] as num?)?.toDouble() ?? 0.0;
-
-          String fullName = matchingRealToken['fullName'];
-          List<String> parts = fullName.split(',');
-          String country = parts.length == 4 ? parts[3].trim() : 'USA';
-          List<String> parts2 = fullName.split(',');
-          String regionCode = parts2.length >= 3 ? parts[2].trim().substring(0, 2) : 'unknown';
-          List<String> parts3 = fullName.split(',');
-          String city = parts3.length >= 2 ? parts[1].trim() : 'Unknown City';
-
-          // Chercher la valeur Yam associée au token
-          final yamData = yamHistory.firstWhere(
-            (yam) => yam['id'].toLowerCase() == tokenContractAddress,
-            orElse: () => <String, dynamic>{},
-          );
-
-          final double yamTotalVolume = yamData['totalVolume'] ?? 1.0;
-          final double yamAverageValue = (yamData['averageValue'] != null && yamData['averageValue'] != 0) ? yamData['averageValue'] : tokenPrice;
-
-          // Ajouter au Portfolio
-          newPortfolio.add({
-            'id': matchingRealToken['id'],
-            'uuid': tokenContractAddress,
-            'shortName': matchingRealToken['shortName'],
-            'fullName': matchingRealToken['fullName'],
-            'country': country,
-            'regionCode': regionCode,
-            'city': city,
-            'imageLink': matchingRealToken['imageLink'],
-            'lat': matchingRealToken['coordinate']['lat'],
-            'lng': matchingRealToken['coordinate']['lng'],
-            'amount': walletToken['amount'],
-            'totalTokens': matchingRealToken['totalTokens'],
-            'source': 'Wallet',
-            'tokenPrice': tokenPrice,
-            'totalValue': tokenValue,
-            'initialTotalValue': double.parse(walletToken['amount']) * initPrice,
-            'annualPercentageYield': matchingRealToken['annualPercentageYield'],
-            'dailyIncome': matchingRealToken['netRentDayPerToken'] * double.parse(walletToken['amount']),
-            'monthlyIncome': matchingRealToken['netRentMonthPerToken'] * double.parse(walletToken['amount']),
-            'yearlyIncome': matchingRealToken['netRentYearPerToken'] * double.parse(walletToken['amount']),
-            'initialLaunchDate': matchingRealToken['initialLaunchDate']?['date'],
-            'bedroomBath': matchingRealToken['bedroomBath'],
-
-            // financials details
-            'totalInvestment': matchingRealToken['totalInvestment'] ?? 0.0,
-            'underlyingAssetPrice': matchingRealToken['underlyingAssetPrice'] ?? 0.0,
-            'realtListingFee': matchingRealToken['realtListingFee'],
-            'initialMaintenanceReserve': matchingRealToken['initialMaintenanceReserve'],
-            'renovationReserve': matchingRealToken['renovationReserve'],
-            'miscellaneousCosts': matchingRealToken['miscellaneousCosts'],
-
-            'grossRentMonth': matchingRealToken['grossRentMonth'],
-            'netRentMonth': matchingRealToken['netRentMonth'],
-            'propertyMaintenanceMonthly': matchingRealToken['propertyMaintenanceMonthly'],
-            'propertyManagement': matchingRealToken['propertyManagement'],
-            'realtPlatform': matchingRealToken['realtPlatform'],
-            'insurance': matchingRealToken['insurance'],
-            'propertyTaxes': matchingRealToken['propertyTaxes'],
-
-            'rentalType': matchingRealToken['rentalType'],
-            'rentStartDate': matchingRealToken['rentStartDate']?['date'],
-            'rentedUnits': matchingRealToken['rentedUnits'],
-            'totalUnits': matchingRealToken['totalUnits'],
-            'constructionYear': matchingRealToken['constructionYear'],
-            'propertyStories': matchingRealToken['propertyStories'],
-            'lotSize': matchingRealToken['lotSize'],
-            'squareFeet': matchingRealToken['squareFeet'],
-            'marketplaceLink': matchingRealToken['marketplaceLink'],
-            'propertyType': matchingRealToken['propertyType'],
-            'historic': matchingRealToken['historic'],
-            'ethereumContract': matchingRealToken['ethereumContract'],
-            'gnosisContract': matchingRealToken['gnosisContract'],
-            'totalRentReceived': totalRentReceived, // Ajout du loyer total reçu
-            'initPrice': initPrice,
-            'section8paid': matchingRealToken['section8paid'] ?? 0.0,
-
-            'yamTotalVolume': yamTotalVolume, // Ajout de la valeur Yam calculée
-            'yamAverageValue': yamAverageValue, // Ajout de la valeur moyenne Yam calculée
-            'transactions': transactionsByToken[tokenContractAddress] ?? []
-          });
-
-          initialTotalValue += double.parse(walletToken['amount']) * initPrice;
-          yamTotalValue += double.parse(walletToken['amount']) * yamAverageValue;
-
-          if (tokenContractAddress.isNotEmpty) {
-            // Récupérer les informations de loyer pour ce token
-            double? rentDetails = getRentDetailsForToken(tokenContractAddress);
-
-            double totalRentReceived = rentDetails;
-
-            // Une fois les données récupérées, mettre à jour l'élément du portfolio correspondant
-            final portfolioItem = newPortfolio.firstWhere(
-              (item) => item['shortName'] == matchingRealToken['shortName'],
-              orElse: () => {},
-            );
-
-            portfolioItem['totalRentReceived'] = totalRentReceived;
-          }
-          // Notifiez les listeners après avoir mis à jour le portfolio
-          notifyListeners();
-        }
+    // Fonction locale pour mettre à jour les compteurs d'unités (pour éviter le comptage en double)
+    void updateUnitCounters(
+        String tokenAddress, Map<String, dynamic> realToken) {
+      if (!uniqueRentedUnitAddresses.contains(tokenAddress)) {
+        rentedUnits += (realToken['rentedUnits'] ?? 0) as int;
+        uniqueRentedUnitAddresses.add(tokenAddress);
+      }
+      if (!uniqueTotalUnitAddresses.contains(tokenAddress)) {
+        totalUnits += (realToken['totalUnits'] ?? 0) as int;
+        uniqueTotalUnitAddresses.add(tokenAddress);
       }
     }
 
-    // Process tokens dans le RMM (similaire au processus wallet)
-    for (var rmmToken in rmmTokens) {
-      final tokenAddress = rmmToken['token']['id'].toLowerCase();
-      uniqueRmmTokens.add(tokenAddress); // Ajouter à l'ensemble des tokens uniques
+    debugPrint("🔍 Traitement des tokens...");
+    for (var walletToken in walletTokens) {
+      final tokenAddress = walletToken['token'].toLowerCase();
+      debugPrint(
+          "🔍 Traitement du token: ${walletToken['token']} (type: ${walletToken['type']})");
 
-      final matchingRealToken = realTokens.cast<Map<String, dynamic>>().firstWhere(
-            (realToken) => realToken['uuid'].toLowerCase() == tokenAddress,
-            orElse: () => <String, dynamic>{},
-          );
+      // Recherche du token correspondant dans realTokens
+      final matchingRealToken =
+          realTokens.cast<Map<String, dynamic>>().firstWhere(
+                (realToken) => realToken['uuid'].toLowerCase() == tokenAddress,
+                orElse: () => <String, dynamic>{},
+              );
+      if (matchingRealToken.isEmpty) {
+        debugPrint(
+            "⚠️ Aucun RealToken correspondant trouvé pour le token: $tokenAddress");
+        continue;
+      }
+      debugPrint("✅ Token trouvé: ${matchingRealToken['shortName']}");
 
-      if (matchingRealToken.isNotEmpty) {
-        final BigInt rawAmount = BigInt.parse(rmmToken['amount']);
-        final int decimals = matchingRealToken['decimals'] ?? 18;
-        final double amount = rawAmount / BigInt.from(10).pow(decimals);
-        final double tokenPrice = matchingRealToken['tokenPrice'] ?? 0.0;
-        rmmValueSum += amount * tokenPrice;
-        rmmTokensSum += amount;
+      final double tokenPrice = matchingRealToken['tokenPrice'] ?? 0.0;
+      final double tokenValue = walletToken['amount'] * tokenPrice;
 
-        // Compter les unités louées et totales si elles n'ont pas déjà été comptées
-        if (!uniqueRentedUnitAddresses.contains(tokenAddress)) {
-          rentedUnits += (matchingRealToken['rentedUnits'] ?? 0) as int;
-          uniqueRentedUnitAddresses.add(tokenAddress); // Marquer cette adresse comme comptée pour les unités louées
+      // Mise à jour des compteurs d'unités (une seule fois par token)
+      updateUnitCounters(tokenAddress, matchingRealToken);
+
+      // Séparation entre tokens RWA et autres
+      if (tokenAddress == Parameters.rwaTokenAddress.toLowerCase()) {
+        rwaValue += tokenValue;
+      } else {
+        if (walletToken['type'] == "wallet") {
+          walletValueSum += tokenValue;
+          walletTokensSum += walletToken['amount'];
+          uniqueWalletTokens.add(tokenAddress);
+        } else {
+          rmmValueSum += tokenValue;
+          rmmTokensSum += walletToken['amount'];
+          uniqueRmmTokens.add(tokenAddress);
         }
-        if (!uniqueTotalUnitAddresses.contains(tokenAddress)) {
-          totalUnits += (matchingRealToken['totalUnits'] ?? 0) as int;
-          uniqueTotalUnitAddresses.add(tokenAddress); // Marquer cette adresse comme comptée pour les unités totales
-        }
 
-        // Récupérer la date d'aujourd'hui
+        // Calcul des revenus si la date de lancement est passée
         final today = DateTime.now();
-
-        // Convertir la chaîne de date 'initialLaunchDate' en objet DateTime
-        final launchDateString = matchingRealToken['initialLaunchDate']?['date'];
+        final launchDateString = matchingRealToken['rentStartDate']?['date'];
         if (launchDateString != null) {
           final launchDate = DateTime.tryParse(launchDateString);
-
-          // Comparer la date de lancement avec aujourd'hui
           if (launchDate != null && launchDate.isBefore(today)) {
-            // Ajouter uniquement si la date de lancement est dans le passé
             annualYieldSum += matchingRealToken['annualPercentageYield'];
             yieldCount++;
-            dailyRentSum += matchingRealToken['netRentDayPerToken'] * amount;
-            monthlyRentSum += matchingRealToken['netRentMonthPerToken'] * amount;
-            yearlyRentSum += matchingRealToken['netRentYearPerToken'] * amount;
+            dailyRentSum +=
+                matchingRealToken['netRentDayPerToken'] * walletToken['amount'];
+            monthlyRentSum += matchingRealToken['netRentMonthPerToken'] *
+                walletToken['amount'];
+            yearlyRentSum += matchingRealToken['netRentYearPerToken'] *
+                walletToken['amount'];
           }
         }
+      }
 
-        double totalRentReceived = 0.0;
-        final tokenContractAddress = matchingRealToken['uuid'].toLowerCase() ?? ''; // Utiliser l'adresse du contrat du token
+      // Récupération du prix d'initialisation
+      final tokenContractAddress = matchingRealToken['uuid'].toLowerCase();
+      double? customInitPrice = customInitPrices[tokenContractAddress];
+      double initPrice = customInitPrice ??
+          ((matchingRealToken['historic']['init_price'] as num?)?.toDouble() ??
+              0.0);
 
-        double? customInitPrice = customInitPrices[tokenContractAddress];
-        double initPrice = customInitPrice ?? (matchingRealToken['historic']['init_price'] as num?)?.toDouble() ?? 0.0;
+      // Parsing du fullName pour obtenir country, regionCode et city
+      final nameDetails = parseFullName(matchingRealToken['fullName']);
 
-        String fullName = matchingRealToken['fullName'];
-        List<String> parts = fullName.split(',');
-        String country = parts.length == 4 ? parts[3].trim() : 'USA';
-        List<String> parts2 = fullName.split(',');
-        String regionCode = parts2.length >= 3 ? parts[2].trim().substring(0, 2) : 'unknown';
-        List<String> parts3 = fullName.split(',');
-        String city = parts3.length >= 2 ? parts[1].trim() : 'Unknown';
+      // Récupération des données Yam
+      final yamData = yamHistory.firstWhere(
+        (yam) => yam['id'].toLowerCase() == tokenContractAddress,
+        orElse: () => <String, dynamic>{},
+      );
+      final double yamTotalVolume = yamData['totalVolume'] ?? 1.0;
+      final double yamAverageValue =
+          (yamData['averageValue'] != null && yamData['averageValue'] != 0)
+              ? yamData['averageValue']
+              : tokenPrice;
 
-        // Chercher la valeur Yam associée au token
-        final yamData = yamHistory.firstWhere(
-          (yam) => yam['id'].toLowerCase() == tokenContractAddress,
-          orElse: () => <String, dynamic>{},
-        );
-
-        final double yamTotalVolume = yamData['totalVolume'] ?? 1.0;
-        final double yamAverageValue = (yamData['averageValue'] != null && yamData['averageValue'] != 0) ? yamData['averageValue'] : tokenPrice;
-
-        // Ajouter au Portfolio
-        newPortfolio.add({
+      // Fusion dans le portfolio par token (agrégation si le même token apparaît plusieurs fois)
+      int index = newPortfolio
+          .indexWhere((item) => item['uuid'] == tokenContractAddress);
+      if (index != -1) {
+        Map<String, dynamic> existingItem = newPortfolio[index];
+        List<String> wallets = existingItem['wallets'] is List<String>
+            ? List<String>.from(existingItem['wallets'])
+            : [];
+        if (!wallets.contains(walletToken['wallet'])) {
+          wallets.add(walletToken['wallet']);
+        }
+        existingItem['wallets'] = wallets;
+        existingItem['amount'] += walletToken['amount'];
+        existingItem['totalValue'] = existingItem['amount'] * tokenPrice;
+        existingItem['initialTotalValue'] = existingItem['amount'] * initPrice;
+        existingItem['dailyIncome'] =
+            matchingRealToken['netRentDayPerToken'] * existingItem['amount'];
+        existingItem['monthlyIncome'] =
+            matchingRealToken['netRentMonthPerToken'] * existingItem['amount'];
+        existingItem['yearlyIncome'] =
+            matchingRealToken['netRentYearPerToken'] * existingItem['amount'];
+      } else {
+        Map<String, dynamic> portfolioItem = {
           'id': matchingRealToken['id'],
           'uuid': tokenContractAddress,
           'shortName': matchingRealToken['shortName'],
           'fullName': matchingRealToken['fullName'],
-          'country': country,
-          'regionCode': regionCode,
-          'city': city,
+          'country': nameDetails['country'],
+          'regionCode': nameDetails['regionCode'],
+          'city': nameDetails['city'],
           'imageLink': matchingRealToken['imageLink'],
           'lat': matchingRealToken['coordinate']['lat'],
           'lng': matchingRealToken['coordinate']['lng'],
-          'amount': amount,
+          'amount': walletToken['amount'],
           'totalTokens': matchingRealToken['totalTokens'],
-          'walletTokensSum': matchingRealToken['walletTokensSum'],
-          'source': 'RMM',
+          'source': walletToken['type'],
           'tokenPrice': tokenPrice,
-          'totalValue': amount * tokenPrice,
-          'initialTotalValue': amount * initPrice,
+          'totalValue': tokenValue,
+          'initialTotalValue': walletToken['amount'] * initPrice,
           'annualPercentageYield': matchingRealToken['annualPercentageYield'],
-          'dailyIncome': matchingRealToken['netRentDayPerToken'] * amount,
-          'monthlyIncome': matchingRealToken['netRentMonthPerToken'] * amount,
-          'yearlyIncome': matchingRealToken['netRentYearPerToken'] * amount,
+          'dailyIncome':
+              matchingRealToken['netRentDayPerToken'] * walletToken['amount'],
+          'monthlyIncome':
+              matchingRealToken['netRentMonthPerToken'] * walletToken['amount'],
+          'yearlyIncome':
+              matchingRealToken['netRentYearPerToken'] * walletToken['amount'],
           'initialLaunchDate': matchingRealToken['initialLaunchDate']?['date'],
           'bedroomBath': matchingRealToken['bedroomBath'],
-
           // financials details
           'totalInvestment': matchingRealToken['totalInvestment'] ?? 0.0,
-          'underlyingAssetPrice': matchingRealToken['underlyingAssetPrice'] ?? 0.0,
+          'underlyingAssetPrice':
+              matchingRealToken['underlyingAssetPrice'] ?? 0.0,
           'realtListingFee': matchingRealToken['realtListingFee'],
-          'initialMaintenanceReserve': matchingRealToken['initialMaintenanceReserve'],
+          'initialMaintenanceReserve':
+              matchingRealToken['initialMaintenanceReserve'],
           'renovationReserve': matchingRealToken['renovationReserve'],
           'miscellaneousCosts': matchingRealToken['miscellaneousCosts'],
-
           'grossRentMonth': matchingRealToken['grossRentMonth'],
           'netRentMonth': matchingRealToken['netRentMonth'],
-          'propertyMaintenanceMonthly': matchingRealToken['propertyMaintenanceMonthly'],
+          'propertyMaintenanceMonthly':
+              matchingRealToken['propertyMaintenanceMonthly'],
           'propertyManagement': matchingRealToken['propertyManagement'],
           'realtPlatform': matchingRealToken['realtPlatform'],
           'insurance': matchingRealToken['insurance'],
           'propertyTaxes': matchingRealToken['propertyTaxes'],
-
           'rentalType': matchingRealToken['rentalType'],
           'rentStartDate': matchingRealToken['rentStartDate']?['date'],
           'rentedUnits': matchingRealToken['rentedUnits'],
@@ -976,41 +876,106 @@ class DataManager extends ChangeNotifier {
           'historic': matchingRealToken['historic'],
           'ethereumContract': matchingRealToken['ethereumContract'],
           'gnosisContract': matchingRealToken['gnosisContract'],
-          'totalRentReceived': totalRentReceived, // Ajout du loyer total reçu
+          'totalRentReceived': 0.0, // sera mis à jour juste après
           'initPrice': initPrice,
           'section8paid': matchingRealToken['section8paid'] ?? 0.0,
+          'yamTotalVolume': yamTotalVolume,
+          'yamAverageValue': yamAverageValue,
+          'transactions': transactionsByToken[tokenContractAddress] ?? [],
+          // Nouveau champ "wallets" pour suivre dans quels wallets ce token apparaît
+          'wallets': [walletToken['wallet']],
+        };
+        newPortfolio.add(portfolioItem);
+      }
 
-          'yamTotalVolume': yamTotalVolume, // Ajout de la valeur Yam calculée
-          'yamAverageValue': yamAverageValue, // Ajout de la valeur moyenne Yam calculée
-          'transactions': transactionsByToken[tokenContractAddress] ?? []
-        });
+      initialTotalValue += walletToken['amount'] * initPrice;
+      yamTotalValue += walletToken['amount'] * yamAverageValue;
 
-        initialTotalValue += amount * initPrice;
-        yamTotalValue += amount * yamAverageValue;
-
-        if (tokenContractAddress.isNotEmpty) {
-          // Récupérer les informations de loyer pour ce token
-          double? rentDetails = getRentDetailsForToken(tokenContractAddress);
-
-          double totalRentReceived = rentDetails;
-
-          // Une fois les données récupérées, mettre à jour l'élément du portfolio correspondant
-          final portfolioItem = newPortfolio.firstWhere(
-            (item) => item['shortName'] == matchingRealToken['shortName'],
-            orElse: () => {},
-          );
-
-          portfolioItem['totalRentReceived'] = totalRentReceived;
-
-          // Notifiez les listeners après avoir mis à jour le portfolio
-          notifyListeners();
+      // Mise à jour du loyer total pour ce token
+      if (tokenAddress.isNotEmpty) {
+        double? rentDetails = getRentDetailsForToken(tokenAddress);
+        int index =
+            newPortfolio.indexWhere((item) => item['uuid'] == tokenAddress);
+        if (index != -1) {
+          newPortfolio[index]['totalRentReceived'] = rentDetails;
         }
       }
+    } // Fin de la boucle sur walletTokens
+
+    // -------- Regroupement par wallet --------
+    // Pour chaque token dans la liste brute, on regroupe par wallet et on cumule :
+    // - La valeur totale des tokens de type "wallet"
+    // - La somme des quantités
+    // - Le nombre de tokens présents
+    Map<String, Map<String, dynamic>> walletTotals = {};
+    for (var token in walletTokens) {
+      final String wallet = token['wallet'];
+      // Initialisation si nécessaire
+      if (!walletTotals.containsKey(wallet)) {
+        walletTotals[wallet] = {
+          'walletValueSum': 0.0,
+          'walletTokensSum': 0.0,
+          'tokenCount': 0,
+        };
+      }
+      final tokenAddress = token['token'].toLowerCase();
+      final matchingRealToken =
+          realTokens.cast<Map<String, dynamic>>().firstWhere(
+                (rt) => rt['uuid'].toLowerCase() == tokenAddress,
+                orElse: () => <String, dynamic>{},
+              );
+      if (matchingRealToken.isEmpty) continue;
+      final double tokenPrice = matchingRealToken['tokenPrice'] ?? 0.0;
+      final double tokenValue = token['amount'] * tokenPrice;
+      // On additionne uniquement pour les tokens de type "wallet"
+      if (token['type'] == "wallet") {
+        walletTotals[wallet]!['walletValueSum'] += tokenValue;
+        walletTotals[wallet]!['walletTokensSum'] += token['amount'];
+      }
+      walletTotals[wallet]!['tokenCount'] += 1;
     }
 
-    // Mise à jour des variables pour le Dashboard
-    totalWalletValue = walletValueSum + rmmValueSum + rwaValue + totalUsdcDepositBalance + totalXdaiDepositBalance - totalUsdcBorrowBalance - totalXdaiBorrowBalance;
-    archiveTotalWalletValue(totalWalletValue);
+    // Affichage des statistiques par wallet
+    walletTotals.forEach((wallet, totals) {
+      debugPrint(
+          "Wallet: $wallet → Valeur: ${totals['walletValueSum']}, Quantité: ${totals['walletTokensSum']}, Nombre de tokens: ${totals['tokenCount']}");
+    });
+
+// -------- Calcul de la valeur RMM par wallet --------
+    Map<String, double> walletRmmValues = {};
+    for (var token in walletTokens) {
+      // On considère ici uniquement les tokens de type RMM (donc différents de "wallet")
+      if (token['type'] != "wallet") {
+        final String wallet = token['wallet'];
+        final String tokenAddress = token['token'].toLowerCase();
+        // Recherche du token correspondant dans realTokens (comme déjà fait précédemment)
+        final matchingRealToken =
+            realTokens.cast<Map<String, dynamic>>().firstWhere(
+                  (rt) => rt['uuid'].toLowerCase() == tokenAddress,
+                  orElse: () => <String, dynamic>{},
+                );
+        if (matchingRealToken.isEmpty) continue;
+        final double tokenPrice = matchingRealToken['tokenPrice'] ?? 0.0;
+        final double tokenValue = token['amount'] * tokenPrice;
+        // Cumuler la valeur RMM pour ce wallet
+        walletRmmValues[wallet] = (walletRmmValues[wallet] ?? 0.0) + tokenValue;
+      }
+    }
+// Stocker ces valeurs dans une variable accessible (par exemple, dans DataManager)
+    perWalletRmmValues = walletRmmValues;
+    walletRmmValues.forEach((wallet, value) {
+      debugPrint("Wallet: $wallet → Valeur RMM: $value");
+    });
+
+    // -------- Mise à jour des variables globales pour le Dashboard --------
+    totalWalletValue = walletValueSum +
+        rmmValueSum +
+        rwaValue +
+        totalUsdcDepositBalance +
+        totalXdaiDepositBalance -
+        totalUsdcBorrowBalance -
+        totalXdaiBorrowBalance;
+    _archiveManager.archiveTotalWalletValue(totalWalletValue);
 
     walletValue = double.parse(walletValueSum.toStringAsFixed(3));
     rmmValue = double.parse(rmmValueSum.toStringAsFixed(3));
@@ -1024,45 +989,41 @@ class DataManager extends ChangeNotifier {
     monthlyRent = monthlyRentSum;
     yearlyRent = yearlyRentSum;
 
-    // Compter les tokens uniques pour wallet et RMM
     walletTokenCount = uniqueWalletTokens.length;
     rmmTokenCount = uniqueRmmTokens.length;
-
-    // Crée des sets pour contenir les tokens uniques
-    final Set<String> walletTokensSet = uniqueWalletTokens.toSet();
-    final Set<String> rmmTokensSet = uniqueRmmTokens.toSet();
-    final Set<String> allUniqueTokens = {...walletTokensSet, ...rmmTokensSet};
-
-    // Comptabilise le nombre de tokens uniques
+    final Set<String> allUniqueTokens = {
+      ...uniqueWalletTokens,
+      ...uniqueRmmTokens
+    };
     totalTokenCount = allUniqueTokens.length;
+    duplicateTokenCount =
+        uniqueWalletTokens.intersection(uniqueRmmTokens).length;
 
-    // Trouve l'intersection des deux ensembles (tokens présents dans les deux sets)
-    final Set<String> duplicateTokens = walletTokensSet.intersection(rmmTokensSet);
-
-    // Comptabilise le nombre de tokens en doublons
-    duplicateTokenCount = duplicateTokens.length;
-
-    // Mise à jour des données pour le Portfolio
     _portfolio = newPortfolio;
-
     roiGlobalValue = getTotalRentReceived() / initialTotalValue * 100;
-    archiveRoiValue(roiGlobalValue);
+    _archiveManager.archiveRoiValue(roiGlobalValue);
 
     netGlobalApy = (((averageAnnualYield * (walletValue + rmmValue)) +
-            (totalUsdcDepositBalance * usdcDepositApy + totalXdaiDepositBalance * xdaiDepositApy) -
-            (totalUsdcBorrowBalance * usdcBorrowApy + totalXdaiBorrowBalance * xdaiBorrowApy)) /
-        (walletValue + rmmValue + totalUsdcDepositBalance + totalXdaiDepositBalance + totalUsdcBorrowBalance + totalXdaiBorrowBalance));
+            (totalUsdcDepositBalance * usdcDepositApy +
+                totalXdaiDepositBalance * xdaiDepositApy) -
+            (totalUsdcBorrowBalance * usdcBorrowApy +
+                totalXdaiBorrowBalance * xdaiBorrowApy)) /
+        (walletValue +
+            rmmValue +
+            totalUsdcDepositBalance +
+            totalXdaiDepositBalance +
+            totalUsdcBorrowBalance +
+            totalXdaiBorrowBalance));
+    _archiveManager.archiveApyValue(netGlobalApy, averageAnnualYield);
 
-    archiveApyValue(netGlobalApy, averageAnnualYield);
-
-    healthFactor = (rmmValue * 0.7) / (totalUsdcBorrowBalance + totalXdaiBorrowBalance);
+    healthFactor =
+        (rmmValue * 0.7) / (totalUsdcBorrowBalance + totalXdaiBorrowBalance);
     ltv = ((totalUsdcBorrowBalance + totalXdaiBorrowBalance) / rmmValue * 100);
-    archiveHealthAndLtvValue(healthFactor, ltv);
-    // Notify listeners that data has changed
+    _archiveManager.archiveHealthAndLtvValue(healthFactor, ltv);
+
     notifyListeners();
   }
 
-  // Méthode pour afficher l'évolution des loyers cumulés jusqu'à chaque 'rentStartDate'
   List<Map<String, dynamic>> getCumulativeRentEvolution() {
     List<Map<String, dynamic>> cumulativeRentList = [];
     double cumulativeRent = 0.0;
@@ -1096,24 +1057,35 @@ class DataManager extends ChangeNotifier {
   }
 
   // Méthode pour extraire les mises à jour récentes sur les 30 derniers jours
-  List<Map<String, dynamic>> _extractRecentUpdates(List<dynamic> realTokensRaw) {
-    final List<Map<String, dynamic>> realTokens = realTokensRaw.cast<Map<String, dynamic>>();
+  List<Map<String, dynamic>> _extractRecentUpdates(
+      List<dynamic> realTokensRaw) {
+    final List<Map<String, dynamic>> realTokens =
+        realTokensRaw.cast<Map<String, dynamic>>();
     List<Map<String, dynamic>> recentUpdates = [];
 
     for (var token in realTokens) {
       // Vérification si update30 existe, est une liste et est non vide
-      if (token.containsKey('update30') && token['update30'] is List && token['update30'].isNotEmpty) {
+      if (token.containsKey('update30') &&
+          token['update30'] is List &&
+          token['update30'].isNotEmpty) {
         // debugPrint("Processing updates for token: ${token['shortName'] ?? 'Nom inconnu'}");
 
         // Récupérer les informations de base du token
         final String shortName = token['shortName'] ?? 'Nom inconnu';
-        final String imageLink = (token['imageLink'] != null && token['imageLink'].isNotEmpty) ? token['imageLink'][0] : 'Lien d\'image non disponible';
+        final String imageLink =
+            (token['imageLink'] != null && token['imageLink'].isNotEmpty)
+                ? token['imageLink'][0]
+                : 'Lien d\'image non disponible';
 
         // Filtrer et formater les mises à jour pertinentes
-        List<Map<String, dynamic>> updatesWithDetails = List<Map<String, dynamic>>.from(token['update30'])
-            .where((update) => update.containsKey('key') && _isRelevantKey(update['key'])) // Vérifier que 'key' existe
-            .map((update) => _formatUpdateDetails(update, shortName, imageLink)) // Formater les détails
-            .toList();
+        List<Map<String, dynamic>> updatesWithDetails =
+            List<Map<String, dynamic>>.from(token['update30'])
+                .where((update) =>
+                    update.containsKey('key') &&
+                    _isRelevantKey(update['key'])) // Vérifier que 'key' existe
+                .map((update) => _formatUpdateDetails(
+                    update, shortName, imageLink)) // Formater les détails
+                .toList();
 
         // Ajouter les mises à jour extraites dans recentUpdates
         recentUpdates.addAll(updatesWithDetails);
@@ -1123,7 +1095,8 @@ class DataManager extends ChangeNotifier {
     }
 
     // Trier les mises à jour par date
-    recentUpdates.sort((a, b) => DateTime.parse(b['timsync']).compareTo(DateTime.parse(a['timsync'])));
+    recentUpdates.sort((a, b) =>
+        DateTime.parse(b['timsync']).compareTo(DateTime.parse(a['timsync'])));
     return recentUpdates;
   }
 
@@ -1133,7 +1106,8 @@ class DataManager extends ChangeNotifier {
   }
 
   // Formater les détails des mises à jour
-  Map<String, dynamic> _formatUpdateDetails(Map<String, dynamic> update, String shortName, String imageLink) {
+  Map<String, dynamic> _formatUpdateDetails(
+      Map<String, dynamic> update, String shortName, String imageLink) {
     String formattedKey = 'Donnée inconnue';
     String formattedOldValue = 'Valeur inconnue';
     String formattedNewValue = 'Valeur inconnue';
@@ -1179,11 +1153,13 @@ class DataManager extends ChangeNotifier {
 
         // Vérifier si les résultats ne sont pas vides avant de mettre à jour les variables
         if (tempRentData.isNotEmpty) {
-          debugPrint("Mise à jour des données de rentData avec de nouvelles valeurs.");
+          debugPrint(
+              "Mise à jour des données de rentData avec de nouvelles valeurs.");
           rentData = tempRentData; // Mise à jour de la variable locale
           box.put('cachedRentData', json.encode(tempRentData));
         } else {
-          debugPrint("Les résultats des données de rentData sont vides, pas de mise à jour.");
+          debugPrint(
+              "Les résultats des données de rentData sont vides, pas de mise à jour.");
         }
       } catch (e) {
         debugPrint("Erreur lors de la récupération des données de loyer: $e");
@@ -1193,24 +1169,32 @@ class DataManager extends ChangeNotifier {
     });
   }
 
-  Future<void> processTransactionsHistory(BuildContext context, List<Map<String, dynamic>> transactionsHistory, List<Map<String, dynamic>> yamTransactions) async {
+  Future<void> processTransactionsHistory(
+      BuildContext context,
+      List<Map<String, dynamic>> transactionsHistory,
+      List<Map<String, dynamic>> yamTransactions) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    final Set<String> evmAddresses = Set.from(prefs.getStringList('evmAddresses') ?? []);
+    final Set<String> evmAddresses =
+        Set.from(prefs.getStringList('evmAddresses') ?? {});
 
     Map<String, List<Map<String, dynamic>>> tempTransactionsByToken = {};
 
     debugPrint("📌 Début du traitement des transactions...");
-    debugPrint("📊 Nombre de transactionsHistory: ${transactionsHistory.length}");
+    debugPrint(
+        "📊 Nombre de transactionsHistory: ${transactionsHistory.length}");
     debugPrint("📊 Nombre de yamTransactions: ${yamTransactions.length}");
 
     for (var transaction in transactionsHistory) {
       final String? tokenId = transaction['token']?['id']?.toLowerCase();
       final String? timestamp = transaction['timestamp'];
       final String? amountStr = transaction['amount'];
-      final String? sender = transaction['sender'].toLowerCase();
-      final String? transactionId = transaction['id'].toLowerCase();
+      final String? sender = transaction['sender']?.toLowerCase();
+      final String? transactionId = transaction['id']?.toLowerCase();
 
-      if (tokenId == null || timestamp == null || amountStr == null || transactionId == null) {
+      if (tokenId == null ||
+          timestamp == null ||
+          amountStr == null ||
+          transactionId == null) {
         debugPrint("⚠️ Transaction ignorée (champ manquant): $transaction");
         continue;
       }
@@ -1219,18 +1203,18 @@ class DataManager extends ChangeNotifier {
         final int timestampMs = int.parse(timestamp) * 1000;
         final double amount = double.tryParse(amountStr) ?? 0.0;
         final bool isInternalTransfer = evmAddresses.contains(sender);
-        String transactionType = isInternalTransfer ? S.of(context).internal_transfer : S.of(context).purchase;
-
-        //debugPrint("🔍 Traitement transaction ID: $transactionId, Token: $tokenId, Amount: $amount");
+        String transactionType = isInternalTransfer
+            ? S.of(context).internal_transfer
+            : S.of(context).purchase;
 
         // Vérifier s'il existe une transaction YAM correspondante
         final matchingYamTransaction = yamTransactions.firstWhere(
           (yamTransaction) {
-            final String? yamId = yamTransaction['id'].toLowerCase();
+            final String? yamId =
+                yamTransaction['Transaction ID'].toLowerCase();
             if (yamId == null || yamId.isEmpty) return false;
             final String yamIdTrimmed = yamId.substring(0, yamId.length - 10);
             final bool match = transactionId.startsWith(yamIdTrimmed);
-            //debugPrint("🔎 Comparaison YAM ID: $yamIdTrimmed avec Transaction ID: $transactionId -> Match: $match");
             return match;
           },
           orElse: () => {},
@@ -1238,11 +1222,8 @@ class DataManager extends ChangeNotifier {
 
         double? price;
         if (matchingYamTransaction.isNotEmpty) {
-          final String? rawPrice = matchingYamTransaction['price'];
-          final int? priceDecimals = int.tryParse(matchingYamTransaction['offer']?['buyerToken']?['decimals'] ?? '6');
-          if (rawPrice != null && priceDecimals != null) {
-            price = double.tryParse(rawPrice)! / (pow(10, priceDecimals));
-          }
+          final double? rawPrice = matchingYamTransaction['Price']?.toDouble();
+          price = rawPrice ?? 0.0;
           transactionType = S.of(context).yam;
           debugPrint("✅ Correspondance YAM trouvée ! Prix: $price");
         } else {
@@ -1256,44 +1237,47 @@ class DataManager extends ChangeNotifier {
           "price": price,
         });
       } catch (e) {
-        //debugPrint("❗ Erreur lors du traitement de la transaction ID: $transactionId -> $e");
         continue;
       }
     }
 
     // Ajouter les transactions YAM qui n'ont pas été trouvées dans transactionsHistory
-    debugPrint("📌 Vérification des transactions YAM non trouvées dans transactionsHistory...");
+    debugPrint(
+        "📌 Vérification des transactions YAM non trouvées dans transactionsHistory...");
     for (var yamTransaction in yamTransactions) {
-      final String? yamId = yamTransaction['id'].toLowerCase();
+      final String? yamId = yamTransaction['Transaction ID']?.toLowerCase();
       if (yamId == null || yamId.isEmpty) continue;
 
       final String yamIdTrimmed = yamId.substring(0, yamId.length - 10);
-      final bool alreadyExists = transactionsHistory.any((transaction) => transaction['id']?.startsWith(yamIdTrimmed) ?? false);
+      final bool alreadyExists = transactionsHistory.any((transaction) =>
+          transaction['id']?.startsWith(yamIdTrimmed) ?? false);
 
       if (!alreadyExists) {
-        final String? yamTimestamp = yamTransaction['createdAtTimestamp'];
-        final String? yamPriceStr = yamTransaction['price'];
-        final String? yamQuantityStr = yamTransaction['quantity'];
-        final int? yamPriceDecimals = int.tryParse(yamTransaction['offer']?['buyerToken']?['decimals'] ?? '6');
-        final int? yamQuantityDecimals = int.tryParse(yamTransaction['offer']?['offerToken']?['decimals'] ?? '18');
+        final String? yamTimestamp = yamTransaction['Created At'];
+        final double? yamPrice = yamTransaction['Price']?.toDouble();
+        final double? yamQuantity = yamTransaction['Quantity']?.toDouble();
+        final String? offerTokenAddress =
+            yamTransaction['Offer Token Address']?.toLowerCase();
 
-        if (yamTimestamp == null || yamPriceStr == null || yamPriceDecimals == null || yamQuantityStr == null || yamQuantityDecimals == null) {
-          debugPrint("⚠️ Transaction YAM ignorée (champ manquant): $yamTransaction");
+        if (yamTimestamp == null ||
+            yamPrice == null ||
+            yamQuantity == null ||
+            offerTokenAddress == null) {
+          debugPrint(
+              "⚠️ Transaction YAM ignorée (champ manquant): $yamTransaction");
           continue;
         }
 
         final int timestampMs = int.parse(yamTimestamp) * 1000;
-        final double price = double.tryParse(yamPriceStr)! / (pow(10, yamPriceDecimals));
-        final double quantity = double.tryParse(yamQuantityStr)! / (pow(10, yamQuantityDecimals));
 
-        final String tokenAddress = yamTransaction['offer']?['offerToken']?['address']?.toLowerCase() ?? 'unknown';
-        debugPrint("➕ Ajout d'une nouvelle transaction YAM | ID: $yamId, Token: $tokenAddress, Amount: $quantity, Price: $price");
+        debugPrint(
+            "➕ Ajout d'une nouvelle transaction YAM | ID: $yamId, Token: $offerTokenAddress, Amount: $yamQuantity, Price: $yamPrice");
 
-        tempTransactionsByToken.putIfAbsent(tokenAddress, () => []).add({
-          "amount": quantity,
+        tempTransactionsByToken.putIfAbsent(offerTokenAddress, () => []).add({
+          "amount": yamQuantity,
           "dateTime": DateTime.fromMillisecondsSinceEpoch(timestampMs),
           "transactionType": S.of(context).yam,
-          "price": price,
+          "price": yamPrice,
         });
       }
     }
@@ -1307,34 +1291,39 @@ class DataManager extends ChangeNotifier {
   Future<void> fetchPropertyData({bool forceFetch = false}) async {
     List<Map<String, dynamic>> tempPropertyData = [];
 
-    // Fusionner les tokens de Gnosis et d'Etherum
-    final walletTokens = [...walletTokensGnosis, ...walletTokensEtherum];
-
-    // Fusionner les tokens du portefeuille (Gnosis, Ethereum) et du RMM
+    // Fusionner les tokens du portefeuille et du RMM
     List<dynamic> allTokens = [];
     for (var wallet in walletTokens) {
-      allTokens.addAll(wallet['balances']); // Ajouter tous les balances des wallets
+      allTokens
+          .addAll(wallet['balances']); // Ajouter tous les balances des wallets
     }
-    allTokens.addAll(rmmTokens); // Ajouter les tokens du RMM
 
     // Parcourir chaque token du portefeuille et du RMM
     for (var token in allTokens) {
-      if (token != null && token['token'] != null && (token['token']['address'] != null || token['token']['id'] != null)) {
-        final tokenAddress = (token['token']['address'] ?? token['token']['id'])?.toLowerCase();
+      if (token != null &&
+          token['token'] != null &&
+          (token['token']['address'] != null || token['token']['id'] != null)) {
+        final tokenAddress =
+            (token['token']['address'] ?? token['token']['id'])?.toLowerCase();
 
         // Correspondre avec les RealTokens
-        final matchingRealToken = realTokens.cast<Map<String, dynamic>>().firstWhere(
-              (realToken) => realToken['uuid'].toLowerCase() == tokenAddress.toLowerCase(),
+        final matchingRealToken = realTokens
+            .cast<Map<String, dynamic>>()
+            .firstWhere(
+              (realToken) =>
+                  realToken['uuid'].toLowerCase() == tokenAddress.toLowerCase(),
               orElse: () => <String, dynamic>{},
             );
 
-        if (matchingRealToken.isNotEmpty && matchingRealToken['propertyType'] != null) {
+        if (matchingRealToken.isNotEmpty &&
+            matchingRealToken['propertyType'] != null) {
           final propertyType = matchingRealToken['propertyType'];
 
           // Vérifiez si le type de propriété existe déjà dans propertyData
           final existingPropertyType = tempPropertyData.firstWhere(
             (data) => data['propertyType'] == propertyType,
-            orElse: () => <String, dynamic>{}, // Renvoie un map vide si aucune correspondance n'est trouvée
+            orElse: () => <String,
+                dynamic>{}, // Renvoie un map vide si aucune correspondance n'est trouvée
           );
 
           if (existingPropertyType.isNotEmpty) {
@@ -1396,9 +1385,8 @@ class DataManager extends ChangeNotifier {
     detailedRentData = [];
     propertyData = [];
     rmmBalances = [];
-    walletTokensGnosis = [];
-    walletTokensEtherum = [];
-    rmmTokens = [];
+    perWalletBalances = [];
+    walletTokens = [];
     realTokens = [];
     tempRentData = [];
     _portfolio = [];
@@ -1421,303 +1409,102 @@ class DataManager extends ChangeNotifier {
     debugPrint('Toutes les données ont été réinitialisées.');
   }
 
-  Future<void> fetchRmmBalances() async {
+ Future<void> fetchRmmBalances() async {
+  try {
+    // Totaux globaux
+    double totalUsdcDepositSum = 0;
+    double totalUsdcBorrowSum = 0;
+    double totalXdaiDepositSum = 0;
+    double totalXdaiBorrowSum = 0;
+    double totalGnosisUsdcSum = 0;
+    double totalGnosisXdaiSum = 0;
+
+    // Liste pour stocker les données par wallet
+    List<Map<String, dynamic>> walletDetails = [];
+
+    String? timestamp;
+
+    // Itérer sur chaque balance (chaque wallet)
+    for (var balance in rmmBalances) {
+      double usdcDeposit = balance['usdcDepositBalance'];
+      double usdcBorrow = balance['usdcBorrowBalance'];
+      double xdaiDeposit = balance['xdaiDepositBalance'];
+      double xdaiBorrow = balance['xdaiBorrowBalance'];
+      double gnosisUsdc = balance['gnosisUsdcBalance'];
+      double gnosisXdai = balance['gnosisXdaiBalance'];
+      timestamp = balance['timestamp']; // Dernier timestamp mis à jour
+
+      // Mise à jour des totaux globaux
+      totalUsdcDepositSum += usdcDeposit;
+      totalUsdcBorrowSum += usdcBorrow;
+      totalXdaiDepositSum += xdaiDeposit;
+      totalXdaiBorrowSum += xdaiBorrow;
+      totalGnosisUsdcSum += gnosisUsdc;
+      totalGnosisXdaiSum += gnosisXdai;
+
+      // Stocker les données propres au wallet
+      walletDetails.add({
+        'address': balance['address'],
+        'usdcDeposit': usdcDeposit,
+        'usdcBorrow': usdcBorrow,
+        'xdaiDeposit': xdaiDeposit,
+        'xdaiBorrow': xdaiBorrow,
+        'gnosisUsdc': gnosisUsdc,
+        'gnosisXdai': gnosisXdai,
+        'timestamp': timestamp,
+      });
+    }
+
+    // Mise à jour des variables globales avec les totaux cumulés
+    totalUsdcDepositBalance = totalUsdcDepositSum;
+    totalUsdcBorrowBalance = totalUsdcBorrowSum;
+    totalXdaiDepositBalance = totalXdaiDepositSum;
+    totalXdaiBorrowBalance = totalXdaiBorrowSum;
+    gnosisUsdcBalance = totalGnosisUsdcSum;
+    gnosisXdaiBalance = totalGnosisXdaiSum;
+
+    // Stocker les détails par wallet
+    perWalletBalances = walletDetails;
+
+    // Calcul de l'APY GLOBAL uniquement après avoir accumulé les totaux
     try {
-      double usdcDepositSum = 0;
-      double usdcBorrowSum = 0;
-      double xdaiDepositSum = 0;
-      double xdaiBorrowSum = 0;
-      double gnosisUsdcSum = 0;
-      double gnosisXdaiSum = 0;
-
-      String? timestamp;
-
-      // Cumuler les balances de tous les wallets pour chaque type de token
-      for (var balance in rmmBalances) {
-        usdcDepositSum += balance['usdcDepositBalance'];
-        usdcBorrowSum += balance['usdcBorrowBalance'];
-        xdaiDepositSum += balance['xdaiDepositBalance'];
-        xdaiBorrowSum += balance['xdaiBorrowBalance'];
-        gnosisUsdcSum += balance['gnosisUsdcBalance'];
-        gnosisXdaiSum += balance['gnosisXdaiBalance'];
-        timestamp = balance['timestamp']; // Dernier timestamp
-      }
-
-      // Essayer de calculer l'APY, mais ne pas bloquer le reste du code si une erreur survient
-      try {
-        usdcDepositApy = await calculateAPY('usdcDeposit');
-        usdcBorrowApy = await calculateAPY('usdcBorrow');
-        xdaiDepositApy = await calculateAPY('xdaiDeposit');
-        xdaiBorrowApy = await calculateAPY('xdaiBorrow');
-      } catch (e) {
-        debugPrint('Error calculating APY: $e');
-        // Si le calcul échoue, vous pouvez choisir d'ignorer cette partie ou de mettre à jour avec des valeurs par défaut.
-      }
-
-      // Mise à jour des variables avec les balances cumulées
-      totalUsdcDepositBalance = usdcDepositSum;
-      totalUsdcBorrowBalance = usdcBorrowSum;
-      totalXdaiDepositBalance = xdaiDepositSum;
-      totalXdaiBorrowBalance = xdaiBorrowSum;
-      gnosisXdaiBalance = gnosisXdaiSum;
-      gnosisUsdcBalance = gnosisUsdcSum;
-
-      notifyListeners(); // Notifier l'interface que les données ont été mises à jour
-
-      // Vérifier si une heure s'est écoulée depuis le dernier archivage
-      if (lastArchiveTime == null || DateTime.now().difference(lastArchiveTime!).inHours >= 1) {
-        if (timestamp != null) {
-          // Archiver les balances cumulées pour chaque type de token
-          archiveBalance('usdcDeposit', usdcDepositSum, timestamp);
-          archiveBalance('usdcBorrow', usdcBorrowSum, timestamp);
-          archiveBalance('xdaiDeposit', xdaiDepositSum, timestamp);
-          archiveBalance('xdaiBorrow', xdaiBorrowSum, timestamp);
-
-          // Mettre à jour le temps du dernier archivage
-          lastArchiveTime = DateTime.now();
-        }
-      }
+      usdcDepositApy = await calculateAPY('usdcDeposit');
+      usdcBorrowApy = await calculateAPY('usdcBorrow');
+      xdaiDepositApy = await calculateAPY('xdaiDeposit');
+      xdaiBorrowApy = await calculateAPY('xdaiBorrow');
     } catch (e) {
-      debugPrint('Error fetching RMM balances: $e');
+      debugPrint('Erreur lors du calcul de l\'APY global: $e');
     }
-  }
 
-  Future<List<BalanceRecord>> getBalanceHistory(String tokenType) async {
-    var box = Hive.box('balanceHistory'); // Boîte Hive pour récupérer les balances
+    // Debug : Afficher les totaux globaux et APY
+    debugPrint(
+        'Totaux globaux: USDC Deposit: $totalUsdcDepositSum, USDC Borrow: $totalUsdcBorrowSum, '
+        'XDAI Deposit: $totalXdaiDepositSum, XDAI Borrow: $totalXdaiBorrowSum, '
+        'Gnosis USDC: $totalGnosisUsdcSum, Gnosis XDAI: $totalGnosisXdaiSum');
 
-    // Récupérer les données depuis Hive
-    List<dynamic>? balanceHistoryJson = box.get('balanceHistory_$tokenType');
-    // Convertir chaque élément JSON en objet BalanceRecord
-    return balanceHistoryJson
-        !.map((recordJson) => BalanceRecord.fromJson(Map<String, dynamic>.from(recordJson)))
-        .where((record) => record.tokenType == tokenType) // Filtrer par tokenType
-        .toList();
-  
-    return []; // Retourne une liste vide si aucun historique n'est trouvé
-  }
+    debugPrint('APY Global: USDC Deposit: $usdcDepositApy, USDC Borrow: $usdcBorrowApy, '
+        'XDAI Deposit: $xdaiDepositApy, XDAI Borrow: $xdaiBorrowApy');
 
-  Future<void> archiveTotalWalletValue(double totalWalletValue) async {
-    var box = Hive.box('walletValueArchive'); // Ouvrir une nouvelle boîte dédiée
+    notifyListeners(); // Notifier l'interface que les données ont été mises à jour
 
-    // Charger l'historique existant depuis Hive
-    List<dynamic>? balanceHistoryJson = box.get('balanceHistory_totalWalletValue');
-    List<BalanceRecord> balanceHistory =
-        balanceHistoryJson != null ? balanceHistoryJson.map((recordJson) => BalanceRecord.fromJson(Map<String, dynamic>.from(recordJson))).toList() : [];
-
-    // Vérifier le dernier enregistrement
-    if (balanceHistory.isNotEmpty) {
-      BalanceRecord lastRecord = balanceHistory.last;
-      DateTime lastTimestamp = lastRecord.timestamp;
-
-      // Vérifier si la différence est inférieure à 1 heure
-      //debugPrint(DateTime.now().difference(lastTimestamp).inHours);
-      if (DateTime.now().difference(lastTimestamp).inHours < 1) {
-        // Si moins d'une heure, ne rien faire
-        return; // Sortir de la fonction sans ajouter d'enregistrement
+    // Archivage global si une heure s'est écoulée depuis le dernier archivage
+    if (lastArchiveTime == null || DateTime.now().difference(lastArchiveTime!).inHours >= 1) {
+      if (timestamp != null) {
+        _archiveManager.archiveBalance('usdcDeposit', totalUsdcDepositSum, timestamp);
+        _archiveManager.archiveBalance('usdcBorrow', totalUsdcBorrowSum, timestamp);
+        _archiveManager.archiveBalance('xdaiDeposit', totalXdaiDepositSum, timestamp);
+        _archiveManager.archiveBalance('xdaiBorrow', totalXdaiBorrowSum, timestamp);
+        lastArchiveTime = DateTime.now();
       }
     }
-
-    // Ajouter le nouvel enregistrement à l'historique
-    BalanceRecord newRecord = BalanceRecord(
-      tokenType: 'totalWalletValue',
-      balance: double.parse(totalWalletValue.toStringAsFixed(3)),
-      timestamp: DateTime.now(),
-    );
-    balanceHistory.add(newRecord);
-
-    // Sauvegarder la liste mise à jour dans Hive
-    List<Map<String, dynamic>> balanceHistoryJsonToSave = balanceHistory.map((record) => record.toJson()).toList();
-    await box.put('balanceHistory_totalWalletValue', balanceHistoryJsonToSave); // Stocker dans la nouvelle boîte
+  } catch (e) {
+    debugPrint('Erreur lors de la récupération des balances RMM: $e');
   }
-
-  Future<void> archiveRentedValue(double rentedValue) async {
-    try {
-      var box = Hive.box('rentedArchive'); // Ouvrir une nouvelle boîte dédiée
-
-      // Charger l'historique existant depuis Hive
-      List<dynamic>? rentedHistoryJson = box.get('rented_history');
-      List<RentedRecord> rentedHistory =
-          rentedHistoryJson != null ? rentedHistoryJson.map((recordJson) => RentedRecord.fromJson(Map<String, dynamic>.from(recordJson))).toList() : [];
-
-      // Vérifier le dernier enregistrement
-      if (rentedHistory.isNotEmpty) {
-        RentedRecord lastRecord = rentedHistory.last;
-        DateTime lastTimestamp = lastRecord.timestamp;
-
-        // Vérifier si la différence est inférieure à 1 heure
-        if (DateTime.now().difference(lastTimestamp).inHours < 1) {
-          // Si moins d'une heure, ne rien faire
-          debugPrint('Dernière archive récente, aucun nouvel enregistrement ajouté.');
-          return; // Sortir de la fonction sans ajouter d'enregistrement
-        }
-      }
-
-      // Ajouter le nouvel enregistrement à l'historique
-      RentedRecord newRecord = RentedRecord(
-        percentage: double.parse(rentedValue.toStringAsFixed(3)), // S'assurer que roi est un double
-        timestamp: DateTime.now(),
-      );
-      rentedHistory.add(newRecord);
-
-      // Sauvegarder la liste mise à jour dans Hive
-      List<Map<String, dynamic>> rentedHistoryJsonToSave = rentedHistory.map((record) => record.toJson()).toList();
-
-      await box.put('rented_history', rentedHistoryJsonToSave); // Stocker dans la nouvelle boîte
-      debugPrint('Nouvel enregistrement ROI ajouté et sauvegardé avec succès.');
-    } catch (e) {
-      debugPrint('Erreur lors de l\'archivage de la valeur ROI : $e');
-    }
-  }
-
-  Future<void> archiveRoiValue(double roiValue) async {
-    try {
-      var box = Hive.box('roiValueArchive'); // Ouvrir une nouvelle boîte dédiée
-
-      // Charger l'historique existant depuis Hive
-      List<dynamic>? roiHistoryJson = box.get('roi_history');
-      List<RoiRecord> roiHistory = roiHistoryJson != null ? roiHistoryJson.map((recordJson) => RoiRecord.fromJson(Map<String, dynamic>.from(recordJson))).toList() : [];
-
-      // Vérifier le dernier enregistrement
-      if (roiHistory.isNotEmpty) {
-        RoiRecord lastRecord = roiHistory.last;
-        DateTime lastTimestamp = lastRecord.timestamp;
-
-        // Vérifier si la différence est inférieure à 1 heure
-        if (DateTime.now().difference(lastTimestamp).inHours < 1) {
-          // Si moins d'une heure, ne rien faire
-          debugPrint('Dernière archive récente, aucun nouvel enregistrement ajouté.');
-          return; // Sortir de la fonction sans ajouter d'enregistrement
-        }
-      }
-
-      // Ajouter le nouvel enregistrement à l'historique
-      RoiRecord newRecord = RoiRecord(
-        roi: double.parse(roiValue.toStringAsFixed(3)), // S'assurer que roi est un double
-        timestamp: DateTime.now(),
-      );
-      roiHistory.add(newRecord);
-
-      // Sauvegarder la liste mise à jour dans Hive
-      List<Map<String, dynamic>> roiHistoryJsonToSave = roiHistory.map((record) => record.toJson()).toList();
-
-      await box.put('roi_history', roiHistoryJsonToSave); // Stocker dans la nouvelle boîte
-      debugPrint('Nouvel enregistrement ROI ajouté et sauvegardé avec succès.');
-    } catch (e) {
-      debugPrint('Erreur lors de l\'archivage de la valeur ROI : $e');
-    }
-  }
-
-  Future<void> archiveApyValue(double netApyValue, double grossApyValue) async {
-    try {
-      var box = Hive.box('apyValueArchive'); // Ouvrir une nouvelle boîte dédiée
-
-      // Charger l'historique existant depuis Hive
-      List<dynamic>? apyHistoryJson = box.get('apy_history');
-      List<ApyRecord> apyHistory = apyHistoryJson != null ? apyHistoryJson.map((recordJson) => ApyRecord.fromJson(Map<String, dynamic>.from(recordJson))).toList() : [];
-
-      // Vérifier le dernier enregistrement
-      if (apyHistory.isNotEmpty) {
-        ApyRecord lastRecord = apyHistory.last;
-        DateTime lastTimestamp = lastRecord.timestamp;
-
-        // Vérifier si la différence est inférieure à 1 heure
-        if (DateTime.now().difference(lastTimestamp).inHours < 1) {
-          // Si moins d'une heure, ne rien faire
-          debugPrint('Dernier enregistrement récent, aucun nouvel enregistrement ajouté.');
-          return; // Sortir de la fonction
-        }
-      }
-
-      // Ajouter un nouvel enregistrement avec des valeurs formatées en double
-      ApyRecord newRecord = ApyRecord(
-        netApy: double.parse(netApyValue.toStringAsFixed(3)), // Conversion en double avec précision
-        grossApy: double.parse(grossApyValue.toStringAsFixed(3)), // Conversion en double avec précision
-        timestamp: DateTime.now(),
-      );
-      apyHistory.add(newRecord);
-
-      // Sauvegarder dans Hive
-      List<Map<String, dynamic>> apyHistoryJsonToSave = apyHistory.map((record) => record.toJson()).toList();
-      await box.put('apy_history', apyHistoryJsonToSave);
-
-      debugPrint('Nouvel enregistrement APY ajouté et sauvegardé avec succès.');
-    } catch (e) {
-      debugPrint('Erreur lors de l\'archivage des valeurs APY : $e');
-    }
-  }
-
-  Future<void> archiveBalance(String tokenType, double balance, String timestamp) async {
-    try {
-      var box = Hive.box('balanceHistory'); // Boîte Hive pour stocker les balances
-
-      // Charger l'historique existant depuis Hive
-      List<dynamic>? balanceHistoryJson = box.get('balanceHistory_$tokenType');
-      List<BalanceRecord> balanceHistory =
-          balanceHistoryJson != null ? balanceHistoryJson.map((recordJson) => BalanceRecord.fromJson(Map<String, dynamic>.from(recordJson))).toList() : [];
-
-      // Créer un nouvel enregistrement avec une balance formatée
-      BalanceRecord newRecord = BalanceRecord(
-        tokenType: tokenType,
-        balance: double.parse(balance.toStringAsFixed(3)), // Garantir une balance au format double
-        timestamp: DateTime.parse(timestamp),
-      );
-
-      // Ajouter le nouvel enregistrement
-      balanceHistory.add(newRecord);
-
-      // Sauvegarder la liste mise à jour dans Hive
-      List<Map<String, dynamic>> balanceHistoryJsonToSave = balanceHistory.map((record) => record.toJson()).toList();
-      await box.put('balanceHistory_$tokenType', balanceHistoryJsonToSave);
-
-      //debugPrint( 'Nouvelle balance ajoutée et sauvegardée avec succès pour $tokenType.');
-    } catch (e) {
-      debugPrint('Erreur lors de l\'archivage de la balance pour $tokenType : $e');
-    }
-  }
-
-  Future<void> archiveHealthAndLtvValue(double healtFactorValue, double ltvValue) async {
-    try {
-      var box = Hive.box('HealthAndLtvValueArchive'); // Ouvrir une nouvelle boîte dédiée
-
-      // Charger l'historique existant depuis Hive
-      List<dynamic>? healthAndLtvHistoryJson = box.get('healthAndLtv_history');
-      List<HealthAndLtvRecord> healthAndLtvHistory =
-          healthAndLtvHistoryJson != null ? healthAndLtvHistoryJson.map((recordJson) => HealthAndLtvRecord.fromJson(Map<String, dynamic>.from(recordJson))).toList() : [];
-
-      // Vérifier le dernier enregistrement
-      if (healthAndLtvHistory.isNotEmpty) {
-        HealthAndLtvRecord lastRecord = healthAndLtvHistory.last;
-        DateTime lastTimestamp = lastRecord.timestamp;
-
-        // Vérifier si la différence est inférieure à 1 heure
-        if (DateTime.now().difference(lastTimestamp).inHours < 1) {
-          // Si moins d'une heure, ne rien faire
-          debugPrint('Dernier enregistrement récent, aucun nouvel enregistrement ajouté.');
-          return; // Sortir de la fonction
-        }
-      }
-
-      // Ajouter un nouvel enregistrement avec des valeurs formatées en double
-      HealthAndLtvRecord newRecord = HealthAndLtvRecord(
-        healthFactor: double.parse(healtFactorValue.toStringAsFixed(3)), // Conversion en double avec précision
-        ltv: double.parse(ltvValue.toStringAsFixed(3)), // Conversion en double avec précision
-        timestamp: DateTime.now(),
-      );
-      healthAndLtvHistory.add(newRecord);
-
-      // Sauvegarder dans Hive
-      List<Map<String, dynamic>> healthAndLtvHistoryJsonToSave = healthAndLtvHistory.map((record) => record.toJson()).toList();
-      await box.put('healthAndLtv_history', healthAndLtvHistoryJsonToSave);
-
-      debugPrint('Nouvel enregistrement APY ajouté et sauvegardé avec succès.');
-    } catch (e) {
-      debugPrint('Erreur lors de l\'archivage des valeurs APY : $e');
-    }
-  }
+}
 
   Future<double> calculateAPY(String tokenType) async {
     // Récupérer l'historique des balances
-    List<BalanceRecord> history = await getBalanceHistory(tokenType);
+    List<BalanceRecord> history = await _archiveManager.getBalanceHistory(tokenType);
 
     // Vérifier s'il y a au moins deux enregistrements pour calculer l'APY
     if (history.length < 2) {
@@ -1783,7 +1570,8 @@ class DataManager extends ChangeNotifier {
     double finalBalance = current.balance;
 
     // Calculer la différence en pourcentage
-    double percentageChange = ((finalBalance - initialBalance) / initialBalance) * 100;
+    double percentageChange =
+        ((finalBalance - initialBalance) / initialBalance) * 100;
 
     // Ignorer si la différence est trop faible (par exemple moins de 0,001%)
     if (percentageChange.abs() < 0.001) {
@@ -1796,7 +1584,8 @@ class DataManager extends ChangeNotifier {
     }
 
     // Calculer la durée en secondes
-    double timePeriodInSeconds = current.timestamp.difference(previous.timestamp).inSeconds.toDouble();
+    double timePeriodInSeconds =
+        current.timestamp.difference(previous.timestamp).inSeconds.toDouble();
 
     // Ignorer les périodes trop courtes (moins de 1 minute, par exemple)
     if (timePeriodInSeconds < 60) {
@@ -1804,13 +1593,21 @@ class DataManager extends ChangeNotifier {
     }
 
     // Calculer l'APY en utilisant des secondes et convertir pour une période annuelle
-    double apy = ((finalBalance - initialBalance) / initialBalance) * (365 * 24 * 60 * 60 / timePeriodInSeconds) * 100;
+    double apy = ((finalBalance - initialBalance) / initialBalance) *
+        (365 * 24 * 60 * 60 / timePeriodInSeconds) *
+        100;
 
     return apy;
   }
 
   double getTotalRentReceived() {
-    return rentData.fold(0.0, (total, rentEntry) => total + (rentEntry['rent'] is String ? double.parse(rentEntry['rent']) : rentEntry['rent']));
+    return rentData.fold(
+        0.0,
+        (total, rentEntry) =>
+            total +
+            (rentEntry['rent'] is String
+                ? double.parse(rentEntry['rent'])
+                : rentEntry['rent']));
   }
 
   double getRentDetailsForToken(String token) {
@@ -1824,7 +1621,8 @@ class DataManager extends ChangeNotifier {
 
         // Parcourir chaque élément de la liste des loyers
         for (var rentEntry in rents) {
-          if (rentEntry['token'] != null && rentEntry['token'].toLowerCase() == token.toLowerCase()) {
+          if (rentEntry['token'] != null &&
+              rentEntry['token'].toLowerCase() == token.toLowerCase()) {
             // Ajoute le rent à totalRent si le token correspond
             totalRent += (rentEntry['rent'] ?? 0.0).toDouble();
           }
@@ -1841,7 +1639,8 @@ class DataManager extends ChangeNotifier {
 
     if (savedData != null) {
       final decodedMap = Map<String, dynamic>.from(jsonDecode(savedData));
-      customInitPrices = decodedMap.map((key, value) => MapEntry(key, value as double));
+      customInitPrices =
+          decodedMap.map((key, value) => MapEntry(key, value as double));
     }
     notifyListeners();
   }
@@ -1872,7 +1671,12 @@ class DataManager extends ChangeNotifier {
         propertiesForSale = propertiesForSaleFetched.map((property) {
           // Chercher le RealToken correspondant à partir de realTokens en comparant `title` et `fullName`
           final matchingToken = allTokens.firstWhere(
-            (token) => property['title'] != null && token['shortName'] != null && property['title'].toString().contains(token['shortName'].toString()),
+            (token) =>
+                property['title'] != null &&
+                token['shortName'] != null &&
+                property['title']
+                    .toString()
+                    .contains(token['shortName'].toString()),
             orElse: () => <String, dynamic>{},
           );
 
@@ -1898,7 +1702,8 @@ class DataManager extends ChangeNotifier {
         debugPrint("⚠️ DataManager: Aucune propriété en vente trouvée");
       }
     } catch (e) {
-      debugPrint("DataManager: Erreur lors de la récupération des propriétés en vente: $e");
+      debugPrint(
+          "DataManager: Erreur lors de la récupération des propriétés en vente: $e");
     }
 
     // Notifie les widgets que les données ont changé
@@ -1913,8 +1718,10 @@ class DataManager extends ChangeNotifier {
     List<Map<String, dynamic>> yamMarketData = [];
 
     if (cachedData != null) {
-      yamMarketFetched = List<Map<String, dynamic>>.from(json.decode(cachedData));
-      debugPrint("✅ Données YamMarket en cache trouvées : ${yamMarketFetched.length} offres chargées.");
+      yamMarketFetched =
+          List<Map<String, dynamic>>.from(json.decode(cachedData));
+      debugPrint(
+          "✅ Données YamMarket en cache trouvées : ${yamMarketFetched.length} offres chargées.");
     } else {
       debugPrint("⚠️ Aucune donnée YamMarket en cache.");
     }
@@ -1932,8 +1739,11 @@ class DataManager extends ChangeNotifier {
         // debugPrint("🔍 Traitement de l'offre ID: ${offer['id_offer']} - Token Sell: ${offer['token_to_sell']} - Token Buy: ${offer['token_to_buy']}");
 
         // Vérifier si le token de l'offre correspond à un token de allTokens
-        final matchingToken =
-            allTokens.firstWhere((token) => token['uuid'] == offer['token_to_sell']?.toLowerCase() || token['uuid'] == offer['token_to_buy']?.toLowerCase(), orElse: () {
+        final matchingToken = allTokens.firstWhere(
+            (token) =>
+                token['uuid'] == offer['token_to_sell']?.toLowerCase() ||
+                token['uuid'] == offer['token_to_buy']?.toLowerCase(),
+            orElse: () {
           // debugPrint("⚠️ Aucun token correspondant trouvé pour l'offre ${offer['id_offer']}. UUIDs: sell=${offer['token_to_sell']}, buy=${offer['token_to_buy']}");
           return <String, dynamic>{};
         });
@@ -1995,79 +1805,42 @@ class DataManager extends ChangeNotifier {
     final yamHistoryJson = box.get('yamHistory');
 
     if (yamHistoryJson == null) {
-      debugPrint("❌ fetchYamHistory -> Aucune donnée Yam History trouvée dans Hive.");
+      debugPrint(
+          "❌ fetchYamHistory -> Aucune donnée Yam History trouvée dans Hive.");
       return;
     }
 
     List<dynamic> yamHistoryData = json.decode(yamHistoryJson);
 
-    List<Map<String, dynamic>> tokenStatistics = yamHistoryData.map((tokenData) {
-      final tokenDecimals = int.tryParse(tokenData['decimals'].toString()) ?? 18;
-      final volumes = tokenData['volumes'] ?? [];
-
-      double totalWeightedVolume = 0;
-      double totalWeight = 0;
-
-      for (var volume in volumes) {
-        final volumeTokenDecimals = int.tryParse(volume['token']['decimals'].toString()) ?? 6;
-        final volumeDays = volume['volumeDays'] ?? [];
-
-        // Vérification des données de volume
-        //debugPrint("Token: ${tokenData['id']}, Volume: $volume");
-        if (volumeDays.isEmpty) {
-          // debugPrint( "Aucune donnée disponible dans volumeDays pour le token ${tokenData['id']} avec décimales=$volumeTokenDecimals");
-          continue;
-        }
-
-        double subTotalVolume = 0;
-        double subTotalQuantity = 0;
-
-        for (var day in volumeDays) {
-          // Logs des données brutes
-          //debugPrint( "Token: ${tokenData['id']}, Jour: ${day['date']}, Volume brut: ${day['volume']}, Quantité brute: ${day['quantity']}");
-
-          // Normalisation des quantités et des volumes
-          final dayVolume = (day['volume'] != null) ? (double.tryParse(day['volume'].toString()) ?? 0) / pow(10, volumeTokenDecimals) : 0;
-          final dayQuantity = (day['quantity'] != null) ? (double.tryParse(day['quantity'].toString()) ?? 0) / pow(10, tokenDecimals) : 0;
-
-          if (dayVolume > 0 && dayQuantity > 0) {
-            subTotalVolume += dayVolume;
-            subTotalQuantity += dayQuantity;
-          } else {
-            // debugPrint( "Données invalides pour le jour ${day['date']} du token ${tokenData['id']} -> volume: $dayVolume, quantité: $dayQuantity");
-          }
-        }
-
-        if (subTotalQuantity > 0) {
-          final averageForDecimals = subTotalVolume / subTotalQuantity;
-          final weight = subTotalVolume;
-
-          totalWeightedVolume += averageForDecimals * weight;
-          totalWeight += weight;
-
-          //debugPrint( "Sous-total pour décimales=$volumeTokenDecimals -> Volume: $subTotalVolume, Quantité: $subTotalQuantity, Moyenne: $averageForDecimals, Poids: $weight");
-        } else {
-          // debugPrint("❌ Aucun sous-total valide pour décimales=$volumeTokenDecimals");
-        }
+    // Regroupement par token
+    Map<String, List<Map<String, dynamic>>> grouped = {};
+    for (var entry in yamHistoryData) {
+      String token = entry['Token'];
+      if (grouped[token] == null) {
+        grouped[token] = [];
       }
+      grouped[token]!.add(Map<String, dynamic>.from(entry));
+    }
 
-      double averageValue = 0;
-      if (totalWeight > 0) {
-        averageValue = totalWeightedVolume / totalWeight;
-      } else {
-        // debugPrint("❌ Valeur aberrante détectée : aucun poids total pour le token ${tokenData['id']}");
+    List<Map<String, dynamic>> tokenStatistics = [];
+    grouped.forEach((token, entries) {
+      double totalVolume = 0;
+      double totalQuantity = 0;
+      for (var day in entries) {
+        totalVolume += (day['Volume'] as num).toDouble();
+        totalQuantity += (day['Quantity'] as num).toDouble();
       }
-
-      return {
-        'id': tokenData['id'],
-        'totalVolume': totalWeight,
+      double averageValue = totalQuantity > 0 ? totalVolume / totalQuantity : 0;
+      tokenStatistics.add({
+        'id': token,
+        'totalVolume': totalVolume,
         'averageValue': averageValue,
-      };
-    }).toList();
+      });
+    });
 
-    debugPrint("fetchYamHistory -> Mise à jour des statistiques des tokens Yam.");
+    debugPrint(
+        "fetchYamHistory -> Mise à jour des statistiques des tokens Yam.");
     yamHistory = tokenStatistics;
-
     notifyListeners();
   }
 }

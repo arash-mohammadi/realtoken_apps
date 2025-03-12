@@ -3,7 +3,6 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:provider/provider.dart';
 import 'package:realtokens/managers/data_manager.dart';
 import 'package:realtokens/app_state.dart';
-import 'package:realtokens/utils/ui_utils.dart';
 import 'package:realtokens/generated/l10n.dart';
 import 'package:realtokens/utils/parameters.dart';
 import 'package:realtokens/modals/modal_others_pie.dart'; // Assurez-vous que ce fichier existe
@@ -14,13 +13,17 @@ class TokenDistributionByRegionCard extends StatefulWidget {
   const TokenDistributionByRegionCard({super.key, required this.dataManager});
 
   @override
-  _TokenDistributionByRegionCardState createState() => _TokenDistributionByRegionCardState();
+  _TokenDistributionByRegionCardState createState() =>
+      _TokenDistributionByRegionCardState();
 }
 
-class _TokenDistributionByRegionCardState extends State<TokenDistributionByRegionCard> {
+class _TokenDistributionByRegionCardState
+    extends State<TokenDistributionByRegionCard> {
   int? _selectedIndexRegion;
-  final ValueNotifier<int?> _selectedIndexNotifierRegion = ValueNotifier<int?>(null);
-  List<Map<String, dynamic>> othersDetails = []; // Pour stocker les détails de la section "Autres"
+  final ValueNotifier<int?> _selectedIndexNotifierRegion =
+      ValueNotifier<int?>(null);
+  List<Map<String, dynamic>> othersDetails =
+      []; // Pour stocker les détails de la section "Autres"
 
   @override
   Widget build(BuildContext context) {
@@ -52,20 +55,31 @@ class _TokenDistributionByRegionCardState extends State<TokenDistributionByRegio
                     children: [
                       PieChart(
                         PieChartData(
-                          sections: _buildDonutChartDataByRegion(widget.dataManager, othersDetails, selectedIndex),
+                          sections: _buildDonutChartDataByRegion(
+                              widget.dataManager, othersDetails, selectedIndex),
                           centerSpaceRadius: 70,
                           sectionsSpace: 2,
                           borderData: FlBorderData(show: false),
                           pieTouchData: PieTouchData(
-                            touchCallback: (FlTouchEvent event, PieTouchResponse? response) {
-                              if (response != null && response.touchedSection != null) {
-                                final touchedIndex = response.touchedSection!.touchedSectionIndex;
-                                _selectedIndexNotifierRegion.value = touchedIndex >= 0 ? touchedIndex : null;
+                            touchCallback: (FlTouchEvent event,
+                                PieTouchResponse? response) {
+                              if (response != null &&
+                                  response.touchedSection != null) {
+                                final touchedIndex = response
+                                    .touchedSection!.touchedSectionIndex;
+                                _selectedIndexNotifierRegion.value =
+                                    touchedIndex >= 0 ? touchedIndex : null;
 
                                 if (event is FlTapUpEvent) {
-                                  final section = response.touchedSection!.touchedSection;
-                                  if (section!.title.contains(S.of(context).others)) {
-                                    showOtherDetailsModal(context, widget.dataManager, othersDetails, 'region');
+                                  final section =
+                                      response.touchedSection!.touchedSection;
+                                  if (section!.title
+                                      .contains(S.of(context).others)) {
+                                    showOtherDetailsModal(
+                                        context,
+                                        widget.dataManager,
+                                        othersDetails,
+                                        'region');
                                   }
                                 }
                               } else {
@@ -75,7 +89,8 @@ class _TokenDistributionByRegionCardState extends State<TokenDistributionByRegio
                           ),
                         ),
                       ),
-                      _buildCenterTextByRegion(widget.dataManager, selectedIndex, othersDetails),
+                      _buildCenterTextByRegion(
+                          widget.dataManager, selectedIndex, othersDetails),
                     ],
                   );
                 },
@@ -93,7 +108,10 @@ class _TokenDistributionByRegionCardState extends State<TokenDistributionByRegio
     );
   }
 
-  List<PieChartSectionData> _buildDonutChartDataByRegion(DataManager dataManager, List<Map<String, dynamic>> othersDetails, int? selectedIndex) {
+  List<PieChartSectionData> _buildDonutChartDataByRegion(
+      DataManager dataManager,
+      List<Map<String, dynamic>> othersDetails,
+      int? selectedIndex) {
     Map<String, int> regionCount = {};
     final appState = Provider.of<AppState>(context);
 
@@ -101,9 +119,12 @@ class _TokenDistributionByRegionCardState extends State<TokenDistributionByRegio
     for (var token in dataManager.portfolio) {
       String fullName = token['fullName'];
       List<String> parts = fullName.split(',');
-      String regionCode = parts.length >= 3 ? parts[2].trim().substring(0, 2) : S.of(context).unknown;
+      String regionCode = parts.length >= 3
+          ? parts[2].trim().substring(0, 2)
+          : S.of(context).unknown;
 
-      String regionName = Parameters.usStateAbbreviations[regionCode] ?? regionCode;
+      String regionName =
+          Parameters.usStateAbbreviations[regionCode] ?? regionCode;
       regionCount[regionName] = (regionCount[regionName] ?? 0) + 1;
     }
 
@@ -111,7 +132,8 @@ class _TokenDistributionByRegionCardState extends State<TokenDistributionByRegio
     int totalCount = regionCount.values.fold(0, (sum, value) => sum + value);
 
     // Trier les régions par 'count' croissant
-    final sortedRegions = regionCount.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
+    final sortedRegions = regionCount.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
 
     List<PieChartSectionData> sections = [];
     othersDetails.clear();
@@ -137,7 +159,9 @@ class _TokenDistributionByRegionCardState extends State<TokenDistributionByRegio
           color: baseColor.withOpacity(opacity),
           radius: isSelected ? 50 : 40,
           titleStyle: TextStyle(
-            fontSize: isSelected ? 14 + appState.getTextSizeOffset() : 10 + appState.getTextSizeOffset(),
+            fontSize: isSelected
+                ? 14 + appState.getTextSizeOffset()
+                : 10 + appState.getTextSizeOffset(),
             color: Colors.white,
             fontWeight: FontWeight.bold,
           ),
@@ -150,11 +174,18 @@ class _TokenDistributionByRegionCardState extends State<TokenDistributionByRegio
       final double othersPercentage = (othersValue / totalCount) * 100;
       sections.add(PieChartSectionData(
         value: othersValue.toDouble(),
-        title: '${S.of(context).others} ${othersPercentage.toStringAsFixed(1)}%',
-        color: Colors.grey.withOpacity(selectedIndex != null && selectedIndex == sections.length ? 1.0 : 0.5),
-        radius: selectedIndex != null && selectedIndex == sections.length ? 50 : 40,
+        title:
+            '${S.of(context).others} ${othersPercentage.toStringAsFixed(1)}%',
+        color: Colors.grey.withOpacity(
+            selectedIndex != null && selectedIndex == sections.length
+                ? 1.0
+                : 0.5),
+        radius:
+            selectedIndex != null && selectedIndex == sections.length ? 50 : 40,
         titleStyle: TextStyle(
-          fontSize: selectedIndex != null && selectedIndex == sections.length ? 14 + appState.getTextSizeOffset() : 10 + appState.getTextSizeOffset(),
+          fontSize: selectedIndex != null && selectedIndex == sections.length
+              ? 14 + appState.getTextSizeOffset()
+              : 10 + appState.getTextSizeOffset(),
           color: Colors.white,
           fontWeight: FontWeight.bold,
         ),
@@ -164,16 +195,20 @@ class _TokenDistributionByRegionCardState extends State<TokenDistributionByRegio
     return sections;
   }
 
-  Widget _buildCenterTextByRegion(DataManager dataManager, int? selectedIndex, List<Map<String, dynamic>> othersDetails) {
+  Widget _buildCenterTextByRegion(DataManager dataManager, int? selectedIndex,
+      List<Map<String, dynamic>> othersDetails) {
     Map<String, int> regionCount = {};
 
     // Remplir le dictionnaire avec les counts par région
     for (var token in dataManager.portfolio) {
       String fullName = token['fullName'];
       List<String> parts = fullName.split(',');
-      String regionCode = parts.length >= 3 ? parts[2].trim().substring(0, 2) : S.of(context).unknown;
+      String regionCode = parts.length >= 3
+          ? parts[2].trim().substring(0, 2)
+          : S.of(context).unknown;
 
-      String regionName = Parameters.usStateAbbreviations[regionCode] ?? regionCode;
+      String regionName =
+          Parameters.usStateAbbreviations[regionCode] ?? regionCode;
       regionCount[regionName] = (regionCount[regionName] ?? 0) + 1;
     }
 
@@ -204,7 +239,8 @@ class _TokenDistributionByRegionCardState extends State<TokenDistributionByRegio
     }
 
     // Afficher les détails du segment sélectionné
-    final sortedRegions = regionCount.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
+    final sortedRegions = regionCount.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
 
     if (selectedIndex < sortedRegions.length) {
       final selectedRegion = sortedRegions[selectedIndex];
@@ -240,7 +276,9 @@ class _TokenDistributionByRegionCardState extends State<TokenDistributionByRegio
             ),
           ),
           Text(
-            othersDetails.fold<int>(0, (sum, item) => sum + (item['count'] as int)).toString(),
+            othersDetails
+                .fold<int>(0, (sum, item) => sum + (item['count'] as int))
+                .toString(),
             style: TextStyle(
               fontSize: 14 + Provider.of<AppState>(context).getTextSizeOffset(),
               color: Colors.grey,
@@ -251,19 +289,22 @@ class _TokenDistributionByRegionCardState extends State<TokenDistributionByRegio
     }
   }
 
-  Widget _buildLegendByRegion(DataManager dataManager, List<Map<String, dynamic>> othersDetails) {
+  Widget _buildLegendByRegion(
+      DataManager dataManager, List<Map<String, dynamic>> othersDetails) {
     Map<String, int> regionCount = {};
     final appState = Provider.of<AppState>(context);
 
     // Remplir le dictionnaire avec les counts par région
     for (var token in dataManager.portfolio) {
       String regionCode = token['regionCode'] ?? 'Unknown Region';
-      String regionName = Parameters.usStateAbbreviations[regionCode] ?? regionCode;
+      String regionName =
+          Parameters.usStateAbbreviations[regionCode] ?? regionCode;
       regionCount[regionName] = (regionCount[regionName] ?? 0) + 1;
     }
 
     // Trier les régions par 'count' croissant
-    final sortedRegions = regionCount.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
+    final sortedRegions = regionCount.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
 
     List<Widget> legendItems = [];
     int othersValue = 0;
@@ -271,7 +312,8 @@ class _TokenDistributionByRegionCardState extends State<TokenDistributionByRegio
     for (var entry in sortedRegions) {
       final region = entry.key;
       final value = entry.value;
-      final double percentage = (value / regionCount.values.fold(0, (sum, v) => sum + v)) * 100;
+      final double percentage =
+          (value / regionCount.values.fold(0, (sum, v) => sum + v)) * 100;
       final color = generateColor(sortedRegions.indexOf(entry));
 
       if (percentage < 2) {
@@ -347,6 +389,7 @@ class _TokenDistributionByRegionCardState extends State<TokenDistributionByRegio
     final hue = ((index * 57) + 193 * (index % 3)) % 360;
     final saturation = (0.7 + (index % 5) * 0.06).clamp(0.4, 0.7);
     final brightness = (0.8 + (index % 3) * 0.2).clamp(0.6, 0.9);
-    return HSVColor.fromAHSV(1.0, hue.toDouble(), saturation, brightness).toColor();
+    return HSVColor.fromAHSV(1.0, hue.toDouble(), saturation, brightness)
+        .toColor();
   }
 }

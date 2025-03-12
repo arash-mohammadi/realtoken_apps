@@ -45,7 +45,10 @@ class DashboardPageState extends State<DashboardPage> {
     final appState = Provider.of<AppState>(context);
 
     final lastRentReceived = _getLastRentReceived(dataManager);
-    final totalRentReceived = currencyUtils.getFormattedAmount(currencyUtils.convert(dataManager.getTotalRentReceived()), currencyUtils.currencySymbol, appState.showAmounts);
+    final totalRentReceived = currencyUtils.getFormattedAmount(
+        currencyUtils.convert(dataManager.getTotalRentReceived()),
+        currencyUtils.currencySymbol,
+        appState.showAmounts);
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -57,7 +60,10 @@ class DashboardPageState extends State<DashboardPage> {
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               child: Padding(
-                padding: EdgeInsets.only(top: UIUtils.getAppBarHeight(context), left: 8.0, right: 8.0),
+                padding: EdgeInsets.only(
+                    top: UIUtils.getAppBarHeight(context),
+                    left: 8.0,
+                    right: 8.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -66,11 +72,16 @@ class DashboardPageState extends State<DashboardPage> {
                       children: [
                         Text(
                           S.of(context).hello,
-                          style: TextStyle(fontSize: 24 + appState.getTextSizeOffset(), fontWeight: FontWeight.bold, color: Theme.of(context).textTheme.bodyLarge?.color),
+                          style: TextStyle(
+                              fontSize: 24 + appState.getTextSizeOffset(),
+                              fontWeight: FontWeight.bold,
+                              color:
+                                  Theme.of(context).textTheme.bodyLarge?.color),
                         ),
                       ],
                     ),
-                    if (!_isPageLoading && (dataManager.evmAddresses.isEmpty)) _buildNoWalletCard(context),
+                    if (!_isPageLoading && (dataManager.evmAddresses.isEmpty))
+                      _buildNoWalletCard(context),
                     const SizedBox(height: 8),
                     RichText(
                       text: TextSpan(
@@ -80,7 +91,8 @@ class DashboardPageState extends State<DashboardPage> {
                             text: S.of(context).lastRentReceived,
                             style: TextStyle(
                               fontSize: 16 + appState.getTextSizeOffset(),
-                              color: Theme.of(context).textTheme.bodyMedium?.color,
+                              color:
+                                  Theme.of(context).textTheme.bodyMedium?.color,
                             ),
                           ),
                           // Partie dynamique avec ou sans shimmer pour "lastRentReceived"
@@ -88,20 +100,38 @@ class DashboardPageState extends State<DashboardPage> {
                             alignment: PlaceholderAlignment.middle,
                             child: dataManager.isLoadingMain
                                 ? Shimmer.fromColors(
-                                    baseColor: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.6) ?? Colors.grey[300]!,
-                                    highlightColor: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.9) ?? Colors.grey[100]!,
+                                    baseColor: Theme.of(context)
+                                            .textTheme
+                                            .bodyMedium
+                                            ?.color
+                                            ?.withOpacity(0.6) ??
+                                        Colors.grey[300]!,
+                                    highlightColor: Theme.of(context)
+                                            .textTheme
+                                            .bodyMedium
+                                            ?.color
+                                            ?.withOpacity(0.9) ??
+                                        Colors.grey[100]!,
                                     child: Container(
                                       width: 100, // Largeur placeholder
                                       height: 20, // Hauteur placeholder
-                                      color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.2),
+                                      color: Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium
+                                          ?.color
+                                          ?.withOpacity(0.2),
                                     ),
                                   )
                                 : Text(
                                     lastRentReceived,
                                     style: TextStyle(
-                                      fontSize: 18 + appState.getTextSizeOffset(),
+                                      fontSize:
+                                          18 + appState.getTextSizeOffset(),
                                       fontWeight: FontWeight.bold,
-                                      color: Theme.of(context).textTheme.bodyLarge?.color,
+                                      color: Theme.of(context)
+                                          .textTheme
+                                          .bodyLarge
+                                          ?.color,
                                     ),
                                   ),
                           ),
@@ -110,7 +140,8 @@ class DashboardPageState extends State<DashboardPage> {
                             text: '\n${S.of(context).totalRentReceived}: ',
                             style: TextStyle(
                               fontSize: 16 + appState.getTextSizeOffset(),
-                              color: Theme.of(context).textTheme.bodyMedium?.color,
+                              color:
+                                  Theme.of(context).textTheme.bodyMedium?.color,
                             ),
                           ),
                           // Partie dynamique avec ou sans shimmer pour "totalRentReceived"
@@ -118,20 +149,38 @@ class DashboardPageState extends State<DashboardPage> {
                             alignment: PlaceholderAlignment.middle,
                             child: dataManager.isLoadingMain
                                 ? Shimmer.fromColors(
-                                    baseColor: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.2) ?? Colors.grey[300]!,
-                                    highlightColor: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.4) ?? Colors.grey[100]!,
+                                    baseColor: Theme.of(context)
+                                            .textTheme
+                                            .bodyMedium
+                                            ?.color
+                                            ?.withOpacity(0.2) ??
+                                        Colors.grey[300]!,
+                                    highlightColor: Theme.of(context)
+                                            .textTheme
+                                            .bodyMedium
+                                            ?.color
+                                            ?.withOpacity(0.4) ??
+                                        Colors.grey[100]!,
                                     child: Container(
                                       width: 100, // Largeur placeholder
                                       height: 16, // Hauteur placeholder
-                                      color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.2),
+                                      color: Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium
+                                          ?.color
+                                          ?.withOpacity(0.2),
                                     ),
                                   )
                                 : Text(
                                     totalRentReceived,
                                     style: TextStyle(
-                                      fontSize: 18 + appState.getTextSizeOffset(),
+                                      fontSize:
+                                          18 + appState.getTextSizeOffset(),
                                       fontWeight: FontWeight.bold,
-                                      color: Theme.of(context).textTheme.bodyLarge?.color,
+                                      color: Theme.of(context)
+                                          .textTheme
+                                          .bodyLarge
+                                          ?.color,
                                     ),
                                   ),
                           ),
@@ -145,15 +194,25 @@ class DashboardPageState extends State<DashboardPage> {
                       context: context,
                     ),
                     const SizedBox(height: 8),
-                    RmmCard(showAmounts: appState.showAmounts, isLoading: _isPageLoading),
+                    RmmCard(
+                        showAmounts: appState.showAmounts,
+                        isLoading: _isPageLoading),
                     const SizedBox(height: 8),
-                    PropertiesCard(showAmounts: appState.showAmounts, isLoading: _isPageLoading),
+                    PropertiesCard(
+                        showAmounts: appState.showAmounts,
+                        isLoading: _isPageLoading),
                     const SizedBox(height: 8),
-                    TokensCard(showAmounts: appState.showAmounts, isLoading: _isPageLoading),
+                    TokensCard(
+                        showAmounts: appState.showAmounts,
+                        isLoading: _isPageLoading),
                     const SizedBox(height: 8),
-                    RentsCard(showAmounts: appState.showAmounts, isLoading: _isPageLoading),
+                    RentsCard(
+                        showAmounts: appState.showAmounts,
+                        isLoading: _isPageLoading),
                     const SizedBox(height: 8),
-                    NextRondaysCard(showAmounts: appState.showAmounts, isLoading: _isPageLoading),
+                    NextRondaysCard(
+                        showAmounts: appState.showAmounts,
+                        isLoading: _isPageLoading),
                     const SizedBox(height: 80),
                   ],
                 ),
@@ -218,10 +277,12 @@ class DashboardPageState extends State<DashboardPage> {
       return S.of(context).noRentReceived;
     }
 
-    rentData.sort((a, b) => DateTime.parse(b['date']).compareTo(DateTime.parse(a['date'])));
+    rentData.sort((a, b) =>
+        DateTime.parse(b['date']).compareTo(DateTime.parse(a['date'])));
     final lastRent = rentData.first['rent'];
 
     // Utiliser _getFormattedAmount pour masquer ou afficher la valeur
-    return currencyUtils.getFormattedAmount(currencyUtils.convert(lastRent), currencyUtils.currencySymbol, appState.showAmounts);
+    return currencyUtils.getFormattedAmount(currencyUtils.convert(lastRent),
+        currencyUtils.currencySymbol, appState.showAmounts);
   }
 }

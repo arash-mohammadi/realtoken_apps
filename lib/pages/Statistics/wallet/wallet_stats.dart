@@ -67,7 +67,8 @@ class _WalletStats extends State<WalletStats> {
   @override
   Widget build(BuildContext context) {
     final dataManager = Provider.of<DataManager>(context);
-    List<Map<String, dynamic>> groupedData = _groupRentDataByPeriod(dataManager);
+    List<Map<String, dynamic>> groupedData =
+        _groupRentDataByPeriod(dataManager);
     final screenWidth = MediaQuery.of(context).size.width;
     final isWideScreen = screenWidth > 700;
     final double fixedCardHeight = 380;
@@ -78,7 +79,8 @@ class _WalletStats extends State<WalletStats> {
       body: CustomScrollView(
         slivers: [
           SliverPadding(
-            padding: const EdgeInsets.only(top: 8.0, bottom: 80.0, left: 8.0, right: 8.0),
+            padding: const EdgeInsets.only(
+                top: 8.0, bottom: 80.0, left: 8.0, right: 8.0),
             sliver: SliverGrid(
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: isWideScreen ? 2 : 1,
@@ -120,7 +122,8 @@ class _WalletStats extends State<WalletStats> {
                         onChartTypeChanged: (isBarChart) {
                           setState(() {
                             walletIsBarChart = isBarChart;
-                            _saveChartPreference('walletIsBarChart', walletIsBarChart);
+                            _saveChartPreference(
+                                'walletIsBarChart', walletIsBarChart);
                           });
                         },
                       );
@@ -136,7 +139,8 @@ class _WalletStats extends State<WalletStats> {
                         onChartTypeChanged: (isBarChart) {
                           setState(() {
                             roiIsBarChart = isBarChart;
-                            _saveChartPreference('roiIsBarChart', roiIsBarChart);
+                            _saveChartPreference(
+                                'roiIsBarChart', roiIsBarChart);
                           });
                         },
                       );
@@ -144,7 +148,8 @@ class _WalletStats extends State<WalletStats> {
                       return ApyHistoryGraph(
                         dataManager: dataManager,
                         selectedPeriod: _selectedApyPeriod,
-                        apyIsBarChart: apyIsBarChart, // Utilisation du bon paramètre
+                        apyIsBarChart:
+                            apyIsBarChart, // Utilisation du bon paramètre
                         onPeriodChanged: (period) {
                           setState(() {
                             _selectedApyPeriod = period;
@@ -153,7 +158,8 @@ class _WalletStats extends State<WalletStats> {
                         onChartTypeChanged: (isBarChart) {
                           setState(() {
                             apyIsBarChart = isBarChart;
-                            _saveChartPreference('apyIsBarChart', apyIsBarChart);
+                            _saveChartPreference(
+                                'apyIsBarChart', apyIsBarChart);
                           });
                         },
                       );
@@ -172,7 +178,8 @@ class _WalletStats extends State<WalletStats> {
 
   List<Map<String, dynamic>> _groupRentDataByPeriod(DataManager dataManager) {
     if (_selectedRentPeriod == S.of(context).day) {
-      return _groupByDay(dataManager.rentData); // Ajouter une méthode _groupByDay
+      return _groupByDay(
+          dataManager.rentData); // Ajouter une méthode _groupByDay
     } else if (_selectedRentPeriod == S.of(context).week) {
       return _groupByWeek(dataManager.rentData);
     } else if (_selectedRentPeriod == S.of(context).month) {
@@ -189,7 +196,9 @@ class _WalletStats extends State<WalletStats> {
       String dayKey = DateFormat('yyyy/MM/dd').format(date); // Format jour
       groupedData[dayKey] = (groupedData[dayKey] ?? 0) + entry['rent'];
     }
-    return groupedData.entries.map((entry) => {'date': entry.key, 'rent': entry.value}).toList();
+    return groupedData.entries
+        .map((entry) => {'date': entry.key, 'rent': entry.value})
+        .toList();
   }
 
   List<Map<String, dynamic>> _groupByWeek(List<Map<String, dynamic>> data) {
@@ -199,17 +208,21 @@ class _WalletStats extends State<WalletStats> {
       if (entry.containsKey('date') && entry.containsKey('rent')) {
         try {
           DateTime date = DateTime.parse(entry['date']);
-          String weekKey = "${date.year}-S${CustomDateUtils.weekNumber(date).toString().padLeft(2, '0')}"; // Semaine formatée avec deux chiffres
+          String weekKey =
+              "${date.year}-S${CustomDateUtils.weekNumber(date).toString().padLeft(2, '0')}"; // Semaine formatée avec deux chiffres
           groupedData[weekKey] = (groupedData[weekKey] ?? 0) + entry['rent'];
         } catch (e) {
           // En cas d'erreur de parsing de date ou autre, vous pouvez ignorer cette entrée ou la traiter différemment
-          debugPrint("❌ Erreur lors de la conversion de la date : ${entry['date']}");
+          debugPrint(
+              "❌ Erreur lors de la conversion de la date : ${entry['date']}");
         }
       }
     }
 
     // Conversion de groupedData en une liste de maps
-    return groupedData.entries.map((entry) => {'date': entry.key, 'rent': entry.value}).toList();
+    return groupedData.entries
+        .map((entry) => {'date': entry.key, 'rent': entry.value})
+        .toList();
   }
 
   List<Map<String, dynamic>> _groupByMonth(List<Map<String, dynamic>> data) {
@@ -219,7 +232,9 @@ class _WalletStats extends State<WalletStats> {
       String monthKey = DateFormat('yyyy/MM').format(date);
       groupedData[monthKey] = (groupedData[monthKey] ?? 0) + entry['rent'];
     }
-    return groupedData.entries.map((entry) => {'date': entry.key, 'rent': entry.value}).toList();
+    return groupedData.entries
+        .map((entry) => {'date': entry.key, 'rent': entry.value})
+        .toList();
   }
 
   List<Map<String, dynamic>> _groupByYear(List<Map<String, dynamic>> data) {
@@ -229,7 +244,9 @@ class _WalletStats extends State<WalletStats> {
       String yearKey = date.year.toString();
       groupedData[yearKey] = (groupedData[yearKey] ?? 0) + entry['rent'];
     }
-    return groupedData.entries.map((entry) => {'date': entry.key, 'rent': entry.value}).toList();
+    return groupedData.entries
+        .map((entry) => {'date': entry.key, 'rent': entry.value})
+        .toList();
   }
 
   void _saveChartPreference(String key, bool value) {

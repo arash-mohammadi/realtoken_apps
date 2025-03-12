@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:realtokens/managers/data_manager.dart';
 import 'package:realtokens/services/api_service.dart';
 import 'package:realtokens/utils/currency_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -12,10 +11,12 @@ class PersonalizationSettingsPage extends StatefulWidget {
   const PersonalizationSettingsPage({super.key});
 
   @override
-  _PersonalizationSettingsPageState createState() => _PersonalizationSettingsPageState();
+  _PersonalizationSettingsPageState createState() =>
+      _PersonalizationSettingsPageState();
 }
 
-class _PersonalizationSettingsPageState extends State<PersonalizationSettingsPage> {
+class _PersonalizationSettingsPageState
+    extends State<PersonalizationSettingsPage> {
   Map<String, dynamic> _currencies = {}; // Stockage des devises
 
   Future<void> _saveConvertToSquareMeters(bool value) async {
@@ -54,23 +55,29 @@ class _PersonalizationSettingsPageState extends State<PersonalizationSettingsPag
         children: [
           Card(
             color: Theme.of(context).cardColor,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             child: ListTile(
-              title: Text(S.of(context).convertSqft, style: TextStyle(fontSize: 16.0 + appState.getTextSizeOffset())),
+              title: Text(S.of(context).convertSqft,
+                  style:
+                      TextStyle(fontSize: 16.0 + appState.getTextSizeOffset())),
               trailing: Switch(
                 value: Parameters.convertToSquareMeters,
                 onChanged: (value) {
                   _saveConvertToSquareMeters(value);
                 },
-                activeColor: Theme.of(context).primaryColor, // Couleur du bouton en mode activé
-                inactiveThumbColor: Colors.grey, // Couleur du bouton en mode désactivé
+                activeColor: Theme.of(context)
+                    .primaryColor, // Couleur du bouton en mode activé
+                inactiveThumbColor:
+                    Colors.grey, // Couleur du bouton en mode désactivé
               ),
             ),
           ),
           SizedBox(height: 16),
           Card(
             color: Theme.of(context).cardColor,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             child: ListTile(
               title: Text(
                 S.of(context).currency,
@@ -80,7 +87,8 @@ class _PersonalizationSettingsPageState extends State<PersonalizationSettingsPag
                   ? Consumer<CurrencyProvider>(
                       builder: (context, currencyProvider, child) {
                         return DropdownButton<String>(
-                          value: currencyProvider.selectedCurrency, // ✅ Maintenant l'UI est réactive
+                          value: currencyProvider
+                              .selectedCurrency, // ✅ Maintenant l'UI est réactive
                           items: _currencies.keys.map((String key) {
                             return DropdownMenuItem<String>(
                               value: key,
@@ -89,7 +97,9 @@ class _PersonalizationSettingsPageState extends State<PersonalizationSettingsPag
                           }).toList(),
                           onChanged: (String? newValue) {
                             if (newValue != null) {
-                              Provider.of<CurrencyProvider>(context, listen: false).updateConversionRate(newValue, _currencies);
+                              Provider.of<CurrencyProvider>(context,
+                                      listen: false)
+                                  .updateConversionRate(newValue, _currencies);
                             }
                           },
                         );
@@ -121,14 +131,17 @@ class _PersonalizationSettingsPageState extends State<PersonalizationSettingsPag
     await prefs.setString('selectedCurrency', currency);
 
     // ✅ Utilisation correcte du Provider avec `listen: false`
-    Provider.of<CurrencyProvider>(context, listen: false).updateConversionRate(currency, _currencies);
+    Provider.of<CurrencyProvider>(context, listen: false)
+        .updateConversionRate(currency, _currencies);
   }
 
   Future<void> _loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      Parameters.convertToSquareMeters = prefs.getBool('convertToSquareMeters') ?? false;
-      Parameters.selectedCurrency = prefs.getString('selectedCurrency') ?? 'usd';
+      Parameters.convertToSquareMeters =
+          prefs.getBool('convertToSquareMeters') ?? false;
+      Parameters.selectedCurrency =
+          prefs.getString('selectedCurrency') ?? 'usd';
     });
   }
 }

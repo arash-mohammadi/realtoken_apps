@@ -3,7 +3,6 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:provider/provider.dart';
 import 'package:realtokens/managers/data_manager.dart';
 import 'package:realtokens/app_state.dart';
-import 'package:realtokens/utils/ui_utils.dart';
 import 'package:realtokens/generated/l10n.dart';
 import 'package:realtokens/utils/parameters.dart';
 import 'package:realtokens/utils/currency_utils.dart';
@@ -53,9 +52,12 @@ class _RentDistributionCardState extends State<RentDistributionCard> {
                 DropdownButton<String>(
                   value: _selectedFilter,
                   items: [
-                    DropdownMenuItem(value: 'Country', child: Text(S.of(context).country)),
-                    DropdownMenuItem(value: 'Region', child: Text(S.of(context).region)),
-                    DropdownMenuItem(value: 'City', child: Text(S.of(context).city)),
+                    DropdownMenuItem(
+                        value: 'Country', child: Text(S.of(context).country)),
+                    DropdownMenuItem(
+                        value: 'Region', child: Text(S.of(context).region)),
+                    DropdownMenuItem(
+                        value: 'City', child: Text(S.of(context).city)),
                   ],
                   onChanged: (String? value) {
                     setState(() {
@@ -77,15 +79,20 @@ class _RentDistributionCardState extends State<RentDistributionCard> {
                     children: [
                       PieChart(
                         PieChartData(
-                          sections: _buildRentDonutChartData(widget.dataManager, selectedIndex),
+                          sections: _buildRentDonutChartData(
+                              widget.dataManager, selectedIndex),
                           centerSpaceRadius: 65,
                           sectionsSpace: 2,
                           borderData: FlBorderData(show: false),
                           pieTouchData: PieTouchData(
-                            touchCallback: (FlTouchEvent event, PieTouchResponse? response) {
-                              if (response != null && response.touchedSection != null) {
-                                final touchedIndex = response.touchedSection!.touchedSectionIndex;
-                                _selectedIndexNotifier.value = touchedIndex >= 0 ? touchedIndex : null;
+                            touchCallback: (FlTouchEvent event,
+                                PieTouchResponse? response) {
+                              if (response != null &&
+                                  response.touchedSection != null) {
+                                final touchedIndex = response
+                                    .touchedSection!.touchedSectionIndex;
+                                _selectedIndexNotifier.value =
+                                    touchedIndex >= 0 ? touchedIndex : null;
                               } else {
                                 _selectedIndexNotifier.value = null;
                               }
@@ -111,11 +118,14 @@ class _RentDistributionCardState extends State<RentDistributionCard> {
     );
   }
 
-  List<PieChartSectionData> _buildRentDonutChartData(DataManager dataManager, int? selectedIndex) {
-    final Map<String, double> groupedData = _groupRentDataBySelectedFilter(dataManager);
+  List<PieChartSectionData> _buildRentDonutChartData(
+      DataManager dataManager, int? selectedIndex) {
+    final Map<String, double> groupedData =
+        _groupRentDataBySelectedFilter(dataManager);
     final totalRent = groupedData.values.fold(0.0, (sum, value) => sum + value);
 
-    final sortedEntries = groupedData.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
+    final sortedEntries = groupedData.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
 
     return sortedEntries.asMap().entries.map((entry) {
       final index = entry.key;
@@ -131,7 +141,9 @@ class _RentDistributionCardState extends State<RentDistributionCard> {
         color: generateColor(index).withOpacity(opacity),
         radius: isSelected ? 50 : 40,
         titleStyle: TextStyle(
-          fontSize: isSelected ? 14 + Provider.of<AppState>(context).getTextSizeOffset() : 10 + Provider.of<AppState>(context).getTextSizeOffset(),
+          fontSize: isSelected
+              ? 14 + Provider.of<AppState>(context).getTextSizeOffset()
+              : 10 + Provider.of<AppState>(context).getTextSizeOffset(),
           color: Colors.white,
           fontWeight: FontWeight.bold,
         ),
@@ -140,7 +152,8 @@ class _RentDistributionCardState extends State<RentDistributionCard> {
   }
 
   Widget _buildCenterText(DataManager dataManager, int? selectedIndex) {
-    final Map<String, double> groupedData = _groupRentDataBySelectedFilter(dataManager);
+    final Map<String, double> groupedData =
+        _groupRentDataBySelectedFilter(dataManager);
     final totalRent = groupedData.values.fold(0.0, (sum, value) => sum + value);
     final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
 
@@ -156,7 +169,8 @@ class _RentDistributionCardState extends State<RentDistributionCard> {
             ),
           ),
           Text(
-            currencyUtils.getFormattedAmount(currencyUtils.convert(totalRent), currencyUtils.currencySymbol, true),
+            currencyUtils.getFormattedAmount(currencyUtils.convert(totalRent),
+                currencyUtils.currencySymbol, true),
             style: TextStyle(
               fontSize: 14 + Provider.of<AppState>(context).getTextSizeOffset(),
               color: Colors.grey,
@@ -166,21 +180,26 @@ class _RentDistributionCardState extends State<RentDistributionCard> {
       );
     }
 
-    final sortedEntries = groupedData.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
+    final sortedEntries = groupedData.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
     final selectedEntry = sortedEntries[selectedIndex];
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          Parameters.usStateAbbreviations[selectedEntry.key] ?? selectedEntry.key,
+          Parameters.usStateAbbreviations[selectedEntry.key] ??
+              selectedEntry.key,
           style: TextStyle(
             fontSize: 16 + Provider.of<AppState>(context).getTextSizeOffset(),
             fontWeight: FontWeight.bold,
           ),
         ),
         Text(
-          currencyUtils.getFormattedAmount(currencyUtils.convert(selectedEntry.value), currencyUtils.currencySymbol, true),
+          currencyUtils.getFormattedAmount(
+              currencyUtils.convert(selectedEntry.value),
+              currencyUtils.currencySymbol,
+              true),
           style: TextStyle(
             fontSize: 14 + Provider.of<AppState>(context).getTextSizeOffset(),
             color: Colors.grey,
@@ -209,17 +228,20 @@ class _RentDistributionCardState extends State<RentDistributionCard> {
           key = 'Unknown';
       }
 
-      groupedData[key] = (groupedData[key] ?? 0) + (token['monthlyIncome'] ?? 0.0);
+      groupedData[key] =
+          (groupedData[key] ?? 0) + (token['monthlyIncome'] ?? 0.0);
     }
 
     return groupedData;
   }
 
   Widget _buildRentLegend(DataManager dataManager) {
-    final Map<String, double> groupedData = _groupRentDataBySelectedFilter(dataManager);
+    final Map<String, double> groupedData =
+        _groupRentDataBySelectedFilter(dataManager);
     final appState = Provider.of<AppState>(context);
 
-    final sortedEntries = groupedData.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
+    final sortedEntries = groupedData.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
 
     return Wrap(
       spacing: 8.0,
@@ -229,7 +251,8 @@ class _RentDistributionCardState extends State<RentDistributionCard> {
         final index = sortedEntries.indexOf(entry);
         final color = generateColor(index);
 
-        String displayKey = Parameters.usStateAbbreviations[entry.key] ?? entry.key;
+        String displayKey =
+            Parameters.usStateAbbreviations[entry.key] ?? entry.key;
 
         return ConstrainedBox(
           constraints: BoxConstraints(maxWidth: 200),
@@ -269,6 +292,7 @@ class _RentDistributionCardState extends State<RentDistributionCard> {
     final hue = ((index * 57) + 193 * (index % 3)) % 360;
     final saturation = (0.7 + (index % 5) * 0.06).clamp(0.4, 0.7);
     final brightness = (0.8 + (index % 3) * 0.2).clamp(0.6, 0.9);
-    return HSVColor.fromAHSV(1.0, hue.toDouble(), saturation, brightness).toColor();
+    return HSVColor.fromAHSV(1.0, hue.toDouble(), saturation, brightness)
+        .toColor();
   }
 }

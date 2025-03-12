@@ -39,7 +39,8 @@ class _PropertiesForSalePageState extends State<PropertiesForSalePage> {
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8.0, vertical: 4.0),
                           child: _buildPageSelector(),
                         ),
                       ],
@@ -64,8 +65,8 @@ class _PropertiesForSalePageState extends State<PropertiesForSalePage> {
               ),
             );
           },
-          child: _selectedPage == 'RealT' 
-              ? const PropertiesForSaleRealt(key: ValueKey('RealT')) 
+          child: _selectedPage == 'RealT'
+              ? const PropertiesForSaleRealt(key: ValueKey('RealT'))
               : const PropertiesForSaleSecondary(key: ValueKey('Secondary')),
         ),
       ),
@@ -81,7 +82,8 @@ class _PropertiesForSalePageState extends State<PropertiesForSalePage> {
     );
   }
 
-  double _calculateTextWidth(BuildContext context, String text, TextStyle style) {
+  double _calculateTextWidth(
+      BuildContext context, String text, TextStyle style) {
     final TextPainter textPainter = TextPainter(
       text: TextSpan(text: text, style: style),
       maxLines: 1,
@@ -104,7 +106,8 @@ class _PropertiesForSalePageState extends State<PropertiesForSalePage> {
     double minWidth = _calculateTextWidth(context, label, textStyle);
 
     return isSelected
-        ? Expanded( // La Chip sélectionnée prend tout l’espace restant
+        ? Expanded(
+            // La Chip sélectionnée prend tout l’espace restant
             child: GestureDetector(
               onTap: () {
                 setState(() {
@@ -131,7 +134,8 @@ class _PropertiesForSalePageState extends State<PropertiesForSalePage> {
               ),
             ),
           )
-        : ConstrainedBox( // Les Chips non sélectionnées ont une largeur minimale
+        : ConstrainedBox(
+            // Les Chips non sélectionnées ont une largeur minimale
             constraints: BoxConstraints(minWidth: minWidth),
             child: GestureDetector(
               onTap: () {
@@ -153,7 +157,8 @@ class _PropertiesForSalePageState extends State<PropertiesForSalePage> {
                   child: AnimatedDefaultTextStyle(
                     duration: const Duration(milliseconds: 500),
                     curve: Curves.easeInOut,
-                    style: textStyle.copyWith(color: Theme.of(context).primaryColor),
+                    style: textStyle.copyWith(
+                        color: Theme.of(context).primaryColor),
                     child: Text(label),
                   ),
                 ),

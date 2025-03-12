@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:realtokens/app_state.dart';
 import 'package:realtokens/managers/data_manager.dart';
 import 'package:realtokens/utils/currency_utils.dart';
@@ -25,13 +24,15 @@ class AgendaCalendarState extends State<AgendaCalendar> {
   void initState() {
     super.initState();
     _focusedDay = DateTime.now();
-    _selectedDay = DateTime(_focusedDay.year, _focusedDay.month, _focusedDay.day);
+    _selectedDay =
+        DateTime(_focusedDay.year, _focusedDay.month, _focusedDay.day);
     final dataManager = Provider.of<DataManager>(context, listen: false);
     _events = _extractTransactions(widget.portfolio);
     _addRentEvents(_events, dataManager.rentData);
   }
 
-  Map<DateTime, List<Map<String, dynamic>>> _extractTransactions(List<Map<String, dynamic>> portfolio) {
+  Map<DateTime, List<Map<String, dynamic>>> _extractTransactions(
+      List<Map<String, dynamic>> portfolio) {
     Map<DateTime, List<Map<String, dynamic>>> events = {};
     final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
 
@@ -39,7 +40,9 @@ class AgendaCalendarState extends State<AgendaCalendar> {
       if (token.containsKey('transactions') && token['transactions'] is List) {
         for (var transaction in token['transactions']) {
           if (transaction['dateTime'] != null) {
-            DateTime date = transaction['dateTime'] is String ? DateTime.parse(transaction['dateTime']) : transaction['dateTime'];
+            DateTime date = transaction['dateTime'] is String
+                ? DateTime.parse(transaction['dateTime'])
+                : transaction['dateTime'];
             DateTime normalizedDate = DateTime(date.year, date.month, date.day);
             events.putIfAbsent(normalizedDate, () => []);
 
@@ -47,10 +50,12 @@ class AgendaCalendarState extends State<AgendaCalendar> {
             events[normalizedDate]!.add({
               'type': 'transaction',
               'amount': transaction['amount'],
-              'price': '${currencyUtils.convert(transaction['price'] ?? token['tokenPrice']).toStringAsFixed(2)} ${currencyUtils.currencySymbol}',
+              'price':
+                  '${currencyUtils.convert(transaction['price'] ?? token['tokenPrice']).toStringAsFixed(2)} ${currencyUtils.currencySymbol}',
               'date': date.toIso8601String(),
               'fullName': token['fullName'],
-              'transactionType': transaction['transactionType'] ?? S.of(context).unknownTransaction,
+              'transactionType': transaction['transactionType'] ??
+                  S.of(context).unknownTransaction,
             });
           }
         }
@@ -59,10 +64,13 @@ class AgendaCalendarState extends State<AgendaCalendar> {
     return events;
   }
 
-  void _addRentEvents(Map<DateTime, List<Map<String, dynamic>>> events, List<Map<String, dynamic>> rentData) {
+  void _addRentEvents(Map<DateTime, List<Map<String, dynamic>>> events,
+      List<Map<String, dynamic>> rentData) {
     for (var rent in rentData) {
       if (rent['date'] != null) {
-        DateTime date = rent['date'] is String ? DateTime.parse(rent['date']) : rent['date'];
+        DateTime date = rent['date'] is String
+            ? DateTime.parse(rent['date'])
+            : rent['date'];
         DateTime normalizedDate = DateTime(date.year, date.month, date.day);
         events.putIfAbsent(normalizedDate, () => []);
         events[normalizedDate]!.add({
@@ -95,7 +103,8 @@ class AgendaCalendarState extends State<AgendaCalendar> {
             },
             onDaySelected: (selectedDay, focusedDay) {
               setState(() {
-                _selectedDay = DateTime(selectedDay.year, selectedDay.month, selectedDay.day);
+                _selectedDay = DateTime(
+                    selectedDay.year, selectedDay.month, selectedDay.day);
                 _focusedDay = focusedDay;
               });
             },
@@ -122,41 +131,74 @@ class AgendaCalendarState extends State<AgendaCalendar> {
                 if (events.isEmpty) return null;
                 List<Widget> markers = [];
 
-                bool hasRent = events.any((e) => (e as Map<String, dynamic>)['type'] == 'rent');
-                bool hasPurchase = events.any((e) => (e as Map<String, dynamic>)['type'] == 'transaction' && e['transactionType'] == S.of(context).purchase);
-                bool hasYAM = events.any((e) => (e as Map<String, dynamic>)['type'] == 'transaction' && e['transactionType'] == S.of(context).yam);
-                bool hasTransfer = events.any((e) => (e as Map<String, dynamic>)['type'] == 'transaction' && e['transactionType'] == S.of(context).internal_transfer);
+                bool hasRent = events
+                    .any((e) => (e as Map<String, dynamic>)['type'] == 'rent');
+                bool hasPurchase = events.any((e) =>
+                    (e as Map<String, dynamic>)['type'] == 'transaction' &&
+                    e['transactionType'] == S.of(context).purchase);
+                bool hasYAM = events.any((e) =>
+                    (e as Map<String, dynamic>)['type'] == 'transaction' &&
+                    e['transactionType'] == S.of(context).yam);
+                bool hasTransfer = events.any((e) =>
+                    (e as Map<String, dynamic>)['type'] == 'transaction' &&
+                    e['transactionType'] == S.of(context).internal_transfer);
 
                 if (hasRent) {
-                  markers.add(Container(width: 8, height: 8, decoration: BoxDecoration(color: Colors.green, shape: BoxShape.circle)));
+                  markers.add(Container(
+                      width: 8,
+                      height: 8,
+                      decoration: BoxDecoration(
+                          color: Colors.green, shape: BoxShape.circle)));
                 }
                 if (hasPurchase) {
-                  markers.add(Container(width: 8, height: 8, decoration: BoxDecoration(color: Colors.blue, shape: BoxShape.circle)));
+                  markers.add(Container(
+                      width: 8,
+                      height: 8,
+                      decoration: BoxDecoration(
+                          color: Colors.blue, shape: BoxShape.circle)));
                 }
                 if (hasYAM) {
-                  markers.add(Container(width: 8, height: 8, decoration: BoxDecoration(color: Colors.orange, shape: BoxShape.circle)));
+                  markers.add(Container(
+                      width: 8,
+                      height: 8,
+                      decoration: BoxDecoration(
+                          color: Colors.orange, shape: BoxShape.circle)));
                 }
                 if (hasTransfer) {
-                  markers.add(Container(width: 8, height: 8, decoration: BoxDecoration(color: Colors.grey, shape: BoxShape.circle)));
+                  markers.add(Container(
+                      width: 8,
+                      height: 8,
+                      decoration: BoxDecoration(
+                          color: Colors.grey, shape: BoxShape.circle)));
                 }
 
-                return markers.isNotEmpty ? Row(mainAxisAlignment: MainAxisAlignment.center, children: markers) : null;
+                return markers.isNotEmpty
+                    ? Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: markers)
+                    : null;
               },
             ),
           ),
           const SizedBox(height: 10),
           Expanded(
-            child: (_events.containsKey(_selectedDay) && _events[_selectedDay]!.isNotEmpty)
+            child: (_events.containsKey(_selectedDay) &&
+                    _events[_selectedDay]!.isNotEmpty)
                 ? ListView.builder(
                     itemCount: _events[_selectedDay]!.length,
                     itemBuilder: (context, index) {
                       final event = _events[_selectedDay]![index];
                       final type = event['type'];
-                      final fullName = event.containsKey('fullName') ? event['fullName'] : "N/A";
+                      final fullName = event.containsKey('fullName')
+                          ? event['fullName']
+                          : "N/A";
                       final date = event['date'];
                       final price = event['price'];
                       final amount = event['amount'] ?? 0.0;
-                      final transactionType = event.containsKey('transactionType') ? event['transactionType'] : S.of(context).unknownTransaction;
+                      final transactionType =
+                          event.containsKey('transactionType')
+                              ? event['transactionType']
+                              : S.of(context).unknownTransaction;
 
                       return type == 'transaction'
                           ? Card(
@@ -165,26 +207,44 @@ class AgendaCalendarState extends State<AgendaCalendar> {
                                 leading: Icon(
                                   transactionType == S.of(context).purchase
                                       ? Icons.shopping_cart
-                                      : transactionType == S.of(context).internal_transfer
+                                      : transactionType ==
+                                              S.of(context).internal_transfer
                                           ? Icons.swap_horiz
                                           : transactionType == S.of(context).yam
                                               ? Icons.price_change
                                               : Icons.attach_money,
-                                  color: transactionType == S.of(context).purchase
+                                  color: transactionType ==
+                                          S.of(context).purchase
                                       ? Colors.blue
-                                      : transactionType == S.of(context).internal_transfer
+                                      : transactionType ==
+                                              S.of(context).internal_transfer
                                           ? Colors.grey
                                           : transactionType == S.of(context).yam
                                               ? Colors.orange
                                               : Colors.green,
                                 ),
-                                title: Text(fullName, style: TextStyle(fontSize: 13 + appState.getTextSizeOffset(), fontWeight: FontWeight.bold)),
+                                title: Text(fullName,
+                                    style: TextStyle(
+                                        fontSize:
+                                            13 + appState.getTextSizeOffset(),
+                                        fontWeight: FontWeight.bold)),
                                 subtitle: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start, // Pour aligner le texte à gauche
+                                  crossAxisAlignment: CrossAxisAlignment
+                                      .start, // Pour aligner le texte à gauche
                                   children: [
-                                    Text("${S.of(context).transactionType}: $transactionType", style: TextStyle(fontSize: 13 + appState.getTextSizeOffset())),
-                                    Text("${S.of(context).quantity}: $amount", style: TextStyle(fontSize: 13 + appState.getTextSizeOffset())),
-                                    Text("${S.of(context).price}: $price", style: TextStyle(fontSize: 13 + appState.getTextSizeOffset())),
+                                    Text(
+                                        "${S.of(context).transactionType}: $transactionType",
+                                        style: TextStyle(
+                                            fontSize: 13 +
+                                                appState.getTextSizeOffset())),
+                                    Text("${S.of(context).quantity}: $amount",
+                                        style: TextStyle(
+                                            fontSize: 13 +
+                                                appState.getTextSizeOffset())),
+                                    Text("${S.of(context).price}: $price",
+                                        style: TextStyle(
+                                            fontSize: 13 +
+                                                appState.getTextSizeOffset())),
                                   ],
                                 ),
                               ))
@@ -197,15 +257,23 @@ class AgendaCalendarState extends State<AgendaCalendar> {
                                 ),
                                 title: Text(S.of(context).rents,
                                     style: TextStyle(
-                                      fontSize: 13 + appState.getTextSizeOffset(),
+                                      fontSize:
+                                          13 + appState.getTextSizeOffset(),
                                       fontWeight: FontWeight.bold,
-                                      color: Theme.of(context).textTheme.bodyMedium?.color,
+                                      color: Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium
+                                          ?.color,
                                     )),
                                 subtitle: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start, // Pour aligner le texte à gauche
+                                  crossAxisAlignment: CrossAxisAlignment
+                                      .start, // Pour aligner le texte à gauche
                                   children: [
-                                    Text("${S.of(context).amount}: ${currencyUtils.convert(amount).toStringAsFixed(2)} ${currencyUtils.currencySymbol}",
-                                        style: TextStyle(fontSize: 13 + appState.getTextSizeOffset())),
+                                    Text(
+                                        "${S.of(context).amount}: ${currencyUtils.convert(amount).toStringAsFixed(2)} ${currencyUtils.currencySymbol}",
+                                        style: TextStyle(
+                                            fontSize: 13 +
+                                                appState.getTextSizeOffset())),
                                   ],
                                 ),
                               ),

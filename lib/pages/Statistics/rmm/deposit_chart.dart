@@ -60,7 +60,8 @@ class DepositChart extends StatelessWidget {
       final convertedUsdc = currencyUtils.convert(group.usdc);
       final convertedXdai = currencyUtils.convert(group.xdai);
       final stackedValue = convertedUsdc + convertedXdai;
-      calculatedMaxY = stackedValue > calculatedMaxY ? stackedValue : calculatedMaxY;
+      calculatedMaxY =
+          stackedValue > calculatedMaxY ? stackedValue : calculatedMaxY;
     }
     final maxY = calculatedMaxY > 0 ? calculatedMaxY * 1.1 : 10.0;
 
@@ -73,13 +74,15 @@ class DepositChart extends StatelessWidget {
               showTitles: true,
               getTitlesWidget: (value, meta) {
                 int index = value.toInt();
-                if (index < 0 || index >= groups.length) return const SizedBox();
+                if (index < 0 || index >= groups.length)
+                  return const SizedBox();
                 final groupDate = groups[index].groupDate;
                 String label;
                 if (selectedPeriod == S.of(context).day) {
                   label = DateFormat('dd/MM').format(groupDate);
                 } else if (selectedPeriod == S.of(context).week) {
-                  label = 'W${CustomDateUtils.weekNumber(groupDate).toString().padLeft(2, '0')}';
+                  label =
+                      'W${CustomDateUtils.weekNumber(groupDate).toString().padLeft(2, '0')}';
                 } else if (selectedPeriod == S.of(context).month) {
                   label = DateFormat('MM/yyyy').format(groupDate);
                 } else if (selectedPeriod == S.of(context).year) {
@@ -91,7 +94,8 @@ class DepositChart extends StatelessWidget {
                   angle: -0.5,
                   child: Text(
                     label,
-                    style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
+                    style:
+                        TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
                   ),
                 );
               },
@@ -111,7 +115,8 @@ class DepositChart extends StatelessWidget {
                   angle: -0.5,
                   child: Text(
                     formattedValue,
-                    style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
+                    style:
+                        TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
                   ),
                 );
               },
@@ -178,7 +183,8 @@ class DepositChart extends StatelessWidget {
               if (selectedPeriod == S.of(context).day) {
                 periodLabel = DateFormat('dd/MM/yyyy').format(group.groupDate);
               } else if (selectedPeriod == S.of(context).week) {
-                periodLabel = 'W${CustomDateUtils.weekNumber(group.groupDate).toString().padLeft(2, '0')}';
+                periodLabel =
+                    'W${CustomDateUtils.weekNumber(group.groupDate).toString().padLeft(2, '0')}';
               } else if (selectedPeriod == S.of(context).month) {
                 periodLabel = DateFormat('MM/yyyy').format(group.groupDate);
               } else if (selectedPeriod == S.of(context).year) {
@@ -218,7 +224,8 @@ class DepositChart extends StatelessWidget {
     void addRecord(BalanceRecord record, String tokenKey) {
       final DateTime groupDate = _truncateDate(record.timestamp, context);
       if (!groups.containsKey(groupDate)) {
-        groups[groupDate] = _DepositGroup(groupDate: groupDate, usdc: 0, xdai: 0);
+        groups[groupDate] =
+            _DepositGroup(groupDate: groupDate, usdc: 0, xdai: 0);
       }
       final currentGroup = groups[groupDate]!;
       if (tokenKey == 'usdc') {

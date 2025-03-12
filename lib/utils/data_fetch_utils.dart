@@ -10,7 +10,8 @@ class DataFetchUtils {
       await dataManager.updateMainInformations();
       await dataManager.updateSecondaryInformations(context);
       dataManager.fetchRentData(); //f Charger les données de loyer
-      dataManager.fetchAndCalculateData(); // Charger les données du portefeuille
+      dataManager
+          .fetchAndCalculateData(); // Charger les données du portefeuille
       dataManager.fetchPropertyData();
       dataManager.updatedDetailRentVariables();
       dataManager.fetchAndStoreAllTokens();

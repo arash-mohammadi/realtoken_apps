@@ -49,31 +49,37 @@ class ManageEvmAddressesPageState extends State<ManageEvmAddressesPage> {
   }
 
   Future<void> _saveAddress(String address) async {
-    if (!evmAddresses.contains(address)) {
-      final prefs = await SharedPreferences.getInstance();
+  if (!evmAddresses.contains(address.toLowerCase())) {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      evmAddresses.add(address.toLowerCase());
+    });
+    await prefs.setStringList('evmAddresses', evmAddresses);
+
+    final dataManager = Provider.of<DataManager>(context, listen: false);
+
+    // Utilisation de la nouvelle API pour récupérer le userId et les adresses associées
+    final result = await ApiService.fetchUserAndAddresses(address.toLowerCase());
+
+    if (result != null) {
+      final String userId = result['userId'];
+      final List<String> associatedAddresses = result['addresses'];
+
+      dataManager.addAddressesForUserId(userId, associatedAddresses);
+
       setState(() {
-        evmAddresses.add(address.toLowerCase());
+        evmAddresses.addAll(
+          associatedAddresses.where((addr) => !evmAddresses.contains(addr)),
+        );
       });
+
       await prefs.setStringList('evmAddresses', evmAddresses);
-
-      final dataManager = Provider.of<DataManager>(context, listen: false);
-
-      // Récupérer le userId associé à l'adresse via ApiService
-      final userId = await ApiService.fetchUserIdFromAddress(address.toLowerCase());
-      if (userId != null) {
-        // Récupérer les autres adresses associées au userId
-        final associatedAddresses = await ApiService.fetchAddressesForUserId(userId);
-        dataManager.addAddressesForUserId(userId, associatedAddresses);
-
-        setState(() {
-          evmAddresses.addAll(associatedAddresses.where((addr) => !evmAddresses.contains(addr)));
-        });
-
-        await prefs.setStringList('evmAddresses', evmAddresses);
-      }
-      DataFetchUtils.loadData(context);
     }
+
+    // Recharger les données après l'ajout
+    DataFetchUtils.loadData(context);
   }
+}
 
   String? _validateEVMAddress(String address) {
     if (address.startsWith('0x') && address.length == 42) {
@@ -87,7 +93,8 @@ class ManageEvmAddressesPageState extends State<ManageEvmAddressesPage> {
     await Navigator.of(context).push(MaterialPageRoute(
       builder: (context) => Scaffold(
         appBar: AppBar(
-            backgroundColor: Theme.of(context).scaffoldBackgroundColor, // Définir le fond noir
+            backgroundColor: Theme.of(context)
+                .scaffoldBackgroundColor, // Définir le fond noir
             title: const Text('Scan QR Code')),
         body: MobileScanner(onDetect: (BarcodeCapture barcodeCapture) {
           if (!isAddressSaved) {
@@ -128,17 +135,24 @@ class ManageEvmAddressesPageState extends State<ManageEvmAddressesPage> {
   @override
   Widget build(BuildContext context) {
     final dataManager = Provider.of<DataManager>(context);
-    final appState = Provider.of<AppState>(context); // Récupérer AppState pour le texte
+    final appState =
+        Provider.of<AppState>(context); // Récupérer AppState pour le texte
 
     // Récupérer toutes les adresses liées à un userId
-    final List linkedAddresses = dataManager.getAllUserIds().expand((userId) => dataManager.getAddressesForUserId(userId) ?? []).toList();
+    final List linkedAddresses = dataManager
+        .getAllUserIds()
+        .expand((userId) => dataManager.getAddressesForUserId(userId) ?? [])
+        .toList();
 
     // Filtrer les adresses non liées
-    final unlinkedAddresses = evmAddresses.where((address) => !linkedAddresses.contains(address)).toList();
+    final unlinkedAddresses = evmAddresses
+        .where((address) => !linkedAddresses.contains(address))
+        .toList();
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor, // Définir le fond noir
+        backgroundColor:
+            Theme.of(context).scaffoldBackgroundColor, // Définir le fond noir
         title: const Text('Manage Wallets'),
       ),
       body: Padding(
@@ -218,7 +232,8 @@ class ManageEvmAddressesPageState extends State<ManageEvmAddressesPage> {
                           Expanded(
                             child: Text(
                               address,
-                              style: TextStyle(fontSize: 14 + appState.getTextSizeOffset()),
+                              style: TextStyle(
+                                  fontSize: 14 + appState.getTextSizeOffset()),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
@@ -227,7 +242,8 @@ class ManageEvmAddressesPageState extends State<ManageEvmAddressesPage> {
                             onPressed: () {
                               Clipboard.setData(ClipboardData(text: address));
                               ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('Address copied: $address')),
+                                SnackBar(
+                                    content: Text('Address copied: $address')),
                               );
                             },
                           ),
@@ -283,11 +299,14 @@ class ManageEvmAddressesPageState extends State<ManageEvmAddressesPage> {
                                 ),
                               ),
                               IconButton(
-                                icon: const Icon(Icons.delete, color: Colors.red),
+                                icon:
+                                    const Icon(Icons.delete, color: Colors.red),
                                 onPressed: () {
                                   dataManager.removeUserId(userId);
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text('User ID $userId deleted')),
+                                    SnackBar(
+                                        content:
+                                            Text('User ID $userId deleted')),
                                   );
                                 },
                               ),
@@ -295,7 +314,8 @@ class ManageEvmAddressesPageState extends State<ManageEvmAddressesPage> {
                           ),
                           const SizedBox(height: 10),
                           ...addresses!.map((address) => Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Expanded(
                                     child: Row(
@@ -303,16 +323,24 @@ class ManageEvmAddressesPageState extends State<ManageEvmAddressesPage> {
                                         Expanded(
                                           child: Text(
                                             address,
-                                            style: TextStyle(fontSize: 14 + appState.getTextSizeOffset()),
+                                            style: TextStyle(
+                                                fontSize: 14 +
+                                                    appState
+                                                        .getTextSizeOffset()),
                                             overflow: TextOverflow.ellipsis,
                                           ),
                                         ),
                                         IconButton(
-                                          icon: const Icon(Icons.copy, color: Colors.blue),
+                                          icon: const Icon(Icons.copy,
+                                              color: Colors.blue),
                                           onPressed: () {
-                                            Clipboard.setData(ClipboardData(text: address));
-                                            ScaffoldMessenger.of(context).showSnackBar(
-                                              SnackBar(content: Text('Address copied: $address')),
+                                            Clipboard.setData(
+                                                ClipboardData(text: address));
+                                            ScaffoldMessenger.of(context)
+                                                .showSnackBar(
+                                              SnackBar(
+                                                  content: Text(
+                                                      'Address copied: $address')),
                                             );
                                           },
                                         ),
@@ -320,11 +348,16 @@ class ManageEvmAddressesPageState extends State<ManageEvmAddressesPage> {
                                     ),
                                   ),
                                   IconButton(
-                                    icon: const Icon(Icons.delete, color: Colors.red),
+                                    icon: const Icon(Icons.delete,
+                                        color: Colors.red),
                                     onPressed: () {
-                                      dataManager.removeAddressForUserId(userId, address);
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(content: Text('Address $address deleted')),
+                                      dataManager.removeAddressForUserId(
+                                          userId, address);
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                            content: Text(
+                                                'Address $address deleted')),
                                       );
                                     },
                                   ),

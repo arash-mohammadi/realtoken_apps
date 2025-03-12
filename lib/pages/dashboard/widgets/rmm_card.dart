@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:realtokens/managers/data_manager.dart';
 import 'package:realtokens/app_state.dart';
-import 'package:realtokens/utils/currency_utils.dart';
 import 'package:realtokens/generated/l10n.dart';
+import 'package:realtokens/managers/data_manager.dart';
+import 'package:realtokens/pages/dashboard/detailsPages/rmm_details_page.dart';
+import 'package:realtokens/utils/currency_utils.dart';
 import 'package:realtokens/utils/ui_utils.dart';
 
 class RmmCard extends StatelessWidget {
   final bool showAmounts;
   final bool isLoading;
 
-  const RmmCard({super.key, required this.showAmounts, required this.isLoading});
+  const RmmCard({Key? key, required this.showAmounts, required this.isLoading})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -18,20 +20,85 @@ class RmmCard extends StatelessWidget {
     final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
     final appState = Provider.of<AppState>(context);
 
+    // Récupérer la liste des wallets depuis perWalletBalances
+    final List<Map<String, dynamic>> walletDetails =
+        dataManager.perWalletBalances;
+// Sélection du wallet ayant le HF le plus bas, basé sur walletRmmValue
+    Map<String, dynamic>? walletWithLowestHF;
+    double lowestHF = double.infinity;
+
+    for (var wallet in walletDetails) {
+      final String address = wallet['address'] ?? '';
+      final double usdcBorrow = wallet['usdcBorrow'] as double? ?? 0;
+      final double xdaiBorrow = wallet['xdaiBorrow'] as double? ?? 0;
+      final double totalBorrow = usdcBorrow + xdaiBorrow;
+
+      // Utilise la même valeur RMM que dans l'autre page
+      final double walletRmmValue =
+          dataManager.perWalletRmmValues[address] ?? 0;
+
+      // Calcul du Health Factor basé sur walletRmmValue
+      final double hf = totalBorrow > 0
+          ? (walletRmmValue * 0.7) / totalBorrow
+          : double.infinity;
+
+      if (hf < lowestHF) {
+        lowestHF = hf;
+        walletWithLowestHF = wallet;
+      }
+    }
+
+// Récupération des valeurs finales du wallet sélectionné
+    final String selectedAddress = walletWithLowestHF?['address'] ?? '';
+    final double usdcDeposit =
+        walletWithLowestHF?['usdcDeposit'] as double? ?? 0;
+    final double xdaiDeposit =
+        walletWithLowestHF?['xdaiDeposit'] as double? ?? 0;
+    final double usdcBorrow = walletWithLowestHF?['usdcBorrow'] as double? ?? 0;
+    final double xdaiBorrow = walletWithLowestHF?['xdaiBorrow'] as double? ?? 0;
+    final double walletDeposit = usdcDeposit + xdaiDeposit;
+    final double walletBorrow = usdcBorrow + xdaiBorrow;
+
+// Récupération correcte du walletRmmValue
+    final double walletRmmValue =
+        dataManager.perWalletRmmValues[selectedAddress] ?? 0;
+
+// Calcul final du Health Factor et du LTV
+    double healthFactor = walletBorrow > 0
+        ? (walletRmmValue * 0.7) / walletBorrow
+        : double.infinity;
+    double currentLTV =
+        walletRmmValue > 0 ? (walletBorrow / walletRmmValue * 100) : 0;
+
+// Gestion des cas particuliers pour l'affichage
+    if (healthFactor.isInfinite || healthFactor.isNaN || walletBorrow == 0) {
+      healthFactor = 10.0; // Valeur par défaut pour un HF sûr
+    }
+
+    currentLTV = currentLTV.clamp(0.0, 100.0);
+
     return UIUtils.buildCard(
       S.of(context).rmm,
       Icons.currency_exchange,
       UIUtils.buildValueBeforeText(
-          context, ((dataManager.rmmValue * 0.7) / (dataManager.totalUsdcBorrowBalance + dataManager.totalXdaiBorrowBalance)).toStringAsFixed(1), 'Health factor', isLoading),
+        context,
+        healthFactor >= 10 ? '∞' : healthFactor.toStringAsFixed(1),
+        'Health factor',
+        isLoading,
+      ),
       [
         UIUtils.buildValueBeforeText(
-            context, ((dataManager.totalUsdcBorrowBalance + dataManager.totalXdaiBorrowBalance) / dataManager.rmmValue * 100).toStringAsFixed(1), 'Current LTV', isLoading),
+          context,
+          currentLTV.toStringAsFixed(1),
+          'Current LTV',
+          isLoading,
+        ),
         const SizedBox(height: 10),
         Text(
           '${S.of(context).timeBeforeLiquidation}: ${_calculateTimeBeforeLiquidationFormatted(
-            dataManager.rmmValue,
-            dataManager.totalUsdcBorrowBalance,
-            dataManager.totalXdaiBorrowBalance,
+            walletDeposit,
+            usdcBorrow,
+            xdaiBorrow,
             dataManager.usdcDepositApy,
           )}',
           style: TextStyle(
@@ -40,25 +107,29 @@ class RmmCard extends StatelessWidget {
           ),
         ),
         UIUtils.buildTextWithShimmer(
-          currencyUtils.getFormattedAmount(currencyUtils.convert(dataManager.totalXdaiDepositBalance), currencyUtils.currencySymbol, showAmounts),
+          currencyUtils.getFormattedAmount(currencyUtils.convert(xdaiDeposit),
+              currencyUtils.currencySymbol, showAmounts),
           'Xdai ${S.of(context).depositBalance}',
           isLoading,
           context,
         ),
         UIUtils.buildTextWithShimmer(
-          currencyUtils.getFormattedAmount(currencyUtils.convert(dataManager.totalUsdcDepositBalance), currencyUtils.currencySymbol, showAmounts),
+          currencyUtils.getFormattedAmount(currencyUtils.convert(usdcDeposit),
+              currencyUtils.currencySymbol, showAmounts),
           'USDC ${S.of(context).depositBalance}',
           isLoading,
           context,
         ),
         UIUtils.buildTextWithShimmer(
-          currencyUtils.getFormattedAmount(currencyUtils.convert(dataManager.totalUsdcBorrowBalance), currencyUtils.currencySymbol, showAmounts),
+          currencyUtils.getFormattedAmount(currencyUtils.convert(usdcBorrow),
+              currencyUtils.currencySymbol, showAmounts),
           'USDC ${S.of(context).borrowBalance}',
           isLoading,
           context,
         ),
         UIUtils.buildTextWithShimmer(
-          currencyUtils.getFormattedAmount(currencyUtils.convert(dataManager.totalXdaiBorrowBalance), currencyUtils.currencySymbol, showAmounts),
+          currencyUtils.getFormattedAmount(currencyUtils.convert(xdaiBorrow),
+              currencyUtils.currencySymbol, showAmounts),
           'Xdai ${S.of(context).borrowBalance}',
           isLoading,
           context,
@@ -67,39 +138,45 @@ class RmmCard extends StatelessWidget {
       dataManager,
       context,
       hasGraph: true,
-      rightWidget: Builder(
-        builder: (context) {
-          double factor = (dataManager.rmmValue * 0.7) / (dataManager.totalUsdcBorrowBalance + dataManager.totalXdaiBorrowBalance);
-          factor = factor.isNaN || factor < 0 ? 0 : factor.clamp(0.0, 10.0);
-
-          return _buildVerticalGauges(factor, context, dataManager);
-        },
+      // À droite, on affiche la jauge et la flèche de navigation
+      rightWidget: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Builder(
+            builder: (context) {
+              double factor = healthFactor;
+              factor = factor.isNaN || factor < 0 ? 0 : factor.clamp(0.0, 10.0);
+              return _buildVerticalGauges(
+                  factor, walletRmmValue, walletBorrow, context);
+            },
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildVerticalGauges(double factor, BuildContext context, DataManager dataManager) {
-    double progress1 = (factor / 10).clamp(0.0, 1.0); // Jauge 1
-    double progress2 = ((dataManager.totalUsdcBorrowBalance + dataManager.totalXdaiBorrowBalance) / dataManager.rmmValue * 100).clamp(0.0, 100.0) / 100; // Jauge 2 (en %)
+  Widget _buildVerticalGauges(double factor, double walletDeposit,
+      double walletBorrow, BuildContext context) {
+    double progressHF = (factor / 10).clamp(0.0, 1.0);
+    double progressLTV = walletDeposit > 0
+        ? ((walletBorrow / walletDeposit * 100).clamp(0.0, 100.0)) / 100
+        : 0;
 
-    // Couleur dynamique pour la première jauge
-    Color progress1Color = Color.lerp(Colors.red, Colors.green, progress1)!;
-
-    // Couleur dynamique pour la deuxième jauge (0% = vert, 100% = rouge)
-    Color progress2Color = Color.lerp(Colors.green.shade300, Colors.red, progress2)!;
+    Color progressHFColor = Color.lerp(Colors.red, Colors.green, progressHF)!;
+    Color progressLTVColor =
+        Color.lerp(Colors.green.shade300, Colors.red, progressLTV)!;
 
     return SizedBox(
-      width: 90, // Largeur totale pour la disposition
-      height: 180, // Hauteur totale
+      width: 90,
+      height: 180,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          // Jauge 1 (HF)
+          // Jauge Health Factor (HF)
           Column(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              // Titre de la jauge
               Text(
                 'HF',
                 style: TextStyle(
@@ -108,46 +185,43 @@ class RmmCard extends StatelessWidget {
                   color: Theme.of(context).textTheme.bodyMedium?.color,
                 ),
               ),
-              const SizedBox(height: 8), // Espacement entre le titre et la jauge
+              const SizedBox(height: 8),
               Stack(
-                alignment: Alignment.bottomCenter, // Alignement pour jauge verticale
+                alignment: Alignment.bottomCenter,
                 children: [
-                  // Fond de la jauge
                   Container(
-                    width: 20, // Largeur fixe pour jauge verticale
-                    height: 100, // Hauteur totale de la jauge
+                    width: 20,
+                    height: 100,
                     decoration: BoxDecoration(
-                      color: const Color.fromARGB(255, 78, 78, 78).withOpacity(0.3),
+                      color: Colors.grey.withOpacity(0.3),
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
-                  // Progression de la jauge
                   Container(
-                    width: 20, // Largeur fixe pour jauge verticale
-                    height: progress1 * 100, // Hauteur dynamique
+                    width: 20,
+                    height: progressHF * 100,
                     decoration: BoxDecoration(
-                      color: progress1Color, // Couleur dynamique
+                      color: progressHFColor,
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 5), // Espacement entre la jauge et le texte
+              const SizedBox(height: 5),
               Text(
-                (progress1 * 10).toStringAsFixed(1),
+                (progressHF * 10).toStringAsFixed(1),
                 style: TextStyle(
                   fontSize: 12,
-                  color: Theme.of(context).textTheme.bodyMedium?.color,
                   fontWeight: FontWeight.bold,
+                  color: Theme.of(context).textTheme.bodyMedium?.color,
                 ),
               ),
             ],
           ),
-          // Jauge 2 (LTV)
+          // Jauge LTV
           Column(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              // Titre de la jauge
               Text(
                 'LTV',
                 style: TextStyle(
@@ -156,37 +230,35 @@ class RmmCard extends StatelessWidget {
                   color: Theme.of(context).textTheme.bodyMedium?.color,
                 ),
               ),
-              const SizedBox(height: 8), // Espacement entre le titre et la jauge
+              const SizedBox(height: 8),
               Stack(
-                alignment: Alignment.bottomCenter, // Alignement pour jauge verticale
+                alignment: Alignment.bottomCenter,
                 children: [
-                  // Fond de la jauge
                   Container(
-                    width: 20, // Largeur fixe pour jauge verticale
-                    height: 100, // Hauteur totale de la jauge
+                    width: 20,
+                    height: 100,
                     decoration: BoxDecoration(
-                      color: const Color.fromARGB(255, 78, 78, 78).withOpacity(0.3),
+                      color: Colors.grey.withOpacity(0.3),
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
-                  // Progression de la jauge
                   Container(
-                    width: 20, // Largeur fixe pour jauge verticale
-                    height: progress2 * 100, // Hauteur dynamique
+                    width: 20,
+                    height: progressLTV * 100,
                     decoration: BoxDecoration(
-                      color: progress2Color, // Couleur dynamique
+                      color: progressLTVColor,
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 5), // Espacement entre la jauge et le texte
+              const SizedBox(height: 5),
               Text(
-                '${(progress2 * 100).toStringAsFixed(1)}%',
+                '${(progressLTV * 100).toStringAsFixed(1)}%',
                 style: TextStyle(
                   fontSize: 12,
-                  color: Theme.of(context).textTheme.bodyMedium?.color,
                   fontWeight: FontWeight.bold,
+                  color: Theme.of(context).textTheme.bodyMedium?.color,
                 ),
               ),
             ],
@@ -196,33 +268,24 @@ class RmmCard extends StatelessWidget {
     );
   }
 
-  String _calculateTimeBeforeLiquidationFormatted(double rmmValue, double usdcBorrow, double xdaiBorrow, double apy) {
-    double totalBorrow = usdcBorrow + xdaiBorrow;
-
+  String _calculateTimeBeforeLiquidationFormatted(
+      double walletDeposit, double usdcBorrow, double xdaiBorrow, double apy) {
+    final double totalBorrow = usdcBorrow + xdaiBorrow;
     if (totalBorrow == 0 || apy == 0) {
-      return '∞'; // Pas de liquidation possible
+      return '∞';
     }
-
-    double liquidationThreshold = rmmValue * 0.7;
-
+    final double liquidationThreshold = walletDeposit * 0.7;
     if (liquidationThreshold <= totalBorrow) {
-      return 'Liquidation imminente'; // Déjà liquidé
+      return 'Liquidation imminente';
     }
-
-    // APY en taux journalier
-    double dailyRate = apy / 365 / 100;
-
-    // Temps avant liquidation en jours
-    double timeInDays = (liquidationThreshold - totalBorrow) / (totalBorrow * dailyRate);
-
-    // Conversion en mois ou années si nécessaire
+    final double dailyRate = apy / 365 / 100;
+    final double timeInDays =
+        (liquidationThreshold - totalBorrow) / (totalBorrow * dailyRate);
     if (timeInDays > 100 * 30) {
-      // Plus de 100 mois
-      double years = timeInDays / 365;
+      final double years = timeInDays / 365;
       return '${years.toStringAsFixed(1)} ans';
     } else if (timeInDays > 100) {
-      // Plus de 100 jours
-      double months = timeInDays / 30;
+      final double months = timeInDays / 30;
       return '${months.toStringAsFixed(1)} mois';
     } else {
       return '${timeInDays.toStringAsFixed(1)} jours';

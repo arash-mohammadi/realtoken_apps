@@ -44,31 +44,71 @@ class PortfolioCard extends StatelessWidget {
         highlightPercentage: true,
       ),
       [
-        UIUtils.buildValueBeforeText(context, currencyUtils.getFormattedAmount(currencyUtils.convert(dataManager.totalWalletValue), currencyUtils.currencySymbol, showAmounts),
-            S.of(context).totalPortfolio, isLoading),
-        _buildIndentedBalance(S.of(context).wallet, currencyUtils.convert(dataManager.walletValue), currencyUtils.currencySymbol, true, context, isLoading),
-        _buildIndentedBalance(S.of(context).rmm, currencyUtils.convert(dataManager.rmmValue), currencyUtils.currencySymbol, true, context, isLoading),
-        _buildIndentedBalance(S.of(context).rwaHoldings, currencyUtils.convert(dataManager.rwaHoldingsValue), currencyUtils.currencySymbol, true, context, isLoading),
+        UIUtils.buildValueBeforeText(
+            context,
+            currencyUtils.getFormattedAmount(
+                currencyUtils.convert(dataManager.totalWalletValue),
+                currencyUtils.currencySymbol,
+                showAmounts),
+            S.of(context).totalPortfolio,
+            isLoading),
+        _buildIndentedBalance(
+            S.of(context).wallet,
+            currencyUtils.convert(dataManager.walletValue),
+            currencyUtils.currencySymbol,
+            true,
+            context,
+            isLoading),
+        _buildIndentedBalance(
+            S.of(context).rmm,
+            currencyUtils.convert(dataManager.rmmValue),
+            currencyUtils.currencySymbol,
+            true,
+            context,
+            isLoading),
+        _buildIndentedBalance(
+            S.of(context).rwaHoldings,
+            currencyUtils.convert(dataManager.rwaHoldingsValue),
+            currencyUtils.currencySymbol,
+            true,
+            context,
+            isLoading),
         const SizedBox(height: 10),
-        _buildIndentedBalance(S.of(context).depositBalance, currencyUtils.convert(dataManager.totalUsdcDepositBalance + dataManager.totalXdaiDepositBalance),
-            currencyUtils.currencySymbol, true, context, isLoading),
-        _buildIndentedBalance(S.of(context).borrowBalance, currencyUtils.convert(dataManager.totalUsdcBorrowBalance + dataManager.totalXdaiBorrowBalance),
-            currencyUtils.currencySymbol, false, context, isLoading),
+        _buildIndentedBalance(
+            S.of(context).depositBalance,
+            currencyUtils.convert(dataManager.totalUsdcDepositBalance +
+                dataManager.totalXdaiDepositBalance),
+            currencyUtils.currencySymbol,
+            true,
+            context,
+            isLoading),
+        _buildIndentedBalance(
+            S.of(context).borrowBalance,
+            currencyUtils.convert(dataManager.totalUsdcBorrowBalance +
+                dataManager.totalXdaiBorrowBalance),
+            currencyUtils.currencySymbol,
+            false,
+            context,
+            isLoading),
       ],
       dataManager,
       context,
       hasGraph: true,
-      rightWidget: _buildVerticalGauge(_getPortfolioBarGraphData(dataManager), context),
+      rightWidget:
+          _buildVerticalGauge(_getPortfolioBarGraphData(dataManager), context),
     );
   }
 
-  Widget _buildIndentedBalance(String label, double value, String symbol, bool isPositive, BuildContext context, bool isLoading) {
+  Widget _buildIndentedBalance(String label, double value, String symbol,
+      bool isPositive, BuildContext context, bool isLoading) {
     final appState = Provider.of<AppState>(context);
     final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
     final theme = Theme.of(context);
 
     String formattedAmount = showAmounts
-        ? (isPositive ? "+ ${currencyUtils.formatCurrency(value, symbol)}" : "- ${currencyUtils.formatCurrency(value, symbol)}")
+        ? (isPositive
+            ? "+ ${currencyUtils.formatCurrency(value, symbol)}"
+            : "- ${currencyUtils.formatCurrency(value, symbol)}")
         : (isPositive ? "+ " : "- ") + ('*' * 10);
 
     return Padding(
@@ -77,8 +117,12 @@ class PortfolioCard extends StatelessWidget {
         children: [
           isLoading
               ? Shimmer.fromColors(
-                  baseColor: theme.textTheme.bodyMedium?.color?.withOpacity(0.2) ?? Colors.grey[300]!,
-                  highlightColor: theme.textTheme.bodyMedium?.color?.withOpacity(0.6) ?? Colors.grey[100]!,
+                  baseColor:
+                      theme.textTheme.bodyMedium?.color?.withOpacity(0.2) ??
+                          Colors.grey[300]!,
+                  highlightColor:
+                      theme.textTheme.bodyMedium?.color?.withOpacity(0.6) ??
+                          Colors.grey[100]!,
                   child: Container(
                     width: 60,
                     height: 14,
@@ -113,14 +157,18 @@ class PortfolioCard extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(right: 1.0),
       child: Column(
-        mainAxisSize: MainAxisSize.min, // Ajuster la taille de la colonne au contenu
+        mainAxisSize:
+            MainAxisSize.min, // Ajuster la taille de la colonne au contenu
         children: [
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
                 "ROI", // Titre de la jauge
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Theme.of(context).textTheme.bodyLarge?.color),
+                style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).textTheme.bodyLarge?.color),
               ),
               const SizedBox(width: 8), // Espacement entre le texte et l'icône
               GestureDetector(
@@ -129,8 +177,10 @@ class PortfolioCard extends StatelessWidget {
                     context: context,
                     builder: (BuildContext context) {
                       return AlertDialog(
-                        title: Text(S.of(context).roiPerProperties), // Titre du popup
-                        content: Text(S.of(context).roiAlertInfo), // Texte du popup
+                        title: Text(
+                            S.of(context).roiPerProperties), // Titre du popup
+                        content:
+                            Text(S.of(context).roiAlertInfo), // Texte du popup
                         actions: <Widget>[
                           TextButton(
                             onPressed: () {
@@ -160,7 +210,8 @@ class PortfolioCard extends StatelessWidget {
                 alignment: BarChartAlignment.center,
                 maxY: 100, // Échelle sur 100%
                 barTouchData: BarTouchData(
-                  enabled: true, // Activer l'interaction pour l'animation au toucher
+                  enabled:
+                      true, // Activer l'interaction pour l'animation au toucher
                   touchTooltipData: BarTouchTooltipData(
                     getTooltipItem: (group, groupIndex, rod, rodIndex) {
                       return BarTooltipItem(
@@ -182,16 +233,22 @@ class PortfolioCard extends StatelessWidget {
                         if (value % 25 == 0) {
                           return Text(
                             value.toInt().toString(),
-                            style: TextStyle(fontSize: 10, color: Colors.black54), // Définir la taille et couleur du texte
+                            style: TextStyle(
+                                fontSize: 10,
+                                color: Colors
+                                    .black54), // Définir la taille et couleur du texte
                           );
                         }
                         return Container();
                       },
                     ),
                   ),
-                  rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  bottomTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  rightTitles:
+                      AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  topTitles:
+                      AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  bottomTitles:
+                      AxisTitles(sideTitles: SideTitles(showTitles: false)),
                 ),
                 gridData: FlGridData(show: false), // Désactiver la grille
                 borderData: FlBorderData(show: false),
@@ -202,20 +259,27 @@ class PortfolioCard extends StatelessWidget {
                       BarChartRodData(
                         toY: displayValue, // Utiliser la valeur corrigée
                         width: 20, // Largeur de la barre
-                        borderRadius: BorderRadius.circular(10), // Bordures arrondies
-                        color: Colors.transparent, // Couleur transparente pour appliquer le dégradé
+                        borderRadius:
+                            BorderRadius.circular(10), // Bordures arrondies
+                        color: Colors
+                            .transparent, // Couleur transparente pour appliquer le dégradé
                         gradient: LinearGradient(
-                          colors: [Theme.of(context).primaryColor, Theme.of(context).primaryColor.withOpacity(0.7)],
+                          colors: [
+                            Theme.of(context).primaryColor,
+                            Theme.of(context).primaryColor.withOpacity(0.7)
+                          ],
                           begin: Alignment.bottomCenter,
                           end: Alignment.topCenter,
                         ),
                         backDrawRodData: BackgroundBarChartRodData(
                           show: true,
                           toY: 100, // Fond de la jauge
-                          color: const Color.fromARGB(255, 78, 78, 78).withOpacity(0.3), // Couleur du fond grisé
+                          color: const Color.fromARGB(255, 78, 78, 78)
+                              .withOpacity(0.3), // Couleur du fond grisé
                         ),
                         rodStackItems: [
-                          BarChartRodStackItem(0, displayValue, Colors.blueAccent.withOpacity(0.6)),
+                          BarChartRodStackItem(0, displayValue,
+                              Colors.blueAccent.withOpacity(0.6)),
                         ],
                       ),
                     ],
@@ -230,7 +294,10 @@ class PortfolioCard extends StatelessWidget {
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w500,
-              color: Theme.of(context).textTheme.bodyMedium?.color, // Même couleur que la barre
+              color: Theme.of(context)
+                  .textTheme
+                  .bodyMedium
+                  ?.color, // Même couleur que la barre
             ),
           ),
         ],

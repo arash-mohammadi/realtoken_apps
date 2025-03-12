@@ -12,7 +12,7 @@ class Parameters {
   static const String etherumSubgraphId = 'EVjGN4mMd9h9JfGR7yLC6T2xrJf9syhjQNboFb7GzxVW';
   static const String rmmSubgraphId = '2dMMk7DbQYPX6Gi5siJm6EZ2gDQBF8nJcgKtpiPnPBsK';
   static const String yamSubgraphId = '4eJa4rKCR5f8fq48BKbYBPvf7DWHppGZRvfiVUSFXBGR';
-
+  static const String mainApiUrl = 'https://api.vfhome.fr';
   static const String realTokensUrl = 'https://api.pitsbi.io/api';
   static const String rentTrackerUrl = 'https://ehpst.duckdns.org/realt_rent_tracker/api';
   static const String coingeckoUrl = 'https://api.coingecko.com/api/v3/coins/xdai';
@@ -28,7 +28,7 @@ class Parameters {
   }
 
   static const List<String> stables = ["0xe91d153e0b41518a2ce8dd3d7944fa863463a97d", "0xddafbb505ad214d7b80b1f830fccc89b60fb7a83", "0x7349c9eaa538e118725a6130e0f8341509b9f8a0"];
-
+ static String rwaTokenAddress = '0x0675e8f4a52ea6c845cb6427af03616a2af42170';
   // 📌 Autres paramètres inchangés
   static const Duration apiCacheDuration = Duration(hours: 1);
   static bool convertToSquareMeters = false;

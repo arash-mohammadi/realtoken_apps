@@ -21,7 +21,8 @@ class PortfolioPageState extends State<PortfolioPage> {
   String _sortOption = 'sort by recently added';
   bool _isAscending = true;
   String? _selectedCity;
-  String _rentalStatusFilter = 'All'; // Nouveau filtre pour le statut de location
+  String _rentalStatusFilter =
+      'All'; // Nouveau filtre pour le statut de location
 
   @override
   void initState() {
@@ -70,9 +71,13 @@ class PortfolioPageState extends State<PortfolioPage> {
       if (mounted) {
         // Vérifie que le widget est toujours monté
         setState(() {
-          _sortOption = prefs.getString('sortOption') ?? S.of(context).sortByInitialLaunchDate;
-          _isAscending = prefs.getBool('isAscending') ?? false; // Charger l'état de tri
-          _selectedCity = prefs.getString('selectedCity')?.isEmpty ?? true ? null : prefs.getString('selectedCity');
+          _sortOption = prefs.getString('sortOption') ??
+              S.of(context).sortByInitialLaunchDate;
+          _isAscending =
+              prefs.getBool('isAscending') ?? false; // Charger l'état de tri
+          _selectedCity = prefs.getString('selectedCity')?.isEmpty ?? true
+              ? null
+              : prefs.getString('selectedCity');
           _rentalStatusFilter = prefs.getString('rentalStatusFilter') ?? 'All';
         });
       }
@@ -84,7 +89,8 @@ class PortfolioPageState extends State<PortfolioPage> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setString('sortOption', _sortOption);
     await prefs.setBool('isAscending', _isAscending);
-    await prefs.setString('selectedCity', _selectedCity ?? ''); // Sauvegarder la ville sélectionnée
+    await prefs.setString('selectedCity',
+        _selectedCity ?? ''); // Sauvegarder la ville sélectionnée
     await prefs.setString('rentalStatusFilter', _rentalStatusFilter);
   }
 
@@ -116,27 +122,42 @@ class PortfolioPageState extends State<PortfolioPage> {
     _saveFilterPreferences(); // Sauvegarde
   }
 
-  List<Map<String, dynamic>> _groupAndSumPortfolio(List<Map<String, dynamic>> portfolio) {
+  List<Map<String, dynamic>> _groupAndSumPortfolio(
+      List<Map<String, dynamic>> portfolio) {
     Map<String, Map<String, dynamic>> groupedPortfolio = {};
 
     for (var token in portfolio) {
       String shortName = token['shortName']; // Utilisez l'identifiant unique
       double tokenAmount = double.tryParse(token['amount'].toString()) ?? 0.0;
-      double tokenValue = double.tryParse(token['totalValue'].toString()) ?? 0.0;
-      double dailyIncome = double.tryParse(token['dailyIncome'].toString()) ?? 0.0;
-      double monthlyIncome = double.tryParse(token['monthlyIncome'].toString()) ?? 0.0;
-      double yearlyIncome = double.tryParse(token['yearlyIncome'].toString()) ?? 0.0;
+      double tokenValue =
+          double.tryParse(token['totalValue'].toString()) ?? 0.0;
+      double dailyIncome =
+          double.tryParse(token['dailyIncome'].toString()) ?? 0.0;
+      double monthlyIncome =
+          double.tryParse(token['monthlyIncome'].toString()) ?? 0.0;
+      double yearlyIncome =
+          double.tryParse(token['yearlyIncome'].toString()) ?? 0.0;
 
-      bool isInWallet = token['source'] == 'Wallet'; // Ajout de la vérification pour le wallet
-      bool isInRMM = token['source'] == 'RMM'; // Ajout de la vérification pour le RMM
+      bool isInWallet = token['source'] ==
+          'wallet'; // Ajout de la vérification pour le wallet
+      bool isInRMM =
+          token['source'] == 'RMM'; // Ajout de la vérification pour le RMM
 
       if (groupedPortfolio.containsKey(shortName)) {
         // Cumulez les champs comme `amount`, `totalValue`, `dailyIncome`, `monthlyIncome` et `yearlyIncome`
-        groupedPortfolio[shortName]!['amount'] = (groupedPortfolio[shortName]!['amount'] as double) + tokenAmount;
-        groupedPortfolio[shortName]!['totalValue'] = (groupedPortfolio[shortName]!['totalValue'] as double) + tokenValue;
-        groupedPortfolio[shortName]!['dailyIncome'] = (groupedPortfolio[shortName]!['dailyIncome'] as double) + dailyIncome;
-        groupedPortfolio[shortName]!['monthlyIncome'] = (groupedPortfolio[shortName]!['monthlyIncome'] as double) + monthlyIncome;
-        groupedPortfolio[shortName]!['yearlyIncome'] = (groupedPortfolio[shortName]!['yearlyIncome'] as double) + yearlyIncome;
+        groupedPortfolio[shortName]!['amount'] =
+            (groupedPortfolio[shortName]!['amount'] as double) + tokenAmount;
+        groupedPortfolio[shortName]!['totalValue'] =
+            (groupedPortfolio[shortName]!['totalValue'] as double) + tokenValue;
+        groupedPortfolio[shortName]!['dailyIncome'] =
+            (groupedPortfolio[shortName]!['dailyIncome'] as double) +
+                dailyIncome;
+        groupedPortfolio[shortName]!['monthlyIncome'] =
+            (groupedPortfolio[shortName]!['monthlyIncome'] as double) +
+                monthlyIncome;
+        groupedPortfolio[shortName]!['yearlyIncome'] =
+            (groupedPortfolio[shortName]!['yearlyIncome'] as double) +
+                yearlyIncome;
 
         // Mettre à jour les indicateurs de présence dans le wallet et le RMM
         groupedPortfolio[shortName]!['inWallet'] |= isInWallet;
@@ -158,30 +179,47 @@ class PortfolioPageState extends State<PortfolioPage> {
   }
 
   // Modifier la méthode pour appliquer le filtre sur le statut de location
-  List<Map<String, dynamic>> _filterAndSortPortfolio(List<Map<String, dynamic>> portfolio) {
+  List<Map<String, dynamic>> _filterAndSortPortfolio(
+      List<Map<String, dynamic>> portfolio) {
     // Regroupez et cumulez les tokens similaires
-    List<Map<String, dynamic>> groupedPortfolio = _groupAndSumPortfolio(portfolio);
+    List<Map<String, dynamic>> groupedPortfolio =
+        _groupAndSumPortfolio(portfolio);
 
     // Filtrez et triez comme avant
     List<Map<String, dynamic>> filteredPortfolio = groupedPortfolio
         .where((token) =>
-            token['fullName'].toLowerCase().contains(_searchQuery.toLowerCase()) &&
-            (_selectedCity == null || token['fullName'].contains(_selectedCity!)) &&
-            (_rentalStatusFilter == S.of(context).rentalStatusAll || _filterByRentalStatus(token)))
+            token['fullName']
+                .toLowerCase()
+                .contains(_searchQuery.toLowerCase()) &&
+            (_selectedCity == null ||
+                token['fullName'].contains(_selectedCity!)) &&
+            (_rentalStatusFilter == S.of(context).rentalStatusAll ||
+                _filterByRentalStatus(token)))
         .toList();
 
     if (_sortOption == S.of(context).sortByName) {
-      filteredPortfolio.sort((a, b) => _isAscending ? a['shortName'].compareTo(b['shortName']) : b['shortName'].compareTo(a['shortName']));
+      filteredPortfolio.sort((a, b) => _isAscending
+          ? a['shortName'].compareTo(b['shortName'])
+          : b['shortName'].compareTo(a['shortName']));
     } else if (_sortOption == S.of(context).sortByValue) {
-      filteredPortfolio.sort((a, b) => _isAscending ? a['totalValue'].compareTo(b['totalValue']) : b['totalValue'].compareTo(a['totalValue']));
+      filteredPortfolio.sort((a, b) => _isAscending
+          ? a['totalValue'].compareTo(b['totalValue'])
+          : b['totalValue'].compareTo(a['totalValue']));
     } else if (_sortOption == S.of(context).sortByAPY) {
-      filteredPortfolio
-          .sort((a, b) => _isAscending ? a['annualPercentageYield'].compareTo(b['annualPercentageYield']) : b['annualPercentageYield'].compareTo(a['annualPercentageYield']));
+      filteredPortfolio.sort((a, b) => _isAscending
+          ? a['annualPercentageYield'].compareTo(b['annualPercentageYield'])
+          : b['annualPercentageYield'].compareTo(a['annualPercentageYield']));
     } else if (_sortOption == S.of(context).sortByInitialLaunchDate) {
       filteredPortfolio.sort((a, b) {
-        final dateA = a['initialLaunchDate'] != null ? DateTime.tryParse(a['initialLaunchDate']) : DateTime(1970);
-        final dateB = b['initialLaunchDate'] != null ? DateTime.tryParse(b['initialLaunchDate']) : DateTime(1970);
-        return _isAscending ? dateA!.compareTo(dateB!) : dateB!.compareTo(dateA!);
+        final dateA = a['initialLaunchDate'] != null
+            ? DateTime.tryParse(a['initialLaunchDate'])
+            : DateTime(1970);
+        final dateB = b['initialLaunchDate'] != null
+            ? DateTime.tryParse(b['initialLaunchDate'])
+            : DateTime(1970);
+        return _isAscending
+            ? dateA!.compareTo(dateB!)
+            : dateB!.compareTo(dateA!);
       });
     }
 
@@ -195,7 +233,8 @@ class PortfolioPageState extends State<PortfolioPage> {
 
     if (_rentalStatusFilter == S.of(context).rentalStatusRented) {
       return rentedUnits == totalUnits;
-    } else if (_rentalStatusFilter == S.of(context).rentalStatusPartiallyRented) {
+    } else if (_rentalStatusFilter ==
+        S.of(context).rentalStatusPartiallyRented) {
       return rentedUnits > 0 && rentedUnits < totalUnits;
     } else if (_rentalStatusFilter == S.of(context).rentalStatusNotRented) {
       return rentedUnits == 0;
@@ -208,7 +247,9 @@ class PortfolioPageState extends State<PortfolioPage> {
     final cities = portfolio
         .map((token) {
           List<String> parts = token['fullName'].split(',');
-          return parts.length >= 2 ? parts[1].trim() : S.of(context).unknownCity;
+          return parts.length >= 2
+              ? parts[1].trim()
+              : S.of(context).unknownCity;
         })
         .toSet()
         .toList();
@@ -221,28 +262,33 @@ class PortfolioPageState extends State<PortfolioPage> {
     return Scaffold(
       body: Consumer<DataManager>(
         builder: (context, dataManager, child) {
-          final sortedFilteredPortfolio = _filterAndSortPortfolio(dataManager.portfolio);
+          final sortedFilteredPortfolio =
+              _filterAndSortPortfolio(dataManager.portfolio);
           final uniqueCities = _getUniqueCities(dataManager.portfolio);
 
           return Padding(
             padding: const EdgeInsets.only(top: 0),
             child: NestedScrollView(
-              headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
+              headerSliverBuilder:
+                  (BuildContext context, bool innerBoxIsScrolled) {
                 return <Widget>[
                   SliverAppBar(
                     floating: true,
                     snap: true,
                     automaticallyImplyLeading: false,
-                    expandedHeight: UIUtils.getSliverAppBarHeight(context), // Hauteur étendue
+                    expandedHeight: UIUtils.getSliverAppBarHeight(
+                        context), // Hauteur étendue
                     flexibleSpace: FlexibleSpaceBar(
                       background: Container(
                         color: Theme.of(context).scaffoldBackgroundColor,
                         child: Column(
-                          mainAxisAlignment: MainAxisAlignment.end, // Aligne les éléments vers le bas
+                          mainAxisAlignment: MainAxisAlignment
+                              .end, // Aligne les éléments vers le bas
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Padding(
-                              padding: const EdgeInsets.all(0.0), // Ajustez les marges si nécessaire
+                              padding: const EdgeInsets.all(
+                                  2.0), // Ajustez les marges si nécessaire
                               child: Row(
                                 children: [
                                   Expanded(
@@ -252,10 +298,13 @@ class PortfolioPageState extends State<PortfolioPage> {
                                         _updateSearchQuery(value);
                                       },
                                       decoration: InputDecoration(
-                                        hintText: S.of(context).searchHint, // "Search..."
+                                        hintText: S
+                                            .of(context)
+                                            .searchHint, // "Search..."
                                         prefixIcon: const Icon(Icons.search),
                                         border: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(30.0),
+                                          borderRadius:
+                                              BorderRadius.circular(30.0),
                                           borderSide: BorderSide.none,
                                         ),
                                       ),
@@ -263,14 +312,19 @@ class PortfolioPageState extends State<PortfolioPage> {
                                   ),
                                   const SizedBox(width: 8.0),
                                   IconButton(
-                                    icon: Icon(_isDisplay1 ? Icons.view_module : Icons.view_list),
+                                    icon: Icon(_isDisplay1
+                                        ? Icons.view_module
+                                        : Icons.view_list),
                                     onPressed: _toggleDisplay,
                                   ),
                                   const SizedBox(width: 8.0),
                                   PopupMenuButton<String>(
                                     icon: const Icon(Icons.location_city),
                                     onSelected: (String value) {
-                                      _updateCityFilter(value == S.of(context).allCities ? null : value);
+                                      _updateCityFilter(
+                                          value == S.of(context).allCities
+                                              ? null
+                                              : value);
                                     },
                                     itemBuilder: (BuildContext context) {
                                       return [
@@ -278,10 +332,11 @@ class PortfolioPageState extends State<PortfolioPage> {
                                           value: S.of(context).allCities,
                                           child: Text(S.of(context).allCities),
                                         ),
-                                        ...uniqueCities.map((city) => PopupMenuItem(
-                                              value: city,
-                                              child: Text(city),
-                                            )),
+                                        ...uniqueCities
+                                            .map((city) => PopupMenuItem(
+                                                  value: city,
+                                                  child: Text(city),
+                                                )),
                                       ];
                                     },
                                   ),
@@ -295,19 +350,30 @@ class PortfolioPageState extends State<PortfolioPage> {
                                       return [
                                         PopupMenuItem(
                                           value: S.of(context).rentalStatusAll,
-                                          child: Text(S.of(context).rentalStatusAll),
+                                          child: Text(
+                                              S.of(context).rentalStatusAll),
                                         ),
                                         PopupMenuItem(
-                                          value: S.of(context).rentalStatusRented,
-                                          child: Text(S.of(context).rentalStatusRented),
+                                          value:
+                                              S.of(context).rentalStatusRented,
+                                          child: Text(
+                                              S.of(context).rentalStatusRented),
                                         ),
                                         PopupMenuItem(
-                                          value: S.of(context).rentalStatusPartiallyRented,
-                                          child: Text(S.of(context).rentalStatusPartiallyRented),
+                                          value: S
+                                              .of(context)
+                                              .rentalStatusPartiallyRented,
+                                          child: Text(S
+                                              .of(context)
+                                              .rentalStatusPartiallyRented),
                                         ),
                                         PopupMenuItem(
-                                          value: S.of(context).rentalStatusNotRented,
-                                          child: Text(S.of(context).rentalStatusNotRented),
+                                          value: S
+                                              .of(context)
+                                              .rentalStatusNotRented,
+                                          child: Text(S
+                                              .of(context)
+                                              .rentalStatusNotRented),
                                         ),
                                       ];
                                     },
@@ -329,23 +395,34 @@ class PortfolioPageState extends State<PortfolioPage> {
                                       return [
                                         CheckedPopupMenuItem(
                                           value: S.of(context).sortByName,
-                                          checked: _sortOption == S.of(context).sortByName,
+                                          checked: _sortOption ==
+                                              S.of(context).sortByName,
                                           child: Text(S.of(context).sortByName),
                                         ),
                                         CheckedPopupMenuItem(
                                           value: S.of(context).sortByValue,
-                                          checked: _sortOption == S.of(context).sortByValue,
-                                          child: Text(S.of(context).sortByValue),
+                                          checked: _sortOption ==
+                                              S.of(context).sortByValue,
+                                          child:
+                                              Text(S.of(context).sortByValue),
                                         ),
                                         CheckedPopupMenuItem(
                                           value: S.of(context).sortByAPY,
-                                          checked: _sortOption == S.of(context).sortByAPY,
+                                          checked: _sortOption ==
+                                              S.of(context).sortByAPY,
                                           child: Text(S.of(context).sortByAPY),
                                         ),
                                         CheckedPopupMenuItem(
-                                          value: S.of(context).sortByInitialLaunchDate,
-                                          checked: _sortOption == S.of(context).sortByInitialLaunchDate,
-                                          child: Text(S.of(context).sortByInitialLaunchDate),
+                                          value: S
+                                              .of(context)
+                                              .sortByInitialLaunchDate,
+                                          checked: _sortOption ==
+                                              S
+                                                  .of(context)
+                                                  .sortByInitialLaunchDate,
+                                          child: Text(S
+                                              .of(context)
+                                              .sortByInitialLaunchDate),
                                         ),
                                         const PopupMenuDivider(),
                                         CheckedPopupMenuItem(
@@ -371,7 +448,9 @@ class PortfolioPageState extends State<PortfolioPage> {
                   )
                 ];
               },
-              body: _isDisplay1 ? PortfolioDisplay1(portfolio: sortedFilteredPortfolio) : PortfolioDisplay2(portfolio: sortedFilteredPortfolio),
+              body: _isDisplay1
+                  ? PortfolioDisplay1(portfolio: sortedFilteredPortfolio)
+                  : PortfolioDisplay2(portfolio: sortedFilteredPortfolio),
             ),
           );
         },

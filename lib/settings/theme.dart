@@ -21,7 +21,8 @@ ThemeData getLightTheme(Color primaryColor) {
     ),
     drawerTheme: DrawerThemeData(
       backgroundColor: Colors.white,
-    ), dialogTheme: DialogThemeData(backgroundColor: Colors.white),
+    ),
+    dialogTheme: DialogThemeData(backgroundColor: Colors.white),
   );
 }
 
@@ -47,6 +48,7 @@ ThemeData getDarkTheme(Color primaryColor) {
     ),
     drawerTheme: DrawerThemeData(
       backgroundColor: Colors.grey[900],
-    ), dialogTheme: DialogThemeData(backgroundColor: Colors.black),
+    ),
+    dialogTheme: DialogThemeData(backgroundColor: Colors.black),
   );
 }

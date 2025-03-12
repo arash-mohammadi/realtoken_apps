@@ -79,21 +79,27 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
         children: [
           Card(
             color: Theme.of(context).cardColor,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             child: ListTile(
-              title: Text(S.of(context).darkTheme, style: TextStyle(fontSize: 16.0 + appState.getTextSizeOffset())),
+              title: Text(S.of(context).darkTheme,
+                  style:
+                      TextStyle(fontSize: 16.0 + appState.getTextSizeOffset())),
               trailing: DropdownButton<String>(
                 value: appState.themeMode,
                 items: [
-                  DropdownMenuItem(value: 'light', child: Text(S.of(context).light)),
-                  DropdownMenuItem(value: 'dark', child: Text(S.of(context).dark)),
+                  DropdownMenuItem(
+                      value: 'light', child: Text(S.of(context).light)),
+                  DropdownMenuItem(
+                      value: 'dark', child: Text(S.of(context).dark)),
                   DropdownMenuItem(value: 'auto', child: Text('Auto')),
                 ],
                 onChanged: (String? newValue) {
                   if (newValue != null) {
                     appState.updateThemeMode(newValue);
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(S.of(context).themeUpdated(newValue))),
+                      SnackBar(
+                          content: Text(S.of(context).themeUpdated(newValue))),
                     );
                   }
                 },
@@ -103,13 +109,16 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
           SizedBox(height: 16),
           Card(
             color: Theme.of(context).cardColor,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             child: Padding(
               padding: EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text("Couleur principale", style: TextStyle(fontSize: 16.0 + appState.getTextSizeOffset())),
+                  Text("Couleur principale",
+                      style: TextStyle(
+                          fontSize: 16.0 + appState.getTextSizeOffset())),
                   SizedBox(height: 10),
                   Wrap(
                     spacing: 8,
@@ -124,7 +133,15 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             color: entry.value,
-                            border: _selectedColor == entry.key ? Border.all(color: Theme.of(context).textTheme.bodyLarge?.color ?? Colors.grey, width: 3) : null,
+                            border: _selectedColor == entry.key
+                                ? Border.all(
+                                    color: Theme.of(context)
+                                            .textTheme
+                                            .bodyLarge
+                                            ?.color ??
+                                        Colors.grey,
+                                    width: 3)
+                                : null,
                           ),
                         ),
                       );
@@ -137,7 +154,8 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
           SizedBox(height: 16),
           Card(
             color: Theme.of(context).cardColor,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             child: ListTile(
               title: Text(
                 S.of(context).textSize,
@@ -150,7 +168,8 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
                     value: sizeOption,
                     child: Text(
                       sizeOption,
-                      style: TextStyle(fontSize: 15.0 + appState.getTextSizeOffset()),
+                      style: TextStyle(
+                          fontSize: 15.0 + appState.getTextSizeOffset()),
                     ),
                   );
                 }).toList(),
@@ -158,7 +177,9 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
                   if (newSize != null) {
                     appState.updateTextSize(newSize);
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Taille du texte mise à jour: $newSize')),
+                      SnackBar(
+                          content:
+                              Text('Taille du texte mise à jour: $newSize')),
                     );
                   }
                 },
@@ -168,7 +189,8 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
           SizedBox(height: 16),
           Card(
             color: Theme.of(context).cardColor,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             child: ListTile(
               title: Text(
                 S.of(context).language,
@@ -193,7 +215,8 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
                                           : languageCode == 'zh'
                                               ? S.of(context).chinese
                                               : S.of(context).english,
-                      style: TextStyle(fontSize: 15.0 + appState.getTextSizeOffset()),
+                      style: TextStyle(
+                          fontSize: 15.0 + appState.getTextSizeOffset()),
                     ),
                   );
                 }).toList(),
@@ -227,7 +250,9 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
                     }
 
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(S.of(context).languageUpdated(languageName))),
+                      SnackBar(
+                          content: Text(
+                              S.of(context).languageUpdated(languageName))),
                     );
                   }
                 },

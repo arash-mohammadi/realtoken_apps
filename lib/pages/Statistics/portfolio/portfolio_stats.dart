@@ -21,7 +21,8 @@ class PortfolioStats extends StatefulWidget {
 class _PortfolioStats extends State<PortfolioStats> {
   late String _selectedPeriod;
   late String _selectedFilter;
-  bool _rentedIsBarChart = true; // Ajoutez cette variable pour gérer le type de graphique
+  bool _rentedIsBarChart =
+      true; // Ajoutez cette variable pour gérer le type de graphique
 
   @override
   void initState() {
@@ -85,7 +86,8 @@ class _PortfolioStats extends State<PortfolioStats> {
           ),
           // Ajouter la grille pour les autres cartes
           SliverPadding(
-            padding: const EdgeInsets.only(top: 0.0, bottom: 80.0, left: 8.0, right: 8.0),
+            padding: const EdgeInsets.only(
+                top: 0.0, bottom: 80.0, left: 8.0, right: 8.0),
             sliver: SliverGrid(
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: isWideScreen ? 2 : 1,
@@ -101,11 +103,14 @@ class _PortfolioStats extends State<PortfolioStats> {
                     case 1:
                       return TokenDistributionCard(dataManager: dataManager!);
                     case 2:
-                      return TokenDistributionByCountryCard(dataManager: dataManager!);
+                      return TokenDistributionByCountryCard(
+                          dataManager: dataManager!);
                     case 3:
-                      return TokenDistributionByRegionCard(dataManager: dataManager!);
+                      return TokenDistributionByRegionCard(
+                          dataManager: dataManager!);
                     case 4:
-                      return TokenDistributionByCityCard(dataManager: dataManager!);
+                      return TokenDistributionByCityCard(
+                          dataManager: dataManager!);
                     default:
                       return Container();
                   }

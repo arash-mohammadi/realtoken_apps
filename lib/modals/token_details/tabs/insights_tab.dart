@@ -41,8 +41,10 @@ Widget buildInsightsTab(BuildContext context, Map<String, dynamic> token) {
                   context: context,
                   builder: (BuildContext context) {
                     return AlertDialog(
-                      title: Text(S.of(context).roiPerProperties), // Titre du popup
-                      content: Text(S.of(context).roiAlertInfo), // Texte explicatif
+                      title: Text(
+                          S.of(context).roiPerProperties), // Titre du popup
+                      content:
+                          Text(S.of(context).roiAlertInfo), // Texte explicatif
                       actions: <Widget>[
                         TextButton(
                           onPressed: () {
@@ -66,7 +68,9 @@ Widget buildInsightsTab(BuildContext context, Map<String, dynamic> token) {
 
         const SizedBox(height: 4),
         _buildGaugeForROI(
-          token['totalRentReceived'] / token['initialTotalValue'] * 100, // Calcul du ROI
+          token['totalRentReceived'] /
+              token['initialTotalValue'] *
+              100, // Calcul du ROI
           context,
         ),
         const SizedBox(height: 8),
@@ -74,7 +78,8 @@ Widget buildInsightsTab(BuildContext context, Map<String, dynamic> token) {
         // Graphique du rendement (Yield)
         Row(
           children: [
-            Icon(Icons.trending_up, size: 18, color: Colors.blueGrey), // Icône devant le texte
+            Icon(Icons.trending_up,
+                size: 18, color: Colors.blueGrey), // Icône devant le texte
             const SizedBox(width: 8),
             Text(
               S.of(context).yieldEvolution, // Utilisation de la traduction
@@ -86,7 +91,8 @@ Widget buildInsightsTab(BuildContext context, Map<String, dynamic> token) {
           ],
         ),
         const SizedBox(height: 10),
-        _buildYieldChartOrMessage(context, token['historic']?['yields'] ?? [], token['historic']?['init_yield']),
+        _buildYieldChartOrMessage(context, token['historic']?['yields'] ?? [],
+            token['historic']?['init_yield']),
 
         const SizedBox(height: 20),
 
@@ -109,7 +115,8 @@ Widget buildInsightsTab(BuildContext context, Map<String, dynamic> token) {
           ],
         ),
         const SizedBox(height: 10),
-        _buildPriceChartOrMessage(context, token['historic']?['prices'] ?? [], token['initPrice']),
+        _buildPriceChartOrMessage(
+            context, token['historic']?['prices'] ?? [], token['initPrice']),
       ],
     ),
   );
@@ -168,7 +175,8 @@ Widget _buildGaugeForROI(double roiValue, BuildContext context) {
 }
 
 // Méthode pour afficher soit le graphique du yield, soit un message
-Widget _buildYieldChartOrMessage(BuildContext context, List<dynamic> yields, double? initYield) {
+Widget _buildYieldChartOrMessage(
+    BuildContext context, List<dynamic> yields, double? initYield) {
   final appState = Provider.of<AppState>(context, listen: false);
 
   if (yields.length <= 1) {
@@ -199,7 +207,9 @@ Widget _buildYieldChartOrMessage(BuildContext context, List<dynamic> yields, dou
   } else {
     // Calculer l'évolution en pourcentage
     double lastYield = yields.last['yield']?.toDouble() ?? 0;
-    double percentageChange = ((lastYield - (initYield ?? lastYield)) / (initYield ?? lastYield)) * 100;
+    double percentageChange =
+        ((lastYield - (initYield ?? lastYield)) / (initYield ?? lastYield)) *
+            100;
 
     // Afficher le graphique et le % d'évolution
     return Column(
@@ -241,8 +251,11 @@ Widget _buildYieldChart(BuildContext context, List<dynamic> yields) {
     if (yields[i]['timsync'] != null && yields[i]['timsync'] is String) {
       DateTime date = DateTime.parse(yields[i]['timsync']);
       double x = i.toDouble();
-      double y = yields[i]['yield'] != null ? double.tryParse(yields[i]['yield'].toString()) ?? 0 : 0;
-      y = double.parse(y.toStringAsFixed(2)); // Limiter la valeur de `y` à 2 décimales
+      double y = yields[i]['yield'] != null
+          ? double.tryParse(yields[i]['yield'].toString()) ?? 0
+          : 0;
+      y = double.parse(
+          y.toStringAsFixed(2)); // Limiter la valeur de `y` à 2 décimales
 
       spots.add(FlSpot(x, y));
       dateLabels.add(DateFormat('MM/yyyy').format(date));
@@ -252,8 +265,12 @@ Widget _buildYieldChart(BuildContext context, List<dynamic> yields) {
   // Calcul des marges
   double minXValue = spots.isNotEmpty ? spots.first.x : 0;
   double maxXValue = spots.isNotEmpty ? spots.last.x : 0;
-  double minYValue = spots.isNotEmpty ? spots.map((spot) => spot.y).reduce((a, b) => a < b ? a : b) : 0;
-  double maxYValue = spots.isNotEmpty ? spots.map((spot) => spot.y).reduce((a, b) => a > b ? a : b) : 0;
+  double minYValue = spots.isNotEmpty
+      ? spots.map((spot) => spot.y).reduce((a, b) => a < b ? a : b)
+      : 0;
+  double maxYValue = spots.isNotEmpty
+      ? spots.map((spot) => spot.y).reduce((a, b) => a > b ? a : b)
+      : 0;
 
   // Ajouter des marges autour des valeurs min et max
   const double marginX = 0.2;
@@ -319,7 +336,8 @@ Widget _buildYieldChart(BuildContext context, List<dynamic> yields) {
 }
 
 // Méthode pour afficher soit le graphique des prix, soit un message
-Widget _buildPriceChartOrMessage(BuildContext context, List<dynamic> prices, double? initPrice) {
+Widget _buildPriceChartOrMessage(
+    BuildContext context, List<dynamic> prices, double? initPrice) {
   final appState = Provider.of<AppState>(context, listen: false);
 
   if (prices.length <= 1) {
@@ -350,7 +368,9 @@ Widget _buildPriceChartOrMessage(BuildContext context, List<dynamic> prices, dou
   } else {
     // Calculer l'évolution en pourcentage
     double lastPrice = prices.last['price']?.toDouble() ?? 0;
-    double percentageChange = ((lastPrice - (initPrice ?? lastPrice)) / (initPrice ?? lastPrice)) * 100;
+    double percentageChange =
+        ((lastPrice - (initPrice ?? lastPrice)) / (initPrice ?? lastPrice)) *
+            100;
 
     // Afficher le graphique et le % d'évolution
     return Column(
@@ -400,8 +420,12 @@ Widget _buildPriceChart(BuildContext context, List<dynamic> prices) {
   // Calcul des marges
   double minXValue = spots.isNotEmpty ? spots.first.x : 0;
   double maxXValue = spots.isNotEmpty ? spots.last.x : 0;
-  double minYValue = spots.isNotEmpty ? spots.map((spot) => spot.y).reduce((a, b) => a < b ? a : b) : 0;
-  double maxYValue = spots.isNotEmpty ? spots.map((spot) => spot.y).reduce((a, b) => a > b ? a : b) : 0;
+  double minYValue = spots.isNotEmpty
+      ? spots.map((spot) => spot.y).reduce((a, b) => a < b ? a : b)
+      : 0;
+  double maxYValue = spots.isNotEmpty
+      ? spots.map((spot) => spot.y).reduce((a, b) => a > b ? a : b)
+      : 0;
 
   // Ajouter des marges autour des valeurs min et max
   const double marginX = 0.1;

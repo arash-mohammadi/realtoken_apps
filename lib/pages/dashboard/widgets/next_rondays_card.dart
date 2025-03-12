@@ -12,7 +12,8 @@ class NextRondaysCard extends StatelessWidget {
   final bool showAmounts;
   final bool isLoading;
 
-  const NextRondaysCard({super.key, required this.showAmounts, required this.isLoading});
+  const NextRondaysCard(
+      {super.key, required this.showAmounts, required this.isLoading});
 
   @override
   Widget build(BuildContext context) {
@@ -30,18 +31,17 @@ class NextRondaysCard extends StatelessWidget {
     );
   }
 
-  Widget _buildMiniGraphForNextRondays(DataManager dataManager, BuildContext context) {
+  Widget _buildMiniGraphForNextRondays(
+      DataManager dataManager, BuildContext context) {
     final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
     final cumulativeRentEvolution = dataManager.getCumulativeRentEvolution();
     DateTime today = DateTime.now();
 
-    // Filtrer pour n'afficher que les dates futures
     final futureRentEvolution = cumulativeRentEvolution.where((entry) {
       DateTime rentStartDate = entry['rentStartDate'];
       return rentStartDate.isAfter(today);
     }).toList();
 
-    // Utiliser un Set pour ne garder que des dates uniques
     Set<DateTime> displayedDates = <DateTime>{};
     List<Map<String, dynamic>> graphData = [];
 
@@ -56,6 +56,22 @@ class NextRondaysCard extends StatelessWidget {
       }
     }
 
+    // Calculer min et max précisément
+    double minY = graphData.isNotEmpty
+        ? graphData
+            .map((e) => e['amount'] as double)
+            .reduce((a, b) => a < b ? a : b)
+        : 0;
+
+    double maxY = graphData.isNotEmpty
+        ? graphData
+            .map((e) => e['amount'] as double)
+            .reduce((a, b) => a > b ? a : b)
+        : 0;
+
+    // Ajouter une marge pour améliorer la visibilité
+    double yMargin = (maxY - minY) * 0.15; // 15% de marge pour distinction
+
     return Align(
       alignment: Alignment.center,
       child: SizedBox(
@@ -66,18 +82,22 @@ class NextRondaysCard extends StatelessWidget {
             gridData: FlGridData(show: false),
             titlesData: FlTitlesData(show: false),
             borderData: FlBorderData(show: false),
-            alignment: BarChartAlignment.spaceBetween,
-            maxY: graphData.map((e) => e['amount']).reduce((a, b) => a > b ? a : b),
-            minY: graphData.map((e) => e['amount']).reduce((a, b) => a < b ? a : b) * 0.95,
+            alignment: BarChartAlignment.center,
+            groupsSpace: 4,
+            minY: (minY - yMargin)
+                .clamp(0, double.infinity), // Empêche minY négatif
+            maxY: maxY + yMargin,
             barGroups: List.generate(graphData.length, (index) {
-              double roundedValue = double.parse(currencyUtils.convert(graphData[index]['amount']).toStringAsFixed(2));
+              double roundedValue = double.parse(currencyUtils
+                  .convert(graphData[index]['amount'])
+                  .toStringAsFixed(2));
               return BarChartGroupData(
                 x: index,
                 barRods: [
                   BarChartRodData(
                     toY: roundedValue,
                     color: Theme.of(context).primaryColor,
-                    width: 8,
+                    width: 12,
                     borderRadius: BorderRadius.circular(4),
                   ),
                 ],
@@ -98,11 +118,6 @@ class NextRondaysCard extends StatelessWidget {
                 },
               ),
               handleBuiltInTouches: true,
-              touchCallback: (FlTouchEvent event, BarTouchResponse? response) {
-                if (response?.spot != null) {
-                  // Le tooltip s'affichera uniquement sur la barre touchée
-                }
-              },
             ),
           ),
         ),
@@ -137,13 +152,17 @@ class NextRondaysCard extends StatelessWidget {
             } else {
               displayedDates.add(rentStartDate);
 
-              String displayDate = rentStartDate == DateTime(3000, 1, 1) ? 'Date non communiquée' : DateFormat('yyyy-MM-dd').format(rentStartDate);
+              String displayDate = rentStartDate == DateTime(3000, 1, 1)
+                  ? 'Date non communiquée'
+                  : DateFormat('yyyy-MM-dd').format(rentStartDate);
 
               return Padding(
                 padding: const EdgeInsets.symmetric(vertical: 0),
                 child: Text(
                   '$displayDate: ${currencyUtils.getFormattedAmount(currencyUtils.convert(entry['cumulativeRent']), currencyUtils.currencySymbol, showAmounts)}',
-                  style: TextStyle(fontSize: 13 + appState.getTextSizeOffset(), color: Theme.of(context).textTheme.bodyMedium?.color),
+                  style: TextStyle(
+                      fontSize: 13 + appState.getTextSizeOffset(),
+                      color: Theme.of(context).textTheme.bodyMedium?.color),
                 ),
               );
             }

@@ -48,11 +48,13 @@ class _CustomDrawerState extends State<CustomDrawer> {
       });
 
       // Récupérer la version du fichier pubspec.yaml sur GitHub
-      final response = await http.get(Uri.parse('https://raw.githubusercontent.com/RealToken-Community/realtoken_apps/main/pubspec.yaml'));
+      final response = await http.get(Uri.parse(
+          'https://raw.githubusercontent.com/RealToken-Community/realtoken_apps/main/pubspec.yaml'));
 
       if (response.statusCode == 200) {
         final pubspecContent = response.body;
-        final versionMatch = RegExp(r'version:\s*([\d.]+)').firstMatch(pubspecContent);
+        final versionMatch =
+            RegExp(r'version:\s*([\d.]+)').firstMatch(pubspecContent);
         if (versionMatch != null) {
           setState(() {
             latestVersion = versionMatch.group(1);
@@ -93,7 +95,8 @@ class _CustomDrawerState extends State<CustomDrawer> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text("Merci pour vos retours !"),
-          content: Text("La demande de notation n'a pas pu être affichée. Souhaitez-vous ouvrir la page de l'application dans le Store pour laisser un avis ?"),
+          content: Text(
+              "La demande de notation n'a pas pu être affichée. Souhaitez-vous ouvrir la page de l'application dans le Store pour laisser un avis ?"),
           actions: [
             TextButton(
               onPressed: () {
@@ -151,14 +154,16 @@ class _CustomDrawerState extends State<CustomDrawer> {
                                     'RealTokens',
                                     style: TextStyle(
                                       color: Colors.white,
-                                      fontSize: 23 + appState.getTextSizeOffset(),
+                                      fontSize:
+                                          23 + appState.getTextSizeOffset(),
                                     ),
                                   ),
                                   Text(
                                     S.of(context).appDescription,
                                     style: TextStyle(
                                       color: Colors.white70,
-                                      fontSize: 15 + appState.getTextSizeOffset(),
+                                      fontSize:
+                                          15 + appState.getTextSizeOffset(),
                                     ),
                                   ),
                                 ],
@@ -166,11 +171,14 @@ class _CustomDrawerState extends State<CustomDrawer> {
                             ),
                           ],
                         ),
-                        if (latestVersion != null && currentVersion != null && latestVersion != currentVersion)
+                        if (latestVersion != null &&
+                            currentVersion != null &&
+                            latestVersion != currentVersion)
                           Padding(
                             padding: const EdgeInsets.only(top: 8.0),
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12.0, vertical: 6.0),
                               decoration: BoxDecoration(
                                 color: Colors.green, // Bulle verte
                                 borderRadius: BorderRadius.circular(20.0),
@@ -190,10 +198,12 @@ class _CustomDrawerState extends State<CustomDrawer> {
                   ),
                 ),
                 ListTile(
-                  leading: Icon(Icons.wallet, size: 24 + appState.getTextSizeOffset()),
+                  leading: Icon(Icons.wallet,
+                      size: 24 + appState.getTextSizeOffset()),
                   title: Text(
                     S.of(context).manageEvmAddresses,
-                    style: TextStyle(fontSize: 15 + appState.getTextSizeOffset()),
+                    style:
+                        TextStyle(fontSize: 15 + appState.getTextSizeOffset()),
                   ),
                   onTap: () {
                     Navigator.pop(context);
@@ -210,7 +220,8 @@ class _CustomDrawerState extends State<CustomDrawer> {
                   leading: const Icon(Icons.home_work),
                   title: Text(
                     S.of(context).propertiesForSale,
-                    style: TextStyle(fontSize: 15 + appState.getTextSizeOffset()),
+                    style:
+                        TextStyle(fontSize: 15 + appState.getTextSizeOffset()),
                   ),
                   onTap: () {
                     Navigator.pop(context);
@@ -227,7 +238,8 @@ class _CustomDrawerState extends State<CustomDrawer> {
                   leading: const Icon(Icons.list),
                   title: Text(
                     S.of(context).realTokensList,
-                    style: TextStyle(fontSize: 15 + appState.getTextSizeOffset()),
+                    style:
+                        TextStyle(fontSize: 15 + appState.getTextSizeOffset()),
                   ),
                   onTap: () {
                     Navigator.pop(context);
@@ -243,7 +255,8 @@ class _CustomDrawerState extends State<CustomDrawer> {
                   leading: const Icon(Icons.update),
                   title: Text(
                     S.of(context).recentChanges,
-                    style: TextStyle(fontSize: 15 + appState.getTextSizeOffset()),
+                    style:
+                        TextStyle(fontSize: 15 + appState.getTextSizeOffset()),
                   ),
                   onTap: () {
                     Navigator.pop(context);
@@ -259,7 +272,8 @@ class _CustomDrawerState extends State<CustomDrawer> {
                   leading: const Icon(Icons.show_chart),
                   title: Text(
                     'RealT stats',
-                    style: TextStyle(fontSize: 15 + appState.getTextSizeOffset()),
+                    style:
+                        TextStyle(fontSize: 15 + appState.getTextSizeOffset()),
                   ),
                   onTap: () {
                     Navigator.pop(context);
@@ -275,7 +289,8 @@ class _CustomDrawerState extends State<CustomDrawer> {
                   leading: const Icon(Icons.link),
                   title: Text(
                     S.of(context).links,
-                    style: TextStyle(fontSize: 15 + appState.getTextSizeOffset()),
+                    style:
+                        TextStyle(fontSize: 15 + appState.getTextSizeOffset()),
                   ),
                   onTap: () {
                     Navigator.pop(context);
@@ -292,7 +307,8 @@ class _CustomDrawerState extends State<CustomDrawer> {
                   leading: const Icon(Icons.monitor),
                   title: Text(
                     S.of(context).serviceStatus,
-                    style: TextStyle(fontSize: 15 + appState.getTextSizeOffset()),
+                    style:
+                        TextStyle(fontSize: 15 + appState.getTextSizeOffset()),
                   ),
                   onTap: () {
                     Navigator.pop(context);
@@ -308,7 +324,8 @@ class _CustomDrawerState extends State<CustomDrawer> {
                   leading: const Icon(Icons.support_agent),
                   title: Text(
                     'Support',
-                    style: TextStyle(fontSize: 15 + appState.getTextSizeOffset()),
+                    style:
+                        TextStyle(fontSize: 15 + appState.getTextSizeOffset()),
                   ),
                   onTap: () {
                     Navigator.pop(context);
@@ -326,10 +343,12 @@ class _CustomDrawerState extends State<CustomDrawer> {
                   leading: const Icon(Icons.star),
                   title: Text(
                     'Noter l\'application',
-                    style: TextStyle(fontSize: 15 + appState.getTextSizeOffset()),
+                    style:
+                        TextStyle(fontSize: 15 + appState.getTextSizeOffset()),
                   ),
                   onTap: () async {
-                    Navigator.pop(context); // Ferme le drawer avant la demande de notation
+                    Navigator.pop(
+                        context); // Ferme le drawer avant la demande de notation
                     await _requestReview(context);
                   },
                 ),
@@ -337,7 +356,8 @@ class _CustomDrawerState extends State<CustomDrawer> {
                   leading: const Icon(Icons.settings),
                   title: Text(
                     S.of(context).settings,
-                    style: TextStyle(fontSize: 15 + appState.getTextSizeOffset()),
+                    style:
+                        TextStyle(fontSize: 15 + appState.getTextSizeOffset()),
                   ),
                   onTap: () {
                     Navigator.pop(context);
@@ -353,7 +373,8 @@ class _CustomDrawerState extends State<CustomDrawer> {
                   leading: const Icon(Icons.update),
                   title: Text(
                     'Changelog',
-                    style: TextStyle(fontSize: 15 + appState.getTextSizeOffset()),
+                    style:
+                        TextStyle(fontSize: 15 + appState.getTextSizeOffset()),
                   ),
                   onTap: () {
                     showModalBottomSheet(
@@ -362,7 +383,8 @@ class _CustomDrawerState extends State<CustomDrawer> {
                       builder: (BuildContext context) {
                         return SizedBox(
                           height: MediaQuery.of(context).size.height * 0.8,
-                          child: const ChangelogPage(), // votre widget qui affiche le changelog
+                          child:
+                              const ChangelogPage(), // votre widget qui affiche le changelog
                         );
                       },
                     );
@@ -373,7 +395,8 @@ class _CustomDrawerState extends State<CustomDrawer> {
                   leading: const Icon(Icons.info),
                   title: Text(
                     S.of(context).about,
-                    style: TextStyle(fontSize: 15 + appState.getTextSizeOffset()),
+                    style:
+                        TextStyle(fontSize: 15 + appState.getTextSizeOffset()),
                   ),
                   onTap: () {
                     Navigator.pop(context);

@@ -64,7 +64,11 @@ class SettingsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildSettingsCard(BuildContext context, {required IconData icon, required Color color, required String title, required VoidCallback onTap}) {
+  Widget _buildSettingsCard(BuildContext context,
+      {required IconData icon,
+      required Color color,
+      required String title,
+      required VoidCallback onTap}) {
     final appState = Provider.of<AppState>(context);
 
     return Card(
@@ -72,7 +76,8 @@ class SettingsPage extends StatelessWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: ListTile(
         leading: Icon(icon, color: color),
-        title: Text(title, style: TextStyle(fontSize: 16.0 + appState.getTextSizeOffset())),
+        title: Text(title,
+            style: TextStyle(fontSize: 16.0 + appState.getTextSizeOffset())),
         trailing: Icon(Icons.arrow_forward_ios, size: 16),
         onTap: onTap,
       ),

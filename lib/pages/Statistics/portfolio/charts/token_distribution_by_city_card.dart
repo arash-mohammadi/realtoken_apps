@@ -3,7 +3,6 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:provider/provider.dart';
 import 'package:realtokens/managers/data_manager.dart';
 import 'package:realtokens/app_state.dart';
-import 'package:realtokens/utils/ui_utils.dart';
 import 'package:realtokens/generated/l10n.dart';
 import 'package:realtokens/modals/modal_others_pie.dart'; // Assurez-vous que ce fichier existe
 
@@ -13,13 +12,17 @@ class TokenDistributionByCityCard extends StatefulWidget {
   const TokenDistributionByCityCard({super.key, required this.dataManager});
 
   @override
-  _TokenDistributionByCityCardState createState() => _TokenDistributionByCityCardState();
+  _TokenDistributionByCityCardState createState() =>
+      _TokenDistributionByCityCardState();
 }
 
-class _TokenDistributionByCityCardState extends State<TokenDistributionByCityCard> {
+class _TokenDistributionByCityCardState
+    extends State<TokenDistributionByCityCard> {
   int? _selectedIndexCity;
-  final ValueNotifier<int?> _selectedIndexNotifierCity = ValueNotifier<int?>(null);
-  List<Map<String, dynamic>> othersDetails = []; // Pour stocker les détails de la section "Autres"
+  final ValueNotifier<int?> _selectedIndexNotifierCity =
+      ValueNotifier<int?>(null);
+  List<Map<String, dynamic>> othersDetails =
+      []; // Pour stocker les détails de la section "Autres"
 
   @override
   Widget build(BuildContext context) {
@@ -51,20 +54,31 @@ class _TokenDistributionByCityCardState extends State<TokenDistributionByCityCar
                     children: [
                       PieChart(
                         PieChartData(
-                          sections: _buildDonutChartDataByCity(widget.dataManager, othersDetails, selectedIndex),
+                          sections: _buildDonutChartDataByCity(
+                              widget.dataManager, othersDetails, selectedIndex),
                           centerSpaceRadius: 70,
                           sectionsSpace: 2,
                           borderData: FlBorderData(show: false),
                           pieTouchData: PieTouchData(
-                            touchCallback: (FlTouchEvent event, PieTouchResponse? response) {
-                              if (response != null && response.touchedSection != null) {
-                                final touchedIndex = response.touchedSection!.touchedSectionIndex;
-                                _selectedIndexNotifierCity.value = touchedIndex >= 0 ? touchedIndex : null;
+                            touchCallback: (FlTouchEvent event,
+                                PieTouchResponse? response) {
+                              if (response != null &&
+                                  response.touchedSection != null) {
+                                final touchedIndex = response
+                                    .touchedSection!.touchedSectionIndex;
+                                _selectedIndexNotifierCity.value =
+                                    touchedIndex >= 0 ? touchedIndex : null;
 
                                 if (event is FlTapUpEvent) {
-                                  final section = response.touchedSection!.touchedSection;
-                                  if (section!.title.contains(S.of(context).others)) {
-                                    showOtherDetailsModal(context, widget.dataManager, othersDetails, 'city');
+                                  final section =
+                                      response.touchedSection!.touchedSection;
+                                  if (section!.title
+                                      .contains(S.of(context).others)) {
+                                    showOtherDetailsModal(
+                                        context,
+                                        widget.dataManager,
+                                        othersDetails,
+                                        'city');
                                   }
                                 }
                               } else {
@@ -74,7 +88,8 @@ class _TokenDistributionByCityCardState extends State<TokenDistributionByCityCar
                           ),
                         ),
                       ),
-                      _buildCenterTextByCity(widget.dataManager, selectedIndex, othersDetails),
+                      _buildCenterTextByCity(
+                          widget.dataManager, selectedIndex, othersDetails),
                     ],
                   );
                 },
@@ -92,7 +107,8 @@ class _TokenDistributionByCityCardState extends State<TokenDistributionByCityCar
     );
   }
 
-  List<PieChartSectionData> _buildDonutChartDataByCity(DataManager dataManager, List<Map<String, dynamic>> othersDetails, int? selectedIndex) {
+  List<PieChartSectionData> _buildDonutChartDataByCity(DataManager dataManager,
+      List<Map<String, dynamic>> othersDetails, int? selectedIndex) {
     Map<String, int> cityCount = {};
     final appState = Provider.of<AppState>(context);
 
@@ -106,7 +122,8 @@ class _TokenDistributionByCityCardState extends State<TokenDistributionByCityCar
     int totalCount = cityCount.values.fold(0, (sum, value) => sum + value);
 
     // Trier les villes par 'count' croissant
-    final sortedCities = cityCount.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
+    final sortedCities = cityCount.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
 
     List<PieChartSectionData> sections = [];
     othersDetails.clear(); // Clear previous details of "Autres"
@@ -117,7 +134,8 @@ class _TokenDistributionByCityCardState extends State<TokenDistributionByCityCar
       final city = entry.key;
       final value = entry.value;
       final double percentage = (value / totalCount) * 100;
-      final baseColor = generateColor(sortedCities.indexOf(entry)); // Appliquer la couleur générée
+      final baseColor = generateColor(
+          sortedCities.indexOf(entry)); // Appliquer la couleur générée
 
       // Appliquer l'opacité uniquement si un segment est sélectionné
       final bool isSelected = selectedIndex == sortedCities.indexOf(entry);
@@ -125,7 +143,8 @@ class _TokenDistributionByCityCardState extends State<TokenDistributionByCityCar
 
       if (percentage < 2) {
         othersValue += value;
-        othersDetails.add({'city': city, 'count': value}); // Stocker les détails de "Autres"
+        othersDetails.add(
+            {'city': city, 'count': value}); // Stocker les détails de "Autres"
       } else {
         sections.add(PieChartSectionData(
           value: value.toDouble(),
@@ -133,7 +152,9 @@ class _TokenDistributionByCityCardState extends State<TokenDistributionByCityCar
           color: baseColor.withOpacity(opacity),
           radius: isSelected ? 50 : 40,
           titleStyle: TextStyle(
-            fontSize: isSelected ? 14 + appState.getTextSizeOffset() : 10 + appState.getTextSizeOffset(),
+            fontSize: isSelected
+                ? 14 + appState.getTextSizeOffset()
+                : 10 + appState.getTextSizeOffset(),
             color: Colors.white,
             fontWeight: FontWeight.bold,
           ),
@@ -146,11 +167,18 @@ class _TokenDistributionByCityCardState extends State<TokenDistributionByCityCar
       final double othersPercentage = (othersValue / totalCount) * 100;
       sections.add(PieChartSectionData(
         value: othersValue.toDouble(),
-        title: '${S.of(context).others} ${othersPercentage.toStringAsFixed(1)}%',
-        color: Colors.grey.withOpacity(selectedIndex != null && selectedIndex == sections.length ? 1.0 : 0.5),
-        radius: selectedIndex != null && selectedIndex == sections.length ? 50 : 40,
+        title:
+            '${S.of(context).others} ${othersPercentage.toStringAsFixed(1)}%',
+        color: Colors.grey.withOpacity(
+            selectedIndex != null && selectedIndex == sections.length
+                ? 1.0
+                : 0.5),
+        radius:
+            selectedIndex != null && selectedIndex == sections.length ? 50 : 40,
         titleStyle: TextStyle(
-          fontSize: selectedIndex != null && selectedIndex == sections.length ? 14 + appState.getTextSizeOffset() : 10 + appState.getTextSizeOffset(),
+          fontSize: selectedIndex != null && selectedIndex == sections.length
+              ? 14 + appState.getTextSizeOffset()
+              : 10 + appState.getTextSizeOffset(),
           color: Colors.white,
           fontWeight: FontWeight.bold,
         ),
@@ -160,7 +188,8 @@ class _TokenDistributionByCityCardState extends State<TokenDistributionByCityCar
     return sections;
   }
 
-  Widget _buildCenterTextByCity(DataManager dataManager, int? selectedIndex, List<Map<String, dynamic>> othersDetails) {
+  Widget _buildCenterTextByCity(DataManager dataManager, int? selectedIndex,
+      List<Map<String, dynamic>> othersDetails) {
     Map<String, int> cityCount = {};
 
     // Remplir le dictionnaire avec les counts par ville
@@ -196,7 +225,8 @@ class _TokenDistributionByCityCardState extends State<TokenDistributionByCityCar
     }
 
     // Afficher les détails du segment sélectionné
-    final sortedCities = cityCount.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
+    final sortedCities = cityCount.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
 
     if (selectedIndex < sortedCities.length) {
       final selectedCity = sortedCities[selectedIndex];
@@ -232,7 +262,9 @@ class _TokenDistributionByCityCardState extends State<TokenDistributionByCityCar
             ),
           ),
           Text(
-            othersDetails.fold<int>(0, (sum, item) => sum + (item['count'] as int)).toString(),
+            othersDetails
+                .fold<int>(0, (sum, item) => sum + (item['count'] as int))
+                .toString(),
             style: TextStyle(
               fontSize: 14 + Provider.of<AppState>(context).getTextSizeOffset(),
               color: Colors.grey,
@@ -243,7 +275,8 @@ class _TokenDistributionByCityCardState extends State<TokenDistributionByCityCar
     }
   }
 
-  Widget _buildLegendByCity(DataManager dataManager, List<Map<String, dynamic>> othersDetails) {
+  Widget _buildLegendByCity(
+      DataManager dataManager, List<Map<String, dynamic>> othersDetails) {
     Map<String, int> cityCount = {};
     final appState = Provider.of<AppState>(context);
 
@@ -257,7 +290,8 @@ class _TokenDistributionByCityCardState extends State<TokenDistributionByCityCar
     int totalCount = cityCount.values.fold(0, (sum, value) => sum + value);
 
     // Trier les villes par 'count' croissant
-    final sortedCities = cityCount.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
+    final sortedCities = cityCount.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
 
     List<Widget> legendItems = [];
     int othersValue = 0;
@@ -267,12 +301,14 @@ class _TokenDistributionByCityCardState extends State<TokenDistributionByCityCar
       final city = entry.key;
       final value = entry.value;
       final double percentage = (value / totalCount) * 100;
-      final color = generateColor(sortedCities.indexOf(entry)); // Appliquer la couleur générée
+      final color = generateColor(
+          sortedCities.indexOf(entry)); // Appliquer la couleur générée
 
       if (percentage < 2) {
         // Ajouter aux "Autres" si < 2%
         othersValue += value;
-        othersDetails.add({'city': city, 'count': value}); // Stocker les détails de "Autres"
+        othersDetails.add(
+            {'city': city, 'count': value}); // Stocker les détails de "Autres"
       } else {
         // Ajouter un élément de légende pour cette ville
         legendItems.add(
@@ -335,6 +371,7 @@ class _TokenDistributionByCityCardState extends State<TokenDistributionByCityCar
     final hue = ((index * 57) + 193 * (index % 3)) % 360;
     final saturation = (0.7 + (index % 5) * 0.06).clamp(0.4, 0.7);
     final brightness = (0.8 + (index % 3) * 0.2).clamp(0.6, 0.9);
-    return HSVColor.fromAHSV(1.0, hue.toDouble(), saturation, brightness).toColor();
+    return HSVColor.fromAHSV(1.0, hue.toDouble(), saturation, brightness)
+        .toColor();
   }
 }

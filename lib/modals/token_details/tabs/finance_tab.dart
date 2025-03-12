@@ -5,7 +5,8 @@ import 'package:realtokens/generated/l10n.dart';
 import 'package:realtokens/app_state.dart';
 import 'package:realtokens/utils/currency_utils.dart';
 
-Widget buildFinanceTab(BuildContext context, Map<String, dynamic> token, bool convertToSquareMeters) {
+Widget buildFinanceTab(BuildContext context, Map<String, dynamic> token,
+    bool convertToSquareMeters) {
   final appState = Provider.of<AppState>(context, listen: false);
   final dataManager = Provider.of<DataManager>(context, listen: false);
   final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
@@ -16,20 +17,27 @@ Widget buildFinanceTab(BuildContext context, Map<String, dynamic> token, bool co
       (token['renovationReserve']?.toDouble() ?? 0.0) +
       (token['miscellaneousCosts']?.toDouble() ?? 0.0);
 
-  double totalRentCosts = (token['propertyMaintenanceMonthly']?.toDouble() ?? 0.0) +
-      (token['propertyManagement']?.toDouble() ?? 0.0) +
-      (token['realtPlatform']?.toDouble() ?? 0.0) +
-      (token['insurance']?.toDouble() ?? 0.0) +
-      (token['propertyTaxes']?.toDouble() ?? 0.0);
+  double totalRentCosts =
+      (token['propertyMaintenanceMonthly']?.toDouble() ?? 0.0) +
+          (token['propertyManagement']?.toDouble() ?? 0.0) +
+          (token['realtPlatform']?.toDouble() ?? 0.0) +
+          (token['insurance']?.toDouble() ?? 0.0) +
+          (token['propertyTaxes']?.toDouble() ?? 0.0);
 
   // Contrôle de la visibilité des détails
   final ValueNotifier<bool> showDetailsNotifier = ValueNotifier<bool>(false);
-  final ValueNotifier<bool> showRentDetailsNotifier = ValueNotifier<bool>(false);
+  final ValueNotifier<bool> showRentDetailsNotifier =
+      ValueNotifier<bool>(false);
 
   return SingleChildScrollView(
     child: Column(
       children: [
-        _buildDetailRow(context, S.of(context).totalInvestment, currencyUtils.formatCurrency(currencyUtils.convert(token['totalInvestment']), currencyUtils.currencySymbol),
+        _buildDetailRow(
+            context,
+            S.of(context).totalInvestment,
+            currencyUtils.formatCurrency(
+                currencyUtils.convert(token['totalInvestment']),
+                currencyUtils.currencySymbol),
             icon: Icons.monetization_on),
 
         // Section des dépenses totales
@@ -42,7 +50,9 @@ Widget buildFinanceTab(BuildContext context, Map<String, dynamic> token, bool co
                 children: [
                   Text(
                     S.of(context).totalExpenses,
-                    style: TextStyle(fontSize: 13 + appState.getTextSizeOffset(), fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                        fontSize: 13 + appState.getTextSizeOffset(),
+                        fontWeight: FontWeight.bold),
                   ),
                   ValueListenableBuilder<bool>(
                     valueListenable: showDetailsNotifier,
@@ -56,7 +66,10 @@ Widget buildFinanceTab(BuildContext context, Map<String, dynamic> token, bool co
                 ],
               ),
               Text(
-                currencyUtils.formatCurrency(currencyUtils.convert(token['totalInvestment'] - token['underlyingAssetPrice']), currencyUtils.currencySymbol),
+                currencyUtils.formatCurrency(
+                    currencyUtils.convert(token['totalInvestment'] -
+                        token['underlyingAssetPrice']),
+                    currencyUtils.currencySymbol),
                 style: TextStyle(color: Colors.red),
               ),
             ],
@@ -74,35 +87,49 @@ Widget buildFinanceTab(BuildContext context, Map<String, dynamic> token, bool co
                   _buildDetailRow(
                     context,
                     S.of(context).realtListingFee,
-                    currencyUtils.formatCurrency(currencyUtils.convert(token['realtListingFee'] ?? 0), currencyUtils.currencySymbol),
+                    currencyUtils.formatCurrency(
+                        currencyUtils.convert(token['realtListingFee'] ?? 0),
+                        currencyUtils.currencySymbol),
                     isNegative: true,
                     color: Colors.red,
                   ),
                   _buildDetailRow(
                     context,
                     S.of(context).initialMaintenanceReserve,
-                    currencyUtils.formatCurrency(currencyUtils.convert(token['initialMaintenanceReserve'] ?? 0), currencyUtils.currencySymbol),
+                    currencyUtils.formatCurrency(
+                        currencyUtils
+                            .convert(token['initialMaintenanceReserve'] ?? 0),
+                        currencyUtils.currencySymbol),
                     isNegative: true,
                     color: Colors.orange,
                   ),
                   _buildDetailRow(
                     context,
                     S.of(context).renovationReserve,
-                    currencyUtils.formatCurrency(currencyUtils.convert(token['renovationReserve'] ?? 0), currencyUtils.currencySymbol),
+                    currencyUtils.formatCurrency(
+                        currencyUtils.convert(token['renovationReserve'] ?? 0),
+                        currencyUtils.currencySymbol),
                     isNegative: true,
                     color: Colors.purple,
                   ),
                   _buildDetailRow(
                     context,
                     S.of(context).miscellaneousCosts,
-                    currencyUtils.formatCurrency(currencyUtils.convert(token['miscellaneousCosts'] ?? 0), currencyUtils.currencySymbol),
+                    currencyUtils.formatCurrency(
+                        currencyUtils.convert(token['miscellaneousCosts'] ?? 0),
+                        currencyUtils.currencySymbol),
                     isNegative: true,
                     color: Colors.amber,
                   ),
                   _buildDetailRow(
                     context,
                     S.of(context).others,
-                    currencyUtils.formatCurrency(currencyUtils.convert((token['totalInvestment'] - token['underlyingAssetPrice'] - totalCosts) ?? 0), currencyUtils.currencySymbol),
+                    currencyUtils.formatCurrency(
+                        currencyUtils.convert((token['totalInvestment'] -
+                                token['underlyingAssetPrice'] -
+                                totalCosts) ??
+                            0),
+                        currencyUtils.currencySymbol),
                     isNegative: true,
                     color: Colors.grey,
                   ),
@@ -117,35 +144,47 @@ Widget buildFinanceTab(BuildContext context, Map<String, dynamic> token, bool co
           children: totalCosts > 0
               ? [
                   Expanded(
-                    flex: ((token['realtListingFee'] ?? 0) / totalCosts * 100).round(),
+                    flex: ((token['realtListingFee'] ?? 0) / totalCosts * 100)
+                        .round(),
                     child: Container(
                       height: 10,
                       color: Colors.red,
                     ),
                   ),
                   Expanded(
-                    flex: ((token['initialMaintenanceReserve'] ?? 0) / totalCosts * 100).round(),
+                    flex: ((token['initialMaintenanceReserve'] ?? 0) /
+                            totalCosts *
+                            100)
+                        .round(),
                     child: Container(
                       height: 10,
                       color: Colors.orange,
                     ),
                   ),
                   Expanded(
-                    flex: ((token['renovationReserve'] ?? 0) / totalCosts * 100).round(),
+                    flex: ((token['renovationReserve'] ?? 0) / totalCosts * 100)
+                        .round(),
                     child: Container(
                       height: 10,
                       color: Colors.purple,
                     ),
                   ),
                   Expanded(
-                    flex: ((token['miscellaneousCosts'] ?? 0) / totalCosts * 100).round(),
+                    flex:
+                        ((token['miscellaneousCosts'] ?? 0) / totalCosts * 100)
+                            .round(),
                     child: Container(
                       height: 10,
                       color: Colors.amber,
                     ),
                   ),
                   Expanded(
-                    flex: (((token['totalInvestment'] ?? 0) - (token['underlyingAssetPrice'] ?? 0) - totalCosts) / totalCosts * 100).round(),
+                    flex: (((token['totalInvestment'] ?? 0) -
+                                (token['underlyingAssetPrice'] ?? 0) -
+                                totalCosts) /
+                            totalCosts *
+                            100)
+                        .round(),
                     child: Container(
                       height: 10,
                       color: Colors.grey,
@@ -165,18 +204,28 @@ Widget buildFinanceTab(BuildContext context, Map<String, dynamic> token, bool co
 
         const SizedBox(height: 2),
         _buildDetailRow(
-            context, S.of(context).underlyingAssetPrice, currencyUtils.formatCurrency(currencyUtils.convert(token['underlyingAssetPrice'] ?? 0), currencyUtils.currencySymbol)),
+            context,
+            S.of(context).underlyingAssetPrice,
+            currencyUtils.formatCurrency(
+                currencyUtils.convert(token['underlyingAssetPrice'] ?? 0),
+                currencyUtils.currencySymbol)),
         const SizedBox(height: 2),
 
         const Divider(),
 
         // Section des loyers
-        _buildDetailRow(context, S.of(context).grossRentMonth, currencyUtils.formatCurrency(currencyUtils.convert(token['grossRentMonth'] ?? 0), currencyUtils.currencySymbol),
+        _buildDetailRow(
+            context,
+            S.of(context).grossRentMonth,
+            currencyUtils.formatCurrency(
+                currencyUtils.convert(token['grossRentMonth'] ?? 0),
+                currencyUtils.currencySymbol),
             icon: Icons.attach_money),
 
         // Détails des dépenses de loyer
         GestureDetector(
-          onTap: () => showRentDetailsNotifier.value = !showRentDetailsNotifier.value,
+          onTap: () =>
+              showRentDetailsNotifier.value = !showRentDetailsNotifier.value,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -184,7 +233,9 @@ Widget buildFinanceTab(BuildContext context, Map<String, dynamic> token, bool co
                 children: [
                   Text(
                     S.of(context).totalExpenses,
-                    style: TextStyle(fontSize: 13 + appState.getTextSizeOffset(), fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                        fontSize: 13 + appState.getTextSizeOffset(),
+                        fontWeight: FontWeight.bold),
                   ),
                   ValueListenableBuilder<bool>(
                     valueListenable: showRentDetailsNotifier,
@@ -213,23 +264,58 @@ Widget buildFinanceTab(BuildContext context, Map<String, dynamic> token, bool co
               visible: showDetails,
               child: Column(
                 children: [
-                  _buildDetailRow(context, S.of(context).propertyMaintenanceMonthly,
-                      currencyUtils.formatCurrency(currencyUtils.convert(token['propertyMaintenanceMonthly'] ?? 0), currencyUtils.currencySymbol),
-                      isNegative: true, color: Colors.deepOrange),
-                  _buildDetailRow(context, S.of(context).propertyManagement,
-                      currencyUtils.formatCurrency(currencyUtils.convert(token['propertyManagement'] ?? 0), currencyUtils.currencySymbol),
-                      isNegative: true, color: Colors.amber),
                   _buildDetailRow(
-                      context, S.of(context).realtPlatform, currencyUtils.formatCurrency(currencyUtils.convert(token['realtPlatform'] ?? 0), currencyUtils.currencySymbol),
-                      isNegative: true, color: Colors.orange),
-                  _buildDetailRow(context, S.of(context).insurance, currencyUtils.formatCurrency(currencyUtils.convert(token['insurance'] ?? 0), currencyUtils.currencySymbol),
-                      isNegative: true, color: Colors.purple),
+                      context,
+                      S.of(context).propertyMaintenanceMonthly,
+                      currencyUtils.formatCurrency(
+                          currencyUtils.convert(
+                              token['propertyMaintenanceMonthly'] ?? 0),
+                          currencyUtils.currencySymbol),
+                      isNegative: true,
+                      color: Colors.deepOrange),
                   _buildDetailRow(
-                      context, S.of(context).propertyTaxes, currencyUtils.formatCurrency(currencyUtils.convert(token['propertyTaxes'] ?? 0), currencyUtils.currencySymbol),
-                      isNegative: true, color: Colors.red),
-                  _buildDetailRow(context, S.of(context).others,
-                      currencyUtils.formatCurrency((currencyUtils.convert(token['grossRentMonth'] - token['netRentMonth'] - totalRentCosts)), currencyUtils.currencySymbol),
-                      isNegative: true, color: Colors.grey),
+                      context,
+                      S.of(context).propertyManagement,
+                      currencyUtils.formatCurrency(
+                          currencyUtils
+                              .convert(token['propertyManagement'] ?? 0),
+                          currencyUtils.currencySymbol),
+                      isNegative: true,
+                      color: Colors.amber),
+                  _buildDetailRow(
+                      context,
+                      S.of(context).realtPlatform,
+                      currencyUtils.formatCurrency(
+                          currencyUtils.convert(token['realtPlatform'] ?? 0),
+                          currencyUtils.currencySymbol),
+                      isNegative: true,
+                      color: Colors.orange),
+                  _buildDetailRow(
+                      context,
+                      S.of(context).insurance,
+                      currencyUtils.formatCurrency(
+                          currencyUtils.convert(token['insurance'] ?? 0),
+                          currencyUtils.currencySymbol),
+                      isNegative: true,
+                      color: Colors.purple),
+                  _buildDetailRow(
+                      context,
+                      S.of(context).propertyTaxes,
+                      currencyUtils.formatCurrency(
+                          currencyUtils.convert(token['propertyTaxes'] ?? 0),
+                          currencyUtils.currencySymbol),
+                      isNegative: true,
+                      color: Colors.red),
+                  _buildDetailRow(
+                      context,
+                      S.of(context).others,
+                      currencyUtils.formatCurrency(
+                          (currencyUtils.convert(token['grossRentMonth'] -
+                              token['netRentMonth'] -
+                              totalRentCosts)),
+                          currencyUtils.currencySymbol),
+                      isNegative: true,
+                      color: Colors.grey),
                 ],
               ),
             );
@@ -240,42 +326,65 @@ Widget buildFinanceTab(BuildContext context, Map<String, dynamic> token, bool co
         Row(
           children: [
             Expanded(
-              flex: totalRentCosts != 0 ? ((token['propertyMaintenanceMonthly'] ?? 0) / totalRentCosts * 100).round() : 0,
+              flex: totalRentCosts != 0
+                  ? ((token['propertyMaintenanceMonthly'] ?? 0) /
+                          totalRentCosts *
+                          100)
+                      .round()
+                  : 0,
               child: Container(
                 height: 10,
                 color: Colors.deepOrange,
               ),
             ),
             Expanded(
-              flex: totalRentCosts != 0 ? ((token['propertyManagement'] ?? 0) / totalRentCosts * 100).round() : 0,
+              flex: totalRentCosts != 0
+                  ? ((token['propertyManagement'] ?? 0) / totalRentCosts * 100)
+                      .round()
+                  : 0,
               child: Container(
                 height: 10,
                 color: Colors.amber,
               ),
             ),
             Expanded(
-              flex: totalRentCosts != 0 ? ((token['realtPlatform'] ?? 0) / totalRentCosts * 100).round() : 0,
+              flex: totalRentCosts != 0
+                  ? ((token['realtPlatform'] ?? 0) / totalRentCosts * 100)
+                      .round()
+                  : 0,
               child: Container(
                 height: 10,
                 color: Colors.orange,
               ),
             ),
             Expanded(
-              flex: totalRentCosts != 0 ? ((token['insurance'] ?? 0) / totalRentCosts * 100).round() : 0,
+              flex: totalRentCosts != 0
+                  ? ((token['insurance'] ?? 0) / totalRentCosts * 100).round()
+                  : 0,
               child: Container(
                 height: 10,
                 color: Colors.purple,
               ),
             ),
             Expanded(
-              flex: totalRentCosts != 0 ? ((token['propertyTaxes'] ?? 0) / totalRentCosts * 100).round() : 0,
+              flex: totalRentCosts != 0
+                  ? ((token['propertyTaxes'] ?? 0) / totalRentCosts * 100)
+                      .round()
+                  : 0,
               child: Container(
                 height: 10,
                 color: Colors.red,
               ),
             ),
             Expanded(
-              flex: totalRentCosts != 0 ? (((token['grossRentMonth'] ?? 0.0) - (token['netRentMonth'] ?? 0.0) - totalRentCosts) / totalRentCosts * 100).round() : 0,
+              flex: totalRentCosts != 0
+                  ? (((token['grossRentMonth'] ?? 0.0) -
+                              (token['netRentMonth'] ?? 0.0) -
+                              totalRentCosts) /
+                          totalRentCosts *
+                          100)
+                      .round()
+                  : 0,
               child: Container(
                 height: 10,
                 color: Colors.grey,
@@ -285,7 +394,12 @@ Widget buildFinanceTab(BuildContext context, Map<String, dynamic> token, bool co
         ),
 
         const SizedBox(height: 2),
-        _buildDetailRow(context, S.of(context).netRentMonth, currencyUtils.formatCurrency(currencyUtils.convert(token['netRentMonth'] ?? 0), currencyUtils.currencySymbol)),
+        _buildDetailRow(
+            context,
+            S.of(context).netRentMonth,
+            currencyUtils.formatCurrency(
+                currencyUtils.convert(token['netRentMonth'] ?? 0),
+                currencyUtils.currencySymbol)),
         const SizedBox(height: 2),
 
         const Divider(),
@@ -294,11 +408,14 @@ Widget buildFinanceTab(BuildContext context, Map<String, dynamic> token, bool co
         _buildDetailRow(
           context,
           S.of(context).initialPrice,
-          currencyUtils.formatCurrency(currencyUtils.convert(token['initPrice']), currencyUtils.currencySymbol),
+          currencyUtils.formatCurrency(
+              currencyUtils.convert(token['initPrice']),
+              currencyUtils.currencySymbol),
           icon: Icons.price_change_sharp,
           trailing: IconButton(
             padding: EdgeInsets.zero,
-            icon: Icon(Icons.edit, color: Colors.grey, size: 16 + appState.getTextSizeOffset()),
+            icon: Icon(Icons.edit,
+                color: Colors.grey, size: 16 + appState.getTextSizeOffset()),
             onPressed: () {
               _showEditPriceBottomModal(context, token, dataManager);
             },
@@ -307,20 +424,28 @@ Widget buildFinanceTab(BuildContext context, Map<String, dynamic> token, bool co
         _buildDetailRow(
           context,
           S.of(context).realtActualPrice,
-          currencyUtils.formatCurrency(currencyUtils.convert(token['tokenPrice']), currencyUtils.currencySymbol),
+          currencyUtils.formatCurrency(
+              currencyUtils.convert(token['tokenPrice']),
+              currencyUtils.currencySymbol),
           icon: Icons.price_change_sharp,
         ),
 
         // Section YAM
         Row(children: [
           Icon(Icons.price_change_sharp, size: 18, color: Colors.blueGrey),
-          Text('  YAM ', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13 + appState.getTextSizeOffset())),
+          Text('  YAM ',
+              style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13 + appState.getTextSizeOffset())),
           Spacer(),
           Text(
             '${currencyUtils.formatCurrency(currencyUtils.convert((token['yamAverageValue'])), currencyUtils.currencySymbol)} (${((token['yamAverageValue'] / token['initPrice'] - 1) * 100).toStringAsFixed(0)}%)',
             style: TextStyle(
               fontSize: 13 + appState.getTextSizeOffset(),
-              color: (token['yamAverageValue'] * token['amount']) > token['totalValue'] ? Colors.green : Colors.red,
+              color: (token['yamAverageValue'] * token['amount']) >
+                      token['totalValue']
+                  ? Colors.green
+                  : Colors.red,
             ),
           )
         ]),
@@ -333,7 +458,9 @@ Widget buildFinanceTab(BuildContext context, Map<String, dynamic> token, bool co
         _buildDetailRow(
           context,
           S.of(context).totalRentReceived,
-          currencyUtils.formatCurrency(currencyUtils.convert(token['totalRentReceived'] ?? 0), currencyUtils.currencySymbol),
+          currencyUtils.formatCurrency(
+              currencyUtils.convert(token['totalRentReceived'] ?? 0),
+              currencyUtils.currencySymbol),
           icon: Icons.receipt_long,
         ),
         _buildDetailRow(
@@ -349,13 +476,15 @@ Widget buildFinanceTab(BuildContext context, Map<String, dynamic> token, bool co
 }
 
 // Méthode pour construire une ligne de détail
-Widget _buildDetailRow(BuildContext context, String label, String value, {IconData? icon, bool isNegative = false, Color? color, Widget? trailing}) {
+Widget _buildDetailRow(BuildContext context, String label, String value,
+    {IconData? icon, bool isNegative = false, Color? color, Widget? trailing}) {
   final appState = Provider.of<AppState>(context, listen: false);
 
   final displayValue = isNegative ? '-$value' : value;
   final valueStyle = TextStyle(
     fontSize: 13 + appState.getTextSizeOffset(),
-    color: isNegative ? Colors.red : Theme.of(context).textTheme.bodyMedium?.color,
+    color:
+        isNegative ? Colors.red : Theme.of(context).textTheme.bodyMedium?.color,
   );
 
   return Padding(
@@ -400,7 +529,8 @@ Widget _buildDetailRow(BuildContext context, String label, String value, {IconDa
 }
 
 // Méthode pour afficher le BottomModal de modification du prix
-void _showEditPriceBottomModal(BuildContext context, Map<String, dynamic> token, DataManager dataManager) {
+void _showEditPriceBottomModal(
+    BuildContext context, Map<String, dynamic> token, DataManager dataManager) {
   final TextEditingController priceController = TextEditingController(
     text: token['initPrice']?.toString() ?? '0.00',
   );
@@ -426,7 +556,8 @@ void _showEditPriceBottomModal(BuildContext context, Map<String, dynamic> token,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              SizedBox(height: 8), // Espacement entre le titre et la description
+              SizedBox(
+                  height: 8), // Espacement entre le titre et la description
               // Description
               Text(
                 S.of(context).initialPriceModified_description,
@@ -436,7 +567,9 @@ void _showEditPriceBottomModal(BuildContext context, Map<String, dynamic> token,
                 ),
                 textAlign: TextAlign.center,
               ),
-              SizedBox(height: 16), // Espacement entre la description et le champ de texte
+              SizedBox(
+                  height:
+                      16), // Espacement entre la description et le champ de texte
               // Champ de texte
               TextFormField(
                 controller: priceController,
@@ -447,7 +580,9 @@ void _showEditPriceBottomModal(BuildContext context, Map<String, dynamic> token,
                   suffixText: '\$',
                 ),
               ),
-              SizedBox(height: 16), // Espacement entre le champ de texte et les boutons
+              SizedBox(
+                  height:
+                      16), // Espacement entre le champ de texte et les boutons
               // Boutons avec icônes
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -460,15 +595,18 @@ void _showEditPriceBottomModal(BuildContext context, Map<String, dynamic> token,
                         dataManager.setCustomInitPrice(token['uuid'], newPrice);
                         Navigator.pop(context);
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(S.of(context).initialPriceUpdated)),
+                          SnackBar(
+                              content: Text(S.of(context).initialPriceUpdated)),
                         );
                       } else {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(S.of(context).enterValidNumber)),
+                          SnackBar(
+                              content: Text(S.of(context).enterValidNumber)),
                         );
                       }
                     },
-                    icon: Icon(Icons.check, color: Colors.green), // Icône de validation
+                    icon: Icon(Icons.check,
+                        color: Colors.green), // Icône de validation
                     tooltip: S.of(context).save, // Texte d'aide au survol
                   ),
                   // Bouton pour supprimer avec une icône de suppression
@@ -477,10 +615,12 @@ void _showEditPriceBottomModal(BuildContext context, Map<String, dynamic> token,
                       dataManager.removeCustomInitPrice(token['uuid']);
                       Navigator.pop(context);
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(S.of(context).initialPriceRemoved)),
+                        SnackBar(
+                            content: Text(S.of(context).initialPriceRemoved)),
                       );
                     },
-                    icon: Icon(Icons.delete, color: Colors.red), // Icône de suppression
+                    icon: Icon(Icons.delete,
+                        color: Colors.red), // Icône de suppression
                     tooltip: 'delete', // Texte d'aide au survol
                   ),
                 ],

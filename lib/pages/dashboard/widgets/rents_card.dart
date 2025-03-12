@@ -12,7 +12,8 @@ class RentsCard extends StatelessWidget {
   final bool showAmounts;
   final bool isLoading;
 
-  const RentsCard({super.key, required this.showAmounts, required this.isLoading});
+  const RentsCard(
+      {super.key, required this.showAmounts, required this.isLoading});
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +26,11 @@ class RentsCard extends StatelessWidget {
       Icons.attach_money,
       Row(
         children: [
-          UIUtils.buildValueBeforeText(context, '${dataManager.netGlobalApy.toStringAsFixed(2)}%' as String?, S.of(context).annualYield, dataManager.isLoadingMain),
+          UIUtils.buildValueBeforeText(
+              context,
+              '${dataManager.netGlobalApy.toStringAsFixed(2)}%' as String?,
+              S.of(context).annualYield,
+              dataManager.isLoadingMain),
           SizedBox(width: 6),
           GestureDetector(
             onTap: () {
@@ -36,7 +41,8 @@ class RentsCard extends StatelessWidget {
                     title: Text(S.of(context).apy), // Titre de la popup
                     content: Text(
                       S.of(context).netApyHelp, // Contenu de la popup
-                      style: TextStyle(fontSize: 13 + appState.getTextSizeOffset()),
+                      style: TextStyle(
+                          fontSize: 13 + appState.getTextSizeOffset()),
                     ),
                     actions: [
                       TextButton(
@@ -50,7 +56,8 @@ class RentsCard extends StatelessWidget {
                 },
               );
             },
-            child: Icon(Icons.info_outline, size: 15), // Icône sans padding implicite
+            child: Icon(Icons.info_outline,
+                size: 15), // Icône sans padding implicite
           ),
         ],
       ),
@@ -63,13 +70,19 @@ class RentsCard extends StatelessWidget {
         ),
         const SizedBox(height: 10),
         UIUtils.buildTextWithShimmer(
-          currencyUtils.getFormattedAmount(currencyUtils.convert(dataManager.dailyRent), currencyUtils.currencySymbol, showAmounts),
+          currencyUtils.getFormattedAmount(
+              currencyUtils.convert(dataManager.dailyRent),
+              currencyUtils.currencySymbol,
+              showAmounts),
           S.of(context).daily,
           dataManager.isLoadingMain,
           context,
         ),
         UIUtils.buildTextWithShimmer(
-          currencyUtils.getFormattedAmount(currencyUtils.convert(dataManager.weeklyRent), currencyUtils.currencySymbol, showAmounts),
+          currencyUtils.getFormattedAmount(
+              currencyUtils.convert(dataManager.weeklyRent),
+              currencyUtils.currencySymbol,
+              showAmounts),
           S.of(context).weekly,
           dataManager.isLoadingMain,
           context,
@@ -85,7 +98,10 @@ class RentsCard extends StatelessWidget {
           context,
         ),
         UIUtils.buildTextWithShimmer(
-          currencyUtils.getFormattedAmount(currencyUtils.convert(dataManager.yearlyRent), currencyUtils.currencySymbol, showAmounts),
+          currencyUtils.getFormattedAmount(
+              currencyUtils.convert(dataManager.yearlyRent),
+              currencyUtils.currencySymbol,
+              showAmounts),
           S.of(context).annually,
           dataManager.isLoadingMain,
           context,
@@ -94,11 +110,13 @@ class RentsCard extends StatelessWidget {
       dataManager,
       context,
       hasGraph: true,
-      rightWidget: _buildMiniGraphForRendement(_getLast12WeeksRent(dataManager), context, dataManager),
+      rightWidget: _buildMiniGraphForRendement(
+          _getLast12WeeksRent(dataManager), context, dataManager),
     );
   }
 
-  Widget _buildMiniGraphForRendement(List<Map<String, dynamic>> data, BuildContext context, DataManager dataManager) {
+  Widget _buildMiniGraphForRendement(List<Map<String, dynamic>> data,
+      BuildContext context, DataManager dataManager) {
     final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
 
     return Align(
@@ -118,7 +136,9 @@ class RentsCard extends StatelessWidget {
             lineBarsData: [
               LineChartBarData(
                 spots: List.generate(data.length, (index) {
-                  double roundedValue = double.parse(currencyUtils.convert(data[index]['amount']).toStringAsFixed(2));
+                  double roundedValue = double.parse(currencyUtils
+                      .convert(data[index]['amount'])
+                      .toStringAsFixed(2));
                   return FlSpot(index.toDouble(), roundedValue);
                 }),
                 isCurved: true,
@@ -126,7 +146,8 @@ class RentsCard extends StatelessWidget {
                 color: Theme.of(context).primaryColor,
                 dotData: FlDotData(
                   show: true,
-                  getDotPainter: (spot, percent, barData, index) => FlDotCirclePainter(
+                  getDotPainter: (spot, percent, barData, index) =>
+                      FlDotCirclePainter(
                     radius: 2,
                     color: Theme.of(context).primaryColor,
                     strokeWidth: 0,
@@ -176,7 +197,8 @@ class RentsCard extends StatelessWidget {
     final currentDate = DateTime.now();
     final rentData = dataManager.rentData;
 
-    DateTime currentMonday = currentDate.subtract(Duration(days: currentDate.weekday - 1));
+    DateTime currentMonday =
+        currentDate.subtract(Duration(days: currentDate.weekday - 1));
 
     Map<String, double> weeklyRent = {};
 
@@ -193,10 +215,14 @@ class RentsCard extends StatelessWidget {
     }
 
     List<Map<String, dynamic>> last12WeeksData = List.generate(12, (index) {
-      DateTime pastMonday = currentMonday.subtract(Duration(days: (index + 1) * 7));
+      DateTime pastMonday =
+          currentMonday.subtract(Duration(days: (index + 1) * 7));
       String weekLabel = DateFormat('dd MMM yyyy').format(pastMonday);
 
-      return {'week': weekLabel, 'amount': weeklyRent[DateFormat('yyyy-MM-dd').format(pastMonday)] ?? 0};
+      return {
+        'week': weekLabel,
+        'amount': weeklyRent[DateFormat('yyyy-MM-dd').format(pastMonday)] ?? 0
+      };
     }).reversed.toList();
 
     return last12WeeksData;

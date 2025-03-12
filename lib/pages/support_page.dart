@@ -32,7 +32,8 @@ class RealtPageState extends State<SupportPage> {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor, // Définir le fond noir
+        backgroundColor:
+            Theme.of(context).scaffoldBackgroundColor, // Définir le fond noir
         title: Text('Support'), // Utilisation de S.of(context)
       ),
       body: SingleChildScrollView(
@@ -50,7 +51,8 @@ class RealtPageState extends State<SupportPage> {
                   style: TextStyle(fontSize: 13 + appState.getTextSizeOffset()),
                 ), // Texte principal
                 linkText: 'Github isssues link', // Texte du lien
-                linkUrl: 'https://github.com/RealToken-Community/realtoken_apps/issues', // URL du lien
+                linkUrl:
+                    'https://github.com/RealToken-Community/realtoken_apps/issues', // URL du lien
                 iconColor: Colors.grey, // Couleur noire pour GitHub
               ),
               const SizedBox(height: 10),
@@ -74,7 +76,8 @@ class RealtPageState extends State<SupportPage> {
                   style: TextStyle(fontSize: 13 + appState.getTextSizeOffset()),
                 ), // Texte principal
                 linkText: 'Discord Link here', // Texte du lien
-                linkUrl: 'https://discord.com/channels/681940057183092737/681966628527013891', // URL du lien
+                linkUrl:
+                    'https://discord.com/channels/681940057183092737/681966628527013891', // URL du lien
                 iconColor: Colors.purple, // Couleur de l'icône
               ),
               const SizedBox(height: 10), // Espace sous l'image
@@ -87,33 +90,45 @@ class RealtPageState extends State<SupportPage> {
                   children: [
                     Text(
                       S.of(context).donationMessage,
-                      style: TextStyle(fontSize: 13 + appState.getTextSizeOffset()),
+                      style: TextStyle(
+                          fontSize: 13 + appState.getTextSizeOffset()),
                     ),
                     const SizedBox(height: 10),
                     ListTile(
                       leading: const Icon(Icons.link),
                       title: Text(
                         'My linktree',
-                        style: TextStyle(fontSize: 13 + appState.getTextSizeOffset()),
+                        style: TextStyle(
+                            fontSize: 13 + appState.getTextSizeOffset()),
                       ),
-                      onTap: () => UrlUtils.launchURL('https://linktr.ee/byackee'),
-                      visualDensity: const VisualDensity(vertical: -4), // Réduction de l'espace vertical
+                      onTap: () =>
+                          UrlUtils.launchURL('https://linktr.ee/byackee'),
+                      visualDensity: const VisualDensity(
+                          vertical: -4), // Réduction de l'espace vertical
                     ),
                     const SizedBox(height: 20),
-                    if (kIsWeb || (!kIsWeb && !Platform.isIOS)) // Condition pour afficher les boutons
+                    if (kIsWeb ||
+                        (!kIsWeb &&
+                            !Platform
+                                .isIOS)) // Condition pour afficher les boutons
                       Wrap(
                         spacing: 8.0, // Espacement horizontal entre les boutons
-                        runSpacing: 8.0, // Espacement vertical entre les lignes de boutons
+                        runSpacing:
+                            8.0, // Espacement vertical entre les lignes de boutons
                         alignment: WrapAlignment.center, // Alignement au centre
                         children: [
                           ElevatedButton.icon(
                             onPressed: () {
-                              UrlUtils.launchURL('https://paypal.me/byackee?country.x=FR&locale.x=fr_FR');
+                              UrlUtils.launchURL(
+                                  'https://paypal.me/byackee?country.x=FR&locale.x=fr_FR');
                             },
-                            icon: const Icon(Icons.payment, color: Colors.white),
+                            icon:
+                                const Icon(Icons.payment, color: Colors.white),
                             label: Text(
                               S.of(context).paypal,
-                              style: TextStyle(fontSize: 14 + appState.getTextSizeOffset(), color: Colors.white),
+                              style: TextStyle(
+                                  fontSize: 14 + appState.getTextSizeOffset(),
+                                  color: Colors.white),
                             ),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.blue,
@@ -121,7 +136,8 @@ class RealtPageState extends State<SupportPage> {
                           ),
                           ElevatedButton.icon(
                             onPressed: () {
-                              UrlUtils.launchURL('https://buymeacoffee.com/byackee');
+                              UrlUtils.launchURL(
+                                  'https://buymeacoffee.com/byackee');
                             },
                             icon: Image.asset(
                               'assets/bmc.png', // Chemin de votre image dans les assets
@@ -130,7 +146,9 @@ class RealtPageState extends State<SupportPage> {
                             ),
                             label: Text(
                               'Buy Coffee',
-                              style: TextStyle(fontSize: 14 + appState.getTextSizeOffset(), color: Colors.white),
+                              style: TextStyle(
+                                  fontSize: 14 + appState.getTextSizeOffset(),
+                                  color: Colors.white),
                             ),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.blue,
@@ -138,12 +156,16 @@ class RealtPageState extends State<SupportPage> {
                           ),
                           ElevatedButton.icon(
                             onPressed: () {
-                              _showCryptoAddressDialog(context, appState.getTextSizeOffset());
+                              _showCryptoAddressDialog(
+                                  context, appState.getTextSizeOffset());
                             },
-                            icon: const Icon(Icons.currency_bitcoin, color: Colors.white),
+                            icon: const Icon(Icons.currency_bitcoin,
+                                color: Colors.white),
                             label: Text(
                               S.of(context).crypto,
-                              style: TextStyle(fontSize: 14 + appState.getTextSizeOffset(), color: Colors.white),
+                              style: TextStyle(
+                                  fontSize: 14 + appState.getTextSizeOffset(),
+                                  color: Colors.white),
                             ),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.orange,
@@ -188,7 +210,9 @@ class RealtPageState extends State<SupportPage> {
                 children: [
                   Row(
                     children: [
-                      Icon(icon, size: 24, color: iconColor), // Couleur personnalisable
+                      Icon(icon,
+                          size: 24,
+                          color: iconColor), // Couleur personnalisable
                       const SizedBox(width: 8),
                       Text(
                         title,
@@ -244,7 +268,8 @@ class RealtPageState extends State<SupportPage> {
               const SizedBox(height: 10),
               SelectableText(
                 cryptoAddress,
-                style: TextStyle(fontSize: 14 + textSizeOffset, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                    fontSize: 14 + textSizeOffset, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 20),
               ElevatedButton.icon(
@@ -256,7 +281,8 @@ class RealtPageState extends State<SupportPage> {
                   );
                 },
                 icon: const Icon(Icons.copy),
-                label: Text(S.of(context).copy, style: TextStyle(fontSize: 14 + textSizeOffset)),
+                label: Text(S.of(context).copy,
+                    style: TextStyle(fontSize: 14 + textSizeOffset)),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.green,
                 ),
@@ -268,7 +294,8 @@ class RealtPageState extends State<SupportPage> {
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: Text(S.of(context).close, style: TextStyle(fontSize: 14 + textSizeOffset)),
+              child: Text(S.of(context).close,
+                  style: TextStyle(fontSize: 14 + textSizeOffset)),
             ),
           ],
         );

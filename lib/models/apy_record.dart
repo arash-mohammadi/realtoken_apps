@@ -19,7 +19,8 @@ class ApyRecord {
     return ApyRecord(
       netApy: (json['netApy'] ?? 0.0) as double,
       grossApy: (json['grossApy'] ?? 0.0) as double,
-      timestamp: DateTime.parse(json['timestamp'] ?? DateTime.now().toIso8601String()),
+      timestamp:
+          DateTime.parse(json['timestamp'] ?? DateTime.now().toIso8601String()),
     );
   }
 }

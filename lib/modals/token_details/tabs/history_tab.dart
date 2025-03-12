@@ -6,7 +6,8 @@ import 'package:shimmer/shimmer.dart';
 import 'package:realtokens/generated/l10n.dart';
 import 'package:realtokens/app_state.dart';
 
-Widget buildHistoryTab(BuildContext context, Map<String, dynamic> token, bool isLoadingTransactions) {
+Widget buildHistoryTab(BuildContext context, Map<String, dynamic> token,
+    bool isLoadingTransactions) {
   final appState = Provider.of<AppState>(context, listen: false);
   final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
 
@@ -68,18 +69,25 @@ Widget buildHistoryTab(BuildContext context, Map<String, dynamic> token, bool is
               );
             },
           )
-        else if (token['transactions'] != null && token['transactions'].isNotEmpty)
+        else if (token['transactions'] != null &&
+            token['transactions'].isNotEmpty)
           ListView.builder(
             shrinkWrap: true,
             physics: NeverScrollableScrollPhysics(),
             itemCount: token['transactions'].length,
             itemBuilder: (context, index) {
               final transaction = token['transactions'][index];
-              final price = '${currencyUtils.convert(transaction['price'] ?? token['tokenPrice']).toStringAsFixed(2)} ${currencyUtils.currencySymbol}';
+              final price =
+                  '${currencyUtils.convert(transaction['price'] ?? token['tokenPrice']).toStringAsFixed(2)} ${currencyUtils.currencySymbol}';
               final amount = transaction['amount'] ?? 0.0;
-              final transactionType = transaction.containsKey('transactionType') ? transaction['transactionType'] : S.of(context).unknownTransaction;
+              final transactionType = transaction.containsKey('transactionType')
+                  ? transaction['transactionType']
+                  : S.of(context).unknownTransaction;
 
-              final dateTime = transaction['dateTime'] != null ? DateFormat('yyyy-MM-dd HH:mm').format(transaction['dateTime']) : S.of(context).unknownDate;
+              final dateTime = transaction['dateTime'] != null
+                  ? DateFormat('yyyy-MM-dd HH:mm')
+                      .format(transaction['dateTime'])
+                  : S.of(context).unknownDate;
 
               IconData icon;
               Color iconColor;
@@ -116,17 +124,21 @@ Widget buildHistoryTab(BuildContext context, Map<String, dynamic> token, bool is
                       Text("${S.of(context).quantity}: $amount",
                           style: TextStyle(
                             fontSize: 12 + appState.getTextSizeOffset(),
-                            color: Theme.of(context).textTheme.bodyMedium?.color,
+                            color:
+                                Theme.of(context).textTheme.bodyMedium?.color,
                           )),
                       Text("${S.of(context).price}: $price",
                           style: TextStyle(
                             fontSize: 12 + appState.getTextSizeOffset(),
-                            color: Theme.of(context).textTheme.bodyMedium?.color,
+                            color:
+                                Theme.of(context).textTheme.bodyMedium?.color,
                           )),
-                      Text("${S.of(context).date}: ${DateFormat('yyyy-MM-dd').format(DateTime.parse(dateTime))}",
+                      Text(
+                          "${S.of(context).date}: ${DateFormat('yyyy-MM-dd').format(DateTime.parse(dateTime))}",
                           style: TextStyle(
                             fontSize: 12 + appState.getTextSizeOffset(),
-                            color: Theme.of(context).textTheme.bodyMedium?.color,
+                            color:
+                                Theme.of(context).textTheme.bodyMedium?.color,
                           )),
                     ],
                   ),

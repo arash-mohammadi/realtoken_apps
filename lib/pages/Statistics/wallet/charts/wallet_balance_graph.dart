@@ -62,7 +62,8 @@ class WalletBalanceGraph extends StatelessWidget {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               ListTile(
-                                leading: const Icon(Icons.bar_chart, color: Colors.blue),
+                                leading: const Icon(Icons.bar_chart,
+                                    color: Colors.blue),
                                 title: Text(S.of(context).barChart),
                                 onTap: () {
                                   onChartTypeChanged(true);
@@ -70,7 +71,8 @@ class WalletBalanceGraph extends StatelessWidget {
                                 },
                               ),
                               ListTile(
-                                leading: const Icon(Icons.show_chart, color: Colors.green),
+                                leading: const Icon(Icons.show_chart,
+                                    color: Colors.green),
                                 title: Text(S.of(context).lineChart),
                                 onTap: () {
                                   onChartTypeChanged(false);
@@ -106,22 +108,27 @@ class WalletBalanceGraph extends StatelessWidget {
               child: isBarChart
                   ? BarChart(
                       BarChartData(
-                        gridData: FlGridData(show: true, drawVerticalLine: false),
+                        gridData:
+                            FlGridData(show: true, drawVerticalLine: false),
                         titlesData: FlTitlesData(
                           leftTitles: AxisTitles(
                             sideTitles: SideTitles(
                               showTitles: true,
                               reservedSize: 45,
                               getTitlesWidget: (value, meta) {
-                                final formattedValue = currencyUtils.getFormattedAmount(
+                                final formattedValue =
+                                    currencyUtils.getFormattedAmount(
                                   value,
                                   currencyUtils.currencySymbol,
-                                  appState.showAmounts, // Appliquer le masquage des montants
+                                  appState
+                                      .showAmounts, // Appliquer le masquage des montants
                                 );
 
                                 return Text(
                                   formattedValue,
-                                  style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
+                                  style: TextStyle(
+                                      fontSize:
+                                          10 + appState.getTextSizeOffset()),
                                 );
                               },
                             ),
@@ -130,15 +137,19 @@ class WalletBalanceGraph extends StatelessWidget {
                             sideTitles: SideTitles(
                               showTitles: true,
                               getTitlesWidget: (value, meta) {
-                                List<String> labels = _buildDateLabelsForWallet(context, dataManager, selectedPeriod);
-                                if (value.toInt() >= 0 && value.toInt() < labels.length) {
+                                List<String> labels = _buildDateLabelsForWallet(
+                                    context, dataManager, selectedPeriod);
+                                if (value.toInt() >= 0 &&
+                                    value.toInt() < labels.length) {
                                   return Padding(
                                     padding: const EdgeInsets.only(top: 10.0),
                                     child: Transform.rotate(
                                       angle: -0.5,
                                       child: Text(
                                         labels[value.toInt()],
-                                        style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
+                                        style: TextStyle(
+                                            fontSize: 10 +
+                                                appState.getTextSizeOffset()),
                                       ),
                                     ),
                                   );
@@ -159,32 +170,39 @@ class WalletBalanceGraph extends StatelessWidget {
                           show: true,
                           border: Border(
                             left: BorderSide(color: Colors.transparent),
-                            bottom: BorderSide(color: Colors.blueGrey.shade700, width: 0.5),
+                            bottom: BorderSide(
+                                color: Colors.blueGrey.shade700, width: 0.5),
                             right: BorderSide(color: Colors.transparent),
                             top: BorderSide(color: Colors.transparent),
                           ),
                         ),
-                        barGroups: _buildWalletBalanceBarChartData(context, dataManager, selectedPeriod),
+                        barGroups: _buildWalletBalanceBarChartData(
+                            context, dataManager, selectedPeriod),
                       ),
                     )
                   : LineChart(
                       LineChartData(
-                        gridData: FlGridData(show: true, drawVerticalLine: false),
+                        gridData:
+                            FlGridData(show: true, drawVerticalLine: false),
                         titlesData: FlTitlesData(
                           leftTitles: AxisTitles(
                             sideTitles: SideTitles(
                               showTitles: true,
                               reservedSize: 45,
                               getTitlesWidget: (value, meta) {
-                                final formattedValue = currencyUtils.getFormattedAmount(
+                                final formattedValue =
+                                    currencyUtils.getFormattedAmount(
                                   value,
                                   currencyUtils.currencySymbol,
-                                  appState.showAmounts, // Appliquer le masquage des montants
+                                  appState
+                                      .showAmounts, // Appliquer le masquage des montants
                                 );
 
                                 return Text(
                                   formattedValue,
-                                  style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
+                                  style: TextStyle(
+                                      fontSize:
+                                          10 + appState.getTextSizeOffset()),
                                 );
                               },
                             ),
@@ -193,15 +211,19 @@ class WalletBalanceGraph extends StatelessWidget {
                             sideTitles: SideTitles(
                               showTitles: true,
                               getTitlesWidget: (value, meta) {
-                                List<String> labels = _buildDateLabelsForWallet(context, dataManager, selectedPeriod);
-                                if (value.toInt() >= 0 && value.toInt() < labels.length) {
+                                List<String> labels = _buildDateLabelsForWallet(
+                                    context, dataManager, selectedPeriod);
+                                if (value.toInt() >= 0 &&
+                                    value.toInt() < labels.length) {
                                   return Padding(
                                     padding: const EdgeInsets.only(top: 10.0),
                                     child: Transform.rotate(
                                       angle: -0.5,
                                       child: Text(
                                         labels[value.toInt()],
-                                        style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
+                                        style: TextStyle(
+                                            fontSize: 10 +
+                                                appState.getTextSizeOffset()),
                                       ),
                                     ),
                                   );
@@ -222,14 +244,16 @@ class WalletBalanceGraph extends StatelessWidget {
                           show: true,
                           border: Border(
                             left: BorderSide(color: Colors.transparent),
-                            bottom: BorderSide(color: Colors.blueGrey.shade700, width: 0.5),
+                            bottom: BorderSide(
+                                color: Colors.blueGrey.shade700, width: 0.5),
                             right: BorderSide(color: Colors.transparent),
                             top: BorderSide(color: Colors.transparent),
                           ),
                         ),
                         lineBarsData: [
                           LineChartBarData(
-                            spots: _buildWalletBalanceChartData(context, dataManager, selectedPeriod),
+                            spots: _buildWalletBalanceChartData(
+                                context, dataManager, selectedPeriod),
                             isCurved: false,
                             barWidth: 2,
                             color: Colors.purple,
@@ -253,17 +277,24 @@ class WalletBalanceGraph extends StatelessWidget {
                               return touchedSpots.map((touchedSpot) {
                                 final index = touchedSpot.x.toInt();
                                 final averageBalance = touchedSpot.y;
-                                final periodLabel = _buildDateLabelsForWallet(context, dataManager, selectedPeriod)[index];
+                                final periodLabel = _buildDateLabelsForWallet(
+                                    context,
+                                    dataManager,
+                                    selectedPeriod)[index];
 
-                                final formattedValue = currencyUtils.getFormattedAmount(
+                                final formattedValue =
+                                    currencyUtils.getFormattedAmount(
                                   averageBalance,
                                   currencyUtils.currencySymbol,
-                                  appState.showAmounts, // Appliquer le masquage des montants
+                                  appState
+                                      .showAmounts, // Appliquer le masquage des montants
                                 );
 
                                 return LineTooltipItem(
                                   '$periodLabel\n$formattedValue',
-                                  const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                                  const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold),
                                 );
                               }).toList();
                             },
@@ -278,8 +309,10 @@ class WalletBalanceGraph extends StatelessWidget {
     );
   }
 
-  List<BarChartGroupData> _buildWalletBalanceBarChartData(BuildContext context, DataManager dataManager, String selectedPeriod) {
-    List<FlSpot> walletBalanceData = _buildWalletBalanceChartData(context, dataManager, selectedPeriod);
+  List<BarChartGroupData> _buildWalletBalanceBarChartData(
+      BuildContext context, DataManager dataManager, String selectedPeriod) {
+    List<FlSpot> walletBalanceData =
+        _buildWalletBalanceChartData(context, dataManager, selectedPeriod);
     return walletBalanceData
         .asMap()
         .entries
@@ -298,7 +331,8 @@ class WalletBalanceGraph extends StatelessWidget {
         .toList();
   }
 
-  List<FlSpot> _buildWalletBalanceChartData(BuildContext context, DataManager dataManager, String selectedPeriod) {
+  List<FlSpot> _buildWalletBalanceChartData(
+      BuildContext context, DataManager dataManager, String selectedPeriod) {
     return ChartUtils.buildHistoryChartData<BalanceRecord>(
       context,
       dataManager.walletBalanceHistory,
@@ -308,7 +342,8 @@ class WalletBalanceGraph extends StatelessWidget {
     );
   }
 
-  List<String> _buildDateLabelsForWallet(BuildContext context, DataManager dataManager, String selectedPeriod) {
+  List<String> _buildDateLabelsForWallet(
+      BuildContext context, DataManager dataManager, String selectedPeriod) {
     List<BalanceRecord> walletHistory = dataManager.walletBalanceHistory;
 
     Map<String, List<double>> groupedData = {};
@@ -319,7 +354,8 @@ class WalletBalanceGraph extends StatelessWidget {
       if (selectedPeriod == S.of(context).day) {
         periodKey = DateFormat('yyyy/MM/dd').format(date);
       } else if (selectedPeriod == S.of(context).week) {
-        periodKey = "${date.year}-S${CustomDateUtils.weekNumber(date).toString().padLeft(2, '0')}";
+        periodKey =
+            "${date.year}-S${CustomDateUtils.weekNumber(date).toString().padLeft(2, '0')}";
       } else if (selectedPeriod == S.of(context).month) {
         periodKey = DateFormat('yyyy/MM').format(date);
       } else {
@@ -358,10 +394,14 @@ class WalletBalanceGraph extends StatelessWidget {
                 child: ListView.builder(
                   itemCount: dataManager.walletBalanceHistory.length,
                   itemBuilder: (context, index) {
-                    BalanceRecord record = dataManager.walletBalanceHistory[index];
-                    TextEditingController valueController = TextEditingController(text: record.balance.toString());
-                    TextEditingController dateController = TextEditingController(
-                      text: DateFormat('yyyy-MM-dd HH:mm:ss').format(record.timestamp),
+                    BalanceRecord record =
+                        dataManager.walletBalanceHistory[index];
+                    TextEditingController valueController =
+                        TextEditingController(text: record.balance.toString());
+                    TextEditingController dateController =
+                        TextEditingController(
+                      text: DateFormat('yyyy-MM-dd HH:mm:ss')
+                          .format(record.timestamp),
                     );
 
                     return ListTile(
@@ -374,19 +414,25 @@ class WalletBalanceGraph extends StatelessWidget {
                               controller: dateController,
                               keyboardType: TextInputType.datetime,
                               textInputAction: TextInputAction.done,
-                              style: TextStyle(fontSize: 12 + appState.getTextSizeOffset()),
+                              style: TextStyle(
+                                  fontSize: 12 + appState.getTextSizeOffset()),
                               decoration: InputDecoration(
                                 labelText: S.of(context).date,
-                                labelStyle: TextStyle(fontSize: 14 + appState.getTextSizeOffset()),
+                                labelStyle: TextStyle(
+                                    fontSize:
+                                        14 + appState.getTextSizeOffset()),
                               ),
                               onSubmitted: (value) {
                                 try {
-                                  DateTime newDate = DateFormat('yyyy-MM-dd HH:mm:ss').parse(value);
+                                  DateTime newDate =
+                                      DateFormat('yyyy-MM-dd HH:mm:ss')
+                                          .parse(value);
                                   record.timestamp = newDate;
                                   dataManager.saveWalletBalanceHistory();
                                 } catch (e) {
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text('invalidDateFormat')),
+                                    SnackBar(
+                                        content: Text('invalidDateFormat')),
                                   );
                                 }
                               },
@@ -396,15 +442,20 @@ class WalletBalanceGraph extends StatelessWidget {
                           Expanded(
                             child: TextField(
                               controller: valueController,
-                              keyboardType: TextInputType.numberWithOptions(decimal: true),
+                              keyboardType: TextInputType.numberWithOptions(
+                                  decimal: true),
                               textInputAction: TextInputAction.done,
                               inputFormatters: [
-                                FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                                FilteringTextInputFormatter.allow(
+                                    RegExp(r'^\d*\.?\d*')),
                               ],
-                              style: TextStyle(fontSize: 12 + appState.getTextSizeOffset()),
+                              style: TextStyle(
+                                  fontSize: 12 + appState.getTextSizeOffset()),
                               decoration: InputDecoration(
                                 labelText: S.of(context).balance,
-                                labelStyle: TextStyle(fontSize: 14 + appState.getTextSizeOffset()),
+                                labelStyle: TextStyle(
+                                    fontSize:
+                                        14 + appState.getTextSizeOffset()),
                               ),
                               onSubmitted: (value) {
                                 double? newValue = double.tryParse(value);
@@ -453,6 +504,7 @@ class WalletBalanceGraph extends StatelessWidget {
 
   void _deleteBalanceRecord(DataManager dataManager, int index) {
     dataManager.walletBalanceHistory.removeAt(index);
-    dataManager.saveWalletBalanceHistory(); // Sauvegarder la mise à jour dans Hive
+    dataManager
+        .saveWalletBalanceHistory(); // Sauvegarder la mise à jour dans Hive
   }
 }

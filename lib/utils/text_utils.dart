@@ -10,4 +10,14 @@ class TextUtils {
             ? 2.0
             : 0.0;
   }
+
+  static String truncateWallet(String wallet,
+      {int prefixLength = 6, int suffixLength = 4}) {
+    if (wallet.length <= prefixLength + suffixLength) {
+      return wallet;
+    }
+    return wallet.substring(0, prefixLength) +
+        '...' +
+        wallet.substring(wallet.length - suffixLength);
+  }
 }

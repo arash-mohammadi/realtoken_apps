@@ -10,7 +10,8 @@ class PropertiesCard extends StatelessWidget {
   final bool showAmounts;
   final bool isLoading;
 
-  const PropertiesCard({super.key, required this.showAmounts, required this.isLoading});
+  const PropertiesCard(
+      {super.key, required this.showAmounts, required this.isLoading});
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +21,11 @@ class PropertiesCard extends StatelessWidget {
     return UIUtils.buildCard(
       S.of(context).properties,
       Icons.home,
-      UIUtils.buildValueBeforeText(context, '${(dataManager.rentedUnits / dataManager.totalUnits * 100).toStringAsFixed(2)}%', S.of(context).rented, isLoading),
+      UIUtils.buildValueBeforeText(
+          context,
+          '${(dataManager.rentedUnits / dataManager.totalUnits * 100).toStringAsFixed(2)}%',
+          S.of(context).rented,
+          isLoading),
       [
         UIUtils.buildTextWithShimmer(
           '${dataManager.totalTokenCount}',
@@ -52,7 +57,8 @@ class PropertiesCard extends StatelessWidget {
                       title: Text(S.of(context).duplicate_title),
                       content: Text(
                         '${dataManager.duplicateTokenCount.toInt()} ${S.of(context).duplicate}',
-                        style: TextStyle(fontSize: 13 + appState.getTextSizeOffset()),
+                        style: TextStyle(
+                            fontSize: 13 + appState.getTextSizeOffset()),
                       ),
                       actions: [
                         TextButton(
@@ -82,7 +88,8 @@ class PropertiesCard extends StatelessWidget {
       hasGraph: true,
       rightWidget: Builder(
         builder: (context) {
-          double rentedPercentage = dataManager.rentedUnits / dataManager.totalUnits * 100;
+          double rentedPercentage =
+              dataManager.rentedUnits / dataManager.totalUnits * 100;
           if (rentedPercentage.isNaN || rentedPercentage < 0) {
             rentedPercentage = 0;
           }
@@ -118,13 +125,17 @@ class PropertiesCard extends StatelessWidget {
             ),
             PieChartSectionData(
               value: 100 - rentedPercentage,
-              color: Theme.of(context).primaryColor, // Couleur pour les unités non louées
+              color: Theme.of(context)
+                  .primaryColor, // Couleur pour les unités non louées
               title: '',
               radius: 17, // Taille de la section non louée
               gradient: LinearGradient(
                 colors: [
-                  Theme.of(context).primaryColor.withOpacity(0.6), // Remplace Colors.blue.shade300
-                  Theme.of(context).primaryColor, // Remplace Colors.blue.shade700
+                  Theme.of(context)
+                      .primaryColor
+                      .withOpacity(0.6), // Remplace Colors.blue.shade300
+                  Theme.of(context)
+                      .primaryColor, // Remplace Colors.blue.shade700
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
@@ -132,11 +143,14 @@ class PropertiesCard extends StatelessWidget {
             ),
           ],
           borderData: FlBorderData(show: false),
-          sectionsSpace: 2, // Un léger espace entre les sections pour les démarquer
+          sectionsSpace:
+              2, // Un léger espace entre les sections pour les démarquer
           centerSpaceRadius: 23, // Taille de l'espace central
         ),
-        swapAnimationDuration: const Duration(milliseconds: 800), // Durée de l'animation
-        swapAnimationCurve: Curves.easeInOut, // Courbe pour rendre l'animation fluide
+        swapAnimationDuration:
+            const Duration(milliseconds: 800), // Durée de l'animation
+        swapAnimationCurve:
+            Curves.easeInOut, // Courbe pour rendre l'animation fluide
       ),
     );
   }

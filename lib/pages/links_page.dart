@@ -24,7 +24,8 @@ class RealtPageState extends State<LinksPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor, // Définir le fond noir
+        backgroundColor:
+            Theme.of(context).scaffoldBackgroundColor, // Définir le fond noir
         title: Text('Links'), // Utilisation de S.of(context)
       ),
       body: SingleChildScrollView(
@@ -32,13 +33,29 @@ class RealtPageState extends State<LinksPage> {
             padding: const EdgeInsets.all(8.0),
             child: Column(
               children: [
-                _buildCard('assets/icons/RMM.jpg', 'RMM (RealToken Money Market)', 'https://rmm.realtoken.network', S.of(context).rmm_description),
+                _buildCard(
+                    'assets/icons/RMM.jpg',
+                    'RMM (RealToken Money Market)',
+                    'https://rmm.realtoken.network',
+                    S.of(context).rmm_description),
                 const SizedBox(height: 10),
-                _buildCard('assets/icons/YAM.jpg', 'YAM (You And Me)', 'https://yam.realtoken.network', S.of(context).rmm_description),
+                _buildCard(
+                    'assets/icons/YAM.jpg',
+                    'YAM (You And Me)',
+                    'https://yam.realtoken.network',
+                    S.of(context).rmm_description),
                 const SizedBox(height: 10),
-                _buildCard('assets/logo_community.png', 'Wiki Community', 'https://community-realt.gitbook.io/tuto-community', S.of(context).wiki_community_description),
+                _buildCard(
+                    'assets/logo_community.png',
+                    'Wiki Community',
+                    'https://community-realt.gitbook.io/tuto-community',
+                    S.of(context).wiki_community_description),
                 const SizedBox(height: 10),
-                _buildCard('assets/DAO.png', 'RealToken governance Forum', 'https://forum.realtoken.community', S.of(context).dao_description),
+                _buildCard(
+                    'assets/DAO.png',
+                    'RealToken governance Forum',
+                    'https://forum.realtoken.community',
+                    S.of(context).dao_description),
               ],
             )),
       ),
@@ -87,7 +104,8 @@ class RealtPageState extends State<LinksPage> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 4), // Espacement entre le lien et la description
+                  const SizedBox(
+                      height: 4), // Espacement entre le lien et la description
                   Text(
                     description,
                     style: TextStyle(

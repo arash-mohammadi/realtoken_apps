@@ -17,10 +17,12 @@ class PropertiesForSaleSecondary extends StatefulWidget {
   const PropertiesForSaleSecondary({super.key});
 
   @override
-  _PropertiesForSaleSecondaryState createState() => _PropertiesForSaleSecondaryState();
+  _PropertiesForSaleSecondaryState createState() =>
+      _PropertiesForSaleSecondaryState();
 }
 
-class _PropertiesForSaleSecondaryState extends State<PropertiesForSaleSecondary> {
+class _PropertiesForSaleSecondaryState
+    extends State<PropertiesForSaleSecondary> {
   String? lastUpdateTime;
   bool isSearching = false;
   String searchQuery = '';
@@ -72,28 +74,32 @@ class _PropertiesForSaleSecondaryState extends State<PropertiesForSaleSecondary>
     // Regroupement des offres par propriété avec filtres et tri
     final groupedOffers = <String, List<Map<String, dynamic>>>{};
     for (var offer in dataManager.yamMarket) {
-  // Filtrer par type d'offre
-  if (selectedOfferType == "vente" && offer['token_to_buy'] != null) continue;
-  if (selectedOfferType == "achat" && offer['token_to_buy'] == null) continue;
-  
-  // Si on veut cacher les offres non whitelistées, on vérifie
-  if (hideNonWhitelisted) {
-    final String? tokenIdentifier = offer['token_to_sell'] ?? offer['token_to_buy'];
-    final bool isOfferWhitelisted = dataManager.whitelistTokens.any((whitelisted) =>
-        whitelisted['token'].toLowerCase() == tokenIdentifier?.toLowerCase());
-    if (!isOfferWhitelisted) continue;
-  }
-  
-  final shortName = offer['shortName']?.toLowerCase() ?? '';
-  if (!shortName.contains(searchQuery.toLowerCase())) continue;
-  String tokenKey = (offer['token_to_sell'] ?? offer['token_to_buy']) ?? '';
-  if (groupedOffers.containsKey(tokenKey)) {
-    groupedOffers[tokenKey]!.add(offer);
-  } else {
-    groupedOffers[tokenKey] = [offer];
-  }
-}
+      // Filtrer par type d'offre
+      if (selectedOfferType == "vente" && offer['token_to_buy'] != null)
+        continue;
+      if (selectedOfferType == "achat" && offer['token_to_buy'] == null)
+        continue;
 
+      // Si on veut cacher les offres non whitelistées, on vérifie
+      if (hideNonWhitelisted) {
+        final String? tokenIdentifier =
+            offer['token_to_sell'] ?? offer['token_to_buy'];
+        final bool isOfferWhitelisted = dataManager.whitelistTokens.any(
+            (whitelisted) =>
+                whitelisted['token'].toLowerCase() ==
+                tokenIdentifier?.toLowerCase());
+        if (!isOfferWhitelisted) continue;
+      }
+
+      final shortName = offer['shortName']?.toLowerCase() ?? '';
+      if (!shortName.contains(searchQuery.toLowerCase())) continue;
+      String tokenKey = (offer['token_to_sell'] ?? offer['token_to_buy']) ?? '';
+      if (groupedOffers.containsKey(tokenKey)) {
+        groupedOffers[tokenKey]!.add(offer);
+      } else {
+        groupedOffers[tokenKey] = [offer];
+      }
+    }
 
     // Appliquer le tri sur chaque groupe
     groupedOffers.forEach((key, offers) {
@@ -105,11 +111,12 @@ class _PropertiesForSaleSecondaryState extends State<PropertiesForSaleSecondary>
         } else {
           final deltaA = ((a['token_value'] / a['token_price'] - 1) * 100);
           final deltaB = ((b['token_value'] / b['token_price'] - 1) * 100);
-          return ascending ? deltaA.compareTo(deltaB) : deltaB.compareTo(deltaA);
+          return ascending
+              ? deltaA.compareTo(deltaB)
+              : deltaB.compareTo(deltaA);
         }
       });
     });
-    
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -159,76 +166,78 @@ class _PropertiesForSaleSecondaryState extends State<PropertiesForSaleSecondary>
               children: [
                 // Filtres par type d'offre avec ChoiceChips
                 Row(
-  children: [
-    ChoiceChip(
-      label: Icon(
-        Icons.all_inclusive,
-        size: 16,
-      ),
-      selected: selectedOfferType == "tout",
-      selectedColor: Theme.of(context).primaryColor,
-      backgroundColor: Theme.of(context).cardColor,
-      onSelected: (selected) {
-        setState(() {
-          selectedOfferType = "tout";
-        });
-      },
-    ),
-    const SizedBox(width: 8),
-    Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        ChoiceChip(
-          label: Icon(
-            Icons.add_shopping_cart,
-            size: 16,
-          ),
-          selected: selectedOfferType == "vente",
-          selectedColor: Theme.of(context).primaryColor,
-          backgroundColor: Theme.of(context).cardColor,
-          onSelected: (selected) {
-            setState(() {
-              selectedOfferType = "vente";
-            });
-          },
-        ),
-      ],
-    ),
-    const SizedBox(width: 8),
-    ChoiceChip(
-      label: Icon(
-        Icons.sell,
-        size: 16,
-      ),
-      selected: selectedOfferType == "achat",
-      selectedColor: Theme.of(context).primaryColor,
-      backgroundColor: Theme.of(context).cardColor,
-      onSelected: (selected) {
-        setState(() {
-          selectedOfferType = "achat";
-        });
-      },
-    ),
-  ],
-),
+                  children: [
+                    ChoiceChip(
+                      label: Icon(
+                        Icons.all_inclusive,
+                        size: 16,
+                      ),
+                      selected: selectedOfferType == "tout",
+                      selectedColor: Theme.of(context).primaryColor,
+                      backgroundColor: Theme.of(context).cardColor,
+                      onSelected: (selected) {
+                        setState(() {
+                          selectedOfferType = "tout";
+                        });
+                      },
+                    ),
+                    const SizedBox(width: 8),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ChoiceChip(
+                          label: Icon(
+                            Icons.add_shopping_cart,
+                            size: 16,
+                          ),
+                          selected: selectedOfferType == "vente",
+                          selectedColor: Theme.of(context).primaryColor,
+                          backgroundColor: Theme.of(context).cardColor,
+                          onSelected: (selected) {
+                            setState(() {
+                              selectedOfferType = "vente";
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                    const SizedBox(width: 8),
+                    ChoiceChip(
+                      label: Icon(
+                        Icons.sell,
+                        size: 16,
+                      ),
+                      selected: selectedOfferType == "achat",
+                      selectedColor: Theme.of(context).primaryColor,
+                      backgroundColor: Theme.of(context).cardColor,
+                      onSelected: (selected) {
+                        setState(() {
+                          selectedOfferType = "achat";
+                        });
+                      },
+                    ),
+                  ],
+                ),
 // Contrôles de tri
                 Row(
                   children: [
                     IconButton(
-          icon: Icon(
-            hideNonWhitelisted ? Icons.visibility_off : Icons.visibility,
-            size: 18,
-            color: hideNonWhitelisted ? Colors.red : Colors.green,
-          ),
-          tooltip: hideNonWhitelisted
-              ? "Afficher les propriétés non whitelistées"
-              : "Cacher les propriétés non whitelistées",
-          onPressed: () {
-            setState(() {
-              hideNonWhitelisted = !hideNonWhitelisted;
-            });
-          },
-        ),
+                      icon: Icon(
+                        hideNonWhitelisted
+                            ? Icons.visibility_off
+                            : Icons.visibility,
+                        size: 18,
+                        color: hideNonWhitelisted ? Colors.red : Colors.green,
+                      ),
+                      tooltip: hideNonWhitelisted
+                          ? "Afficher les propriétés non whitelistées"
+                          : "Cacher les propriétés non whitelistées",
+                      onPressed: () {
+                        setState(() {
+                          hideNonWhitelisted = !hideNonWhitelisted;
+                        });
+                      },
+                    ),
                     Text(
                       S.of(context).sort_label,
                       style: const TextStyle(fontSize: 12),
@@ -299,14 +308,22 @@ class _PropertiesForSaleSecondaryState extends State<PropertiesForSaleSecondary>
                         itemCount: groupedOffers.keys.length,
                         itemBuilder: (context, index) {
                           String tokenKey = groupedOffers.keys.elementAt(index);
-                          List<Map<String, dynamic>> offers = groupedOffers[tokenKey]!;
-                          final imageUrl =
-                              (offers.first['imageLink'] != null && offers.first['imageLink'] is List && offers.first['imageLink'].isNotEmpty) ? offers.first['imageLink'][0] : '';
+                          List<Map<String, dynamic>> offers =
+                              groupedOffers[tokenKey]!;
+                          final imageUrl = (offers.first['imageLink'] != null &&
+                                  offers.first['imageLink'] is List &&
+                                  offers.first['imageLink'].isNotEmpty)
+                              ? offers.first['imageLink'][0]
+                              : '';
                           final shortName = offers.first['shortName'] ?? 'N/A';
                           final country = offers.first['country'] ?? 'USA';
-final String? tokenIdentifier = offers.first['token_to_sell'] ?? offers.first['token_to_buy'];
-final bool isWhitelisted = dataManager.whitelistTokens.any((whitelisted) =>
-    whitelisted['token'].toLowerCase() == tokenIdentifier?.toLowerCase());
+                          final String? tokenIdentifier =
+                              offers.first['token_to_sell'] ??
+                                  offers.first['token_to_buy'];
+                          final bool isWhitelisted = dataManager.whitelistTokens
+                              .any((whitelisted) =>
+                                  whitelisted['token'].toLowerCase() ==
+                                  tokenIdentifier?.toLowerCase());
 
                           return Card(
                             margin: const EdgeInsets.symmetric(vertical: 4),
@@ -337,75 +354,109 @@ final bool isWhitelisted = dataManager.whitelistTokens.any((whitelisted) =>
                                             : CachedNetworkImage(
                                                 imageUrl: imageUrl,
                                                 fit: BoxFit.cover,
-                                                errorWidget: (context, url, error) => const Icon(Icons.error),
+                                                errorWidget:
+                                                    (context, url, error) =>
+                                                        const Icon(Icons.error),
                                               ),
                                       ),
                                     ),
                                   const SizedBox(height: 10),
                                   // Affichage des informations de la propriété
                                   Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                     children: [
                                       Expanded(
                                         child: Row(
                                           children: [
                                             Padding(
-                                              padding: const EdgeInsets.only(right: 8.0),
+                                              padding: const EdgeInsets.only(
+                                                  right: 8.0),
                                               child: Image.asset(
                                                 'assets/country/${country.toLowerCase()}.png',
                                                 width: 24,
                                                 height: 24,
-                                                errorBuilder: (context, error, stackTrace) {
-                                                  return const Icon(Icons.flag, size: 24);
+                                                errorBuilder: (context, error,
+                                                    stackTrace) {
+                                                  return const Icon(Icons.flag,
+                                                      size: 24);
                                                 },
                                               ),
                                             ),
                                             Text(
                                               shortName,
                                               style: TextStyle(
-                                                fontSize: 18 + appState.getTextSizeOffset(),
+                                                fontSize: 18 +
+                                                    appState
+                                                        .getTextSizeOffset(),
                                                 fontWeight: FontWeight.bold,
                                               ),
                                             ),
                                             const SizedBox(height: 4),
-            
                                           ],
                                         ),
                                       ),
                                     ],
                                   ),
                                   Row(
-              children: [
-                Icon(
-                  isWhitelisted ? Icons.check_circle : Icons.cancel,
-                  color: isWhitelisted ? Colors.green : Colors.red,
-                  size: 18,
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  isWhitelisted
-                      ? S.of(context).tokenWhitelisted
-                      : S.of(context).tokenNotWhitelisted,
-                  style: TextStyle(
-                    color: isWhitelisted ? Colors.green : Colors.red,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
+                                    children: [
+                                      Icon(
+                                        isWhitelisted
+                                            ? Icons.check_circle
+                                            : Icons.cancel,
+                                        color: isWhitelisted
+                                            ? Colors.green
+                                            : Colors.red,
+                                        size: 18,
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        isWhitelisted
+                                            ? S.of(context).tokenWhitelisted
+                                            : S.of(context).tokenNotWhitelisted,
+                                        style: TextStyle(
+                                          color: isWhitelisted
+                                              ? Colors.green
+                                              : Colors.red,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                   const SizedBox(height: 8),
                                   // Affichage des offres pour ce groupe
                                   ...offers.map((offer) {
-                                    bool isTokenWhitelisted = true; // À ajuster selon votre logique
+                                    bool isTokenWhitelisted =
+                                        true; // À ajuster selon votre logique
                                     if (selectedOfferType == "vente") {
-                                      return _buildSaleOfferCard(context, appState, currencyUtils, offer, isTokenWhitelisted);
+                                      return _buildSaleOfferCard(
+                                          context,
+                                          appState,
+                                          currencyUtils,
+                                          offer,
+                                          isTokenWhitelisted);
                                     } else if (selectedOfferType == "achat") {
-                                      return _buildPurchaseOfferCard(context, appState, currencyUtils, offer, isTokenWhitelisted);
+                                      return _buildPurchaseOfferCard(
+                                          context,
+                                          appState,
+                                          currencyUtils,
+                                          offer,
+                                          isTokenWhitelisted);
                                     } else {
                                       if (offer['token_to_buy'] == null) {
-                                        return _buildSaleOfferCard(context, appState, currencyUtils, offer, isTokenWhitelisted);
+                                        return _buildSaleOfferCard(
+                                            context,
+                                            appState,
+                                            currencyUtils,
+                                            offer,
+                                            isTokenWhitelisted);
                                       } else {
-                                        return _buildPurchaseOfferCard(context, appState, currencyUtils, offer, isTokenWhitelisted);
+                                        return _buildPurchaseOfferCard(
+                                            context,
+                                            appState,
+                                            currencyUtils,
+                                            offer,
+                                            isTokenWhitelisted);
                                       }
                                     }
                                   }),
@@ -431,22 +482,30 @@ final bool isWhitelisted = dataManager.whitelistTokens.any((whitelisted) =>
     Map<String, dynamic> offer,
     bool isTokenWhitelisted,
   ) {
-      final dataManager = Provider.of<DataManager>(context, listen: false);
-  // Exemple de vérification : utilisez la clé qui identifie le token dans offer.
-  final String? tokenIdentifier = offer['token_to_sell'] ?? offer['token_to_buy'];
-  final bool isTokenWhitelisted = dataManager.whitelistTokens.any((whitelisted) =>
-      whitelisted['token'].toLowerCase() == tokenIdentifier?.toLowerCase()
-  );
-    final baseYield = double.tryParse(offer['annualPercentageYield']?.toString() ?? '0') ?? 0;
-    final initialPrice = double.tryParse(offer['token_price']?.toString() ?? '0') ?? 0;
-    final offerPrice = double.tryParse(offer['token_value']?.toString() ?? '0') ?? 0;
+    final dataManager = Provider.of<DataManager>(context, listen: false);
+    // Exemple de vérification : utilisez la clé qui identifie le token dans offer.
+    final String? tokenIdentifier =
+        offer['token_to_sell'] ?? offer['token_to_buy'];
+    final bool isTokenWhitelisted = dataManager.whitelistTokens.any(
+        (whitelisted) =>
+            whitelisted['token'].toLowerCase() ==
+            tokenIdentifier?.toLowerCase());
+    final baseYield =
+        double.tryParse(offer['annualPercentageYield']?.toString() ?? '0') ?? 0;
+    final initialPrice =
+        double.tryParse(offer['token_price']?.toString() ?? '0') ?? 0;
+    final offerPrice =
+        double.tryParse(offer['token_value']?.toString() ?? '0') ?? 0;
 
-    if (baseYield <= 0 || initialPrice <= 0 || offerPrice <= 0) return const SizedBox();
+    if (baseYield <= 0 || initialPrice <= 0 || offerPrice <= 0)
+      return const SizedBox();
 
     final newYield = baseYield * (initialPrice / offerPrice);
-    final premiumPercentage = ((offerPrice - initialPrice) / initialPrice) * 100;
+    final premiumPercentage =
+        ((offerPrice - initialPrice) / initialPrice) * 100;
     final roiWeeks = (premiumPercentage * 52) / baseYield;
-    final double deltaValue = ((offer['token_value'] / offer['token_price'] - 1) * 100);
+    final double deltaValue =
+        ((offer['token_value'] / offer['token_price'] - 1) * 100);
 
     Color customColor;
     if (deltaValue >= 1 && deltaValue <= 7) {
@@ -491,7 +550,8 @@ final bool isWhitelisted = dataManager.whitelistTokens.any((whitelisted) =>
                           ),
                           const Spacer(),
                           Text(
-                            CustomDateUtils.formatReadableDate(offer['creationDate']),
+                            CustomDateUtils.formatReadableDate(
+                                offer['creationDate']),
                             style: TextStyle(
                               fontSize: 12 + appState.getTextSizeOffset(),
                               color: Colors.grey[600],
@@ -524,7 +584,8 @@ final bool isWhitelisted = dataManager.whitelistTokens.any((whitelisted) =>
                             style: TextStyle(
                               fontSize: 12 + appState.getTextSizeOffset(),
                               // On conserve ici le style de delta : négatif en vert, positif en rouge
-                              color: (deltaValue < 0 ? Colors.green : Colors.red),
+                              color:
+                                  (deltaValue < 0 ? Colors.green : Colors.red),
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -548,7 +609,8 @@ final bool isWhitelisted = dataManager.whitelistTokens.any((whitelisted) =>
                                 ),
                               ),
                               Text(
-                                currencyUtils.formatCurrency(initialPrice, currencyUtils.currencySymbol),
+                                currencyUtils.formatCurrency(
+                                    initialPrice, currencyUtils.currencySymbol),
                                 style: TextStyle(
                                   fontSize: 14 + appState.getTextSizeOffset(),
                                   fontWeight: FontWeight.bold,
@@ -568,7 +630,8 @@ final bool isWhitelisted = dataManager.whitelistTokens.any((whitelisted) =>
                                 ),
                               ),
                               Text(
-                                currencyUtils.formatCurrency(offerPrice, currencyUtils.currencySymbol),
+                                currencyUtils.formatCurrency(
+                                    offerPrice, currencyUtils.currencySymbol),
                                 style: TextStyle(
                                   fontSize: 14 + appState.getTextSizeOffset(),
                                   fontWeight: FontWeight.bold,
@@ -629,7 +692,8 @@ final bool isWhitelisted = dataManager.whitelistTokens.any((whitelisted) =>
                       const SizedBox(height: 8),
                       // Affichage du ROI
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
                           color: Colors.orangeAccent,
                           borderRadius: BorderRadius.circular(8),
@@ -648,13 +712,15 @@ final bool isWhitelisted = dataManager.whitelistTokens.any((whitelisted) =>
                         child: ElevatedButton(
                           onPressed: isTokenWhitelisted
                               ? () {
-                                  UrlUtils.launchURL('https://yambyofferid.netlify.app/?offerId=${offer['id_offer']}');
+                                  UrlUtils.launchURL(
+                                      'https://yambyofferid.netlify.app/?offerId=${offer['id_offer']}');
                                 }
                               : null,
                           style: ElevatedButton.styleFrom(
                             foregroundColor: Colors.white,
                             backgroundColor: Colors.blue,
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 4),
                             minimumSize: const Size(80, 30),
                           ),
                           child: Text(S.of(context).buy_token),
@@ -668,13 +734,19 @@ final bool isWhitelisted = dataManager.whitelistTokens.any((whitelisted) =>
                   right: 25,
                   child: Builder(
                     builder: (context) {
-                      if (offer['token_to_pay'] == '0x0ca4f5554dd9da6217d62d8df2816c82bba4157b' || offer['token_to_pay'] == '0xe91d153e0b41518a2ce8dd3d7944fa863463a97d') {
+                      if (offer['token_to_pay'] ==
+                              '0x0ca4f5554dd9da6217d62d8df2816c82bba4157b' ||
+                          offer['token_to_pay'] ==
+                              '0xe91d153e0b41518a2ce8dd3d7944fa863463a97d') {
                         return Image.asset(
                           'assets/icons/xdai.png',
                           width: 28,
                           height: 28,
                         );
-                      } else if (offer['token_to_pay'] == '0xddafbb505ad214d7b80b1f830fccc89b60fb7a83' || offer['token_to_pay'] == '0xed56f76e9cbc6a64b821e9c016eafbd3db5436d1') {
+                      } else if (offer['token_to_pay'] ==
+                              '0xddafbb505ad214d7b80b1f830fccc89b60fb7a83' ||
+                          offer['token_to_pay'] ==
+                              '0xed56f76e9cbc6a64b821e9c016eafbd3db5436d1') {
                         return Image.asset(
                           'assets/icons/usdc.png',
                           width: 24,
@@ -699,12 +771,14 @@ final bool isWhitelisted = dataManager.whitelistTokens.any((whitelisted) =>
     Map<String, dynamic> offer,
     bool isTokenWhitelisted,
   ) {
-      final dataManager = Provider.of<DataManager>(context, listen: false);
-  // Exemple de vérification : utilisez la clé qui identifie le token dans offer.
-  final String? tokenIdentifier = offer['token_to_sell'] ?? offer['token_to_buy'];
-  final bool isTokenWhitelisted = dataManager.whitelistTokens.any((whitelisted) =>
-      whitelisted['token'].toLowerCase() == tokenIdentifier?.toLowerCase()
-  );
+    final dataManager = Provider.of<DataManager>(context, listen: false);
+    // Exemple de vérification : utilisez la clé qui identifie le token dans offer.
+    final String? tokenIdentifier =
+        offer['token_to_sell'] ?? offer['token_to_buy'];
+    final bool isTokenWhitelisted = dataManager.whitelistTokens.any(
+        (whitelisted) =>
+            whitelisted['token'].toLowerCase() ==
+            tokenIdentifier?.toLowerCase());
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
       child: Opacity(
@@ -738,7 +812,8 @@ final bool isWhitelisted = dataManager.whitelistTokens.any((whitelisted) =>
                         ),
                         const Spacer(),
                         Text(
-                          CustomDateUtils.formatReadableDate(offer['creationDate']),
+                          CustomDateUtils.formatReadableDate(
+                              offer['creationDate']),
                           style: TextStyle(
                             fontSize: 12 + appState.getTextSizeOffset(),
                             color: Colors.grey[600],
@@ -775,7 +850,13 @@ final bool isWhitelisted = dataManager.whitelistTokens.any((whitelisted) =>
                           '${((offer['token_value'] / offer['token_price'] - 1) * 100).toStringAsFixed(2)}%',
                           style: TextStyle(
                             fontSize: 12 + appState.getTextSizeOffset(),
-                            color: ((offer['token_value'] / offer['token_price'] - 1) * 100) < 0 ? Colors.red : Colors.green,
+                            color:
+                                ((offer['token_value'] / offer['token_price'] -
+                                                1) *
+                                            100) <
+                                        0
+                                    ? Colors.red
+                                    : Colors.green,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -786,13 +867,15 @@ final bool isWhitelisted = dataManager.whitelistTokens.any((whitelisted) =>
                       child: ElevatedButton(
                         onPressed: isTokenWhitelisted
                             ? () {
-                                UrlUtils.launchURL('https://yambyofferid.netlify.app/?offerId=${offer['id_offer']}');
+                                UrlUtils.launchURL(
+                                    'https://yambyofferid.netlify.app/?offerId=${offer['id_offer']}');
                               }
                             : null,
                         style: ElevatedButton.styleFrom(
                           foregroundColor: Colors.white,
                           backgroundColor: Colors.green,
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
                           minimumSize: const Size(80, 30),
                         ),
                         child: Text(S.of(context).sell_token),
@@ -806,13 +889,19 @@ final bool isWhitelisted = dataManager.whitelistTokens.any((whitelisted) =>
                 right: 25,
                 child: Builder(
                   builder: (context) {
-                    if (offer['token_to_pay'] == '0x0ca4f5554dd9da6217d62d8df2816c82bba4157b' || offer['token_to_pay'] == '0xe91d153e0b41518a2ce8dd3d7944fa863463a97d') {
+                    if (offer['token_to_pay'] ==
+                            '0x0ca4f5554dd9da6217d62d8df2816c82bba4157b' ||
+                        offer['token_to_pay'] ==
+                            '0xe91d153e0b41518a2ce8dd3d7944fa863463a97d') {
                       return Image.asset(
                         'assets/icons/xdai.png',
                         width: 28,
                         height: 28,
                       );
-                    } else if (offer['token_to_pay'] == '0xddafbb505ad214d7b80b1f830fccc89b60fb7a83' || offer['token_to_pay'] == '0xed56f76e9cbc6a64b821e9c016eafbd3db5436d1') {
+                    } else if (offer['token_to_pay'] ==
+                            '0xddafbb505ad214d7b80b1f830fccc89b60fb7a83' ||
+                        offer['token_to_pay'] ==
+                            '0xed56f76e9cbc6a64b821e9c016eafbd3db5436d1') {
                       return Image.asset(
                         'assets/icons/usdc.png',
                         width: 24,

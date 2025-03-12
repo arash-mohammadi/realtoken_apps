@@ -8,7 +8,8 @@ class NotificationsSettingsPage extends StatefulWidget {
   const NotificationsSettingsPage({super.key});
 
   @override
-  _NotificationsSettingsPageState createState() => _NotificationsSettingsPageState();
+  _NotificationsSettingsPageState createState() =>
+      _NotificationsSettingsPageState();
 }
 
 class _NotificationsSettingsPageState extends State<NotificationsSettingsPage> {
@@ -61,14 +62,19 @@ class _NotificationsSettingsPageState extends State<NotificationsSettingsPage> {
         children: [
           Card(
             color: Theme.of(context).cardColor,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             child: ListTile(
-              title: Text('Activer les notifications', style: TextStyle(fontSize: 16.0 + appState.getTextSizeOffset())),
+              title: Text('Activer les notifications',
+                  style:
+                      TextStyle(fontSize: 16.0 + appState.getTextSizeOffset())),
               trailing: Switch(
                 value: _notificationsEnabled,
                 onChanged: _toggleNotificationStatus,
-                activeColor: Theme.of(context).primaryColor, // Couleur du bouton en mode activé
-                inactiveThumbColor: Colors.grey, // Couleur du bouton en mode désactivé
+                activeColor: Theme.of(context)
+                    .primaryColor, // Couleur du bouton en mode activé
+                inactiveThumbColor:
+                    Colors.grey, // Couleur du bouton en mode désactivé
               ),
             ),
           ),

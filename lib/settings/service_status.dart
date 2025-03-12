@@ -42,7 +42,8 @@ class ServiceStatusPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor, // Définir le fond noir
+        backgroundColor:
+            Theme.of(context).scaffoldBackgroundColor, // Définir le fond noir
         title: Text(S.of(context).serviceStatusPage),
       ),
       body: executionTimesMap.isNotEmpty
@@ -52,7 +53,9 @@ class ServiceStatusPage extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: Text(
-                    allAreUpToDate ? S.of(context).allWorkCorrectly : S.of(context).somethingWrong,
+                    allAreUpToDate
+                        ? S.of(context).allWorkCorrectly
+                        : S.of(context).somethingWrong,
                     style: TextStyle(
                       fontSize: 18 + appState.getTextSizeOffset(),
                       fontWeight: FontWeight.bold,
@@ -67,7 +70,8 @@ class ServiceStatusPage extends StatelessWidget {
                       String time = executionTimesMap[key]!;
 
                       // Supprimer le préfixe "lastExecutionTime_"
-                      String displayKey = key.replaceFirst('lastExecutionTime_', '');
+                      String displayKey =
+                          key.replaceFirst('lastExecutionTime_', '');
 
                       // Convertir `time` en DateTime pour calculer la différence
                       DateTime lastExecution;
@@ -82,7 +86,8 @@ class ServiceStatusPage extends StatelessWidget {
                         );
                       }
 
-                      Duration difference = DateTime.now().difference(lastExecution);
+                      Duration difference =
+                          DateTime.now().difference(lastExecution);
 
                       // Vérifier si la différence est inférieure à 1 heure
                       bool isLessThanAnHour = difference.inHours < 1;
@@ -90,10 +95,13 @@ class ServiceStatusPage extends StatelessWidget {
                       return ListTile(
                         leading: Icon(
                           isLessThanAnHour
-                              ? Icons.check_circle // Icône check vert si < 1 heure
+                              ? Icons
+                                  .check_circle // Icône check vert si < 1 heure
                               : Icons.cancel, // Icône croix rouge si > 1 heure
                           color: isLessThanAnHour ? Colors.green : Colors.red,
-                          size: 24 + appState.getTextSizeOffset(), // Ajuste la taille de l'icône
+                          size: 24 +
+                              appState
+                                  .getTextSizeOffset(), // Ajuste la taille de l'icône
                         ),
                         title: Text(
                           displayKey,
@@ -105,7 +113,9 @@ class ServiceStatusPage extends StatelessWidget {
                         subtitle: Text(
                           '${S.of(context).lastExecution} : ${CustomDateUtils.formatReadableDateWithTime(time)}',
                           style: TextStyle(
-                            fontSize: 14 + appState.getTextSizeOffset(), // Ajuste cette taille selon tes besoins
+                            fontSize: 14 +
+                                appState
+                                    .getTextSizeOffset(), // Ajuste cette taille selon tes besoins
                           ),
                         ),
                       );

@@ -4,7 +4,8 @@ Color generateColor(int index) {
   final hue = ((index * 57) + 193 * (index % 3)) % 360;
   final saturation = (0.7 + (index % 5) * 0.06).clamp(0.4, 0.7);
   final brightness = (0.8 + (index % 3) * 0.2).clamp(0.6, 0.9);
-  return HSVColor.fromAHSV(1.0, hue.toDouble(), saturation, brightness).toColor();
+  return HSVColor.fromAHSV(1.0, hue.toDouble(), saturation, brightness)
+      .toColor();
 }
 
 Color _getPropertyColor(int propertyType) {

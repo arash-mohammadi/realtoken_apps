@@ -55,30 +55,46 @@ class RealTokensPageState extends State<RealTokensPage> {
   }
 
   List<Map<String, dynamic>> _filterAndSortTokens(DataManager dataManager) {
-    List<Map<String, dynamic>> filteredTokens = dataManager.allTokens.where((token) {
-      final matchesSearchQuery = token['fullName'].toLowerCase().contains(_searchQuery.toLowerCase());
-      final matchesCity = _selectedCity == null || token['fullName'].contains(_selectedCity!);
+    List<Map<String, dynamic>> filteredTokens =
+        dataManager.allTokens.where((token) {
+      final matchesSearchQuery =
+          token['fullName'].toLowerCase().contains(_searchQuery.toLowerCase());
+      final matchesCity =
+          _selectedCity == null || token['fullName'].contains(_selectedCity!);
       return matchesSearchQuery && matchesCity;
     }).toList();
 
     if (_filterNotInWallet) {
-      filteredTokens = filteredTokens.where((token) => !dataManager.portfolio.any((p) => p['uuid'].toLowerCase() == token['uuid'].toLowerCase())).toList();
+      filteredTokens = filteredTokens
+          .where((token) => !dataManager.portfolio.any(
+              (p) => p['uuid'].toLowerCase() == token['uuid'].toLowerCase()))
+          .toList();
     }
 
     if (!_showNonWhitelisted) {
-      filteredTokens =
-          filteredTokens.where((token) => dataManager.whitelistTokens.any((whitelisted) => whitelisted['token'].toLowerCase() == token['uuid'].toLowerCase())).toList();
+      filteredTokens = filteredTokens
+          .where((token) => dataManager.whitelistTokens.any((whitelisted) =>
+              whitelisted['token'].toLowerCase() ==
+              token['uuid'].toLowerCase()))
+          .toList();
     }
 
     if (_sortOption == S.of(context).sortByName) {
-      filteredTokens.sort((a, b) => _isAscending ? a['shortName'].compareTo(b['shortName']) : b['shortName'].compareTo(a['shortName']));
+      filteredTokens.sort((a, b) => _isAscending
+          ? a['shortName'].compareTo(b['shortName'])
+          : b['shortName'].compareTo(a['shortName']));
     } else if (_sortOption == S.of(context).sortByValue) {
-      filteredTokens.sort((a, b) => _isAscending ? a['totalValue'].compareTo(b['totalValue']) : b['totalValue'].compareTo(a['totalValue']));
+      filteredTokens.sort((a, b) => _isAscending
+          ? a['totalValue'].compareTo(b['totalValue'])
+          : b['totalValue'].compareTo(a['totalValue']));
     } else if (_sortOption == S.of(context).sortByAPY) {
-      filteredTokens
-          .sort((a, b) => _isAscending ? a['annualPercentageYield'].compareTo(b['annualPercentageYield']) : b['annualPercentageYield'].compareTo(a['annualPercentageYield']));
+      filteredTokens.sort((a, b) => _isAscending
+          ? a['annualPercentageYield'].compareTo(b['annualPercentageYield'])
+          : b['annualPercentageYield'].compareTo(a['annualPercentageYield']));
     } else if (_sortOption == S.of(context).sortByInitialLaunchDate) {
-      filteredTokens.sort((a, b) => _isAscending ? a['initialLaunchDate'].compareTo(b['initialLaunchDate']) : b['initialLaunchDate'].compareTo(a['initialLaunchDate']));
+      filteredTokens.sort((a, b) => _isAscending
+          ? a['initialLaunchDate'].compareTo(b['initialLaunchDate'])
+          : b['initialLaunchDate'].compareTo(a['initialLaunchDate']));
     }
 
     return filteredTokens;
@@ -88,7 +104,9 @@ class RealTokensPageState extends State<RealTokensPage> {
     final cities = tokens
         .map((token) {
           List<String> parts = token['fullName'].split(',');
-          return parts.length >= 2 ? parts[1].trim() : S.of(context).unknownCity;
+          return parts.length >= 2
+              ? parts[1].trim()
+              : S.of(context).unknownCity;
         })
         .toSet()
         .toList();
@@ -107,16 +125,18 @@ class RealTokensPageState extends State<RealTokensPage> {
         builder: (context, dataManager, child) {
           final filteredAndSortedTokens = _filterAndSortTokens(dataManager);
           final uniqueCities = _getUniqueCities(dataManager.allTokens);
-          final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
+          final currencyUtils =
+              Provider.of<CurrencyProvider>(context, listen: false);
 
           return NestedScrollView(
-            headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
+            headerSliverBuilder:
+                (BuildContext context, bool innerBoxIsScrolled) {
               return <Widget>[
                 SliverAppBar(
                   floating: true,
                   snap: true,
                   automaticallyImplyLeading: false,
-                  expandedHeight: UIUtils.getSliverAppBarHeight(context),
+                  expandedHeight: UIUtils.getSliverAppBarHeight(context) - 40,
                   flexibleSpace: FlexibleSpaceBar(
                     background: Container(
                       color: Theme.of(context).cardColor,
@@ -149,7 +169,10 @@ class RealTokensPageState extends State<RealTokensPage> {
                               icon: const Icon(Icons.location_city),
                               onSelected: (String value) {
                                 setState(() {
-                                  _selectedCity = value == S.of(context).allCities ? null : value;
+                                  _selectedCity =
+                                      value == S.of(context).allCities
+                                          ? null
+                                          : value;
                                 });
                               },
                               itemBuilder: (BuildContext context) {
@@ -188,7 +211,8 @@ class RealTokensPageState extends State<RealTokensPage> {
                                 CheckedPopupMenuItem(
                                   value: 'showNonWhitelisted',
                                   checked: _showNonWhitelisted,
-                                  child: Text(S.of(context).showOnlyWhitelisted),
+                                  child:
+                                      Text(S.of(context).showOnlyWhitelisted),
                                 ),
                               ],
                             ),
@@ -209,23 +233,28 @@ class RealTokensPageState extends State<RealTokensPage> {
                               itemBuilder: (context) => [
                                 CheckedPopupMenuItem(
                                   value: S.of(context).sortByName,
-                                  checked: _sortOption == S.of(context).sortByName,
+                                  checked:
+                                      _sortOption == S.of(context).sortByName,
                                   child: Text(S.of(context).sortByName),
                                 ),
                                 CheckedPopupMenuItem(
                                   value: S.of(context).sortByValue,
-                                  checked: _sortOption == S.of(context).sortByValue,
+                                  checked:
+                                      _sortOption == S.of(context).sortByValue,
                                   child: Text(S.of(context).sortByValue),
                                 ),
                                 CheckedPopupMenuItem(
                                   value: S.of(context).sortByAPY,
-                                  checked: _sortOption == S.of(context).sortByAPY,
+                                  checked:
+                                      _sortOption == S.of(context).sortByAPY,
                                   child: Text(S.of(context).sortByAPY),
                                 ),
                                 CheckedPopupMenuItem(
                                   value: S.of(context).sortByInitialLaunchDate,
-                                  checked: _sortOption == S.of(context).sortByInitialLaunchDate,
-                                  child: Text(S.of(context).sortByInitialLaunchDate),
+                                  checked: _sortOption ==
+                                      S.of(context).sortByInitialLaunchDate,
+                                  child: Text(
+                                      S.of(context).sortByInitialLaunchDate),
                                 ),
                                 const PopupMenuDivider(),
                                 CheckedPopupMenuItem(
@@ -253,7 +282,8 @@ class RealTokensPageState extends State<RealTokensPage> {
                 : GridView.builder(
                     padding: const EdgeInsets.all(8.0),
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: MediaQuery.of(context).size.width > 700 ? 2 : 1,
+                      crossAxisCount:
+                          MediaQuery.of(context).size.width > 700 ? 2 : 1,
                       crossAxisSpacing: 12,
                       mainAxisSpacing: 12,
                       mainAxisExtent: 160,
@@ -294,7 +324,9 @@ class RealTokensPageState extends State<RealTokensPage> {
                                               width: 150,
                                               height: double.infinity,
                                               fit: BoxFit.cover,
-                                              errorWidget: (context, url, error) => const Icon(Icons.error),
+                                              errorWidget:
+                                                  (context, url, error) =>
+                                                      const Icon(Icons.error),
                                             ),
                                     ),
                                   ),
@@ -303,13 +335,20 @@ class RealTokensPageState extends State<RealTokensPage> {
                                     left: 0,
                                     child: Builder(
                                       builder: (context) {
-                                        final bool isInPortfolio = dataManager.portfolio.any((portfolioItem) => portfolioItem['uuid'].toLowerCase() == token['uuid'].toLowerCase());
+                                        final bool isInPortfolio = dataManager
+                                            .portfolio
+                                            .any((portfolioItem) =>
+                                                portfolioItem['uuid']
+                                                    .toLowerCase() ==
+                                                token['uuid'].toLowerCase());
                                         if (isInPortfolio) {
                                           return Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 6, vertical: 2),
                                             decoration: BoxDecoration(
                                               color: Colors.black54,
-                                              borderRadius: const BorderRadius.only(
+                                              borderRadius:
+                                                  const BorderRadius.only(
                                                 bottomRight: Radius.circular(8),
                                               ),
                                             ),
@@ -318,7 +357,8 @@ class RealTokensPageState extends State<RealTokensPage> {
                                               children: [
                                                 Icon(
                                                   Icons.account_balance_wallet,
-                                                  color: Theme.of(context).primaryColor,
+                                                  color: Theme.of(context)
+                                                      .primaryColor,
                                                   size: 16,
                                                 ),
                                                 const SizedBox(width: 4),
@@ -345,28 +385,38 @@ class RealTokensPageState extends State<RealTokensPage> {
                                 child: Padding(
                                   padding: const EdgeInsets.all(8.0),
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Expanded(
                                         child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: [
                                             Row(
                                               children: [
                                                 if (token['country'] != null)
                                                   Padding(
-                                                    padding: const EdgeInsets.only(right: 8.0),
+                                                    padding:
+                                                        const EdgeInsets.only(
+                                                            right: 8.0),
                                                     child: Image.asset(
                                                       'assets/country/${token['country'].toLowerCase()}.png',
                                                       width: 24,
                                                       height: 24,
-                                                      errorBuilder: (context, error, stackTrace) {
-                                                        return const Icon(Icons.flag, size: 18);
+                                                      errorBuilder: (context,
+                                                          error, stackTrace) {
+                                                        return const Icon(
+                                                            Icons.flag,
+                                                            size: 18);
                                                       },
                                                     ),
                                                   ),
                                                 Text(
-                                                  token['shortName'] ?? S.of(context).nameUnavailable,
+                                                  token['shortName'] ??
+                                                      S
+                                                          .of(context)
+                                                          .nameUnavailable,
                                                   style: const TextStyle(
                                                     fontWeight: FontWeight.bold,
                                                     fontSize: 15,
@@ -390,40 +440,69 @@ class RealTokensPageState extends State<RealTokensPage> {
                                       ),
                                       Builder(
                                         builder: (context) {
-                                          final bool isWhitelisted =
-                                              dataManager.whitelistTokens.any((whitelisted) => whitelisted['token'].toLowerCase() == token['uuid'].toLowerCase());
+                                          final bool isWhitelisted = dataManager
+                                              .whitelistTokens
+                                              .any((whitelisted) =>
+                                                  whitelisted['token']
+                                                      .toLowerCase() ==
+                                                  token['uuid'].toLowerCase());
                                           return Padding(
-                                            padding: const EdgeInsets.only(top: 2.0, bottom: 1.0),
+                                            padding: const EdgeInsets.only(
+                                                top: 2.0, bottom: 1.0),
                                             child: Row(
                                               mainAxisSize: MainAxisSize.min,
                                               children: [
                                                 Icon(
-                                                  isWhitelisted ? Icons.check_circle : Icons.cancel,
-                                                  color: isWhitelisted ? Colors.green : Colors.red,
+                                                  isWhitelisted
+                                                      ? Icons.check_circle
+                                                      : Icons.cancel,
+                                                  color: isWhitelisted
+                                                      ? Colors.green
+                                                      : Colors.red,
                                                   size: 18,
                                                 ),
                                                 const SizedBox(width: 4),
                                                 Text(
-                                                  isWhitelisted ? S.of(context).tokenWhitelisted : S.of(context).tokenNotWhitelisted,
+                                                  isWhitelisted
+                                                      ? S
+                                                          .of(context)
+                                                          .tokenWhitelisted
+                                                      : S
+                                                          .of(context)
+                                                          .tokenNotWhitelisted,
                                                   style: TextStyle(
-                                                    color: isWhitelisted ? Colors.green : Colors.red,
+                                                    color: isWhitelisted
+                                                        ? Colors.green
+                                                        : Colors.red,
                                                     fontWeight: FontWeight.bold,
                                                   ),
                                                 ),
                                                 IconButton(
-                                                  icon: const Icon(Icons.help_outline, size: 18),
+                                                  icon: const Icon(
+                                                      Icons.help_outline,
+                                                      size: 18),
                                                   padding: EdgeInsets.zero,
-                                                  constraints: const BoxConstraints(),
+                                                  constraints:
+                                                      const BoxConstraints(),
                                                   onPressed: () {
                                                     showDialog(
                                                       context: context,
-                                                      builder: (context) => AlertDialog(
-                                                        title: Text(S.of(context).whitelistInfoTitle),
-                                                        content: Text(S.of(context).whitelistInfoContent),
+                                                      builder: (context) =>
+                                                          AlertDialog(
+                                                        title: Text(S
+                                                            .of(context)
+                                                            .whitelistInfoTitle),
+                                                        content: Text(S
+                                                            .of(context)
+                                                            .whitelistInfoContent),
                                                         actions: [
                                                           TextButton(
-                                                            onPressed: () => Navigator.pop(context),
-                                                            child: Text(S.of(context).ok),
+                                                            onPressed: () =>
+                                                                Navigator.pop(
+                                                                    context),
+                                                            child: Text(S
+                                                                .of(context)
+                                                                .ok),
                                                           ),
                                                         ],
                                                       ),

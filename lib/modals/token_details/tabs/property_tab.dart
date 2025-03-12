@@ -7,18 +7,28 @@ import 'package:realtokens/utils/location_utils.dart';
 import 'package:realtokens/utils/parameters.dart';
 import 'package:realtokens/utils/ui_utils.dart';
 
-Widget buildPropertiesTab(BuildContext context, Map<String, dynamic> token, bool convertToSquareMeters) {
+Widget buildPropertiesTab(BuildContext context, Map<String, dynamic> token,
+    bool convertToSquareMeters) {
   final appState = Provider.of<AppState>(context, listen: false);
 
 // Méthode pour construire les lignes de détails
-  Widget buildDetailRow(BuildContext context, String label, String value, {IconData? icon, bool isNegative = false, Color? color, Widget? trailing}) {
+  Widget buildDetailRow(BuildContext context, String label, String value,
+      {IconData? icon,
+      bool isNegative = false,
+      Color? color,
+      Widget? trailing}) {
     final appState = Provider.of<AppState>(context, listen: false);
 
     // Ajout du signe "-" et de la couleur rouge si isNegative est true
     final displayValue = isNegative ? '-$value' : value;
     final valueStyle = TextStyle(
       fontSize: 13 + appState.getTextSizeOffset(),
-      color: isNegative ? Colors.red : Theme.of(context).textTheme.bodyMedium?.color, // couleur rouge si isNegative
+      color: isNegative
+          ? Colors.red
+          : Theme.of(context)
+              .textTheme
+              .bodyMedium
+              ?.color, // couleur rouge si isNegative
     );
 
     return Padding(
@@ -39,7 +49,10 @@ Widget buildPropertiesTab(BuildContext context, Map<String, dynamic> token, bool
                     color: color ?? Colors.red,
                   ),
                 ),
-              SizedBox(width: icon != null || isNegative ? 8 : 0), // Espacement conditionnel entre l'icône et le texte
+              SizedBox(
+                  width: icon != null || isNegative
+                      ? 8
+                      : 0), // Espacement conditionnel entre l'icône et le texte
               Text(
                 label,
                 style: TextStyle(
@@ -48,14 +61,18 @@ Widget buildPropertiesTab(BuildContext context, Map<String, dynamic> token, bool
                 ),
               ),
               SizedBox(
-                height: 16 + appState.getTextSizeOffset(), // Hauteur constante pour le trailing
-                child: trailing ?? SizedBox(), // Si trailing est null, on met un espace vide
+                height: 16 +
+                    appState
+                        .getTextSizeOffset(), // Hauteur constante pour le trailing
+                child: trailing ??
+                    SizedBox(), // Si trailing est null, on met un espace vide
               ),
             ],
           ),
           Row(
             children: [
-              Text(displayValue, style: valueStyle), // Texte avec style conditionnel
+              Text(displayValue,
+                  style: valueStyle), // Texte avec style conditionnel
             ],
           ),
         ],
@@ -199,7 +216,10 @@ Widget buildPropertiesTab(BuildContext context, Map<String, dynamic> token, bool
               height: 12,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: DateTime.parse(token['rentStartDate'] ?? '').isBefore(DateTime.now()) ? Colors.green : Colors.red,
+                color: DateTime.parse(token['rentStartDate'] ?? '')
+                        .isBefore(DateTime.now())
+                    ? Colors.green
+                    : Colors.red,
               ),
             ),
           ],

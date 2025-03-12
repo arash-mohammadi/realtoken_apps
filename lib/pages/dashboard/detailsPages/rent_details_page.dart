@@ -15,7 +15,8 @@ class DashboardRentsDetailsPage extends StatefulWidget {
   const DashboardRentsDetailsPage({super.key});
 
   @override
-  _DashboardRentsDetailsPageState createState() => _DashboardRentsDetailsPageState();
+  _DashboardRentsDetailsPageState createState() =>
+      _DashboardRentsDetailsPageState();
 }
 
 class _DashboardRentsDetailsPageState extends State<DashboardRentsDetailsPage> {
@@ -28,44 +29,46 @@ class _DashboardRentsDetailsPageState extends State<DashboardRentsDetailsPage> {
 
     return Scaffold(
       appBar: AppBar(
-  title: const Text('Rents Details'),
-  backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-  elevation: 0,
-  surfaceTintColor: Colors.transparent,
-  actions: [
-    IconButton(
-      icon: Image.asset(
-        'assets/icons/excel.png',
-        width: 24,
-        height: 24,
-      ),
-      onPressed: () async {
-        // Assurez-vous d'avoir bien les méthodes _generateCSV et _getFormattedToday
-        if (dataManager.rentData.isNotEmpty) {
-          final csvData = _generateCSV(dataManager.rentData, currencyUtils);
-          final fileName = 'rents_${_getFormattedToday()}.csv';
-          final directory = await getTemporaryDirectory();
-          final filePath = '${directory.path}/$fileName';
-          final file = File(filePath);
-          await file.writeAsString(csvData);
-          await Share.shareXFiles(
-            [XFile(filePath)],
-            sharePositionOrigin: Rect.fromCenter(
-              center: MediaQuery.of(context).size.center(Offset.zero),
-              width: 100,
-              height: 100,
+        title: const Text('Rents Details'),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        elevation: 0,
+        surfaceTintColor: Colors.transparent,
+        actions: [
+          IconButton(
+            icon: Image.asset(
+              'assets/icons/excel.png',
+              width: 24,
+              height: 24,
             ),
-          );
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Aucune donnée de loyer à partager.')),
-          );
-        }
-      },
-    ),
-  ],
-),
-body: Padding(
+            onPressed: () async {
+              // Assurez-vous d'avoir bien les méthodes _generateCSV et _getFormattedToday
+              if (dataManager.rentData.isNotEmpty) {
+                final csvData =
+                    _generateCSV(dataManager.rentData, currencyUtils);
+                final fileName = 'rents_${_getFormattedToday()}.csv';
+                final directory = await getTemporaryDirectory();
+                final filePath = '${directory.path}/$fileName';
+                final file = File(filePath);
+                await file.writeAsString(csvData);
+                await Share.shareXFiles(
+                  [XFile(filePath)],
+                  sharePositionOrigin: Rect.fromCenter(
+                    center: MediaQuery.of(context).size.center(Offset.zero),
+                    width: 100,
+                    height: 100,
+                  ),
+                );
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                      content: Text('Aucune donnée de loyer à partager.')),
+                );
+              }
+            },
+          ),
+        ],
+      ),
+      body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
         child: dataManager.rentData.isEmpty
             ? Center(
@@ -91,15 +94,14 @@ body: Padding(
                       duration: const Duration(milliseconds: 300),
                       height: _isGraphVisible ? 380 : 0,
                       child: _isGraphVisible
-                          ?  RentGraph(
-                                groupedData: _groupByMonth(dataManager.rentData),
-                                dataManager: dataManager,
-                                showCumulativeRent: false,
-                                selectedPeriod: S.of(context).month,
-                                onPeriodChanged: (period) {},
-                                onCumulativeRentChanged: (value) {},
-                              )
-                            
+                          ? RentGraph(
+                              groupedData: _groupByMonth(dataManager.rentData),
+                              dataManager: dataManager,
+                              showCumulativeRent: false,
+                              selectedPeriod: S.of(context).month,
+                              onPeriodChanged: (period) {},
+                              onCumulativeRentChanged: (value) {},
+                            )
                           : null,
                     ),
 
@@ -113,15 +115,17 @@ body: Padding(
                         children: [
                           Text(
                             'Date',
-                            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
+                            style:
+                                Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                    ),
                           ),
                           Text(
                             'Montant',
-                            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
+                            style:
+                                Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                    ),
                           ),
                         ],
                       ),
@@ -132,11 +136,14 @@ body: Padding(
                     Expanded(
                       child: ListView.builder(
                         itemCount: dataManager.rentData.length,
-                        shrinkWrap: true, // Supprime la nécessité d'un ScrollView externe
-                        physics: const AlwaysScrollableScrollPhysics(), // Permet de scroller normalement
+                        shrinkWrap:
+                            true, // Supprime la nécessité d'un ScrollView externe
+                        physics:
+                            const AlwaysScrollableScrollPhysics(), // Permet de scroller normalement
                         itemBuilder: (context, index) {
                           final rentEntry = dataManager.rentData[index];
-                          final rentDate = CustomDateUtils.formatDate(rentEntry['date']);
+                          final rentDate =
+                              CustomDateUtils.formatDate(rentEntry['date']);
                           final rentAmount = currencyUtils.formatCurrency(
                             currencyUtils.convert(rentEntry['rent']),
                             currencyUtils.currencySymbol,
@@ -153,7 +160,10 @@ body: Padding(
                                 ),
                                 Text(
                                   rentAmount,
-                                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyLarge
+                                      ?.copyWith(
                                         fontWeight: FontWeight.bold,
                                       ),
                                 ),
@@ -192,17 +202,19 @@ body: Padding(
     return csvBuffer.toString();
   }
 
-List<Map<String, dynamic>> _groupByMonth(List<dynamic> data) {
-  Map<String, double> groupedData = {};
-  for (var entry in data) {
-    DateTime date = DateTime.parse(entry['date']);
-    String monthKey = DateFormat('yyyy/MM').format(date);
-    groupedData[monthKey] = (groupedData[monthKey] ?? 0) + entry['rent'];
+  List<Map<String, dynamic>> _groupByMonth(List<dynamic> data) {
+    Map<String, double> groupedData = {};
+    for (var entry in data) {
+      DateTime date = DateTime.parse(entry['date']);
+      String monthKey = DateFormat('yyyy/MM').format(date);
+      groupedData[monthKey] = (groupedData[monthKey] ?? 0) + entry['rent'];
+    }
+    List<Map<String, dynamic>> list = groupedData.entries
+        .map((e) => {'date': e.key, 'rent': e.value})
+        .toList();
+    list.sort((a, b) => DateFormat('yyyy/MM')
+        .parse(a['date'])
+        .compareTo(DateFormat('yyyy/MM').parse(b['date'])));
+    return list;
   }
-  List<Map<String, dynamic>> list = groupedData.entries.map((e) => {'date': e.key, 'rent': e.value}).toList();
-  list.sort((a, b) => DateFormat('yyyy/MM').parse(a['date']).compareTo(DateFormat('yyyy/MM').parse(b['date'])));
-  return list;
 }
-}
-
-

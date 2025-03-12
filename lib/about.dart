@@ -45,9 +45,11 @@ class AboutPage extends StatelessWidget {
                   leading: const Icon(Icons.verified),
                   title: Text(
                     S.of(context).version, // Traduction pour "Version"
-                    style: TextStyle(fontSize: 15 + appState.getTextSizeOffset()),
+                    style:
+                        TextStyle(fontSize: 15 + appState.getTextSizeOffset()),
                   ),
-                  subtitle: Text(snapshot.data ?? 'Chargement...'), // Affiche la version ou "Chargement..."
+                  subtitle: Text(snapshot.data ??
+                      'Chargement...'), // Affiche la version ou "Chargement..."
                 );
               },
             ),
@@ -62,17 +64,21 @@ class AboutPage extends StatelessWidget {
 
             // Padding pour décaler les liens
             Padding(
-              padding: const EdgeInsets.only(left: 16.0), // Décalage des ListTile pour LinkedIn et GitHub
+              padding: const EdgeInsets.only(
+                  left: 16.0), // Décalage des ListTile pour LinkedIn et GitHub
               child: Column(
                 children: [
                   ListTile(
                     leading: const Icon(Icons.link),
                     title: Text(
                       'My linktree',
-                      style: TextStyle(fontSize: 15 + appState.getTextSizeOffset()),
+                      style: TextStyle(
+                          fontSize: 15 + appState.getTextSizeOffset()),
                     ),
-                    onTap: () => UrlUtils.launchURL('https://linktr.ee/byackee'),
-                    visualDensity: const VisualDensity(vertical: -4), // Réduction de l'espace vertical
+                    onTap: () =>
+                        UrlUtils.launchURL('https://linktr.ee/byackee'),
+                    visualDensity: const VisualDensity(
+                        vertical: -4), // Réduction de l'espace vertical
                   ),
                 ],
               ),
@@ -88,11 +94,15 @@ class AboutPage extends StatelessWidget {
             ListTile(
               leading: const Icon(Icons.favorite),
               title: Text(
-                S.of(context).thankYouMessage, // Traduction pour "Merci à tous ceux qui ont contribué à ce projet"
+                S
+                    .of(context)
+                    .thankYouMessage, // Traduction pour "Merci à tous ceux qui ont contribué à ce projet"
                 style: TextStyle(fontSize: 15 + appState.getTextSizeOffset()),
               ),
               subtitle: Text(
-                S.of(context).specialThanks, // Traduction pour "Remerciements particuliers à..."
+                S
+                    .of(context)
+                    .specialThanks, // Traduction pour "Remerciements particuliers à..."
                 style: TextStyle(fontSize: 14 + appState.getTextSizeOffset()),
               ),
             ),
@@ -107,7 +117,8 @@ class SectionHeader extends StatelessWidget {
   final String title;
   final double textSizeOffset;
 
-  const SectionHeader({required this.title, required this.textSizeOffset, super.key});
+  const SectionHeader(
+      {required this.title, required this.textSizeOffset, super.key});
 
   @override
   Widget build(BuildContext context) {

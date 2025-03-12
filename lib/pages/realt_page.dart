@@ -28,7 +28,8 @@ class RealtPageState extends State<RealtPage> {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor, // Définir le fond noir
+        backgroundColor:
+            Theme.of(context).scaffoldBackgroundColor, // Définir le fond noir
         title: Center(
           child: Image.asset(
             'assets/RealT_Logo.png', // Chemin vers l'image dans assets
@@ -47,12 +48,16 @@ class RealtPageState extends State<RealtPage> {
                 'investment', // Utilisation de S.of(context)
                 Icons.attach_money,
                 _buildValueBeforeText(
-                  currencyUtils.formatCurrency(currencyUtils.convert(dataManager.totalRealtInvestment), currencyUtils.currencySymbol),
+                  currencyUtils.formatCurrency(
+                      currencyUtils.convert(dataManager.totalRealtInvestment),
+                      currencyUtils.currencySymbol),
                   S.of(context).totalInvestment,
                 ),
                 [
                   _buildValueBeforeText(
-                    currencyUtils.formatCurrency(currencyUtils.convert(dataManager.netRealtRentYear), currencyUtils.currencySymbol),
+                    currencyUtils.formatCurrency(
+                        currencyUtils.convert(dataManager.netRealtRentYear),
+                        currencyUtils.currencySymbol),
                     'net rent',
                   ),
                 ],
@@ -157,7 +162,8 @@ class RealtPageState extends State<RealtPage> {
               ],
             ),
             const Spacer(),
-            if (hasGraph && rightWidget != null) rightWidget, // Affiche le graphique si nécessaire
+            if (hasGraph && rightWidget != null)
+              rightWidget, // Affiche le graphique si nécessaire
           ],
         ),
       ),
@@ -173,7 +179,11 @@ class RealtPageState extends State<RealtPage> {
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
-            color: color ?? Theme.of(context).textTheme.bodyMedium?.color, // Utilise la couleur fournie ou la couleur par défaut
+            color: color ??
+                Theme.of(context)
+                    .textTheme
+                    .bodyMedium
+                    ?.color, // Utilise la couleur fournie ou la couleur par défaut
           ),
         ),
         const SizedBox(width: 6),

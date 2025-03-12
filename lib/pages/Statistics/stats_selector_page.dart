@@ -33,7 +33,8 @@ class StatsSelectorPageState extends State<StatsSelectorPage> {
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8.0, vertical: 4.0),
                         child: _buildStatsSelector(),
                       ),
                     ],
@@ -74,84 +75,90 @@ class StatsSelectorPageState extends State<StatsSelectorPage> {
   }
 
   Widget _buildStatsChip(String value, String label) {
-  final appState = Provider.of<AppState>(context);
-  bool isSelected = _selectedStats == value;
+    final appState = Provider.of<AppState>(context);
+    bool isSelected = _selectedStats == value;
 
-  double textSizeOffset = appState.getTextSizeOffset();
-  TextStyle textStyle = TextStyle(
-    fontSize: (isSelected ? 18 : 16) + textSizeOffset,
-    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-  );
+    double textSizeOffset = appState.getTextSizeOffset();
+    TextStyle textStyle = TextStyle(
+      fontSize: (isSelected ? 18 : 16) + textSizeOffset,
+      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+    );
 
-  double minWidth = _calculateTextWidth(context, label, textStyle);
+    double minWidth = _calculateTextWidth(context, label, textStyle);
 
-  return isSelected
-      ? Expanded( // La chip sélectionnée prend toute la place restante
-          child: GestureDetector(
-            onTap: () {
-              setState(() {
-                _selectedStats = value;
-              });
-            },
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 500),
-              curve: Curves.easeInOut,
-              height: 40,
-              margin: const EdgeInsets.symmetric(horizontal: 4),
-              decoration: BoxDecoration(
-                color: Theme.of(context).primaryColor,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Center(
-                child: AnimatedDefaultTextStyle(
-                  duration: const Duration(milliseconds: 500),
-                  curve: Curves.easeInOut,
-                  style: textStyle.copyWith(color: Colors.white),
-                  child: Text(label),
+    return isSelected
+        ? Expanded(
+            // La chip sélectionnée prend toute la place restante
+            child: GestureDetector(
+              onTap: () {
+                setState(() {
+                  _selectedStats = value;
+                });
+              },
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 500),
+                curve: Curves.easeInOut,
+                height: 40,
+                margin: const EdgeInsets.symmetric(horizontal: 4),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).primaryColor,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Center(
+                  child: AnimatedDefaultTextStyle(
+                    duration: const Duration(milliseconds: 500),
+                    curve: Curves.easeInOut,
+                    style: textStyle.copyWith(color: Colors.white),
+                    child: Text(label),
+                  ),
                 ),
               ),
             ),
-          ),
-        )
-      : ConstrainedBox( // Les chips non sélectionnées ont une largeur minimale
-          constraints: BoxConstraints(minWidth: minWidth),
-          child: GestureDetector(
-            onTap: () {
-              setState(() {
-                _selectedStats = value;
-              });
-            },
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 500),
-              curve: Curves.easeInOut,
-              height: 40,
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              margin: const EdgeInsets.symmetric(horizontal: 4),
-              decoration: BoxDecoration(
-                color: Theme.of(context).cardColor,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Center(
-                child: AnimatedDefaultTextStyle(
-                  duration: const Duration(milliseconds: 500),
-                  curve: Curves.easeInOut,
-                  style: textStyle.copyWith(color: Theme.of(context).primaryColor),
-                  child: Text(label),
+          )
+        : ConstrainedBox(
+            // Les chips non sélectionnées ont une largeur minimale
+            constraints: BoxConstraints(minWidth: minWidth),
+            child: GestureDetector(
+              onTap: () {
+                setState(() {
+                  _selectedStats = value;
+                });
+              },
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 500),
+                curve: Curves.easeInOut,
+                height: 40,
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                margin: const EdgeInsets.symmetric(horizontal: 4),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).cardColor,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Center(
+                  child: AnimatedDefaultTextStyle(
+                    duration: const Duration(milliseconds: 500),
+                    curve: Curves.easeInOut,
+                    style: textStyle.copyWith(
+                        color: Theme.of(context).primaryColor),
+                    child: Text(label),
+                  ),
                 ),
               ),
             ),
-          ),
-        );
-}
-double _calculateTextWidth(BuildContext context, String text, TextStyle style) {
-  final TextPainter textPainter = TextPainter(
-    text: TextSpan(text: text, style: style),
-    maxLines: 1,
-    textDirection: TextDirection.ltr,
-  )..layout();
+          );
+  }
 
-  return textPainter.width + 24; // Ajout de padding pour éviter que le texte touche les bords
-}
+  double _calculateTextWidth(
+      BuildContext context, String text, TextStyle style) {
+    final TextPainter textPainter = TextPainter(
+      text: TextSpan(text: text, style: style),
+      maxLines: 1,
+      textDirection: TextDirection.ltr,
+    )..layout();
+
+    return textPainter.width +
+        24; // Ajout de padding pour éviter que le texte touche les bords
+  }
 
   Widget _getSelectedStatsPage() {
     switch (_selectedStats) {

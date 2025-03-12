@@ -58,7 +58,9 @@ class ChartUtils {
         onTap: onTap,
         child: Container(
           decoration: BoxDecoration(
-            color: isSelected ? Theme.of(context).primaryColor : Theme.of(context).secondaryHeaderColor,
+            color: isSelected
+                ? Theme.of(context).primaryColor
+                : Theme.of(context).secondaryHeaderColor,
             borderRadius: BorderRadius.horizontal(
               left: isFirst ? const Radius.circular(8) : Radius.zero,
               right: isLast ? const Radius.circular(8) : Radius.zero,
@@ -70,7 +72,9 @@ class ChartUtils {
             period,
             style: TextStyle(
               fontSize: 14 + appState.getTextSizeOffset(),
-              color: isSelected ? Colors.white : Theme.of(context).textTheme.bodyLarge?.color,
+              color: isSelected
+                  ? Colors.white
+                  : Theme.of(context).textTheme.bodyLarge?.color,
               fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
             ),
           ),
@@ -79,7 +83,12 @@ class ChartUtils {
     );
   }
 
-  static List<FlSpot> buildHistoryChartData<T>(BuildContext context, List<T> history, String selectedPeriod, double Function(T) getValue, DateTime Function(T) getTimestamp) {
+  static List<FlSpot> buildHistoryChartData<T>(
+      BuildContext context,
+      List<T> history,
+      String selectedPeriod,
+      double Function(T) getValue,
+      DateTime Function(T) getTimestamp) {
     Map<String, List<double>> groupedData = {};
 
     for (var record in history) {
@@ -89,7 +98,8 @@ class ChartUtils {
       if (selectedPeriod == S.of(context).day) {
         periodKey = DateFormat('yyyy/MM/dd').format(date);
       } else if (selectedPeriod == S.of(context).week) {
-        periodKey = "${date.year}-S${CustomDateUtils.weekNumber(date).toString().padLeft(2, '0')}";
+        periodKey =
+            "${date.year}-S${CustomDateUtils.weekNumber(date).toString().padLeft(2, '0')}";
       } else if (selectedPeriod == S.of(context).month) {
         periodKey = DateFormat('yyyy/MM').format(date);
       } else {

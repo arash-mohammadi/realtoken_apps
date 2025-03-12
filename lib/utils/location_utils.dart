@@ -8,7 +8,8 @@ class LocationUtils {
 
   static String formatSquareFeet(double sqft, bool convertToSquareMeters) {
     if (convertToSquareMeters) {
-      double squareMeters = sqft * 0.092903; // Conversion des pieds carrés en m²
+      double squareMeters =
+          sqft * 0.092903; // Conversion des pieds carrés en m²
       return '${squareMeters.toStringAsFixed(2)} m²';
     } else {
       return '${sqft.toStringAsFixed(2)} sqft';

@@ -49,7 +49,8 @@ class _AdvancedSettingsPageState extends State<AdvancedSettingsPage> {
         children: [
           Card(
             color: Theme.of(context).cardColor,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             child: ListTile(
               title: Text(
                 S.of(context).yamHistory,
@@ -65,9 +66,12 @@ class _AdvancedSettingsPageState extends State<AdvancedSettingsPage> {
           SizedBox(height: 16),
           Card(
             color: Theme.of(context).cardColor,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             child: ListTile(
-              title: Text('Effacer le cache et les données', style: TextStyle(fontSize: 16.0 + appState.getTextSizeOffset())),
+              title: Text('Effacer le cache et les données',
+                  style:
+                      TextStyle(fontSize: 16.0 + appState.getTextSizeOffset())),
               trailing: IconButton(
                 icon: Icon(Icons.delete, color: Colors.red),
                 onPressed: () => _clearCacheAndData(context),
@@ -95,7 +99,8 @@ class _AdvancedSettingsPageState extends State<AdvancedSettingsPage> {
                   children: [
                     TextButton(
                       onPressed: () => Navigator.pop(context),
-                      child: Text("Cancel", style: TextStyle(color: Colors.red)),
+                      child:
+                          Text("Cancel", style: TextStyle(color: Colors.red)),
                     ),
                     TextButton(
                       onPressed: () {
@@ -127,7 +132,9 @@ class _AdvancedSettingsPageState extends State<AdvancedSettingsPage> {
                           "${index + 1} days",
                           style: TextStyle(
                             fontSize: isSelected ? 20 : 16,
-                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                            fontWeight: isSelected
+                                ? FontWeight.bold
+                                : FontWeight.normal,
                             color: isSelected ? Colors.black : Colors.grey,
                           ),
                         ),

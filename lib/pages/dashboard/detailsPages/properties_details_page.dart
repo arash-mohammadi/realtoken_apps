@@ -9,7 +9,8 @@ import 'package:realtokens/app_state.dart';
 class PropertiesDetailsPage extends StatelessWidget {
   const PropertiesDetailsPage({super.key});
 
-  Widget _buildInfoCards(BuildContext context, DataManager dataManager, AppState appState) {
+  Widget _buildInfoCards(
+      BuildContext context, DataManager dataManager, AppState appState) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 20.0),
       child: Column(
@@ -17,21 +18,36 @@ class PropertiesDetailsPage extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              Expanded(child: _buildCard(context, '${dataManager.totalTokenCount}', S.of(context).properties, appState)),
-              Expanded(child: _buildCard(context, '${dataManager.walletTokenCount}', S.of(context).wallet, appState)),
-              Expanded(child: _buildCard(context, '${dataManager.rmmTokenCount.toInt()}', S.of(context).rmm, appState)),
+              Expanded(
+                  child: _buildCard(context, '${dataManager.totalTokenCount}',
+                      S.of(context).properties, appState)),
+              Expanded(
+                  child: _buildCard(context, '${dataManager.walletTokenCount}',
+                      S.of(context).wallet, appState)),
+              Expanded(
+                  child: _buildCard(
+                      context,
+                      '${dataManager.rmmTokenCount.toInt()}',
+                      S.of(context).rmm,
+                      appState)),
             ],
           ),
           SizedBox(height: 10),
-          _buildFullWidthCard(context, '${dataManager.totalRealtTokens}', S.of(context).tokens, appState),
+          _buildFullWidthCard(context, '${dataManager.totalRealtTokens}',
+              S.of(context).tokens, appState),
           SizedBox(height: 10),
-          _buildFullWidthCard(context, '${dataManager.rentedUnits} / ${dataManager.totalUnits}', S.of(context).rentedUnits, appState),
+          _buildFullWidthCard(
+              context,
+              '${dataManager.rentedUnits} / ${dataManager.totalUnits}',
+              S.of(context).rentedUnits,
+              appState),
         ],
       ),
     );
   }
 
-  Widget _buildCard(BuildContext context, String value, String label, AppState appState) {
+  Widget _buildCard(
+      BuildContext context, String value, String label, AppState appState) {
     return Card(
       elevation: 0.5,
       color: Theme.of(context).cardColor,
@@ -62,7 +78,8 @@ class PropertiesDetailsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildFullWidthCard(BuildContext context, String value, String label, AppState appState) {
+  Widget _buildFullWidthCard(
+      BuildContext context, String value, String label, AppState appState) {
     return SizedBox(
       width: double.infinity,
       child: _buildCard(context, value, label, appState),
@@ -94,7 +111,8 @@ class PropertiesDetailsPage extends StatelessWidget {
                   _buildInfoCards(context, dataManager, appState),
                   SizedBox(height: 10),
                   SizedBox(
-                    height: 400, // Hauteur fixe pour éviter le problème de layout
+                    height:
+                        400, // Hauteur fixe pour éviter le problème de layout
                     child: TokenDistributionCard(dataManager: dataManager),
                   ),
                 ],
@@ -103,8 +121,10 @@ class PropertiesDetailsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildRentedUnitsGauge(BuildContext context, DataManager dataManager, AppState appState) {
-    final double rentedPercentage = (dataManager.rentedUnits / dataManager.totalUnits) * 100;
+  Widget _buildRentedUnitsGauge(
+      BuildContext context, DataManager dataManager, AppState appState) {
+    final double rentedPercentage =
+        (dataManager.rentedUnits / dataManager.totalUnits) * 100;
     Color gaugeColor = _getGaugeColor(rentedPercentage);
 
     return Center(

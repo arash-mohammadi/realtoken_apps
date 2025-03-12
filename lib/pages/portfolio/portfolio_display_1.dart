@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import 'package:realtokens/generated/l10n.dart';
 import 'package:realtokens/settings/manage_evm_addresses_page.dart';
 import 'package:realtokens/app_state.dart';
+import 'package:realtokens/utils/ui_utils.dart';
 import 'package:show_network_image/show_network_image.dart';
 
 class PortfolioDisplay1 extends StatelessWidget {
@@ -28,7 +29,8 @@ class PortfolioDisplay1 extends StatelessWidget {
                   height: 10,
                   width: maxWidth,
                   decoration: BoxDecoration(
-                    color: const Color.fromARGB(255, 78, 78, 78).withOpacity(0.3), // Couleur du fond grisé
+                    color: const Color.fromARGB(255, 78, 78, 78)
+                        .withOpacity(0.3), // Couleur du fond grisé
                     borderRadius: BorderRadius.circular(5),
                   ),
                 ),
@@ -84,7 +86,8 @@ class PortfolioDisplay1 extends StatelessWidget {
                       onPressed: () {
                         Navigator.of(context).push(
                           MaterialPageRoute(
-                            builder: (context) => const ManageEvmAddressesPage(),
+                            builder: (context) =>
+                                const ManageEvmAddressesPage(),
                           ),
                         );
                       },
@@ -104,11 +107,15 @@ class PortfolioDisplay1 extends StatelessWidget {
               ),
             )
           : GridView.builder(
-              padding: const EdgeInsets.only(top: 20, bottom: 80, right: 4, left: 4),
+              padding:
+                  const EdgeInsets.only(top: 20, bottom: 80, right: 4, left: 4),
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: MediaQuery.of(context).size.width > 700 ? 2 : 1,
 
-                mainAxisExtent: 195 * (1 + (appState.getTextSizeOffset() / 35)), // Ajustez ici pour plus de hauteur
+                mainAxisExtent: 195 *
+                    (1 +
+                        (appState.getTextSizeOffset() /
+                            35)), // Ajustez ici pour plus de hauteur
               ),
               itemCount: portfolio.length,
               itemBuilder: (context, index) {
@@ -118,15 +125,22 @@ class PortfolioDisplay1 extends StatelessWidget {
                 final city = LocationUtils.extractCity(token['fullName'] ?? '');
 
                 // Vérifier si la date de 'rent_start' est dans le futur
-                final rentStartDate = DateTime.parse(token['rentStartDate'] ?? DateTime.now().toString());
-                final bool isFutureRentStart = rentStartDate.isAfter(DateTime.now());
+                final rentStartDate = DateTime.parse(
+                    token['rentStartDate'] ?? DateTime.now().toString());
+                final bool isFutureRentStart =
+                    rentStartDate.isAfter(DateTime.now());
 
-                final rentPercentage = (token['totalRentReceived'] != null && token['initialTotalValue'] != null && token['initialTotalValue'] != 0)
-                    ? (token['totalRentReceived'] / token['initialTotalValue']) * 100
+                final rentPercentage = (token['totalRentReceived'] != null &&
+                        token['initialTotalValue'] != null &&
+                        token['initialTotalValue'] != 0)
+                    ? (token['totalRentReceived'] /
+                            token['initialTotalValue']) *
+                        100
                     : 0.5;
 
                 return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
+                  padding: const EdgeInsets.symmetric(
+                      vertical: 8.0, horizontal: 8.0),
                   child: GestureDetector(
                     onTap: () => showTokenDetails(context, token),
                     child: Row(
@@ -141,8 +155,11 @@ class PortfolioDisplay1 extends StatelessWidget {
                           child: Stack(
                             children: [
                               ColorFiltered(
-                                colorFilter:
-                                    isFutureRentStart ? const ColorFilter.mode(Colors.black45, BlendMode.darken) : const ColorFilter.mode(Colors.transparent, BlendMode.multiply),
+                                colorFilter: isFutureRentStart
+                                    ? const ColorFilter.mode(
+                                        Colors.black45, BlendMode.darken)
+                                    : const ColorFilter.mode(
+                                        Colors.transparent, BlendMode.multiply),
                                 child: SizedBox(
                                   width: kIsWeb ? 150 : 120,
                                   height: double.infinity,
@@ -154,7 +171,8 @@ class PortfolioDisplay1 extends StatelessWidget {
                                       : CachedNetworkImage(
                                           imageUrl: token['imageLink'][0],
                                           fit: BoxFit.cover,
-                                          errorWidget: (context, url, error) => const Icon(Icons.error),
+                                          errorWidget: (context, url, error) =>
+                                              const Icon(Icons.error),
                                         ),
                                 ),
                               ),
@@ -163,7 +181,8 @@ class PortfolioDisplay1 extends StatelessWidget {
                               if (kIsWeb)
                                 Positioned.fill(
                                   child: GestureDetector(
-                                    behavior: HitTestBehavior.translucent, // Capture le clic même sur les parties transparentes
+                                    behavior: HitTestBehavior
+                                        .translucent, // Capture le clic même sur les parties transparentes
                                     onTap: () {
                                       print("✅ Image cliquée sur Web !");
                                       showTokenDetails(context, token);
@@ -183,12 +202,106 @@ class PortfolioDisplay1 extends StatelessWidget {
                                         style: TextStyle(
                                           color: Colors.white,
                                           fontWeight: FontWeight.bold,
-                                          fontSize: 12 + appState.getTextSizeOffset(),
+                                          fontSize:
+                                              12 + appState.getTextSizeOffset(),
                                         ),
                                       ),
                                     ),
                                   ),
                                 ),
+                              // Indicateur isWallet / isRMM en haut à gauche
+                              if (isWallet || isRMM)
+                                Positioned(
+                                  top: 4,
+                                  left: 4,
+                                  child: Row(
+                                    children: [
+                                      if (isWallet)
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 4.0, vertical: 2.0),
+                                          decoration: BoxDecoration(
+                                            color: Colors.grey,
+                                            shape: BoxShape.rectangle,
+                                            borderRadius:
+                                                BorderRadius.circular(8.0),
+                                          ),
+                                          child: Text(
+                                            S.of(context).wallet,
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 10 +
+                                                  appState.getTextSizeOffset(),
+                                            ),
+                                          ),
+                                        ),
+                                      const SizedBox(width: 4),
+                                      if (isRMM)
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 4.0, vertical: 2.0),
+                                          decoration: BoxDecoration(
+                                            color: const Color.fromARGB(
+                                                255, 165, 100, 21),
+                                            shape: BoxShape.rectangle,
+                                            borderRadius:
+                                                BorderRadius.circular(8.0),
+                                          ),
+                                          child: Text(
+                                            'RMM',
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 10 +
+                                                  appState.getTextSizeOffset(),
+                                            ),
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                              Positioned(
+                                bottom: 0,
+                                left: 0,
+                                right: 0,
+                                child: Container(
+                                  padding: const EdgeInsets.all(6),
+                                  color: Colors.black54,
+                                  child: Stack(
+                                    children: [
+                                      Positioned(
+                                        left: 0,
+                                        top: 0,
+                                        bottom: 0,
+                                        child: Container(
+                                          width: 12,
+                                          height: 12,
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            color: UIUtils.getRentalStatusColor(
+                                              token['rentedUnits'] ?? 0,
+                                              token['totalUnits'] ?? 1,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      Center(
+                                        child: Text(
+                                          city,
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 14 +
+                                                appState.getTextSizeOffset(),
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -209,29 +322,47 @@ class PortfolioDisplay1 extends StatelessWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                     children: [
                                       Expanded(
                                         child: Row(
                                           children: [
-                                            if (token['country'] != null) // Vérifie si le pays est disponible
+                                            if (token['country'] !=
+                                                null) // Vérifie si le pays est disponible
                                               Padding(
-                                                padding: const EdgeInsets.only(right: 4.0), // Espacement entre l'image et le texte
+                                                padding: const EdgeInsets.only(
+                                                    right:
+                                                        4.0), // Espacement entre l'image et le texte
                                                 child: Image.asset(
                                                   'assets/country/${token['country'].toLowerCase()}.png',
-                                                  width: 26 + appState.getTextSizeOffset(),
-                                                  height: 26 + appState.getTextSizeOffset(),
-                                                  errorBuilder: (context, error, stackTrace) {
-                                                    return const Icon(Icons.flag, size: 24); // Icône par défaut si l'image est introuvable
+                                                  width: 26 +
+                                                      appState
+                                                          .getTextSizeOffset(),
+                                                  height: 26 +
+                                                      appState
+                                                          .getTextSizeOffset(),
+                                                  errorBuilder: (context, error,
+                                                      stackTrace) {
+                                                    return const Icon(
+                                                        Icons.flag,
+                                                        size:
+                                                            24); // Icône par défaut si l'image est introuvable
                                                   },
                                                 ),
                                               ),
                                             Text(
-                                              token['shortName'] ?? S.of(context).nameUnavailable,
+                                              token['shortName'] ??
+                                                  S.of(context).nameUnavailable,
                                               style: TextStyle(
-                                                fontSize: 15 + appState.getTextSizeOffset(),
+                                                fontSize: 15 +
+                                                    appState
+                                                        .getTextSizeOffset(),
                                                 fontWeight: FontWeight.bold,
-                                                color: Theme.of(context).textTheme.bodyLarge?.color,
+                                                color: Theme.of(context)
+                                                    .textTheme
+                                                    .bodyLarge
+                                                    ?.color,
                                               ),
                                               maxLines: 1,
                                               overflow: TextOverflow.ellipsis,
@@ -240,70 +371,116 @@ class PortfolioDisplay1 extends StatelessWidget {
                                         ),
                                       ),
                                       Transform.translate(
-                                        offset: const Offset(30.0, 0), // Décalage de 30 pixels vers la droite
+                                        offset: const Offset(30.0,
+                                            0), // Décalage de 30 pixels vers la droite
                                         child: SizedBox(
                                           width: 100,
-                                          child: rentPercentage != null ? _buildGaugeForRent(rentPercentage, context) : const SizedBox.shrink(),
+                                          child: rentPercentage != null
+                                              ? _buildGaugeForRent(
+                                                  rentPercentage, context)
+                                              : const SizedBox.shrink(),
                                         ),
                                       ),
                                     ],
                                   ),
                                   Text(
                                     '${S.of(context).totalValue}: ${currencyUtils.getFormattedAmount(
-                                      currencyUtils.convert(token['totalValue']),
+                                      currencyUtils
+                                          .convert(token['totalValue']),
                                       currencyUtils.currencySymbol,
-                                      appState.showAmounts, // Utilisation de showAmounts pour masquer/afficher les valeurs
+                                      appState
+                                          .showAmounts, // Utilisation de showAmounts pour masquer/afficher les valeurs
                                     )}',
                                     style: TextStyle(
-                                      fontSize: 13 + appState.getTextSizeOffset(),
+                                      fontSize:
+                                          13 + appState.getTextSizeOffset(),
                                     ),
                                   ),
                                   Text(
                                     'YAM: ${currencyUtils.getFormattedAmount(currencyUtils.convert((token['yamAverageValue'] * token['amount'])), currencyUtils.currencySymbol, appState.showAmounts)} (${((token['yamAverageValue'] / token['tokenPrice'] - 1) * 100).toStringAsFixed(0)}%)',
                                     style: TextStyle(
-                                      fontSize: 13 + appState.getTextSizeOffset(),
-                                      color: (token['yamAverageValue'] * token['amount']) >= token['totalValue'] ? Colors.green : Colors.red,
+                                      fontSize:
+                                          13 + appState.getTextSizeOffset(),
+                                      color: (token['yamAverageValue'] *
+                                                  token['amount']) >=
+                                              token['totalValue']
+                                          ? Colors.green
+                                          : Colors.red,
                                     ),
                                   ),
                                   Text(
                                     '${S.of(context).amount}: ${token['amount']?.toStringAsFixed(2) ?? '0.00'} / ${token['totalTokens'] ?? 'N/A'}',
-                                    style: TextStyle(fontSize: 13 + appState.getTextSizeOffset()),
+                                    style: TextStyle(
+                                        fontSize:
+                                            13 + appState.getTextSizeOffset()),
                                   ),
                                   Text(
                                     '${S.of(context).apy}: ${token['annualPercentageYield']?.toStringAsFixed(2) ?? 'N/A'}%',
-                                    style: TextStyle(fontSize: 13 + appState.getTextSizeOffset()),
+                                    style: TextStyle(
+                                        fontSize:
+                                            13 + appState.getTextSizeOffset()),
                                   ),
                                   const SizedBox(height: 8),
                                   Text(
                                     '${S.of(context).revenue}:',
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
-                                      fontSize: 13 + appState.getTextSizeOffset(),
+                                      fontSize:
+                                          13 + appState.getTextSizeOffset(),
                                     ),
                                   ),
                                   Padding(
                                     padding: const EdgeInsets.only(top: 4.0),
                                     child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceEvenly,
                                       children: [
                                         Column(
                                           children: [
-                                            Text(S.of(context).week, style: TextStyle(fontSize: 13 + appState.getTextSizeOffset())),
-                                            Text(currencyUtils.getFormattedAmount(currencyUtils.convert(token['dailyIncome']), currencyUtils.currencySymbol, appState.showAmounts)),
+                                            Text(S.of(context).week,
+                                                style: TextStyle(
+                                                    fontSize: 13 +
+                                                        appState
+                                                            .getTextSizeOffset())),
+                                            Text(currencyUtils
+                                                .getFormattedAmount(
+                                                    currencyUtils.convert(
+                                                        token['dailyIncome']),
+                                                    currencyUtils
+                                                        .currencySymbol,
+                                                    appState.showAmounts)),
                                           ],
                                         ),
                                         Column(
                                           children: [
-                                            Text(S.of(context).month, style: TextStyle(fontSize: 13 + appState.getTextSizeOffset())),
-                                            Text(currencyUtils.getFormattedAmount(
-                                                currencyUtils.convert(token['monthlyIncome']), currencyUtils.currencySymbol, appState.showAmounts)),
+                                            Text(S.of(context).month,
+                                                style: TextStyle(
+                                                    fontSize: 13 +
+                                                        appState
+                                                            .getTextSizeOffset())),
+                                            Text(currencyUtils
+                                                .getFormattedAmount(
+                                                    currencyUtils.convert(
+                                                        token['monthlyIncome']),
+                                                    currencyUtils
+                                                        .currencySymbol,
+                                                    appState.showAmounts)),
                                           ],
                                         ),
                                         Column(
                                           children: [
-                                            Text(S.of(context).year, style: TextStyle(fontSize: 13 + appState.getTextSizeOffset())),
-                                            Text(
-                                                currencyUtils.getFormattedAmount(currencyUtils.convert(token['yearlyIncome']), currencyUtils.currencySymbol, appState.showAmounts)),
+                                            Text(S.of(context).year,
+                                                style: TextStyle(
+                                                    fontSize: 13 +
+                                                        appState
+                                                            .getTextSizeOffset())),
+                                            Text(currencyUtils
+                                                .getFormattedAmount(
+                                                    currencyUtils.convert(
+                                                        token['yearlyIncome']),
+                                                    currencyUtils
+                                                        .currencySymbol,
+                                                    appState.showAmounts)),
                                           ],
                                         ),
                                       ],

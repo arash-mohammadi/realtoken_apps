@@ -60,7 +60,8 @@ void _openMapModal(BuildContext context, dynamic lat, dynamic lng) {
                 ),
                 children: [
                   TileLayer(
-                    urlTemplate: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                    urlTemplate:
+                        'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
                     subdomains: ['a', 'b', 'c'],
                   ),
                   MarkerLayer(
@@ -84,7 +85,8 @@ void _openMapModal(BuildContext context, dynamic lat, dynamic lng) {
                 right: 20,
                 child: FloatingActionButton(
                   onPressed: () {
-                    final googleStreetViewUrl = 'https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=$latitude,$longitude';
+                    final googleStreetViewUrl =
+                        'https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=$latitude,$longitude';
                     UrlUtils.launchURL(googleStreetViewUrl);
                   },
                   backgroundColor: Theme.of(context).primaryColor,
@@ -102,7 +104,8 @@ void _openMapModal(BuildContext context, dynamic lat, dynamic lng) {
   );
 }
 
-Future<void> showTokenDetails(BuildContext context, Map<String, dynamic> token) async {
+Future<void> showTokenDetails(
+    BuildContext context, Map<String, dynamic> token) async {
   final dataManager = Provider.of<DataManager>(context, listen: false);
   final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
   final prefs = await SharedPreferences.getInstance();
@@ -125,7 +128,10 @@ Future<void> showTokenDetails(BuildContext context, Map<String, dynamic> token) 
                 token['imageLink'] != null && token['imageLink'].isNotEmpty
                     ? GestureDetector(
                         onTap: () {
-                          final List<String> imageLinks = token['imageLink'] is String ? [token['imageLink']] : List<String>.from(token['imageLink']);
+                          final List<String> imageLinks =
+                              token['imageLink'] is String
+                                  ? [token['imageLink']]
+                                  : List<String>.from(token['imageLink']);
 
                           Navigator.of(context).push(
                             MaterialPageRoute(
@@ -141,28 +147,40 @@ Future<void> showTokenDetails(BuildContext context, Map<String, dynamic> token) 
                             enableInfiniteScroll: true,
                             enlargeCenterPage: true,
                           ),
-                          items: (token['imageLink'] is String ? [token['imageLink']] : List<String>.from(token['imageLink'])).map<Widget>((imageUrl) {
+                          items: (token['imageLink'] is String
+                                  ? [token['imageLink']]
+                                  : List<String>.from(token['imageLink']))
+                              .map<Widget>((imageUrl) {
                             return Stack(
                               // ✅ Superposition pour capturer le clic uniquement sur Web
                               children: [
                                 // ✅ Image affichée normalement
                                 kIsWeb
-                                    ? ShowNetworkImage(imageSrc: imageUrl, mobileBoxFit: BoxFit.cover, mobileWidth: double.infinity)
+                                    ? ShowNetworkImage(
+                                        imageSrc: imageUrl,
+                                        mobileBoxFit: BoxFit.cover,
+                                        mobileWidth: double.infinity)
                                     : CachedNetworkImage(
                                         imageUrl: imageUrl,
                                         width: double.infinity,
                                         fit: BoxFit.cover,
-                                        errorWidget: (context, url, error) => const Icon(Icons.error),
+                                        errorWidget: (context, url, error) =>
+                                            const Icon(Icons.error),
                                       ),
 
                                 // ✅ Superposition d'un GestureDetector transparent uniquement sur Web
                                 if (kIsWeb)
                                   Positioned.fill(
                                     child: GestureDetector(
-                                      behavior: HitTestBehavior.translucent, // Capture le clic même sur les parties transparentes
+                                      behavior: HitTestBehavior
+                                          .translucent, // Capture le clic même sur les parties transparentes
                                       onTap: () {
                                         print("✅ Image cliquée sur Web !");
-                                        final List<String> imageLinks = token['imageLink'] is String ? [token['imageLink']] : List<String>.from(token['imageLink']);
+                                        final List<String> imageLinks =
+                                            token['imageLink'] is String
+                                                ? [token['imageLink']]
+                                                : List<String>.from(
+                                                    token['imageLink']);
 
                                         Navigator.of(context).push(
                                           MaterialPageRoute(
@@ -189,9 +207,12 @@ Future<void> showTokenDetails(BuildContext context, Map<String, dynamic> token) 
                 const SizedBox(height: 10),
                 Center(
                   child: Row(
-                    mainAxisSize: MainAxisSize.min, // Ajuste la taille au contenu
-                    mainAxisAlignment: MainAxisAlignment.center, // Centre horizontalement
-                    crossAxisAlignment: CrossAxisAlignment.center, // Centre verticalement
+                    mainAxisSize:
+                        MainAxisSize.min, // Ajuste la taille au contenu
+                    mainAxisAlignment:
+                        MainAxisAlignment.center, // Centre horizontalement
+                    crossAxisAlignment:
+                        CrossAxisAlignment.center, // Centre verticalement
                     children: [
                       if (token['country'] != null)
                         Padding(
@@ -236,7 +257,9 @@ Future<void> showTokenDetails(BuildContext context, Map<String, dynamic> token) 
                             ),
                             const SizedBox(width: 8),
                             Text(
-                              currencyUtils.formatCurrency(currencyUtils.convert(token['totalValue']), currencyUtils.currencySymbol),
+                              currencyUtils.formatCurrency(
+                                  currencyUtils.convert(token['totalValue']),
+                                  currencyUtils.currencySymbol),
                               style: TextStyle(
                                 fontWeight: FontWeight.normal,
                                 color: Colors.grey,
@@ -252,8 +275,11 @@ Future<void> showTokenDetails(BuildContext context, Map<String, dynamic> token) 
                   labelColor: Theme.of(context).primaryColor,
                   indicatorColor: Theme.of(context).primaryColor,
                   unselectedLabelColor: Colors.grey,
-                  labelStyle: TextStyle(fontSize: 13 + appState.getTextSizeOffset(), fontWeight: FontWeight.bold),
-                  unselectedLabelStyle: TextStyle(fontSize: 13 + appState.getTextSizeOffset()),
+                  labelStyle: TextStyle(
+                      fontSize: 13 + appState.getTextSizeOffset(),
+                      fontWeight: FontWeight.bold),
+                  unselectedLabelStyle:
+                      TextStyle(fontSize: 13 + appState.getTextSizeOffset()),
                   tabs: [
                     Tab(icon: Icon(Icons.home)),
                     Tab(icon: Icon(Icons.attach_money)),
@@ -271,9 +297,11 @@ Future<void> showTokenDetails(BuildContext context, Map<String, dynamic> token) 
                       buildPropertiesTab(context, token, convertToSquareMeters),
                       buildFinanceTab(context, token, convertToSquareMeters),
                       MarketTab(token: token),
-                      buildOthersTab(context, token), // Ajoutez l'onglet Autres ici
+                      buildOthersTab(
+                          context, token), // Ajoutez l'onglet Autres ici
                       buildInsightsTab(context, token),
-                      buildHistoryTab(context, token, dataManager.isLoadingTransactions),
+                      buildHistoryTab(
+                          context, token, dataManager.isLoadingTransactions),
                     ],
                   ),
                 ),
@@ -287,11 +315,13 @@ Future<void> showTokenDetails(BuildContext context, Map<String, dynamic> token) 
                         SizedBox(
                           height: 32,
                           child: ElevatedButton(
-                            onPressed: () => UrlUtils.launchURL(token['marketplaceLink']),
+                            onPressed: () =>
+                                UrlUtils.launchURL(token['marketplaceLink']),
                             style: ElevatedButton.styleFrom(
                               foregroundColor: Colors.white,
                               backgroundColor: Theme.of(context).primaryColor,
-                              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 8, horizontal: 8),
                               textStyle: TextStyle(
                                 fontSize: 13 + appState.getTextSizeOffset(),
                               ),
@@ -303,12 +333,15 @@ Future<void> showTokenDetails(BuildContext context, Map<String, dynamic> token) 
                         SizedBox(
                           height: 32,
                           child: ElevatedButton(
-                            onPressed: () => _openMapModal(context, token['lat'], token['lng']),
+                            onPressed: () => _openMapModal(
+                                context, token['lat'], token['lng']),
                             style: ElevatedButton.styleFrom(
                               foregroundColor: Colors.white,
                               backgroundColor: Colors.green,
-                              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
-                              textStyle: TextStyle(fontSize: 13 + appState.getTextSizeOffset()),
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 8, horizontal: 8),
+                              textStyle: TextStyle(
+                                  fontSize: 13 + appState.getTextSizeOffset()),
                             ),
                             child: Text(S.of(context).viewOnMap),
                           ),

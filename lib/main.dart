@@ -34,7 +34,8 @@ void main() async {
 
   try {
     if (Firebase.apps.isEmpty) {
-      await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+      await Firebase.initializeApp(
+          options: DefaultFirebaseOptions.currentPlatform);
       debugPrint("✅ Firebase initialisé !");
     }
   } catch (e, stacktrace) {
@@ -77,7 +78,9 @@ void main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => dataManager),
-        ChangeNotifierProvider(create: (_) => CurrencyProvider()), // ✅ Assurez-vous que CurrencyProvider est bien ici
+        ChangeNotifierProvider(
+            create: (_) =>
+                CurrencyProvider()), // ✅ Assurez-vous que CurrencyProvider est bien ici
         ChangeNotifierProvider(create: (_) => AppState()),
       ],
       child: MyApp(autoSyncEnabled: autoSyncEnabled),
@@ -133,15 +136,18 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
     OneSignal.initialize("e7059f66-9c12-4d21-a078-edaf1a203dea");
     OneSignal.Notifications.requestPermission(true);
     OneSignal.Notifications.addForegroundWillDisplayListener((event) {
-      debugPrint('Notification reçue en premier plan : ${event.notification.jsonRepresentation()}');
+      debugPrint(
+          'Notification reçue en premier plan : ${event.notification.jsonRepresentation()}');
       event.preventDefault();
       event.notification.display();
     });
     OneSignal.Notifications.addClickListener((event) {
-      debugPrint('Notification cliquée : ${event.notification.jsonRepresentation()}');
+      debugPrint(
+          'Notification cliquée : ${event.notification.jsonRepresentation()}');
     });
     OneSignal.User.pushSubscription.addObserver((state) {
-      debugPrint('Utilisateur inscrit aux notifications : ${state.current.jsonRepresentation()}');
+      debugPrint(
+          'Utilisateur inscrit aux notifications : ${state.current.jsonRepresentation()}');
     });
   }
 

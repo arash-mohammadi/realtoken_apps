@@ -18,7 +18,8 @@ class TokenDistributionCard extends StatefulWidget {
 
 class _TokenDistributionCardState extends State<TokenDistributionCard> {
   int? _selectedIndexToken;
-  final ValueNotifier<int?> _selectedIndexNotifierToken = ValueNotifier<int?>(null);
+  final ValueNotifier<int?> _selectedIndexNotifierToken =
+      ValueNotifier<int?>(null);
 
   @override
   Widget build(BuildContext context) {
@@ -50,15 +51,20 @@ class _TokenDistributionCardState extends State<TokenDistributionCard> {
                     children: [
                       PieChart(
                         PieChartData(
-                          sections: _buildDonutChartData(widget.dataManager, selectedIndex),
+                          sections: _buildDonutChartData(
+                              widget.dataManager, selectedIndex),
                           centerSpaceRadius: 70,
                           sectionsSpace: 2,
                           borderData: FlBorderData(show: false),
                           pieTouchData: PieTouchData(
-                            touchCallback: (FlTouchEvent event, PieTouchResponse? response) {
-                              if (response != null && response.touchedSection != null) {
-                                final touchedIndex = response.touchedSection!.touchedSectionIndex;
-                                _selectedIndexNotifierToken.value = touchedIndex >= 0 ? touchedIndex : null;
+                            touchCallback: (FlTouchEvent event,
+                                PieTouchResponse? response) {
+                              if (response != null &&
+                                  response.touchedSection != null) {
+                                final touchedIndex = response
+                                    .touchedSection!.touchedSectionIndex;
+                                _selectedIndexNotifierToken.value =
+                                    touchedIndex >= 0 ? touchedIndex : null;
                               } else {
                                 _selectedIndexNotifierToken.value = null;
                               }
@@ -84,16 +90,21 @@ class _TokenDistributionCardState extends State<TokenDistributionCard> {
     );
   }
 
-  List<PieChartSectionData> _buildDonutChartData(DataManager dataManager, int? selectedIndex) {
+  List<PieChartSectionData> _buildDonutChartData(
+      DataManager dataManager, int? selectedIndex) {
     final appState = Provider.of<AppState>(context);
 
     // Trier les données par 'count' dans l'ordre décroissant
-    final sortedData = List<Map<String, dynamic>>.from(dataManager.propertyData)..sort((a, b) => b['count'].compareTo(a['count']));
+    final sortedData = List<Map<String, dynamic>>.from(dataManager.propertyData)
+      ..sort((a, b) => b['count'].compareTo(a['count']));
 
     return sortedData.asMap().entries.map((entry) {
       final index = entry.key;
       final data = entry.value;
-      final double percentage = (data['count'] / dataManager.propertyData.fold(0.0, (double sum, item) => sum + item['count'])) * 100;
+      final double percentage = (data['count'] /
+              dataManager.propertyData
+                  .fold(0.0, (double sum, item) => sum + item['count'])) *
+          100;
 
       final bool isSelected = selectedIndex == index;
       final opacity = selectedIndex != null && !isSelected ? 0.5 : 1.0;
@@ -101,7 +112,8 @@ class _TokenDistributionCardState extends State<TokenDistributionCard> {
       // Obtenir la couleur de base et créer des nuances
       final Color baseColor = _getPropertyColor(data['propertyType']);
       final Color lighterColor = UIUtils.shadeColor(baseColor, 1); // plus clair
-      final Color darkerColor = UIUtils.shadeColor(baseColor, 0.7); // plus foncé
+      final Color darkerColor =
+          UIUtils.shadeColor(baseColor, 0.7); // plus foncé
 
       return PieChartSectionData(
         value: data['count'].toDouble(),
@@ -109,7 +121,9 @@ class _TokenDistributionCardState extends State<TokenDistributionCard> {
         color: baseColor.withOpacity(opacity),
         radius: isSelected ? 50 : 40,
         titleStyle: TextStyle(
-          fontSize: isSelected ? 14 + appState.getTextSizeOffset() : 10 + appState.getTextSizeOffset(),
+          fontSize: isSelected
+              ? 14 + appState.getTextSizeOffset()
+              : 10 + appState.getTextSizeOffset(),
           color: Colors.white,
           fontWeight: FontWeight.bold,
         ),
@@ -148,7 +162,8 @@ class _TokenDistributionCardState extends State<TokenDistributionCard> {
     }
 
     // Afficher les détails du segment sélectionné
-    final sortedData = List<Map<String, dynamic>>.from(dataManager.propertyData)..sort((a, b) => b['count'].compareTo(a['count']));
+    final sortedData = List<Map<String, dynamic>>.from(dataManager.propertyData)
+      ..sort((a, b) => b['count'].compareTo(a['count']));
 
     final selectedData = sortedData[selectedIndex];
 
@@ -177,7 +192,8 @@ class _TokenDistributionCardState extends State<TokenDistributionCard> {
     final appState = Provider.of<AppState>(context);
 
     // Trier les données par 'count' dans l'ordre décroissant
-    final sortedData = List<Map<String, dynamic>>.from(dataManager.propertyData)..sort((a, b) => b['count'].compareTo(a['count']));
+    final sortedData = List<Map<String, dynamic>>.from(dataManager.propertyData)
+      ..sort((a, b) => b['count'].compareTo(a['count']));
 
     return Wrap(
       spacing: 8.0,

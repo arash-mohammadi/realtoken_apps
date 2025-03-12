@@ -5,7 +5,6 @@ import 'package:realtokens/managers/data_manager.dart';
 import 'package:realtokens/app_state.dart';
 import 'package:realtokens/utils/ui_utils.dart';
 import 'package:realtokens/generated/l10n.dart';
-import 'package:realtokens/utils/parameters.dart';
 
 class TokenDistributionByCountryCard extends StatefulWidget {
   final DataManager dataManager;
@@ -13,12 +12,15 @@ class TokenDistributionByCountryCard extends StatefulWidget {
   const TokenDistributionByCountryCard({super.key, required this.dataManager});
 
   @override
-  _TokenDistributionByCountryCardState createState() => _TokenDistributionByCountryCardState();
+  _TokenDistributionByCountryCardState createState() =>
+      _TokenDistributionByCountryCardState();
 }
 
-class _TokenDistributionByCountryCardState extends State<TokenDistributionByCountryCard> {
+class _TokenDistributionByCountryCardState
+    extends State<TokenDistributionByCountryCard> {
   int? _selectedIndexCountry;
-  final ValueNotifier<int?> _selectedIndexNotifierCountry = ValueNotifier<int?>(null);
+  final ValueNotifier<int?> _selectedIndexNotifierCountry =
+      ValueNotifier<int?>(null);
 
   @override
   Widget build(BuildContext context) {
@@ -50,15 +52,20 @@ class _TokenDistributionByCountryCardState extends State<TokenDistributionByCoun
                     children: [
                       PieChart(
                         PieChartData(
-                          sections: _buildDonutChartDataByCountry(widget.dataManager, selectedIndex),
+                          sections: _buildDonutChartDataByCountry(
+                              widget.dataManager, selectedIndex),
                           centerSpaceRadius: 70,
                           sectionsSpace: 2,
                           borderData: FlBorderData(show: false),
                           pieTouchData: PieTouchData(
-                            touchCallback: (FlTouchEvent event, PieTouchResponse? response) {
-                              if (response != null && response.touchedSection != null) {
-                                final touchedIndex = response.touchedSection!.touchedSectionIndex;
-                                _selectedIndexNotifierCountry.value = touchedIndex >= 0 ? touchedIndex : null;
+                            touchCallback: (FlTouchEvent event,
+                                PieTouchResponse? response) {
+                              if (response != null &&
+                                  response.touchedSection != null) {
+                                final touchedIndex = response
+                                    .touchedSection!.touchedSectionIndex;
+                                _selectedIndexNotifierCountry.value =
+                                    touchedIndex >= 0 ? touchedIndex : null;
                               } else {
                                 _selectedIndexNotifierCountry.value = null;
                               }
@@ -66,7 +73,8 @@ class _TokenDistributionByCountryCardState extends State<TokenDistributionByCoun
                           ),
                         ),
                       ),
-                      _buildCenterTextByCountry(widget.dataManager, selectedIndex),
+                      _buildCenterTextByCountry(
+                          widget.dataManager, selectedIndex),
                     ],
                   );
                 },
@@ -84,7 +92,8 @@ class _TokenDistributionByCountryCardState extends State<TokenDistributionByCoun
     );
   }
 
-  List<PieChartSectionData> _buildDonutChartDataByCountry(DataManager dataManager, int? selectedIndex) {
+  List<PieChartSectionData> _buildDonutChartDataByCountry(
+      DataManager dataManager, int? selectedIndex) {
     Map<String, int> countryCount = {};
     final appState = Provider.of<AppState>(context);
 
@@ -105,7 +114,8 @@ class _TokenDistributionByCountryCardState extends State<TokenDistributionByCoun
       final index = entry.key;
       final country = entry.value;
       final int value = countryCount[country]!;
-      final double percentage = (value / countryCount.values.reduce((a, b) => a + b)) * 100;
+      final double percentage =
+          (value / countryCount.values.reduce((a, b) => a + b)) * 100;
 
       final bool isSelected = selectedIndex == index;
       final opacity = selectedIndex != null && !isSelected ? 0.5 : 1.0;
@@ -123,7 +133,9 @@ class _TokenDistributionByCountryCardState extends State<TokenDistributionByCoun
         color: baseColor.withOpacity(opacity),
         radius: isSelected ? 50 : 40,
         titleStyle: TextStyle(
-          fontSize: isSelected ? 14 + appState.getTextSizeOffset() : 10 + appState.getTextSizeOffset(),
+          fontSize: isSelected
+              ? 14 + appState.getTextSizeOffset()
+              : 10 + appState.getTextSizeOffset(),
           color: Colors.white,
           fontWeight: FontWeight.bold,
         ),
@@ -131,7 +143,8 @@ class _TokenDistributionByCountryCardState extends State<TokenDistributionByCoun
     }).toList();
   }
 
-  Widget _buildCenterTextByCountry(DataManager dataManager, int? selectedIndex) {
+  Widget _buildCenterTextByCountry(
+      DataManager dataManager, int? selectedIndex) {
     Map<String, int> countryCount = {};
 
     // Remplir le dictionnaire avec les counts par pays
@@ -255,6 +268,7 @@ class _TokenDistributionByCountryCardState extends State<TokenDistributionByCoun
     final hue = ((index * 57) + 193 * (index % 3)) % 360;
     final saturation = (0.7 + (index % 5) * 0.06).clamp(0.4, 0.7);
     final brightness = (0.8 + (index % 3) * 0.2).clamp(0.6, 0.9);
-    return HSVColor.fromAHSV(1.0, hue.toDouble(), saturation, brightness).toColor();
+    return HSVColor.fromAHSV(1.0, hue.toDouble(), saturation, brightness)
+        .toColor();
   }
 }

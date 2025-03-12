@@ -62,7 +62,8 @@ class _MarketTabState extends State<MarketTab> {
                   height: 60,
                   child: Container(
                     color: Theme.of(context).cardColor,
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -118,18 +119,21 @@ class _MarketTabState extends State<MarketTab> {
                         // Partie tri
                         Row(
                           children: [
-                            Text(S.of(context).sort_label, style: TextStyle(fontSize: 12)),
+                            Text(S.of(context).sort_label,
+                                style: TextStyle(fontSize: 12)),
                             const SizedBox(width: 4),
                             DropdownButton<String>(
                               value: selectedSortOption,
                               items: [
                                 DropdownMenuItem(
                                   value: "date",
-                                  child: Text(S.of(context).sort_date, style: TextStyle(fontSize: 12)),
+                                  child: Text(S.of(context).sort_date,
+                                      style: TextStyle(fontSize: 12)),
                                 ),
                                 DropdownMenuItem(
                                   value: "delta",
-                                  child: Text(S.of(context).sort_delta, style: TextStyle(fontSize: 12)),
+                                  child: Text(S.of(context).sort_delta,
+                                      style: TextStyle(fontSize: 12)),
                                 ),
                               ],
                               onChanged: (value) {
@@ -142,7 +146,9 @@ class _MarketTabState extends State<MarketTab> {
                             ),
                             IconButton(
                               icon: Icon(
-                                ascending ? Icons.arrow_upward : Icons.arrow_downward,
+                                ascending
+                                    ? Icons.arrow_upward
+                                    : Icons.arrow_downward,
                                 size: 20,
                               ),
                               onPressed: () {
@@ -161,8 +167,11 @@ class _MarketTabState extends State<MarketTab> {
                                     builder: (BuildContext context) {
                                       return Container(
                                         color: Theme.of(context).cardColor,
-                                        height: MediaQuery.of(context).size.height * 0.9,
-                                        child: MarketTab(token: widget.token, isModal: true),
+                                        height:
+                                            MediaQuery.of(context).size.height *
+                                                0.9,
+                                        child: MarketTab(
+                                            token: widget.token, isModal: true),
                                       );
                                     },
                                   );
@@ -178,7 +187,8 @@ class _MarketTabState extends State<MarketTab> {
               // Titre de la section pour la version non modale
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: Text(
                     S.of(context).secondary_offers_related_to_token,
                     style: TextStyle(
@@ -190,7 +200,8 @@ class _MarketTabState extends State<MarketTab> {
               ),
               // Liste des offres
               FutureBuilder<List<Map<String, dynamic>>>(
-                future: _getFilteredOffers(dataManager, widget.token['uuid'], selectedOfferType),
+                future: _getFilteredOffers(
+                    dataManager, widget.token['uuid'], selectedOfferType),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return SliverFillRemaining(
@@ -198,11 +209,16 @@ class _MarketTabState extends State<MarketTab> {
                     );
                   } else if (snapshot.hasError) {
                     return SliverFillRemaining(
-                      child: Center(child: Text(S.of(context).error_occurred(snapshot.error.toString()))),
+                      child: Center(
+                          child: Text(S
+                              .of(context)
+                              .error_occurred(snapshot.error.toString()))),
                     );
                   } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
                     return SliverFillRemaining(
-                      child: Center(child: Text(S.of(context).no_market_offers_available)),
+                      child: Center(
+                          child:
+                              Text(S.of(context).no_market_offers_available)),
                     );
                   } else {
                     final offers = snapshot.data!;
@@ -211,11 +227,17 @@ class _MarketTabState extends State<MarketTab> {
                       if (selectedSortOption == "date") {
                         final dateA = a['creationDate'];
                         final dateB = b['creationDate'];
-                        return ascending ? dateA.compareTo(dateB) : dateB.compareTo(dateA);
+                        return ascending
+                            ? dateA.compareTo(dateB)
+                            : dateB.compareTo(dateA);
                       } else {
-                        final deltaA = ((a['token_value'] / a['token_price'] - 1) * 100);
-                        final deltaB = ((b['token_value'] / b['token_price'] - 1) * 100);
-                        return ascending ? deltaA.compareTo(deltaB) : deltaB.compareTo(deltaA);
+                        final deltaA =
+                            ((a['token_value'] / a['token_price'] - 1) * 100);
+                        final deltaB =
+                            ((b['token_value'] / b['token_price'] - 1) * 100);
+                        return ascending
+                            ? deltaA.compareTo(deltaB)
+                            : deltaB.compareTo(deltaA);
                       }
                     });
 
@@ -223,21 +245,28 @@ class _MarketTabState extends State<MarketTab> {
                       delegate: SliverChildBuilderDelegate(
                         (context, index) {
                           final offer = offers[index];
-                          final bool isTokenWhitelisted = dataManager.whitelistTokens.any(
-                            (whitelisted) => whitelisted['token'].toLowerCase() == widget.token['uuid'].toLowerCase(),
+                          final bool isTokenWhitelisted =
+                              dataManager.whitelistTokens.any(
+                            (whitelisted) =>
+                                whitelisted['token'].toLowerCase() ==
+                                widget.token['uuid'].toLowerCase(),
                           );
 
                           // Si un filtre spécifique est sélectionné, on affiche la carte correspondante.
                           if (selectedOfferType == "vente") {
-                            return _buildSaleOfferCard(context, appState, currencyUtils, offer, isTokenWhitelisted);
+                            return _buildSaleOfferCard(context, appState,
+                                currencyUtils, offer, isTokenWhitelisted);
                           } else if (selectedOfferType == "achat") {
-                            return _buildPurchaseOfferCard(context, appState, currencyUtils, offer, isTokenWhitelisted);
+                            return _buildPurchaseOfferCard(context, appState,
+                                currencyUtils, offer, isTokenWhitelisted);
                           } else {
                             // Pour "tout", on vérifie le type réel de l'offre :
                             if (offer['token_to_buy'] == null) {
-                              return _buildSaleOfferCard(context, appState, currencyUtils, offer, isTokenWhitelisted);
+                              return _buildSaleOfferCard(context, appState,
+                                  currencyUtils, offer, isTokenWhitelisted);
                             } else {
-                              return _buildPurchaseOfferCard(context, appState, currencyUtils, offer, isTokenWhitelisted);
+                              return _buildPurchaseOfferCard(context, appState,
+                                  currencyUtils, offer, isTokenWhitelisted);
                             }
                           }
                         },
@@ -254,9 +283,12 @@ class _MarketTabState extends State<MarketTab> {
     );
   }
 
-  Widget _buildSaleOfferDetails(BuildContext context, AppState appState, CurrencyProvider currencyUtils, Map<String, dynamic> offer) {
-    final baseYield = double.tryParse(widget.token['annualPercentageYield'].toString()) ?? 0;
-    final initialPrice = double.tryParse(widget.token['initPrice'].toString()) ?? 0;
+  Widget _buildSaleOfferDetails(BuildContext context, AppState appState,
+      CurrencyProvider currencyUtils, Map<String, dynamic> offer) {
+    final baseYield =
+        double.tryParse(widget.token['annualPercentageYield'].toString()) ?? 0;
+    final initialPrice =
+        double.tryParse(widget.token['initPrice'].toString()) ?? 0;
     final offerPrice = double.tryParse(offer['token_value'].toString()) ?? 0;
 
     // Si une des valeurs est invalide, ne rien afficher
@@ -266,7 +298,8 @@ class _MarketTabState extends State<MarketTab> {
 
     // Calcul du nouveau yield et du ROI
     final newYield = baseYield * (initialPrice / offerPrice);
-    final premiumPercentage = ((offerPrice - initialPrice) / initialPrice) * 100;
+    final premiumPercentage =
+        ((offerPrice - initialPrice) / initialPrice) * 100;
     final roiWeeks = (premiumPercentage * 52) / baseYield;
 
     return Column(
@@ -287,7 +320,8 @@ class _MarketTabState extends State<MarketTab> {
                   ),
                 ),
                 Text(
-                  currencyUtils.formatCurrency(initialPrice, currencyUtils.currencySymbol),
+                  currencyUtils.formatCurrency(
+                      initialPrice, currencyUtils.currencySymbol),
                   style: TextStyle(
                     fontSize: 14 + appState.getTextSizeOffset(),
                     fontWeight: FontWeight.bold,
@@ -307,7 +341,8 @@ class _MarketTabState extends State<MarketTab> {
                   ),
                 ),
                 Text(
-                  currencyUtils.formatCurrency(offerPrice, currencyUtils.currencySymbol),
+                  currencyUtils.formatCurrency(
+                      offerPrice, currencyUtils.currencySymbol),
                   style: TextStyle(
                     fontSize: 14 + appState.getTextSizeOffset(),
                     fontWeight: FontWeight.bold,
@@ -440,7 +475,8 @@ class _MarketTabState extends State<MarketTab> {
                         ),
                         const Spacer(),
                         Text(
-                          CustomDateUtils.formatReadableDate(offer['creationDate']),
+                          CustomDateUtils.formatReadableDate(
+                              offer['creationDate']),
                           style: TextStyle(
                             fontSize: 12 + appState.getTextSizeOffset(),
                             color: Colors.grey[600],
@@ -477,7 +513,13 @@ class _MarketTabState extends State<MarketTab> {
                           '${((offer['token_value'] / offer['token_price'] - 1) * 100).toStringAsFixed(2)}%',
                           style: TextStyle(
                             fontSize: 12 + appState.getTextSizeOffset(),
-                            color: ((offer['token_value'] / offer['token_price'] - 1) * 100) < 0 ? Colors.red : Colors.green,
+                            color:
+                                ((offer['token_value'] / offer['token_price'] -
+                                                1) *
+                                            100) <
+                                        0
+                                    ? Colors.red
+                                    : Colors.green,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -496,7 +538,8 @@ class _MarketTabState extends State<MarketTab> {
                         style: ElevatedButton.styleFrom(
                           foregroundColor: Colors.white,
                           backgroundColor: Colors.green,
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
                           minimumSize: const Size(80, 30),
                         ),
                         child: Text(S.of(context).sell_token),
@@ -511,13 +554,19 @@ class _MarketTabState extends State<MarketTab> {
                 right: 25,
                 child: Builder(
                   builder: (context) {
-                    if (offer['token_to_pay'] == '0x0ca4f5554dd9da6217d62d8df2816c82bba4157b' || offer['token_to_pay'] == '0xe91d153e0b41518a2ce8dd3d7944fa863463a97d') {
+                    if (offer['token_to_pay'] ==
+                            '0x0ca4f5554dd9da6217d62d8df2816c82bba4157b' ||
+                        offer['token_to_pay'] ==
+                            '0xe91d153e0b41518a2ce8dd3d7944fa863463a97d') {
                       return Image.asset(
                         'assets/icons/xdai.png',
                         width: 28,
                         height: 28,
                       );
-                    } else if (offer['token_to_pay'] == '0xddafbb505ad214d7b80b1f830fccc89b60fb7a83' || offer['token_to_pay'] == '0xed56f76e9cbc6a64b821e9c016eafbd3db5436d1') {
+                    } else if (offer['token_to_pay'] ==
+                            '0xddafbb505ad214d7b80b1f830fccc89b60fb7a83' ||
+                        offer['token_to_pay'] ==
+                            '0xed56f76e9cbc6a64b821e9c016eafbd3db5436d1') {
                       return Image.asset(
                         'assets/icons/usdc.png',
                         width: 24,
@@ -542,8 +591,10 @@ class _MarketTabState extends State<MarketTab> {
     Map<String, dynamic> offer,
     bool isTokenWhitelisted,
   ) {
-    final baseYield = double.tryParse(widget.token['annualPercentageYield'].toString()) ?? 0;
-    final initialPrice = double.tryParse(widget.token['initPrice'].toString()) ?? 0;
+    final baseYield =
+        double.tryParse(widget.token['annualPercentageYield'].toString()) ?? 0;
+    final initialPrice =
+        double.tryParse(widget.token['initPrice'].toString()) ?? 0;
     final offerPrice = double.tryParse(offer['token_value'].toString()) ?? 0;
 
     if (baseYield <= 0 || initialPrice <= 0 || offerPrice <= 0) {
@@ -551,11 +602,13 @@ class _MarketTabState extends State<MarketTab> {
     }
 
     final newYield = baseYield * (initialPrice / offerPrice);
-    final premiumPercentage = ((offerPrice - initialPrice) / initialPrice) * 100;
+    final premiumPercentage =
+        ((offerPrice - initialPrice) / initialPrice) * 100;
     final roiWeeks = (premiumPercentage * 52) / baseYield;
 
     // Calcul du delta à partir des valeurs du token_value et tokenPrice de l'offre
-    final double deltaValue = ((offer['token_value'] / offer['token_price'] - 1) * 100);
+    final double deltaValue =
+        ((offer['token_value'] / offer['token_price'] - 1) * 100);
 
     // Détermination de la couleur selon le delta :
     // delta entre 1% et 7% -> orange, supérieur à 7% -> rouge, sinon vert
@@ -615,7 +668,8 @@ class _MarketTabState extends State<MarketTab> {
                         ),
                         const Spacer(),
                         Text(
-                          CustomDateUtils.formatReadableDate(offer['creationDate']),
+                          CustomDateUtils.formatReadableDate(
+                              offer['creationDate']),
                           style: TextStyle(
                             fontSize: 12 + appState.getTextSizeOffset(),
                             color: Colors.grey[600],
@@ -671,7 +725,8 @@ class _MarketTabState extends State<MarketTab> {
                               ),
                             ),
                             Text(
-                              currencyUtils.formatCurrency(initialPrice, currencyUtils.currencySymbol),
+                              currencyUtils.formatCurrency(
+                                  initialPrice, currencyUtils.currencySymbol),
                               style: TextStyle(
                                 fontSize: 14 + appState.getTextSizeOffset(),
                                 fontWeight: FontWeight.bold,
@@ -692,7 +747,8 @@ class _MarketTabState extends State<MarketTab> {
                               ),
                             ),
                             Text(
-                              currencyUtils.formatCurrency(offerPrice, currencyUtils.currencySymbol),
+                              currencyUtils.formatCurrency(
+                                  offerPrice, currencyUtils.currencySymbol),
                               style: TextStyle(
                                 fontSize: 14 + appState.getTextSizeOffset(),
                                 fontWeight: FontWeight.bold,
@@ -753,7 +809,8 @@ class _MarketTabState extends State<MarketTab> {
                     const SizedBox(height: 8),
                     // Zone mise en valeur pour le ROI (en orange par défaut)
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
                         color: Colors.orangeAccent,
                         borderRadius: BorderRadius.circular(8),
@@ -780,7 +837,8 @@ class _MarketTabState extends State<MarketTab> {
                         style: ElevatedButton.styleFrom(
                           foregroundColor: Colors.white,
                           backgroundColor: Colors.blue,
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
                           minimumSize: const Size(80, 30),
                         ),
                         child: Text(S.of(context).buy_token),
@@ -795,13 +853,19 @@ class _MarketTabState extends State<MarketTab> {
                 right: 25,
                 child: Builder(
                   builder: (context) {
-                    if (offer['token_to_pay'] == '0x0ca4f5554dd9da6217d62d8df2816c82bba4157b' || offer['token_to_pay'] == '0xe91d153e0b41518a2ce8dd3d7944fa863463a97d') {
+                    if (offer['token_to_pay'] ==
+                            '0x0ca4f5554dd9da6217d62d8df2816c82bba4157b' ||
+                        offer['token_to_pay'] ==
+                            '0xe91d153e0b41518a2ce8dd3d7944fa863463a97d') {
                       return Image.asset(
                         'assets/icons/xdai.png',
                         width: 28,
                         height: 28,
                       );
-                    } else if (offer['token_to_pay'] == '0xddafbb505ad214d7b80b1f830fccc89b60fb7a83' || offer['token_to_pay'] == '0xed56f76e9cbc6a64b821e9c016eafbd3db5436d1') {
+                    } else if (offer['token_to_pay'] ==
+                            '0xddafbb505ad214d7b80b1f830fccc89b60fb7a83' ||
+                        offer['token_to_pay'] ==
+                            '0xed56f76e9cbc6a64b821e9c016eafbd3db5436d1') {
                       return Image.asset(
                         'assets/icons/usdc.png',
                         width: 24,
@@ -833,7 +897,8 @@ class _FilterHeaderDelegate extends SliverPersistentHeaderDelegate {
   double get maxExtent => height;
 
   @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+  Widget build(
+      BuildContext context, double shrinkOffset, bool overlapsContent) {
     return child;
   }
 
@@ -849,8 +914,10 @@ Future<List<Map<String, dynamic>>> _getFilteredOffers(
   String tokenUuid,
   String offerType,
 ) async {
-  List<Map<String, dynamic>> filteredOffers = dataManager.yamMarket.where((offer) {
-    bool matchToken = offer['token_to_sell'] == tokenUuid.toLowerCase() || offer['token_to_buy'] == tokenUuid.toLowerCase();
+  List<Map<String, dynamic>> filteredOffers =
+      dataManager.yamMarket.where((offer) {
+    bool matchToken = offer['token_to_sell'] == tokenUuid.toLowerCase() ||
+        offer['token_to_buy'] == tokenUuid.toLowerCase();
     if (!matchToken) return false;
     if (offerType == "vente") {
       return offer['token_to_buy'] == null;

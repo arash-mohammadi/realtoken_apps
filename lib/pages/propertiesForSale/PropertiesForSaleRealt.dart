@@ -39,7 +39,8 @@ class _PropertiesForSaleRealtState extends State<PropertiesForSaleRealt> {
                   height: 15,
                   width: maxWidth,
                   decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.3), // Couleur du fond grisé
+                    color:
+                        Colors.black.withOpacity(0.3), // Couleur du fond grisé
                     borderRadius: BorderRadius.circular(5),
                   ),
                 ),
@@ -89,31 +90,43 @@ class _PropertiesForSaleRealtState extends State<PropertiesForSaleRealt> {
             )
           : AlignedGridView.count(
               padding: const EdgeInsets.only(top: 10, bottom: 80),
-              crossAxisCount: MediaQuery.of(context).size.width > 700 ? 2 : 1, // Nombre de colonnes selon la largeur de l'écran
+              crossAxisCount: MediaQuery.of(context).size.width > 700
+                  ? 2
+                  : 1, // Nombre de colonnes selon la largeur de l'écran
 
               itemCount: propertiesForSale.length,
               itemBuilder: (context, index) {
                 final property = propertiesForSale[index];
 
-                final imageUrl = (property['imageLink'] != null && property['imageLink'] is List && property['imageLink'].isNotEmpty)
+                final imageUrl = (property['imageLink'] != null &&
+                        property['imageLink'] is List &&
+                        property['imageLink'].isNotEmpty)
                     ? property['imageLink'][0]
                     : ''; // Une image par défaut en cas d'erreur
-                final title = property['shortName'] ?? S.of(context).nameUnavailable;
-                final double stock = (property['stock'] as num?)?.toDouble() ?? 0.0;
+                final title =
+                    property['shortName'] ?? S.of(context).nameUnavailable;
+                final double stock =
+                    (property['stock'] as num?)?.toDouble() ?? 0.0;
 
-                final double tokenPrice = (property['tokenPrice'] as num?)?.toDouble() ?? 0.0;
-                final double annualPercentageYield = (property['annualPercentageYield'] as num?)?.toDouble() ?? 0.0;
+                final double tokenPrice =
+                    (property['tokenPrice'] as num?)?.toDouble() ?? 0.0;
+                final double annualPercentageYield =
+                    (property['annualPercentageYield'] as num?)?.toDouble() ??
+                        0.0;
 
-                final double totalTokens = (property['totalTokens'] as num?)?.toDouble() ?? 0.0;
+                final double totalTokens =
+                    (property['totalTokens'] as num?)?.toDouble() ?? 0.0;
 
                 final country = property['country'] ?? 'unknown';
 
                 final city = property['city'] ?? 'unknown';
                 final status = property['status'] ?? 'Unknown';
-                final sellPercentage = (totalTokens - stock) / totalTokens * 100;
+                final sellPercentage =
+                    (totalTokens - stock) / totalTokens * 100;
 
                 return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
+                  padding: const EdgeInsets.symmetric(
+                      vertical: 8.0, horizontal: 8.0),
                   child: GestureDetector(
                     onTap: () {
                       // Implémentez l'action au clic sur la carte, par exemple, afficher les détails
@@ -144,7 +157,8 @@ class _PropertiesForSaleRealtState extends State<PropertiesForSaleRealt> {
                                       : CachedNetworkImage(
                                           imageUrl: imageUrl,
                                           fit: BoxFit.cover,
-                                          errorWidget: (context, url, error) => const Icon(Icons.error),
+                                          errorWidget: (context, url, error) =>
+                                              const Icon(Icons.error),
                                         ),
                                 ),
                               ),
@@ -156,27 +170,32 @@ class _PropertiesForSaleRealtState extends State<PropertiesForSaleRealt> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
                                     Expanded(
                                       child: Row(
                                         children: [
                                           if (country != null)
                                             Padding(
-                                              padding: const EdgeInsets.only(right: 8.0),
+                                              padding: const EdgeInsets.only(
+                                                  right: 8.0),
                                               child: Image.asset(
                                                 'assets/country/${country.toLowerCase()}.png',
                                                 width: 24,
                                                 height: 24,
-                                                errorBuilder: (context, error, stackTrace) {
-                                                  return const Icon(Icons.flag, size: 24);
+                                                errorBuilder: (context, error,
+                                                    stackTrace) {
+                                                  return const Icon(Icons.flag,
+                                                      size: 24);
                                                 },
                                               ),
                                             ),
                                           Text(
                                             title,
                                             style: TextStyle(
-                                              fontSize: 18 + appState.getTextSizeOffset(),
+                                              fontSize: 18 +
+                                                  appState.getTextSizeOffset(),
                                               fontWeight: FontWeight.bold,
                                             ),
                                           ),
@@ -186,8 +205,11 @@ class _PropertiesForSaleRealtState extends State<PropertiesForSaleRealt> {
                                     Text(
                                       status,
                                       style: TextStyle(
-                                        color: status == 'Available' ? Colors.green : Colors.red,
-                                        fontSize: 13 + appState.getTextSizeOffset(),
+                                        color: status == 'Available'
+                                            ? Colors.green
+                                            : Colors.red,
+                                        fontSize:
+                                            13 + appState.getTextSizeOffset(),
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
@@ -219,13 +241,17 @@ class _PropertiesForSaleRealtState extends State<PropertiesForSaleRealt> {
                                 const SizedBox(height: 8),
                                 Center(
                                   child: ElevatedButton(
-                                    onPressed: () => UrlUtils.launchURL(property['marketplaceLink']),
+                                    onPressed: () => UrlUtils.launchURL(
+                                        property['marketplaceLink']),
                                     style: ElevatedButton.styleFrom(
                                       foregroundColor: Colors.white,
-                                      backgroundColor: Theme.of(context).primaryColor,
-                                      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                                      backgroundColor:
+                                          Theme.of(context).primaryColor,
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 8, horizontal: 8),
                                       textStyle: TextStyle(
-                                        fontSize: 13 + appState.getTextSizeOffset(),
+                                        fontSize:
+                                            13 + appState.getTextSizeOffset(),
                                       ),
                                     ),
                                     child: Text('Acheter cette propriété'),

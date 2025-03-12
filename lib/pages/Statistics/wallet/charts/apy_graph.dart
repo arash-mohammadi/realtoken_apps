@@ -28,8 +28,10 @@ class ApyHistoryGraph extends StatelessWidget {
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
 
-    List<BarChartGroupData> apyHistoryData = _buildApyHistoryBarChartData(context, dataManager, selectedPeriod);
-    List<LineChartBarData> lineChartData = _buildApyHistoryLineChartData(context, dataManager, selectedPeriod);
+    List<BarChartGroupData> apyHistoryData =
+        _buildApyHistoryBarChartData(context, dataManager, selectedPeriod);
+    List<LineChartBarData> lineChartData =
+        _buildApyHistoryLineChartData(context, dataManager, selectedPeriod);
 
     int? selectedIndex;
 
@@ -63,7 +65,8 @@ class ApyHistoryGraph extends StatelessWidget {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               ListTile(
-                                leading: const Icon(Icons.bar_chart, color: Colors.blue),
+                                leading: const Icon(Icons.bar_chart,
+                                    color: Colors.blue),
                                 title: Text(S.of(context).barChart),
                                 onTap: () {
                                   onChartTypeChanged(true);
@@ -71,7 +74,8 @@ class ApyHistoryGraph extends StatelessWidget {
                                 },
                               ),
                               ListTile(
-                                leading: const Icon(Icons.show_chart, color: Colors.green),
+                                leading: const Icon(Icons.show_chart,
+                                    color: Colors.green),
                                 title: Text(S.of(context).lineChart),
                                 onTap: () {
                                   onChartTypeChanged(false);
@@ -100,7 +104,8 @@ class ApyHistoryGraph extends StatelessWidget {
                   return apyIsBarChart
                       ? BarChart(
                           BarChartData(
-                            gridData: FlGridData(show: true, drawVerticalLine: false),
+                            gridData:
+                                FlGridData(show: true, drawVerticalLine: false),
                             titlesData: FlTitlesData(
                               leftTitles: AxisTitles(
                                 sideTitles: SideTitles(
@@ -109,7 +114,9 @@ class ApyHistoryGraph extends StatelessWidget {
                                   getTitlesWidget: (value, meta) {
                                     return Text(
                                       '${value.toStringAsFixed(0)}%',
-                                      style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
+                                      style: TextStyle(
+                                          fontSize: 10 +
+                                              appState.getTextSizeOffset()),
                                     );
                                   },
                                 ),
@@ -118,15 +125,22 @@ class ApyHistoryGraph extends StatelessWidget {
                                 sideTitles: SideTitles(
                                   showTitles: true,
                                   getTitlesWidget: (value, meta) {
-                                    List<String> labels = _buildDateLabelsForApy(context, dataManager, selectedPeriod);
-                                    if (value.toInt() >= 0 && value.toInt() < labels.length) {
+                                    List<String> labels =
+                                        _buildDateLabelsForApy(context,
+                                            dataManager, selectedPeriod);
+                                    if (value.toInt() >= 0 &&
+                                        value.toInt() < labels.length) {
                                       return Padding(
-                                        padding: const EdgeInsets.only(top: 10.0),
+                                        padding:
+                                            const EdgeInsets.only(top: 10.0),
                                         child: Transform.rotate(
                                           angle: -0.5,
                                           child: Text(
                                             labels[value.toInt()],
-                                            style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
+                                            style: TextStyle(
+                                                fontSize: 10 +
+                                                    appState
+                                                        .getTextSizeOffset()),
                                           ),
                                         ),
                                       );
@@ -151,7 +165,9 @@ class ApyHistoryGraph extends StatelessWidget {
                               show: true,
                               border: Border(
                                 left: BorderSide(color: Colors.transparent),
-                                bottom: BorderSide(color: Colors.blueGrey.shade700, width: 0.5),
+                                bottom: BorderSide(
+                                    color: Colors.blueGrey.shade700,
+                                    width: 0.5),
                                 right: BorderSide(color: Colors.transparent),
                                 top: BorderSide(color: Colors.transparent),
                               ),
@@ -161,10 +177,12 @@ class ApyHistoryGraph extends StatelessWidget {
                             maxY: 20,
                             barTouchData: BarTouchData(
                               touchTooltipData: BarTouchTooltipData(
-                                getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                                getTooltipItem:
+                                    (group, groupIndex, rod, rodIndex) {
                                   // Affiche uniquement le tooltip si l'index est sélectionné
                                   if (selectedIndex == groupIndex) {
-                                    String tooltip = '${S.of(context).brute}: ${group.barRods[0].rodStackItems[0].toY.toStringAsFixed(2)}%\n'
+                                    String tooltip =
+                                        '${S.of(context).brute}: ${group.barRods[0].rodStackItems[0].toY.toStringAsFixed(2)}%\n'
                                         '${S.of(context).net}: ${group.barRods[0].rodStackItems[1].toY.toStringAsFixed(2)}%';
                                     return BarTooltipItem(
                                       tooltip,
@@ -174,13 +192,17 @@ class ApyHistoryGraph extends StatelessWidget {
                                   return null; // Aucun tooltip
                                 },
                               ),
-                              touchCallback: (FlTouchEvent event, barTouchResponse) {
+                              touchCallback:
+                                  (FlTouchEvent event, barTouchResponse) {
                                 // Met à jour l'index sélectionné en cas de clic
-                                if (event is FlTapUpEvent && barTouchResponse != null) {
+                                if (event is FlTapUpEvent &&
+                                    barTouchResponse != null) {
                                   setState(() {
-                                    selectedIndex = barTouchResponse.spot?.touchedBarGroupIndex;
+                                    selectedIndex = barTouchResponse
+                                        .spot?.touchedBarGroupIndex;
                                   });
-                                } else if (event is FlLongPressEnd || event is FlPanEndEvent) {
+                                } else if (event is FlLongPressEnd ||
+                                    event is FlPanEndEvent) {
                                   // Désélectionne si l'utilisateur annule l'interaction
                                   setState(() {
                                     selectedIndex = null;
@@ -193,7 +215,8 @@ class ApyHistoryGraph extends StatelessWidget {
                         )
                       : LineChart(
                           LineChartData(
-                            gridData: FlGridData(show: true, drawVerticalLine: false),
+                            gridData:
+                                FlGridData(show: true, drawVerticalLine: false),
                             titlesData: FlTitlesData(
                               leftTitles: AxisTitles(
                                 sideTitles: SideTitles(
@@ -202,7 +225,9 @@ class ApyHistoryGraph extends StatelessWidget {
                                   getTitlesWidget: (value, meta) {
                                     return Text(
                                       '${value.toStringAsFixed(0)}%',
-                                      style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
+                                      style: TextStyle(
+                                          fontSize: 10 +
+                                              appState.getTextSizeOffset()),
                                     );
                                   },
                                 ),
@@ -211,15 +236,22 @@ class ApyHistoryGraph extends StatelessWidget {
                                 sideTitles: SideTitles(
                                   showTitles: true,
                                   getTitlesWidget: (value, meta) {
-                                    List<String> labels = _buildDateLabelsForApy(context, dataManager, selectedPeriod);
-                                    if (value.toInt() >= 0 && value.toInt() < labels.length) {
+                                    List<String> labels =
+                                        _buildDateLabelsForApy(context,
+                                            dataManager, selectedPeriod);
+                                    if (value.toInt() >= 0 &&
+                                        value.toInt() < labels.length) {
                                       return Padding(
-                                        padding: const EdgeInsets.only(top: 10.0),
+                                        padding:
+                                            const EdgeInsets.only(top: 10.0),
                                         child: Transform.rotate(
                                           angle: -0.5,
                                           child: Text(
                                             labels[value.toInt()],
-                                            style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
+                                            style: TextStyle(
+                                                fontSize: 10 +
+                                                    appState
+                                                        .getTextSizeOffset()),
                                           ),
                                         ),
                                       );
@@ -244,7 +276,9 @@ class ApyHistoryGraph extends StatelessWidget {
                               show: true,
                               border: Border(
                                 left: BorderSide(color: Colors.transparent),
-                                bottom: BorderSide(color: Colors.blueGrey.shade700, width: 0.5),
+                                bottom: BorderSide(
+                                    color: Colors.blueGrey.shade700,
+                                    width: 0.5),
                                 right: BorderSide(color: Colors.transparent),
                                 top: BorderSide(color: Colors.transparent),
                               ),
@@ -263,7 +297,8 @@ class ApyHistoryGraph extends StatelessWidget {
     );
   }
 
-  List<LineChartBarData> _buildApyHistoryLineChartData(BuildContext context, DataManager dataManager, String selectedPeriod) {
+  List<LineChartBarData> _buildApyHistoryLineChartData(
+      BuildContext context, DataManager dataManager, String selectedPeriod) {
     final groupedData = _groupApyByDate(context, dataManager, selectedPeriod);
 
     final grossSpots = <FlSpot>[];
@@ -302,7 +337,8 @@ class ApyHistoryGraph extends StatelessWidget {
     ];
   }
 
-  List<BarChartGroupData> _buildApyHistoryBarChartData(BuildContext context, DataManager dataManager, String selectedPeriod) {
+  List<BarChartGroupData> _buildApyHistoryBarChartData(
+      BuildContext context, DataManager dataManager, String selectedPeriod) {
     final groupedData = _groupApyByDate(context, dataManager, selectedPeriod);
     final barGroups = <BarChartGroupData>[];
 
@@ -323,8 +359,10 @@ class ApyHistoryGraph extends StatelessWidget {
                 bottomRight: Radius.zero,
               ),
               rodStackItems: [
-                BarChartRodStackItem(0, values['gross']!, Colors.blue.withOpacity(0.8)),
-                BarChartRodStackItem(0, values['net']!, Colors.green.withOpacity(0.8)),
+                BarChartRodStackItem(
+                    0, values['gross']!, Colors.blue.withOpacity(0.8)),
+                BarChartRodStackItem(
+                    0, values['net']!, Colors.green.withOpacity(0.8)),
               ],
             ),
           ],
@@ -337,7 +375,8 @@ class ApyHistoryGraph extends StatelessWidget {
     return barGroups;
   }
 
-  Map<String, Map<String, double>> _groupApyByDate(BuildContext context, DataManager dataManager, String selectedPeriod) {
+  Map<String, Map<String, double>> _groupApyByDate(
+      BuildContext context, DataManager dataManager, String selectedPeriod) {
     Map<String, Map<String, double>> groupedData = {};
 
 // Copie et tri de la liste par date croissante
@@ -351,7 +390,8 @@ class ApyHistoryGraph extends StatelessWidget {
       if (selectedPeriod == S.of(context).day) {
         periodKey = DateFormat('yyyy/MM/dd').format(date); // Grouper par jour
       } else if (selectedPeriod == S.of(context).week) {
-        periodKey = "${date.year}-S${CustomDateUtils.weekNumber(date).toString().padLeft(2, '0')}";
+        periodKey =
+            "${date.year}-S${CustomDateUtils.weekNumber(date).toString().padLeft(2, '0')}";
       } else if (selectedPeriod == S.of(context).month) {
         periodKey = DateFormat('yyyy/MM').format(date);
       } else {
@@ -369,7 +409,8 @@ class ApyHistoryGraph extends StatelessWidget {
     return groupedData;
   }
 
-  List<String> _buildDateLabelsForApy(BuildContext context, DataManager dataManager, String selectedPeriod) {
+  List<String> _buildDateLabelsForApy(
+      BuildContext context, DataManager dataManager, String selectedPeriod) {
     final groupedData = _groupApyByDate(context, dataManager, selectedPeriod);
     return groupedData.keys.toList();
   }

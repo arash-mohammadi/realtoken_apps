@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:realtokens/generated/l10n.dart';
+import 'package:realtokens/managers/archive_manager.dart';
 import 'package:realtokens/managers/data_manager.dart';
 import 'package:realtokens/models/balance_record.dart';
 import 'package:realtokens/pages/Statistics/rmm/borrow_chart.dart';
@@ -21,6 +22,7 @@ class RmmStatsState extends State<RmmStats> {
   String selectedBorrowPeriod = '';
   String selectedHealthAndLtvPeriod = '';
   late String _selectedHealthAndLtvPeriod;
+  final ArchiveManager _archiveManager = ArchiveManager();
 
   late SharedPreferences prefs;
 
@@ -73,7 +75,8 @@ class RmmStatsState extends State<RmmStats> {
             ),
           ),
           SliverPadding(
-            padding: const EdgeInsets.only(top: 8, left: 8, right: 8, bottom: 80),
+            padding:
+                const EdgeInsets.only(top: 8, left: 8, right: 8, bottom: 80),
             sliver: SliverGrid(
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: screenWidth > 700 ? 2 : 1,
@@ -163,10 +166,12 @@ class RmmStatsState extends State<RmmStats> {
                       children: [
                         Text(
                           '${S.of(context).averageApy} ${dataManager.apyAverage.toStringAsFixed(2)}%',
-                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          style: const TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(width: 5),
-                        const Icon(Icons.info_outline, size: 20, color: Colors.blue),
+                        const Icon(Icons.info_outline,
+                            size: 20, color: Colors.blue),
                       ],
                     ),
                   ),
@@ -204,33 +209,15 @@ class RmmStatsState extends State<RmmStats> {
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Center(
-                child: Image.asset('assets/icons/usdc.png', width: 24, height: 24),
+                child:
+                    Image.asset('assets/icons/usdc.png', width: 24, height: 24),
               ),
             ),
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Center(
-                child: Image.asset('assets/icons/xdai.png', width: 24, height: 24),
-              ),
-            ),
-          ],
-        ),
-        TableRow(
-          children: [
-            const Padding(
-              padding: EdgeInsets.all(8.0),
-              child: Text('Deposit', style: TextStyle(fontWeight: FontWeight.bold)),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Center(
-                child: Text('${dataManager.usdcDepositApy.toStringAsFixed(2)}%', style: const TextStyle(color: Colors.blue)),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Center(
-                child: Text('${dataManager.xdaiDepositApy.toStringAsFixed(2)}%', style: const TextStyle(color: Colors.green)),
+                child:
+                    Image.asset('assets/icons/xdai.png', width: 24, height: 24),
               ),
             ),
           ],
@@ -239,18 +226,44 @@ class RmmStatsState extends State<RmmStats> {
           children: [
             const Padding(
               padding: EdgeInsets.all(8.0),
-              child: Text('Borrow', style: TextStyle(fontWeight: FontWeight.bold)),
+              child: Text('Deposit',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
             ),
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Center(
-                child: Text('${dataManager.usdcBorrowApy.toStringAsFixed(2)}%', style: const TextStyle(color: Colors.orange)),
+                child: Text('${dataManager.usdcDepositApy.toStringAsFixed(2)}%',
+                    style: const TextStyle(color: Colors.blue)),
               ),
             ),
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Center(
-                child: Text('${dataManager.xdaiBorrowApy.toStringAsFixed(2)}%', style: const TextStyle(color: Colors.red)),
+                child: Text('${dataManager.xdaiDepositApy.toStringAsFixed(2)}%',
+                    style: const TextStyle(color: Colors.green)),
+              ),
+            ),
+          ],
+        ),
+        TableRow(
+          children: [
+            const Padding(
+              padding: EdgeInsets.all(8.0),
+              child:
+                  Text('Borrow', style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Center(
+                child: Text('${dataManager.usdcBorrowApy.toStringAsFixed(2)}%',
+                    style: const TextStyle(color: Colors.orange)),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Center(
+                child: Text('${dataManager.xdaiBorrowApy.toStringAsFixed(2)}%',
+                    style: const TextStyle(color: Colors.red)),
               ),
             ),
           ],
@@ -273,7 +286,8 @@ class RmmStatsState extends State<RmmStats> {
             children: [
               Text(
                 S.of(context).depositBalance,
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style:
+                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               ChartUtils.buildPeriodSelector(
                 context,
@@ -287,7 +301,8 @@ class RmmStatsState extends State<RmmStats> {
               const SizedBox(height: 10),
               Expanded(
                 child: FutureBuilder<Map<String, List<BalanceRecord>>>(
-                  future: _fetchAndAggregateBalanceHistories(dataManager, selectedDepositPeriod),
+                  future: _fetchAndAggregateBalanceHistories(
+                      dataManager, selectedDepositPeriod),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const CircularProgressIndicator();
@@ -312,22 +327,29 @@ class RmmStatsState extends State<RmmStats> {
     );
   }
 
-  Future<Map<String, List<BalanceRecord>>> _fetchAndAggregateBalanceHistories(DataManager dataManager, String selectedPeriod) async {
+  Future<Map<String, List<BalanceRecord>>> _fetchAndAggregateBalanceHistories(
+      DataManager dataManager, String selectedPeriod) async {
     Map<String, List<BalanceRecord>> allHistories = {};
 
-    allHistories['usdcDeposit'] = await dataManager.getBalanceHistory('usdcDeposit');
-    allHistories['usdcBorrow'] = await dataManager.getBalanceHistory('usdcBorrow');
-    allHistories['xdaiDeposit'] = await dataManager.getBalanceHistory('xdaiDeposit');
-    allHistories['xdaiBorrow'] = await dataManager.getBalanceHistory('xdaiBorrow');
+    allHistories['usdcDeposit'] =
+        await _archiveManager.getBalanceHistory('usdcDeposit');
+    allHistories['usdcBorrow'] =
+        await _archiveManager.getBalanceHistory('usdcBorrow');
+    allHistories['xdaiDeposit'] =
+        await _archiveManager.getBalanceHistory('xdaiDeposit');
+    allHistories['xdaiBorrow'] =
+        await _archiveManager.getBalanceHistory('xdaiBorrow');
 
     for (String tokenType in allHistories.keys) {
-      allHistories[tokenType] = await _aggregateByPeriod(allHistories[tokenType]!, selectedPeriod);
+      allHistories[tokenType] =
+          await _aggregateByPeriod(allHistories[tokenType]!, selectedPeriod);
     }
 
     return allHistories;
   }
 
-  Future<List<BalanceRecord>> _aggregateByPeriod(List<BalanceRecord> records, String period) async {
+  Future<List<BalanceRecord>> _aggregateByPeriod(
+      List<BalanceRecord> records, String period) async {
     Map<DateTime, List<double>> groupedByPeriod = {};
 
     for (var record in records) {
@@ -365,12 +387,15 @@ class RmmStatsState extends State<RmmStats> {
         );
       }
 
-      groupedByPeriod.putIfAbsent(truncatedToPeriod, () => []).add(record.balance);
+      groupedByPeriod
+          .putIfAbsent(truncatedToPeriod, () => [])
+          .add(record.balance);
     }
 
     List<BalanceRecord> averagedRecords = [];
     groupedByPeriod.forEach((timestamp, balances) {
-      double averageBalance = balances.reduce((a, b) => a + b) / balances.length;
+      double averageBalance =
+          balances.reduce((a, b) => a + b) / balances.length;
       averagedRecords.add(BalanceRecord(
         tokenType: records.first.tokenType,
         balance: averageBalance,
@@ -395,7 +420,8 @@ class RmmStatsState extends State<RmmStats> {
             children: [
               Text(
                 S.of(context).borrowBalance,
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style:
+                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               ChartUtils.buildPeriodSelector(
                 context,
@@ -409,7 +435,8 @@ class RmmStatsState extends State<RmmStats> {
               const SizedBox(height: 10),
               Expanded(
                 child: FutureBuilder<Map<String, List<BalanceRecord>>>(
-                  future: _fetchAndAggregateBalanceHistories(dataManager, selectedBorrowPeriod),
+                  future: _fetchAndAggregateBalanceHistories(
+                      dataManager, selectedBorrowPeriod),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const CircularProgressIndicator();

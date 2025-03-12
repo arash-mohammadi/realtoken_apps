@@ -62,9 +62,12 @@ class _RentGraphState extends State<RentGraph> {
     }
     const int maxPoints = 1000;
 
-    List<Map<String, dynamic>> groupedData = _groupRentDataByPeriod(dataManager);
+    List<Map<String, dynamic>> groupedData =
+        _groupRentDataByPeriod(dataManager);
 
-    List<Map<String, dynamic>> limitedData = groupedData.length > maxPoints ? groupedData.sublist(0, maxPoints) : groupedData;
+    List<Map<String, dynamic>> limitedData = groupedData.length > maxPoints
+        ? groupedData.sublist(0, maxPoints)
+        : groupedData;
 
     List<Map<String, dynamic>> convertedData = limitedData.map((entry) {
       double convertedRent = currencyUtils.convert(entry['rent'] ?? 0.0);
@@ -88,7 +91,9 @@ class _RentGraphState extends State<RentGraph> {
             Row(
               children: [
                 Text(
-                  _showCumulativeRent ? S.of(context).cumulativeRentGraph : S.of(context).groupedRentGraph,
+                  _showCumulativeRent
+                      ? S.of(context).cumulativeRentGraph
+                      : S.of(context).groupedRentGraph,
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 Spacer(),
@@ -101,8 +106,10 @@ class _RentGraphState extends State<RentGraph> {
                         _showCumulativeRent = value;
                       });
                     },
-                    activeColor: Theme.of(context).primaryColor, // Couleur d'accentuation en mode activé
-                    inactiveThumbColor: Colors.grey, // Couleur du bouton en mode désactivé
+                    activeColor: Theme.of(context)
+                        .primaryColor, // Couleur d'accentuation en mode activé
+                    inactiveThumbColor:
+                        Colors.grey, // Couleur du bouton en mode désactivé
                   ),
                 )
               ],
@@ -123,29 +130,35 @@ class _RentGraphState extends State<RentGraph> {
                 LineChartData(
                   gridData: FlGridData(show: true, drawVerticalLine: false),
                   titlesData: FlTitlesData(
-                    topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    topTitles:
+                        AxisTitles(sideTitles: SideTitles(showTitles: false)),
                     leftTitles: AxisTitles(
                       sideTitles: SideTitles(
                         showTitles: true,
                         reservedSize: 45,
                         getTitlesWidget: (value, meta) {
-                          final highestValue = convertedData.map((entry) => entry['rent']).reduce((a, b) => a > b ? a : b);
+                          final highestValue = convertedData
+                              .map((entry) => entry['rent'])
+                              .reduce((a, b) => a > b ? a : b);
 
                           if (value == highestValue) {
                             return const SizedBox.shrink();
                           }
 
-                          final formattedValue = currencyUtils.getFormattedAmount(
+                          final formattedValue =
+                              currencyUtils.getFormattedAmount(
                             value,
                             currencyUtils.currencySymbol,
-                            appState.showAmounts, // Appliquer le masquage des montants
+                            appState
+                                .showAmounts, // Appliquer le masquage des montants
                           );
 
                           return Transform.rotate(
                             angle: -0.5,
                             child: Text(
                               formattedValue,
-                              style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
+                              style: TextStyle(
+                                  fontSize: 10 + appState.getTextSizeOffset()),
                             ),
                           );
                         },
@@ -159,14 +172,17 @@ class _RentGraphState extends State<RentGraph> {
                         showTitles: true,
                         getTitlesWidget: (value, meta) {
                           List<String> labels = _buildDateLabels(convertedData);
-                          if (value.toInt() >= 0 && value.toInt() < labels.length) {
+                          if (value.toInt() >= 0 &&
+                              value.toInt() < labels.length) {
                             return Padding(
                               padding: const EdgeInsets.only(top: 10.0),
                               child: Transform.rotate(
                                 angle: -0.5,
                                 child: Text(
                                   labels[value.toInt()],
-                                  style: TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
+                                  style: TextStyle(
+                                      fontSize:
+                                          10 + appState.getTextSizeOffset()),
                                 ),
                               ),
                             );
@@ -181,14 +197,17 @@ class _RentGraphState extends State<RentGraph> {
                     show: true,
                     border: Border(
                       left: BorderSide(color: Colors.transparent),
-                      bottom: BorderSide(color: Colors.blueGrey.shade700, width: 0.5),
+                      bottom: BorderSide(
+                          color: Colors.blueGrey.shade700, width: 0.5),
                       right: BorderSide(color: Colors.transparent),
                       top: BorderSide(color: Colors.transparent),
                     ),
                   ),
                   lineBarsData: [
                     LineChartBarData(
-                      spots: _showCumulativeRent ? _buildCumulativeChartData(convertedData) : _buildChartData(convertedData),
+                      spots: _showCumulativeRent
+                          ? _buildCumulativeChartData(convertedData)
+                          : _buildChartData(convertedData),
                       isCurved: false,
                       barWidth: 2,
                       color: _showCumulativeRent ? Colors.green : Colors.blue,
@@ -197,8 +216,10 @@ class _RentGraphState extends State<RentGraph> {
                         show: true,
                         gradient: LinearGradient(
                           colors: [
-                            (_showCumulativeRent ? Colors.green : Colors.blue).withOpacity(0.4),
-                            (_showCumulativeRent ? Colors.green : Colors.blue).withOpacity(0),
+                            (_showCumulativeRent ? Colors.green : Colors.blue)
+                                .withOpacity(0.4),
+                            (_showCumulativeRent ? Colors.green : Colors.blue)
+                                .withOpacity(0),
                           ],
                           begin: Alignment.topCenter,
                           end: Alignment.bottomCenter,
@@ -211,12 +232,15 @@ class _RentGraphState extends State<RentGraph> {
                       getTooltipItems: (List<LineBarSpot> touchedSpots) {
                         return touchedSpots.map((touchedSpot) {
                           final index = touchedSpot.x.toInt();
-                          final periodLabel = _buildDateLabels(convertedData)[index];
+                          final periodLabel =
+                              _buildDateLabels(convertedData)[index];
 
-                          final formattedValue = currencyUtils.getFormattedAmount(
+                          final formattedValue =
+                              currencyUtils.getFormattedAmount(
                             touchedSpot.y,
                             currencyUtils.currencySymbol,
-                            appState.showAmounts, // Applique le masquage des montants
+                            appState
+                                .showAmounts, // Applique le masquage des montants
                           );
 
                           return LineTooltipItem(
@@ -259,9 +283,13 @@ class _RentGraphState extends State<RentGraph> {
       groupedData[dayKey] = (groupedData[dayKey] ?? 0) + entry['rent'];
     }
     // Conversion de la Map en liste
-    List<Map<String, dynamic>> list = groupedData.entries.map((entry) => {'date': entry.key, 'rent': entry.value}).toList();
+    List<Map<String, dynamic>> list = groupedData.entries
+        .map((entry) => {'date': entry.key, 'rent': entry.value})
+        .toList();
     // Trier la liste par date croissante
-    list.sort((a, b) => DateFormat('yyyy/MM/dd').parse(a['date']).compareTo(DateFormat('yyyy/MM/dd').parse(b['date'])));
+    list.sort((a, b) => DateFormat('yyyy/MM/dd')
+        .parse(a['date'])
+        .compareTo(DateFormat('yyyy/MM/dd').parse(b['date'])));
     return list;
   }
 
@@ -272,16 +300,20 @@ class _RentGraphState extends State<RentGraph> {
       if (entry.containsKey('date') && entry.containsKey('rent')) {
         try {
           DateTime date = DateTime.parse(entry['date']);
-          String weekKey = "${date.year}-S${CustomDateUtils.weekNumber(date).toString().padLeft(2, '0')}";
+          String weekKey =
+              "${date.year}-S${CustomDateUtils.weekNumber(date).toString().padLeft(2, '0')}";
           groupedData[weekKey] = (groupedData[weekKey] ?? 0) + entry['rent'];
         } catch (e) {
-          debugPrint("❌ Erreur lors de la conversion de la date : ${entry['date']}");
+          debugPrint(
+              "❌ Erreur lors de la conversion de la date : ${entry['date']}");
         }
       }
     }
 
     // Conversion de la Map en liste de maps
-    List<Map<String, dynamic>> list = groupedData.entries.map((entry) => {'date': entry.key, 'rent': entry.value}).toList();
+    List<Map<String, dynamic>> list = groupedData.entries
+        .map((entry) => {'date': entry.key, 'rent': entry.value})
+        .toList();
 
     // Tri de la liste par année puis par numéro de semaine
     list.sort((a, b) {
@@ -309,8 +341,12 @@ class _RentGraphState extends State<RentGraph> {
       groupedData[monthKey] = (groupedData[monthKey] ?? 0) + entry['rent'];
     }
     // Conversion en liste et tri par date croissante
-    List<Map<String, dynamic>> list = groupedData.entries.map((entry) => {'date': entry.key, 'rent': entry.value}).toList();
-    list.sort((a, b) => DateFormat('yyyy/MM').parse(a['date']).compareTo(DateFormat('yyyy/MM').parse(b['date'])));
+    List<Map<String, dynamic>> list = groupedData.entries
+        .map((entry) => {'date': entry.key, 'rent': entry.value})
+        .toList();
+    list.sort((a, b) => DateFormat('yyyy/MM')
+        .parse(a['date'])
+        .compareTo(DateFormat('yyyy/MM').parse(b['date'])));
     return list;
   }
 
@@ -322,7 +358,9 @@ class _RentGraphState extends State<RentGraph> {
       groupedData[yearKey] = (groupedData[yearKey] ?? 0) + entry['rent'];
     }
     // Conversion en liste et tri par année croissante
-    List<Map<String, dynamic>> list = groupedData.entries.map((entry) => {'date': entry.key, 'rent': entry.value}).toList();
+    List<Map<String, dynamic>> list = groupedData.entries
+        .map((entry) => {'date': entry.key, 'rent': entry.value})
+        .toList();
     list.sort((a, b) => int.parse(a['date']).compareTo(int.parse(b['date'])));
     return list;
   }
