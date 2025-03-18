@@ -18,6 +18,8 @@ import 'app_state.dart';
 import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart'; // 👈 Importation de dotenv
+import 'managers/archive_manager.dart';
+import 'managers/apy_manager.dart';
 
 void main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
@@ -29,8 +31,6 @@ void main() async {
   } catch (e) {
     debugPrint("❌ Erreur lors du chargement de dotenv: $e");
   }
-
-  Parameters.initialize(); // 🔥 Initialise les valeurs de `Parameters`
 
   try {
     if (Firebase.apps.isEmpty) {
@@ -63,8 +63,17 @@ void main() async {
     Hive.openBox('YamHistory'),
   ]);
 
-  final dataManager = DataManager();
+  final archiveManager = ArchiveManager();
+  final apyManager = ApyManager();
+  final dataManager = DataManager(
+    archiveManager: archiveManager,
+    apyManager: apyManager,
+  );
   final currencyProvider = CurrencyProvider();
+  final appState = AppState();
+  
+  // Connecter DataManager à AppState
+  appState.dataManager = dataManager;
 
   // ✅ Attendre que `loadSelectedCurrency()` récupère la bonne valeur avant de démarrer l'app
   await currencyProvider.loadSelectedCurrency();
@@ -81,7 +90,7 @@ void main() async {
         ChangeNotifierProvider(
             create: (_) =>
                 CurrencyProvider()), // ✅ Assurez-vous que CurrencyProvider est bien ici
-        ChangeNotifierProvider(create: (_) => AppState()),
+        ChangeNotifierProvider(create: (_) => appState),
       ],
       child: MyApp(autoSyncEnabled: autoSyncEnabled),
     ),

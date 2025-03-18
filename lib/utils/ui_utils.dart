@@ -9,6 +9,7 @@ import 'package:realtokens/generated/l10n.dart';
 import 'package:realtokens/pages/dashboard/detailsPages/properties_details_page.dart';
 import 'package:realtokens/pages/dashboard/detailsPages/rent_details_page.dart';
 import 'package:realtokens/pages/dashboard/detailsPages/rmm_details_page.dart';
+import 'package:realtokens/pages/dashboard/detailsPages/portfolio_details_page.dart';
 import 'package:shimmer/shimmer.dart';
 
 class UIUtils {
@@ -193,6 +194,21 @@ class UIUtils {
                           Navigator.of(context).push(
                             MaterialPageRoute(
                               builder: (context) => PropertiesDetailsPage(),
+                            ),
+                          );
+                        },
+                        child: Icon(
+                          Icons.arrow_forward,
+                          size: 24, // Taille de l'icône
+                          color: Colors.grey, // Couleur de l'icône
+                        ),
+                      ),
+                    if (title == S.of(context).portfolio)
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => const PortfolioDetailsPage(),
                             ),
                           );
                         },

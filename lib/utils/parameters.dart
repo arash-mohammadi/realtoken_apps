@@ -3,29 +3,11 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:realtokens/generated/l10n.dart';
 
 class Parameters {
-  static late final String theGraphApiKey;
-  static late final String theGraphApiKey2;
-
-  static const String theGraphBaseUrl = 'https://gateway-arbitrum.network.thegraph.com/api';
-
-  static const String gnosisSubgraphId = 'FPPoFB7S2dcCNrRyjM5QbaMwKqRZPdbTg8ysBrwXd4SP';
-  static const String etherumSubgraphId = 'EVjGN4mMd9h9JfGR7yLC6T2xrJf9syhjQNboFb7GzxVW';
-  static const String rmmSubgraphId = '2dMMk7DbQYPX6Gi5siJm6EZ2gDQBF8nJcgKtpiPnPBsK';
-  static const String yamSubgraphId = '4eJa4rKCR5f8fq48BKbYBPvf7DWHppGZRvfiVUSFXBGR';
+ 
   static const String mainApiUrl = 'https://api.vfhome.fr';
   static const String realTokensUrl = 'https://api.pitsbi.io/api';
   static const String rentTrackerUrl = 'https://ehpst.duckdns.org/realt_rent_tracker/api';
   static const String coingeckoUrl = 'https://api.coingecko.com/api/v3/coins/xdai';
-
-  static void initialize() {
-    theGraphApiKey = dotenv.env['THE_GRAPH_API_KEY']!;
-    theGraphApiKey2 = dotenv.env['THE_GRAPH_API_KEY2']!;
-  }
-
-  static String getGraphUrl(String subgraphId, {bool useAlternativeKey = false}) {
-    final apiKey = useAlternativeKey ? theGraphApiKey2 : theGraphApiKey;
-    return '$theGraphBaseUrl/$apiKey/subgraphs/id/$subgraphId';
-  }
 
   static const List<String> stables = ["0xe91d153e0b41518a2ce8dd3d7944fa863463a97d", "0xddafbb505ad214d7b80b1f830fccc89b60fb7a83", "0x7349c9eaa538e118725a6130e0f8341509b9f8a0"];
  static String rwaTokenAddress = '0x0675e8f4a52ea6c845cb6427af03616a2af42170';

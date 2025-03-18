@@ -15,6 +15,7 @@ import 'package:archive/archive_io.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:realtokens/models/balance_record.dart';
 
 class SynchronizationSettingsPage extends StatefulWidget {
   const SynchronizationSettingsPage({super.key});
@@ -478,12 +479,70 @@ class _SynchronizationSettingsPageState
             var balanceHistoryBox = await Hive.openBox('balanceHistory');
             await balanceHistoryBox.putAll(balanceHistoryData);
           } else if (file.name == 'walletValueArchiveBackup.json') {
-            // Décoder et insérer les données dans la boîte 'walletValueArchive'
-            Map<String, dynamic> walletValueArchiveData =
-                jsonDecode(jsonContent);
-            var walletValueArchiveBox =
-                await Hive.openBox('walletValueArchive');
-            await walletValueArchiveBox.putAll(walletValueArchiveData);
+            try {
+              debugPrint("📥 Début de l'importation de walletValueArchiveBackup.json");
+              
+              // Ouvrir les deux boîtes Hive
+              var walletValueArchiveBox = await Hive.box('walletValueArchive');
+              var balanceHistoryBox = await Hive.box('balanceHistory');
+              
+              // Décoder le contenu JSON
+              dynamic decodedData = jsonDecode(jsonContent);
+              debugPrint("📊 Type de données décodées: ${decodedData.runtimeType}");
+              
+              // Préparer les données pour la sauvegarde
+              List<dynamic> recordsToSave;
+              
+              if (decodedData is Map) {
+                debugPrint("🗺️ Données reçues sous forme de Map");
+                
+                // Si les données sont une Map, chercher la clé balanceHistory_totalWalletValue
+                if (decodedData.containsKey('balanceHistory_totalWalletValue')) {
+                  recordsToSave = decodedData['balanceHistory_totalWalletValue'];
+                  debugPrint("✅ Clé 'balanceHistory_totalWalletValue' trouvée avec ${recordsToSave.length} enregistrements");
+                } else {
+                  // Si la clé n'existe pas, utiliser toutes les valeurs de la Map
+                  recordsToSave = decodedData.values.expand((v) => v is List ? v : [v]).toList();
+                  debugPrint("⚠️ Clé 'balanceHistory_totalWalletValue' non trouvée, utilisation de l'ensemble des valeurs: ${recordsToSave.length} enregistrements");
+                }
+              } else if (decodedData is List) {
+                debugPrint("📋 Données reçues sous forme de Liste avec ${decodedData.length} éléments");
+                recordsToSave = decodedData;
+              } else {
+                debugPrint("⚠️ Format de données non reconnu: ${decodedData.runtimeType}");
+                throw Exception("Format de données non supporté");
+              }
+              
+              // Convertir les enregistrements en objets BalanceRecord
+              List<BalanceRecord> balanceRecords = recordsToSave
+                  .map((recordJson) => BalanceRecord.fromJson(Map<String, dynamic>.from(recordJson)))
+                  .toList();
+              
+              debugPrint("✅ Conversion effectuée: ${balanceRecords.length} objets BalanceRecord créés");
+              
+              // Convertir en JSON pour la sauvegarde
+              List<Map<String, dynamic>> balanceHistoryJsonToSave =
+                  balanceRecords.map((record) => record.toJson()).toList();
+              
+              // Sauvegarder dans les deux boîtes
+              await walletValueArchiveBox.put('balanceHistory_totalWalletValue', balanceHistoryJsonToSave);
+              await balanceHistoryBox.put('balanceHistory_totalWalletValue', balanceHistoryJsonToSave);
+              
+              debugPrint("✅ Sauvegarde terminée dans les deux boîtes Hive");
+              
+              // Mettre à jour le DataManager avec les nouvelles données
+              final appState = Provider.of<AppState>(context, listen: false);
+              if (appState.dataManager != null) {
+                appState.dataManager!.walletBalanceHistory = balanceRecords;
+                appState.dataManager!.balanceHistory = List.from(balanceRecords);
+                appState.dataManager!.notifyListeners();
+                debugPrint("✅ DataManager mis à jour avec ${balanceRecords.length} enregistrements");
+              }
+              
+            } catch (e) {
+              debugPrint("❌ Erreur lors de l'importation de walletValueArchiveBackup.json: $e");
+              rethrow;
+            }
           } else if (file.name == 'customInitPricesBackup.json') {
             // Décoder et insérer les données dans la boîte 'walletValueArchive'
             Map<String, dynamic> customInitPricesData = jsonDecode(jsonContent);

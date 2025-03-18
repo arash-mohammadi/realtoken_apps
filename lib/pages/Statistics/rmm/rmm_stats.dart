@@ -149,7 +149,7 @@ class RmmStatsState extends State<RmmStats> {
                           return AlertDialog(
                             title: const Text('Explication APY Moyen'),
                             content: const Text(
-                              'L’APY moyen est calculé en moyenne sur les variations de balance entre plusieurs paires de données. '
+                              'L\'APY moyen est calculé en moyenne sur les variations de balance entre plusieurs paires de données. '
                               'Les valeurs avec des variations anormales (dépôts ou retraits) sont écartées.',
                             ),
                             actions: [
@@ -165,7 +165,7 @@ class RmmStatsState extends State<RmmStats> {
                     child: Row(
                       children: [
                         Text(
-                          '${S.of(context).averageApy} ${dataManager.apyAverage.toStringAsFixed(2)}%',
+                          '${S.of(context).averageApy} ${dataManager.apyAverage.isNaN ? "0.00" : dataManager.apyAverage.toStringAsFixed(2)}%',
                           style: const TextStyle(
                               fontSize: 18, fontWeight: FontWeight.bold),
                         ),

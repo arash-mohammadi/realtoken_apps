@@ -19,6 +19,7 @@ class _AdvancedSettingsPageState extends State<AdvancedSettingsPage> {
   }
 
   int _daysLimit = 30;
+  double _apyReactivity = 0.2; // Valeur par défaut pour la réactivité de l'APY
 
   Future<void> _clearCacheAndData(BuildContext context) async {
     final prefs = await SharedPreferences.getInstance();
@@ -68,6 +69,61 @@ class _AdvancedSettingsPageState extends State<AdvancedSettingsPage> {
             color: Theme.of(context).cardColor,
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Réactivité de l\'APY',
+                    style: TextStyle(
+                      fontSize: 16.0 + appState.getTextSizeOffset(),
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'Ajustez la sensibilité du calcul d\'APY aux variations récentes',
+                    style: TextStyle(
+                      fontSize: 14.0 + appState.getTextSizeOffset(),
+                      color: Colors.grey,
+                    ),
+                  ),
+                  SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Text('Lisse'),
+                      Expanded(
+                        child: Slider(
+                          value: _apyReactivity,
+                          min: 0.0,
+                          max: 1.0,
+                          divisions: 10,
+                          label: _getApyReactivityLabel(),
+                          onChanged: (value) {
+                            setState(() {
+                              _apyReactivity = value;
+                            });
+                          },
+                          onChangeEnd: (value) {
+                            _saveApyReactivity(value);
+                            // Appliquer immédiatement le changement via AppState
+                            appState.adjustApyReactivity(value);
+                          },
+                        ),
+                      ),
+                      Text('Réactif'),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+          SizedBox(height: 16),
+          Card(
+            color: Theme.of(context).cardColor,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             child: ListTile(
               title: Text('Effacer le cache et les données',
                   style:
@@ -81,6 +137,21 @@ class _AdvancedSettingsPageState extends State<AdvancedSettingsPage> {
         ],
       ),
     );
+  }
+
+  // Fonction pour obtenir un libellé descriptif en fonction de la valeur de réactivité
+  String _getApyReactivityLabel() {
+    if (_apyReactivity < 0.2) {
+      return 'Très lisse';
+    } else if (_apyReactivity < 0.4) {
+      return 'Lisse';
+    } else if (_apyReactivity < 0.6) {
+      return 'Équilibré';
+    } else if (_apyReactivity < 0.8) {
+      return 'Réactif';
+    } else {
+      return 'Très réactif';
+    }
   }
 
   void _showNumberPicker(BuildContext context) {
@@ -155,11 +226,17 @@ class _AdvancedSettingsPageState extends State<AdvancedSettingsPage> {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       _daysLimit = prefs.getInt('daysLimit') ?? 30;
+      _apyReactivity = prefs.getDouble('apyReactivity') ?? 0.2;
     });
   }
 
   Future<void> _saveDaysLimit(int value) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt('daysLimit', value);
+  }
+
+  Future<void> _saveApyReactivity(double value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble('apyReactivity', value);
   }
 }

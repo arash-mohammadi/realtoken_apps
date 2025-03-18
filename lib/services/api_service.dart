@@ -89,7 +89,7 @@ class ApiService {
     // Mise en cache des données globales
     box.put('cachedTokenData_$cacheKey', jsonEncode(allWalletTokens));
     debugPrint("🔵 Tokens fetched from API: ${allWalletTokens.length} tokens");
-    debugPrint("🔵 Tokens fetched from API: ${allWalletTokens}");
+    //debugPrint("🔵 Tokens fetched from API: ${allWalletTokens}");
     box.put('lastFetchTime_$cacheKey', now.toIso8601String());
     box.put('lastExecutionTime_Portfolio ($cacheKey)', now.toIso8601String());
 
@@ -718,118 +718,58 @@ class ApiService {
 
 
 
-  static Future<List<dynamic>> fetchTransactionsHistory({
-    required List<Map<String, dynamic>> portfolio,
-    bool forceFetch = false,
-    bool useAlternativeKey = false,
-  }) async {
-    var box = Hive.box('realTokens');
-    final lastFetchTime = box.get('transactionsHistoryFetchTime');
-    final DateTime now = DateTime.now();
+ static Future<List<dynamic>> fetchTransactionsHistory({bool forceFetch = false}) async {
+  var box = Hive.box('realTokens');
+  final SharedPreferences prefs = await SharedPreferences.getInstance();
+  List<String> evmAddresses = prefs.getStringList('evmAddresses') ?? [];
 
-    if (!forceFetch && lastFetchTime != null) {
-      final DateTime lastFetch = DateTime.parse(lastFetchTime);
-      if (now.difference(lastFetch) < Duration(days: 1)) {
-        final cachedData = box.get('cachedTransactionsHistoryData');
-        if (cachedData != null) {
-          return json.decode(cachedData);
-        }
-      }
-    }
-
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    List<String> destinations = prefs.getStringList('evmAddresses') ?? [];
-    if (destinations.isEmpty) {
-      return [];
-    }
-
-    List<String> tokenAddresses = portfolio.map((token) => token['uuid'] as String).toList();
-    if (tokenAddresses.isEmpty) {
-      return [];
-    }
-
-    final apiUrl = Parameters.getGraphUrl(Parameters.gnosisSubgraphId, useAlternativeKey: useAlternativeKey);
-
-    List<dynamic> allTransferEvents = [];
-    int skip = 0;
-    bool hasMoreData = true;
-
-    while (hasMoreData) {
-      try {
-        final response = await http.post(
-          Uri.parse(apiUrl),
-          headers: {'Content-Type': 'application/json'},
-          body: json.encode({
-            "query": '''
-            query GetTransferEvents(\$tokenAddresses: [String!], \$destinations: [String!], \$skip: Int!) {
-              transferEvents(
-                where: {
-                  token_in: \$tokenAddresses,
-                  destination_in: \$destinations
-                }
-                orderBy: timestamp
-                orderDirection: desc
-                first: 1000
-                skip: \$skip
-              ) {
-                id
-                token {
-                  id
-                }
-                amount
-                sender
-                destination
-                timestamp
-                transaction {
-                  id
-                }
-              }
-            }
-          ''',
-            "variables": {
-              "tokenAddresses": tokenAddresses,
-              "destinations": destinations,
-              "skip": skip,
-            }
-          }),
-        );
-
-        if (response.statusCode == 200) {
-          final decodedResponse = json.decode(response.body);
-
-          if (decodedResponse.containsKey('errors')) {
-            final errorMessage = json.encode(decodedResponse['errors']);
-            if ((errorMessage.contains('spend limit exceeded') || errorMessage.contains('API key not found')) && !useAlternativeKey) {
-              debugPrint("🔄 TheGraph API limit exceeded or API key not found, switching to alternative API key...");
-              return await fetchTransactionsHistory(portfolio: portfolio, forceFetch: forceFetch, useAlternativeKey: true);
-            }
-            throw Exception("Erreur API: $errorMessage");
-          }
-
-          final List<dynamic> transferEvents = decodedResponse['data']['transferEvents'] ?? [];
-          allTransferEvents.addAll(transferEvents);
-
-          // Si on récupère moins de 1000 résultats, il n'y en a plus à récupérer
-          if (transferEvents.length < 1000) {
-            hasMoreData = false;
-          } else {
-            skip += 1000; // Passer aux résultats suivants
-          }
-        } else {
-          throw Exception('Échec de la requête fetchTransactionsHistory');
-        }
-      } catch (e) {
-        throw Exception('Échec de la récupération de l\'historique des transactions: $e');
-      }
-    }
-
-    // Sauvegarde des données en cache
-    box.put('cachedTransactionsHistoryData', json.encode(allTransferEvents));
-    box.put('transactionsHistoryFetchTime', now.toIso8601String());
-    box.put('lastExecutionTime_Wallets Transactions', now.toIso8601String());
-
-    return allTransferEvents;
+  if (evmAddresses.isEmpty) {
+    return [];
   }
+
+  final DateTime now = DateTime.now();
+  final cacheKey = 'transactions_history';
+  final lastFetchTime = box.get('lastFetchTime_$cacheKey');
+
+  // Vérifier le cache avant de récupérer à nouveau les données
+  if (!forceFetch && lastFetchTime != null) {
+    final DateTime lastFetch = DateTime.parse(lastFetchTime);
+    if (now.difference(lastFetch) < Parameters.apiCacheDuration) {
+      final cachedData = box.get('cachedTransactionsData_$cacheKey');
+      if (cachedData != null) {
+        return jsonDecode(cachedData);
+      }
+    }
+  }
+
+  try {
+    List<dynamic> allTransactions = [];
+
+    for (String wallet in evmAddresses) {
+      final apiUrl = '${Parameters.mainApiUrl}/transactions_history/$wallet';
+
+      final response = await http.get(Uri.parse(apiUrl));
+
+      if (response.statusCode == 200) {
+        final walletData = jsonDecode(response.body);
+        allTransactions.addAll(walletData);
+      } else {
+        debugPrint("⚠️ Erreur récupération transactions pour le wallet: $wallet");
+      }
+    }
+
+    // Mise en cache des données globales
+    box.put('cachedTransactionsData_$cacheKey', jsonEncode(allTransactions));
+    box.put('lastFetchTime_$cacheKey', now.toIso8601String());
+    box.put('lastExecutionTime_Transactions', now.toIso8601String());
+
+    debugPrint("✅ Transactions récupérées: ${allTransactions.length}");
+
+    return allTransactions;
+  } catch (e) {
+    throw Exception('❌ Échec récupération des transactions: $e');
+  }
+}
 
 static Future<List<dynamic>> fetchYamWalletsTransactions({bool forceFetch = false}) async {
   var box = Hive.box('realTokens');

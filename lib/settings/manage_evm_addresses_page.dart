@@ -23,6 +23,12 @@ class ManageEvmAddressesPageState extends State<ManageEvmAddressesPage> {
   void initState() {
     super.initState();
     _loadSavedAddresses(); // Charger les adresses sauvegardées
+    // Charger les relations userId-adresses
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final dataManager = Provider.of<DataManager>(context, listen: false);
+      dataManager.loadUserIdToAddresses(); // Charger les relations userId-adresses
+      DataFetchUtils.loadData(context);
+    });
   }
 
   @override

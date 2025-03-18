@@ -1,6 +1,7 @@
 import 'package:realtokens/utils/data_fetch_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:realtokens/utils/text_utils.dart';
 import 'package:realtokens/utils/ui_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:realtokens/managers/data_manager.dart';
@@ -21,8 +22,9 @@ class PortfolioPageState extends State<PortfolioPage> {
   String _sortOption = 'sort by recently added';
   bool _isAscending = true;
   String? _selectedCity;
-  String _rentalStatusFilter =
-      'All'; // Nouveau filtre pour le statut de location
+  String _rentalStatusFilter = 'All'; // Nouveau filtre pour le statut de location
+  Set<String> _selectedWallets = {};
+Set<String> _selectedTokenTypes = {"wallet", "RMM"};
 
   @override
   void initState() {
@@ -180,51 +182,73 @@ class PortfolioPageState extends State<PortfolioPage> {
 
   // Modifier la méthode pour appliquer le filtre sur le statut de location
   List<Map<String, dynamic>> _filterAndSortPortfolio(
-      List<Map<String, dynamic>> portfolio) {
-    // Regroupez et cumulez les tokens similaires
-    List<Map<String, dynamic>> groupedPortfolio =
-        _groupAndSumPortfolio(portfolio);
+    List<Map<String, dynamic>> portfolio) {
+  // Regroupez et cumulez les tokens similaires
+  List<Map<String, dynamic>> groupedPortfolio = _groupAndSumPortfolio(portfolio);
 
-    // Filtrez et triez comme avant
-    List<Map<String, dynamic>> filteredPortfolio = groupedPortfolio
-        .where((token) =>
-            token['fullName']
-                .toLowerCase()
-                .contains(_searchQuery.toLowerCase()) &&
-            (_selectedCity == null ||
-                token['fullName'].contains(_selectedCity!)) &&
-            (_rentalStatusFilter == S.of(context).rentalStatusAll ||
-                _filterByRentalStatus(token)))
-        .toList();
+  // Filtrez sur fullName, ville et statut de location
+  List<Map<String, dynamic>> filteredPortfolio = groupedPortfolio
+      .where((token) =>
+          token['fullName']
+              .toLowerCase()
+              .contains(_searchQuery.toLowerCase()) &&
+          (_selectedCity == null ||
+              token['fullName'].contains(_selectedCity!)) &&
+          (_rentalStatusFilter == S.of(context).rentalStatusAll ||
+              _filterByRentalStatus(token)))
+      .toList();
 
-    if (_sortOption == S.of(context).sortByName) {
-      filteredPortfolio.sort((a, b) => _isAscending
-          ? a['shortName'].compareTo(b['shortName'])
-          : b['shortName'].compareTo(a['shortName']));
-    } else if (_sortOption == S.of(context).sortByValue) {
-      filteredPortfolio.sort((a, b) => _isAscending
-          ? a['totalValue'].compareTo(b['totalValue'])
-          : b['totalValue'].compareTo(a['totalValue']));
-    } else if (_sortOption == S.of(context).sortByAPY) {
-      filteredPortfolio.sort((a, b) => _isAscending
-          ? a['annualPercentageYield'].compareTo(b['annualPercentageYield'])
-          : b['annualPercentageYield'].compareTo(a['annualPercentageYield']));
-    } else if (_sortOption == S.of(context).sortByInitialLaunchDate) {
-      filteredPortfolio.sort((a, b) {
-        final dateA = a['initialLaunchDate'] != null
-            ? DateTime.tryParse(a['initialLaunchDate'])
-            : DateTime(1970);
-        final dateB = b['initialLaunchDate'] != null
-            ? DateTime.tryParse(b['initialLaunchDate'])
-            : DateTime(1970);
-        return _isAscending
-            ? dateA!.compareTo(dateB!)
-            : dateB!.compareTo(dateA!);
-      });
-    }
-
-    return filteredPortfolio;
+  // Ajoutez le filtre par wallet (si au moins un wallet est sélectionné)
+  if (_selectedWallets.isNotEmpty) {
+    filteredPortfolio = filteredPortfolio.where((token) {
+      // On suppose que token['wallets'] est une liste des adresses associées au token
+      List<dynamic> tokenWallets = token['wallets'] ?? [];
+      // On garde le token s'il contient au moins un wallet sélectionné
+      return tokenWallets.any((wallet) => _selectedWallets.contains(wallet));
+    }).toList();
   }
+
+// Filtre par type si l'utilisateur n'a pas sélectionné tous les types
+if (!(_selectedTokenTypes.contains("wallet") && _selectedTokenTypes.contains("RMM"))) {
+  filteredPortfolio = filteredPortfolio.where((token) {
+    // Les tokens regroupés possèdent des indicateurs "inWallet" et "inRMM"
+    bool inWallet = token['inWallet'] ?? false;
+    bool inRMM = token['inRMM'] ?? false;
+    // On conserve le token s'il appartient à un des types sélectionnés
+    return (_selectedTokenTypes.contains("wallet") && inWallet) ||
+           (_selectedTokenTypes.contains("RMM") && inRMM);
+  }).toList();
+}
+
+  // Tri en fonction des options sélectionnées
+  if (_sortOption == S.of(context).sortByName) {
+    filteredPortfolio.sort((a, b) => _isAscending
+        ? a['shortName'].compareTo(b['shortName'])
+        : b['shortName'].compareTo(a['shortName']));
+  } else if (_sortOption == S.of(context).sortByValue) {
+    filteredPortfolio.sort((a, b) => _isAscending
+        ? a['totalValue'].compareTo(b['totalValue'])
+        : b['totalValue'].compareTo(a['totalValue']));
+  } else if (_sortOption == S.of(context).sortByAPY) {
+    filteredPortfolio.sort((a, b) => _isAscending
+        ? a['annualPercentageYield'].compareTo(b['annualPercentageYield'])
+        : b['annualPercentageYield'].compareTo(a['annualPercentageYield']));
+  } else if (_sortOption == S.of(context).sortByInitialLaunchDate) {
+    filteredPortfolio.sort((a, b) {
+      final dateA = a['initialLaunchDate'] != null
+          ? DateTime.tryParse(a['initialLaunchDate'])
+          : DateTime(1970);
+      final dateB = b['initialLaunchDate'] != null
+          ? DateTime.tryParse(b['initialLaunchDate'])
+          : DateTime(1970);
+      return _isAscending
+          ? dateA!.compareTo(dateB!)
+          : dateB!.compareTo(dateA!);
+    });
+  }
+
+  return filteredPortfolio;
+}
 
   // Nouvelle méthode pour filtrer par statut de location
   bool _filterByRentalStatus(Map<String, dynamic> token) {
@@ -341,44 +365,225 @@ class PortfolioPageState extends State<PortfolioPage> {
                                     },
                                   ),
                                   const SizedBox(width: 8.0),
-                                  PopupMenuButton<String>(
-                                    icon: const Icon(Icons.filter_alt),
-                                    onSelected: (String value) {
-                                      _updateRentalStatusFilter(value);
-                                    },
-                                    itemBuilder: (BuildContext context) {
-                                      return [
-                                        PopupMenuItem(
-                                          value: S.of(context).rentalStatusAll,
-                                          child: Text(
-                                              S.of(context).rentalStatusAll),
-                                        ),
-                                        PopupMenuItem(
-                                          value:
-                                              S.of(context).rentalStatusRented,
-                                          child: Text(
-                                              S.of(context).rentalStatusRented),
-                                        ),
-                                        PopupMenuItem(
-                                          value: S
-                                              .of(context)
-                                              .rentalStatusPartiallyRented,
-                                          child: Text(S
-                                              .of(context)
-                                              .rentalStatusPartiallyRented),
-                                        ),
-                                        PopupMenuItem(
-                                          value: S
-                                              .of(context)
-                                              .rentalStatusNotRented,
-                                          child: Text(S
-                                              .of(context)
-                                              .rentalStatusNotRented),
-                                        ),
-                                      ];
-                                    },
-                                  ),
-                                  const SizedBox(width: 8.0),
+                                 PopupMenuButton<String>(
+  icon: const Icon(Icons.filter_alt),
+  onSelected: (String value) {
+    // Gestion des filtres de location (les valeurs commençant par "rental_" déclenchent onSelected)
+    if (value.startsWith("rental_")) {
+      switch (value) {
+        case "rental_all":
+          _updateRentalStatusFilter(S.of(context).rentalStatusAll);
+          break;
+        case "rental_rented":
+          _updateRentalStatusFilter(S.of(context).rentalStatusRented);
+          break;
+        case "rental_partially":
+          _updateRentalStatusFilter(S.of(context).rentalStatusPartiallyRented);
+          break;
+        case "rental_not":
+          _updateRentalStatusFilter(S.of(context).rentalStatusNotRented);
+          break;
+      }
+      _saveFilterPreferences();
+    }
+    // Pour les wallets, la gestion se fait via l'InkWell dans l'item (voir ci-dessous)
+  },
+  itemBuilder: (BuildContext context) {
+    final dataManager = Provider.of<DataManager>(context, listen: false);
+    // Exemple : récupération des wallets depuis dataManager.evmAddresses
+    final List<String> uniqueWallets = dataManager.evmAddresses.toSet().toList();
+
+    return [
+      // --- Section filtres par statut de location ---
+      PopupMenuItem(
+        value: "rental_all",
+        child: Row(
+          children: [
+            const Icon(Icons.home_work_outlined, size: 20),
+            const SizedBox(width: 8.0),
+            Text(S.of(context).rentalStatusAll),
+          ],
+        ),
+      ),
+      PopupMenuItem(
+        value: "rental_rented",
+        child: Row(
+          children: [
+            const Icon(Icons.check_circle, size: 20, color: Colors.green),
+            const SizedBox(width: 8.0),
+            Text(S.of(context).rentalStatusRented),
+          ],
+        ),
+      ),
+      PopupMenuItem(
+        value: "rental_partially",
+        child: Row(
+          children: [
+            const Icon(Icons.adjust, size: 20, color: Colors.orange),
+            const SizedBox(width: 8.0),
+            Text(S.of(context).rentalStatusPartiallyRented),
+          ],
+        ),
+      ),
+      PopupMenuItem(
+        value: "rental_not",
+        child: Row(
+          children: [
+            const Icon(Icons.cancel, size: 20, color: Colors.red),
+            const SizedBox(width: 8.0),
+            Text(S.of(context).rentalStatusNotRented),
+          ],
+        ),
+      ),
+      const PopupMenuDivider(),
+      // --- Titre de la section wallets ---
+      PopupMenuItem(
+        enabled: false,
+        child: Row(
+          children: const [
+            Icon(Icons.account_balance_wallet, size: 20),
+            SizedBox(width: 8.0),
+            Text(
+              "Wallets",
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+      ),
+      // --- Section de sélection des wallets ---
+      ...uniqueWallets.map((wallet) => PopupMenuItem(
+      enabled: false, // Empêche la fermeture automatique du menu
+      child: StatefulBuilder(
+        builder: (BuildContext context, StateSetter setStateLocal) {
+          return InkWell(
+            onTap: () {
+              setState(() {
+                if (_selectedWallets.contains(wallet)) {
+                  _selectedWallets.remove(wallet);
+                } else {
+                  _selectedWallets.add(wallet);
+                }
+              });
+              setStateLocal(() {}); // Forcer la reconstruction locale
+            },
+            child: Row(
+              children: [
+                // Affiche la coche à gauche si le wallet est sélectionné, sinon réserve l'espace
+                _selectedWallets.contains(wallet)
+                    ? const Icon(Icons.check, size: 20)
+                    : const SizedBox(width: 20),
+                const SizedBox(width: 8.0),
+                const Icon(Icons.account_balance_wallet, size: 20),
+                const SizedBox(width: 8.0),
+                Flexible(child: Text(wallet)),
+              ],
+            ),
+          );
+        },
+      ),
+    )),
+
+    ];
+  },
+),
+const SizedBox(width: 8.0),
+PopupMenuButton<String>(
+  icon: const Icon(Icons.category),
+  onSelected: (String value) {
+    // Cette fonction ne sera pas appelée directement puisque nous gérons
+    // la sélection via l'InkWell dans les items (comme pour les wallets).
+  },
+  itemBuilder: (BuildContext context) {
+    return [
+      // Titre de la section
+      PopupMenuItem(
+        enabled: false,
+        child: Row(
+          children: const [
+            Icon(Icons.category, size: 20),
+            SizedBox(width: 8.0),
+            Text(
+              "Type",
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+      ),
+      const PopupMenuDivider(),
+      // Item pour "Wallet"
+      PopupMenuItem(
+        enabled: false,
+        child: StatefulBuilder(
+          builder: (context, setStateLocal) {
+            return InkWell(
+              onTap: () {
+                setState(() {
+                  if (_selectedTokenTypes.contains("wallet")) {
+                    _selectedTokenTypes.remove("wallet");
+                  } else {
+                    _selectedTokenTypes.add("wallet");
+                  }
+                  // Ne jamais laisser le set vide
+                  if (_selectedTokenTypes.isEmpty) {
+                    _selectedTokenTypes = {"wallet", "RMM"};
+                  }
+                });
+                setStateLocal(() {});
+              },
+              child: Row(
+                children: [
+                  _selectedTokenTypes.contains("wallet")
+                      ? const Icon(Icons.check, size: 20)
+                      : const SizedBox(width: 20),
+                  const SizedBox(width: 8.0),
+                  const Icon(Icons.account_balance_wallet, size: 20),
+                  const SizedBox(width: 8.0),
+                  const Text("Wallet"),
+                ],
+              ),
+            );
+          },
+        ),
+      ),
+      // Item pour "RMM"
+      PopupMenuItem(
+        enabled: false,
+        child: StatefulBuilder(
+          builder: (context, setStateLocal) {
+            return InkWell(
+              onTap: () {
+                setState(() {
+                  if (_selectedTokenTypes.contains("RMM")) {
+                    _selectedTokenTypes.remove("RMM");
+                  } else {
+                    _selectedTokenTypes.add("RMM");
+                  }
+                  if (_selectedTokenTypes.isEmpty) {
+                    _selectedTokenTypes = {"wallet", "RMM"};
+                  }
+                });
+                setStateLocal(() {});
+              },
+              child: Row(
+                children: [
+                  _selectedTokenTypes.contains("RMM")
+                      ? const Icon(Icons.check, size: 20)
+                      : const SizedBox(width: 20),
+                  const SizedBox(width: 8.0),
+                  // Vous pouvez choisir une icône différente pour RMM
+                  const Icon(Icons.business, size: 20),
+                  const SizedBox(width: 8.0),
+                  const Text("RMM"),
+                ],
+              ),
+            );
+          },
+        ),
+      ),
+    ];
+  },
+),
+
                                   PopupMenuButton<String>(
                                     icon: const Icon(Icons.sort),
                                     onSelected: (String value) {

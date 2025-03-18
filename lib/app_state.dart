@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:realtokens/managers/data_manager.dart';
 
 // Fonction pour récupérer la couleur enregistrée
 Future<Color> getSavedPrimaryColor() async {
@@ -60,6 +61,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   List<String>? evmAddresses; // Variable for storing EVM addresses
   Color _primaryColor = Colors.blue; // Default primary color
   bool _showAmounts = true; // Par défaut, les montants sont visibles
+  DataManager? dataManager; // Référence au DataManager
 
   AppState() {
     _loadSettings();
@@ -180,5 +182,19 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       default:
         return 0.0; // Default size
     }
+  }
+
+  // Ajuster la réactivité de l'APY
+  void adjustApyReactivity(double reactivityLevel) {
+    // Vérifier que dataManager est disponible
+    if (dataManager == null) {
+      debugPrint("❌ DataManager n'est pas initialisé dans AppState");
+      return;
+    }
+    
+    // Appeler la méthode adjustApyReactivity du DataManager
+    dataManager!.adjustApyReactivity(reactivityLevel);
+    
+    // Pas besoin de notifier ici car le DataManager le fera
   }
 }

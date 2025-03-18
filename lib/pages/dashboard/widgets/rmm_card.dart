@@ -82,30 +82,19 @@ class RmmCard extends StatelessWidget {
       Icons.currency_exchange,
       UIUtils.buildValueBeforeText(
         context,
-        healthFactor >= 10 ? '∞' : healthFactor.toStringAsFixed(1),
-        'Health factor',
-        isLoading,
-      ),
-      [
-        UIUtils.buildValueBeforeText(
-          context,
-          currentLTV.toStringAsFixed(1),
-          'Current LTV',
-          isLoading,
-        ),
-        const SizedBox(height: 10),
-        Text(
-          '${S.of(context).timeBeforeLiquidation}: ${_calculateTimeBeforeLiquidationFormatted(
+       _calculateTimeBeforeLiquidationFormatted(
             walletDeposit,
             usdcBorrow,
             xdaiBorrow,
-            dataManager.usdcDepositApy,
-          )}',
-          style: TextStyle(
-            fontSize: 13 + appState.getTextSizeOffset(),
-            color: Theme.of(context).textTheme.bodyLarge?.color,
+            dataManager.apyAverage,
           ),
-        ),
+        S.of(context).timeBeforeLiquidation,
+        isLoading,
+      ),
+      [
+     
+        const SizedBox(height: 10),
+     
         UIUtils.buildTextWithShimmer(
           currencyUtils.getFormattedAmount(currencyUtils.convert(xdaiDeposit),
               currencyUtils.currencySymbol, showAmounts),
@@ -269,26 +258,29 @@ class RmmCard extends StatelessWidget {
   }
 
   String _calculateTimeBeforeLiquidationFormatted(
-      double walletDeposit, double usdcBorrow, double xdaiBorrow, double apy) {
-    final double totalBorrow = usdcBorrow + xdaiBorrow;
-    if (totalBorrow == 0 || apy == 0) {
-      return '∞';
-    }
-    final double liquidationThreshold = walletDeposit * 0.7;
-    if (liquidationThreshold <= totalBorrow) {
-      return 'Liquidation imminente';
-    }
-    final double dailyRate = apy / 365 / 100;
-    final double timeInDays =
-        (liquidationThreshold - totalBorrow) / (totalBorrow * dailyRate);
-    if (timeInDays > 100 * 30) {
-      final double years = timeInDays / 365;
-      return '${years.toStringAsFixed(1)} ans';
-    } else if (timeInDays > 100) {
-      final double months = timeInDays / 30;
-      return '${months.toStringAsFixed(1)} mois';
-    } else {
-      return '${timeInDays.toStringAsFixed(1)} jours';
-    }
+    double walletRmmValue, double usdcBorrow, double xdaiBorrow, double apy) {
+  final double totalBorrow = usdcBorrow + xdaiBorrow;
+  if (totalBorrow == 0 || apy == 0) {
+    return '∞';
   }
+  // Utilisation de walletRmmValue pour la cohérence avec le calcul du health factor
+  final double liquidationThreshold = walletRmmValue * 0.7;
+  if (liquidationThreshold <= totalBorrow) {
+    return 'Liquidation imminente';
+  }
+  final double dailyRate = apy / 365 / 100;
+  final double timeInDays =
+      (liquidationThreshold - totalBorrow) / (totalBorrow * dailyRate);
+
+  // Affichage adapté en fonction de la durée
+  if (timeInDays >= 365) {
+    final double years = timeInDays / 365;
+    return '${years.toStringAsFixed(1)} ans';
+  } else if (timeInDays >= 30) {
+    final double months = timeInDays / 30;
+    return '${months.toStringAsFixed(1)} mois';
+  } else {
+    return '${timeInDays.toStringAsFixed(1)} jours';
+  }
+}
 }

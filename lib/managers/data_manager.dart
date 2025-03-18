@@ -12,6 +12,8 @@ import '../models/balance_record.dart';
 import '../models/roi_record.dart';
 import '../models/apy_record.dart';
 import 'archive_manager.dart';
+import 'package:realtokens/managers/apy_manager.dart';
+import 'package:flutter/foundation.dart';
 
 class DataManager extends ChangeNotifier {
   List<String> evmAddresses = [];
@@ -68,6 +70,10 @@ class DataManager extends ChangeNotifier {
   List<Map<String, dynamic>> propertyData = [];
   List<Map<String, dynamic>> rmmBalances = [];
   List<Map<String, dynamic>> perWalletBalances = [];
+  
+  // Nouvelle structure de données pour les statistiques détaillées des wallets
+  List<Map<String, dynamic>> walletStats = [];
+  
   List<Map<String, dynamic>> _allTokens =
       []; // Liste privée pour tous les tokens
   List<Map<String, dynamic>> get allTokens => _allTokens;
@@ -102,10 +108,41 @@ class DataManager extends ChangeNotifier {
   DateTime? _lastUpdated; // Stocker la dernière mise à jour
   final Duration _updateCooldown =
       Duration(minutes: 5); // Délai minimal avant la prochaine mise à jour
-  final ArchiveManager _archiveManager = ArchiveManager();
+  final ArchiveManager _archiveManager;
 
-  DataManager() {
+  // Remplacer les propriétés APY du DataManager par une instance de ApyManager
+  final ApyManager apyManager;
+  
+  // Supprimer les propriétés suivantes du DataManager car elles sont maintenant dans ApyManager :
+  // depositApyUsdc, depositApyXdai, borrowApyUsdc, borrowApyXdai, initialInvestment
+  
+  // ... existing code ...
+
+  DataManager({
+    required ArchiveManager archiveManager,
+    required ApyManager apyManager,
+  }) : _archiveManager = archiveManager,
+       apyManager = apyManager {
     loadCustomInitPrices(); // Charger les prix personnalisés lors de l'initialisation
+    _loadApyReactivityPreference(); // Charger la préférence de réactivité APY
+    
+    // Initialiser l'ArchiveManager avec une référence à cette instance
+    _archiveManager.setDataManager(this);
+  }
+
+  /// Charge la préférence de réactivité APY depuis SharedPreferences
+  Future<void> _loadApyReactivityPreference() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      double reactivity = prefs.getDouble('apyReactivity') ?? 0.2;
+      
+      // Appliquer la valeur de réactivité aux paramètres de l'ApyManager
+      adjustApyReactivity(reactivity);
+      
+      debugPrint("✅ Préférence de réactivité APY chargée: $reactivity");
+    } catch (e) {
+      debugPrint("❌ Erreur lors du chargement de la préférence de réactivité APY: $e");
+    }
   }
 
   Future<void> loadWalletsAddresses({bool forceFetch = false}) async {
@@ -259,38 +296,63 @@ class DataManager extends ChangeNotifier {
           },
           debugName: "YAM Volumes History"),
       fetchData(
-          apiCall: () => ApiService.fetchTransactionsHistory(
-              portfolio: portfolio, forceFetch: forceFetch),
-          cacheKey: 'transactionsHistory',
-          updateVariable: (data) async {
-            transactionsHistory = data;
-            await processTransactionsHistory(
-                context, transactionsHistory, yamWalletsTransactionsFetched);
-          },
-          debugName: "Transactions History"),
+      apiCall: () => ApiService.fetchTransactionsHistory(forceFetch: forceFetch),
+      cacheKey: 'transactionsHistory',
+      updateVariable: (data) async {
+        transactionsHistory = data;
+        await processTransactionsHistory(context, transactionsHistory, yamWalletsTransactionsFetched);
+      },
+      debugName: "Transactions History"
+    ),
     ]);
 
     isLoadingSecondary = false;
   }
 
+  /// Charge l'historique des balances de portefeuille depuis Hive
   Future<void> loadWalletBalanceHistory() async {
     try {
-      var box = Hive.box('walletValueArchive'); // Ouvrir la boîte Hive
+      var box = Hive.box('balanceHistory');
       List<dynamic>? balanceHistoryJson = box.get(
           'balanceHistory_totalWalletValue'); // Récupérer les données sauvegardées
 
       // Convertir chaque élément JSON en objet BalanceRecord et l'ajouter à walletBalanceHistory
-      walletBalanceHistory = balanceHistoryJson!.map((recordJson) {
-        return BalanceRecord.fromJson(Map<String, dynamic>.from(recordJson));
-      }).toList();
+      walletBalanceHistory = balanceHistoryJson != null
+          ? balanceHistoryJson
+              .map((recordJson) => BalanceRecord.fromJson(Map<String, dynamic>.from(recordJson)))
+              .toList()
+          : [];
 
-      notifyListeners(); // Notifier les listeners après la mise à jour
+      // Si l'historique est vide, on ajoute la valeur actuelle
+      if (walletBalanceHistory.isEmpty) {
+        walletBalanceHistory.add(BalanceRecord(
+            balance: totalWalletValue, 
+            timestamp: DateTime.now(),
+            tokenType: 'totalWalletValue'));
+        saveWalletBalanceHistory();
+      }
+
+      // Assigner à balanceHistory (utilisée pour les calculs d'APY) aussi
+      balanceHistory = List.from(walletBalanceHistory);
+      
+      // Calculer l'APY après chargement de l'historique si nous avons suffisamment de données
+      if (balanceHistory.length >= 2) {
+        try {
+          // Calcul de l'APY déplacé vers calculateApyValues
+          // On appellera cette fonction plutôt que de refaire le calcul ici
+          calculateApyValues();
+          debugPrint("✅ APY calculé à partir de l'historique chargé: $netGlobalApy%");
+        } catch (e) {
+          debugPrint("❌ Erreur lors du calcul initial de l'APY: $e");
+        }
+      } else {
+        debugPrint("⚠️ Historique insuffisant pour calculer l'APY: ${balanceHistory.length} enregistrement(s) disponible(s) (minimum requis: 2)");
+      }
 
       debugPrint(
-          '✅ Données de l\'historique du portefeuille chargées avec succès.');
+          "✅ Historique de balance du portefeuille chargé: ${walletBalanceHistory.length} entrées");
     } catch (e) {
-      debugPrint(
-          'Erreur lors du chargement des données de l\'historique du portefeuille : $e');
+      debugPrint("❌ Erreur lors du chargement de l'historique de balance: $e");
     }
   }
 
@@ -376,11 +438,31 @@ class DataManager extends ChangeNotifier {
 
   // Sauvegarde l'historique des balances dans Hive
   Future<void> saveWalletBalanceHistory() async {
-    var box = Hive.box('walletValueArchive');
-    List<Map<String, dynamic>> balanceHistoryJson =
-        walletBalanceHistory.map((record) => record.toJson()).toList();
-    await box.put('balanceHistory_totalWalletValue', balanceHistoryJson);
-    notifyListeners(); // Notifier les listeners de tout changement
+    debugPrint("🔄 Sauvegarde de l'historique des balances du portefeuille (${walletBalanceHistory.length} enregistrements)");
+    
+    try {
+      var box = Hive.box('walletValueArchive');
+      
+      // Convertir les données en format JSON
+      List<Map<String, dynamic>> balanceHistoryJson =
+          walletBalanceHistory.map((record) => record.toJson()).toList();
+      
+      // Sauvegarder dans Hive
+      await box.put('balanceHistory_totalWalletValue', balanceHistoryJson);
+      
+      // S'assurer que les données dans balanceHistory sont aussi à jour
+      balanceHistory = List.from(walletBalanceHistory);
+      
+      // Mise à jour également dans la boîte 'balanceHistory' pour assurer la cohérence
+      var boxBalance = Hive.box('balanceHistory');
+      await boxBalance.put('balanceHistory_totalWalletValue', balanceHistoryJson);
+      
+      debugPrint("✅ Sauvegarde terminée - ${walletBalanceHistory.length} enregistrements");
+      
+      notifyListeners(); // Notifier les listeners de tout changement
+    } catch (e) {
+      debugPrint("❌ Erreur lors de la sauvegarde de l'historique: $e");
+    }
   }
 
   Future<void> saveRentedHistory() async {
@@ -723,9 +805,10 @@ class DataManager extends ChangeNotifier {
     debugPrint("🔍 Traitement des tokens...");
     for (var walletToken in walletTokens) {
       final tokenAddress = walletToken['token'].toLowerCase();
-      debugPrint(
-          "🔍 Traitement du token: ${walletToken['token']} (type: ${walletToken['type']})");
-
+      // debugPrint("🔍 Traitement du token: ${walletToken['token']} (type: ${walletToken['type']})");
+if (tokenAddress == "0xfc5073816fe9671859ef1e6936efd23bb7814274") {
+    debugPrint("→ Traitement de S 1418 W Marquette : wallet = ${walletToken['wallet']}, amount = ${walletToken['amount']}");
+  }
       // Recherche du token correspondant dans realTokens
       final matchingRealToken =
           realTokens.cast<Map<String, dynamic>>().firstWhere(
@@ -737,7 +820,7 @@ class DataManager extends ChangeNotifier {
             "⚠️ Aucun RealToken correspondant trouvé pour le token: $tokenAddress");
         continue;
       }
-      debugPrint("✅ Token trouvé: ${matchingRealToken['shortName']}");
+     // debugPrint("✅ Token trouvé: ${matchingRealToken['shortName']}");
 
       final double tokenPrice = matchingRealToken['tokenPrice'] ?? 0.0;
       final double tokenValue = walletToken['amount'] * tokenPrice;
@@ -799,8 +882,7 @@ class DataManager extends ChangeNotifier {
               : tokenPrice;
 
       // Fusion dans le portfolio par token (agrégation si le même token apparaît plusieurs fois)
-      int index = newPortfolio
-          .indexWhere((item) => item['uuid'] == tokenContractAddress);
+      int index = newPortfolio.indexWhere((item) => item['uuid'] == tokenContractAddress);
       if (index != -1) {
         Map<String, dynamic> existingItem = newPortfolio[index];
         List<String> wallets = existingItem['wallets'] is List<String>
@@ -808,17 +890,15 @@ class DataManager extends ChangeNotifier {
             : [];
         if (!wallets.contains(walletToken['wallet'])) {
           wallets.add(walletToken['wallet']);
+          // Log dès qu'un nouveau wallet est ajouté pour ce token
         }
-        existingItem['wallets'] = wallets;
+        existingItem['wallets'] += wallets;
         existingItem['amount'] += walletToken['amount'];
         existingItem['totalValue'] = existingItem['amount'] * tokenPrice;
         existingItem['initialTotalValue'] = existingItem['amount'] * initPrice;
-        existingItem['dailyIncome'] =
-            matchingRealToken['netRentDayPerToken'] * existingItem['amount'];
-        existingItem['monthlyIncome'] =
-            matchingRealToken['netRentMonthPerToken'] * existingItem['amount'];
-        existingItem['yearlyIncome'] =
-            matchingRealToken['netRentYearPerToken'] * existingItem['amount'];
+        existingItem['dailyIncome'] = matchingRealToken['netRentDayPerToken'] * existingItem['amount'];
+        existingItem['monthlyIncome'] = matchingRealToken['netRentMonthPerToken'] * existingItem['amount'];
+        existingItem['yearlyIncome'] = matchingRealToken['netRentYearPerToken'] * existingItem['amount'];
       } else {
         Map<String, dynamic> portfolioItem = {
           'id': matchingRealToken['id'],
@@ -886,6 +966,7 @@ class DataManager extends ChangeNotifier {
           'wallets': [walletToken['wallet']],
         };
         newPortfolio.add(portfolioItem);
+        // Log de création de l'entrée dans le portfolio pour ce token
       }
 
       initialTotalValue += walletToken['amount'] * initPrice;
@@ -936,13 +1017,26 @@ class DataManager extends ChangeNotifier {
     }
 
     // Affichage des statistiques par wallet
+    walletStats = []; // Réinitialiser la liste des statistiques
     walletTotals.forEach((wallet, totals) {
       debugPrint(
           "Wallet: $wallet → Valeur: ${totals['walletValueSum']}, Quantité: ${totals['walletTokensSum']}, Nombre de tokens: ${totals['tokenCount']}");
+      
+      // Ajouter les statistiques dans la variable globale
+      walletStats.add({
+        'address': wallet,
+        'walletValueSum': totals['walletValueSum'] as double,
+        'walletTokensSum': totals['walletTokensSum'] as double,
+        'tokenCount': totals['tokenCount'] as int,
+        'rmmTokensSum': 0.0, // Sera mis à jour plus tard
+        'rmmValue': 0.0, // Sera mis à jour plus tard
+      });
     });
 
-// -------- Calcul de la valeur RMM par wallet --------
+    // -------- Calcul de la valeur RMM par wallet --------
     Map<String, double> walletRmmValues = {};
+    Map<String, double> walletRmmTokensSum = {}; // Pour compter le nombre de tokens en RMM
+    
     for (var token in walletTokens) {
       // On considère ici uniquement les tokens de type RMM (donc différents de "wallet")
       if (token['type'] != "wallet") {
@@ -959,10 +1053,20 @@ class DataManager extends ChangeNotifier {
         final double tokenValue = token['amount'] * tokenPrice;
         // Cumuler la valeur RMM pour ce wallet
         walletRmmValues[wallet] = (walletRmmValues[wallet] ?? 0.0) + tokenValue;
+        // Cumuler le nombre de tokens en RMM
+        walletRmmTokensSum[wallet] = (walletRmmTokensSum[wallet] ?? 0.0) + token['amount'];
       }
     }
-// Stocker ces valeurs dans une variable accessible (par exemple, dans DataManager)
+    // Stocker ces valeurs dans une variable accessible (par exemple, dans DataManager)
     perWalletRmmValues = walletRmmValues;
+    
+    // Mettre à jour les statistiques des wallets avec les valeurs RMM
+    for (var stat in walletStats) {
+      final String address = stat['address'] as String;
+      stat['rmmValue'] = walletRmmValues[address] ?? 0.0;
+      stat['rmmTokensSum'] = walletRmmTokensSum[address] ?? 0.0;
+    }
+    
     walletRmmValues.forEach((wallet, value) {
       debugPrint("Wallet: $wallet → Valeur RMM: $value");
     });
@@ -1003,19 +1107,9 @@ class DataManager extends ChangeNotifier {
     roiGlobalValue = getTotalRentReceived() / initialTotalValue * 100;
     _archiveManager.archiveRoiValue(roiGlobalValue);
 
-    netGlobalApy = (((averageAnnualYield * (walletValue + rmmValue)) +
-            (totalUsdcDepositBalance * usdcDepositApy +
-                totalXdaiDepositBalance * xdaiDepositApy) -
-            (totalUsdcBorrowBalance * usdcBorrowApy +
-                totalXdaiBorrowBalance * xdaiBorrowApy)) /
-        (walletValue +
-            rmmValue +
-            totalUsdcDepositBalance +
-            totalXdaiDepositBalance +
-            totalUsdcBorrowBalance +
-            totalXdaiBorrowBalance));
-    _archiveManager.archiveApyValue(netGlobalApy, averageAnnualYield);
-
+    // Calcul de l'APY global avec calculateApyValues au lieu de le faire directement ici
+    calculateApyValues();
+    
     healthFactor =
         (rmmValue * 0.7) / (totalUsdcBorrowBalance + totalXdaiBorrowBalance);
     ltv = ((totalUsdcBorrowBalance + totalXdaiBorrowBalance) / rmmValue * 100);
@@ -1170,61 +1264,77 @@ class DataManager extends ChangeNotifier {
   }
 
   Future<void> processTransactionsHistory(
-      BuildContext context,
-      List<Map<String, dynamic>> transactionsHistory,
-      List<Map<String, dynamic>> yamTransactions) async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    final Set<String> evmAddresses =
-        Set.from(prefs.getStringList('evmAddresses') ?? {});
+    BuildContext context,
+    List<Map<String, dynamic>> transactionsHistory,
+    List<Map<String, dynamic>> yamTransactions) async {
+  
+  // Capturer les valeurs localisées au début de la méthode
+  final String internalTransferText = S.of(context).internal_transfer;
+  final String purchaseText = S.of(context).purchase;
+  final String yamText = S.of(context).yam;
+  
+  final SharedPreferences prefs = await SharedPreferences.getInstance();
+  final Set<String> evmAddresses = Set.from(prefs.getStringList('evmAddresses') ?? {});
 
-    Map<String, List<Map<String, dynamic>>> tempTransactionsByToken = {};
+  Map<String, List<Map<String, dynamic>>> tempTransactionsByToken = {};
 
-    debugPrint("📌 Début du traitement des transactions...");
-    debugPrint(
-        "📊 Nombre de transactionsHistory: ${transactionsHistory.length}");
-    debugPrint("📊 Nombre de yamTransactions: ${yamTransactions.length}");
+  debugPrint("📌 Début du traitement des transactions...");
+  debugPrint("📊 Nombre de transactions API: ${transactionsHistory.length}");
+  debugPrint("📊 Nombre de transactions YAM: ${yamTransactions.length}");
 
-    for (var transaction in transactionsHistory) {
-      final String? tokenId = transaction['token']?['id']?.toLowerCase();
-      final String? timestamp = transaction['timestamp'];
-      final String? amountStr = transaction['amount'];
-      final String? sender = transaction['sender']?.toLowerCase();
-      final String? transactionId = transaction['id']?.toLowerCase();
+  for (var transaction in transactionsHistory) {
+    final String? tokenId = transaction['Token ID']?.toLowerCase();
+    final String? timestampStr = transaction['timestamp'];
+    final double? amount = (transaction['amount'] as num?)?.toDouble();
+    final String? sender = transaction['sender']?.toLowerCase();
+    final String? transactionId = transaction['Transaction ID']?.toLowerCase();
 
-      if (tokenId == null ||
-          timestamp == null ||
-          amountStr == null ||
-          transactionId == null) {
-        debugPrint("⚠️ Transaction ignorée (champ manquant): $transaction");
+    if (tokenId == null || timestampStr == null || amount == null || transactionId == null) {
+      debugPrint("⚠️ Transaction ignorée (champ manquant): $transaction");
+      continue;
+    }
+
+    try {
+      // ✅ Convertir le timestamp Unix en DateTime
+      final int timestampMs;
+      try {
+        timestampMs = int.parse(timestampStr) * 1000; // Convertir en millisecondes
+      } catch (e) {
+        debugPrint("⚠️ Erreur de conversion du timestamp '$timestampStr': $e");
         continue;
       }
 
+      DateTime dateTime;
       try {
-        final int timestampMs = int.parse(timestamp) * 1000;
-        final double amount = double.tryParse(amountStr) ?? 0.0;
-        final bool isInternalTransfer = evmAddresses.contains(sender);
-        String transactionType = isInternalTransfer
-            ? S.of(context).internal_transfer
-            : S.of(context).purchase;
+        dateTime = DateTime.fromMillisecondsSinceEpoch(timestampMs, isUtc: true);
+      } catch (e) {
+        debugPrint("⚠️ Erreur de création de DateTime à partir du timestamp $timestampMs: $e");
+        continue;
+      }
 
-        // Vérifier s'il existe une transaction YAM correspondante
+      final bool isInternalTransfer = evmAddresses.contains(sender);
+      // Utiliser les textes capturés au lieu de S.of(context)
+      String transactionType = isInternalTransfer ? internalTransferText : purchaseText;
+
+      try {
         final matchingYamTransaction = yamTransactions.firstWhere(
-          (yamTransaction) {
-            final String? yamId =
-                yamTransaction['Transaction ID'].toLowerCase();
-            if (yamId == null || yamId.isEmpty) return false;
-            final String yamIdTrimmed = yamId.substring(0, yamId.length - 10);
-            final bool match = transactionId.startsWith(yamIdTrimmed);
-            return match;
-          },
-          orElse: () => {},
-        );
+            (yamTransaction) {
+              final String? yamId =
+                  yamTransaction['transaction_id']?.toLowerCase();
+              if (yamId == null || yamId.isEmpty) return false;
+              final String yamIdTrimmed = yamId.substring(0, yamId.length - 10);
+              final bool match = transactionId.startsWith(yamIdTrimmed);
+              return match;
+            },
+            orElse: () => {},
+          );
 
         double? price;
         if (matchingYamTransaction.isNotEmpty) {
-          final double? rawPrice = matchingYamTransaction['Price']?.toDouble();
+          final double? rawPrice = (matchingYamTransaction['price'] as num?)?.toDouble();
           price = rawPrice ?? 0.0;
-          transactionType = S.of(context).yam;
+          // Utiliser le texte capturé pour YAM
+          transactionType = yamText;
           debugPrint("✅ Correspondance YAM trouvée ! Prix: $price");
         } else {
           debugPrint("❌ Aucune correspondance YAM trouvée.");
@@ -1232,60 +1342,64 @@ class DataManager extends ChangeNotifier {
 
         tempTransactionsByToken.putIfAbsent(tokenId, () => []).add({
           "amount": amount,
-          "dateTime": DateTime.fromMillisecondsSinceEpoch(timestampMs),
+          "dateTime": dateTime,
           "transactionType": transactionType,
           "price": price,
         });
       } catch (e) {
+        debugPrint("⚠️ Erreur lors du traitement des informations YAM: $e");
         continue;
       }
+    } catch (e) {
+      debugPrint("⚠️ Erreur de parsing de la transaction: $transaction. Détail: $e");
+      continue;
     }
-
-    // Ajouter les transactions YAM qui n'ont pas été trouvées dans transactionsHistory
-    debugPrint(
-        "📌 Vérification des transactions YAM non trouvées dans transactionsHistory...");
-    for (var yamTransaction in yamTransactions) {
-      final String? yamId = yamTransaction['Transaction ID']?.toLowerCase();
-      if (yamId == null || yamId.isEmpty) continue;
-
-      final String yamIdTrimmed = yamId.substring(0, yamId.length - 10);
-      final bool alreadyExists = transactionsHistory.any((transaction) =>
-          transaction['id']?.startsWith(yamIdTrimmed) ?? false);
-
-      if (!alreadyExists) {
-        final String? yamTimestamp = yamTransaction['Created At'];
-        final double? yamPrice = yamTransaction['Price']?.toDouble();
-        final double? yamQuantity = yamTransaction['Quantity']?.toDouble();
-        final String? offerTokenAddress =
-            yamTransaction['Offer Token Address']?.toLowerCase();
-
-        if (yamTimestamp == null ||
-            yamPrice == null ||
-            yamQuantity == null ||
-            offerTokenAddress == null) {
-          debugPrint(
-              "⚠️ Transaction YAM ignorée (champ manquant): $yamTransaction");
-          continue;
-        }
-
-        final int timestampMs = int.parse(yamTimestamp) * 1000;
-
-        debugPrint(
-            "➕ Ajout d'une nouvelle transaction YAM | ID: $yamId, Token: $offerTokenAddress, Amount: $yamQuantity, Price: $yamPrice");
-
-        tempTransactionsByToken.putIfAbsent(offerTokenAddress, () => []).add({
-          "amount": yamQuantity,
-          "dateTime": DateTime.fromMillisecondsSinceEpoch(timestampMs),
-          "transactionType": S.of(context).yam,
-          "price": yamPrice,
-        });
-      }
-    }
-
-    debugPrint("✅ Fin du traitement des transactions.");
-    transactionsByToken.addAll(tempTransactionsByToken);
-    isLoadingTransactions = false;
   }
+
+  // ✅ **Ajout des transactions YAM manquantes**
+  debugPrint("📌 Vérification des transactions YAM non trouvées dans transactionsHistory...");
+  for (var yamTransaction in yamTransactions) {
+    final String? yamId = yamTransaction['transaction_id']?.toLowerCase();
+    if (yamId == null || yamId.isEmpty) continue;
+
+    final String yamIdTrimmed = yamId.substring(0, yamId.length - 10);
+    final bool alreadyExists = transactionsHistory.any((transaction) =>
+        transaction['Transaction ID']?.toLowerCase().startsWith(yamIdTrimmed) ?? false);
+
+    if (!alreadyExists) {
+      final String? yamTimestamp = yamTransaction['timestamp'];
+      final double? yamPrice = (yamTransaction['price'] as num?)?.toDouble();
+      final double? yamQuantity = (yamTransaction['quantity'] as num?)?.toDouble();
+      final String? offerTokenAddress = yamTransaction['offer_token_address']?.toLowerCase();
+
+      if (yamTimestamp == null || yamPrice == null || yamQuantity == null || offerTokenAddress == null) {
+        debugPrint("⚠️ Transaction YAM ignorée (champ manquant): $yamTransaction");
+        continue;
+      }
+
+      final int timestampMs;
+      try {
+        timestampMs = int.parse(yamTimestamp) * 1000;
+      } catch (e) {
+        debugPrint("⚠️ Erreur de conversion du timestamp YAM '$yamTimestamp': $e");
+        continue;
+      }
+
+      debugPrint("➕ Ajout d'une nouvelle transaction YAM | ID: $yamId, Token: $offerTokenAddress, Amount: $yamQuantity, Price: $yamPrice");
+
+      tempTransactionsByToken.putIfAbsent(offerTokenAddress, () => []).add({
+        "amount": yamQuantity,
+        "dateTime": DateTime.fromMillisecondsSinceEpoch(timestampMs, isUtc: true),
+        "transactionType": yamText,
+        "price": yamPrice,
+      });
+    }
+  }
+
+  debugPrint("✅ Fin du traitement des transactions.");
+  transactionsByToken.addAll(tempTransactionsByToken);
+  isLoadingTransactions = false;
+}
 
   // Méthode pour récupérer les données des propriétés
   Future<void> fetchPropertyData({bool forceFetch = false}) async {
@@ -1488,14 +1602,20 @@ class DataManager extends ChangeNotifier {
     notifyListeners(); // Notifier l'interface que les données ont été mises à jour
 
     // Archivage global si une heure s'est écoulée depuis le dernier archivage
-    if (lastArchiveTime == null || DateTime.now().difference(lastArchiveTime!).inHours >= 1) {
+    if (lastArchiveTime == null || DateTime.now().difference(lastArchiveTime!).inMinutes >= 5) {
       if (timestamp != null) {
         _archiveManager.archiveBalance('usdcDeposit', totalUsdcDepositSum, timestamp);
         _archiveManager.archiveBalance('usdcBorrow', totalUsdcBorrowSum, timestamp);
         _archiveManager.archiveBalance('xdaiDeposit', totalXdaiDepositSum, timestamp);
         _archiveManager.archiveBalance('xdaiBorrow', totalXdaiBorrowSum, timestamp);
         lastArchiveTime = DateTime.now();
+        debugPrint("✅ Archivage des balances effectué");
       }
+    } else {
+      final timeUntilNextArchive = Duration(minutes: 5) - DateTime.now().difference(lastArchiveTime!);
+      final minutesRemaining = timeUntilNextArchive.inMinutes;
+      final secondsRemaining = timeUntilNextArchive.inSeconds % 60;
+      debugPrint("⏳ Prochain archivage des balances dans ${minutesRemaining}m ${secondsRemaining}s");
     }
   } catch (e) {
     debugPrint('Erreur lors de la récupération des balances RMM: $e');
@@ -1508,96 +1628,39 @@ class DataManager extends ChangeNotifier {
 
     // Vérifier s'il y a au moins deux enregistrements pour calculer l'APY
     if (history.length < 2) {
-      throw Exception("Not enough data to calculate APY.");
+      debugPrint("Not enough data to calculate APY.");
+      return 0.0; // Retourner 0.0 au lieu de lever une exception
     }
 
-    // Calculer l'APY moyen des 3 dernières paires valides
-    double averageAPYForLastThreePairs = _calculateAPYForLastThreeValidPairs(history);
+    try {
+      // Utiliser la nouvelle méthode de calcul d'APY plus réactive
+      double averageAPYForLastPairs = apyManager.calculateSmartAPY(history);
 
-    // Si aucune paire valide n'est trouvée, retourner 0
-    if (averageAPYForLastThreePairs == 0) {
-      return 0;
-    }
-
-    // Calculer l'APY moyen global sur toutes les paires
-    apyAverage = _calculateAverageAPY(history);
-
-    return averageAPYForLastThreePairs; // Retourner l'APY moyen des 3 dernières paires valides
-  }
-
-  // Calculer l'APY sur les 3 dernières paires valides (APY > 0 et < 20%)
-  double _calculateAPYForLastThreeValidPairs(List<BalanceRecord> history) {
-    double totalAPY = 0;
-    int validPairsCount = 0;
-
-    // Parcourir l'historique à l'envers pour chercher les paires valides
-    for (int i = history.length - 1; i > 0 && validPairsCount < 3; i--) {
-      double apy = _calculateAPY(history[i], history[i - 1]);
-
-      // Si l'APY est valide (entre 0 et 20%), on l'ajoute
-      if (apy > 0 && apy < 20) {
-        totalAPY += apy;
-        validPairsCount++;
+      // Vérifier si le résultat est NaN
+      if (averageAPYForLastPairs.isNaN) {
+        debugPrint("APY calculation resulted in NaN value for $tokenType.");
+        return 0.0;
       }
-    }
 
-    // Calculer la moyenne sur les paires valides trouvées
-    return validPairsCount > 0 ? totalAPY / validPairsCount : 0;
-  }
-
-  // Calculer la moyenne des APY sur toutes les paires d'enregistrements, en ignorant les dépôts/retraits
-  double _calculateAverageAPY(List<BalanceRecord> history) {
-    double totalAPY = 0;
-    int count = 0;
-
-    for (int i = 1; i < history.length; i++) {
-      double apy = _calculateAPY(history[i], history[i - 1]);
-
-      // Ne prendre en compte que les paires valides (APY entre 0 et 25%)
-      if (apy > 0 && apy < 25) {
-        totalAPY += apy;
-        count++;
+      // Si aucune paire valide n'est trouvée, retourner 0
+      if (averageAPYForLastPairs == 0) {
+        debugPrint("No valid pairs found for APY calculation.");
+        return 0.0;
       }
+
+      // Calculer l'APY moyen global sur toutes les paires en utilisant la méthode exponentielle
+      double globalApy = apyManager.calculateExponentialMovingAverageAPY(history);
+      
+      // Vérifier si le résultat global est NaN
+      if (!globalApy.isNaN) {
+        apyAverage = globalApy;
+      }
+
+      return averageAPYForLastPairs;
+    } catch (e) {
+      debugPrint("Error calculating APY for $tokenType: $e");
+      return 0.0;
     }
-
-    // Retourner la moyenne des APY valides, ou 0 s'il n'y a aucune paire valide
-    return count > 0 ? totalAPY / count : 0;
-  }
-
-  // Fonction pour calculer l'APY entre deux enregistrements avec une tolérance pour les petits changements
-  double _calculateAPY(BalanceRecord current, BalanceRecord previous) {
-    double initialBalance = previous.balance;
-    double finalBalance = current.balance;
-
-    // Calculer la différence en pourcentage
-    double percentageChange =
-        ((finalBalance - initialBalance) / initialBalance) * 100;
-
-    // Ignorer si la différence est trop faible (par exemple moins de 0,001%)
-    if (percentageChange.abs() < 0.001) {
-      return 0; // Ne pas prendre en compte cette paire
-    }
-
-    // Ignorer si la différence est supérieure à 20% ou inférieure à 0% (dépôt ou retrait)
-    if (percentageChange > 20 || percentageChange < 0) {
-      return 0; // Ne pas prendre en compte cette paire
-    }
-
-    // Calculer la durée en secondes
-    double timePeriodInSeconds =
-        current.timestamp.difference(previous.timestamp).inSeconds.toDouble();
-
-    // Ignorer les périodes trop courtes (moins de 1 minute, par exemple)
-    if (timePeriodInSeconds < 60) {
-      return 0;
-    }
-
-    // Calculer l'APY en utilisant des secondes et convertir pour une période annuelle
-    double apy = ((finalBalance - initialBalance) / initialBalance) *
-        (365 * 24 * 60 * 60 / timePeriodInSeconds) *
-        100;
-
-    return apy;
   }
 
   double getTotalRentReceived() {
@@ -1815,7 +1878,7 @@ class DataManager extends ChangeNotifier {
     // Regroupement par token
     Map<String, List<Map<String, dynamic>>> grouped = {};
     for (var entry in yamHistoryData) {
-      String token = entry['Token'];
+      String token = entry['token'];
       if (grouped[token] == null) {
         grouped[token] = [];
       }
@@ -1827,8 +1890,8 @@ class DataManager extends ChangeNotifier {
       double totalVolume = 0;
       double totalQuantity = 0;
       for (var day in entries) {
-        totalVolume += (day['Volume'] as num).toDouble();
-        totalQuantity += (day['Quantity'] as num).toDouble();
+        totalVolume += (day['volume'] as num).toDouble();
+        totalQuantity += (day['quantity'] as num).toDouble();
       }
       double averageValue = totalQuantity > 0 ? totalVolume / totalQuantity : 0;
       tokenStatistics.add({
@@ -1842,5 +1905,282 @@ class DataManager extends ChangeNotifier {
         "fetchYamHistory -> Mise à jour des statistiques des tokens Yam.");
     yamHistory = tokenStatistics;
     notifyListeners();
+  }
+
+  // Méthode centralisée pour calculer et archiver les valeurs d'APY
+  void calculateApyValues() {
+    // Calculer l'APY global avec la méthode centralisée
+    netGlobalApy = calculateGlobalApy();
+    
+    // Logger la valeur calculée
+    debugPrint("✅ APY global calculé: $netGlobalApy%");
+    
+    // Calculer l'APY moyen pondéré par les montants
+    double totalDepositAmount = totalUsdcDepositBalance + totalXdaiDepositBalance;
+    double totalBorrowAmount = totalUsdcBorrowBalance + totalXdaiBorrowBalance;
+    
+    // APY pondéré pour les dépôts (gains) - toujours positif
+    double weightedDepositApy = 0.0;
+    if (totalDepositAmount > 0) {
+      weightedDepositApy = (usdcDepositApy * totalUsdcDepositBalance + 
+                           xdaiDepositApy * totalXdaiDepositBalance) / 
+                          totalDepositAmount;
+    }
+    
+    // APY pondéré pour les emprunts (coûts) - toujours positif
+    double weightedBorrowApy = 0.0;
+    if (totalBorrowAmount > 0) {
+      weightedBorrowApy = (usdcBorrowApy * totalUsdcBorrowBalance + 
+                          xdaiBorrowApy * totalXdaiBorrowBalance) / 
+                         totalBorrowAmount;
+    }
+    
+    // Calcul du total des intérêts gagnés et payés
+    double depositInterest = weightedDepositApy * totalDepositAmount;
+    double borrowInterest = weightedBorrowApy * totalBorrowAmount;
+    
+    // Intérêt net (positif si les coûts d'emprunt sont supérieurs aux gains de dépôt,
+    // négatif si les gains de dépôt sont supérieurs aux coûts d'emprunt)
+    double netInterest = borrowInterest - depositInterest;
+    
+    // Total des montants impliqués
+    double totalAmount = totalDepositAmount + totalBorrowAmount;
+    
+    // Calculer l'APY moyen pondéré final
+    if (totalAmount > 0) {
+      apyAverage = netInterest / totalAmount;
+    } else {
+      apyAverage = 0.0;
+    }
+    
+    // Vérifier si le résultat est NaN
+    if (apyAverage.isNaN) {
+      debugPrint("⚠️ L'APY moyen calculé est NaN, retourne 0.0");
+      apyAverage = 0.0;
+    }
+    
+    debugPrint("✅ APY moyen pondéré calculé: $apyAverage% (dépôts: $weightedDepositApy% × $totalDepositAmount, emprunts: $weightedBorrowApy% × $totalBorrowAmount)");
+    debugPrint("   Intérêts de dépôt: $depositInterest, Intérêts d'emprunt: $borrowInterest, Net: $netInterest");
+    
+    // Archiver l'APY global calculé
+    archiveApyValue(netGlobalApy, apyAverage);
+
+    // Calculer le ROI global
+    roiGlobalValue = apyManager.calculateRoi(
+      currentValue: totalWalletValue,
+      initialInvestment: apyManager.initialInvestment,
+    );
+
+    // Calculer l'APY pour chaque wallet individuel
+    Map<String, double> walletApys = apyManager.calculateWalletApys(walletStats);
+    
+    // Mettre à jour les statistiques de wallet avec les APY calculés
+    for (var wallet in walletStats) {
+      final String address = wallet['address'] as String;
+      wallet['apy'] = walletApys[address] ?? 0.0;
+    }
+  }
+
+  // Dans la méthode qui met à jour les données de wallet/portfolio
+  // Par exemple, dans la méthode fetchData ou processData
+  void processData() async {
+    // ... existing code ...
+    
+    // Calculer les statistiques
+    // ... existing code ...
+    
+    // Calculer les valeurs d'APY et ROI
+    calculateApyValues();
+    
+    // Notifier les écouteurs
+    notifyListeners();
+  }
+
+  /// Ajuste la réactivité du calcul d'APY
+  /// 
+  /// [reactivityLevel] : niveau de réactivité entre 0 (très lisse) et 1 (très réactif)
+  /// [historyDays] : nombre de jours d'historique à prendre en compte (optionnel)
+  void adjustApyReactivity(double reactivityLevel, {int? historyDays}) {
+    if (reactivityLevel < 0 || reactivityLevel > 1) {
+      debugPrint("⚠️ Niveau de réactivité invalide: $reactivityLevel. Doit être entre 0 et 1.");
+      return;
+    }
+
+    // Calculer l'alpha pour l'EMA en fonction du niveau de réactivité
+    // Une réactivité de 0 donne un alpha de 0.05 (très lisse)
+    // Une réactivité de 1 donne un alpha de 0.8 (très réactif)
+    double alpha = 0.05 + (reactivityLevel * 0.75);
+    
+    // Déterminer le nombre de jours d'historique
+    // Si non spécifié, ajuster en fonction de la réactivité
+    // Plus la réactivité est élevée, moins on a besoin d'historique
+    // Plage de 1 à 20 jours avec des valeurs discrètes
+    int days = historyDays ?? (20 - (reactivityLevel * 19).round()).clamp(1, 20);
+    
+    debugPrint("🔄 Ajustement de la réactivité APY: alpha=$alpha, jours=$days");
+    
+    // Appliquer les nouveaux paramètres à l'ApyManager
+    apyManager.setApyCalculationParameters(
+      newEmaAlpha: alpha,
+      newMaxHistoryDays: days,
+    );
+    
+    // Recalculer l'APY avec les nouveaux paramètres
+    if (balanceHistory.length >= 2) {
+      try {
+        // Utiliser calculateApyValues au lieu de recalculer directement ici
+        calculateApyValues();
+        debugPrint("✅ APY recalculé avec les nouveaux paramètres: $netGlobalApy%");
+      } catch (e) {
+        debugPrint("❌ Erreur lors du recalcul de l'APY: $e");
+      }
+    } else {
+      debugPrint("⚠️ Historique insuffisant pour recalculer l'APY: ${balanceHistory.length} enregistrement(s) disponible(s) (minimum requis: 2)");
+    }
+    
+    // Notifier les widgets pour qu'ils se mettent à jour
+    notifyListeners();
+  }
+
+  // Méthode appelée par l'ArchiveManager lorsqu'une nouvelle valeur de portefeuille est archivée
+  void updateBalanceHistory(List<BalanceRecord> newBalanceHistory) {
+    balanceHistory = newBalanceHistory;
+    walletBalanceHistory = newBalanceHistory; // Mettre à jour walletBalanceHistory aussi
+    
+    // Recalculer l'APY après mise à jour de l'historique
+    if (balanceHistory.length >= 2) {
+      try {
+        // Appeler calculateApyValues pour mettre à jour netGlobalApy
+        calculateApyValues();
+        debugPrint("✅ APY recalculé après mise à jour de l'historique: $netGlobalApy%");
+      } catch (e) {
+        debugPrint("❌ Erreur lors du recalcul de l'APY: $e");
+      }
+    } else {
+      debugPrint("⚠️ Historique insuffisant après mise à jour: ${balanceHistory.length} enregistrement(s) disponible(s) (minimum requis: 2)");
+    }
+    
+    // Sauvegarder les modifications dans Hive
+    saveWalletBalanceHistory();
+    
+    notifyListeners();
+  }
+
+  /// Méthode centralisée pour archiver une valeur d'APY
+  /// 
+  /// Cette méthode gère à la fois:
+  /// 1. L'ajout à l'historique en mémoire
+  /// 2. La persistance dans Hive via l'ArchiveManager
+  /// 3. La notification des listeners
+  /// 
+  /// [netApy] : Valeur nette de l'APY à archiver
+  /// [grossApy] : Valeur brute de l'APY à archiver
+  void archiveApyValue(double netApy, double grossApy) {
+    // Vérifier si nous avons moins de 20 éléments dans l'historique
+    if (apyHistory.length < 20) {
+      // Si moins de 20 éléments, vérifier si 15 minutes se sont écoulées depuis le dernier archivage
+      if (apyHistory.isNotEmpty) {
+        final lastRecord = apyHistory.last;
+        final timeSinceLastRecord = DateTime.now().difference(lastRecord.timestamp);
+        if (timeSinceLastRecord.inMinutes < 15) {
+          debugPrint('⏳ Archivage APY ignoré: moins de 15 minutes depuis le dernier enregistrement (${timeSinceLastRecord.inMinutes}m)');
+          return;
+        }
+      }
+    } else {
+      // Si 20 éléments ou plus, vérifier si 1 heure s'est écoulée depuis le dernier archivage
+      if (apyHistory.isNotEmpty) {
+        final lastRecord = apyHistory.last;
+        final timeSinceLastRecord = DateTime.now().difference(lastRecord.timestamp);
+        if (timeSinceLastRecord.inHours < 1) {
+          debugPrint('⏳ Archivage APY ignoré: moins d\'une heure depuis le dernier enregistrement (${timeSinceLastRecord.inMinutes}m)');
+          return;
+        }
+      }
+    }
+
+    // 1. Ajouter à la liste en mémoire
+    apyHistory.add(ApyRecord(
+      netApy: netApy, 
+      grossApy: grossApy, 
+      timestamp: DateTime.now())
+    );
+    
+    // 2. Déléguer à l'ArchiveManager pour la persistance dans Hive
+    _archiveManager.archiveApyValue(netApy, grossApy);
+    
+    // 3. Notifier les widgets pour mise à jour de l'UI
+    notifyListeners();
+  }
+
+  // Valeurs d'APY calculées à partir de l'historique
+  double apyAverageFromHistory = 0.0;
+  double usdcDepositApyFromHistory = 0.0;
+  double usdcBorrowApyFromHistory = 0.0;
+  double xdaiDepositApyFromHistory = 0.0;
+  double xdaiBorrowApyFromHistory = 0.0;
+
+  // Valeurs d'APY basées sur les taux fixes
+  double apyAverageFromRates = 0.0;
+  double usdcDepositApyFromRates = 0.0;
+  double usdcBorrowApyFromRates = 0.0;
+  double xdaiDepositApyFromRates = 0.0;
+  double xdaiBorrowApyFromRates = 0.0;
+
+  Future<void> updateApyValues() async {
+    try {
+      // Calculer l'APY à partir de l'historique pour chaque type de balance
+      usdcDepositApy = apyManager.calculateSmartAPY(await _archiveManager.getBalanceHistory('usdcDeposit'));
+      usdcBorrowApy = apyManager.calculateSmartAPY(await _archiveManager.getBalanceHistory('usdcBorrow'));
+      xdaiDepositApy = apyManager.calculateSmartAPY(await _archiveManager.getBalanceHistory('xdaiDeposit'));
+      xdaiBorrowApy = apyManager.calculateSmartAPY(await _archiveManager.getBalanceHistory('xdaiBorrow'));
+
+      // Vérifier et corriger les valeurs NaN
+      if (usdcDepositApy.isNaN) usdcDepositApy = 0.0;
+      if (usdcBorrowApy.isNaN) usdcBorrowApy = 0.0;
+      if (xdaiDepositApy.isNaN) xdaiDepositApy = 0.0;
+      if (xdaiBorrowApy.isNaN) xdaiBorrowApy = 0.0;
+
+      // Le calcul complet de l'APY moyen est maintenant fait dans calculateApyValues()
+      // Nous appelons cette méthode pour mettre à jour apyAverage et netGlobalApy
+      calculateApyValues();
+
+      if (kDebugMode) {
+        debugPrint('APY individuels calculés à partir de l\'historique:');
+        debugPrint('USDC Deposit: $usdcDepositApy%');
+        debugPrint('USDC Borrow: $usdcBorrowApy%');
+        debugPrint('XDAI Deposit: $xdaiDepositApy%');
+        debugPrint('XDAI Borrow: $xdaiBorrowApy%');
+      }
+
+      notifyListeners();
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('Erreur lors de la mise à jour des valeurs APY: $e');
+      }
+    }
+  }
+
+  // Méthode centralisée pour calculer l'APY global avec la formule originale
+  double calculateGlobalApy() {
+    double result = (((averageAnnualYield * (walletValue + rmmValue)) +
+            (totalUsdcDepositBalance * usdcDepositApy +
+                totalXdaiDepositBalance * xdaiDepositApy) -
+            (totalUsdcBorrowBalance * usdcBorrowApy +
+                totalXdaiBorrowBalance * xdaiBorrowApy)) /
+        (walletValue +
+            rmmValue +
+            totalUsdcDepositBalance +
+            totalXdaiDepositBalance +
+            totalUsdcBorrowBalance +
+            totalXdaiBorrowBalance));
+    
+    // Vérifier si le résultat est NaN
+    if (result.isNaN) {
+      debugPrint("⚠️ L'APY global calculé est NaN, retourne 0.0");
+      return 0.0;
+    }
+    
+    return result;
   }
 }

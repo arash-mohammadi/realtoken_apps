@@ -5,19 +5,28 @@ import '../models/roi_record.dart';
 import '../models/apy_record.dart';
 import '../models/healthandltv_record.dart';
 import '../models/rented_record.dart';
+import 'data_manager.dart';
+import 'dart:convert';
 
 class ArchiveManager {
   static final ArchiveManager _instance = ArchiveManager._internal();
   factory ArchiveManager() => _instance;
   ArchiveManager._internal();
 
+  DataManager? _dataManager;
+
+  void setDataManager(DataManager dataManager) {
+    _dataManager = dataManager;
+  }
+
   DateTime? lastArchiveTime;
 
   Future<void> archiveTotalWalletValue(double totalWalletValue) async {
-    var box = Hive.box('walletValueArchive');
-
-    List<dynamic>? balanceHistoryJson =
-        box.get('balanceHistory_totalWalletValue');
+    debugPrint("📊 Début de l'archivage totalWalletValue");
+    
+    // 1. D'abord, lire les données existantes dans balanceHistory
+    var boxBalance = Hive.box('balanceHistory');
+    List<dynamic>? balanceHistoryJson = boxBalance.get('balanceHistory_totalWalletValue');
     List<BalanceRecord> balanceHistory = balanceHistoryJson != null
         ? balanceHistoryJson
             .map((recordJson) =>
@@ -25,25 +34,65 @@ class ArchiveManager {
             .toList()
         : [];
 
+    debugPrint("📊 Historique balanceHistory: ${balanceHistory.length} enregistrements");
+
+    // 2. Ensuite, lire les données existantes dans walletValueArchive
+    var boxWalletValue = Hive.box('walletValueArchive');
+    List<dynamic>? walletValueArchiveJson = boxWalletValue.get('balanceHistory_totalWalletValue');
+    List<BalanceRecord> walletValueArchive = walletValueArchiveJson != null
+        ? walletValueArchiveJson
+            .map((recordJson) =>
+                BalanceRecord.fromJson(Map<String, dynamic>.from(recordJson)))
+            .toList()
+        : [];
+
+    debugPrint("📊 Historique walletValueArchive: ${walletValueArchive.length} enregistrements");
+
+    // Si l'historique existe, vérifier si on doit ajouter un nouvel enregistrement
     if (balanceHistory.isNotEmpty) {
       BalanceRecord lastRecord = balanceHistory.last;
       DateTime lastTimestamp = lastRecord.timestamp;
 
       if (DateTime.now().difference(lastTimestamp).inHours < 1) {
+        debugPrint("⏱️ Dernière archive trop récente (< 1h), aucun nouvel enregistrement ajouté");
         return;
       }
     }
 
+    // Créer un nouvel enregistrement
     BalanceRecord newRecord = BalanceRecord(
       tokenType: 'totalWalletValue',
       balance: double.parse(totalWalletValue.toStringAsFixed(3)),
       timestamp: DateTime.now(),
     );
+    
+    // Ajouter le nouvel enregistrement aux deux listes
     balanceHistory.add(newRecord);
-
+    
+    // S'assurer que walletValueArchive contient tous les enregistrements de balanceHistory
+    // Pour cela, on réinitialise walletValueArchive avec le contenu de balanceHistory
+    walletValueArchive = List.from(balanceHistory);
+    
+    // Maintenant sauvegarder les deux listes
     List<Map<String, dynamic>> balanceHistoryJsonToSave =
         balanceHistory.map((record) => record.toJson()).toList();
-    await box.put('balanceHistory_totalWalletValue', balanceHistoryJsonToSave);
+    
+    List<Map<String, dynamic>> walletValueArchiveJsonToSave =
+        walletValueArchive.map((record) => record.toJson()).toList();
+    
+    // Sauvegarder dans les deux boîtes Hive
+    await boxBalance.put('balanceHistory_totalWalletValue', balanceHistoryJsonToSave);
+    await boxWalletValue.put('balanceHistory_totalWalletValue', walletValueArchiveJsonToSave);
+    
+    debugPrint("✅ Archivage terminé - Nouvel enregistrement ajouté, total: ${balanceHistory.length} enregistrements");
+    
+    // Mettre à jour le DataManager si disponible
+    if (_dataManager != null) {
+      _dataManager!.updateBalanceHistory(balanceHistory);
+      debugPrint("✅ Historique de balance mis à jour dans DataManager");
+    } else {
+      debugPrint("⚠️ DataManager non initialisé dans ArchiveManager");
+    }
   }
 
   Future<void> archiveRentedValue(double rentedValue) async {
@@ -137,11 +186,21 @@ class ArchiveManager {
       if (apyHistory.isNotEmpty) {
         ApyRecord lastRecord = apyHistory.last;
         DateTime lastTimestamp = lastRecord.timestamp;
+        Duration timeSinceLastRecord = DateTime.now().difference(lastTimestamp);
 
-        if (DateTime.now().difference(lastTimestamp).inHours < 1) {
-          debugPrint(
-              'Dernier enregistrement récent, aucun nouvel enregistrement ajouté.');
-          return;
+        // Vérifier si nous avons moins de 20 éléments dans l'historique
+        if (apyHistory.length < 20) {
+          // Si moins de 20 éléments, vérifier si 15 minutes se sont écoulées
+          if (timeSinceLastRecord.inMinutes < 15) {
+            debugPrint('⏳ Archivage APY ignoré: moins de 15 minutes depuis le dernier enregistrement (${timeSinceLastRecord.inMinutes}m)');
+            return;
+          }
+        } else {
+          // Si 20 éléments ou plus, vérifier si 1 heure s'est écoulée
+          if (timeSinceLastRecord.inHours < 1) {
+            debugPrint('⏳ Archivage APY ignoré: moins d\'une heure depuis le dernier enregistrement (${timeSinceLastRecord.inMinutes}m)');
+            return;
+          }
         }
       }
 
@@ -156,9 +215,9 @@ class ArchiveManager {
           apyHistory.map((record) => record.toJson()).toList();
       await box.put('apy_history', apyHistoryJsonToSave);
 
-      debugPrint('Nouvel enregistrement APY ajouté et sauvegardé avec succès.');
+      debugPrint('✅ APY archivé: Net=${newRecord.netApy}%, Brut=${newRecord.grossApy}%');
     } catch (e) {
-      debugPrint('Erreur lors de l\'archivage des valeurs APY : $e');
+      debugPrint('❌ Erreur lors de l\'archivage des valeurs APY : $e');
     }
   }
 
@@ -167,13 +226,28 @@ class ArchiveManager {
     try {
       var box = Hive.box('balanceHistory');
 
-      List<dynamic>? balanceHistoryJson = box.get('balanceHistory_$tokenType');
-      List<BalanceRecord> balanceHistory = balanceHistoryJson != null
-          ? balanceHistoryJson
+      dynamic rawData = box.get('balanceHistory_$tokenType');
+      List<BalanceRecord> balanceHistory = [];
+
+      if (rawData != null) {
+        if (rawData is List) {
+          balanceHistory = rawData
               .map((recordJson) =>
                   BalanceRecord.fromJson(Map<String, dynamic>.from(recordJson)))
-              .toList()
-          : [];
+              .toList();
+        } else if (rawData is String) {
+          // Si les données sont une chaîne JSON, on essaie de les parser
+          try {
+            List<dynamic> parsedData = json.decode(rawData);
+            balanceHistory = parsedData
+                .map((recordJson) =>
+                    BalanceRecord.fromJson(Map<String, dynamic>.from(recordJson)))
+                .toList();
+          } catch (e) {
+            debugPrint("⚠️ Erreur lors du parsing des données JSON pour $tokenType: $e");
+          }
+        }
+      }
 
       BalanceRecord newRecord = BalanceRecord(
         tokenType: tokenType,
@@ -186,6 +260,8 @@ class ArchiveManager {
       List<Map<String, dynamic>> balanceHistoryJsonToSave =
           balanceHistory.map((record) => record.toJson()).toList();
       await box.put('balanceHistory_$tokenType', balanceHistoryJsonToSave);
+      
+      debugPrint("📊 Archivage de la balance - Token: $tokenType, Balance: ${balance.toStringAsFixed(3)}");
     } catch (e) {
       debugPrint(
           'Erreur lors de l\'archivage de la balance pour $tokenType : $e');
