@@ -112,14 +112,17 @@ class DashboardPageState extends State<DashboardPage> {
                                             ?.color
                                             ?.withOpacity(0.9) ??
                                         Colors.grey[100]!,
-                                    child: Container(
-                                      width: 100, // Largeur placeholder
-                                      height: 20, // Hauteur placeholder
-                                      color: Theme.of(context)
-                                          .textTheme
-                                          .bodyMedium
-                                          ?.color
-                                          ?.withOpacity(0.2),
+                                    child: Text(
+                                      lastRentReceived,
+                                      style: TextStyle(
+                                        fontSize:
+                                            18 + appState.getTextSizeOffset(),
+                                        fontWeight: FontWeight.bold,
+                                        color: Theme.of(context)
+                                            .textTheme
+                                            .bodyLarge
+                                            ?.color,
+                                      ),
                                     ),
                                   )
                                 : Text(
@@ -159,16 +162,19 @@ class DashboardPageState extends State<DashboardPage> {
                                             .textTheme
                                             .bodyMedium
                                             ?.color
-                                            ?.withOpacity(0.4) ??
+                                            ?.withOpacity(0.5) ??
                                         Colors.grey[100]!,
-                                    child: Container(
-                                      width: 100, // Largeur placeholder
-                                      height: 16, // Hauteur placeholder
-                                      color: Theme.of(context)
-                                          .textTheme
-                                          .bodyMedium
-                                          ?.color
-                                          ?.withOpacity(0.2),
+                                    child: Text(
+                                      totalRentReceived,
+                                      style: TextStyle(
+                                        fontSize:
+                                            18 + appState.getTextSizeOffset(),
+                                        fontWeight: FontWeight.bold,
+                                        color: Theme.of(context)
+                                            .textTheme
+                                            .bodyLarge
+                                            ?.color,
+                                      ),
                                     ),
                                   )
                                 : Text(

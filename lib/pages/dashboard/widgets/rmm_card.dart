@@ -24,6 +24,24 @@ class RmmCard extends StatelessWidget {
     // Récupérer la liste des wallets depuis perWalletBalances
     final List<Map<String, dynamic>> walletDetails =
         dataManager.perWalletBalances;
+    
+    // Calcul des montants globaux (somme de tous les wallets)
+    double totalUsdcDeposit = 0;
+    double totalXdaiDeposit = 0;
+    double totalUsdcBorrow = 0;
+    double totalXdaiBorrow = 0;
+    
+    for (var wallet in walletDetails) {
+      totalUsdcDeposit += wallet['usdcDeposit'] as double? ?? 0;
+      totalXdaiDeposit += wallet['xdaiDeposit'] as double? ?? 0;
+      totalUsdcBorrow += wallet['usdcBorrow'] as double? ?? 0;
+      totalXdaiBorrow += wallet['xdaiBorrow'] as double? ?? 0;
+    }
+    
+    // Calcul des montants totaux
+    final double totalDeposits = totalUsdcDeposit + totalXdaiDeposit;
+    final double totalBorrows = totalUsdcBorrow + totalXdaiBorrow;
+
 // Sélection du wallet ayant le HF le plus bas, basé sur walletRmmValue
     Map<String, dynamic>? walletWithLowestHF;
     double lowestHF = double.infinity;
@@ -49,19 +67,14 @@ class RmmCard extends StatelessWidget {
       }
     }
 
-// Récupération des valeurs finales du wallet sélectionné
+// Récupération des valeurs du wallet avec le HF le plus bas pour l'affichage des jauges
     final String selectedAddress = walletWithLowestHF?['address'] ?? '';
-    final double usdcDeposit =
-        walletWithLowestHF?['usdcDeposit'] as double? ?? 0;
-    final double xdaiDeposit =
-        walletWithLowestHF?['xdaiDeposit'] as double? ?? 0;
-    final double usdcBorrow = walletWithLowestHF?['usdcBorrow'] as double? ?? 0;
-    final double xdaiBorrow = walletWithLowestHF?['xdaiBorrow'] as double? ?? 0;
-    final double walletDeposit = usdcDeposit + xdaiDeposit;
-    final double walletBorrow = usdcBorrow + xdaiBorrow;
+    final double worstWalletUsdcBorrow = walletWithLowestHF?['usdcBorrow'] as double? ?? 0;
+    final double worstWalletXdaiBorrow = walletWithLowestHF?['xdaiBorrow'] as double? ?? 0;
+    final double worstWalletBorrow = worstWalletUsdcBorrow + worstWalletXdaiBorrow;
 
-// Récupération correcte du walletRmmValue
-    final double walletRmmValue =
+// Récupération correcte du walletRmmValue pour le wallet avec le HF le plus bas
+    final double worstWalletRmmValue =
         dataManager.perWalletRmmValues[selectedAddress] ?? 0;
 
 // Récupération des taux APY
@@ -70,15 +83,15 @@ class RmmCard extends StatelessWidget {
     final double usdcBorrowApy = dataManager.usdcBorrowApy ?? 0.0;
     final double xdaiBorrowApy = dataManager.xdaiBorrowApy ?? 0.0;
 
-// Calcul final du Health Factor et du LTV
-    double healthFactor = walletBorrow > 0
-        ? (walletRmmValue * 0.7) / walletBorrow
+// Calcul final du Health Factor et du LTV pour le wallet le plus défavorable
+    double healthFactor = worstWalletBorrow > 0
+        ? (worstWalletRmmValue * 0.7) / worstWalletBorrow
         : double.infinity;
     double currentLTV =
-        walletRmmValue > 0 ? (walletBorrow / walletRmmValue * 100) : 0;
+        worstWalletRmmValue > 0 ? (worstWalletBorrow / worstWalletRmmValue * 100) : 0;
 
 // Gestion des cas particuliers pour l'affichage
-    if (healthFactor.isInfinite || healthFactor.isNaN || walletBorrow == 0) {
+    if (healthFactor.isInfinite || healthFactor.isNaN || worstWalletBorrow == 0) {
       healthFactor = 10.0; // Valeur par défaut pour un HF sûr
     }
 
@@ -89,9 +102,9 @@ class RmmCard extends StatelessWidget {
       Icons.currency_exchange,
       _buildLiquidationIndicator(
         context,
-        walletRmmValue,
-        usdcBorrow,
-        xdaiBorrow,
+        worstWalletRmmValue,
+        worstWalletUsdcBorrow,
+        worstWalletXdaiBorrow,
         dataManager.usdcBorrowApy ?? 0.0,
         dataManager.xdaiBorrowApy ?? 0.0,
         isLoading,
@@ -105,7 +118,7 @@ class RmmCard extends StatelessWidget {
         _buildBalanceRowWithIcon(
           context,
           currencyUtils.getFormattedAmount(
-            currencyUtils.convert(xdaiDeposit),
+            currencyUtils.convert(totalXdaiDeposit),
             currencyUtils.currencySymbol, 
             showAmounts
           ),
@@ -119,7 +132,7 @@ class RmmCard extends StatelessWidget {
         _buildBalanceRowWithIcon(
           context,
           currencyUtils.getFormattedAmount(
-            currencyUtils.convert(usdcDeposit),
+            currencyUtils.convert(totalUsdcDeposit),
             currencyUtils.currencySymbol, 
             showAmounts
           ),
@@ -138,7 +151,7 @@ class RmmCard extends StatelessWidget {
         _buildBalanceRowWithIcon(
           context,
           currencyUtils.getFormattedAmount(
-            currencyUtils.convert(usdcBorrow),
+            currencyUtils.convert(totalUsdcBorrow),
             currencyUtils.currencySymbol, 
             showAmounts
           ),
@@ -152,7 +165,7 @@ class RmmCard extends StatelessWidget {
         _buildBalanceRowWithIcon(
           context,
           currencyUtils.getFormattedAmount(
-            currencyUtils.convert(xdaiBorrow),
+            currencyUtils.convert(totalXdaiBorrow),
             currencyUtils.currencySymbol, 
             showAmounts
           ),
@@ -187,7 +200,7 @@ class RmmCard extends StatelessWidget {
               double factor = healthFactor;
               factor = factor.isNaN || factor < 0 ? 0 : factor.clamp(0.0, 10.0);
               return _buildVerticalGauges(
-                  factor, walletRmmValue, walletBorrow, context);
+                  factor, worstWalletRmmValue, worstWalletBorrow, context);
             },
           ),
         ],
@@ -208,6 +221,9 @@ class RmmCard extends StatelessWidget {
     
     return Row(
       children: [
+        // Ajouter un padding à gauche pour créer l'indentation
+        SizedBox(width: 10),
+        
         // Icône du token (taille ajustée)
         Container(
           width: 18,  // 18x18 comme demandé
@@ -235,10 +251,13 @@ class RmmCard extends StatelessWidget {
                 ? Shimmer.fromColors(
                     baseColor: theme.textTheme.bodyMedium?.color?.withOpacity(0.2) ?? Colors.grey[300]!,
                     highlightColor: theme.textTheme.bodyMedium?.color?.withOpacity(0.4) ?? Colors.grey[100]!,
-                    child: Container(
-                      width: 75,
-                      height: 14,
-                      color: theme.textTheme.bodyMedium?.color?.withOpacity(0.2),
+                    child: Text(
+                      amount,
+                      style: TextStyle(
+                        fontSize: 12, // 12px comme demandé
+                        fontWeight: FontWeight.normal,
+                        color: theme.textTheme.bodyMedium?.color,
+                      ),
                     ),
                   )
                 : Text(
@@ -257,9 +276,19 @@ class RmmCard extends StatelessWidget {
                     baseColor: theme.textTheme.bodyMedium?.color?.withOpacity(0.2) ?? Colors.grey[300]!,
                     highlightColor: theme.textTheme.bodyMedium?.color?.withOpacity(0.4) ?? Colors.grey[100]!,
                     child: Container(
-                      width: 35,
-                      height: 12,
-                      color: theme.textTheme.bodyMedium?.color?.withOpacity(0.2),
+                      padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 1),
+                      decoration: BoxDecoration(
+                        color: (apy >= 0 ? Colors.green : Colors.red).withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                      child: Text(
+                        '${apy.toStringAsFixed(1)}%',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          color: apy >= 0 ? Colors.green : Colors.red,
+                        ),
+                      ),
                     ),
                   )
                 : Container(
@@ -269,7 +298,7 @@ class RmmCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(2),
                     ),
                     child: Text(
-                      '${apy.toStringAsFixed(2)}%',
+                      '${apy.toStringAsFixed(1)}%',
                       style: TextStyle(
                         color: apy >= 0 ? Colors.green : Colors.red,
                         fontWeight: FontWeight.normal,
@@ -289,6 +318,37 @@ class RmmCard extends StatelessWidget {
 
   Widget _buildVerticalGauges(double factor, double walletDeposit,
       double walletBorrow, BuildContext context) {
+    // Obtenir le wallet avec le HF le plus bas depuis le contexte
+    final dataManager = Provider.of<DataManager>(context, listen: false);
+    final walletDetails = dataManager.perWalletBalances;
+    
+    // Retrouver l'adresse du wallet utilisé pour HF et LTV
+    String walletAddress = "";
+    double lowestHF = double.infinity;
+    
+    for (var wallet in walletDetails) {
+      final address = wallet['address'] ?? '';
+      final usdcBorrow = wallet['usdcBorrow'] as double? ?? 0;
+      final xdaiBorrow = wallet['xdaiBorrow'] as double? ?? 0;
+      final totalBorrow = usdcBorrow + xdaiBorrow;
+      
+      final walletRmmValue = dataManager.perWalletRmmValues[address] ?? 0;
+      
+      final hf = totalBorrow > 0
+          ? (walletRmmValue * 0.7) / totalBorrow
+          : double.infinity;
+          
+      if (hf < lowestHF) {
+        lowestHF = hf;
+        walletAddress = address;
+      }
+    }
+    
+    // Adresse abrégée pour affichage (6 premiers et 4 derniers caractères)
+    String shortAddress = walletAddress.length > 10
+        ? "${walletAddress.substring(0, 6)}...${walletAddress.substring(walletAddress.length - 4)}"
+        : walletAddress;
+        
     double progressHF = (factor / 10).clamp(0.0, 1.0);
     double progressLTV = walletDeposit > 0
         ? ((walletBorrow / walletDeposit * 100).clamp(0.0, 100.0)) / 100
@@ -298,105 +358,123 @@ class RmmCard extends StatelessWidget {
     Color progressLTVColor =
         Color.lerp(Colors.green.shade300, Colors.red, progressLTV)!;
 
-    return SizedBox(
-      width: 90,
-      height: 140,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          // Jauge Health Factor (HF)
-          Column(
-            mainAxisSize: MainAxisSize.min,
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SizedBox(
+          width: 90,
+          height: 140,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Text(
-                'HF',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).textTheme.bodyMedium?.color,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Stack(
-                alignment: Alignment.bottomCenter,
+              // Jauge Health Factor (HF)
+              Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Container(
-                    width: 20,
-                    height: 100,
-                    decoration: BoxDecoration(
-                      color: Colors.grey.withOpacity(0.3),
-                      borderRadius: BorderRadius.circular(10),
+                  Text(
+                    'HF',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).textTheme.bodyMedium?.color,
                     ),
                   ),
-                  Container(
-                    width: 20,
-                    height: progressHF * 100,
-                    decoration: BoxDecoration(
-                      color: progressHFColor,
-                      borderRadius: BorderRadius.circular(10),
+                  const SizedBox(height: 4),
+                  Stack(
+                    alignment: Alignment.bottomCenter,
+                    children: [
+                      Container(
+                        width: 20,
+                        height: 100,
+                        decoration: BoxDecoration(
+                          color: Colors.grey.withOpacity(0.3),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      Container(
+                        width: 20,
+                        height: progressHF * 100,
+                        decoration: BoxDecoration(
+                          color: progressHFColor,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    (progressHF * 10).toStringAsFixed(1),
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).textTheme.bodyMedium?.color,
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 3),
-              Text(
-                (progressHF * 10).toStringAsFixed(1),
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).textTheme.bodyMedium?.color,
-                ),
-              ),
-            ],
-          ),
-          // Jauge LTV
-          Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'LTV',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).textTheme.bodyMedium?.color,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Stack(
-                alignment: Alignment.bottomCenter,
+              // Jauge LTV
+              Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Container(
-                    width: 20,
-                    height: 100,
-                    decoration: BoxDecoration(
-                      color: Colors.grey.withOpacity(0.3),
-                      borderRadius: BorderRadius.circular(10),
+                  Text(
+                    'LTV',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).textTheme.bodyMedium?.color,
                     ),
                   ),
-                  Container(
-                    width: 20,
-                    height: progressLTV * 100,
-                    decoration: BoxDecoration(
-                      color: progressLTVColor,
-                      borderRadius: BorderRadius.circular(10),
+                  const SizedBox(height: 4),
+                  Stack(
+                    alignment: Alignment.bottomCenter,
+                    children: [
+                      Container(
+                        width: 20,
+                        height: 100,
+                        decoration: BoxDecoration(
+                          color: Colors.grey.withOpacity(0.3),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      Container(
+                        width: 20,
+                        height: progressLTV * 100,
+                        decoration: BoxDecoration(
+                          color: progressLTVColor,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    '${(progressLTV * 100).toStringAsFixed(1)}%',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).textTheme.bodyMedium?.color,
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 3),
-              Text(
-                '${(progressLTV * 100).toStringAsFixed(1)}%',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).textTheme.bodyMedium?.color,
-                ),
-              ),
             ],
           ),
-        ],
-      ),
+        ),
+        // Affichage de l'adresse du wallet pris en compte
+        if (shortAddress.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(top: 5),
+            child: Text(
+              shortAddress,
+              style: TextStyle(
+                fontSize: 10,
+                color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7),
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+      ],
     );
   }
 

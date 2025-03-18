@@ -257,10 +257,13 @@ class UIUtils {
                 highlightColor:
                     theme.textTheme.bodyMedium?.color?.withOpacity(0.6) ??
                         Colors.grey[100]!,
-                child: Container(
-                  width: 50,
-                  height: 16,
-                  color: theme.textTheme.bodyMedium?.color?.withOpacity(0.2),
+                child: Text(
+                  value ?? '',
+                  style: TextStyle(
+                    fontSize: 16 + appState.getTextSizeOffset(),
+                    fontWeight: FontWeight.bold,
+                    color: theme.textTheme.bodyLarge?.color,
+                  ),
                 ),
               )
             : Text(
@@ -313,7 +316,7 @@ class UIUtils {
     final baseColor = theme.textTheme.bodyMedium?.color?.withOpacity(0.2) ??
         Colors.grey[300]!;
     final highlightColor =
-        theme.textTheme.bodyMedium?.color?.withOpacity(0.4) ??
+        theme.textTheme.bodyMedium?.color?.withOpacity(0.6) ??
             Colors.grey[100]!;
 
     return Row(
@@ -331,10 +334,13 @@ class UIUtils {
             ? Shimmer.fromColors(
                 baseColor: baseColor,
                 highlightColor: highlightColor,
-                child: Container(
-                  width: 100, // Largeur du shimmer
-                  height: 16, // Hauteur du shimmer
-                  color: baseColor,
+                child: Text(
+                  value ?? '',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: theme.textTheme.bodyMedium?.color,
+                  ),
                 ),
               )
             : Text(

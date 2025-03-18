@@ -284,10 +284,13 @@ class PortfolioCard extends StatelessWidget {
           ? Shimmer.fromColors(
               baseColor: theme.textTheme.bodyMedium?.color?.withOpacity(0.2) ?? Colors.grey[300]!,
               highlightColor: theme.textTheme.bodyMedium?.color?.withOpacity(0.6) ?? Colors.grey[100]!,
-              child: Container(
-                width: 120,
-                height: 24,
-                color: theme.textTheme.bodyMedium?.color?.withOpacity(0.2),
+              child: Text(
+                formattedAmount,
+                style: TextStyle(
+                  fontSize: 16, // Taille de police légèrement réduite
+                  fontWeight: FontWeight.bold,
+                  color: theme.primaryColor,
+                ),
               ),
             )
           : Text(
@@ -310,10 +313,13 @@ class PortfolioCard extends StatelessWidget {
               ? Shimmer.fromColors(
                   baseColor: theme.textTheme.bodyMedium?.color?.withOpacity(0.2) ?? Colors.grey[300]!,
                   highlightColor: theme.textTheme.bodyMedium?.color?.withOpacity(0.6) ?? Colors.grey[100]!,
-                  child: Container(
-                    width: 80,
-                    height: 16,
-                    color: theme.textTheme.bodyMedium?.color?.withOpacity(0.2),
+                  child: Text(
+                    formattedAmount,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: theme.textTheme.bodyLarge?.color,
+                    ),
                   ),
                 )
               : Text(
@@ -361,20 +367,21 @@ class PortfolioCard extends StatelessWidget {
                   highlightColor:
                       theme.textTheme.bodyMedium?.color?.withOpacity(0.6) ??
                           Colors.grey[100]!,
-                  child: Container(
-                    width: 60,
-                    height: 14,
-                    color: theme.textTheme.bodyMedium?.color?.withOpacity(0.2),
+                  child: Text(
+                    formattedAmount,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: isPositive ? Colors.green : Colors.red,
+                    ),
                   ),
                 )
               : Text(
                   formattedAmount,
                   style: TextStyle(
-                    fontSize: 12, // Taille de police légèrement réduite
-                    fontWeight: FontWeight.w500,
-                    color: isPositive 
-                        ? theme.primaryColor.withOpacity(0.8)
-                        : Colors.redAccent.withOpacity(0.8),
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: isPositive ? Colors.green : Colors.red,
                   ),
                 ),
           const SizedBox(width: 6), // Espacement horizontal réduit
