@@ -210,14 +210,14 @@ class RmmStatsState extends State<RmmStats> {
               padding: const EdgeInsets.all(8.0),
               child: Center(
                 child:
-                    Image.asset('assets/icons/usdc.png', width: 24, height: 24),
+                    Image.asset('assets/icons/usdc.png', width: 22, height: 22),
               ),
             ),
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Center(
                 child:
-                    Image.asset('assets/icons/xdai.png', width: 24, height: 24),
+                    Image.asset('assets/icons/xdai.png', width: 22, height: 22),
               ),
             ),
           ],

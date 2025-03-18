@@ -133,6 +133,7 @@
   "tokenDistributionByCity": "Répartition des jetons par ville",
   "tokenDistributionByRegion": "Répartition des jetons par région",
   "tokenDistributionByCountry": "Répartition des jetons par pays",
+  "tokenDistributionByWallet": "Répartition des jetons par portefeuille",
   "clearCacheData": "Effacer le cache/les données",
   "dashboard": "Tableau de bord",
   "statistics": "Statistiques",
@@ -323,5 +324,13 @@
   "@bedroomBath": {
     "description": "Libellé pour les informations de chambre et salle de bain"
   },
-  "netApyHelp":"Le rendement net est calculé en ponderant le rendement des portfeuilles (wallet/RMM) et les balances de déposits/borrows avec leurs taux respectifs."
+  "netApyHelp":"Le rendement net est calculé en ponderant le rendement des portfeuilles (wallet/RMM) et les balances de déposits/borrows avec leurs taux respectifs.",
+  "initialInvestment": "Investissement Initial",
+  "manualAdjustment": "Ajustement Manuel",
+  "showTotalInvested": "Afficher l'investissement total",
+  "showNetTotal": "Afficher le total net",
+  "showNetTotalDescription": "Inclure les dépôts et emprunts dans le calcul du portefeuille total",
+  "manualAdjustmentDescription": "Ajouter ou soustraire un montant saisi manuellement au total du portefeuille",
+  "adjustmentSaved": "Ajustement enregistré avec succès",
+  "selectCurrency": "Sélectionner la devise"
 }

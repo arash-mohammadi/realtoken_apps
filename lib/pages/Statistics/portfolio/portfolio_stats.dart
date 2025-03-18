@@ -7,6 +7,7 @@ import 'package:realtokens/pages/Statistics/portfolio/charts/rented_graph.dart';
 import 'package:realtokens/pages/Statistics/portfolio/charts/token_distribution_by_city_card.dart';
 import 'package:realtokens/pages/Statistics/portfolio/charts/token_distribution_by_country_card.dart';
 import 'package:realtokens/pages/Statistics/portfolio/charts/token_distribution_by_region_card.dart';
+import 'package:realtokens/pages/Statistics/portfolio/charts/token_distribution_by_wallet_card.dart';
 import 'package:realtokens/pages/Statistics/portfolio/charts/token_distribution_chart.dart';
 import 'package:realtokens/utils/data_fetch_utils.dart';
 import 'package:realtokens/generated/l10n.dart';
@@ -111,11 +112,14 @@ class _PortfolioStats extends State<PortfolioStats> {
                     case 4:
                       return TokenDistributionByCityCard(
                           dataManager: dataManager!);
+                    case 5:
+                      return TokenDistributionByWalletCard(
+                          dataManager: dataManager!);
                     default:
                       return Container();
                   }
                 },
-                childCount: 5,
+                childCount: 6,
               ),
             ),
           ),

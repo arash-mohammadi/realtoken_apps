@@ -39,6 +39,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Fonction import/export"),
         "addressCopied": MessageLookupByLibrary.simpleMessage(
             "Adresse copiée dans le presse-papier"),
+        "adjustmentSaved": MessageLookupByLibrary.simpleMessage(
+            "Ajustement enregistré avec succès"),
         "advanced": MessageLookupByLibrary.simpleMessage("Avancé"),
         "all": MessageLookupByLibrary.simpleMessage("Tout"),
         "allCities": MessageLookupByLibrary.simpleMessage("Toutes les villes"),
@@ -169,6 +171,8 @@ class MessageLookup extends MessageLookupByLibrary {
             "Échec de l\'importation des données"),
         "importSuccess": MessageLookupByLibrary.simpleMessage(
             "Données importées avec succès"),
+        "initialInvestment":
+            MessageLookupByLibrary.simpleMessage("Investissement Initial"),
         "initialLaunchDate":
             MessageLookupByLibrary.simpleMessage("Date de lancement initial"),
         "initialMaintenanceReserve": MessageLookupByLibrary.simpleMessage(
@@ -203,6 +207,10 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Ajouter un portefeuille"),
         "manageEvmAddresses":
             MessageLookupByLibrary.simpleMessage("Gérer les portefeuilles"),
+        "manualAdjustment":
+            MessageLookupByLibrary.simpleMessage("Ajustement Manuel"),
+        "manualAdjustmentDescription": MessageLookupByLibrary.simpleMessage(
+            "Ajouter ou soustraire un montant saisi manuellement au total du portefeuille"),
         "manualEdit": MessageLookupByLibrary.simpleMessage("Édition Manuelle"),
         "maps": MessageLookupByLibrary.simpleMessage("Cartes"),
         "mfrPortfolio":
@@ -356,6 +364,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "secondary_offers_related_to_token":
             MessageLookupByLibrary.simpleMessage("Offres YAM liées au token"),
         "section8paid": MessageLookupByLibrary.simpleMessage("Section 8"),
+        "selectCurrency":
+            MessageLookupByLibrary.simpleMessage("Sélectionner la devise"),
         "sell": MessageLookupByLibrary.simpleMessage("Vendre"),
         "sell_token": MessageLookupByLibrary.simpleMessage("Vendre"),
         "sendDonations": MessageLookupByLibrary.simpleMessage(
@@ -368,8 +378,14 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsTitle": MessageLookupByLibrary.simpleMessage("Paramètres"),
         "sfrPortfolio":
             MessageLookupByLibrary.simpleMessage("Portefeuille SFR"),
+        "showNetTotal":
+            MessageLookupByLibrary.simpleMessage("Afficher le total net"),
+        "showNetTotalDescription": MessageLookupByLibrary.simpleMessage(
+            "Inclure les dépôts et emprunts dans le calcul du portefeuille total"),
         "showOnlyWhitelisted": MessageLookupByLibrary.simpleMessage(
             "Afficher seulement les whitelistés"),
+        "showTotalInvested": MessageLookupByLibrary.simpleMessage(
+            "Afficher l\'investissement total"),
         "singleFamily":
             MessageLookupByLibrary.simpleMessage("Maison individuelle"),
         "somethingWrong": MessageLookupByLibrary.simpleMessage(
@@ -414,6 +430,8 @@ class MessageLookup extends MessageLookupByLibrary {
             "Répartition des jetons par pays"),
         "tokenDistributionByRegion": MessageLookupByLibrary.simpleMessage(
             "Répartition des jetons par région"),
+        "tokenDistributionByWallet": MessageLookupByLibrary.simpleMessage(
+            "Répartition des jetons par portefeuille"),
         "tokenNotWhitelisted":
             MessageLookupByLibrary.simpleMessage("Token non whitelisté"),
         "tokenPrice": MessageLookupByLibrary.simpleMessage("Prix du token"),

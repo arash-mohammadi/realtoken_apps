@@ -39,6 +39,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Import/Export Function"),
         "addressCopied":
             MessageLookupByLibrary.simpleMessage("Address copied to clipboard"),
+        "adjustmentSaved": MessageLookupByLibrary.simpleMessage(
+            "Adjustment saved successfully"),
         "advanced": MessageLookupByLibrary.simpleMessage("Advanced"),
         "all": MessageLookupByLibrary.simpleMessage("All"),
         "allCities": MessageLookupByLibrary.simpleMessage("All Cities"),
@@ -161,6 +163,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Failed to import data"),
         "importSuccess":
             MessageLookupByLibrary.simpleMessage("Data imported successfully"),
+        "initialInvestment":
+            MessageLookupByLibrary.simpleMessage("Initial Investment"),
         "initialLaunchDate":
             MessageLookupByLibrary.simpleMessage("Initial launch date"),
         "initialMaintenanceReserve":
@@ -192,6 +196,10 @@ class MessageLookup extends MessageLookupByLibrary {
         "manageAddresses": MessageLookupByLibrary.simpleMessage("Add wallet"),
         "manageEvmAddresses":
             MessageLookupByLibrary.simpleMessage("Manage Wallets"),
+        "manualAdjustment":
+            MessageLookupByLibrary.simpleMessage("Manual Adjustment"),
+        "manualAdjustmentDescription": MessageLookupByLibrary.simpleMessage(
+            "Add or subtract a manually entered amount to the total portfolio value"),
         "manualEdit": MessageLookupByLibrary.simpleMessage("Manual Edit"),
         "maps": MessageLookupByLibrary.simpleMessage("Maps"),
         "mfrPortfolio": MessageLookupByLibrary.simpleMessage("MFR Portfolio"),
@@ -338,6 +346,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "secondary_offers_related_to_token":
             MessageLookupByLibrary.simpleMessage("YAM offers related to token"),
         "section8paid": MessageLookupByLibrary.simpleMessage("Section 8"),
+        "selectCurrency":
+            MessageLookupByLibrary.simpleMessage("Select Currency"),
         "sell": MessageLookupByLibrary.simpleMessage("Sell"),
         "sell_token": MessageLookupByLibrary.simpleMessage("Sell"),
         "sendDonations": MessageLookupByLibrary.simpleMessage(
@@ -348,8 +358,13 @@ class MessageLookup extends MessageLookupByLibrary {
         "settings": MessageLookupByLibrary.simpleMessage("Settings"),
         "settingsTitle": MessageLookupByLibrary.simpleMessage("Settings"),
         "sfrPortfolio": MessageLookupByLibrary.simpleMessage("SFR Portfolio"),
+        "showNetTotal": MessageLookupByLibrary.simpleMessage("Show Net Total"),
+        "showNetTotalDescription": MessageLookupByLibrary.simpleMessage(
+            "Include deposits and borrows in total portfolio calculation"),
         "showOnlyWhitelisted":
             MessageLookupByLibrary.simpleMessage("Show only whitelisted"),
+        "showTotalInvested":
+            MessageLookupByLibrary.simpleMessage("Show Total Invested"),
         "singleFamily": MessageLookupByLibrary.simpleMessage("Single Family"),
         "somethingWrong": MessageLookupByLibrary.simpleMessage(
             "The data may not be up to date"),
@@ -391,6 +406,8 @@ class MessageLookup extends MessageLookupByLibrary {
             "Token Distribution by Country"),
         "tokenDistributionByRegion": MessageLookupByLibrary.simpleMessage(
             "Token Distribution by Region"),
+        "tokenDistributionByWallet": MessageLookupByLibrary.simpleMessage(
+            "Token Distribution by Wallet"),
         "tokenNotWhitelisted":
             MessageLookupByLibrary.simpleMessage("Token not whitelisted"),
         "tokenPrice": MessageLookupByLibrary.simpleMessage("Token Price"),

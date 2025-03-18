@@ -7,6 +7,7 @@ import 'package:realtokens/app_state.dart';
 import 'package:realtokens/generated/l10n.dart';
 import 'package:realtokens/utils/currency_utils.dart';
 import 'package:realtokens/utils/ui_utils.dart';
+import 'package:realtokens/pages/dashboard/detailsPages/rent_details_page.dart';
 
 class RentsCard extends StatelessWidget {
   final bool showAmounts;
@@ -112,6 +113,23 @@ class RentsCard extends StatelessWidget {
       hasGraph: true,
       rightWidget: _buildMiniGraphForRendement(
           _getLast12WeeksRent(dataManager), context, dataManager),
+      headerRightWidget: IconButton(
+        icon: Icon(
+          Icons.arrow_forward,
+          size: 24,
+          color: Colors.grey,
+        ),
+        padding: EdgeInsets.zero,
+        constraints: BoxConstraints(),
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const DashboardRentsDetailsPage(),
+            ),
+          );
+        },
+      ),
     );
   }
 

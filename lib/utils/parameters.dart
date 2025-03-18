@@ -18,6 +18,12 @@ class Parameters {
   static List<String> languages = ['en', 'fr', 'es', "zh", "it", "pt"];
   static List<String> textSizeOptions = ['verySmall', 'small', 'normal', 'big', 'veryBig'];
 
+  // Nouveaux paramètres pour le portfolio
+  static bool showTotalInvested = false;
+  static bool showNetTotal = true; // true = inclut dépôts et emprunts, false = sans eux
+  static double manualAdjustment = 0.0; // Montant à ajouter ou soustraire au total du portefeuille
+  static bool showYamProjection = true; // Contrôle l'affichage de la projection YAM
+
   static String getPropertyTypeName(int? propertyType, BuildContext context) {
     switch (propertyType) {
       case 1:

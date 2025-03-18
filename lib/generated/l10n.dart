@@ -1360,6 +1360,16 @@ class S {
     );
   }
 
+  /// `Token Distribution by Wallet`
+  String get tokenDistributionByWallet {
+    return Intl.message(
+      'Token Distribution by Wallet',
+      name: 'tokenDistributionByWallet',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Clear Cache/Data`
   String get clearCacheData {
     return Intl.message(
@@ -3085,6 +3095,86 @@ class S {
     return Intl.message(
       'The net yield is calculated by weighting the yields of the portfolios (wallet/RMM) and the deposit/borrow balances with their respective rates.',
       name: 'netApyHelp',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Initial Investment`
+  String get initialInvestment {
+    return Intl.message(
+      'Initial Investment',
+      name: 'initialInvestment',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Manual Adjustment`
+  String get manualAdjustment {
+    return Intl.message(
+      'Manual Adjustment',
+      name: 'manualAdjustment',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Show Total Invested`
+  String get showTotalInvested {
+    return Intl.message(
+      'Show Total Invested',
+      name: 'showTotalInvested',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Show Net Total`
+  String get showNetTotal {
+    return Intl.message(
+      'Show Net Total',
+      name: 'showNetTotal',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Include deposits and borrows in total portfolio calculation`
+  String get showNetTotalDescription {
+    return Intl.message(
+      'Include deposits and borrows in total portfolio calculation',
+      name: 'showNetTotalDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Add or subtract a manually entered amount to the total portfolio value`
+  String get manualAdjustmentDescription {
+    return Intl.message(
+      'Add or subtract a manually entered amount to the total portfolio value',
+      name: 'manualAdjustmentDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Adjustment saved successfully`
+  String get adjustmentSaved {
+    return Intl.message(
+      'Adjustment saved successfully',
+      name: 'adjustmentSaved',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Select Currency`
+  String get selectCurrency {
+    return Intl.message(
+      'Select Currency',
+      name: 'selectCurrency',
       desc: '',
       args: [],
     );

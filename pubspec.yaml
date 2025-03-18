@@ -54,6 +54,7 @@ dependencies:
   flutter_dotenv: ^5.0.2
   show_network_image: ^0.0.2
   flutter_markdown: ^0.7.6+2
+  intl_translation: ^0.20.1
 
 dev_dependencies:
   flutter_test:

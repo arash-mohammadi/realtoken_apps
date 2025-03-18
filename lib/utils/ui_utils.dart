@@ -135,7 +135,8 @@ class UIUtils {
     DataManager dataManager,
     BuildContext context, {
     bool hasGraph = false,
-    Widget? rightWidget, // Ajout du widget pour le graphique
+    Widget? rightWidget, // Widget pour le graphique
+    Widget? headerRightWidget, // Widget pour l'icône dans l'en-tête (ex: paramètres)
   }) {
     final appState = Provider.of<AppState>(context);
     return Card(
@@ -146,107 +147,61 @@ class UIUtils {
       color: Theme.of(context).cardColor,
       child: Padding(
         padding: const EdgeInsets.all(8.0),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            // En-tête de la carte avec l'icône des paramètres à droite
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Row(
                   children: [
                     Icon(
                       icon,
+                      color: getIconColor(title, context),
                       size: 24 + appState.getTextSizeOffset(),
-                      color: getIconColor(title,
-                          context), // Appelle une fonction pour déterminer la couleur
                     ),
-                    const SizedBox(
-                        width: 8), // Espacement entre l'icône et le texte
+                    const SizedBox(width: 8),
                     Text(
                       title,
                       style: TextStyle(
-                        fontSize: 19 + appState.getTextSizeOffset(),
+                        fontSize: 16 + appState.getTextSizeOffset(),
                         fontWeight: FontWeight.bold,
-                        color: Theme.of(context).textTheme.bodyLarge?.color,
                       ),
                     ),
-                    const SizedBox(
-                        width: 12), // Espacement entre le texte et l'icône
-                    if (title == S.of(context).rents)
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  const DashboardRentsDetailsPage(),
-                            ),
-                          );
-                        },
-                        child: Icon(
-                          Icons.arrow_forward,
-                          size: 24, // Taille de l'icône
-                          color: Colors.grey, // Couleur de l'icône
-                        ),
-                      ),
-                    if (title == S.of(context).properties)
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => PropertiesDetailsPage(),
-                            ),
-                          );
-                        },
-                        child: Icon(
-                          Icons.arrow_forward,
-                          size: 24, // Taille de l'icône
-                          color: Colors.grey, // Couleur de l'icône
-                        ),
-                      ),
-                    if (title == S.of(context).portfolio)
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => const PortfolioDetailsPage(),
-                            ),
-                          );
-                        },
-                        child: Icon(
-                          Icons.arrow_forward,
-                          size: 24, // Taille de l'icône
-                          color: Colors.grey, // Couleur de l'icône
-                        ),
-                      ),
-                    if (title == S.of(context).rmm)
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => RmmWalletDetailsPage(),
-                            ),
-                          );
-                        },
-                        child: Icon(
-                          Icons.arrow_forward,
-                          size: 24, // Taille de l'icône
-                          color: Colors.grey, // Couleur de l'icône
-                        ),
-                      ),
                   ],
                 ),
-                const SizedBox(height: 10),
-                firstChild,
-                const SizedBox(height: 3),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: otherChildren,
-                ),
+                if (headerRightWidget != null) headerRightWidget,
               ],
             ),
-            const Spacer(),
-            if (hasGraph && rightWidget != null)
-              rightWidget, // Affiche le graphique
+            const SizedBox(height: 6),
+            // Contenu principal de la carte
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Colonne principale avec les informations
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(left: 8.0),
+                        child: firstChild,
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 8.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: otherChildren,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                // Graphique si présent
+                if (hasGraph && rightWidget != null) rightWidget,
+              ],
+            ),
           ],
         ),
       ),

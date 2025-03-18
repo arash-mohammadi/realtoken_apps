@@ -5,6 +5,7 @@ import 'package:realtokens/managers/data_manager.dart';
 import 'package:realtokens/app_state.dart';
 import 'package:realtokens/generated/l10n.dart';
 import 'package:realtokens/utils/ui_utils.dart';
+import 'package:realtokens/pages/dashboard/detailsPages/properties_details_page.dart';
 
 class PropertiesCard extends StatelessWidget {
   final bool showAmounts;
@@ -94,6 +95,23 @@ class PropertiesCard extends StatelessWidget {
             rentedPercentage = 0;
           }
           return _buildPieChart(rentedPercentage, context);
+        },
+      ),
+      headerRightWidget: IconButton(
+        icon: Icon(
+          Icons.arrow_forward,
+          size: 24,
+          color: Colors.grey,
+        ),
+        padding: EdgeInsets.zero,
+        constraints: BoxConstraints(),
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const PropertiesDetailsPage(),
+            ),
+          );
         },
       ),
     );

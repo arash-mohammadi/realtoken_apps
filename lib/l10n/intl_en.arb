@@ -131,6 +131,7 @@
   "tokenDistributionByCity": "Token Distribution by City",
   "tokenDistributionByRegion": "Token Distribution by Region",
   "tokenDistributionByCountry": "Token Distribution by Country",
+  "tokenDistributionByWallet": "Token Distribution by Wallet",
   "clearCacheData": "Clear Cache/Data",
   "dashboard": "Dashboard",
   "statistics": "Statistics",
@@ -324,8 +325,15 @@
   "@bedroomBath": {
     "description": "Label for bedroom and bath information"
   },
-  "netApyHelp": "The net yield is calculated by weighting the yields of the portfolios (wallet/RMM) and the deposit/borrow balances with their respective rates."
-
+  "netApyHelp": "The net yield is calculated by weighting the yields of the portfolios (wallet/RMM) and the deposit/borrow balances with their respective rates.",
+  "initialInvestment": "Initial Investment",
+  "manualAdjustment": "Manual Adjustment",
+  "showTotalInvested": "Show Total Invested",
+  "showNetTotal": "Show Net Total",
+  "showNetTotalDescription": "Include deposits and borrows in total portfolio calculation",
+  "manualAdjustmentDescription": "Add or subtract a manually entered amount to the total portfolio value",
+  "adjustmentSaved": "Adjustment saved successfully",
+  "selectCurrency": "Select Currency"
 }
 
 

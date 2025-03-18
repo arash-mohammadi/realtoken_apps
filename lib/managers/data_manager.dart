@@ -1404,54 +1404,46 @@ if (tokenAddress == "0xfc5073816fe9671859ef1e6936efd23bb7814274") {
   // Méthode pour récupérer les données des propriétés
   Future<void> fetchPropertyData({bool forceFetch = false}) async {
     List<Map<String, dynamic>> tempPropertyData = [];
+    debugPrint("📊 Début de la récupération des données de propriété...");
 
-    // Fusionner les tokens du portefeuille et du RMM
-    List<dynamic> allTokens = [];
-    for (var wallet in walletTokens) {
-      allTokens
-          .addAll(wallet['balances']); // Ajouter tous les balances des wallets
+    // Utiliser directement walletTokens au lieu de créer une nouvelle liste
+    if (walletTokens.isEmpty) {
+      debugPrint("⚠️ Aucun token dans walletTokens");
+      notifyListeners();
+      return;
     }
 
-    // Parcourir chaque token du portefeuille et du RMM
-    for (var token in allTokens) {
-      if (token != null &&
-          token['token'] != null &&
-          (token['token']['address'] != null || token['token']['id'] != null)) {
-        final tokenAddress =
-            (token['token']['address'] ?? token['token']['id'])?.toLowerCase();
+    int tokenProcessed = 0;
+    // Parcourir chaque token du portefeuille
+    for (var token in walletTokens) {
+      if (token['token'] == null) continue;
+      
+      final String tokenAddress = token['token'].toLowerCase();
+      
+      // Correspondre avec les RealTokens
+      final matchingRealToken = realTokens.cast<Map<String, dynamic>>().firstWhere(
+        (realToken) => realToken['uuid'].toLowerCase() == tokenAddress,
+        orElse: () => <String, dynamic>{},
+      );
 
-        // Correspondre avec les RealTokens
-        final matchingRealToken = realTokens
-            .cast<Map<String, dynamic>>()
-            .firstWhere(
-              (realToken) =>
-                  realToken['uuid'].toLowerCase() == tokenAddress.toLowerCase(),
-              orElse: () => <String, dynamic>{},
-            );
-
-        if (matchingRealToken.isNotEmpty &&
-            matchingRealToken['propertyType'] != null) {
-          final propertyType = matchingRealToken['propertyType'];
-
-          // Vérifiez si le type de propriété existe déjà dans propertyData
-          final existingPropertyType = tempPropertyData.firstWhere(
-            (data) => data['propertyType'] == propertyType,
-            orElse: () => <String,
-                dynamic>{}, // Renvoie un map vide si aucune correspondance n'est trouvée
-          );
-
-          if (existingPropertyType.isNotEmpty) {
-            // Incrémenter le compte si la propriété existe déjà
-            existingPropertyType['count'] += 1;
-          } else {
-            // Ajouter une nouvelle entrée si la propriété n'existe pas encore
-            tempPropertyData.add({'propertyType': propertyType, 'count': 1});
-          }
+      if (matchingRealToken.isNotEmpty && matchingRealToken['propertyType'] != null) {
+        final int propertyType = matchingRealToken['propertyType'];
+        tokenProcessed++;
+        
+        // Vérifiez si le type de propriété existe déjà dans propertyData
+        final existingIndex = tempPropertyData.indexWhere((data) => data['propertyType'] == propertyType);
+        
+        if (existingIndex >= 0) {
+          // Incrémenter le compte si la propriété existe déjà
+          tempPropertyData[existingIndex]['count'] += 1;
+        } else {
+          // Ajouter une nouvelle entrée si la propriété n'existe pas encore
+          tempPropertyData.add({'propertyType': propertyType, 'count': 1});
         }
-      } else {
-        debugPrint('Invalid token or missing address for token: $token');
       }
     }
+    
+    debugPrint("✅ Données de propriété récupérées: ${tempPropertyData.length} types, $tokenProcessed tokens traités");
     propertyData = tempPropertyData;
     notifyListeners();
   }
@@ -1663,7 +1655,7 @@ if (tokenAddress == "0xfc5073816fe9671859ef1e6936efd23bb7814274") {
     }
   }
 
-  double getTotalRentReceived() {
+  double  getTotalRentReceived() {
     return rentData.fold(
         0.0,
         (total, rentEntry) =>
@@ -1965,11 +1957,6 @@ if (tokenAddress == "0xfc5073816fe9671859ef1e6936efd23bb7814274") {
     // Archiver l'APY global calculé
     archiveApyValue(netGlobalApy, apyAverage);
 
-    // Calculer le ROI global
-    roiGlobalValue = apyManager.calculateRoi(
-      currentValue: totalWalletValue,
-      initialInvestment: apyManager.initialInvestment,
-    );
 
     // Calculer l'APY pour chaque wallet individuel
     Map<String, double> walletApys = apyManager.calculateWalletApys(walletStats);
