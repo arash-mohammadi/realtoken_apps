@@ -279,6 +279,10 @@ class RentedHistoryGraph extends StatelessWidget {
                               touchTooltipData: LineTouchTooltipData(
                                 tooltipRoundedRadius: 8,
                                 tooltipMargin: 8,
+                                fitInsideHorizontally: true,
+                                fitInsideVertically: true,
+                                tooltipHorizontalOffset: 0,
+                                tooltipPadding: const EdgeInsets.all(8),
                                 getTooltipItems:
                                     (List<LineBarSpot> touchedSpots) {
                                   return touchedSpots.map((touchedSpot) {
@@ -301,15 +305,8 @@ class RentedHistoryGraph extends StatelessWidget {
                                   }).toList();
                                 },
                               ),
-                              touchCallback: (FlTouchEvent event,
-                                  LineTouchResponse? touchResponse) {
-                                if (touchResponse != null &&
-                                    touchResponse.lineBarSpots != null) {
-                                  debugPrint(
-                                      'Point touché : ${touchResponse.lineBarSpots?.first.x}');
-                                }
-                              },
                               handleBuiltInTouches: true,
+                              touchSpotThreshold: 20,
                             ),
                           ),
                         );

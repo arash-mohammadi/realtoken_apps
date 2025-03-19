@@ -210,8 +210,15 @@ class BorrowChart extends StatelessWidget {
                 }
               }).toList();
             },
+            fitInsideHorizontally: true,
+            fitInsideVertically: true,
+            tooltipMargin: 8,
+            tooltipHorizontalOffset: 0,
+            tooltipRoundedRadius: 8,
+            tooltipPadding: const EdgeInsets.all(8),
           ),
           handleBuiltInTouches: true,
+          touchSpotThreshold: 20,
         ),
       ),
     );

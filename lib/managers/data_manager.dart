@@ -71,6 +71,10 @@ class DataManager extends ChangeNotifier {
   List<Map<String, dynamic>> rmmBalances = [];
   List<Map<String, dynamic>> perWalletBalances = [];
   
+  // Nouvelles structures de données pour l'optimisation des loyers
+  Map<String, double> cumulativeRentsByToken = {};
+  List<Map<String, dynamic>> rentHistory = [];
+  
   // Nouvelle structure de données pour les statistiques détaillées des wallets
   List<Map<String, dynamic>> walletStats = [];
   
@@ -303,10 +307,99 @@ class DataManager extends ChangeNotifier {
         await processTransactionsHistory(context, transactionsHistory, yamWalletsTransactionsFetched);
       },
       debugName: "Transactions History"
+      ),
+      fetchData(
+      apiCall: () => ApiService.fetchDetailedRentDataForAllWallets(forceFetch: forceFetch),
+      cacheKey: 'detailedRentData',
+      updateVariable: (data) {
+        detailedRentData = data;
+        // Traiter les données détaillées de loyer immédiatement après les avoir récupérées
+        processDetailedRentData();
+      },
+      debugName: "Detailed rents"
     ),
     ]);
 
     isLoadingSecondary = false;
+  }
+
+  // Nouvelle méthode pour traiter les données détaillées de loyer
+  void processDetailedRentData() {
+    debugPrint("🔄 Traitement des données détaillées de loyer...");
+    
+    // Réinitialiser les structures de données
+    cumulativeRentsByToken = {};
+    rentHistory = [];
+    
+    // Si aucune donnée détaillée, sortir
+    if (detailedRentData.isEmpty) {
+      debugPrint("⚠️ Aucune donnée détaillée de loyer disponible");
+      return;
+    }
+    
+    try {
+      // Parcourir chaque entrée de date
+      for (var dateEntry in detailedRentData) {
+        if (!dateEntry.containsKey('date') || !dateEntry.containsKey('rents')) {
+          debugPrint("⚠️ Format de données incorrect pour l'entrée: $dateEntry");
+          continue;
+        }
+        
+        String date = dateEntry['date'];
+        List<dynamic> rents = dateEntry['rents'];
+        
+        // Ajouter l'entrée à l'historique
+        rentHistory.add({
+          'date': date,
+          'rents': List<Map<String, dynamic>>.from(rents)
+        });
+        
+        // Parcourir chaque loyer pour cette date
+        for (var rentEntry in rents) {
+          String token = rentEntry['token'].toLowerCase();
+          double rent = (rentEntry['rent'] is num) 
+            ? (rentEntry['rent'] as num).toDouble() 
+            : double.tryParse(rentEntry['rent'].toString()) ?? 0.0;
+          
+          // Additionner au total cumulé pour ce token
+          cumulativeRentsByToken[token] = (cumulativeRentsByToken[token] ?? 0.0) + rent;
+        }
+      }
+      
+      debugPrint("✅ Traitement terminé: ${cumulativeRentsByToken.length} tokens avec loyers cumulés");
+      debugPrint("✅ Historique de loyer créé avec ${rentHistory.length} entrées de date");
+    } catch (e) {
+      debugPrint("❌ Erreur lors du traitement des données détaillées de loyer: $e");
+    }
+  }
+
+  // Méthode existante modifiée pour utiliser les données précalculées
+  double getRentDetailsForToken(String token) {
+    // Utiliser directement la valeur précalculée si disponible
+    if (cumulativeRentsByToken.containsKey(token.toLowerCase())) {
+      return cumulativeRentsByToken[token.toLowerCase()]!;
+    }
+    
+    // Si la valeur n'est pas précalculée (fallback), on calcule à la demande
+    debugPrint("⚠️ Calcul des loyers à la demande pour le token: $token (non trouvé dans les données précalculées)");
+    double totalRent = 0.0;
+
+    // Parcourir chaque entrée de la liste detailedRentData
+    for (var entry in detailedRentData) {
+      if (entry.containsKey('rents') && entry['rents'] is List) {
+        List rents = entry['rents'];
+
+        for (var rentEntry in rents) {
+          if (rentEntry['token'] != null &&
+              rentEntry['token'].toLowerCase() == token.toLowerCase()) {
+            double rentAmount = (rentEntry['rent'] ?? 0.0).toDouble();
+            totalRent += rentAmount;
+          }
+        }
+      }
+    }
+
+    return totalRent;
   }
 
   /// Charge l'historique des balances de portefeuille depuis Hive
@@ -473,27 +566,6 @@ class DataManager extends ChangeNotifier {
     notifyListeners(); // Notifier les listeners de tout changement
   }
 
-  Future<void> updatedDetailRentVariables({bool forceFetch = false}) async {
-    var box = Hive.box('realTokens'); // Ouvrir la boîte Hive pour le cache
-
-    try {
-      // Mise à jour des détails de loyer détaillés
-      var detailedRentDataResult =
-          await ApiService.fetchDetailedRentDataForAllWallets();
-      if (detailedRentDataResult.isNotEmpty) {
-        debugPrint(
-            "Mise à jour des détails de loyer avec de nouvelles valeurs.");
-        box.put('detailedRentData', json.encode(detailedRentDataResult));
-        detailedRentData = detailedRentDataResult.cast<Map<String, dynamic>>();
-        notifyListeners(); // Notifier les listeners après la mise à jour
-      } else {
-        debugPrint("⚠️ Les détails de loyer sont vides, pas de mise à jour.");
-      }
-    } catch (error) {
-      debugPrint("❌ Erreur lors de la récupération des données: $error");
-    }
-  }
-
   // Méthode pour ajouter des adresses à un userId
   void addAddressesForUserId(String userId, List<String> addresses) {
     if (userIdToAddresses.containsKey(userId)) {
@@ -603,6 +675,25 @@ class DataManager extends ChangeNotifier {
               (realToken['historic']['init_price'] as num?)?.toDouble() ??
               0.0;
 
+          // Vérification des transactions pour calculer un prix moyen si customInitPrice est null
+          if (customInitPrice == null && transactionsByToken.containsKey(tokenContractAddress) && transactionsByToken[tokenContractAddress]!.isNotEmpty) {
+            List<Map<String, dynamic>> tokenTransactions = transactionsByToken[tokenContractAddress]!;
+            double totalPrice = 0.0;
+            int transactionCount = 0;
+            
+            for (var transaction in tokenTransactions) {
+              if (transaction['price'] != null && transaction['price'] > 0) {
+                totalPrice += transaction['price'];
+                transactionCount++;
+              }
+            }
+            
+            if (transactionCount > 0) {
+              double averagePrice = totalPrice / transactionCount;
+              initPrice = averagePrice;
+            }
+          }
+
           String fullName = realToken['fullName'];
           List<String> parts = fullName.split(',');
           String country = parts.length == 4 ? parts[3].trim() : 'USA';
@@ -611,6 +702,9 @@ class DataManager extends ChangeNotifier {
               parts2.length >= 3 ? parts[2].trim().substring(0, 2) : 'unknown';
           List<String> parts3 = fullName.split(',');
           String city = parts3.length >= 2 ? parts[1].trim() : 'Unknown';
+
+          // Récupérer les loyers cumulés pour ce token
+          double totalRentReceived = cumulativeRentsByToken[tokenContractAddress] ?? 0.0;
 
           allTokensList.add({
             'uuid': tokenContractAddress,
@@ -653,7 +747,7 @@ class DataManager extends ChangeNotifier {
             'ethereumContract': realToken['ethereumContract'],
             'gnosisContract': realToken['gnosisContract'],
             'initPrice': initPrice,
-            'totalRentReceived': 0.0,
+            'totalRentReceived': totalRentReceived,
             'initialTotalValue': initPrice,
             'propertyMaintenanceMonthly':
                 realToken['propertyMaintenanceMonthly'],
@@ -865,7 +959,26 @@ if (tokenAddress == "0xfc5073816fe9671859ef1e6936efd23bb7814274") {
       double? customInitPrice = customInitPrices[tokenContractAddress];
       double initPrice = customInitPrice ??
           ((matchingRealToken['historic']['init_price'] as num?)?.toDouble() ??
-              0.0);
+          0.0);
+
+      // Vérification des transactions pour calculer un prix moyen si customInitPrice est null
+      if (customInitPrice == null && transactionsByToken.containsKey(tokenContractAddress) && transactionsByToken[tokenContractAddress]!.isNotEmpty) {
+        List<Map<String, dynamic>> tokenTransactions = transactionsByToken[tokenContractAddress]!;
+        double totalPrice = 0.0;
+        int transactionCount = 0;
+        
+        for (var transaction in tokenTransactions) {
+          if (transaction['price'] != null && transaction['price'] > 0) {
+            totalPrice += transaction['price'];
+            transactionCount++;
+          }
+        }
+        
+        if (transactionCount > 0) {
+          double averagePrice = totalPrice / transactionCount;
+          initPrice = averagePrice;
+        }
+      }
 
       // Parsing du fullName pour obtenir country, regionCode et city
       final nameDetails = parseFullName(matchingRealToken['fullName']);
@@ -974,7 +1087,8 @@ if (tokenAddress == "0xfc5073816fe9671859ef1e6936efd23bb7814274") {
 
       // Mise à jour du loyer total pour ce token
       if (tokenAddress.isNotEmpty) {
-        double? rentDetails = getRentDetailsForToken(tokenAddress);
+        // Utiliser directement la valeur précalculée au lieu d'appeler getRentDetailsForToken
+        double rentDetails = cumulativeRentsByToken[tokenAddress.toLowerCase()] ?? 0.0;
         int index =
             newPortfolio.indexWhere((item) => item['uuid'] == tokenAddress);
         if (index != -1) {
@@ -1665,29 +1779,6 @@ if (tokenAddress == "0xfc5073816fe9671859ef1e6936efd23bb7814274") {
                 : rentEntry['rent']));
   }
 
-  double getRentDetailsForToken(String token) {
-    double totalRent = 0.0;
-
-    // Parcourir chaque entrée de la liste detailedRentData
-    for (var entry in detailedRentData) {
-      // Vérifie si l'entrée contient une liste de 'rents'
-      if (entry.containsKey('rents') && entry['rents'] is List) {
-        List rents = entry['rents'];
-
-        // Parcourir chaque élément de la liste des loyers
-        for (var rentEntry in rents) {
-          if (rentEntry['token'] != null &&
-              rentEntry['token'].toLowerCase() == token.toLowerCase()) {
-            // Ajoute le rent à totalRent si le token correspond
-            totalRent += (rentEntry['rent'] ?? 0.0).toDouble();
-          }
-        }
-      }
-    }
-
-    return totalRent;
-  }
-
   // Méthode pour charger les valeurs définies manuellement depuis Hive
   Future<void> loadCustomInitPrices() async {
     final savedData = customInitPricesBox.get('customInitPrices') as String?;
@@ -2169,5 +2260,36 @@ if (tokenAddress == "0xfc5073816fe9671859ef1e6936efd23bb7814274") {
     }
     
     return result;
+  }
+
+  // Nouvelle méthode pour obtenir l'historique des loyers d'un token spécifique
+  List<Map<String, dynamic>> getRentHistoryForToken(String token) {
+    token = token.toLowerCase();
+    List<Map<String, dynamic>> history = [];
+    
+    // Parcourir l'historique des loyers par date
+    for (var dateEntry in rentHistory) {
+      String date = dateEntry['date'];
+      List<Map<String, dynamic>> rents = List<Map<String, dynamic>>.from(dateEntry['rents']);
+      
+      // Rechercher ce token dans les loyers de cette date
+      for (var rentEntry in rents) {
+        if (rentEntry['token'].toLowerCase() == token) {
+          // Ajouter l'entrée à l'historique spécifique au token
+          history.add({
+            'date': date,
+            'rent': rentEntry['rent']
+          });
+          break; // On ne prend qu'une entrée par date pour ce token
+        }
+      }
+    }
+    
+    return history;
+  }
+  
+  // Méthode pour obtenir tous les loyers cumulés (déjà disponible via cumulativeRentsByToken)
+  Map<String, double> getAllCumulativeRents() {
+    return Map<String, double>.from(cumulativeRentsByToken);
   }
 }

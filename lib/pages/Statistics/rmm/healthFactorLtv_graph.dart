@@ -33,6 +33,9 @@ class _HealthAndLtvHistoryGraphState extends State<HealthAndLtvHistoryGraph> {
   /// true : afficher le healthFactor (échelle de 10)
   /// false : afficher le LTV (en pourcentage)
   bool showHealthFactor = true;
+  
+  // Variable pour suivre le point sélectionné
+  int? _selectedSpotIndex;
 
   @override
   Widget build(BuildContext context) {
@@ -141,6 +144,7 @@ class _HealthAndLtvHistoryGraphState extends State<HealthAndLtvHistoryGraph> {
                         onChanged: (val) {
                           setState(() {
                             showHealthFactor = val;
+                            _selectedSpotIndex = null;
                           });
                         },
                         activeColor: Theme.of(context).primaryColor,
@@ -171,6 +175,9 @@ class _HealthAndLtvHistoryGraphState extends State<HealthAndLtvHistoryGraph> {
                                     color: Colors.blue),
                                 title: Text(S.of(context).barChart),
                                 onTap: () {
+                                  setState(() {
+                                    _selectedSpotIndex = null;
+                                  });
                                   widget.onChartTypeChanged(true);
                                   Navigator.of(context).pop();
                                 },
@@ -180,6 +187,9 @@ class _HealthAndLtvHistoryGraphState extends State<HealthAndLtvHistoryGraph> {
                                     color: Colors.green),
                                 title: Text(S.of(context).lineChart),
                                 onTap: () {
+                                  setState(() {
+                                    _selectedSpotIndex = null;
+                                  });
                                   widget.onChartTypeChanged(false);
                                   Navigator.of(context).pop();
                                 },
@@ -197,7 +207,12 @@ class _HealthAndLtvHistoryGraphState extends State<HealthAndLtvHistoryGraph> {
             ChartUtils.buildPeriodSelector(
               context,
               selectedPeriod: widget.selectedPeriod,
-              onPeriodChanged: widget.onPeriodChanged,
+              onPeriodChanged: (String newPeriod) {
+                setState(() {
+                  _selectedSpotIndex = null;
+                });
+                widget.onPeriodChanged(newPeriod);
+              },
             ),
             const SizedBox(height: 20),
             // Affichage du graphique (barres ou lignes)
@@ -278,17 +293,48 @@ class _HealthAndLtvHistoryGraphState extends State<HealthAndLtvHistoryGraph> {
                         barTouchData: BarTouchData(
                           touchTooltipData: BarTouchTooltipData(
                             getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                              double metricValue = rod.rodStackItems[0].toY;
-                              String tooltip = showHealthFactor
-                                  ? 'HF: ${metricValue.toStringAsFixed(2)}'
-                                  : 'LTV: ${metricValue.toStringAsFixed(2)}%';
+                              // Vérifier si c'est le groupe sélectionné
+                              if (_selectedSpotIndex != groupIndex) return null;
+                              
+                              List<String> dates =
+                                  _buildDateLabelsForHealthAndLtv(
+                                context,
+                                widget.dataManager,
+                                widget.selectedPeriod,
+                              );
+                              if (groupIndex < 0 || groupIndex >= dates.length) {
+                                return null;
+                              }
+                              final date = dates[groupIndex];
+                              final value = rod.toY;
                               return BarTooltipItem(
-                                tooltip,
-                                const TextStyle(color: Colors.white),
+                                '$date\n${showHealthFactor ? 'Health Factor' : 'LTV'}: ${value.toStringAsFixed(2)}${showHealthFactor ? '' : '%'}',
+                                TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 10 + appState.getTextSizeOffset(),
+                                ),
                               );
                             },
+                            fitInsideHorizontally: true,
+                            fitInsideVertically: true,
+                            tooltipMargin: 8,
+                            tooltipHorizontalOffset: 0,
+                            tooltipRoundedRadius: 8,
+                            tooltipPadding: const EdgeInsets.all(8),
                           ),
                           handleBuiltInTouches: true,
+                          touchCallback: (FlTouchEvent event, BarTouchResponse? touchResponse) {
+                            setState(() {
+                              if (event is FlTapUpEvent) {
+                                if (touchResponse?.spot != null) {
+                                  _selectedSpotIndex = touchResponse!.spot!.touchedBarGroupIndex;
+                                }
+                              } else if (event is FlPanEndEvent || event is FlLongPressEnd) {
+                                _selectedSpotIndex = null;
+                              }
+                            });
+                          },
                         ),
                       ),
                     )
@@ -337,32 +383,74 @@ class _HealthAndLtvHistoryGraphState extends State<HealthAndLtvHistoryGraph> {
                                       ),
                                     ),
                                   );
-                                } else {
-                                  return const Text('');
                                 }
+                                return const SizedBox.shrink();
                               },
                             ),
-                          ),
-                          topTitles: AxisTitles(
-                            sideTitles: SideTitles(showTitles: false),
                           ),
                           rightTitles: AxisTitles(
                             sideTitles: SideTitles(showTitles: false),
                           ),
-                        ),
-                        borderData: FlBorderData(
-                          show: true,
-                          border: Border(
-                            left: BorderSide(color: Colors.transparent),
-                            bottom: BorderSide(
-                                color: Colors.blueGrey.shade700, width: 0.5),
-                            right: BorderSide(color: Colors.transparent),
-                            top: BorderSide(color: Colors.transparent),
+                          topTitles: AxisTitles(
+                            sideTitles: SideTitles(showTitles: false),
                           ),
                         ),
-                        lineBarsData: lineChartData,
-                        minY: 0,
                         maxY: maxY,
+                        minY: 0,
+                        lineBarsData: lineChartData,
+                        borderData: FlBorderData(show: false),
+                        lineTouchData: LineTouchData(
+                          touchTooltipData: LineTouchTooltipData(
+                            getTooltipItems: (List<LineBarSpot> touchedBarSpots) {
+                              if (touchedBarSpots.isEmpty) return [];
+                              final spot = touchedBarSpots.first;
+                              final spotIndex = spot.spotIndex;
+                              
+                              // Vérifier si le spot est celui sélectionné
+                              if (_selectedSpotIndex != spotIndex) return [];
+                              
+                              List<String> dates =
+                                  _buildDateLabelsForHealthAndLtv(
+                                context,
+                                widget.dataManager,
+                                widget.selectedPeriod,
+                              );
+                              if (spotIndex < 0 || spotIndex >= dates.length) {
+                                return [];
+                              }
+                              final date = dates[spotIndex];
+                              return [
+                                LineTooltipItem(
+                                  '$date\n${showHealthFactor ? 'Health Factor' : 'LTV'}: ${spot.y.toStringAsFixed(2)}${showHealthFactor ? '' : '%'}',
+                                  TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 10 + appState.getTextSizeOffset(),
+                                  ),
+                                ),
+                              ];
+                            },
+                            fitInsideHorizontally: true,
+                            fitInsideVertically: true,
+                            tooltipMargin: 8,
+                            tooltipHorizontalOffset: 0,
+                            tooltipRoundedRadius: 8,
+                            tooltipPadding: const EdgeInsets.all(8),
+                          ),
+                          handleBuiltInTouches: true,
+                          touchSpotThreshold: 20,
+                          touchCallback: (FlTouchEvent event, LineTouchResponse? touchResponse) {
+                            setState(() {
+                              if (event is FlTapUpEvent) {
+                                if (touchResponse?.lineBarSpots != null && touchResponse!.lineBarSpots!.isNotEmpty) {
+                                  _selectedSpotIndex = touchResponse.lineBarSpots!.first.spotIndex;
+                                }
+                              } else if (event is FlPanEndEvent || event is FlLongPressEnd) {
+                                _selectedSpotIndex = null;
+                              }
+                            });
+                          },
+                        ),
                       ),
                     ),
             ),

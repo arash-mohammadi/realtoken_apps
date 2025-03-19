@@ -191,6 +191,12 @@ class ApyHistoryGraph extends StatelessWidget {
                                   }
                                   return null; // Aucun tooltip
                                 },
+                                fitInsideHorizontally: true,
+                                fitInsideVertically: true,
+                                tooltipMargin: 8,
+                                tooltipHorizontalOffset: 0,
+                                tooltipRoundedRadius: 8,
+                                tooltipPadding: const EdgeInsets.all(8),
                               ),
                               touchCallback:
                                   (FlTouchEvent event, barTouchResponse) {
@@ -286,6 +292,35 @@ class ApyHistoryGraph extends StatelessWidget {
                             lineBarsData: lineChartData,
                             minY: 0,
                             maxY: 20,
+                            lineTouchData: LineTouchData(
+                              touchTooltipData: LineTouchTooltipData(
+                                getTooltipItems: (List<LineBarSpot> touchedSpots) {
+                                  return touchedSpots.map((touchedSpot) {
+                                    final index = touchedSpot.x.toInt();
+                                    final value = touchedSpot.y;
+                                    final periodLabel = _buildDateLabelsForApy(
+                                        context, dataManager, selectedPeriod)[index];
+                                    
+                                    final formattedValue = '${value.toStringAsFixed(2)}%';
+                                    
+                                    return LineTooltipItem(
+                                      '$periodLabel\n$formattedValue',
+                                      const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold),
+                                    );
+                                  }).toList();
+                                },
+                                fitInsideHorizontally: true,
+                                fitInsideVertically: true,
+                                tooltipMargin: 8,
+                                tooltipHorizontalOffset: 0,
+                                tooltipRoundedRadius: 8,
+                                tooltipPadding: const EdgeInsets.all(8),
+                              ),
+                              handleBuiltInTouches: true,
+                              touchSpotThreshold: 20,
+                            ),
                           ),
                         );
                 },

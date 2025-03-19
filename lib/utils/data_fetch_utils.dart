@@ -13,7 +13,6 @@ class DataFetchUtils {
       dataManager
           .fetchAndCalculateData(); // Charger les données du portefeuille
       dataManager.fetchPropertyData();
-      dataManager.updatedDetailRentVariables();
       dataManager.fetchAndStoreAllTokens();
       dataManager.fetchAndStoreYamMarketData();
       dataManager.fetchAndStorePropertiesForSale();
@@ -28,7 +27,6 @@ class DataFetchUtils {
     await dataManager.fetchRentData(forceFetch: true);
     await dataManager.fetchAndCalculateData(forceFetch: true);
     dataManager.fetchPropertyData();
-    await dataManager.updatedDetailRentVariables(forceFetch: true);
     await dataManager.fetchAndStoreAllTokens();
     await dataManager.fetchAndStoreYamMarketData();
     await dataManager.fetchAndStorePropertiesForSale();

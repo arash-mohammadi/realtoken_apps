@@ -232,27 +232,33 @@ class _RentGraphState extends State<RentGraph> {
                       getTooltipItems: (List<LineBarSpot> touchedSpots) {
                         return touchedSpots.map((touchedSpot) {
                           final index = touchedSpot.x.toInt();
-                          final periodLabel =
-                              _buildDateLabels(convertedData)[index];
-
-                          final formattedValue =
-                              currencyUtils.getFormattedAmount(
-                            touchedSpot.y,
+                          final value = touchedSpot.y;
+                          final String periodLabel = _buildDateLabelsForRent(
+                              context, dataManager, _selectedRentPeriod)[index];
+                          
+                          final formattedValue = currencyUtils.getFormattedAmount(
+                            value,
                             currencyUtils.currencySymbol,
-                            appState
-                                .showAmounts, // Applique le masquage des montants
+                            appState.showAmounts,
                           );
-
+                          
                           return LineTooltipItem(
                             '$periodLabel\n$formattedValue',
                             const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold),
                           );
                         }).toList();
                       },
+                      fitInsideHorizontally: true,
+                      fitInsideVertically: true,
+                      tooltipMargin: 8,
+                      tooltipHorizontalOffset: 0,
+                      tooltipRoundedRadius: 8,
+                      tooltipPadding: const EdgeInsets.all(8),
                     ),
+                    handleBuiltInTouches: true,
+                    touchSpotThreshold: 20,
                   ),
                 ),
               ),
@@ -387,5 +393,12 @@ class _RentGraphState extends State<RentGraph> {
       spots.add(FlSpot(i.toDouble(), cumulativeRent));
     }
     return spots;
+  }
+
+  List<String> _buildDateLabelsForRent(BuildContext context, DataManager? dataManager, String selectedPeriod) {
+    if (dataManager == null) return [];
+    
+    List<Map<String, dynamic>> groupedData = _groupRentDataByPeriod(dataManager);
+    return _buildDateLabels(groupedData);
   }
 }

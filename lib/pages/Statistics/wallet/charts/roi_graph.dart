@@ -277,37 +277,32 @@ class RoiHistoryGraph extends StatelessWidget {
                             ],
                             lineTouchData: LineTouchData(
                               touchTooltipData: LineTouchTooltipData(
-                                tooltipRoundedRadius: 8,
-                                tooltipMargin: 8,
-                                getTooltipItems:
-                                    (List<LineBarSpot> touchedSpots) {
+                                getTooltipItems: (List<LineBarSpot> touchedSpots) {
                                   return touchedSpots.map((touchedSpot) {
                                     final index = touchedSpot.x.toInt();
                                     final value = touchedSpot.y;
-                                    final date = _buildDateLabelsForRoi(context,
-                                        dataManager, selectedPeriod)[index];
-
-                                    final formattedValue =
-                                        '${value.toStringAsFixed(2)}%';
-
+                                    
+                                    // Récupération de la date correspondante
+                                    final String periodLabel = _buildDateLabelsForRoi(
+                                        context, dataManager, selectedPeriod)[index];
+                                    
                                     return LineTooltipItem(
-                                      '$date\n$formattedValue',
+                                      '$periodLabel\n${value.toStringAsFixed(2)}%',
                                       const TextStyle(
                                           color: Colors.white,
                                           fontWeight: FontWeight.bold),
                                     );
                                   }).toList();
                                 },
+                                fitInsideHorizontally: true,
+                                fitInsideVertically: true,
+                                tooltipMargin: 8,
+                                tooltipHorizontalOffset: 0,
+                                tooltipRoundedRadius: 8,
+                                tooltipPadding: const EdgeInsets.all(8),
                               ),
-                              touchCallback: (FlTouchEvent event,
-                                  LineTouchResponse? touchResponse) {
-                                if (touchResponse != null &&
-                                    touchResponse.lineBarSpots != null) {
-                                  debugPrint(
-                                      'Point touché : ${touchResponse.lineBarSpots?.first.x}');
-                                }
-                              },
                               handleBuiltInTouches: true,
+                              touchSpotThreshold: 20,
                             ),
                           ),
                         );
