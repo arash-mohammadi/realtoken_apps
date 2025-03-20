@@ -13,6 +13,7 @@ import 'charts/apy_graph.dart';
 import 'charts/rent_graph.dart';
 import 'charts/roi_graph.dart';
 import 'charts/wallet_balance_graph.dart';
+import 'charts/rent_distribution_by_wallet_chart.dart';
 
 class WalletStats extends StatefulWidget {
   const WalletStats({super.key});
@@ -108,8 +109,11 @@ class _WalletStats extends State<WalletStats> {
                           });
                         },
                       );
-
                     case 1:
+                      return RentDistributionByWalletChart(
+                        dataManager: dataManager,
+                      );
+                    case 2:
                       return WalletBalanceGraph(
                         dataManager: dataManager,
                         selectedPeriod: _selectedWalletPeriod,
@@ -127,7 +131,7 @@ class _WalletStats extends State<WalletStats> {
                           });
                         },
                       );
-                    case 2:
+                    case 3:
                       return RoiHistoryGraph(
                         selectedPeriod: _selectedRoiPeriod,
                         onPeriodChanged: (period) {
@@ -144,7 +148,7 @@ class _WalletStats extends State<WalletStats> {
                           });
                         },
                       );
-                    case 3:
+                    case 4:
                       return ApyHistoryGraph(
                         dataManager: dataManager,
                         selectedPeriod: _selectedApyPeriod,

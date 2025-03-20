@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:realtokens/app_state.dart';
 import 'package:realtokens/generated/l10n.dart';
@@ -13,78 +14,174 @@ class SettingsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final backgroundColor = isDarkMode 
+        ? const Color(0xFF1C1C1E) 
+        : const Color(0xFFF2F2F7);
+    
     return Scaffold(
+      backgroundColor: backgroundColor,
       appBar: AppBar(
         title: Text(S.of(context).settings),
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
+        elevation: 0,
       ),
       body: ListView(
-        padding: EdgeInsets.all(16),
+        padding: EdgeInsets.zero,
         children: [
-          _buildSettingsCard(
+          const SizedBox(height: 12),
+          _buildSectionHeader(context, "Paramètres", CupertinoIcons.gear),
+          _buildSettingsSection(
             context,
-            icon: Icons.color_lens,
-            color: Colors.lime,
-            title: S.of(context).appearance,
-            onTap: () => _navigateTo(context, AppearanceSettingsPage()),
-          ),
-          SizedBox(height: 16),
-          _buildSettingsCard(
-            context,
-            icon: Icons.tune,
-            color: Colors.green,
-            title: S.of(context).personalization,
-            onTap: () => _navigateTo(context, PersonalizationSettingsPage()),
-          ),
-          SizedBox(height: 16),
-          _buildSettingsCard(
-            context,
-            icon: Icons.sync,
-            color: Colors.blue,
-            title: S.of(context).synchronization,
-            onTap: () => _navigateTo(context, SynchronizationSettingsPage()),
-          ),
-          SizedBox(height: 16),
-          _buildSettingsCard(
-            context,
-            icon: Icons.notifications,
-            color: Colors.orange,
-            title: S.of(context).notifications,
-            onTap: () => _navigateTo(context, NotificationsSettingsPage()),
-          ),
-          SizedBox(height: 16),
-          _buildSettingsCard(
-            context,
-            icon: Icons.build,
-            color: Colors.purple,
-            title: S.of(context).advanced,
-            onTap: () => _navigateTo(context, AdvancedSettingsPage()),
+            children: [
+              _buildSettingsItem(
+                context,
+                icon: CupertinoIcons.color_filter,
+                color: Colors.lime,
+                title: S.of(context).appearance,
+                onTap: () => _navigateTo(context, AppearanceSettingsPage()),
+                isFirst: true,
+              ),
+              _buildSettingsItem(
+                context,
+                icon: CupertinoIcons.slider_horizontal_3,
+                color: Colors.green,
+                title: S.of(context).personalization,
+                onTap: () => _navigateTo(context, PersonalizationSettingsPage()),
+              ),
+              _buildSettingsItem(
+                context,
+                icon: CupertinoIcons.arrow_2_circlepath,
+                color: Colors.blue,
+                title: S.of(context).synchronization,
+                onTap: () => _navigateTo(context, SynchronizationSettingsPage()),
+              ),
+              _buildSettingsItem(
+                context,
+                icon: CupertinoIcons.bell,
+                color: Colors.orange,
+                title: S.of(context).notifications,
+                onTap: () => _navigateTo(context, NotificationsSettingsPage()),
+              ),
+              _buildSettingsItem(
+                context,
+                icon: CupertinoIcons.wrench,
+                color: Colors.purple,
+                title: S.of(context).advanced,
+                onTap: () => _navigateTo(context, AdvancedSettingsPage()),
+                isLast: true,
+              ),
+            ],
           ),
         ],
       ),
     );
   }
 
-  Widget _buildSettingsCard(BuildContext context,
-      {required IconData icon,
-      required Color color,
-      required String title,
-      required VoidCallback onTap}) {
-    final appState = Provider.of<AppState>(context);
-
-    return Card(
-      color: Theme.of(context).cardColor,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: ListTile(
-        leading: Icon(icon, color: color),
-        title: Text(title,
-            style: TextStyle(fontSize: 16.0 + appState.getTextSizeOffset())),
-        trailing: Icon(Icons.arrow_forward_ios, size: 16),
-        onTap: onTap,
+  Widget _buildSectionHeader(BuildContext context, String title, IconData icon) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 16, bottom: 6, top: 2),
+      child: Row(
+        children: [
+          Icon(icon, size: 14, color: Colors.grey),
+          const SizedBox(width: 6),
+          Text(
+            title.toUpperCase(),
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: Colors.grey,
+              letterSpacing: 0.5,
+            ),
+          ),
+        ],
       ),
     );
   }
 
+  Widget _buildSettingsSection(BuildContext context, {required List<Widget> children}) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 1,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: children,
+      ),
+    );
+  }
+
+  Widget _buildSettingsItem(
+    BuildContext context, {
+    required IconData icon,
+    required Color color,
+    required String title,
+    required VoidCallback onTap,
+    bool isFirst = false,
+    bool isLast = false,
+  }) {
+    final appState = Provider.of<AppState>(context);
+    final borderRadius = BorderRadius.vertical(
+      top: isFirst ? const Radius.circular(10) : Radius.zero,
+      bottom: isLast ? const Radius.circular(10) : Radius.zero,
+    );
+
+    return Column(
+      children: [
+        InkWell(
+          onTap: onTap,
+          borderRadius: borderRadius,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              borderRadius: borderRadius,
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Icon(icon, size: 18, color: color),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 15.0 + appState.getTextSizeOffset(),
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                ),
+                const Icon(CupertinoIcons.chevron_right, size: 14, color: Colors.grey),
+              ],
+            ),
+          ),
+        ),
+        if (!isLast)
+          Padding(
+            padding: const EdgeInsets.only(left: 46),
+            child: Divider(height: 1, thickness: 0.5, color: Colors.grey.withOpacity(0.3)),
+          ),
+      ],
+    );
+  }
+
   void _navigateTo(BuildContext context, Widget page) {
-    Navigator.of(context).push(MaterialPageRoute(builder: (context) => page));
+    Navigator.of(context).push(
+      CupertinoPageRoute(builder: (context) => page),
+    );
   }
 }

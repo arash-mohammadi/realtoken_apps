@@ -18,10 +18,11 @@ class PropertiesCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final dataManager = Provider.of<DataManager>(context);
     final appState = Provider.of<AppState>(context);
+    final theme = Theme.of(context);
 
     return UIUtils.buildCard(
       S.of(context).properties,
-      Icons.home,
+      Icons.business_outlined,
       UIUtils.buildValueBeforeText(
           context,
           '${(dataManager.rentedUnits / dataManager.totalUnits * 100).toStringAsFixed(2)}%',
@@ -97,30 +98,43 @@ class PropertiesCard extends StatelessWidget {
           return _buildPieChart(rentedPercentage, context);
         },
       ),
-      headerRightWidget: IconButton(
-        icon: Icon(
-          Icons.arrow_forward,
-          size: 24,
-          color: Colors.grey,
-        ),
-        padding: EdgeInsets.zero,
-        constraints: BoxConstraints(),
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const PropertiesDetailsPage(),
+      headerRightWidget: Container(
+        height: 36,
+        width: 36,
+        child: Material(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(18),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(18),
+            child: Container(
+              padding: EdgeInsets.all(6),
+              child: Icon(
+                Icons.arrow_forward_ios_rounded,
+                size: 16,
+                color: theme.brightness == Brightness.light 
+                    ? Colors.black54
+                    : Colors.white70,
+              ),
             ),
-          );
-        },
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const PropertiesDetailsPage(),
+                ),
+              );
+            },
+          ),
+        ),
       ),
     );
   }
 
   Widget _buildPieChart(double rentedPercentage, BuildContext context) {
+    final theme = Theme.of(context);
     return SizedBox(
       width: 120, // Largeur du camembert
-      height: 70, // Hauteur du camembert
+      height: 90, // Hauteur du camembert
       child: PieChart(
         PieChartData(
           startDegreeOffset: -90, // Pour placer la petite section en haut
@@ -143,17 +157,13 @@ class PropertiesCard extends StatelessWidget {
             ),
             PieChartSectionData(
               value: 100 - rentedPercentage,
-              color: Theme.of(context)
-                  .primaryColor, // Couleur pour les unités non louées
+              color: theme.primaryColor, // Couleur pour les unités non louées
               title: '',
               radius: 17, // Taille de la section non louée
               gradient: LinearGradient(
                 colors: [
-                  Theme.of(context)
-                      .primaryColor
-                      .withOpacity(0.6), // Remplace Colors.blue.shade300
-                  Theme.of(context)
-                      .primaryColor, // Remplace Colors.blue.shade700
+                  theme.primaryColor.withOpacity(0.6),
+                  theme.primaryColor,
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,

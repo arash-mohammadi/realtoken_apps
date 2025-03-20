@@ -10,6 +10,8 @@ import 'package:realtokens/generated/l10n.dart'; // Import des traductions
 import 'package:realtokens/settings/manage_evm_addresses_page.dart'; // Import de la page de gestion des adresses EVM
 import 'package:realtokens/app_state.dart';
 import 'package:show_network_image/show_network_image.dart'; // Import de AppState
+import 'dart:ui';
+import 'dart:math' as Math;
 
 class PortfolioDisplay2 extends StatefulWidget {
   final List<Map<String, dynamic>> portfolio;
@@ -22,89 +24,111 @@ class PortfolioDisplay2 extends StatefulWidget {
 
 class PortfolioDisplay2State extends State<PortfolioDisplay2> {
   Widget _buildGaugeForRent(double rentValue, BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(height: 5),
-        LayoutBuilder(
-          builder: (context, constraints) {
-            double maxWidth = constraints.maxWidth;
-            double barWidth = rentValue.clamp(0, 100) / 100 * maxWidth;
-
-            return Stack(
-              children: [
-                // Barre grisée de fond
-                Container(
-                  height: 15,
-                  width: maxWidth,
-                  decoration: BoxDecoration(
-                    color:
-                        const Color.fromARGB(255, 78, 78, 78).withOpacity(0.3),
-                    borderRadius: BorderRadius.circular(5),
-                  ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          double maxWidth = constraints.maxWidth;
+          final bool showTextInside = rentValue >= 15; // Afficher le texte à l'intérieur seulement si >= 15%
+          
+          return Stack(
+            children: [
+              // Fond de la jauge
+              Container(
+                height: 16,
+                width: maxWidth,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).dividerColor.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                // Barre bleue de progression
-                Container(
-                  height: 15,
-                  width: barWidth,
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).primaryColor,
-                    borderRadius: BorderRadius.circular(5),
+              ),
+              // Partie remplie de la jauge
+              Container(
+                height: 16,
+                width: Math.max(rentValue.clamp(0, 100) / 100 * maxWidth, 8), // Largeur minimum pour garantir les bords arrondis
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Theme.of(context).primaryColor.withOpacity(0.7),
+                      Theme.of(context).primaryColor,
+                    ],
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
                   ),
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                // Texte centré
-                Positioned.fill(
+                // Texte du pourcentage à l'intérieur de la barre seulement si assez d'espace
+                child: showTextInside ? Center(
+                  child: Text(
+                    "${rentValue.toStringAsFixed(1)}%",
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                      shadows: [
+                        Shadow(
+                          offset: const Offset(0, 1),
+                          blurRadius: 1,
+                          color: Colors.black.withOpacity(0.5),
+                        ),
+                      ],
+                    ),
+                  ),
+                ) : null,
+              ),
+              // Texte du pourcentage visible en dehors de la barre seulement si < 15%
+              if (!showTextInside)
+                Positioned(
+                  left: Math.max(rentValue.clamp(0, 100) / 100 * maxWidth, 8) + 4,
+                  top: 0,
+                  bottom: 0,
                   child: Center(
                     child: Text(
                       "${rentValue.toStringAsFixed(1)}%",
                       style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white, // Assurez une bonne lisibilité
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        color: Theme.of(context).textTheme.bodyLarge?.color,
                       ),
                     ),
                   ),
                 ),
-              ],
-            );
-          },
-        ),
-        const SizedBox(height: 5),
-      ],
+            ],
+          );
+        },
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
-    final appState = Provider.of<AppState>(context); // Accéder à AppState
+    final appState = Provider.of<AppState>(context);
     final filteredPortfolio = widget.portfolio;
     final widthScreen = MediaQuery.of(context).size.width;
+    
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Column(
         children: [
-          // Affichage de la liste des tokens
           filteredPortfolio.isEmpty
               ? Expanded(
                   child: Center(
                     child: Padding(
-                      padding: const EdgeInsets.all(8.0),
+                      padding: const EdgeInsets.all(16.0),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            S
-                                .of(context)
-                                .noDataAvailable, // Traduction pour "Aucune donnée disponible"
+                            S.of(context).noDataAvailable,
                             style: TextStyle(
                               fontSize: 18 + appState.getTextSizeOffset(),
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w600,
                               color: Colors.grey,
                             ),
                             textAlign: TextAlign.center,
                           ),
-                          const SizedBox(height: 20),
+                          const SizedBox(height: 24),
                           ElevatedButton(
                             onPressed: () {
                               Navigator.of(context).push(
@@ -116,15 +140,15 @@ class PortfolioDisplay2State extends State<PortfolioDisplay2> {
                             },
                             style: ElevatedButton.styleFrom(
                               foregroundColor: Colors.white,
-                              backgroundColor:
-                                  Theme.of(context).primaryColor, // Texte blanc
+                              backgroundColor: Theme.of(context).primaryColor,
+                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                             ),
                             child: Text(
-                              S
-                                  .of(context)
-                                  .manageAddresses, // Traduction pour "Gérer les adresses"
+                              S.of(context).manageAddresses,
                               style: TextStyle(
                                 fontSize: 16 + appState.getTextSizeOffset(),
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
                           ),
@@ -135,411 +159,479 @@ class PortfolioDisplay2State extends State<PortfolioDisplay2> {
                 )
               : Expanded(
                   child: AlignedGridView.count(
-                    padding: const EdgeInsets.only(top: 20, bottom: 80),
-                    crossAxisCount: widthScreen > 700
-                        ? 2
-                        : 1, // Nombre de colonnes basé sur la largeur de l'écran
-
+                    padding: const EdgeInsets.only(top: 8, bottom: 80, right: 16, left: 16),
+                    crossAxisCount: widthScreen > 700 ? 2 : 1,
+                    mainAxisSpacing: 16,
+                    crossAxisSpacing: 16,
                     itemCount: filteredPortfolio.length,
                     itemBuilder: (context, index) {
                       final token = filteredPortfolio[index];
-                      final isWallet = token['inWallet'] ??
-                          false; // Modifier pour détecter si présent dans le wallet
-                      final isRMM = token['inRMM'] ??
-                          false; // Modifier pour détecter si présent dans le RMM
-                      final city =
-                          LocationUtils.extractCity(token['fullName'] ?? '');
+                      final isWallet = token['inWallet'] ?? false;
+                      final isRMM = token['inRMM'] ?? false;
+                      final city = LocationUtils.extractCity(token['fullName'] ?? '');
 
-                      // Vérifier si la date de 'rent_start' est dans le futur en utilisant le bon format
-                      final rentStartDate =
-                          DateTime.tryParse(token['rentStartDate'] ?? '');
+                      final rentStartDate = DateTime.tryParse(token['rentStartDate'] ?? '');
                       final bool isFutureRentStart = rentStartDate != null &&
                           rentStartDate.isAfter(DateTime.now());
 
-                      final rentPercentage =
-                          (token['totalRentReceived'] != null &&
-                                  token['initialTotalValue'] != null &&
-                                  token['initialTotalValue'] != 0)
-                              ? (token['totalRentReceived'] /
-                                      token['initialTotalValue']) *
-                                  100
-                              : 0.5;
+                      final rentPercentage = (token['totalRentReceived'] != null &&
+                              token['initialTotalValue'] != null &&
+                              token['initialTotalValue'] != 0)
+                          ? (token['totalRentReceived'] / token['initialTotalValue']) * 100
+                          : 0.5;
 
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 8.0, horizontal: 8.0),
+                      return Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.06),
+                              blurRadius: 12,
+                              spreadRadius: 0,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
                         child: GestureDetector(
                           onTap: () => showTokenDetails(context, token),
-                          child: Card(
-                            color: Theme.of(context)
-                                .cardColor, // Appliquer la couleur du thème
-                            elevation: 0.5,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                // Empiler l'image et le texte en superposition
-                                Stack(
-                                  children: [
-                                    AspectRatio(
-                                      aspectRatio: 16 /
-                                          9, // Assure que l'image prend toute la largeur de la carte
-                                      child: ClipRRect(
-                                        borderRadius: const BorderRadius.only(
-                                          topLeft: Radius.circular(12),
-                                          topRight: Radius.circular(12),
-                                        ),
-                                        child: ColorFiltered(
-                                          colorFilter: isFutureRentStart
-                                              ? const ColorFilter.mode(
-                                                  Colors.black45,
-                                                  BlendMode.darken)
-                                              : const ColorFilter.mode(
-                                                  Colors.transparent,
-                                                  BlendMode.multiply),
-                                          child: SizedBox(
-                                            child: ClipRRect(
-                                              borderRadius:
-                                                  BorderRadius.circular(12),
-                                              child: kIsWeb
-                                                  ? ShowNetworkImage(
-                                                      imageSrc:
-                                                          token['imageLink'][0],
-                                                      mobileBoxFit: BoxFit.fill,
-                                                    )
-                                                  : CachedNetworkImage(
-                                                      imageUrl:
-                                                          token['imageLink'][0],
-                                                      fit: BoxFit.cover,
-                                                      errorWidget: (context,
-                                                              url, error) =>
-                                                          const Icon(
-                                                              Icons.error),
-                                                    ),
-                                            ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(20),
+                            child: Card(
+                              color: Theme.of(context).cardColor,
+                              elevation: 0,
+                              margin: EdgeInsets.zero,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  Stack(
+                                    children: [
+                                      AspectRatio(
+                                        aspectRatio: 16 / 9,
+                                        child: ClipRRect(
+                                          borderRadius: const BorderRadius.only(
+                                            topLeft: Radius.circular(20),
+                                            topRight: Radius.circular(20),
+                                          ),
+                                          child: ColorFiltered(
+                                            colorFilter: isFutureRentStart
+                                                ? const ColorFilter.mode(
+                                                    Colors.black45,
+                                                    BlendMode.darken)
+                                                : const ColorFilter.mode(
+                                                    Colors.transparent,
+                                                    BlendMode.multiply),
+                                            child: kIsWeb
+                                                ? ShowNetworkImage(
+                                                    imageSrc: token['imageLink'][0],
+                                                    mobileBoxFit: BoxFit.cover,
+                                                  )
+                                                : CachedNetworkImage(
+                                                    imageUrl: token['imageLink'][0],
+                                                    fit: BoxFit.cover,
+                                                    errorWidget: (context, url, error) =>
+                                                        const Icon(Icons.error),
+                                                  ),
                                           ),
                                         ),
                                       ),
-                                    ),
 
-                                    // ✅ Superposition d'un GestureDetector transparent uniquement sur Web
-                                    if (kIsWeb)
-                                      Positioned.fill(
-                                        child: GestureDetector(
-                                          behavior: HitTestBehavior
-                                              .translucent, // Capture le clic même sur les parties transparentes
-                                          onTap: () {
-                                            print("✅ Image cliquée sur Web !");
-                                            showTokenDetails(context, token);
-                                          },
+                                      if (kIsWeb)
+                                        Positioned.fill(
+                                          child: GestureDetector(
+                                            behavior: HitTestBehavior.translucent,
+                                            onTap: () {
+                                              showTokenDetails(context, token);
+                                            },
+                                          ),
                                         ),
-                                      ),
 
-                                    // ✅ Afficher un texte en superposition si 'rent_start' est dans le futur
-                                    if (isFutureRentStart)
-                                      Positioned.fill(
-                                        child: Center(
-                                          child: Container(
-                                            color: Colors.black54,
-                                            padding: const EdgeInsets.all(8.0),
-                                            child: Text(
-                                              S
-                                                  .of(context)
-                                                  .rentStartFuture, // Texte indiquant que le loyer commence dans le futur
-                                              style: TextStyle(
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 16 +
-                                                    appState
-                                                        .getTextSizeOffset(),
+                                      if (isFutureRentStart)
+                                        Positioned.fill(
+                                          child: Center(
+                                            child: ClipRRect(
+                                              borderRadius: BorderRadius.circular(10),
+                                              child: BackdropFilter(
+                                                filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
+                                                child: Container(
+                                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.black38,
+                                                    borderRadius: BorderRadius.circular(10),
+                                                  ),
+                                                  child: Text(
+                                                    S.of(context).rentStartFuture,
+                                                    style: TextStyle(
+                                                      color: Colors.white,
+                                                      fontWeight: FontWeight.w600,
+                                                      fontSize: 12 + appState.getTextSizeOffset(),
+                                                    ),
+                                                  ),
+                                                ),
                                               ),
                                             ),
                                           ),
                                         ),
-                                      ),
-                                  ],
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.all(12.0),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      // Titre avec pastilles "Wallet" et "RMM" si disponibles
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Expanded(
-                                            child: Row(
-                                              children: [
-                                                if (token['country'] !=
-                                                    null) // Vérifie si le pays est disponible
-                                                  Padding(
-                                                    padding: const EdgeInsets
-                                                        .only(
-                                                        right:
-                                                            4.0), // Espacement entre l'image et le texte
-                                                    child: Image.asset(
-                                                      'assets/country/${token['country'].toLowerCase()}.png',
-                                                      width: 26 +
-                                                          appState
-                                                              .getTextSizeOffset(),
-                                                      height: 26 +
-                                                          appState
-                                                              .getTextSizeOffset(),
-                                                      errorBuilder: (context,
-                                                          error, stackTrace) {
-                                                        return const Icon(
-                                                            Icons.flag,
-                                                            size:
-                                                                24); // Affiche une icône par défaut si l'image est introuvable
-                                                      },
-                                                    ),
-                                                  ),
-                                                Text(
-                                                  token['shortName'] ??
-                                                      S
-                                                          .of(context)
-                                                          .nameUnavailable,
-                                                  style: TextStyle(
-                                                    fontSize: 18 +
-                                                        appState
-                                                            .getTextSizeOffset(),
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                          Row(
+                                        
+                                      // Indicateurs en haut à gauche
+                                      if (isWallet || isRMM)
+                                        Positioned(
+                                          top: 10,
+                                          left: 10,
+                                          child: Row(
                                             children: [
                                               if (isWallet)
-                                                Container(
-                                                  padding: const EdgeInsets
-                                                      .symmetric(
-                                                      horizontal: 8,
-                                                      vertical: 4),
-                                                  decoration: BoxDecoration(
-                                                    color: Colors.grey,
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            12),
-                                                  ),
-                                                  child: Text(
-                                                    'Wallet',
-                                                    style: const TextStyle(
-                                                      color: Colors.white,
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      fontSize: 12,
+                                                ClipRRect(
+                                                  borderRadius: BorderRadius.circular(8),
+                                                  child: BackdropFilter(
+                                                    filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
+                                                    child: Container(
+                                                      padding: const EdgeInsets.symmetric(
+                                                          horizontal: 8, vertical: 4),
+                                                      decoration: BoxDecoration(
+                                                        color: Colors.black.withOpacity(0.3),
+                                                        borderRadius: BorderRadius.circular(8),
+                                                      ),
+                                                      child: Text(
+                                                        S.of(context).wallet,
+                                                        style: TextStyle(
+                                                          color: Colors.white,
+                                                          fontWeight: FontWeight.w600,
+                                                          fontSize: 10 + appState.getTextSizeOffset(),
+                                                        ),
+                                                      ),
                                                     ),
                                                   ),
                                                 ),
-                                              if (isWallet && isRMM)
-                                                const SizedBox(
-                                                    width:
-                                                        8), // Espacement entre les deux pastilles
+                                              const SizedBox(width: 6),
                                               if (isRMM)
-                                                Container(
-                                                  padding: const EdgeInsets
-                                                      .symmetric(
-                                                      horizontal: 8,
-                                                      vertical: 4),
-                                                  decoration: BoxDecoration(
-                                                    color: const Color.fromARGB(
-                                                        255, 165, 100, 21),
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            12),
-                                                  ),
-                                                  child: const Text(
-                                                    'RMM',
-                                                    style: TextStyle(
-                                                      color: Colors.white,
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      fontSize: 12,
+                                                ClipRRect(
+                                                  borderRadius: BorderRadius.circular(8),
+                                                  child: BackdropFilter(
+                                                    filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
+                                                    child: Container(
+                                                      padding: const EdgeInsets.symmetric(
+                                                          horizontal: 8, vertical: 4),
+                                                      decoration: BoxDecoration(
+                                                        color: const Color.fromARGB(150, 165, 100, 21),
+                                                        borderRadius: BorderRadius.circular(8),
+                                                      ),
+                                                      child: Text(
+                                                        'RMM',
+                                                        style: TextStyle(
+                                                          color: Colors.white,
+                                                          fontWeight: FontWeight.w600,
+                                                          fontSize: 10 + appState.getTextSizeOffset(),
+                                                        ),
+                                                      ),
                                                     ),
                                                   ),
                                                 ),
                                             ],
                                           ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        city,
-                                        style: TextStyle(
-                                          fontSize:
-                                              16 + appState.getTextSizeOffset(),
-                                          color: Colors.grey,
                                         ),
-                                      ),
-                                      const SizedBox(height: 8),
-                                      // Appel à la jauge pour le pourcentage de rentabilité
-                                      _buildGaugeForRent(
-                                          rentPercentage, context),
-                                      const SizedBox(height: 8),
-
-                                      Text(
-                                        '${S.of(context).totalValue}: ${currencyUtils.getFormattedAmount(
-                                          currencyUtils
-                                              .convert(token['totalValue']),
-                                          currencyUtils.currencySymbol,
-                                          appState
-                                              .showAmounts, // Utilisation de showAmounts pour masquer/afficher les valeurs
-                                        )}',
-                                        style: TextStyle(
-                                          fontSize:
-                                              15 + appState.getTextSizeOffset(),
-                                        ),
-                                      ),
-                                      Text(
-                                        'YAM: ${currencyUtils.formatCurrency(currencyUtils.convert((token['yamAverageValue'] * token['amount'])), currencyUtils.currencySymbol)} (${((token['yamAverageValue'] / token['tokenPrice'] - 1) * 100).toStringAsFixed(0)}%)',
-                                        style: TextStyle(
-                                          fontSize:
-                                              13 + appState.getTextSizeOffset(),
-                                          color: (token['yamAverageValue'] *
-                                                      token['amount']) >=
-                                                  token['totalValue']
-                                              ? Colors.green
-                                              : Colors.red,
-                                        ),
-                                      ),
-
-                                      Text(
-                                        '${S.of(context).amount}: ${token['amount'].toStringAsFixed(2)} / ${token['totalTokens']}',
-                                        style: TextStyle(
-                                          fontSize:
-                                              15 + appState.getTextSizeOffset(),
-                                        ),
-                                      ),
-                                      Text(
-                                        '${S.of(context).apy}: ${token['annualPercentageYield']?.toStringAsFixed(2)}%',
-                                        style: TextStyle(
-                                          fontSize:
-                                              15 + appState.getTextSizeOffset(),
-                                        ),
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        '${S.of(context).revenue}:',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize:
-                                              16 + appState.getTextSizeOffset(),
-                                        ),
-                                      ),
-                                      Padding(
-                                        padding:
-                                            const EdgeInsets.only(top: 4.0),
-                                        child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceEvenly,
-                                          children: [
-                                            Column(
-                                              children: [
-                                                Text(S.of(context).day,
-                                                    style: TextStyle(
-                                                      fontSize: 13 +
-                                                          appState
-                                                              .getTextSizeOffset(),
-                                                    )),
-                                                Text(currencyUtils
-                                                    .getFormattedAmount(
-                                                        currencyUtils.convert(
-                                                            token[
-                                                                'dailyIncome']),
-                                                        currencyUtils
-                                                            .currencySymbol,
-                                                        appState.showAmounts)),
-                                              ],
+                                      // Ville en bas de l'image
+                                      Positioned(
+                                        bottom: 0,
+                                        left: 0,
+                                        right: 0,
+                                        child: ClipRRect(
+                                          child: BackdropFilter(
+                                            filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
+                                            child: Container(
+                                              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+                                              decoration: BoxDecoration(
+                                                gradient: LinearGradient(
+                                                  begin: Alignment.topCenter,
+                                                  end: Alignment.bottomCenter,
+                                                  colors: [
+                                                    Colors.transparent,
+                                                    Colors.black.withOpacity(0.6),
+                                                  ],
+                                                ),
+                                              ),
+                                              child: Text(
+                                                city,
+                                                style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 14 + appState.getTextSizeOffset(),
+                                                  fontWeight: FontWeight.w600,
+                                                  shadows: [
+                                                    Shadow(
+                                                      offset: const Offset(0, 1),
+                                                      blurRadius: 2,
+                                                      color: Colors.black.withOpacity(0.5),
+                                                    ),
+                                                  ],
+                                                ),
+                                                textAlign: TextAlign.center,
+                                              ),
                                             ),
-                                            Column(
-                                              children: [
-                                                Text(S.of(context).week,
-                                                    style: TextStyle(
-                                                      fontSize: 13 +
-                                                          appState
-                                                              .getTextSizeOffset(),
-                                                    )),
-                                                Text(
-                                                    currencyUtils
-                                                        .getFormattedAmount(
-                                                            currencyUtils
-                                                                .convert(token[
-                                                                    'dailyIncome']),
-                                                            currencyUtils
-                                                                .currencySymbol,
-                                                            appState
-                                                                .showAmounts),
-                                                    style: TextStyle(
-                                                      fontSize: 13 +
-                                                          appState
-                                                              .getTextSizeOffset(),
-                                                    )),
-                                              ],
-                                            ),
-                                            Column(
-                                              children: [
-                                                Text(S.of(context).month,
-                                                    style: TextStyle(
-                                                      fontSize: 13 +
-                                                          appState
-                                                              .getTextSizeOffset(),
-                                                    )),
-                                                Text(
-                                                    currencyUtils
-                                                        .getFormattedAmount(
-                                                            currencyUtils
-                                                                .convert(token[
-                                                                    'monthlyIncome']),
-                                                            currencyUtils
-                                                                .currencySymbol,
-                                                            appState
-                                                                .showAmounts),
-                                                    style: TextStyle(
-                                                      fontSize: 13 +
-                                                          appState
-                                                              .getTextSizeOffset(),
-                                                    )),
-                                              ],
-                                            ),
-                                            Column(
-                                              children: [
-                                                Text(S.of(context).year,
-                                                    style: TextStyle(
-                                                      fontSize: 13 +
-                                                          appState
-                                                              .getTextSizeOffset(),
-                                                    )),
-                                                Text(
-                                                    currencyUtils
-                                                        .getFormattedAmount(
-                                                            currencyUtils
-                                                                .convert(token[
-                                                                    'yearlyIncome']),
-                                                            currencyUtils
-                                                                .currencySymbol,
-                                                            appState
-                                                                .showAmounts),
-                                                    style: TextStyle(
-                                                      fontSize: 13 +
-                                                          appState
-                                                              .getTextSizeOffset(),
-                                                    )),
-                                              ],
-                                            ),
-                                          ],
+                                          ),
                                         ),
                                       ),
                                     ],
                                   ),
-                                ),
-                              ],
+                                  Padding(
+                                    padding: const EdgeInsets.all(12.0),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            if (token['country'] != null)
+                                              Padding(
+                                                padding: const EdgeInsets.only(right: 6),
+                                                child: ClipRRect(
+                                                  borderRadius: BorderRadius.circular(4),
+                                                  child: Image.asset(
+                                                    'assets/country/${token['country'].toLowerCase()}.png',
+                                                    width: 22 + appState.getTextSizeOffset(),
+                                                    height: 22 + appState.getTextSizeOffset(),
+                                                    errorBuilder: (context, error, stackTrace) {
+                                                      return const Icon(Icons.flag, size: 22);
+                                                    },
+                                                  ),
+                                                ),
+                                              ),
+                                            Expanded(
+                                              child: Text(
+                                                token['shortName'] ?? S.of(context).nameUnavailable,
+                                                style: TextStyle(
+                                                  fontSize: 16 + appState.getTextSizeOffset(),
+                                                  fontWeight: FontWeight.w600,
+                                                  color: Theme.of(context).textTheme.bodyLarge?.color,
+                                                  letterSpacing: -0.2,
+                                                ),
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 8),
+                                        // Barre de progression
+                                        _buildGaugeForRent(rentPercentage, context),
+                                        const SizedBox(height: 2),
+
+                                        // Montant et APY
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Expanded(
+                                              child: Text(
+                                                '${token['amount']?.toStringAsFixed(2) ?? '0.00'} / ${token['totalTokens'] ?? 'N/A'}',
+                                                style: TextStyle(
+                                                  fontSize: 12 + appState.getTextSizeOffset(),
+                                                  fontWeight: FontWeight.w500,
+                                                  color: Theme.of(context).textTheme.bodySmall?.color,
+                                                ),
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                            Row(
+                                              children: [
+                                                Icon(
+                                                  Icons.trending_up,
+                                                  size: 14 + appState.getTextSizeOffset(),
+                                                  color: Theme.of(context).primaryColor,
+                                                ),
+                                                const SizedBox(width: 2),
+                                                Text(
+                                                  '${token['annualPercentageYield']?.toStringAsFixed(2) ?? 'N/A'}%',
+                                                  style: TextStyle(
+                                                    fontSize: 13 + appState.getTextSizeOffset(),
+                                                    fontWeight: FontWeight.w600,
+                                                    color: Theme.of(context).primaryColor,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 8),
+                                        
+                                        // Valeurs totales
+                                        Container(
+                                    
+                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                                          child: Row(
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    S.of(context).totalValue,
+                                                    style: TextStyle(
+                                                      fontSize: 11 + appState.getTextSizeOffset(),
+                                                      color: Theme.of(context).textTheme.bodySmall?.color,
+                                                      fontWeight: FontWeight.w500,
+                                                    ),
+                                                  ),
+                                                  Text(
+                                                    currencyUtils.getFormattedAmount(
+                                                      currencyUtils.convert(token['totalValue']),
+                                                      currencyUtils.currencySymbol,
+                                                      appState.showAmounts,
+                                                    ),
+                                                    style: TextStyle(
+                                                      fontSize: 13 + appState.getTextSizeOffset(),
+                                                      fontWeight: FontWeight.w600,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                              Column(
+                                                crossAxisAlignment: CrossAxisAlignment.end,
+                                                children: [
+                                                  Text(
+                                                    'YAM',
+                                                    style: TextStyle(
+                                                      fontSize: 11 + appState.getTextSizeOffset(),
+                                                      color: Theme.of(context).textTheme.bodySmall?.color,
+                                                      fontWeight: FontWeight.w500,
+                                                    ),
+                                                  ),
+                                                  Row(
+                                                    children: [
+                                                      Text(
+                                                        currencyUtils.getFormattedAmount(
+                                                          currencyUtils.convert((token['yamAverageValue'] * token['amount'])),
+                                                          currencyUtils.currencySymbol,
+                                                          appState.showAmounts
+                                                        ),
+                                                        style: TextStyle(
+                                                          fontSize: 13 + appState.getTextSizeOffset(),
+                                                          fontWeight: FontWeight.w600,
+                                                          color: (token['yamAverageValue'] * token['amount']) >= token['totalValue']
+                                                              ? Colors.green.shade600
+                                                              : Colors.red.shade600,
+                                                        ),
+                                                      ),
+                                                      const SizedBox(width: 4),
+                                                      Text(
+                                                        '(${((token['yamAverageValue'] / token['tokenPrice'] - 1) * 100).toStringAsFixed(0)}%)',
+                                                        style: TextStyle(
+                                                          fontSize: 11 + appState.getTextSizeOffset(),
+                                                          fontWeight: FontWeight.w500,
+                                                          color: (token['yamAverageValue'] * token['amount']) >= token['totalValue']
+                                                              ? Colors.green.shade600
+                                                              : Colors.red.shade600,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        const SizedBox(height: 8),
+                                        
+                                        // Section Revenus
+                                        Container(
+                                          decoration: BoxDecoration(
+                                            color: Theme.of(context).primaryColor.withOpacity(0.08),
+                                            borderRadius: BorderRadius.circular(12),
+                                          ),
+                                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                S.of(context).revenue,
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.w600,
+                                                  fontSize: 13 + appState.getTextSizeOffset(),
+                                                  color: Theme.of(context).primaryColor,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Row(
+                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                children: [
+                                                  Column(
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    children: [
+                                                      Text(
+                                                        S.of(context).week,
+                                                        style: TextStyle(
+                                                          fontSize: 12 + appState.getTextSizeOffset(),
+                                                          color: Theme.of(context).textTheme.bodySmall?.color,
+                                                        ),
+                                                      ),
+                                                      Text(
+                                                        currencyUtils.getFormattedAmount(
+                                                          currencyUtils.convert(token['dailyIncome']),
+                                                          currencyUtils.currencySymbol,
+                                                          appState.showAmounts
+                                                        ),
+                                                        style: TextStyle(
+                                                          fontSize: 13 + appState.getTextSizeOffset(),
+                                                          fontWeight: FontWeight.w600,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  Column(
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    children: [
+                                                      Text(
+                                                        S.of(context).month,
+                                                        style: TextStyle(
+                                                          fontSize: 12 + appState.getTextSizeOffset(),
+                                                          color: Theme.of(context).textTheme.bodySmall?.color,
+                                                        ),
+                                                      ),
+                                                      Text(
+                                                        currencyUtils.getFormattedAmount(
+                                                          currencyUtils.convert(token['monthlyIncome']),
+                                                          currencyUtils.currencySymbol,
+                                                          appState.showAmounts
+                                                        ),
+                                                        style: TextStyle(
+                                                          fontSize: 13 + appState.getTextSizeOffset(),
+                                                          fontWeight: FontWeight.w600,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  Column(
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    children: [
+                                                      Text(
+                                                        S.of(context).year,
+                                                        style: TextStyle(
+                                                          fontSize: 12 + appState.getTextSizeOffset(),
+                                                          color: Theme.of(context).textTheme.bodySmall?.color,
+                                                        ),
+                                                      ),
+                                                      Text(
+                                                        currencyUtils.getFormattedAmount(
+                                                          currencyUtils.convert(token['yearlyIncome']),
+                                                          currencyUtils.currencySymbol,
+                                                          appState.showAmounts
+                                                        ),
+                                                        style: TextStyle(
+                                                          fontSize: 13 + appState.getTextSizeOffset(),
+                                                          fontWeight: FontWeight.w600,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),

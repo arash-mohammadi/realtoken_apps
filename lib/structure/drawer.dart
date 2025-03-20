@@ -4,6 +4,7 @@ import 'package:realtokens/pages/propertiesForSale/propertiesForSell_select.dart
 import 'package:realtokens/pages/support_page.dart';
 import 'package:realtokens/settings/service_status.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:realtokens/settings/settings_page.dart';
 import 'package:realtokens/pages/realtokens_page.dart';
@@ -17,6 +18,7 @@ import 'package:in_app_review/in_app_review.dart';
 import 'package:http/http.dart' as http;
 import 'package:package_info_plus/package_info_plus.dart';
 import 'dart:io';
+import 'dart:convert';
 
 import 'package:realtokens/utils/url_utils.dart';
 
@@ -47,19 +49,20 @@ class _CustomDrawerState extends State<CustomDrawer> {
         currentVersion = packageInfo.version;
       });
 
-      // Récupérer la version du fichier pubspec.yaml sur GitHub
-      final response = await http.get(Uri.parse(
-          'https://raw.githubusercontent.com/RealToken-Community/realtoken_apps/main/pubspec.yaml'));
+      // Récupérer la dernière version à partir des releases GitHub au lieu du pubspec.yaml
+      final response = await http.get(
+        Uri.parse('https://api.github.com/repos/RealToken-Community/realtoken_apps/releases/latest'),
+        headers: {'Accept': 'application/vnd.github.v3+json'},
+      );
 
       if (response.statusCode == 200) {
-        final pubspecContent = response.body;
-        final versionMatch =
-            RegExp(r'version:\s*([\d.]+)').firstMatch(pubspecContent);
-        if (versionMatch != null) {
-          setState(() {
-            latestVersion = versionMatch.group(1);
-          });
-        }
+        final releaseData = json.decode(response.body);
+        final tagName = releaseData['tag_name'];
+        
+        // Supprimer le 'v' au début du tag si présent (ex: v1.0.0 -> 1.0.0)
+        setState(() {
+          latestVersion = tagName.startsWith('v') ? tagName.substring(1) : tagName;
+        });
       }
     } catch (e) {
       debugPrint('Erreur lors de la récupération des versions : $e');
@@ -90,25 +93,31 @@ class _CustomDrawerState extends State<CustomDrawer> {
   }
 
   void _showReviewNotAvailablePopup(BuildContext context) {
-    showDialog(
+    showCupertinoDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text("Merci pour vos retours !"),
+        return CupertinoAlertDialog(
+          title: Text(
+            "Merci pour vos retours !",
+            style: TextStyle(fontWeight: FontWeight.w600),
+          ),
           content: Text(
-              "La demande de notation n'a pas pu être affichée. Souhaitez-vous ouvrir la page de l'application dans le Store pour laisser un avis ?"),
+            "La demande de notation n'a pas pu être affichée. Souhaitez-vous ouvrir la page de l'application dans le Store pour laisser un avis ?",
+            style: TextStyle(fontSize: 14),
+          ),
           actions: [
-            TextButton(
+            CupertinoDialogAction(
               onPressed: () {
                 Navigator.of(context).pop();
               },
               child: Text("Non, merci"),
             ),
-            TextButton(
+            CupertinoDialogAction(
               onPressed: () async {
                 Navigator.of(context).pop();
                 await InAppReview.instance.openStoreListing();
               },
+              isDefaultAction: true,
               child: Text("Oui, avec plaisir"),
             ),
           ],
@@ -122,297 +131,425 @@ class _CustomDrawerState extends State<CustomDrawer> {
     return Consumer<AppState>(
       builder: (context, appState, child) {
         return Drawer(
-          child: SingleChildScrollView(
+          // Supprimer le backgroundColor pour permettre à la couleur de l'en-tête d'aller jusqu'en haut
+          child: ClipRRect(
             child: Column(
-              children: <Widget>[
-                DrawerHeader(
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).primaryColor,
-                  ),
-                  child: GestureDetector(
-                    onTap: () {
-                      UrlUtils.launchURL('https://realt.co/marketplace/');
-                    },
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // En-tête avec sa propre SafeArea
+                Material(
+                  color: Theme.of(context).primaryColor.withOpacity(0.9),
+                  child: SafeArea(
+                    bottom: false,
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 16.0),
+                      child: GestureDetector(
+                        onTap: () {
+                          UrlUtils.launchURL('https://realt.co/marketplace/');
+                        },
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Image.asset(
-                              'assets/logo_community.png',
-                              width: 60,
-                              height: 60,
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(6),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.2),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Image.asset(
+                                    'assets/logo_community.png',
+                                    width: 36,
+                                    height: 36,
+                                  ),
+                                ),
+                                const SizedBox(width: 14),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'RealTokens',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 20 + appState.getTextSizeOffset(),
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      Text(
+                                        S.of(context).appDescription,
+                                        style: TextStyle(
+                                          color: Colors.white.withOpacity(0.9),
+                                          fontSize: 15 + appState.getTextSizeOffset(),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
                             ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'RealTokens',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize:
-                                          23 + appState.getTextSizeOffset(),
-                                    ),
+                            if (latestVersion != null &&
+                                currentVersion != null &&
+                                latestVersion != currentVersion)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 10.0),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 12.0, vertical: 8.0),
+                                  decoration: BoxDecoration(
+                                    color: CupertinoColors.systemGreen,
+                                    borderRadius: BorderRadius.circular(12.0),
                                   ),
-                                  Text(
-                                    S.of(context).appDescription,
-                                    style: TextStyle(
-                                      color: Colors.white70,
-                                      fontSize:
-                                          15 + appState.getTextSizeOffset(),
-                                    ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(
+                                        CupertinoIcons.arrow_down_circle_fill,
+                                        color: Colors.white,
+                                        size: 16,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        '${S.of(context).newVersionAvailable}: $latestVersion',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 14 + appState.getTextSizeOffset(),
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ],
+                                ),
                               ),
-                            ),
                           ],
                         ),
-                        if (latestVersion != null &&
-                            currentVersion != null &&
-                            latestVersion != currentVersion)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 8.0),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 12.0, vertical: 6.0),
-                              decoration: BoxDecoration(
-                                color: Colors.green, // Bulle verte
-                                borderRadius: BorderRadius.circular(20.0),
-                              ),
-                              child: Text(
-                                '${S.of(context).newVersionAvailable}: $latestVersion',
-                                style: TextStyle(
-                                  color: Colors.white, // Texte blanc
-                                  fontSize: 14 + appState.getTextSizeOffset(),
-                                ),
-                                textAlign: TextAlign.start,
-                              ),
-                            ),
-                          ),
-                      ],
+                      ),
                     ),
                   ),
                 ),
-                ListTile(
-                  leading: Icon(Icons.wallet,
-                      size: 24 + appState.getTextSizeOffset()),
-                  title: Text(
-                    S.of(context).manageEvmAddresses,
-                    style:
-                        TextStyle(fontSize: 15 + appState.getTextSizeOffset()),
-                  ),
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const ManageEvmAddressesPage(),
+                
+                // Contenu dans un Expanded + ScrollView
+                Expanded(
+                  child: Stack(
+                    children: [
+                      // Décaler le contenu vers le haut pour créer un chevauchement
+                      Positioned(
+                        top: -16,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: CupertinoColors.systemBackground.resolveFrom(context),
+                            borderRadius: const BorderRadius.only(
+                              topLeft: Radius.circular(16),
+                              topRight: Radius.circular(16),
+                            ),
+                          ),
+                          child: ClipRRect(
+                            borderRadius: const BorderRadius.only(
+                              topLeft: Radius.circular(16),
+                              topRight: Radius.circular(16),
+                            ),
+                            child: SingleChildScrollView(
+                              physics: const AlwaysScrollableScrollPhysics(
+                                parent: BouncingScrollPhysics(),
+                              ),
+                              child: Column(
+                                children: [
+                                  const SizedBox(height: 16),
+                                  
+                                  // Section Accounts
+                                  _buildSectionHeader(context, 'Comptes', appState),
+                                  _buildMenuTile(
+                                    context,
+                                    icon: CupertinoIcons.person_crop_circle_fill,
+                                    title: S.of(context).manageEvmAddresses,
+                                    appState: appState,
+                                    onTap: () {
+                                      Navigator.pop(context);
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => const ManageEvmAddressesPage(),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                  
+                                  const Padding(
+                                    padding: EdgeInsets.symmetric(horizontal: 16.0),
+                                    child: Divider(height: 1, thickness: 0.3),
+                                  ),
+                                  
+                                  // Section Principales Fonctionnalités
+                                  _buildSectionHeader(context, 'Fonctionnalités', appState, topPadding: 8.0),
+                                  _buildMenuTile(
+                                    context,
+                                    icon: CupertinoIcons.house_fill,
+                                    title: S.of(context).propertiesForSale,
+                                    appState: appState,
+                                    onTap: () {
+                                      Navigator.pop(context);
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => const PropertiesForSalePage(),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                  _buildMenuTile(
+                                    context,
+                                    icon: CupertinoIcons.list_bullet,
+                                    title: S.of(context).realTokensList,
+                                    appState: appState,
+                                    onTap: () {
+                                      Navigator.pop(context);
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => const RealTokensPage(),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                  _buildMenuTile(
+                                    context,
+                                    icon: CupertinoIcons.arrow_clockwise_circle_fill,
+                                    title: S.of(context).recentChanges,
+                                    appState: appState,
+                                    onTap: () {
+                                      Navigator.pop(context);
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => const UpdatesPage(),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                  _buildMenuTile(
+                                    context,
+                                    icon: CupertinoIcons.graph_square_fill,
+                                    title: 'RealT stats',
+                                    appState: appState,
+                                    onTap: () {
+                                      Navigator.pop(context);
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => const RealtPage(),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                  _buildMenuTile(
+                                    context,
+                                    icon: CupertinoIcons.link,
+                                    title: S.of(context).links,
+                                    appState: appState,
+                                    onTap: () {
+                                      Navigator.pop(context);
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => const LinksPage(),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                  
+                                  const Padding(
+                                    padding: EdgeInsets.symmetric(horizontal: 16.0),
+                                    child: Divider(height: 1, thickness: 0.3),
+                                  ),
+                                  
+                                  // Section Support
+                                  _buildSectionHeader(context, 'Support & Paramètres', appState, topPadding: 8.0),
+                                  _buildMenuTile(
+                                    context,
+                                    icon: CupertinoIcons.gauge,
+                                    title: S.of(context).serviceStatus,
+                                    appState: appState,
+                                    onTap: () {
+                                      Navigator.pop(context);
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => const ServiceStatusPage(),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                  _buildMenuTile(
+                                    context,
+                                    icon: CupertinoIcons.chat_bubble_text_fill,
+                                    title: 'Support',
+                                    appState: appState,
+                                    onTap: () {
+                                      Navigator.pop(context);
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => const SupportPage(),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                  _buildMenuTile(
+                                    context,
+                                    icon: CupertinoIcons.star_fill,
+                                    iconColor: CupertinoColors.systemYellow,
+                                    title: 'Noter l\'application',
+                                    appState: appState,
+                                    onTap: () async {
+                                      Navigator.pop(context);
+                                      await _requestReview(context);
+                                    },
+                                  ),
+                                  _buildMenuTile(
+                                    context,
+                                    icon: CupertinoIcons.settings,
+                                    title: S.of(context).settings,
+                                    appState: appState,
+                                    onTap: () {
+                                      Navigator.pop(context);
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => const SettingsPage(),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                  
+                                  const Padding(
+                                    padding: EdgeInsets.symmetric(horizontal: 16.0),
+                                    child: Divider(height: 1, thickness: 0.3),
+                                  ),
+                                  
+                                  // Section À propos
+                                  _buildSectionHeader(context, 'À propos', appState, topPadding: 8.0),
+                                  _buildMenuTile(
+                                    context,
+                                    icon: CupertinoIcons.arrow_up_doc_fill,
+                                    title: 'Changelog',
+                                    appState: appState,
+                                    onTap: () {
+                                      showModalBottomSheet(
+                                        context: context,
+                                        isScrollControlled: true,
+                                        backgroundColor: CupertinoColors.systemBackground.resolveFrom(context),
+                                        shape: const RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                                        ),
+                                        builder: (BuildContext context) {
+                                          return SizedBox(
+                                            height: MediaQuery.of(context).size.height * 0.8,
+                                            child: const ChangelogPage(),
+                                          );
+                                        },
+                                      );
+                                    },
+                                  ),
+                                  _buildMenuTile(
+                                    context,
+                                    icon: CupertinoIcons.info_circle_fill,
+                                    title: S.of(context).about,
+                                    appState: appState,
+                                    onTap: () {
+                                      Navigator.pop(context);
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => const AboutPage(),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                  
+                                  const SizedBox(height: 10),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
                       ),
-                    );
-                  },
-                ),
-                const Divider(),
-                ListTile(
-                  leading: const Icon(Icons.home_work),
-                  title: Text(
-                    S.of(context).propertiesForSale,
-                    style:
-                        TextStyle(fontSize: 15 + appState.getTextSizeOffset()),
+                    ],
                   ),
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const PropertiesForSalePage(),
-                      ),
-                    );
-                  },
-                ),
-
-                ListTile(
-                  leading: const Icon(Icons.list),
-                  title: Text(
-                    S.of(context).realTokensList,
-                    style:
-                        TextStyle(fontSize: 15 + appState.getTextSizeOffset()),
-                  ),
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const RealTokensPage(),
-                      ),
-                    );
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.update),
-                  title: Text(
-                    S.of(context).recentChanges,
-                    style:
-                        TextStyle(fontSize: 15 + appState.getTextSizeOffset()),
-                  ),
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const UpdatesPage(),
-                      ),
-                    );
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.show_chart),
-                  title: Text(
-                    'RealT stats',
-                    style:
-                        TextStyle(fontSize: 15 + appState.getTextSizeOffset()),
-                  ),
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => RealtPage(),
-                      ),
-                    );
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.link),
-                  title: Text(
-                    S.of(context).links,
-                    style:
-                        TextStyle(fontSize: 15 + appState.getTextSizeOffset()),
-                  ),
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => LinksPage(),
-                      ),
-                    );
-                  },
-                ),
-                const Divider(),
-                ListTile(
-                  leading: const Icon(Icons.monitor),
-                  title: Text(
-                    S.of(context).serviceStatus,
-                    style:
-                        TextStyle(fontSize: 15 + appState.getTextSizeOffset()),
-                  ),
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ServiceStatusPage(),
-                      ),
-                    );
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.support_agent),
-                  title: Text(
-                    'Support',
-                    style:
-                        TextStyle(fontSize: 15 + appState.getTextSizeOffset()),
-                  ),
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => SupportPage(),
-                      ),
-                    );
-                  },
-                ),
-
-                // Item pour la notation de l'application
-                ListTile(
-                  leading: const Icon(Icons.star),
-                  title: Text(
-                    'Noter l\'application',
-                    style:
-                        TextStyle(fontSize: 15 + appState.getTextSizeOffset()),
-                  ),
-                  onTap: () async {
-                    Navigator.pop(
-                        context); // Ferme le drawer avant la demande de notation
-                    await _requestReview(context);
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.settings),
-                  title: Text(
-                    S.of(context).settings,
-                    style:
-                        TextStyle(fontSize: 15 + appState.getTextSizeOffset()),
-                  ),
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => SettingsPage(),
-                      ),
-                    );
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.update),
-                  title: Text(
-                    'Changelog',
-                    style:
-                        TextStyle(fontSize: 15 + appState.getTextSizeOffset()),
-                  ),
-                  onTap: () {
-                    showModalBottomSheet(
-                      context: context,
-                      isScrollControlled: true,
-                      builder: (BuildContext context) {
-                        return SizedBox(
-                          height: MediaQuery.of(context).size.height * 0.8,
-                          child:
-                              const ChangelogPage(), // votre widget qui affiche le changelog
-                        );
-                      },
-                    );
-                  },
-                ),
-
-                ListTile(
-                  leading: const Icon(Icons.info),
-                  title: Text(
-                    S.of(context).about,
-                    style:
-                        TextStyle(fontSize: 15 + appState.getTextSizeOffset()),
-                  ),
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const AboutPage(),
-                      ),
-                    );
-                  },
                 ),
               ],
             ),
           ),
         );
       },
+    );
+  }
+  
+  Widget _buildSectionHeader(BuildContext context, String title, AppState appState, {double topPadding = 12.0}) {
+    return Padding(
+      padding: EdgeInsets.only(left: 16.0, right: 16.0, top: topPadding, bottom: 2.0),
+      child: Text(
+        title.toUpperCase(),
+        style: TextStyle(
+          fontSize: 14 + appState.getTextSizeOffset(),
+          fontWeight: FontWeight.w600,
+          color: CupertinoColors.secondaryLabel.resolveFrom(context),
+          letterSpacing: 0.5,
+        ),
+      ),
+    );
+  }
+  
+  Widget _buildMenuTile(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required AppState appState,
+    required VoidCallback onTap,
+    Color? iconColor,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6.0),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(5.0),
+                decoration: BoxDecoration(
+                  color: CupertinoColors.systemGrey6.resolveFrom(context),
+                  borderRadius: BorderRadius.circular(7.0),
+                ),
+                child: Icon(
+                  icon,
+                  size: 18 + appState.getTextSizeOffset() * 0.5,
+                  color: iconColor ?? Theme.of(context).primaryColor,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 16 + appState.getTextSizeOffset(),
+                    color: CupertinoColors.label.resolveFrom(context),
+                  ),
+                ),
+              ),
+              Icon(
+                CupertinoIcons.chevron_right,
+                size: 16,
+                color: CupertinoColors.systemGrey.resolveFrom(context),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:realtokens/services/api_service.dart';
 import 'package:realtokens/utils/currency_utils.dart';
@@ -18,8 +19,9 @@ class PersonalizationSettingsPage extends StatefulWidget {
 
 class _PersonalizationSettingsPageState
     extends State<PersonalizationSettingsPage> {
-  Map<String, dynamic> _currencies = {}; // Stockage des devises
+  Map<String, dynamic> _currencies = {};
   final TextEditingController _adjustmentController = TextEditingController();
+  final TextEditingController _initialInvestmentAdjustmentController = TextEditingController();
 
   Future<void> _saveConvertToSquareMeters(bool value) async {
     final prefs = await SharedPreferences.getInstance();
@@ -30,38 +32,38 @@ class _PersonalizationSettingsPageState
   }
 
   Future<void> _saveShowTotalInvested(bool value) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('showTotalInvested', value);
-    setState(() {
-      Parameters.showTotalInvested = value;
-    });
+    Parameters.setShowTotalInvested(value);
+    setState(() {});
   }
 
   Future<void> _saveShowNetTotal(bool value) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('showNetTotal', value);
-    setState(() {
-      Parameters.showNetTotal = value;
-    });
+    Parameters.setShowNetTotal(value);
+    setState(() {});
   }
 
   Future<void> _saveShowYamProjection(bool value) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('showYamProjection', value);
-    setState(() {
-      Parameters.showYamProjection = value;
-    });
+    Parameters.setShowYamProjection(value);
+    setState(() {});
   }
-
+  
   Future<void> _saveManualAdjustment(double value) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setDouble('manualAdjustment', value);
+    Parameters.setManualAdjustment(value);
     setState(() {
-      Parameters.manualAdjustment = value;
+      _adjustmentController.text = value.toString();
     });
     
-    // Récupérer DataManager à partir du provider
-    if (!mounted) return; // Vérifier que le widget est toujours monté
+    if (!mounted) return;
+    final dataManager = Provider.of<DataManager>(context, listen: false);
+    await dataManager.fetchAndCalculateData();
+  }
+
+  Future<void> _saveInitialInvestmentAdjustment(double value) async {
+    Parameters.setInitialInvestmentAdjustment(value);
+    setState(() {
+      _initialInvestmentAdjustmentController.text = value.toString();
+    });
+    
+    if (!mounted) return;
     final dataManager = Provider.of<DataManager>(context, listen: false);
     await dataManager.fetchAndCalculateData();
   }
@@ -69,205 +71,322 @@ class _PersonalizationSettingsPageState
   @override
   void initState() {
     super.initState();
-    _loadSettings(); // Charger les paramètres initiaux
-    _fetchCurrencies(); // Récupérer les devises lors de l'initialisation
+    _loadSettings();
+    _fetchCurrencies();
     _adjustmentController.text = Parameters.manualAdjustment.toString();
+    _initialInvestmentAdjustmentController.text = Parameters.initialInvestmentAdjustment.toString();
   }
 
   @override
   void dispose() {
     _adjustmentController.dispose();
+    _initialInvestmentAdjustmentController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final backgroundColor = isDarkMode ? const Color(0xFF1C1C1E) : const Color(0xFFF2F2F7);
+    
     return Scaffold(
+      backgroundColor: backgroundColor,
       appBar: AppBar(
-        title: Row(
-          children: [
-            Icon(
-              Icons.tune,
-              color: Colors.green,
-            ),
-            SizedBox(width: 8),
-            Text(S.of(context).personalization),
-          ],
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
+        elevation: 0,
+        title: Text(S.of(context).personalization),
+        leading: IconButton(
+          icon: const Icon(CupertinoIcons.back),
+          onPressed: () => Navigator.of(context).pop(),
         ),
       ),
       body: ListView(
-        padding: EdgeInsets.all(16),
+        padding: EdgeInsets.zero,
         children: [
-          // Section pour les paramètres du portfolio
-          _buildSectionTitle(context, S.of(context).portfolio, Icons.dashboard),
-          Card(
-            color: Theme.of(context).cardColor,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          const SizedBox(height: 12),
+          
+          // Portfolio Settings
+          _buildSectionHeader(context, S.of(context).portfolio, CupertinoIcons.chart_bar_square),
+          _buildSettingsSection(
+            context,
+            children: [
+              _buildSwitchItem(
+                context, 
+                title: S.of(context).showTotalInvested,
+                value: Parameters.showTotalInvested,
+                onChanged: _saveShowTotalInvested,
+                isFirst: true,
+              ),
+              _buildSwitchItem(
+                context, 
+                title: S.of(context).showNetTotal,
+                value: Parameters.showNetTotal,
+                onChanged: _saveShowNetTotal,
+                subtitle: S.of(context).showNetTotalDescription,
+              ),
+              _buildSwitchItem(
+                context, 
+                title: "Afficher projection YAM",
+                value: Parameters.showYamProjection,
+                onChanged: _saveShowYamProjection,
+                subtitle: "Projection du portefeuille par YAM",
+                isLast: true,
+              ),
+            ],
+          ),
+          
+          const SizedBox(height: 12),
+          
+          // Units Settings
+          _buildSectionHeader(context, S.of(context).units, CupertinoIcons.arrow_right_arrow_left),
+          _buildSettingsSection(
+            context,
+            children: [
+              _buildSwitchItem(
+                context,
+                title: S.of(context).convertSqft,
+                value: Parameters.convertToSquareMeters,
+                onChanged: _saveConvertToSquareMeters,
+                isFirst: true,
+                isLast: true,
+              ),
+            ],
+          ),
+          
+          const SizedBox(height: 12),
+          
+          // Currency Settings
+          _buildSectionHeader(context, S.of(context).currency, CupertinoIcons.money_dollar_circle),
+          _buildSettingsSection(
+            context,
+            children: [
+              _buildSettingsItem(
+                context,
+                title: S.of(context).selectCurrency,
+                trailing: _currencies.isNotEmpty
+                    ? Consumer<CurrencyProvider>(
+                        builder: (context, currencyProvider, child) {
+                          return CupertinoButton(
+                            padding: EdgeInsets.zero,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  currencyProvider.selectedCurrency.toUpperCase(),
+                                  style: TextStyle(
+                                    fontSize: 14.0 + appState.getTextSizeOffset(),
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                                const Icon(CupertinoIcons.chevron_right, size: 14, color: Colors.grey),
+                              ],
+                            ),
+                            onPressed: () => _showCurrencyPicker(context, currencyProvider),
+                          );
+                        },
+                      )
+                    : const CupertinoActivityIndicator(radius: 8),
+                isFirst: true,
+                isLast: true,
+              ),
+            ],
+          ),
+          
+          const SizedBox(height: 12),
+          
+          // Adjustments
+          _buildSectionHeader(context, "Ajustements", CupertinoIcons.slider_horizontal_3),
+          _buildCompactAdjustments(context),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCompactAdjustments(BuildContext context) {
+    final appState = Provider.of<AppState>(context);
+    
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 1,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          // Manuel Adjustment
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 10, 12, 5),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SwitchListTile(
-                  title: Text(S.of(context).showTotalInvested,
-                      style: TextStyle(
-                          fontSize: 16.0 + appState.getTextSizeOffset())),
-                  value: Parameters.showTotalInvested,
-                  onChanged: (value) {
-                    _saveShowTotalInvested(value);
-                  },
-                  activeColor: Theme.of(context).primaryColor,
-                ),
-                Divider(),
-                SwitchListTile(
-                  title: Text(S.of(context).showNetTotal,
-                      style: TextStyle(
-                          fontSize: 16.0 + appState.getTextSizeOffset())),
-                  subtitle: Text(
-                    S.of(context).showNetTotalDescription,
-                    style: TextStyle(fontSize: 12 + appState.getTextSizeOffset()),
+                Text(
+                  S.of(context).manualAdjustment,
+                  style: TextStyle(
+                    fontSize: 15.0 + appState.getTextSizeOffset(),
+                    fontWeight: FontWeight.w500,
                   ),
-                  value: Parameters.showNetTotal,
-                  onChanged: (value) {
-                    _saveShowNetTotal(value);
-                  },
-                  activeColor: Theme.of(context).primaryColor,
                 ),
-                Divider(),
-                SwitchListTile(
-                  title: Text("Afficher projection YAM",
-                      style: TextStyle(
-                          fontSize: 16.0 + appState.getTextSizeOffset())),
-                  subtitle: Text(
-                    "Affiche la projection du portefeuille calculée par YAM",
-                    style: TextStyle(fontSize: 12 + appState.getTextSizeOffset()),
+                Text(
+                  S.of(context).manualAdjustmentDescription,
+                  style: TextStyle(
+                    fontSize: 12.0 + appState.getTextSizeOffset(),
+                    color: Colors.grey,
                   ),
-                  value: Parameters.showYamProjection,
-                  onChanged: (value) {
-                    _saveShowYamProjection(value);
-                  },
-                  activeColor: Theme.of(context).primaryColor,
                 ),
-                Divider(),
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        S.of(context).manualAdjustment,
-                        style: TextStyle(
-                            fontSize: 16.0 + appState.getTextSizeOffset()),
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    Expanded(
+                      child: CupertinoTextField(
+                        controller: _adjustmentController,
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                        prefix: const Padding(
+                          padding: EdgeInsets.only(left: 8),
+                          child: Icon(CupertinoIcons.money_dollar, color: Colors.grey, size: 16),
+                        ),
+                        placeholder: S.of(context).amount,
+                        decoration: BoxDecoration(
+                          color: isDarkMode(context) ? const Color(0xFF2C2C2E) : Colors.white,
+                          borderRadius: const BorderRadius.horizontal(left: Radius.circular(6), right: Radius.zero),
+                          border: Border.all(color: Colors.grey.withOpacity(0.3)),
+                        ),
+                        style: TextStyle(fontSize: 14 + appState.getTextSizeOffset()),
                       ),
-                      SizedBox(height: 8),
-                      Text(
-                        S.of(context).manualAdjustmentDescription,
-                        style: TextStyle(
-                            fontSize: 12 + appState.getTextSizeOffset(),
-                            color: Colors.grey),
-                      ),
-                      SizedBox(height: 12),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextField(
-                              controller: _adjustmentController,
-                              keyboardType: TextInputType.numberWithOptions(
-                                  decimal: true, signed: true),
-                              decoration: InputDecoration(
-                                border: OutlineInputBorder(),
-                                labelText: S.of(context).amount,
-                                prefixIcon: Icon(Icons.money),
+                    ),
+                    CupertinoButton(
+                      padding: EdgeInsets.zero,
+                      color: Theme.of(context).primaryColor,
+                      borderRadius: const BorderRadius.horizontal(left: Radius.zero, right: Radius.circular(6)),
+                      minSize: 0,
+                      onPressed: () {
+                        final String text = _adjustmentController.text;
+                        double? value = double.tryParse(text);
+                        if (value != null) {
+                          _saveManualAdjustment(value);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(S.of(context).adjustmentSaved)),
+                          );
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(S.of(context).enterValidNumber)),
+                          );
+                        }
+                      },
+                      child: SizedBox(
+                        height: 36,
+                        child: Center(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            child: Text(
+                              S.of(context).save,
+                              style: TextStyle(
+                                fontSize: 12.0 + appState.getTextSizeOffset(),
+                                color: Colors.white,
                               ),
                             ),
                           ),
-                          SizedBox(width: 12),
-                          ElevatedButton(
-                            onPressed: () {
-                              // Convertir le texte en nombre
-                              final String text = _adjustmentController.text;
-                              double? value = double.tryParse(text);
-                              if (value != null) {
-                                _saveManualAdjustment(value);
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                      content: Text(
-                                          S.of(context).adjustmentSaved)),
-                                );
-                              } else {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                      content: Text(
-                                          S.of(context).enterValidNumber)),
-                                );
-                              }
-                            },
-                            child: Text(S.of(context).save),
-                          ),
-                        ],
+                        ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
           
-          // Section pour les paramètres d'unités
-          SizedBox(height: 24),
-          _buildSectionTitle(context, S.of(context).units, Icons.straighten),
-          Card(
-            color: Theme.of(context).cardColor,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            child: ListTile(
-              title: Text(S.of(context).convertSqft,
-                  style:
-                      TextStyle(fontSize: 16.0 + appState.getTextSizeOffset())),
-              trailing: Switch(
-                value: Parameters.convertToSquareMeters,
-                onChanged: (value) {
-                  _saveConvertToSquareMeters(value);
-                },
-                activeColor: Theme.of(context).primaryColor,
-                inactiveThumbColor: Colors.grey,
-              ),
-            ),
+          const Padding(
+            padding: EdgeInsets.only(left: 12),
+            child: Divider(height: 1, thickness: 0.5),
           ),
           
-          // Section pour le choix de la devise
-          SizedBox(height: 24),
-          _buildSectionTitle(context, S.of(context).currency, Icons.monetization_on),
-          Card(
-            color: Theme.of(context).cardColor,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            child: ListTile(
-              title: Text(
-                S.of(context).selectCurrency,
-                style: TextStyle(fontSize: 16.0 + appState.getTextSizeOffset()),
-              ),
-              trailing: _currencies.isNotEmpty
-                  ? Consumer<CurrencyProvider>(
-                      builder: (context, currencyProvider, child) {
-                        return DropdownButton<String>(
-                          value: currencyProvider.selectedCurrency,
-                          items: _currencies.keys.map((String key) {
-                            return DropdownMenuItem<String>(
-                              value: key,
-                              child: Text(key.toUpperCase()),
-                            );
-                          }).toList(),
-                          onChanged: (String? newValue) {
-                            if (newValue != null) {
-                              Provider.of<CurrencyProvider>(context,
-                                      listen: false)
-                                  .updateConversionRate(newValue, _currencies);
-                            }
-                          },
-                        );
+          // Initial Investment Adjustment
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Ajustement investissement initial",
+                  style: TextStyle(
+                    fontSize: 15.0 + appState.getTextSizeOffset(),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                Text(
+                  "Ajuster le montant pour les calculs de rendement",
+                  style: TextStyle(
+                    fontSize: 12.0 + appState.getTextSizeOffset(),
+                    color: Colors.grey,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    Expanded(
+                      child: CupertinoTextField(
+                        controller: _initialInvestmentAdjustmentController,
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                        prefix: const Padding(
+                          padding: EdgeInsets.only(left: 8),
+                          child: Icon(CupertinoIcons.money_dollar, color: Colors.grey, size: 16),
+                        ),
+                        placeholder: S.of(context).amount,
+                        decoration: BoxDecoration(
+                          color: isDarkMode(context) ? const Color(0xFF2C2C2E) : Colors.white,
+                          borderRadius: const BorderRadius.horizontal(left: Radius.circular(6), right: Radius.zero),
+                          border: Border.all(color: Colors.grey.withOpacity(0.3)),
+                        ),
+                        style: TextStyle(fontSize: 14 + appState.getTextSizeOffset()),
+                      ),
+                    ),
+                    CupertinoButton(
+                      padding: EdgeInsets.zero,
+                      color: Theme.of(context).primaryColor,
+                      borderRadius: const BorderRadius.horizontal(left: Radius.zero, right: Radius.circular(6)),
+                      minSize: 0,
+                      onPressed: () {
+                        final String text = _initialInvestmentAdjustmentController.text;
+                        double? value = double.tryParse(text);
+                        if (value != null) {
+                          _saveInitialInvestmentAdjustment(value);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text("Ajustement enregistré")),
+                          );
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(S.of(context).enterValidNumber)),
+                          );
+                        }
                       },
-                    )
-                  : const CircularProgressIndicator(),
+                      child: SizedBox(
+                        height: 36,
+                        child: Center(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            child: Text(
+                              S.of(context).save,
+                              style: TextStyle(
+                                fontSize: 12.0 + appState.getTextSizeOffset(),
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
         ],
@@ -275,34 +394,208 @@ class _PersonalizationSettingsPageState
     );
   }
 
-  Widget _buildSectionTitle(BuildContext context, String title, IconData icon) {
+  Widget _buildSectionHeader(BuildContext context, String title, IconData icon) {
     return Padding(
-      padding: const EdgeInsets.only(left: 8.0, bottom: 8.0),
+      padding: const EdgeInsets.only(left: 16, bottom: 6, top: 2),
       child: Row(
         children: [
-          Icon(icon, color: Theme.of(context).primaryColor),
-          SizedBox(width: 8),
+          Icon(icon, size: 14, color: Colors.grey),
+          const SizedBox(width: 6),
           Text(
-            title,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
+            title.toUpperCase(),
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: Colors.grey,
+              letterSpacing: 0.5,
             ),
           ),
         ],
       ),
     );
+  }
+
+  Widget _buildSettingsSection(
+    BuildContext context, {
+    required List<Widget> children,
+  }) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 1,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: children,
+      ),
+    );
+  }
+
+  Widget _buildSettingsItem(
+    BuildContext context, {
+    required String title,
+    String? subtitle,
+    Widget? trailing,
+    bool isFirst = false,
+    bool isLast = false,
+  }) {
+    final appState = Provider.of<AppState>(context);
+    final borderRadius = BorderRadius.vertical(
+      top: isFirst ? const Radius.circular(10) : Radius.zero,
+      bottom: isLast ? const Radius.circular(10) : Radius.zero,
+    );
+
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            borderRadius: borderRadius,
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 15.0 + appState.getTextSizeOffset(),
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                    if (subtitle != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 1),
+                        child: Text(
+                          subtitle,
+                          style: TextStyle(
+                            fontSize: 12.0 + appState.getTextSizeOffset(),
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              if (trailing != null) trailing,
+            ],
+          ),
+        ),
+        if (!isLast)
+          Padding(
+            padding: const EdgeInsets.only(left: 12),
+            child: Divider(height: 1, thickness: 0.5, color: Colors.grey.withOpacity(0.3)),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildSwitchItem(
+    BuildContext context, {
+    required String title,
+    String? subtitle,
+    required bool value,
+    required Function(bool) onChanged,
+    bool isFirst = false,
+    bool isLast = false,
+  }) {
+    return _buildSettingsItem(
+      context,
+      title: title,
+      subtitle: subtitle,
+      trailing: Transform.scale(
+        scale: 0.8,
+        child: CupertinoSwitch(
+          value: value,
+          onChanged: onChanged,
+          activeColor: Theme.of(context).primaryColor,
+        ),
+      ),
+      isFirst: isFirst,
+      isLast: isLast,
+    );
+  }
+
+  void _showCurrencyPicker(BuildContext context, CurrencyProvider currencyProvider) {
+    final appState = Provider.of<AppState>(context, listen: false);
+    
+    showCupertinoModalPopup(
+      context: context,
+      builder: (context) => Container(
+        height: 200,
+        color: Theme.of(context).cardColor,
+        child: Column(
+          children: [
+            Container(
+              height: 40,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              decoration: BoxDecoration(
+                border: Border(bottom: BorderSide(color: Colors.grey.withOpacity(0.3), width: 0.5)),
+                color: isDarkMode(context) ? const Color(0xFF2C2C2E) : Colors.white,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  CupertinoButton(
+                    padding: EdgeInsets.zero,
+                    child: Text("Annuler", style: TextStyle(fontSize: 14 + appState.getTextSizeOffset())),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                  CupertinoButton(
+                    padding: EdgeInsets.zero,
+                    child: Text("OK", style: TextStyle(fontSize: 14 + appState.getTextSizeOffset())),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: CupertinoPicker(
+                itemExtent: 30,
+                onSelectedItemChanged: (index) {
+                  final String currencyKey = _currencies.keys.elementAt(index);
+                  currencyProvider.updateConversionRate(currencyKey, _currencies);
+                },
+                scrollController: FixedExtentScrollController(
+                  initialItem: _currencies.keys.toList().indexOf(currencyProvider.selectedCurrency),
+                ),
+                children: _currencies.keys.map((key) => Center(
+                  child: Text(
+                    key.toUpperCase(), 
+                    style: TextStyle(fontSize: 16 + appState.getTextSizeOffset()),
+                  ),
+                )).toList(),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  bool isDarkMode(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark;
   }
 
   Future<void> _fetchCurrencies() async {
     try {
       final currencies = await ApiService.fetchCurrencies();
-      if (!mounted) return; // Vérifier que le widget est toujours monté
+      if (!mounted) return;
       setState(() {
         _currencies = currencies;
       });
     } catch (e) {
-      if (!mounted) return; // Vérifier que le widget est toujours monté
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to load currencies')),
       );
@@ -311,20 +604,14 @@ class _PersonalizationSettingsPageState
 
   Future<void> _loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
-    if (!mounted) return; // Vérifier que le widget est toujours monté
+    if (!mounted) return;
+    
     setState(() {
-      Parameters.convertToSquareMeters =
-          prefs.getBool('convertToSquareMeters') ?? false;
-      Parameters.selectedCurrency =
-          prefs.getString('selectedCurrency') ?? 'usd';
-      Parameters.showTotalInvested = 
-          prefs.getBool('showTotalInvested') ?? false;
-      Parameters.showNetTotal = 
-          prefs.getBool('showNetTotal') ?? true;
-      Parameters.manualAdjustment = 
-          prefs.getDouble('manualAdjustment') ?? 0.0;
-      Parameters.showYamProjection = 
-          prefs.getBool('showYamProjection') ?? true;
+      Parameters.convertToSquareMeters = prefs.getBool('convertToSquareMeters') ?? false;
+      Parameters.selectedCurrency = prefs.getString('selectedCurrency') ?? 'usd';
+      
+      _adjustmentController.text = Parameters.manualAdjustment.toString();
+      _initialInvestmentAdjustmentController.text = Parameters.initialInvestmentAdjustment.toString();
     });
   }
 }

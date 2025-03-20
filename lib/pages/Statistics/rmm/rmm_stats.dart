@@ -23,6 +23,7 @@ class RmmStatsState extends State<RmmStats> {
   String selectedHealthAndLtvPeriod = '';
   late String _selectedHealthAndLtvPeriod;
   final ArchiveManager _archiveManager = ArchiveManager();
+  final DataManager _dataManager = DataManager();
 
   late SharedPreferences prefs;
 

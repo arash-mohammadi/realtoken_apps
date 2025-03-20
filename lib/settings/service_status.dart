@@ -1,5 +1,6 @@
 import 'package:realtokens/generated/l10n.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:hive/hive.dart';
 import 'package:provider/provider.dart';
 import 'package:realtokens/app_state.dart';
@@ -12,6 +13,10 @@ class ServiceStatusPage extends StatelessWidget {
   Widget build(BuildContext context) {
     var box = Hive.box('realTokens');
     final appState = Provider.of<AppState>(context);
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final backgroundColor = isDarkMode 
+        ? const Color(0xFF1C1C1E) 
+        : const Color(0xFFF2F2F7);
 
     // Récupérer toutes les clés qui commencent par "lastExecutionTime_"
     Map<String, String> executionTimesMap = {};
@@ -41,90 +46,223 @@ class ServiceStatusPage extends StatelessWidget {
     });
 
     return Scaffold(
+      backgroundColor: backgroundColor,
       appBar: AppBar(
-        backgroundColor:
-            Theme.of(context).scaffoldBackgroundColor, // Définir le fond noir
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
+        elevation: 0,
         title: Text(S.of(context).serviceStatusPage),
+        leading: IconButton(
+          icon: const Icon(CupertinoIcons.back),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
       ),
       body: executionTimesMap.isNotEmpty
-          ? Column(
+          ? ListView(
+              padding: EdgeInsets.zero,
               children: [
+                const SizedBox(height: 12),
+                
+                _buildSectionHeader(context, "État des services", CupertinoIcons.gauge),
+                
                 // Afficher le texte en fonction de allAreUpToDate
                 Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(
-                    allAreUpToDate
-                        ? S.of(context).allWorkCorrectly
-                        : S.of(context).somethingWrong,
-                    style: TextStyle(
-                      fontSize: 18 + appState.getTextSizeOffset(),
-                      fontWeight: FontWeight.bold,
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: allAreUpToDate ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: allAreUpToDate ? Colors.green.withOpacity(0.3) : Colors.red.withOpacity(0.3),
+                        width: 1,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          allAreUpToDate ? CupertinoIcons.check_mark_circled : CupertinoIcons.exclamationmark_circle,
+                          color: allAreUpToDate ? Colors.green : Colors.red,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            allAreUpToDate
+                                ? S.of(context).allWorkCorrectly
+                                : S.of(context).somethingWrong,
+                            style: TextStyle(
+                              fontSize: 15 + appState.getTextSizeOffset(),
+                              fontWeight: FontWeight.w500,
+                              color: allAreUpToDate ? Colors.green : Colors.red,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: executionTimesMap.length,
-                    itemBuilder: (context, index) {
-                      String key = executionTimesMap.keys.elementAt(index);
-                      String time = executionTimesMap[key]!;
+                
+                const SizedBox(height: 8),
+                
+                _buildSettingsSection(
+                  context,
+                  children: executionTimesMap.entries.map((entry) {
+                    String key = entry.key;
+                    String time = entry.value;
 
-                      // Supprimer le préfixe "lastExecutionTime_"
-                      String displayKey =
-                          key.replaceFirst('lastExecutionTime_', '');
+                    // Supprimer le préfixe "lastExecutionTime_"
+                    String displayKey = key.replaceFirst('lastExecutionTime_', '');
 
-                      // Convertir `time` en DateTime pour calculer la différence
-                      DateTime lastExecution;
-                      try {
-                        lastExecution = DateTime.parse(time);
-                      } catch (e) {
-                        // Si une erreur de format de date se produit, on peut afficher un message d'erreur ou ignorer cette entrée
-                        return ListTile(
-                          leading: Icon(Icons.error, color: Colors.red),
-                          title: Text(displayKey),
-                          subtitle: Text('Erreur de format de date.'),
-                        );
-                      }
-
-                      Duration difference =
-                          DateTime.now().difference(lastExecution);
-
-                      // Vérifier si la différence est inférieure à 1 heure
-                      bool isLessThanAnHour = difference.inHours < 1;
-
-                      return ListTile(
-                        leading: Icon(
-                          isLessThanAnHour
-                              ? Icons
-                                  .check_circle // Icône check vert si < 1 heure
-                              : Icons.cancel, // Icône croix rouge si > 1 heure
-                          color: isLessThanAnHour ? Colors.green : Colors.red,
-                          size: 24 +
-                              appState
-                                  .getTextSizeOffset(), // Ajuste la taille de l'icône
-                        ),
-                        title: Text(
-                          displayKey,
-                          style: TextStyle(
-                            fontSize: 18 + appState.getTextSizeOffset(),
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        subtitle: Text(
-                          '${S.of(context).lastExecution} : ${CustomDateUtils.formatReadableDateWithTime(time)}',
-                          style: TextStyle(
-                            fontSize: 14 +
-                                appState
-                                    .getTextSizeOffset(), // Ajuste cette taille selon tes besoins
-                          ),
-                        ),
+                    // Convertir `time` en DateTime pour calculer la différence
+                    DateTime lastExecution;
+                    try {
+                      lastExecution = DateTime.parse(time);
+                    } catch (e) {
+                      // Si une erreur de format de date se produit, on affiche un message d'erreur
+                      return _buildServiceItem(
+                        context: context,
+                        title: displayKey,
+                        subtitle: 'Erreur de format de date',
+                        isUpToDate: false,
+                        isFirst: executionTimesMap.entries.first.key == key,
+                        isLast: executionTimesMap.entries.last.key == key,
                       );
-                    },
-                  ),
+                    }
+
+                    Duration difference = DateTime.now().difference(lastExecution);
+                    bool isLessThanAnHour = difference.inHours < 1;
+
+                    return _buildServiceItem(
+                      context: context,
+                      title: displayKey,
+                      subtitle: '${S.of(context).lastExecution} : ${CustomDateUtils.formatReadableDateWithTime(time)}',
+                      isUpToDate: isLessThanAnHour,
+                      isFirst: executionTimesMap.entries.first.key == key,
+                      isLast: executionTimesMap.entries.last.key == key,
+                    );
+                  }).toList(),
                 ),
               ],
             )
-          : Center(child: Text('Aucune exécution trouvée.')),
+          : Center(
+              child: Text(
+                'Aucune exécution trouvée',
+                style: TextStyle(
+                  fontSize: 15 + appState.getTextSizeOffset(),
+                  color: Colors.grey,
+                ),
+              ),
+            ),
+    );
+  }
+  
+  Widget _buildSectionHeader(BuildContext context, String title, IconData icon) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 16, bottom: 6, top: 2),
+      child: Row(
+        children: [
+          Icon(icon, size: 14, color: Colors.grey),
+          const SizedBox(width: 6),
+          Text(
+            title.toUpperCase(),
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: Colors.grey,
+              letterSpacing: 0.5,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  Widget _buildSettingsSection(
+    BuildContext context, {
+    required List<Widget> children,
+  }) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 1,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: children,
+      ),
+    );
+  }
+  
+  Widget _buildServiceItem({
+    required BuildContext context,
+    required String title,
+    required String subtitle,
+    required bool isUpToDate,
+    required bool isFirst,
+    required bool isLast,
+  }) {
+    final appState = Provider.of<AppState>(context);
+    final borderRadius = BorderRadius.vertical(
+      top: isFirst ? const Radius.circular(10) : Radius.zero,
+      bottom: isLast ? const Radius.circular(10) : Radius.zero,
+    );
+
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            borderRadius: borderRadius,
+          ),
+          child: Row(
+            children: [
+              Icon(
+                isUpToDate ? CupertinoIcons.check_mark_circled : CupertinoIcons.exclamationmark_circle,
+                color: isUpToDate ? Colors.green : Colors.red,
+                size: 20,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 15.0 + appState.getTextSizeOffset(),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 1),
+                      child: Text(
+                        subtitle,
+                        style: TextStyle(
+                          fontSize: 12.0 + appState.getTextSizeOffset(),
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        if (!isLast)
+          Padding(
+            padding: const EdgeInsets.only(left: 44),
+            child: Divider(height: 1, thickness: 0.5, color: Colors.grey.withOpacity(0.3)),
+          ),
+      ],
     );
   }
 }

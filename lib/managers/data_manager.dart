@@ -16,6 +16,68 @@ import 'package:realtokens/managers/apy_manager.dart';
 import 'package:flutter/foundation.dart';
 
 class DataManager extends ChangeNotifier {
+  // Singleton pour DataManager
+  static final DataManager _instance = DataManager._internal(
+    archiveManager: ArchiveManager(),
+    apyManager: ApyManager(),
+  );
+  
+  factory DataManager() => _instance;
+  
+  // Variables finales pour les managers
+  final ArchiveManager _archiveManager;
+  final ApyManager apyManager;
+
+  // Constructeur privé pour le singleton
+  DataManager._internal({
+    required ArchiveManager archiveManager,
+    required ApyManager apyManager,
+  }) : _archiveManager = archiveManager,
+       apyManager = apyManager {
+    loadCustomInitPrices(); // Charger les prix personnalisés lors de l'initialisation
+    _loadApyReactivityPreference(); // Charger la préférence de réactivité APY
+    
+    // Initialiser l'ArchiveManager avec une référence à cette instance
+    _archiveManager.setDataManager(this);
+  }
+
+  /// Charge la préférence de réactivité APY depuis SharedPreferences
+  Future<void> _loadApyReactivityPreference() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      double reactivity = prefs.getDouble('apyReactivity') ?? 0.2;
+      
+      // Appliquer la valeur de réactivité aux paramètres de l'ApyManager
+      adjustApyReactivity(reactivity);
+      
+      debugPrint("✅ Préférence de réactivité APY chargée: $reactivity");
+    } catch (e) {
+      debugPrint("❌ Erreur lors du chargement de la préférence de réactivité APY: $e");
+    }
+  }
+
+  bool isLoading = true;
+  bool isLoadingSecondary = true;
+
+  // Variables globales pour la gestion des données
+  Map<String, dynamic> tokenDataFetched = {};
+  List<Map<String, dynamic>> portfolioCalculated = [];
+  Map<String, String> contractAddressList = {};
+  List<Map<String, dynamic>> yamWalletsTransactionsFetched = [];
+  List<Map<String, dynamic>> yamMarketFetched = [];
+  List<Map<String, dynamic>> rmmBalances = [];
+  List<Map<String, dynamic>> transactionsHistory = [];
+  List<Map<String, dynamic>> detailedRentData = [];
+
+  // Structures de données pour les loyers
+  Map<String, double> cumulativeRentsByToken = {}; // Pour tous les wallets combinés
+  Map<String, Map<String, double>> cumulativeRentsByWallet = {}; // Par wallet puis par token
+  Map<String, int> tokensWalletCount = {}; // Nombre de wallets possédant chaque token
+  List<Map<String, dynamic>> rentHistory = [];
+
+  // Nouvelle structure de données pour les statistiques détaillées des wallets
+  List<Map<String, dynamic>> walletStats = [];
+
   List<String> evmAddresses = [];
   double totalWalletValue = 0;
   double roiGlobalValue = 0;
@@ -63,20 +125,10 @@ class DataManager extends ChangeNotifier {
   int totalTokenCount = 0;
   int duplicateTokenCount = 0;
   bool isLoadingMain = true;
-  bool isLoadingSecondary = true;
   bool isLoadingTransactions = true;
   List<Map<String, dynamic>> rentData = [];
-  List<Map<String, dynamic>> detailedRentData = [];
   List<Map<String, dynamic>> propertyData = [];
-  List<Map<String, dynamic>> rmmBalances = [];
   List<Map<String, dynamic>> perWalletBalances = [];
-  
-  // Nouvelles structures de données pour l'optimisation des loyers
-  Map<String, double> cumulativeRentsByToken = {};
-  List<Map<String, dynamic>> rentHistory = [];
-  
-  // Nouvelle structure de données pour les statistiques détaillées des wallets
-  List<Map<String, dynamic>> walletStats = [];
   
   List<Map<String, dynamic>> _allTokens =
       []; // Liste privée pour tous les tokens
@@ -97,12 +149,9 @@ class DataManager extends ChangeNotifier {
   Map<String, double> customInitPrices = {};
   List<Map<String, dynamic>> propertiesForSale = [];
   List<Map<String, dynamic>> propertiesForSaleFetched = [];
-  List<Map<String, dynamic>> yamMarketFetched = [];
-  List<Map<String, dynamic>> yamWalletsTransactionsFetched = [];
   List<Map<String, dynamic>> yamMarketData = [];
   List<Map<String, dynamic>> yamMarket = [];
   List<Map<String, dynamic>> yamHistory = [];
-  List<Map<String, dynamic>> transactionsHistory = [];
   Map<String, List<Map<String, dynamic>>> transactionsByToken = {};
   List<Map<String, dynamic>> whitelistTokens = [];
 
@@ -112,42 +161,13 @@ class DataManager extends ChangeNotifier {
   DateTime? _lastUpdated; // Stocker la dernière mise à jour
   final Duration _updateCooldown =
       Duration(minutes: 5); // Délai minimal avant la prochaine mise à jour
-  final ArchiveManager _archiveManager;
 
   // Remplacer les propriétés APY du DataManager par une instance de ApyManager
-  final ApyManager apyManager;
   
   // Supprimer les propriétés suivantes du DataManager car elles sont maintenant dans ApyManager :
   // depositApyUsdc, depositApyXdai, borrowApyUsdc, borrowApyXdai, initialInvestment
   
   // ... existing code ...
-
-  DataManager({
-    required ArchiveManager archiveManager,
-    required ApyManager apyManager,
-  }) : _archiveManager = archiveManager,
-       apyManager = apyManager {
-    loadCustomInitPrices(); // Charger les prix personnalisés lors de l'initialisation
-    _loadApyReactivityPreference(); // Charger la préférence de réactivité APY
-    
-    // Initialiser l'ArchiveManager avec une référence à cette instance
-    _archiveManager.setDataManager(this);
-  }
-
-  /// Charge la préférence de réactivité APY depuis SharedPreferences
-  Future<void> _loadApyReactivityPreference() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      double reactivity = prefs.getDouble('apyReactivity') ?? 0.2;
-      
-      // Appliquer la valeur de réactivité aux paramètres de l'ApyManager
-      adjustApyReactivity(reactivity);
-      
-      debugPrint("✅ Préférence de réactivité APY chargée: $reactivity");
-    } catch (e) {
-      debugPrint("❌ Erreur lors du chargement de la préférence de réactivité APY: $e");
-    }
-  }
 
   Future<void> loadWalletsAddresses({bool forceFetch = false}) async {
     final prefs = await SharedPreferences.getInstance();
@@ -329,6 +349,8 @@ class DataManager extends ChangeNotifier {
     
     // Réinitialiser les structures de données
     cumulativeRentsByToken = {};
+    cumulativeRentsByWallet = {};
+    tokensWalletCount = {};
     rentHistory = [];
     
     // Si aucune donnée détaillée, sortir
@@ -340,6 +362,7 @@ class DataManager extends ChangeNotifier {
     try {
       // Parcourir chaque entrée de date
       for (var dateEntry in detailedRentData) {
+        // Vérifier les champs obligatoires date et rents
         if (!dateEntry.containsKey('date') || !dateEntry.containsKey('rents')) {
           debugPrint("⚠️ Format de données incorrect pour l'entrée: $dateEntry");
           continue;
@@ -348,9 +371,21 @@ class DataManager extends ChangeNotifier {
         String date = dateEntry['date'];
         List<dynamic> rents = dateEntry['rents'];
         
+        // Récupérer le wallet s'il existe, sinon utiliser "unknown"
+        String wallet = "unknown";
+        if (dateEntry.containsKey('wallet') && dateEntry['wallet'] != null) {
+          wallet = dateEntry['wallet'].toLowerCase();
+        }
+        
+        // Initialiser le map pour ce wallet s'il n'existe pas
+        if (!cumulativeRentsByWallet.containsKey(wallet)) {
+          cumulativeRentsByWallet[wallet] = {};
+        }
+        
         // Ajouter l'entrée à l'historique
         rentHistory.add({
           'date': date,
+          'wallet': wallet,
           'rents': List<Map<String, dynamic>>.from(rents)
         });
         
@@ -361,12 +396,26 @@ class DataManager extends ChangeNotifier {
             ? (rentEntry['rent'] as num).toDouble() 
             : double.tryParse(rentEntry['rent'].toString()) ?? 0.0;
           
-          // Additionner au total cumulé pour ce token
+          // Additionner au total cumulé pour ce token (tous wallets confondus)
           cumulativeRentsByToken[token] = (cumulativeRentsByToken[token] ?? 0.0) + rent;
+          
+          // Additionner au total cumulé pour ce token dans ce wallet
+          cumulativeRentsByWallet[wallet]![token] = (cumulativeRentsByWallet[wallet]![token] ?? 0.0) + rent;
+          
+          // Compter les wallets uniques pour chaque token
+          Set<String> walletsForToken = {};
+          for (var walletKey in cumulativeRentsByWallet.keys) {
+            if (cumulativeRentsByWallet[walletKey]!.containsKey(token) && 
+                cumulativeRentsByWallet[walletKey]![token]! > 0) {
+              walletsForToken.add(walletKey);
+            }
+          }
+          tokensWalletCount[token] = walletsForToken.length;
         }
       }
       
       debugPrint("✅ Traitement terminé: ${cumulativeRentsByToken.length} tokens avec loyers cumulés");
+      debugPrint("✅ ${cumulativeRentsByWallet.length} wallets avec données de loyer");
       debugPrint("✅ Historique de loyer créé avec ${rentHistory.length} entrées de date");
     } catch (e) {
       debugPrint("❌ Erreur lors du traitement des données détaillées de loyer: $e");
@@ -2278,6 +2327,7 @@ if (tokenAddress == "0xfc5073816fe9671859ef1e6936efd23bb7814274") {
           // Ajouter l'entrée à l'historique spécifique au token
           history.add({
             'date': date,
+            'wallet': dateEntry['wallet'],
             'rent': rentEntry['rent']
           });
           break; // On ne prend qu'une entrée par date pour ce token
@@ -2291,5 +2341,15 @@ if (tokenAddress == "0xfc5073816fe9671859ef1e6936efd23bb7814274") {
   // Méthode pour obtenir tous les loyers cumulés (déjà disponible via cumulativeRentsByToken)
   Map<String, double> getAllCumulativeRents() {
     return Map<String, double>.from(cumulativeRentsByToken);
+  }
+
+  // Nouvelle méthode pour obtenir le nombre de wallets possédant un token
+  int getWalletCountForToken(String token) {
+    return tokensWalletCount[token.toLowerCase()] ?? 0;
+  }
+
+  // Nouvelle méthode pour obtenir les loyers cumulés par wallet
+  Map<String, Map<String, double>> getRentsByWallet() {
+    return Map<String, Map<String, double>>.from(cumulativeRentsByWallet);
   }
 }

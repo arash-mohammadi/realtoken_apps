@@ -158,7 +158,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "language": MessageLookupByLibrary.simpleMessage("语言"),
         "languageUpdated": m1,
         "lastExecution": MessageLookupByLibrary.simpleMessage("最后更新"),
-        "lastRentReceived": MessageLookupByLibrary.simpleMessage("您收到的最后一笔租金为"),
+        "lastRentReceived": MessageLookupByLibrary.simpleMessage("您收到的最后一笔租金"),
         "last_update": MessageLookupByLibrary.simpleMessage("最后更新："),
         "light": MessageLookupByLibrary.simpleMessage("浅色"),
         "lineChart": MessageLookupByLibrary.simpleMessage("折线图"),

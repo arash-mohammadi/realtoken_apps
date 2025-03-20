@@ -65,10 +65,7 @@ void main() async {
 
   final archiveManager = ArchiveManager();
   final apyManager = ApyManager();
-  final dataManager = DataManager(
-    archiveManager: archiveManager,
-    apyManager: apyManager,
-  );
+  final dataManager = DataManager();
   final currencyProvider = CurrencyProvider();
   final appState = AppState();
   
@@ -221,6 +218,9 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     return Consumer<AppState>(
       builder: (context, appState, child) {
+        // Initialiser Parameters avec AppState
+        Parameters.initAppState(context);
+        
         return MaterialApp(
           title: 'RealToken mobile app',
           locale: Locale(appState.selectedLanguage),

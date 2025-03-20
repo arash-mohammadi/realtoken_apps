@@ -1,6 +1,7 @@
 import 'package:realtokens/managers/data_manager.dart';
 import 'package:realtokens/generated/l10n.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:realtokens/utils/url_utils.dart';
 
@@ -24,99 +25,132 @@ class RealtPageState extends State<LinksPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor:
-            Theme.of(context).scaffoldBackgroundColor, // Définir le fond noir
-        title: Text('Links'), // Utilisation de S.of(context)
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        elevation: 0,
+        title: Text(
+          'Links',
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 17,
+          ),
+        ),
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-            padding: const EdgeInsets.all(8.0),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildCard(
-                    'assets/icons/RMM.jpg',
-                    'RMM (RealToken Money Market)',
-                    'https://rmm.realtoken.network',
-                    S.of(context).rmm_description),
-                const SizedBox(height: 10),
-                _buildCard(
-                    'assets/icons/YAM.jpg',
-                    'YAM (You And Me)',
-                    'https://yam.realtoken.network',
-                    S.of(context).rmm_description),
-                const SizedBox(height: 10),
-                _buildCard(
-                    'assets/logo_community.png',
-                    'Wiki Community',
-                    'https://community-realt.gitbook.io/tuto-community',
-                    S.of(context).wiki_community_description),
-                const SizedBox(height: 10),
-                _buildCard(
-                    'assets/DAO.png',
-                    'RealToken governance Forum',
-                    'https://forum.realtoken.community',
-                    S.of(context).dao_description),
+                _buildIOSStyleCard(
+                  'assets/icons/RMM.jpg',
+                  'RMM (RealToken Money Market)',
+                  'https://rmm.realtoken.network',
+                  S.of(context).rmm_description,
+                ),
+                const SizedBox(height: 14),
+                _buildIOSStyleCard(
+                  'assets/icons/YAM.jpg',
+                  'YAM (You And Me)',
+                  'https://yam.realtoken.network',
+                  S.of(context).rmm_description,
+                ),
+                const SizedBox(height: 14),
+                _buildIOSStyleCard(
+                  'assets/logo_community.png',
+                  'Wiki Community',
+                  'https://community-realt.gitbook.io/tuto-community',
+                  S.of(context).wiki_community_description,
+                ),
+                const SizedBox(height: 14),
+                _buildIOSStyleCard(
+                  'assets/DAO.png',
+                  'RealToken governance Forum',
+                  'https://forum.realtoken.community',
+                  S.of(context).dao_description,
+                ),
               ],
-            )),
+            ),
+          ),
+        ),
       ),
     );
   }
 
-  // Fonction pour créer une carte similaire à DashboardPage
-  Widget _buildCard(
-    String imagePath, // Chemin de l'image à afficher
-    String linkText, // Texte du lien
-    String linkUrl, // URL du lien
-    String description, // Description courte
+  Widget _buildIOSStyleCard(
+    String imagePath,
+    String linkText,
+    String linkUrl,
+    String description,
   ) {
-    return Card(
-      color: Theme.of(context).cardColor,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      elevation: 0.5,
-      child: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Image sur la gauche
-            Image.asset(
-              imagePath,
-              width: 40,
-              height: 40,
-              fit: BoxFit.cover,
-            ),
-            const SizedBox(width: 12), // Espacement entre l'image et le texte
-            // Lien texte et description
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  GestureDetector(
-                    onTap: () => UrlUtils.launchURL(linkUrl),
-                    child: Text(
-                      linkText,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        color: Colors.blue,
-                        decoration: TextDecoration.underline,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(
-                      height: 4), // Espacement entre le lien et la description
-                  Text(
-                    description,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Theme.of(context).textTheme.bodyMedium?.color,
-                    ),
-                  ),
-                ],
-              ),
+    return GestureDetector(
+      onTap: () => UrlUtils.launchURL(linkUrl),
+      child: Container(
+        decoration: BoxDecoration(
+          color: CupertinoColors.systemBackground.resolveFrom(context),
+          borderRadius: BorderRadius.circular(10),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 5,
+              offset: const Offset(0, 2),
             ),
           ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(10),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () => UrlUtils.launchURL(linkUrl),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.asset(
+                        imagePath,
+                        width: 48,
+                        height: 48,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            linkText,
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                              color: CupertinoColors.systemBlue.resolveFrom(context),
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            description,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: CupertinoColors.secondaryLabel.resolveFrom(context),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Icon(
+                      CupertinoIcons.chevron_right,
+                      size: 16,
+                      color: CupertinoColors.systemGrey.resolveFrom(context),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
         ),
       ),
     );

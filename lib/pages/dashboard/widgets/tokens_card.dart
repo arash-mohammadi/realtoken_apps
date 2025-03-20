@@ -16,50 +16,53 @@ class TokensCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final dataManager = Provider.of<DataManager>(context);
 
-    return UIUtils.buildCard(
-      S.of(context).tokens,
-      Icons.account_balance_wallet,
-      UIUtils.buildValueBeforeText(
+    double rentedPercentage =
+        dataManager.walletTokensSums / dataManager.totalTokens * 100;
+    if (rentedPercentage.isNaN || rentedPercentage < 0) {
+      rentedPercentage = 0;
+    }
+
+    return Stack(
+      children: [
+        UIUtils.buildCard(
+          S.of(context).tokens,
+          Icons.account_balance_wallet,
+          UIUtils.buildValueBeforeText(
+              context,
+              dataManager.totalTokens.toStringAsFixed(2) as String?,
+              S.of(context).totalTokens,
+              dataManager.isLoadingMain),
+          [
+            UIUtils.buildTextWithShimmer(
+              dataManager.walletTokensSums.toStringAsFixed(2),
+              S.of(context).wallet,
+              dataManager.isLoadingMain,
+              context,
+            ),
+            UIUtils.buildTextWithShimmer(
+              dataManager.rmmTokensSums.toStringAsFixed(2),
+              S.of(context).rmm,
+              dataManager.isLoadingMain,
+              context,
+            ),
+          ],
+          dataManager,
           context,
-          dataManager.totalTokens.toStringAsFixed(2) as String?,
-          S.of(context).totalTokens,
-          dataManager.isLoadingMain),
-      [
-        UIUtils.buildTextWithShimmer(
-          dataManager.walletTokensSums.toStringAsFixed(2),
-          S.of(context).wallet,
-          dataManager.isLoadingMain,
-          context,
+          hasGraph: false, // Ne pas utiliser le graphique dans la carte
         ),
-        UIUtils.buildTextWithShimmer(
-          dataManager.rmmTokensSums.toStringAsFixed(2),
-          S.of(context).rmm,
-          dataManager.isLoadingMain,
-          context,
+        Positioned(
+          top: 30, // Position négative pour remonter le donut
+          right: 12, // Alignement à droite
+          child: _buildPieChart(rentedPercentage, context),
         ),
       ],
-      dataManager,
-      context,
-      hasGraph: true,
-      rightWidget: Builder(
-        builder: (context) {
-          double rentedPercentage =
-              dataManager.walletTokensSums / dataManager.totalTokens * 100;
-          if (rentedPercentage.isNaN || rentedPercentage < 0) {
-            rentedPercentage =
-                0; // Remplacer NaN par une valeur par défaut comme 0
-          }
-          return _buildPieChart(rentedPercentage,
-              context); // Ajout du camembert avec la vérification
-        },
-      ),
     );
   }
 
   Widget _buildPieChart(double rentedPercentage, BuildContext context) {
     return SizedBox(
       width: 120, // Largeur du camembert
-      height: 70, // Hauteur du camembert
+      height: 90, // Hauteur du camembert
       child: PieChart(
         PieChartData(
           startDegreeOffset: -90, // Pour placer la petite section en haut

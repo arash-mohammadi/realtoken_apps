@@ -194,8 +194,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "languageUpdated": m1,
         "lastExecution":
             MessageLookupByLibrary.simpleMessage("Dernière mise à jour"),
-        "lastRentReceived": MessageLookupByLibrary.simpleMessage(
-            "Votre dernier loyer reçu s\'élève à "),
+        "lastRentReceived":
+            MessageLookupByLibrary.simpleMessage("Votre dernier loyer reçu"),
         "last_update":
             MessageLookupByLibrary.simpleMessage("Dernière mise à jour :"),
         "light": MessageLookupByLibrary.simpleMessage("Clair"),
@@ -418,7 +418,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "thanks": MessageLookupByLibrary.simpleMessage("Remerciements"),
         "themeUpdated": m3,
         "timeBeforeLiquidation":
-            MessageLookupByLibrary.simpleMessage("Temps avant liquidation"),
+            MessageLookupByLibrary.simpleMessage("avant liquidation"),
         "timestamp": MessageLookupByLibrary.simpleMessage("Horodatage"),
         "tokenAddress":
             MessageLookupByLibrary.simpleMessage("Adresse du jeton"),

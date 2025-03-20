@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:realtokens/utils/parameters.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -60,206 +61,505 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final backgroundColor = isDarkMode 
+        ? const Color(0xFF1C1C1E) 
+        : const Color(0xFFF2F2F7);
 
     return Scaffold(
+      backgroundColor: backgroundColor,
       appBar: AppBar(
-        title: Row(
-          children: [
-            Icon(
-              Icons.color_lens,
-              color: Colors.lime,
-            ),
-            SizedBox(width: 8),
-            Text(S.of(context).appearance),
-          ],
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
+        elevation: 0,
+        title: Text(S.of(context).appearance),
+        leading: IconButton(
+          icon: const Icon(CupertinoIcons.back),
+          onPressed: () => Navigator.of(context).pop(),
         ),
       ),
       body: ListView(
-        padding: EdgeInsets.all(16),
+        padding: EdgeInsets.zero,
         children: [
-          Card(
-            color: Theme.of(context).cardColor,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            child: ListTile(
-              title: Text(S.of(context).darkTheme,
-                  style:
-                      TextStyle(fontSize: 16.0 + appState.getTextSizeOffset())),
-              trailing: DropdownButton<String>(
-                value: appState.themeMode,
-                items: [
-                  DropdownMenuItem(
-                      value: 'light', child: Text(S.of(context).light)),
-                  DropdownMenuItem(
-                      value: 'dark', child: Text(S.of(context).dark)),
-                  DropdownMenuItem(value: 'auto', child: Text('Auto')),
-                ],
-                onChanged: (String? newValue) {
-                  if (newValue != null) {
-                    appState.updateThemeMode(newValue);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                          content: Text(S.of(context).themeUpdated(newValue))),
+          const SizedBox(height: 12),
+          
+          _buildSectionHeader(context, "Thème", CupertinoIcons.sun_max),
+          _buildSettingsSection(
+            context,
+            children: [
+              _buildSettingsItem(
+                context,
+                title: "",
+                trailing: null,
+                isFirst: true,
+                isLast: true,
+                customContent: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: _buildModernThemeSelector(context, appState),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          
+          const SizedBox(height: 12),
+          
+          _buildSectionHeader(context, "Couleur principale", CupertinoIcons.color_filter),
+          _buildSettingsSection(
+            context,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(12),
+                child: Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  alignment: WrapAlignment.center,
+                  children: _colorOptions.entries.map((entry) {
+                    return GestureDetector(
+                      onTap: () => _updatePrimaryColor(entry.key),
+                      child: Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: entry.value,
+                          border: _selectedColor == entry.key
+                              ? Border.all(
+                                  color: Theme.of(context).textTheme.bodyLarge?.color ?? Colors.grey,
+                                  width: 2)
+                              : null,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 1,
+                              offset: const Offset(0, 1),
+                            ),
+                          ],
+                        ),
+                      ),
                     );
-                  }
-                },
+                  }).toList(),
+                ),
+              ),
+            ],
+          ),
+          
+          const SizedBox(height: 12),
+          
+          _buildSectionHeader(context, "Affichage", CupertinoIcons.textformat_size),
+          _buildSettingsSection(
+            context,
+            children: [
+              _buildSettingsItem(
+                context,
+                title: S.of(context).textSize,
+                trailing: CupertinoButton(
+                  padding: EdgeInsets.zero,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        appState.selectedTextSize,
+                        style: TextStyle(
+                          fontSize: 13.0 + appState.getTextSizeOffset(),
+                          color: Colors.grey,
+                        ),
+                      ),
+                      const Icon(CupertinoIcons.chevron_right, size: 14, color: Colors.grey),
+                    ],
+                  ),
+                  onPressed: () => _showTextSizePicker(context, appState),
+                ),
+                isFirst: true,
+                isLast: false,
+              ),
+              _buildSettingsItem(
+                context,
+                title: S.of(context).language,
+                trailing: CupertinoButton(
+                  padding: EdgeInsets.zero,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        _getLanguageName(appState.selectedLanguage, context),
+                        style: TextStyle(
+                          fontSize: 13.0 + appState.getTextSizeOffset(),
+                          color: Colors.grey,
+                        ),
+                      ),
+                      const Icon(CupertinoIcons.chevron_right, size: 14, color: Colors.grey),
+                    ],
+                  ),
+                  onPressed: () => _showLanguagePicker(context, appState),
+                ),
+                isFirst: false,
+                isLast: true,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+  
+  String _getLanguageName(String languageCode, BuildContext context) {
+    switch (languageCode) {
+      case 'en': return S.of(context).english;
+      case 'fr': return S.of(context).french;
+      case 'es': return S.of(context).spanish;
+      case 'it': return S.of(context).italian;
+      case 'pt': return S.of(context).portuguese;
+      case 'zh': return S.of(context).chinese;
+      default: return S.of(context).english;
+    }
+  }
+  
+  void _showTextSizePicker(BuildContext context, AppState appState) {
+    showCupertinoModalPopup(
+      context: context,
+      builder: (context) => Container(
+        height: 200,
+        color: Theme.of(context).cardColor,
+        child: Column(
+          children: [
+            Container(
+              height: 40,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(
+                border: Border(bottom: BorderSide(color: Colors.grey.withOpacity(0.3), width: 0.5)),
+                color: isDarkMode(context) ? const Color(0xFF2C2C2E) : Colors.white,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  CupertinoButton(
+                    padding: EdgeInsets.zero,
+                    child: Text("Annuler", style: TextStyle(fontSize: 14 + appState.getTextSizeOffset())),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                  CupertinoButton(
+                    padding: EdgeInsets.zero,
+                    child: Text("OK", style: TextStyle(fontSize: 14 + appState.getTextSizeOffset())),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                ],
               ),
             ),
-          ),
-          SizedBox(height: 16),
-          Card(
-            color: Theme.of(context).cardColor,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            child: Padding(
-              padding: EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+            Expanded(
+              child: CupertinoPicker(
+                itemExtent: 35,
+                onSelectedItemChanged: (index) {
+                  appState.updateTextSize(Parameters.textSizeOptions[index]);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Taille du texte mise à jour: ${Parameters.textSizeOptions[index]}')),
+                  );
+                },
+                scrollController: FixedExtentScrollController(
+                  initialItem: Parameters.textSizeOptions.indexOf(appState.selectedTextSize),
+                ),
+                children: Parameters.textSizeOptions.map((size) => Center(
+                  child: Text(size, style: TextStyle(fontSize: 15)),
+                )).toList(),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+  
+  void _showLanguagePicker(BuildContext context, AppState appState) {
+    showCupertinoModalPopup(
+      context: context,
+      builder: (context) => Container(
+        height: 200,
+        color: Theme.of(context).cardColor,
+        child: Column(
+          children: [
+            Container(
+              height: 40,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(
+                border: Border(bottom: BorderSide(color: Colors.grey.withOpacity(0.3), width: 0.5)),
+                color: isDarkMode(context) ? const Color(0xFF2C2C2E) : Colors.white,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text("Couleur principale",
-                      style: TextStyle(
-                          fontSize: 16.0 + appState.getTextSizeOffset())),
-                  SizedBox(height: 10),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    alignment: WrapAlignment.center,
-                    children: _colorOptions.entries.map((entry) {
-                      return GestureDetector(
-                        onTap: () => _updatePrimaryColor(entry.key),
-                        child: Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: entry.value,
-                            border: _selectedColor == entry.key
-                                ? Border.all(
-                                    color: Theme.of(context)
-                                            .textTheme
-                                            .bodyLarge
-                                            ?.color ??
-                                        Colors.grey,
-                                    width: 3)
-                                : null,
+                  CupertinoButton(
+                    padding: EdgeInsets.zero,
+                    child: Text("Annuler", style: TextStyle(fontSize: 14 + appState.getTextSizeOffset())),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                  CupertinoButton(
+                    padding: EdgeInsets.zero,
+                    child: Text("OK", style: TextStyle(fontSize: 14 + appState.getTextSizeOffset())),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: CupertinoPicker(
+                itemExtent: 35,
+                onSelectedItemChanged: (index) {
+                  String languageCode = Parameters.languages[index];
+                  appState.updateLanguage(languageCode);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(S.of(context).languageUpdated(_getLanguageName(languageCode, context)))),
+                  );
+                },
+                scrollController: FixedExtentScrollController(
+                  initialItem: Parameters.languages.indexOf(appState.selectedLanguage),
+                ),
+                children: Parameters.languages.map((languageCode) => Center(
+                  child: Text(_getLanguageName(languageCode, context), style: TextStyle(fontSize: 15)),
+                )).toList(),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+  
+  bool isDarkMode(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark;
+  }
+  
+  Widget _buildSectionHeader(BuildContext context, String title, IconData icon) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 16, bottom: 6, top: 2),
+      child: Row(
+        children: [
+          Icon(icon, size: 14, color: Colors.grey),
+          const SizedBox(width: 6),
+          Text(
+            title.toUpperCase(),
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: Colors.grey,
+              letterSpacing: 0.5,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  Widget _buildSettingsSection(
+    BuildContext context, {
+    required List<Widget> children,
+  }) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 1,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: children,
+      ),
+    );
+  }
+
+  Widget _buildSettingsItem(
+    BuildContext context, {
+    required String title,
+    Widget? trailing,
+    required bool isFirst,
+    required bool isLast,
+    Widget? customContent,
+  }) {
+    final appState = Provider.of<AppState>(context);
+    final borderRadius = BorderRadius.vertical(
+      top: isFirst ? const Radius.circular(10) : Radius.zero,
+      bottom: isLast ? const Radius.circular(10) : Radius.zero,
+    );
+
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            borderRadius: borderRadius,
+          ),
+          child: Column(
+            children: [
+              if (title.isNotEmpty || trailing != null)
+                Row(
+                  children: [
+                    if (title.isNotEmpty)
+                      Expanded(
+                        child: Text(
+                          title,
+                          style: TextStyle(
+                            fontSize: 15.0 + appState.getTextSizeOffset(),
+                            fontWeight: FontWeight.w400,
                           ),
                         ),
-                      );
-                    }).toList(),
+                      ),
+                    if (trailing != null) trailing,
+                  ],
+                ),
+              if (customContent != null) customContent,
+            ],
+          ),
+        ),
+        if (!isLast)
+          Padding(
+            padding: const EdgeInsets.only(left: 12),
+            child: Divider(height: 1, thickness: 0.5, color: Colors.grey.withOpacity(0.3)),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildModernThemeSelector(BuildContext context, AppState appState) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    return Container(
+      width: 270,
+      height: 60,
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: isDark 
+            ? Colors.grey.shade800.withOpacity(0.3) 
+            : Colors.grey.shade200.withOpacity(0.7),
+        borderRadius: BorderRadius.circular(30),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Stack(
+        children: [
+          // Background selector indicator
+          AnimatedPositioned(
+            duration: const Duration(milliseconds: 250),
+            curve: Curves.easeInOut,
+            left: appState.themeMode == 'light' 
+                ? 0 
+                : appState.themeMode == 'dark' 
+                    ? 87 
+                    : 174,
+            child: Container(
+              width: 86,
+              height: 52,
+              decoration: BoxDecoration(
+                color: isDark 
+                    ? Colors.grey.shade700 
+                    : Colors.white,
+                borderRadius: BorderRadius.circular(26),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 2,
+                    offset: const Offset(0, 1),
                   ),
                 ],
               ),
             ),
           ),
-          SizedBox(height: 16),
-          Card(
-            color: Theme.of(context).cardColor,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            child: ListTile(
-              title: Text(
-                S.of(context).textSize,
-                style: TextStyle(fontSize: 16.0 + appState.getTextSizeOffset()),
-              ),
-              trailing: DropdownButton<String>(
-                value: appState.selectedTextSize,
-                items: Parameters.textSizeOptions.map((String sizeOption) {
-                  return DropdownMenuItem<String>(
-                    value: sizeOption,
-                    child: Text(
-                      sizeOption,
-                      style: TextStyle(
-                          fontSize: 15.0 + appState.getTextSizeOffset()),
-                    ),
+          
+          // Options
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _buildThemeOption(
+                context: context,
+                icon: CupertinoIcons.sun_max_fill,
+                label: S.of(context).light,
+                isSelected: appState.themeMode == 'light',
+                onTap: () {
+                  appState.updateThemeMode('light');
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(S.of(context).themeUpdated('light'))),
                   );
-                }).toList(),
-                onChanged: (String? newSize) {
-                  if (newSize != null) {
-                    appState.updateTextSize(newSize);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                          content:
-                              Text('Taille du texte mise à jour: $newSize')),
-                    );
-                  }
                 },
               ),
-            ),
+              _buildThemeOption(
+                context: context,
+                icon: CupertinoIcons.moon_fill,
+                label: S.of(context).dark,
+                isSelected: appState.themeMode == 'dark',
+                onTap: () {
+                  appState.updateThemeMode('dark');
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(S.of(context).themeUpdated('dark'))),
+                  );
+                },
+              ),
+              _buildThemeOption(
+                context: context,
+                icon: CupertinoIcons.device_phone_portrait,
+                label: 'Auto',
+                isSelected: appState.themeMode == 'auto',
+                onTap: () {
+                  appState.updateThemeMode('auto');
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(S.of(context).themeUpdated('auto'))),
+                  );
+                },
+              ),
+            ],
           ),
-          SizedBox(height: 16),
-          Card(
-            color: Theme.of(context).cardColor,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            child: ListTile(
-              title: Text(
-                S.of(context).language,
-                style: TextStyle(fontSize: 16.0 + appState.getTextSizeOffset()),
-              ),
-              trailing: DropdownButton<String>(
-                value: appState.selectedLanguage,
-                items: Parameters.languages.map((String languageCode) {
-                  return DropdownMenuItem<String>(
-                    value: languageCode,
-                    child: Text(
-                      languageCode == 'en'
-                          ? S.of(context).english
-                          : languageCode == 'fr'
-                              ? S.of(context).french
-                              : languageCode == 'es'
-                                  ? S.of(context).spanish
-                                  : languageCode == 'it'
-                                      ? S.of(context).italian
-                                      : languageCode == 'pt'
-                                          ? S.of(context).portuguese
-                                          : languageCode == 'zh'
-                                              ? S.of(context).chinese
-                                              : S.of(context).english,
-                      style: TextStyle(
-                          fontSize: 15.0 + appState.getTextSizeOffset()),
-                    ),
-                  );
-                }).toList(),
-                onChanged: (String? newValue) {
-                  if (newValue != null) {
-                    appState.updateLanguage(newValue);
-                    String languageName;
-
-                    switch (newValue) {
-                      case 'en':
-                        languageName = S.of(context).english;
-                        break;
-                      case 'fr':
-                        languageName = S.of(context).french;
-                        break;
-                      case 'es':
-                        languageName = S.of(context).spanish;
-                        break;
-                      case 'it':
-                        languageName = S.of(context).italian;
-                        break;
-                      case 'pt':
-                        languageName = S.of(context).portuguese;
-                        break;
-                      case 'zh':
-                        languageName = S.of(context).chinese;
-                        break;
-                      default:
-                        languageName = S.of(context).english;
-                        break;
-                    }
-
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                          content: Text(
-                              S.of(context).languageUpdated(languageName))),
-                    );
-                  }
-                },
+        ],
+      ),
+    );
+  }
+  
+  Widget _buildThemeOption({
+    required BuildContext context, 
+    required IconData icon, 
+    required String label, 
+    required bool isSelected, 
+    required VoidCallback onTap
+  }) {
+    final textColor = isSelected 
+        ? Theme.of(context).primaryColor 
+        : Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.6);
+    
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 86,
+        height: 52,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(26),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              size: 16,
+              color: textColor,
+            ),
+            const SizedBox(height: 2),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                color: textColor,
               ),
             ),
-          )
-        ],
+          ],
+        ),
       ),
     );
   }

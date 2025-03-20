@@ -238,25 +238,51 @@ class ApiService {
       // Si on est dans la période d'attente de 3 minutes
       if (now.difference(last429) < Duration(minutes: 3)) {
         debugPrint('⚠️ apiService: ehpst -> 429 reçu, attente avant nouvelle requête.');
-        return []; // Si pas de cache, on retourne une liste vide
+        return []; // Retourner une liste vide, le DataManager utilisera le cache
       }
     }
 
-    // Vérification du cache
+    // Vérification du jour de la semaine et de la date de dernière mise à jour
     final lastFetchTime = box.get('lastRentFetchTime');
+    bool shouldFetch = forceFetch;
+    
+    if (!shouldFetch) {
+      // Vérifier si aujourd'hui est mardi (jour 2 de la semaine)
+      final bool isTuesday = now.weekday == DateTime.tuesday;
+      
+      // Vérifier si la dernière mise à jour date de plus de 7 jours
+      bool isOlderThanOneWeek = false;
+      if (lastFetchTime != null) {
+        final DateTime lastFetch = DateTime.parse(lastFetchTime);
+        isOlderThanOneWeek = now.difference(lastFetch).inDays > 7;
+      } else {
+        // Si pas de dernière mise à jour, on considère que c'est plus vieux que 7 jours
+        isOlderThanOneWeek = true;
+      }
+      
+      // On fetch seulement si c'est mardi ou si ça fait plus de 7 jours
+      shouldFetch = isTuesday || isOlderThanOneWeek;
+      
+      if (!shouldFetch) {
+        debugPrint("🛑 apiService: fetchRentData -> Requête annulée, ce n'est pas mardi et dernière mise à jour < 7 jours");
+        return []; // Retourner une liste vide, le DataManager utilisera le cache
+      }
+    }
+    
+    // Vérification du cache standard (temps minimum)
     if (!forceFetch && lastFetchTime != null) {
       final DateTime lastFetch = DateTime.parse(lastFetchTime);
       if (now.difference(lastFetch) < Parameters.apiCacheDuration) {
-        final cachedData = box.get('cachedRentData');
-        if (cachedData != null) {
-          debugPrint("🛑 apiService: fetchRentData -> Requete annulée, temps minimum pas atteint");
-          return [];
-        }
+        debugPrint("🛑 apiService: fetchRentData -> Requête annulée, temps minimum pas atteint");
+        return []; // Retourner une liste vide, le DataManager utilisera le cache
       }
     }
 
     // Sinon, on effectue la requête API
     List<Map<String, dynamic>> mergedRentData = [];
+    bool hasError = false;
+
+    debugPrint("🚀 apiService: fetchRentData -> Lancement des requêtes pour ${wallets.length} wallets");
 
     for (String wallet in wallets) {
       final url = '${Parameters.rentTrackerUrl}/rent_holder/$wallet';
@@ -264,50 +290,62 @@ class ApiService {
 
       // Si on reçoit un code 429, sauvegarder l'heure et arrêter
       if (response.statusCode == 429) {
-        debugPrint('⚠️ apiService: ehpst -> 429 Too Many Requests');
+        debugPrint('⚠️ apiService: ehpst -> 429 Too Many Requests pour le wallet $wallet');
         // Sauvegarder le temps où la réponse 429 a été reçue
         box.put('lastRent429Time', now.toIso8601String());
+        hasError = true;
         break; // Sortir de la boucle et arrêter la méthode
       }
 
       if (response.statusCode == 200) {
-        debugPrint("🚀 apiService: ehpst -> RentTracker, requete lancée");
+        debugPrint("🚀 apiService: ehpst -> RentTracker, requete lancée pour $wallet");
 
         List<Map<String, dynamic>> rentData = List<Map<String, dynamic>>.from(json.decode(response.body));
         for (var rentEntry in rentData) {
-  // Vérifier si la date est une chaîne, puis la convertir en DateTime
-  DateTime rentDate = DateTime.parse(rentEntry['date']);
-  
-  // Ajouter 1 jour
-  rentDate = rentDate.add(Duration(days: 1));
+          // Vérifier si la date est une chaîne, puis la convertir en DateTime
+          DateTime rentDate = DateTime.parse(rentEntry['date']);
+          
+          // Ajouter 1 jour
+          rentDate = rentDate.add(Duration(days: 1));
 
-  // Reformater la date en String
-  String updatedDate = "${rentDate.year}-${rentDate.month.toString().padLeft(2, '0')}-${rentDate.day.toString().padLeft(2, '0')}";
+          // Reformater la date en String
+          String updatedDate = "${rentDate.year}-${rentDate.month.toString().padLeft(2, '0')}-${rentDate.day.toString().padLeft(2, '0')}";
 
-  final existingEntry = mergedRentData.firstWhere(
-    (entry) => entry['date'] == updatedDate,
-    orElse: () => <String, dynamic>{},
-  );
+          final existingEntry = mergedRentData.firstWhere(
+            (entry) => entry['date'] == updatedDate,
+            orElse: () => <String, dynamic>{},
+          );
 
-  if (existingEntry.isNotEmpty) {
-    existingEntry['rent'] = (existingEntry['rent'] ?? 0) + (rentEntry['rent'] ?? 0);
-  } else {
-    mergedRentData.add({
-      'date': updatedDate,  // Utilisation de la date mise à jour
-      'rent': rentEntry['rent'] ?? 0,
-    });
-  }
-}
+          if (existingEntry.isNotEmpty) {
+            existingEntry['rent'] = (existingEntry['rent'] ?? 0) + (rentEntry['rent'] ?? 0);
+          } else {
+            mergedRentData.add({
+              'date': updatedDate,  // Utilisation de la date mise à jour
+              'rent': rentEntry['rent'] ?? 0,
+            });
+          }
+        }
       } else {
-        throw Exception('ehpst -> RentTracker, Failed to load rent data for wallet: $wallet');
+        debugPrint('❌ apiService: ehpst -> Erreur lors de la récupération des données de loyer pour le wallet: $wallet');
+        hasError = true;
+        break;
       }
+    }
+
+    // En cas d'erreur, retourner une liste vide
+    if (hasError) {
+      debugPrint("⚠️ apiService: fetchRentData -> Erreurs rencontrées, retour d'une liste vide");
+      return [];
     }
 
     mergedRentData.sort((a, b) => a['date'].compareTo(b['date']));
 
-    // Mise à jour du cache après la récupération des données
-    box.put('lastRentFetchTime', now.toIso8601String());
-    box.put('lastExecutionTime_Rents', now.toIso8601String());
+    // Mise à jour des timestamps seulement si aucune erreur n'a été rencontrée et qu'on a récupéré des données
+    if (mergedRentData.isNotEmpty) {
+      debugPrint("✅ apiService: fetchRentData -> ${mergedRentData.length} entrées récupérées");
+      box.put('lastRentFetchTime', now.toIso8601String());
+      box.put('lastExecutionTime_Rents', now.toIso8601String());
+    }
 
     return mergedRentData;
   }
@@ -586,6 +624,8 @@ class ApiService {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     List<String> evmAddresses = prefs.getStringList('evmAddresses') ?? []; // Récupérer les adresses de tous les wallets
 
+    debugPrint("📋 apiService: fetchDetailedRentDataForAllWallets -> ${evmAddresses.length} wallets à consulter: ${evmAddresses.join(', ')}");
+
     if (evmAddresses.isEmpty) {
       debugPrint("⚠️ apiService: fetchDetailedRentDataForAllWallets -> wallet non renseigné");
       return []; // Ne pas exécuter si la liste des wallets est vide
@@ -600,30 +640,61 @@ class ApiService {
 
     // Boucle pour chaque adresse de wallet
     for (var walletAddress in evmAddresses) {
+      debugPrint("🔄 apiService: Traitement du wallet: $walletAddress");
       final lastFetchTime = box.get('lastDetailedRentFetchTime_$walletAddress');
 
       // Si forceFetch est false, vérifier si c'est mardi ou si le dernier fetch est un mardi de plus de 7 jours
       if (!forceFetch && lastFetchTime != null) {
         final DateTime lastFetch = DateTime.parse(lastFetchTime);
 
-        // Si aujourd'hui n'est pas mardi, et le dernier fetch un mardi est de moins de 7 jours, renvoyer une liste vide
+        // Si aujourd'hui n'est pas mardi, et le dernier fetch un mardi est de moins de 7 jours, charger depuis le cache
         if (now.weekday != DateTime.tuesday || (lastFetch.weekday == DateTime.tuesday && now.difference(lastFetch).inDays <= 7)) {
-          debugPrint('⚠️ apiService: ehpst -> Pas de fetch car aujourd\'hui n\'est pas mardi ou le dernier fetch mardi est de moins de 7 jours');
-          return [];
+          debugPrint('⚠️ apiService: ehpst -> Pas de fetch API pour $walletAddress, chargement du cache');
+          
+          // Charger depuis le cache pour ce wallet
+          final cachedData = box.get('cachedDetailedRentData_$walletAddress');
+          if (cachedData != null) {
+            try {
+              final List<Map<String, dynamic>> rentData = List<Map<String, dynamic>>.from(json.decode(cachedData));
+              
+              // Vérifier et ajouter l'adresse du wallet si nécessaire
+              for (var entry in rentData) {
+                if (!entry.containsKey('wallet') || entry['wallet'] == null) {
+                  entry['wallet'] = walletAddress;
+                }
+              }
+              
+              allRentData.addAll(rentData);
+              debugPrint("✅ apiService: Données de loyer chargées du cache pour $walletAddress (${rentData.length} entrées)");
+            } catch (e) {
+              debugPrint('❌ Erreur lors du chargement des données en cache pour $walletAddress: $e');
+            }
+          } else {
+            debugPrint('⚠️ apiService: Pas de données en cache pour $walletAddress');
+          }
+          
+          continue; // Passer au wallet suivant
         }
       }
 
       // Si on est mardi ou si le dernier fetch d'un mardi date de plus de 7 jours, effectuer la requête HTTP avec un timeout de 2 minutes
       final url = '${Parameters.rentTrackerUrl}/detailed_rent_holder/$walletAddress';
+      debugPrint("🌐 apiService: Tentative de requête API pour $walletAddress: $url");
+      
       try {
         final response = await http.get(Uri.parse(url)).timeout(Duration(minutes: 2), onTimeout: () {
           // Gérer le timeout ici
+          debugPrint('⏱️ apiService: Timeout après 2 minutes pour le wallet $walletAddress');
           throw TimeoutException('La requête a expiré après 2 minutes');
         });
 
         // Si on reçoit un code 429, sauvegarder l'heure et arrêter
         if (response.statusCode == 429) {
-          debugPrint('⚠️ apiService: ehpst -> 429 Too Many Requests');
+          debugPrint('⚠️ apiService: ehpst -> 429 Too Many Requests pour le wallet $walletAddress');
+          
+          // Essayer de charger depuis le cache
+          _loadFromCache(box, walletAddress, allRentData);
+          
           break; // Sortir de la boucle et arrêter la méthode
         }
 
@@ -631,25 +702,85 @@ class ApiService {
         if (response.statusCode == 200) {
           final List<Map<String, dynamic>> rentData = List<Map<String, dynamic>>.from(json.decode(response.body));
 
+          // Ajouter l'adresse du wallet à chaque entrée
+          for (var entry in rentData) {
+            entry['wallet'] = walletAddress;
+          }
+
           // Sauvegarder dans le cache
           box.put('cachedDetailedRentData_$walletAddress', json.encode(rentData));
           box.put('lastDetailedRentFetchTime_$walletAddress', now.toIso8601String());
-          debugPrint("🚀 apiService: ehpst -> detailRent, requête lancée");
+          debugPrint("✅ apiService: Requête réussie pour $walletAddress, ${rentData.length} entrées obtenues");
 
           // Ajouter les données brutes au tableau
           allRentData.addAll(rentData);
         } else {
-          throw Exception('apiService: ehpst -> detailRent, Failed to fetch detailed rent data for wallet: $walletAddress');
+          debugPrint('❌ apiService: Échec de la requête pour $walletAddress: ${response.statusCode}');
+          
+          // Charger depuis le cache en cas d'échec
+          _loadFromCache(box, walletAddress, allRentData);
         }
       } catch (e) {
-        debugPrint('❌ Erreur lors de la requête HTTP : $e');
-        // Vous pouvez gérer les exceptions ici (timeout ou autres erreurs)
+        debugPrint('❌ Erreur lors de la requête HTTP pour $walletAddress: $e');
+        
+        // Charger depuis le cache en cas d'erreur
+        _loadFromCache(box, walletAddress, allRentData);
       }
     }
+    
+    // Vérification finale pour s'assurer que toutes les entrées ont un wallet
+    int entriesSansWallet = 0;
+    for (var entry in allRentData) {
+      if (!entry.containsKey('wallet') || entry['wallet'] == null) {
+        entry['wallet'] = 'unknown';
+        entriesSansWallet++;
+      }
+    }
+    if (entriesSansWallet > 0) {
+      debugPrint('⚠️ apiService: $entriesSansWallet entrées sans wallet ont été assignées à "unknown"');
+    }
+    
     box.put('lastExecutionTime_Rents', now.toIso8601String());
+    
+    debugPrint('✅ apiService: Fin du traitement - ${allRentData.length} entrées de données de loyer au total');
+    
+    // Comptage des entrées par wallet
+    Map<String, int> entriesPerWallet = {};
+    for (var entry in allRentData) {
+      String wallet = entry['wallet'];
+      entriesPerWallet[wallet] = (entriesPerWallet[wallet] ?? 0) + 1;
+    }
+    entriesPerWallet.forEach((wallet, count) {
+      debugPrint('📊 apiService: Wallet $wallet - $count entrées');
+    });
 
     // Retourner les données brutes pour traitement dans DataManager
     return allRentData;
+  }
+
+  // Méthode utilitaire pour charger les données du cache
+  static void _loadFromCache(Box box, String walletAddress, List<Map<String, dynamic>> allRentData) {
+    debugPrint('🔄 apiService: Tentative de chargement du cache pour $walletAddress');
+    final cachedData = box.get('cachedDetailedRentData_$walletAddress');
+    if (cachedData != null) {
+      try {
+        final List<Map<String, dynamic>> rentData = List<Map<String, dynamic>>.from(json.decode(cachedData));
+        
+        // Vérifier et ajouter l'adresse du wallet si nécessaire
+        for (var entry in rentData) {
+          if (!entry.containsKey('wallet') || entry['wallet'] == null) {
+            entry['wallet'] = walletAddress;
+          }
+        }
+        
+        allRentData.addAll(rentData);
+        debugPrint("✅ apiService: Données de loyer chargées du cache pour $walletAddress (${rentData.length} entrées)");
+      } catch (e) {
+        debugPrint('❌ Erreur lors du chargement des données en cache pour $walletAddress: $e');
+      }
+    } else {
+      debugPrint('⚠️ apiService: Pas de données en cache pour le wallet $walletAddress');
+    }
   }
 
   // Nouvelle méthode pour récupérer les propriétés en cours de vente
@@ -685,7 +816,7 @@ class ApiService {
     final DateTime now = DateTime.now();
 
     // Récupération de la limite de jours depuis les SharedPreferences ou 30 par défaut
-    // (Si vous n’utilisez plus ce paramètre, vous pouvez le conserver pour la logique du cache.)
+    // (Si vous n'utilisez plus ce paramètre, vous pouvez le conserver pour la logique du cache.)
     // final prefs = await SharedPreferences.getInstance();
     // int daysLimit = prefs.getInt('daysLimit') ?? 30;
 

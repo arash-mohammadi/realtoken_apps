@@ -62,6 +62,13 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   Color _primaryColor = Colors.blue; // Default primary color
   bool _showAmounts = true; // Par défaut, les montants sont visibles
   DataManager? dataManager; // Référence au DataManager
+  
+  // Variables de paramètres du portfolio
+  bool _showTotalInvested = false;
+  bool _showNetTotal = true;
+  double _manualAdjustment = 0.0;
+  bool _showYamProjection = true;
+  double _initialInvestmentAdjustment = 0.0;
 
   AppState() {
     _loadSettings();
@@ -78,6 +85,13 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
 
   Color get primaryColor => _primaryColor;
   bool get showAmounts => _showAmounts; // Getter pour accéder à l'état
+  
+  // Getters pour les paramètres du portfolio
+  bool get showTotalInvested => _showTotalInvested;
+  bool get showNetTotal => _showNetTotal;
+  double get manualAdjustment => _manualAdjustment;
+  bool get showYamProjection => _showYamProjection;
+  double get initialInvestmentAdjustment => _initialInvestmentAdjustment;
 
   // Load settings from SharedPreferences
   Future<void> _loadSettings() async {
@@ -90,6 +104,13 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     _primaryColor = await getSavedPrimaryColor(); // Load primary color
     _showAmounts = prefs.getBool('showAmounts') ??
         true; // Charge la préférence du montant affiché
+        
+    // Charger les paramètres du portfolio
+    _showTotalInvested = prefs.getBool('showTotalInvested') ?? false;
+    _showNetTotal = prefs.getBool('showNetTotal') ?? true;
+    _manualAdjustment = prefs.getDouble('manualAdjustment') ?? 0.0;
+    _showYamProjection = prefs.getBool('showYamProjection') ?? true;
+    _initialInvestmentAdjustment = prefs.getDouble('initialInvestmentAdjustment') ?? 0.0;
 
     _applyTheme(); // Apply the theme based on the loaded themeMode
     notifyListeners(); // Notify listeners to rebuild widgets
@@ -196,5 +217,41 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     dataManager!.adjustApyReactivity(reactivityLevel);
     
     // Pas besoin de notifier ici car le DataManager le fera
+  }
+  
+  // Méthodes pour mettre à jour les paramètres du portfolio
+  void updateShowTotalInvested(bool value) async {
+    _showTotalInvested = value;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('showTotalInvested', value);
+    notifyListeners();
+  }
+  
+  void updateShowNetTotal(bool value) async {
+    _showNetTotal = value;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('showNetTotal', value);
+    notifyListeners();
+  }
+  
+  void updateManualAdjustment(double value) async {
+    _manualAdjustment = value;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble('manualAdjustment', value);
+    notifyListeners();
+  }
+  
+  void updateShowYamProjection(bool value) async {
+    _showYamProjection = value;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('showYamProjection', value);
+    notifyListeners();
+  }
+  
+  void updateInitialInvestmentAdjustment(double value) async {
+    _initialInvestmentAdjustment = value;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble('initialInvestmentAdjustment', value);
+    notifyListeners();
   }
 }

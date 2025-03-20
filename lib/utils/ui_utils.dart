@@ -141,40 +141,59 @@ class UIUtils {
     final appState = Provider.of<AppState>(context);
     return Card(
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
       ),
-      elevation: 0.5,
-      color: Theme.of(context).cardColor,
+      elevation: 0.3,
+      shadowColor: Theme.of(context).brightness == Brightness.light 
+          ? Colors.black.withOpacity(0.1) 
+          : Colors.white.withOpacity(0.05),
+      color: Theme.of(context).brightness == Brightness.light 
+          ? Colors.white 
+          : Color(0xFF1C1C1E),
+      margin: EdgeInsets.symmetric(vertical: 6.0, horizontal: 2.0),
       child: Padding(
-        padding: const EdgeInsets.all(8.0),
+        padding: const EdgeInsets.all(12.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // En-tête de la carte avec l'icône des paramètres à droite
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    Icon(
-                      icon,
-                      color: getIconColor(title, context),
-                      size: 24 + appState.getTextSizeOffset(),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      title,
-                      style: TextStyle(
-                        fontSize: 16 + appState.getTextSizeOffset(),
-                        fontWeight: FontWeight.bold,
+            Padding(
+              padding: const EdgeInsets.only(bottom: 6.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: getIconColor(title, context).withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Icon(
+                          icon,
+                          color: getIconColor(title, context),
+                          size: 20 + appState.getTextSizeOffset(),
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-                if (headerRightWidget != null) headerRightWidget,
-              ],
+                      const SizedBox(width: 10),
+                      Text(
+                        title,
+                        style: TextStyle(
+                          fontSize: 16 + appState.getTextSizeOffset(),
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: -0.5,
+                          height: 1.1,
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (headerRightWidget != null) headerRightWidget,
+                ],
+              ),
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 2),
             // Contenu principal de la carte
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -185,11 +204,11 @@ class UIUtils {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Padding(
-                        padding: const EdgeInsets.only(left: 8.0),
+                        padding: const EdgeInsets.only(left: 4.0, bottom: 4.0),
                         child: firstChild,
                       ),
                       Padding(
-                        padding: const EdgeInsets.only(left: 8.0),
+                        padding: const EdgeInsets.only(left: 4.0),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: otherChildren,
@@ -199,7 +218,11 @@ class UIUtils {
                   ),
                 ),
                 // Graphique si présent
-                if (hasGraph && rightWidget != null) rightWidget,
+                if (hasGraph && rightWidget != null) 
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2.0, left: 8.0),
+                    child: rightWidget,
+                  ),
               ],
             ),
           ],
@@ -210,21 +233,22 @@ class UIUtils {
 
   // Fonction pour obtenir la couleur en fonction du titre traduit
   static Color getIconColor(String title, BuildContext context) {
-    final String translatedTitle =
-        title.trim(); // Supprime les espaces éventuels
+    final String translatedTitle = title.trim(); // Supprime les espaces éventuels
 
     if (translatedTitle == S.of(context).rents) {
-      return Colors.green;
+      return Color(0xFF34C759); // Vert iOS
     } else if (translatedTitle == S.of(context).tokens) {
-      return Colors.orange;
+      return Color(0xFFFF9500); // Orange iOS
     } else if (translatedTitle == S.of(context).rmm) {
-      return Colors.teal;
+      return Color(0xFF5AC8FA); // Bleu clair iOS
     } else if (translatedTitle == S.of(context).properties) {
-      return Colors.blue;
+      return Color(0xFF007AFF); // Bleu iOS
     } else if (translatedTitle == S.of(context).portfolio) {
-      return Colors.blueGrey;
+      return Color(0xFF5856D6); // Violet iOS
+    } else if (translatedTitle == S.of(context).nextRondays) {
+      return Color(0xFFFF2D55); // Rose iOS
     } else {
-      return Colors.blue; // Couleur par défaut
+      return Color(0xFF007AFF); // Bleu iOS par défaut
     }
   }
 
@@ -263,6 +287,7 @@ class UIUtils {
                     fontSize: 16 + appState.getTextSizeOffset(),
                     fontWeight: FontWeight.bold,
                     color: theme.textTheme.bodyLarge?.color,
+                    height: 1.1,
                   ),
                 ),
               )
@@ -272,6 +297,7 @@ class UIUtils {
                   fontSize: 16 + appState.getTextSizeOffset(),
                   fontWeight: FontWeight.bold,
                   color: theme.textTheme.bodyLarge?.color,
+                  height: 1.1,
                 ),
               ),
         const SizedBox(width: 6),
@@ -284,6 +310,7 @@ class UIUtils {
                       style: TextStyle(
                         fontSize: 13 + appState.getTextSizeOffset(),
                         color: theme.textTheme.bodyLarge?.color,
+                        height: 1.1,
                       ),
                     ),
                     TextSpan(
@@ -292,6 +319,7 @@ class UIUtils {
                         fontSize: 13 + appState.getTextSizeOffset(),
                         color: percentageColor,
                         fontWeight: FontWeight.bold,
+                        height: 1.1,
                       ),
                     ),
                   ],
@@ -302,6 +330,7 @@ class UIUtils {
                 style: TextStyle(
                   fontSize: 13 + appState.getTextSizeOffset(),
                   color: theme.textTheme.bodyLarge?.color,
+                  height: 1.1,
                 ),
               ),
       ],
@@ -309,49 +338,61 @@ class UIUtils {
   }
 
   static Widget buildTextWithShimmer(
-      String? value, String label, bool isLoading, BuildContext context) {
-    final theme = Theme.of(context);
+      String? value, String text, bool isLoading, BuildContext context) {
+    final appState = Provider.of<AppState>(context);
 
-    // Couleurs pour le shimmer adaptées au thème
-    final baseColor = theme.textTheme.bodyMedium?.color?.withOpacity(0.2) ??
-        Colors.grey[300]!;
-    final highlightColor =
-        theme.textTheme.bodyMedium?.color?.withOpacity(0.6) ??
-            Colors.grey[100]!;
-
-    return Row(
-      children: [
-        // Partie label statique
-        Text(
-          '$label: ',
-          style: TextStyle(
-            fontSize: 13,
-            color: theme.textTheme.bodyMedium?.color,
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          Text(
+            text,
+            style: TextStyle(
+              fontSize: 14 + appState.getTextSizeOffset(),
+              color: Theme.of(context).brightness == Brightness.light 
+                ? Colors.black54 
+                : Colors.white70,
+              letterSpacing: -0.2,
+              height: 1.1,
+            ),
           ),
-        ),
-        // Partie valeur dynamique avec ou sans shimmer
-        isLoading
-            ? Shimmer.fromColors(
-                baseColor: baseColor,
-                highlightColor: highlightColor,
-                child: Text(
+          SizedBox(width: 12),
+          isLoading
+              ? Shimmer.fromColors(
+                  baseColor: Theme.of(context)
+                          .textTheme
+                          .bodyMedium
+                          ?.color
+                          ?.withOpacity(0.2) ??
+                      Colors.grey[300]!,
+                  highlightColor: Theme.of(context)
+                          .textTheme
+                          .bodyMedium
+                          ?.color
+                          ?.withOpacity(0.5) ??
+                      Colors.grey[100]!,
+                  child: Container(
+                    width: 80,
+                    height: 16,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                )
+              : Text(
                   value ?? '',
                   style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                    color: theme.textTheme.bodyMedium?.color,
+                    fontSize: 15 + appState.getTextSizeOffset(),
+                    fontWeight: FontWeight.w600,
+                    color: Theme.of(context).textTheme.bodyLarge?.color,
+                    letterSpacing: -0.3,
+                    height: 1.1,
                   ),
                 ),
-              )
-            : Text(
-                value ?? '',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.bold,
-                  color: theme.textTheme.bodyMedium?.color,
-                ),
-              ),
-      ],
+        ],
+      ),
     );
   }
 }

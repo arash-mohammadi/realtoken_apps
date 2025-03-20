@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:hive/hive.dart';
 import 'package:provider/provider.dart';
 import 'package:realtokens/app_state.dart';
@@ -35,7 +36,7 @@ class _SynchronizationSettingsPageState
   void initState() {
     super.initState();
     _checkGoogleDriveConnection();
-    _loadAutoSyncPreference(); // Ajouté ici
+    _loadAutoSyncPreference();
   }
 
   Future<void> _loadAutoSyncPreference() async {
@@ -88,166 +89,274 @@ class _SynchronizationSettingsPageState
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final backgroundColor = isDarkMode 
+        ? const Color(0xFF1C1C1E) 
+        : const Color(0xFFF2F2F7);
+        
     return Scaffold(
+      backgroundColor: backgroundColor,
       appBar: AppBar(
-        title: Row(
-          children: [
-            Icon(
-              Icons.sync,
-              color: Colors.blue,
-            ),
-            SizedBox(width: 8),
-            Text(S.of(context).synchronization),
-          ],
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
+        elevation: 0,
+        title: Text(S.of(context).synchronization),
+        leading: IconButton(
+          icon: const Icon(CupertinoIcons.back),
+          onPressed: () => Navigator.of(context).pop(),
         ),
       ),
       body: ListView(
-        padding: EdgeInsets.all(16),
+        padding: EdgeInsets.zero,
         children: [
-          Card(
-            color: Theme.of(context).cardColor,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            child: Padding(
-              padding: EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Google Drive',
-                      style: TextStyle(
-                          fontSize: 18.0 + appState.getTextSizeOffset())),
-                  SizedBox(height: 8),
-                  ListTile(
-                    title: Text('Connexion Google Drive'),
-                    subtitle: Row(
+          const SizedBox(height: 12),
+          
+          _buildSectionHeader(context, "Google Drive", CupertinoIcons.cloud),
+          _buildSettingsSection(
+            context,
+            children: [
+              _buildSettingsItem(
+                context,
+                title: "Connexion Google Drive",
+                subtitle: _isGoogleDriveConnected ? "Connecté" : "Non connecté",
+                leadingIcon: _isGoogleDriveConnected
+                    ? CupertinoIcons.cloud_upload_fill
+                    : CupertinoIcons.cloud,
+                leadingIconColor: _isGoogleDriveConnected
+                    ? Colors.green
+                    : Colors.grey,
+                trailing: Transform.scale(
+                  scale: 0.8,
+                  child: CupertinoSwitch(
+                    value: _isGoogleDriveConnected,
+                    onChanged: _toggleGoogleDriveConnection,
+                    activeColor: Theme.of(context).primaryColor,
+                  ),
+                ),
+                isFirst: true,
+              ),
+              _buildSettingsItem(
+                context,
+                title: "Synchronisation automatique",
+                trailing: Transform.scale(
+                  scale: 0.8,
+                  child: CupertinoSwitch(
+                    value: _autoSyncEnabled,
+                    onChanged: _saveAutoSyncPreference,
+                    activeColor: Theme.of(context).primaryColor,
+                  ),
+                ),
+              ),
+              _buildSettingsItem(
+                context,
+                title: S.of(context).syncWithGoogleDrive,
+                trailing: CupertinoButton(
+                  padding: EdgeInsets.zero,
+                  onPressed: _syncWithGoogleDrive,
+                  child: const Icon(CupertinoIcons.arrow_2_circlepath, color: Colors.blue, size: 20),
+                ),
+                isLast: true,
+              ),
+            ],
+          ),
+          
+          const SizedBox(height: 12),
+          
+          _buildSectionHeader(context, S.of(context).localStorage, CupertinoIcons.folder),
+          _buildSettingsSection(
+            context,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Icon(
-                          _isGoogleDriveConnected
-                              ? Icons.cloud_done
-                              : Icons.cloud_off,
-                          color: _isGoogleDriveConnected
-                              ? Colors.green
-                              : Colors.grey,
-                        ),
-                        SizedBox(width: 8),
                         Text(
-                          _isGoogleDriveConnected ? 'Connecté' : 'Non connecté',
+                          "Sauvegarde des données",
                           style: TextStyle(
-                              color: _isGoogleDriveConnected
-                                  ? Colors.green
-                                  : Colors.red),
+                            fontSize: 15 + appState.getTextSizeOffset(),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        CupertinoButton(
+                          padding: EdgeInsets.zero,
+                          child: const Icon(CupertinoIcons.info_circle, size: 20, color: Colors.grey),
+                          onPressed: () {
+                            showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return CupertinoAlertDialog(
+                                  title: Text(S.of(context).aboutImportExportTitle),
+                                  content: Text(S.of(context).aboutImportExport),
+                                  actions: [
+                                    CupertinoDialogAction(
+                                      isDefaultAction: true,
+                                      onPressed: () {
+                                        Navigator.of(context).pop();
+                                      },
+                                      child: Text('OK'),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                          },
                         ),
                       ],
                     ),
-                    trailing: Switch(
-                      value: _isGoogleDriveConnected,
-                      onChanged: _toggleGoogleDriveConnection,
-                      activeColor: Theme.of(context)
-                          .primaryColor, // Couleur du bouton en mode activé
-                      inactiveThumbColor:
-                          Colors.grey, // Couleur du bouton en mode désactivé
+                    const SizedBox(height: 12),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        CupertinoButton(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          color: Colors.blue,
+                          borderRadius: BorderRadius.circular(8),
+                          onPressed: () => shareZippedHiveData(),
+                          child: Text(
+                            'Exporter',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 15.0 + appState.getTextSizeOffset(),
+                            ),
+                          ),
+                        ),
+                        CupertinoButton(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          color: Colors.green,
+                          borderRadius: BorderRadius.circular(8),
+                          onPressed: () => importZippedHiveData(),
+                          child: Text(
+                            'Importer',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 15.0 + appState.getTextSizeOffset(),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                  Divider(),
-                  ListTile(
-                    title: Text('Synchronisation automatique'),
-                    trailing: Switch(
-                      value: _autoSyncEnabled,
-                      onChanged: (value) => _saveAutoSyncPreference(value),
-                      activeColor: Theme.of(context).primaryColor,
-                      inactiveThumbColor: Colors.grey,
-                    ),
-                  ),
-                  Divider(),
-                  ListTile(
-                    title: Text(S.of(context).syncWithGoogleDrive),
-                    trailing: IconButton(
-                      icon: Icon(Icons.sync, color: Colors.blue),
-                      onPressed: _syncWithGoogleDrive,
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
+            ],
           ),
-          SizedBox(height: 16),
-          Card(
-            color: Theme.of(context).cardColor,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            child: Padding(
-              padding: EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(S.of(context).localStorage,
-                          style: TextStyle(
-                              fontSize: 18.0 + appState.getTextSizeOffset())),
-                      IconButton(
-                        icon: Icon(Icons.info_outline),
-                        onPressed: () {
-                          showDialog(
-                            context: context,
-                            builder: (BuildContext context) {
-                              return AlertDialog(
-                                title:
-                                    Text(S.of(context).aboutImportExportTitle),
-                                content: Text(S.of(context).aboutImportExport),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () {
-                                      Navigator.of(context).pop();
-                                    },
-                                    child: Text('OK'),
-                                  ),
-                                ],
-                              );
-                            },
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      ElevatedButton(
-                        onPressed: () => shareZippedHiveData(),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue,
-                        ),
-                        child: Text(
-                          'Exporter',
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16.0 + appState.getTextSizeOffset()),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green,
-                        ),
-                        onPressed: () => importZippedHiveData(),
-                        child: Text(
-                          'Importer',
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16.0 + appState.getTextSizeOffset()),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+        ],
+      ),
+    );
+  }
+  
+  Widget _buildSectionHeader(BuildContext context, String title, IconData icon) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 16, bottom: 6, top: 2),
+      child: Row(
+        children: [
+          Icon(icon, size: 14, color: Colors.grey),
+          const SizedBox(width: 6),
+          Text(
+            title.toUpperCase(),
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: Colors.grey,
+              letterSpacing: 0.5,
             ),
           ),
         ],
       ),
+    );
+  }
+  
+  Widget _buildSettingsSection(
+    BuildContext context, {
+    required List<Widget> children,
+  }) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 1,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: children,
+      ),
+    );
+  }
+
+  Widget _buildSettingsItem(
+    BuildContext context, {
+    required String title,
+    String? subtitle,
+    IconData? leadingIcon,
+    Color? leadingIconColor,
+    Widget? trailing,
+    bool isFirst = false,
+    bool isLast = false,
+  }) {
+    final appState = Provider.of<AppState>(context);
+    final borderRadius = BorderRadius.vertical(
+      top: isFirst ? const Radius.circular(10) : Radius.zero,
+      bottom: isLast ? const Radius.circular(10) : Radius.zero,
+    );
+
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            borderRadius: borderRadius,
+          ),
+          child: Row(
+            children: [
+              if (leadingIcon != null) ...[
+                Icon(leadingIcon, color: leadingIconColor ?? Colors.blue, size: 20),
+                const SizedBox(width: 12),
+              ],
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 15.0 + appState.getTextSizeOffset(),
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                    if (subtitle != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 1),
+                        child: Text(
+                          subtitle,
+                          style: TextStyle(
+                            fontSize: 12.0 + appState.getTextSizeOffset(),
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              if (trailing != null) trailing,
+            ],
+          ),
+        ),
+        if (!isLast)
+          Padding(
+            padding: const EdgeInsets.only(left: 12),
+            child: Divider(height: 1, thickness: 0.5, color: Colors.grey.withOpacity(0.3)),
+          ),
+      ],
     );
   }
 

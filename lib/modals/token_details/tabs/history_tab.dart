@@ -11,6 +11,17 @@ Widget buildHistoryTab(BuildContext context, Map<String, dynamic> token,
   final appState = Provider.of<AppState>(context, listen: false);
   final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
 
+  // Tri des transactions par date (du plus récent au plus ancien) si disponibles
+  if (token['transactions'] != null && token['transactions'].isNotEmpty) {
+    List<dynamic> sortedTransactions = List.from(token['transactions']);
+    sortedTransactions.sort((a, b) {
+      final dateA = a['dateTime'] != null ? DateTime.parse(a['dateTime'].toString()) : DateTime.now();
+      final dateB = b['dateTime'] != null ? DateTime.parse(b['dateTime'].toString()) : DateTime.now();
+      return dateB.compareTo(dateA);
+    });
+    token['transactions'] = sortedTransactions;
+  }
+
   return SingleChildScrollView(
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,

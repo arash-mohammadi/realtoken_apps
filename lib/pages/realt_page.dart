@@ -2,6 +2,7 @@ import 'package:realtokens/managers/data_manager.dart';
 import 'package:realtokens/generated/l10n.dart';
 import 'package:realtokens/utils/currency_utils.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 
 class RealtPage extends StatefulWidget {
@@ -22,176 +23,199 @@ class RealtPageState extends State<RealtPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Accéder à DataManager pour récupérer les valeurs calculées
     final dataManager = Provider.of<DataManager>(context);
     final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor:
-            Theme.of(context).scaffoldBackgroundColor, // Définir le fond noir
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        elevation: 0,
         title: Center(
           child: Image.asset(
-            'assets/RealT_Logo.png', // Chemin vers l'image dans assets
-            height: 100, // Ajuster la taille de l'image
+            'assets/RealT_Logo.png',
+            height: 40,
+            fit: BoxFit.contain,
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const SizedBox(height: 30),
-              _buildCard(
-                'investment', // Utilisation de S.of(context)
-                Icons.attach_money,
-                _buildValueBeforeText(
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SizedBox(height: 10),
+                _buildIOSStyleCard(
+                  context,
+                  'investment',
+                  CupertinoIcons.money_dollar_circle,
                   currencyUtils.formatCurrency(
                       currencyUtils.convert(dataManager.totalRealtInvestment),
                       currencyUtils.currencySymbol),
                   S.of(context).totalInvestment,
+                  [
+                    _buildIOSValueRow(
+                      context,
+                      currencyUtils.formatCurrency(
+                          currencyUtils.convert(dataManager.netRealtRentYear),
+                          currencyUtils.currencySymbol),
+                      'net rent',
+                    ),
+                  ],
+                  CupertinoColors.systemGreen,
                 ),
-                [
-                  _buildValueBeforeText(
-                    currencyUtils.formatCurrency(
-                        currencyUtils.convert(dataManager.netRealtRentYear),
-                        currencyUtils.currencySymbol),
-                    'net rent',
-                  ),
-                ],
-                dataManager,
-                context,
-              ),
-              const SizedBox(height: 15),
-              _buildCard(
-                S.of(context).properties, // Utilisation de S.of(context)
-                Icons.home,
-                _buildValueBeforeText(
+                const SizedBox(height: 16),
+                _buildIOSStyleCard(
+                  context,
+                  S.of(context).properties,
+                  CupertinoIcons.home,
                   '${dataManager.totalRealtTokens}',
-                  S.of(context).tokens, // Utilisation de S.of(context)
+                  S.of(context).tokens,
+                  [
+                    _buildIOSValueRow(
+                      context,
+                      '${dataManager.totalRealtUnits}',
+                      S.of(context).units,
+                    ),
+                    _buildIOSValueRow(
+                      context,
+                      '${dataManager.rentedRealtUnits}',
+                      S.of(context).rentedUnits,
+                    ),
+                    _buildIOSValueRow(
+                      context,
+                      '${(dataManager.rentedRealtUnits / dataManager.totalRealtUnits * 100).toStringAsFixed(1)}%',
+                      S.of(context).rented,
+                      valueColor: CupertinoColors.systemGreen,
+                    ),
+                  ],
+                  CupertinoColors.systemBlue,
                 ),
-                [
-                  _buildValueBeforeText(
-                    '${dataManager.totalRealtUnits}',
-                    S.of(context).units, // Utilisation de S.of(context)
-                  ),
-                  _buildValueBeforeText(
-                    '${dataManager.rentedRealtUnits}',
-                    S.of(context).rentedUnits, // Utilisation de S.of(context)
-                  ),
-                  _buildValueBeforeText(
-                    '${(dataManager.rentedRealtUnits / dataManager.totalRealtUnits * 100).toStringAsFixed(1)}%',
-                    S.of(context).rented, // Utilisation de S.of(context)
-                    color: Colors.green,
-                  ),
-                ],
-                dataManager,
-                context,
-              ),
-              const SizedBox(height: 15),
-              _buildCard(
-                S.of(context).realTPerformance, // Utilisation de S.of(context)
-                Icons.trending_up,
-                _buildValueBeforeText(
+                const SizedBox(height: 16),
+                _buildIOSStyleCard(
+                  context,
+                  S.of(context).realTPerformance,
+                  CupertinoIcons.chart_bar_fill,
                   '${dataManager.averageRealtAnnualYield.toStringAsFixed(2)}%',
-                  S.of(context).annualYield, // Utilisation de S.of(context)
+                  S.of(context).annualYield,
+                  [
+                    _buildIOSValueRow(
+                      context,
+                      '',
+                      S.of(context).annualYield,
+                    ),
+                  ],
+                  CupertinoColors.systemIndigo,
                 ),
-                [
-                  _buildValueBeforeText(
-                    '',
-                    S.of(context).annualYield, // Utilisation de S.of(context)
-                  ),
-                ],
-                dataManager,
-                context,
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  // Fonction pour créer une carte similaire à DashboardPage
-  Widget _buildCard(
+  Widget _buildIOSStyleCard(
+    BuildContext context,
     String title,
     IconData icon,
-    Widget firstChild,
-    List<Widget> otherChildren,
-    DataManager dataManager,
-    BuildContext context, {
-    bool hasGraph = false,
-    Widget? rightWidget, // Ajout du widget pour le graphique
-  }) {
-    return Card(
-      shape: RoundedRectangleBorder(
+    String mainValue,
+    String mainLabel,
+    List<Widget> additionalRows,
+    Color iconColor,
+  ) {
+    return Container(
+      decoration: BoxDecoration(
+        color: CupertinoColors.systemBackground.resolveFrom(context),
         borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 6,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
-      elevation: 0.5,
-      color: Theme.of(context).cardColor,
       child: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            Row(
               children: [
-                Row(
-                  children: [
-                    Icon(icon, size: 24, color: Colors.blue),
-                    const SizedBox(width: 8),
-                    Text(
-                      title,
-                      style: TextStyle(
-                        fontSize: 19,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
+                Container(
+                  padding: const EdgeInsets.all(8.0),
+                  decoration: BoxDecoration(
+                    color: CupertinoColors.systemGrey6.resolveFrom(context),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    icon,
+                    color: iconColor,
+                    size: 22,
+                  ),
                 ),
-                const SizedBox(height: 10),
-                firstChild,
-                const SizedBox(height: 3),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: otherChildren,
+                const SizedBox(width: 12),
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: CupertinoColors.label.resolveFrom(context),
+                  ),
                 ),
               ],
             ),
-            const Spacer(),
-            if (hasGraph && rightWidget != null)
-              rightWidget, // Affiche le graphique si nécessaire
+            const SizedBox(height: 16),
+            _buildIOSValueRow(
+              context,
+              mainValue,
+              mainLabel,
+              valueSize: 18,
+              valueColor: iconColor,
+              fontWeight: FontWeight.w700,
+            ),
+            const SizedBox(height: 8),
+            const Divider(height: 1),
+            const SizedBox(height: 8),
+            ...additionalRows,
           ],
         ),
       ),
     );
   }
 
-  // Construction d'une ligne pour afficher la valeur avant le texte
-  Widget _buildValueBeforeText(String value, String text, {Color? color}) {
-    return Row(
-      children: [
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: color ??
-                Theme.of(context)
-                    .textTheme
-                    .bodyMedium
-                    ?.color, // Utilise la couleur fournie ou la couleur par défaut
+  Widget _buildIOSValueRow(
+    BuildContext context,
+    String value,
+    String label, {
+    double valueSize = 16,
+    Color? valueColor,
+    FontWeight fontWeight = FontWeight.w600,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        children: [
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: valueSize,
+              fontWeight: fontWeight,
+              color: valueColor ?? CupertinoColors.label.resolveFrom(context),
+            ),
           ),
-        ),
-        const SizedBox(width: 6),
-        Text(
-          text,
-          style: TextStyle(fontSize: 13),
-        ),
-      ],
+          const SizedBox(width: 8),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 14,
+              color: CupertinoColors.secondaryLabel.resolveFrom(context),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

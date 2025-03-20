@@ -1,16 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:realtokens/generated/l10n.dart';
+import 'package:provider/provider.dart';
+import 'package:realtokens/app_state.dart';
 
 class Parameters {
- 
+  // Référence statique à l'instance de AppState
+  static AppState? _appState;
+  
+  // Méthode pour initialiser AppState
+  static void initAppState(BuildContext context) {
+    _appState = Provider.of<AppState>(context, listen: false);
+  }
+
   static const String mainApiUrl = 'https://api.vfhome.fr';
   static const String realTokensUrl = 'https://api.pitsbi.io/api';
   static const String rentTrackerUrl = 'https://ehpst.duckdns.org/realt_rent_tracker/api';
   static const String coingeckoUrl = 'https://api.coingecko.com/api/v3/coins/xdai';
 
   static const List<String> stables = ["0xe91d153e0b41518a2ce8dd3d7944fa863463a97d", "0xddafbb505ad214d7b80b1f830fccc89b60fb7a83", "0x7349c9eaa538e118725a6130e0f8341509b9f8a0"];
- static String rwaTokenAddress = '0x0675e8f4a52ea6c845cb6427af03616a2af42170';
+  static String rwaTokenAddress = '0x0675e8f4a52ea6c845cb6427af03616a2af42170';
   // 📌 Autres paramètres inchangés
   static const Duration apiCacheDuration = Duration(hours: 1);
   static bool convertToSquareMeters = false;
@@ -18,11 +27,33 @@ class Parameters {
   static List<String> languages = ['en', 'fr', 'es', "zh", "it", "pt"];
   static List<String> textSizeOptions = ['verySmall', 'small', 'normal', 'big', 'veryBig'];
 
-  // Nouveaux paramètres pour le portfolio
-  static bool showTotalInvested = false;
-  static bool showNetTotal = true; // true = inclut dépôts et emprunts, false = sans eux
-  static double manualAdjustment = 0.0; // Montant à ajouter ou soustraire au total du portefeuille
-  static bool showYamProjection = true; // Contrôle l'affichage de la projection YAM
+  // Paramètres pour le portfolio - transformés en getters
+  static bool get showTotalInvested => _appState?.showTotalInvested ?? false;
+  static bool get showNetTotal => _appState?.showNetTotal ?? true;
+  static double get manualAdjustment => _appState?.manualAdjustment ?? 0.0;
+  static bool get showYamProjection => _appState?.showYamProjection ?? true;
+  static double get initialInvestmentAdjustment => _appState?.initialInvestmentAdjustment ?? 0.0;
+  
+  // Méthodes pour mettre à jour les paramètres
+  static void setShowTotalInvested(bool value) {
+    _appState?.updateShowTotalInvested(value);
+  }
+  
+  static void setShowNetTotal(bool value) {
+    _appState?.updateShowNetTotal(value);
+  }
+  
+  static void setManualAdjustment(double value) {
+    _appState?.updateManualAdjustment(value);
+  }
+  
+  static void setShowYamProjection(bool value) {
+    _appState?.updateShowYamProjection(value);
+  }
+  
+  static void setInitialInvestmentAdjustment(double value) {
+    _appState?.updateInitialInvestmentAdjustment(value);
+  }
 
   static String getPropertyTypeName(int? propertyType, BuildContext context) {
     switch (propertyType) {

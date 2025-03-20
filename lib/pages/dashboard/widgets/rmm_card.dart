@@ -20,6 +20,7 @@ class RmmCard extends StatelessWidget {
     final dataManager = Provider.of<DataManager>(context);
     final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
     final appState = Provider.of<AppState>(context);
+    final theme = Theme.of(context);
 
     // Récupérer la liste des wallets depuis perWalletBalances
     final List<Map<String, dynamic>> walletDetails =
@@ -92,14 +93,14 @@ class RmmCard extends StatelessWidget {
 
 // Gestion des cas particuliers pour l'affichage
     if (healthFactor.isInfinite || healthFactor.isNaN || worstWalletBorrow == 0) {
-      healthFactor = 10.0; // Valeur par défaut pour un HF sûr
+      healthFactor = 5.0; // Valeur par défaut pour un HF sûr
     }
 
     currentLTV = currentLTV.clamp(0.0, 100.0);
 
     return UIUtils.buildCard(
       S.of(context).rmm,
-      Icons.currency_exchange,
+      Icons.account_balance_rounded,
       _buildLiquidationIndicator(
         context,
         worstWalletRmmValue,
@@ -110,7 +111,7 @@ class RmmCard extends StatelessWidget {
         isLoading,
       ),
       [
-        const SizedBox(height: 10),
+        const SizedBox(height: 4),
         
         // Section Dépôts avec titre
         _buildSectionHeader(context, S.of(context).depositBalance),
@@ -143,7 +144,7 @@ class RmmCard extends StatelessWidget {
           currencyUtils,
         ),
         
-        const SizedBox(height: 15),
+        const SizedBox(height: 6),
         
         // Section Emprunts avec titre
         _buildSectionHeader(context, S.of(context).borrowBalance),
@@ -180,16 +181,34 @@ class RmmCard extends StatelessWidget {
       context,
       hasGraph: true,
       // Flèche de navigation dans l'en-tête
-      headerRightWidget: IconButton(
-        icon: const Icon(Icons.arrow_forward, size: 24, color: Colors.grey),
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const RmmWalletDetailsPage(),
+      headerRightWidget: Container(
+        height: 36,
+        width: 36,
+        child: Material(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(18),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(18),
+            child: Container(
+              padding: EdgeInsets.all(6),
+              child: Icon(
+                Icons.arrow_forward_ios_rounded,
+                size: 16,
+                color: theme.brightness == Brightness.light 
+                    ? Colors.black54
+                    : Colors.white70,
+              ),
             ),
-          );
-        },
+            onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const RmmWalletDetailsPage(),
+              ),
+            );
+          },
+          ),
+        ),
       ),
       // Affichage des jauges uniquement à droite
       rightWidget: Row(
@@ -198,7 +217,7 @@ class RmmCard extends StatelessWidget {
           Builder(
             builder: (context) {
               double factor = healthFactor;
-              factor = factor.isNaN || factor < 0 ? 0 : factor.clamp(0.0, 10.0);
+              factor = factor.isNaN || factor < 0 ? 0 : factor.clamp(0.0, 5.0);
               return _buildVerticalGauges(
                   factor, worstWalletRmmValue, worstWalletBorrow, context);
             },
@@ -219,100 +238,100 @@ class RmmCard extends StatelessWidget {
   ) {
     final theme = Theme.of(context);
     
-    return Row(
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 1.0),
+      child: Row(
       children: [
         // Ajouter un padding à gauche pour créer l'indentation
-        SizedBox(width: 10),
+          SizedBox(width: 8),
         
-        // Icône du token (taille ajustée)
+          // Icône du token avec fond coloré
         Container(
-          width: 18,  // 18x18 comme demandé
-          height: 18, // 18x18 comme demandé
+            width: 22,
+            height: 22,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
+              color: tokenType.toLowerCase() == 'usdc' 
+                  ? Color(0xFF2775CA).withOpacity(0.15)
+                  : Color(0xFFEDB047).withOpacity(0.15),
           ),
+            child: Center(
           child: Image.asset(
             tokenType.toLowerCase() == 'usdc' 
                 ? 'assets/icons/usdc.png'
                 : 'assets/icons/xdai.png',
-            width: 18, // 18x18 comme demandé
-            height: 18, // 18x18 comme demandé
+                width: 16,
+                height: 16,
+              ),
           ),
         ),
-        const SizedBox(width: 4),
+          const SizedBox(width: 8),
         
         // Version simplifiée: montant + APY
         Expanded(
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Montant (taille 12px comme demandé)
+                // Montant
               isLoading
                 ? Shimmer.fromColors(
                     baseColor: theme.textTheme.bodyMedium?.color?.withOpacity(0.2) ?? Colors.grey[300]!,
-                    highlightColor: theme.textTheme.bodyMedium?.color?.withOpacity(0.4) ?? Colors.grey[100]!,
-                    child: Text(
+                      highlightColor: theme.textTheme.bodyMedium?.color?.withOpacity(0.5) ?? Colors.grey[100]!,
+                      child: Container(
+                        width: 80,
+                        height: 18,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
+                    )
+                  : Text(
                       amount,
                       style: TextStyle(
-                        fontSize: 12, // 12px comme demandé
-                        fontWeight: FontWeight.normal,
-                        color: theme.textTheme.bodyMedium?.color,
-                      ),
-                    ),
-                  )
-                : Text(
-                    amount,
-                    style: TextStyle(
-                      fontSize: 12, // 12px comme demandé
-                      fontWeight: FontWeight.normal,
-                      color: theme.textTheme.bodyMedium?.color,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        letterSpacing: -0.3,
+                        color: theme.textTheme.bodyLarge?.color,
                     ),
                   ),
                 
               // APY juste à côté du montant
-              SizedBox(width: 3),
+                SizedBox(width: 8),
               isLoading
                 ? Shimmer.fromColors(
                     baseColor: theme.textTheme.bodyMedium?.color?.withOpacity(0.2) ?? Colors.grey[300]!,
-                    highlightColor: theme.textTheme.bodyMedium?.color?.withOpacity(0.4) ?? Colors.grey[100]!,
+                      highlightColor: theme.textTheme.bodyMedium?.color?.withOpacity(0.5) ?? Colors.grey[100]!,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 1),
+                        width: 40,
+                        height: 18,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    )
+                  : Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
-                        color: (apy >= 0 ? Colors.green : Colors.red).withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(2),
+                        color: (apy >= 0 ? Color(0xFF34C759) : Color(0xFFFF3B30)).withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
                         '${apy.toStringAsFixed(1)}%',
                         style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                          color: apy >= 0 ? Colors.green : Colors.red,
+                          color: apy >= 0 ? Color(0xFF34C759) : Color(0xFFFF3B30),
+                          fontWeight: FontWeight.w500,
+                          fontSize: 12,
+                          letterSpacing: -0.3,
                         ),
                       ),
                     ),
-                  )
-                : Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 1),
-                    decoration: BoxDecoration(
-                      color: (apy >= 0 ? Colors.green : Colors.red).withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                    child: Text(
-                      '${apy.toStringAsFixed(1)}%',
-                      style: TextStyle(
-                        color: apy >= 0 ? Colors.green : Colors.red,
-                        fontWeight: FontWeight.normal,
-                        fontSize: 11, // 11px comme demandé
-                      ),
+              ],
                     ),
                   ),
             ],
           ),
-        ),
-        
-        // Espace pour éloigner des jauges
-        Spacer(),
-      ],
     );
   }
 
@@ -320,6 +339,7 @@ class RmmCard extends StatelessWidget {
       double walletBorrow, BuildContext context) {
     // Obtenir le wallet avec le HF le plus bas depuis le contexte
     final dataManager = Provider.of<DataManager>(context, listen: false);
+    final theme = Theme.of(context);
     final walletDetails = dataManager.perWalletBalances;
     
     // Retrouver l'adresse du wallet utilisé pour HF et LTV
@@ -348,22 +368,21 @@ class RmmCard extends StatelessWidget {
     String shortAddress = walletAddress.length > 10
         ? "${walletAddress.substring(0, 6)}...${walletAddress.substring(walletAddress.length - 4)}"
         : walletAddress;
-        
-    double progressHF = (factor / 10).clamp(0.0, 1.0);
+      
+    double progressHF = (factor / 5).clamp(0.0, 1.0);
     double progressLTV = walletDeposit > 0
         ? ((walletBorrow / walletDeposit * 100).clamp(0.0, 100.0)) / 100
         : 0;
 
-    Color progressHFColor = Color.lerp(Colors.red, Colors.green, progressHF)!;
-    Color progressLTVColor =
-        Color.lerp(Colors.green.shade300, Colors.red, progressLTV)!;
+    // Couleur unique pour les jauges
+    final Color gaugeColor = theme.primaryColor; // Utiliser la couleur primaire du thème
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         SizedBox(
           width: 90,
-          height: 140,
+          height: 150,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -375,40 +394,48 @@ class RmmCard extends StatelessWidget {
                   Text(
                     'HF',
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: 15,
                       fontWeight: FontWeight.bold,
-                      color: Theme.of(context).textTheme.bodyMedium?.color,
+                      letterSpacing: -0.3,
+                      color: theme.textTheme.bodyMedium?.color,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Container(
+                    height: 90,
+                    width: 20,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      color: theme.brightness == Brightness.light 
+                          ? Colors.black.withOpacity(0.05)
+                          : Colors.white.withOpacity(0.1),
+                    ),
+                    child: Align(
+                      alignment: Alignment.bottomCenter,
+                      child: Container(
+                        height: progressHF * 80,
+                        width: 20,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          color: gaugeColor,
+                        ),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Stack(
-                    alignment: Alignment.bottomCenter,
-                    children: [
-                      Container(
-                        width: 20,
-                        height: 100,
-                        decoration: BoxDecoration(
-                          color: Colors.grey.withOpacity(0.3),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: theme.primaryColor.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      (progressHF * 5).toStringAsFixed(1),
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: theme.primaryColor,
                       ),
-                      Container(
-                        width: 20,
-                        height: progressHF * 100,
-                        decoration: BoxDecoration(
-                          color: progressHFColor,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 3),
-                  Text(
-                    (progressHF * 10).toStringAsFixed(1),
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).textTheme.bodyMedium?.color,
                     ),
                   ),
                 ],
@@ -420,40 +447,48 @@ class RmmCard extends StatelessWidget {
                   Text(
                     'LTV',
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: 15,
                       fontWeight: FontWeight.bold,
-                      color: Theme.of(context).textTheme.bodyMedium?.color,
+                      letterSpacing: -0.3,
+                      color: theme.textTheme.bodyMedium?.color,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Container(
+                    height: 90,
+                    width: 20,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      color: theme.brightness == Brightness.light 
+                          ? Colors.black.withOpacity(0.05)
+                          : Colors.white.withOpacity(0.1),
+                    ),
+                    child: Align(
+                      alignment: Alignment.bottomCenter,
+                      child: Container(
+                        height: progressLTV * 80,
+                        width: 20,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          color: gaugeColor,
+                        ),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Stack(
-                    alignment: Alignment.bottomCenter,
-                    children: [
-                      Container(
-                        width: 20,
-                        height: 100,
-                        decoration: BoxDecoration(
-                          color: Colors.grey.withOpacity(0.3),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: theme.primaryColor.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      '${(progressLTV * 100).toStringAsFixed(0)}%',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: theme.primaryColor,
                       ),
-                      Container(
-                        width: 20,
-                        height: progressLTV * 100,
-                        decoration: BoxDecoration(
-                          color: progressLTVColor,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 3),
-                  Text(
-                    '${(progressLTV * 100).toStringAsFixed(1)}%',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).textTheme.bodyMedium?.color,
                     ),
                   ),
                 ],
@@ -464,14 +499,26 @@ class RmmCard extends StatelessWidget {
         // Affichage de l'adresse du wallet pris en compte
         if (shortAddress.isNotEmpty)
           Padding(
-            padding: const EdgeInsets.only(top: 5),
-            child: Text(
-              shortAddress,
-              style: TextStyle(
-                fontSize: 10,
-                color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7),
+            padding: const EdgeInsets.only(top: 2),
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: theme.brightness == Brightness.light
+                    ? Colors.black.withOpacity(0.05)
+                    : Colors.white.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
               ),
-              overflow: TextOverflow.ellipsis,
+              child: Text(
+                shortAddress,
+                style: TextStyle(
+                  fontSize: 10,
+                  letterSpacing: -0.3,
+                  color: theme.brightness == Brightness.light
+                      ? Colors.black54
+                      : Colors.white70,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
           ),
       ],
@@ -488,12 +535,20 @@ class RmmCard extends StatelessWidget {
     double xdaiBorrowApy,
     bool isLoading,
   ) {
+    final theme = Theme.of(context);
+    
     if (isLoading) {
-      return UIUtils.buildValueBeforeText(
-        context,
-        "",
-        S.of(context).timeBeforeLiquidation,
-        true,
+      return Shimmer.fromColors(
+        baseColor: theme.textTheme.bodyMedium?.color?.withOpacity(0.2) ?? Colors.grey[300]!,
+        highlightColor: theme.textTheme.bodyMedium?.color?.withOpacity(0.5) ?? Colors.grey[100]!,
+        child: Container(
+          height: 24,
+          width: 200,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(4),
+          ),
+        ),
       );
     }
     
@@ -515,28 +570,85 @@ class RmmCard extends StatelessWidget {
       xdaiBorrowApy,
     );
     
-    // Créer l'indicateur visuel avec l'icône appropriée
-    Widget indicator;
+    // Configurer l'indicateur visuel avec l'icône et couleur appropriées
+    IconData iconData;
+    Color iconColor;
+    Color bgColor;
+    
     if (timeStatus == "danger") {
-      indicator = Icon(Icons.error, color: Colors.red, size: 18);
+      iconData = Icons.error_rounded;
+      iconColor = Color(0xFFFF3B30);
+      bgColor = Color(0xFFFF3B30).withOpacity(0.15);
     } else if (timeStatus == "warning") {
-      indicator = Icon(Icons.warning, color: Colors.amber, size: 18);
+      iconData = Icons.warning_rounded;
+      iconColor = Color(0xFFFF9500);
+      bgColor = Color(0xFFFF9500).withOpacity(0.15);
     } else {
-      indicator = Icon(Icons.thumb_up, color: Colors.green, size: 18);
+      iconData = Icons.check_circle_rounded;
+      iconColor = Color(0xFF34C759);
+      bgColor = Color(0xFF34C759).withOpacity(0.15);
     }
     
-    return Row(
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
       children: [
-        indicator,
+          Icon(
+            iconData,
+            color: iconColor,
+            size: 18,
+          ),
         const SizedBox(width: 8),
-        Expanded(
+          Flexible(
           child: Text(
             "${realTime.isNotEmpty ? "$realTime " : ""}${S.of(context).timeBeforeLiquidation}",
-            style: Theme.of(context).textTheme.bodyMedium,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: theme.textTheme.bodyMedium?.color,
+                letterSpacing: -0.3,
+              ),
             overflow: TextOverflow.ellipsis,
           ),
         ),
       ],
+      ),
+    );
+  }
+  
+  // Widget pour créer un en-tête de section
+  Widget _buildSectionHeader(BuildContext context, String title) {
+    final theme = Theme.of(context);
+    
+    return Padding(
+      padding: const EdgeInsets.only(top: 2.0, bottom: 2.0),
+      child: Row(
+        children: [
+          Container(
+            height: 16,
+            width: 4,
+            decoration: BoxDecoration(
+              color: theme.primaryColor,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              letterSpacing: -0.3,
+              color: theme.textTheme.titleMedium?.color,
+            ),
+          ),
+        ],
+      ),
     );
   }
   
@@ -704,32 +816,5 @@ class RmmCard extends StatelessWidget {
       return '${timeInDays.toStringAsFixed(1)} jours';
     }
   }
-
-  // Widget pour créer un en-tête de section (taille réduite)
-  Widget _buildSectionHeader(BuildContext context, String title) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 6),
-      child: Row(
-        children: [
-          Container(
-            width: 3,
-            height: 12,
-            decoration: BoxDecoration(
-              color: Theme.of(context).primaryColor,
-              borderRadius: BorderRadius.circular(1),
-            ),
-          ),
-          const SizedBox(width: 6),
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).textTheme.titleMedium?.color,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }
+

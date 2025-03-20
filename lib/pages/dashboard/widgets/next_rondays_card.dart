@@ -7,6 +7,7 @@ import 'package:realtokens/generated/l10n.dart';
 import 'package:realtokens/utils/currency_utils.dart';
 import 'package:realtokens/utils/ui_utils.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:shimmer/shimmer.dart';
 
 class NextRondaysCard extends StatelessWidget {
   final bool showAmounts;
@@ -18,12 +19,13 @@ class NextRondaysCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dataManager = Provider.of<DataManager>(context);
+    final theme = Theme.of(context);
 
     return UIUtils.buildCard(
       S.of(context).nextRondays,
-      Icons.trending_up,
+      Icons.calendar_today_rounded,
+      _buildCumulativeRentHeader(context, dataManager),
       _buildCumulativeRentList(context, dataManager),
-      [], // Pas d'autres enfants pour cette carte
       dataManager,
       context,
       hasGraph: true,
@@ -31,9 +33,88 @@ class NextRondaysCard extends StatelessWidget {
     );
   }
 
+  Widget _buildCumulativeRentHeader(BuildContext context, DataManager dataManager) {
+    final theme = Theme.of(context);
+    final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
+    
+    final cumulativeRentEvolution = dataManager.getCumulativeRentEvolution();
+    DateTime today = DateTime.now();
+    
+    // Filtrer pour n'afficher que les dates futures
+    final futureRentEvolution = cumulativeRentEvolution.where((entry) {
+      DateTime rentStartDate = entry['rentStartDate'];
+      return rentStartDate.isAfter(today);
+    }).toList();
+    
+    if (futureRentEvolution.isEmpty) {
+      return Container(
+        padding: EdgeInsets.symmetric(vertical: 8),
+        child: Text(
+          "Aucun RONday programmé",
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            letterSpacing: -0.3,
+            color: theme.textTheme.bodyLarge?.color,
+          ),
+        ),
+      );
+    }
+    
+    // Trouver la prochaine date
+    DateTime nextDate = futureRentEvolution.first['rentStartDate'];
+    double nextAmount = futureRentEvolution.first['cumulativeRent'];
+    
+    for (var entry in futureRentEvolution) {
+      DateTime entryDate = entry['rentStartDate'];
+      if (entryDate.isBefore(nextDate)) {
+        nextDate = entryDate;
+        nextAmount = entry['cumulativeRent'];
+      }
+    }
+    
+    // Calculer le nombre de jours restants
+    int daysRemaining = nextDate.difference(today).inDays;
+    
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "Prochain RONday dans $daysRemaining jours",
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: -0.3,
+                  color: theme.textTheme.bodyLarge?.color,
+                ),
+              ),
+              SizedBox(height: 2),
+              Text(
+                "${DateFormat('dd MMM yyyy').format(nextDate)} · ${currencyUtils.getFormattedAmount(currencyUtils.convert(nextAmount), currencyUtils.currencySymbol, showAmounts)}",
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w400,
+                  letterSpacing: -0.3,
+                  color: theme.brightness == Brightness.light 
+                    ? Colors.black54 
+                    : Colors.white70,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildMiniGraphForNextRondays(
       DataManager dataManager, BuildContext context) {
     final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
+    final theme = Theme.of(context);
     final cumulativeRentEvolution = dataManager.getCumulativeRentEvolution();
     DateTime today = DateTime.now();
 
@@ -41,6 +122,13 @@ class NextRondaysCard extends StatelessWidget {
       DateTime rentStartDate = entry['rentStartDate'];
       return rentStartDate.isAfter(today);
     }).toList();
+
+    // Trier par date
+    futureRentEvolution.sort((a, b) {
+      DateTime dateA = a['rentStartDate'];
+      DateTime dateB = b['rentStartDate'];
+      return dateA.compareTo(dateB);
+    });
 
     Set<DateTime> displayedDates = <DateTime>{};
     List<Map<String, dynamic>> graphData = [];
@@ -50,74 +138,110 @@ class NextRondaysCard extends StatelessWidget {
       if (!displayedDates.contains(rentStartDate)) {
         displayedDates.add(rentStartDate);
         graphData.add({
-          'date': DateFormat('dd MMM yyyy').format(rentStartDate),
+          'date': DateFormat('dd MMM').format(rentStartDate),
           'amount': entry['cumulativeRent'],
         });
       }
     }
 
-    // Calculer min et max précisément
-    double minY = graphData.isNotEmpty
-        ? graphData
-            .map((e) => e['amount'] as double)
-            .reduce((a, b) => a < b ? a : b)
-        : 0;
+    // Limiter à 5 événements pour une meilleure lisibilité
+    if (graphData.length > 5) {
+      graphData = graphData.sublist(0, 5);
+    }
 
-    double maxY = graphData.isNotEmpty
-        ? graphData
-            .map((e) => e['amount'] as double)
-            .reduce((a, b) => a > b ? a : b)
-        : 0;
-
-    // Ajouter une marge pour améliorer la visibilité
-    double yMargin = (maxY - minY) * 0.15; // 15% de marge pour distinction
+    // Si aucune donnée, afficher un placeholder
+    if (graphData.isEmpty) {
+      return Container(
+        height: 100,
+        width: 120,
+        child: Center(
+          child: Icon(
+            Icons.event_busy_rounded,
+            size: 40,
+            color: theme.brightness == Brightness.light
+                ? Colors.black12
+                : Colors.white10,
+          ),
+        ),
+      );
+    }
 
     return Align(
-      alignment: Alignment.center,
-      child: SizedBox(
-        height: 70,
+      alignment: Alignment.topCenter,
+      child: Container(
+        height: 120,
         width: 120,
+        margin: EdgeInsets.only(top: 0), // Aligné avec le titre "Calendrier"
         child: BarChart(
           BarChartData(
             gridData: FlGridData(show: false),
-            titlesData: FlTitlesData(show: false),
+            titlesData: FlTitlesData(
+              show: true,
+              topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+              rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+              bottomTitles: AxisTitles(
+                sideTitles: SideTitles(
+                  showTitles: true,
+                  getTitlesWidget: (value, meta) {
+                    if (value.toInt() >= graphData.length || value.toInt() < 0) {
+                      return const SizedBox.shrink();
+                    }
+                    return Padding(
+                      padding: const EdgeInsets.only(top: 5),
+                      child: Text(
+                        graphData[value.toInt()]['date'],
+                        style: TextStyle(
+                          fontSize: 9,
+                          color: theme.brightness == Brightness.light
+                            ? Colors.black54
+                            : Colors.white70,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            ),
             borderData: FlBorderData(show: false),
             alignment: BarChartAlignment.center,
-            groupsSpace: 4,
-            minY: (minY - yMargin)
-                .clamp(0, double.infinity), // Empêche minY négatif
-            maxY: maxY + yMargin,
+            groupsSpace: 10,
             barGroups: List.generate(graphData.length, (index) {
-              double roundedValue = double.parse(currencyUtils
-                  .convert(graphData[index]['amount'])
-                  .toStringAsFixed(2));
               return BarChartGroupData(
                 x: index,
                 barRods: [
                   BarChartRodData(
-                    toY: roundedValue,
-                    color: Theme.of(context).primaryColor,
-                    width: 12,
-                    borderRadius: BorderRadius.circular(4),
+                    toY: 40.0 + (index * 5), // Hauteur fixe pour éviter les erreurs
+                    color: theme.primaryColor,
+                    width: 10,
+                    borderRadius: BorderRadius.circular(5),
                   ),
                 ],
+                showingTooltipIndicators: [],
               );
             }),
             barTouchData: BarTouchData(
+              enabled: true,
               touchTooltipData: BarTouchTooltipData(
+                getTooltipColor: (group) => Colors.black87,
+                tooltipPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                tooltipRoundedRadius: 8,
                 getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                  final dateLabel = graphData[groupIndex]['date'];
-                  final amount = rod.toY.toStringAsFixed(2);
-                  return BarTooltipItem(
-                    '$dateLabel\n$amount ${currencyUtils.currencySymbol}',
-                    const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  );
+                  if (groupIndex >= 0 && groupIndex < graphData.length) {
+                    double amount = currencyUtils.convert(graphData[groupIndex]['amount']);
+                    return BarTooltipItem(
+                      '${amount.toStringAsFixed(2)} ${currencyUtils.currencySymbol}',
+                      TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 10,
+                      ),
+                    );
+                  }
+                  return null;
                 },
               ),
-              handleBuiltInTouches: true,
             ),
           ),
         ),
@@ -125,9 +249,9 @@ class NextRondaysCard extends StatelessWidget {
     );
   }
 
-  Widget _buildCumulativeRentList(BuildContext context, dataManager) {
+  List<Widget> _buildCumulativeRentList(BuildContext context, dataManager) {
     final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
-
+    final theme = Theme.of(context);
     final cumulativeRentEvolution = dataManager.getCumulativeRentEvolution();
     DateTime today = DateTime.now();
     final appState = Provider.of<AppState>(context);
@@ -138,37 +262,134 @@ class NextRondaysCard extends StatelessWidget {
       return rentStartDate.isAfter(today);
     }).toList();
 
+    // Trier par date (plus proche au plus éloigné)
+    futureRentEvolution.sort((a, b) {
+      DateTime dateA = a['rentStartDate'];
+      DateTime dateB = b['rentStartDate'];
+      return dateA.compareTo(dateB);
+    });
+
     // Utiliser un Set pour ne garder que des dates uniques
     Set<DateTime> displayedDates = <DateTime>{};
+    List<Widget> rentItems = [];
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: futureRentEvolution
-          .map<Widget>((entry) {
-            DateTime rentStartDate = entry['rentStartDate'];
+    if (futureRentEvolution.isEmpty) {
+      return [
+        SizedBox.shrink()
+      ];
+    }
 
-            if (displayedDates.contains(rentStartDate)) {
-              return SizedBox.shrink();
-            } else {
-              displayedDates.add(rentStartDate);
-
-              String displayDate = rentStartDate == DateTime(3000, 1, 1)
-                  ? 'Date non communiquée'
-                  : DateFormat('yyyy-MM-dd').format(rentStartDate);
-
-              return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 0),
-                child: Text(
-                  '$displayDate: ${currencyUtils.getFormattedAmount(currencyUtils.convert(entry['cumulativeRent']), currencyUtils.currencySymbol, showAmounts)}',
-                  style: TextStyle(
-                      fontSize: 13 + appState.getTextSizeOffset(),
-                      color: Theme.of(context).textTheme.bodyMedium?.color),
-                ),
-              );
-            }
-          })
-          .toList()
-          .cast<Widget>(),
+    // Titre de section
+    rentItems.add(
+      Padding(
+        padding: const EdgeInsets.only(top: 8.0, bottom: 4.0),
+        child: Row(
+          children: [
+            Container(
+              height: 16,
+              width: 4,
+              decoration: BoxDecoration(
+                color: theme.primaryColor,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              "Calendrier",
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                letterSpacing: -0.3,
+                color: theme.textTheme.titleMedium?.color,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
+
+    // Liste des dates
+    for (var entry in futureRentEvolution) {
+      DateTime rentStartDate = entry['rentStartDate'];
+
+      if (displayedDates.contains(rentStartDate)) {
+        continue;
+      }
+      
+      displayedDates.add(rentStartDate);
+
+      String displayDate = rentStartDate == DateTime(3000, 1, 1)
+          ? 'Date non communiquée'
+          : DateFormat('dd MMM yyyy').format(rentStartDate);
+
+      // Calculer le nombre de jours restants
+      int daysRemaining = rentStartDate.difference(today).inDays;
+      
+      rentItems.add(
+        Container(
+          margin: EdgeInsets.symmetric(vertical: 2),
+          padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+          decoration: BoxDecoration(
+            color: theme.brightness == Brightness.light
+                ? Color(0xFFF2F2F7)
+                : Colors.black26,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 6,
+                    height: 6,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: theme.primaryColor,
+                    ),
+                  ),
+                  SizedBox(width: 8),
+                  Text(
+                    displayDate,
+                    style: TextStyle(
+                      fontSize: 13,
+                      letterSpacing: -0.3,
+                      color: theme.textTheme.bodyMedium?.color,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  SizedBox(width: 4),
+                  Text(
+                    "+$daysRemaining j",
+                    style: TextStyle(
+                      fontSize: 11,
+                      letterSpacing: -0.3,
+                      color: theme.brightness == Brightness.light
+                          ? Colors.black38
+                          : Colors.white54,
+                    ),
+                  ),
+                ],
+              ),
+              Text(
+                currencyUtils.getFormattedAmount(
+                  currencyUtils.convert(entry['cumulativeRent']),
+                  currencyUtils.currencySymbol,
+                  showAmounts
+                ),
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: -0.3,
+                  color: theme.textTheme.bodyLarge?.color,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return rentItems;
   }
 }

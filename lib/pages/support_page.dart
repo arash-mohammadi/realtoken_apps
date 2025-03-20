@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:realtokens/managers/data_manager.dart';
 import 'package:realtokens/app_state.dart';
 import 'package:realtokens/generated/l10n.dart';
@@ -27,218 +28,347 @@ class RealtPageState extends State<SupportPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Accéder à DataManager pour récupérer les valeurs calculées
     final appState = Provider.of<AppState>(context);
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor:
-            Theme.of(context).scaffoldBackgroundColor, // Définir le fond noir
-        title: Text('Support'), // Utilisation de S.of(context)
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        elevation: 0,
+        title: const Text(
+          'Support',
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 17,
+          ),
+        ),
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const SizedBox(height: 10), // Espace sous l'image
-              _buildCard(
-                'GitHub support', // Titre de la carte
-                Icons.bug_report_outlined, // Icône représentative pour GitHub
-                Text(
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildIOSStyleCard(
+                  context,
+                  'GitHub support',
+                  CupertinoIcons.globe,
                   'Contribuez ou signalez un problème sur GitHub :',
-                  style: TextStyle(fontSize: 13 + appState.getTextSizeOffset()),
-                ), // Texte principal
-                linkText: 'Github isssues link', // Texte du lien
-                linkUrl:
-                    'https://github.com/RealToken-Community/realtoken_apps/issues', // URL du lien
-                iconColor: Colors.grey, // Couleur noire pour GitHub
-              ),
-              const SizedBox(height: 10),
-              _buildCard(
-                'Telegram support', // Titre de la carte
-                Icons.telegram, // Icône de Telegram
-                Text(
-                  'Rejoignez-nous sur Telegram :',
-                  style: TextStyle(fontSize: 13 + appState.getTextSizeOffset()),
-                ), // Texte principal
-                linkText: 'Telegram Link here', // Texte du lien
-                linkUrl: 'https://t.me/+ae_vCmnjg5JjNWQ0', // URL du lien
-                iconColor: Color(0xFF0088CC), // Couleur officielle Telegram
-              ),
-              const SizedBox(height: 10), // Espace sous l'image
-              _buildCard(
-                'Discord support', // Titre de la carte
-                Icons.discord,
-                Text(
-                  'Rejoignez-nous sur Discord :',
-                  style: TextStyle(fontSize: 13 + appState.getTextSizeOffset()),
-                ), // Texte principal
-                linkText: 'Discord Link here', // Texte du lien
-                linkUrl:
-                    'https://discord.com/channels/681940057183092737/681966628527013891', // URL du lien
-                iconColor: Colors.purple, // Couleur de l'icône
-              ),
-              const SizedBox(height: 10), // Espace sous l'image
-
-              _buildCard(
-                S.of(context).supportProject, // Titre de la carte
-                Icons.monetization_on, // Icône pour la carte
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      S.of(context).donationMessage,
-                      style: TextStyle(
-                          fontSize: 13 + appState.getTextSizeOffset()),
-                    ),
-                    const SizedBox(height: 10),
-                    ListTile(
-                      leading: const Icon(Icons.link),
-                      title: Text(
-                        'My linktree',
-                        style: TextStyle(
-                            fontSize: 13 + appState.getTextSizeOffset()),
-                      ),
-                      onTap: () =>
-                          UrlUtils.launchURL('https://linktr.ee/byackee'),
-                      visualDensity: const VisualDensity(
-                          vertical: -4), // Réduction de l'espace vertical
-                    ),
-                    const SizedBox(height: 20),
-                    if (kIsWeb ||
-                        (!kIsWeb &&
-                            !Platform
-                                .isIOS)) // Condition pour afficher les boutons
-                      Wrap(
-                        spacing: 8.0, // Espacement horizontal entre les boutons
-                        runSpacing:
-                            8.0, // Espacement vertical entre les lignes de boutons
-                        alignment: WrapAlignment.center, // Alignement au centre
-                        children: [
-                          ElevatedButton.icon(
-                            onPressed: () {
-                              UrlUtils.launchURL(
-                                  'https://paypal.me/byackee?country.x=FR&locale.x=fr_FR');
-                            },
-                            icon:
-                                const Icon(Icons.payment, color: Colors.white),
-                            label: Text(
-                              S.of(context).paypal,
-                              style: TextStyle(
-                                  fontSize: 14 + appState.getTextSizeOffset(),
-                                  color: Colors.white),
-                            ),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blue,
-                            ),
-                          ),
-                          ElevatedButton.icon(
-                            onPressed: () {
-                              UrlUtils.launchURL(
-                                  'https://buymeacoffee.com/byackee');
-                            },
-                            icon: Image.asset(
-                              'assets/bmc.png', // Chemin de votre image dans les assets
-                              height: 24, // Ajustez la taille de l'image
-                              width: 24,
-                            ),
-                            label: Text(
-                              'Buy Coffee',
-                              style: TextStyle(
-                                  fontSize: 14 + appState.getTextSizeOffset(),
-                                  color: Colors.white),
-                            ),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blue,
-                            ),
-                          ),
-                          ElevatedButton.icon(
-                            onPressed: () {
-                              _showCryptoAddressDialog(
-                                  context, appState.getTextSizeOffset());
-                            },
-                            icon: const Icon(Icons.currency_bitcoin,
-                                color: Colors.white),
-                            label: Text(
-                              S.of(context).crypto,
-                              style: TextStyle(
-                                  fontSize: 14 + appState.getTextSizeOffset(),
-                                  color: Colors.white),
-                            ),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.orange,
-                            ),
-                          ),
-                        ],
-                      ),
-                  ],
+                  'Github isssues link',
+                  'https://github.com/RealToken-Community/realtoken_apps/issues',
+                  appState.getTextSizeOffset(),
+                  iconColor: CupertinoColors.systemGrey,
                 ),
-              ),
-            ],
+                const SizedBox(height: 14),
+                _buildIOSStyleCard(
+                  context,
+                  'Telegram support',
+                  CupertinoIcons.paperplane_fill,
+                  'Rejoignez-nous sur Telegram :',
+                  'Telegram Link here',
+                  'https://t.me/+ae_vCmnjg5JjNWQ0',
+                  appState.getTextSizeOffset(),
+                  iconColor: const Color(0xFF0088CC),
+                ),
+                const SizedBox(height: 14),
+                _buildIOSStyleCard(
+                  context,
+                  'Discord support',
+                  CupertinoIcons.chat_bubble_2_fill,
+                  'Rejoignez-nous sur Discord :',
+                  'Discord Link here',
+                  'https://discord.com/channels/681940057183092737/681966628527013891',
+                  appState.getTextSizeOffset(),
+                  iconColor: CupertinoColors.systemPurple,
+                ),
+                const SizedBox(height: 14),
+                _buildDonationCard(context, appState),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  // Fonction pour créer une carte similaire à DashboardPage
-  Widget _buildCard(
+  Widget _buildIOSStyleCard(
+    BuildContext context,
     String title,
     IconData icon,
-    Widget firstChild, {
-    String? linkText, // Texte pour le lien
-    String? linkUrl, // URL à ouvrir
-    Color iconColor = Colors.blue, // Couleur par défaut de l'icône
+    String description,
+    String linkText,
+    String linkUrl,
+    double textSizeOffset, {
+    Color iconColor = CupertinoColors.systemBlue,
   }) {
-    final appState = Provider.of<AppState>(context);
-    return Card(
-      color: Theme.of(context).cardColor,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+    return Container(
+      decoration: BoxDecoration(
+        color: CupertinoColors.systemBackground.resolveFrom(context),
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 5,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
-      elevation: 0.5,
-      child: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Expanded(
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(10),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () => UrlUtils.launchURL(linkUrl),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
-                      Icon(icon,
-                          size: 24,
-                          color: iconColor), // Couleur personnalisable
-                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.all(8.0),
+                        decoration: BoxDecoration(
+                          color: CupertinoColors.systemGrey6.resolveFrom(context),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(
+                          icon,
+                          color: iconColor,
+                          size: 22,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
                       Text(
                         title,
                         style: TextStyle(
-                          fontSize: 19,
-                          fontWeight: FontWeight.bold,
+                          fontSize: 17,
+                          fontWeight: FontWeight.w600,
+                          color: CupertinoColors.label.resolveFrom(context),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 10),
-                  firstChild,
-                  const SizedBox(height: 10),
-                  if (linkText != null && linkUrl != null)
-                    GestureDetector(
-                      onTap: () => UrlUtils.launchURL(linkUrl),
-                      child: Text(
-                        linkText,
-                        style: TextStyle(
-                          fontSize: 14 + appState.getTextSizeOffset(),
-                          color: Colors.blue,
-                          decoration: TextDecoration.underline,
-                        ),
+                  const SizedBox(height: 12),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 4.0),
+                    child: Text(
+                      description,
+                      style: TextStyle(
+                        fontSize: 14 + textSizeOffset,
+                        color: CupertinoColors.secondaryLabel.resolveFrom(context),
                       ),
                     ),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.only(left: 4.0),
+                          child: Text(
+                            linkText,
+                            style: TextStyle(
+                              fontSize: 14 + textSizeOffset,
+                              color: CupertinoColors.systemBlue.resolveFrom(context),
+                            ),
+                          ),
+                        ),
+                      ),
+                      Icon(
+                        CupertinoIcons.chevron_right,
+                        size: 16,
+                        color: CupertinoColors.systemGrey.resolveFrom(context),
+                      ),
+                    ],
+                  ),
                 ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDonationCard(BuildContext context, AppState appState) {
+    return Container(
+      decoration: BoxDecoration(
+        color: CupertinoColors.systemBackground.resolveFrom(context),
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 5,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8.0),
+                  decoration: BoxDecoration(
+                    color: CupertinoColors.systemGrey6.resolveFrom(context),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    CupertinoIcons.money_dollar_circle,
+                    color: CupertinoColors.systemGreen.resolveFrom(context),
+                    size: 22,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  S.of(context).supportProject,
+                  style: TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w600,
+                    color: CupertinoColors.label.resolveFrom(context),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Padding(
+              padding: const EdgeInsets.only(left: 4.0),
+              child: Text(
+                S.of(context).donationMessage,
+                style: TextStyle(
+                  fontSize: 14 + appState.getTextSizeOffset(),
+                  color: CupertinoColors.secondaryLabel.resolveFrom(context),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            _buildLinkTreeButton(context, appState.getTextSizeOffset()),
+            const SizedBox(height: 16),
+            if (kIsWeb || (!kIsWeb && !Platform.isIOS))
+              Padding(
+                padding: const EdgeInsets.only(left: 4.0),
+                child: Wrap(
+                  spacing: 10.0,
+                  runSpacing: 10.0,
+                  children: [
+                    _buildDonationButton(
+                      context,
+                      'PayPal',
+                      CupertinoIcons.money_dollar,
+                      CupertinoColors.systemBlue,
+                      () => UrlUtils.launchURL(
+                          'https://paypal.me/byackee?country.x=FR&locale.x=fr_FR'),
+                      appState.getTextSizeOffset(),
+                    ),
+                    _buildDonationButton(
+                      context,
+                      'Buy Coffee',
+                      CupertinoIcons.gift,
+                      CupertinoColors.systemBrown,
+                      () => UrlUtils.launchURL('https://buymeacoffee.com/byackee'),
+                      appState.getTextSizeOffset(),
+                      isImage: true,
+                      imagePath: 'assets/bmc.png',
+                    ),
+                    _buildDonationButton(
+                      context,
+                      S.of(context).crypto,
+                      CupertinoIcons.bitcoin,
+                      CupertinoColors.systemOrange,
+                      () => _showIOSCryptoAddressDialog(context, appState.getTextSizeOffset()),
+                      appState.getTextSizeOffset(),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLinkTreeButton(BuildContext context, double textSizeOffset) {
+    return GestureDetector(
+      onTap: () => UrlUtils.launchURL('https://linktr.ee/byackee'),
+      child: Container(
+        decoration: BoxDecoration(
+          color: CupertinoColors.tertiarySystemBackground.resolveFrom(context),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+          child: Row(
+            children: [
+              Icon(
+                CupertinoIcons.link,
+                color: CupertinoColors.systemBlue.resolveFrom(context),
+                size: 18,
+              ),
+              const SizedBox(width: 10),
+              Text(
+                'My linktree',
+                style: TextStyle(
+                  fontSize: 14 + textSizeOffset,
+                  color: CupertinoColors.systemBlue.resolveFrom(context),
+                ),
+              ),
+              const Spacer(),
+              Icon(
+                CupertinoIcons.chevron_right,
+                size: 14,
+                color: CupertinoColors.systemGrey.resolveFrom(context),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDonationButton(
+    BuildContext context,
+    String text,
+    IconData icon,
+    Color color,
+    VoidCallback onTap,
+    double textSizeOffset, {
+    bool isImage = false,
+    String? imagePath,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (isImage && imagePath != null)
+              Image.asset(
+                imagePath,
+                height: 20,
+                width: 20,
+              )
+            else
+              Icon(
+                icon,
+                color: CupertinoColors.white,
+                size: 18,
+              ),
+            const SizedBox(width: 8),
+            Text(
+              text,
+              style: TextStyle(
+                fontSize: 14 + textSizeOffset,
+                color: CupertinoColors.white,
+                fontWeight: FontWeight.w500,
               ),
             ),
           ],
@@ -247,59 +377,130 @@ class RealtPageState extends State<SupportPage> {
     );
   }
 
-  void _showCryptoAddressDialog(BuildContext context, double textSizeOffset) {
+  void _showIOSCryptoAddressDialog(BuildContext context, double textSizeOffset) {
     const cryptoAddress = '0x2cb49d04890a98eb89f4f43af96ad01b98b64165';
 
-    showDialog(
+    showCupertinoModalPopup(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
+        return CupertinoActionSheet(
           title: Text(
             S.of(context).cryptoDonationAddress,
-            style: TextStyle(fontSize: 14 + textSizeOffset),
+            style: TextStyle(
+              fontSize: 15 + textSizeOffset,
+              fontWeight: FontWeight.w600,
+            ),
           ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
+          message: Column(
             children: [
               Text(
                 S.of(context).sendDonations,
-                style: TextStyle(fontSize: 14 + textSizeOffset),
-              ),
-              const SizedBox(height: 10),
-              SelectableText(
-                cryptoAddress,
                 style: TextStyle(
-                    fontSize: 14 + textSizeOffset, fontWeight: FontWeight.bold),
+                  fontSize: 14 + textSizeOffset,
+                  color: CupertinoColors.secondaryLabel,
+                ),
               ),
-              const SizedBox(height: 20),
-              ElevatedButton.icon(
-                onPressed: () {
-                  Clipboard.setData(const ClipboardData(text: cryptoAddress));
-                  Navigator.of(context).pop();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(S.of(context).addressCopied)),
-                  );
-                },
-                icon: const Icon(Icons.copy),
-                label: Text(S.of(context).copy,
-                    style: TextStyle(fontSize: 14 + textSizeOffset)),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: CupertinoColors.tertiarySystemBackground,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: SelectableText(
+                  cryptoAddress,
+                  style: TextStyle(
+                    fontSize: 14 + textSizeOffset,
+                    fontWeight: FontWeight.w500,
+                    fontFamily: 'Menlo',
+                    letterSpacing: -0.5,
+                  ),
                 ),
               ),
             ],
           ),
           actions: [
-            TextButton(
+            CupertinoActionSheetAction(
               onPressed: () {
+                Clipboard.setData(const ClipboardData(text: cryptoAddress));
                 Navigator.of(context).pop();
+                showCupertinoSnackBar(
+                  context: context,
+                  message: S.of(context).addressCopied,
+                );
               },
-              child: Text(S.of(context).close,
-                  style: TextStyle(fontSize: 14 + textSizeOffset)),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    CupertinoIcons.doc_on_clipboard,
+                    color: CupertinoColors.systemBlue,
+                    size: 18,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    S.of(context).copy,
+                    style: TextStyle(fontSize: 16 + textSizeOffset),
+                  ),
+                ],
+              ),
             ),
           ],
+          cancelButton: CupertinoActionSheetAction(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: Text(
+              S.of(context).close,
+              style: TextStyle(fontSize: 16 + textSizeOffset),
+            ),
+          ),
         );
       },
     );
+  }
+
+  void showCupertinoSnackBar({required BuildContext context, required String message}) {
+    final overlayEntry = OverlayEntry(
+      builder: (context) => Positioned(
+        bottom: 50.0,
+        left: 20.0,
+        right: 20.0,
+        child: Material(
+          color: Colors.transparent,
+          child: SafeArea(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: CupertinoColors.systemGrey.withOpacity(0.9),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    CupertinoIcons.checkmark_circle,
+                    color: CupertinoColors.white,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    message,
+                    style: const TextStyle(
+                      color: CupertinoColors.white,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    Overlay.of(context).insert(overlayEntry);
+    Future.delayed(const Duration(seconds: 2)).then((_) {
+      overlayEntry.remove();
+    });
   }
 }

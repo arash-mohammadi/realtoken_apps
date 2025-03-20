@@ -200,10 +200,10 @@ class S {
     );
   }
 
-  /// `Your last rent received amounts to `
+  /// `Your last rent received`
   String get lastRentReceived {
     return Intl.message(
-      'Your last rent received amounts to ',
+      'Your last rent received',
       name: 'lastRentReceived',
       desc: '',
       args: [],
@@ -2460,10 +2460,10 @@ class S {
     );
   }
 
-  /// `Time before liquidation`
+  /// `before liquidation`
   String get timeBeforeLiquidation {
     return Intl.message(
-      'Time before liquidation',
+      'before liquidation',
       name: 'timeBeforeLiquidation',
       desc: '',
       args: [],

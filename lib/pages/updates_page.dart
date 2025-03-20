@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:realtokens/app_state.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -16,6 +17,7 @@ class UpdatesPage extends StatefulWidget {
 
 class _UpdatesPageState extends State<UpdatesPage> {
   bool showUserTokensOnly = false; // Ajout du booléen pour le switch
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -28,22 +30,42 @@ class _UpdatesPageState extends State<UpdatesPage> {
   }
 
   @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final dataManager = Provider.of<DataManager>(context);
     final appState = Provider.of<AppState>(
         context); // Ajouter cette ligne pour récupérer appState
 
     if (dataManager.recentUpdates.isEmpty) {
-      return Scaffold(
-        appBar: AppBar(
-          backgroundColor:
-              Theme.of(context).scaffoldBackgroundColor, // Définir le fond noir
-          title: Text(
-              S.of(context).recentUpdatesTitle), // Utilisation des traductions
+      return CupertinoPageScaffold(
+        navigationBar: CupertinoNavigationBar(
+          backgroundColor: CupertinoColors.systemBackground.resolveFrom(context),
+          middle: Text(S.of(context).recentUpdatesTitle),
         ),
-        body: Center(
-          child: Text(
-              S.of(context).noRecentUpdates), // Utilisation des traductions
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                CupertinoIcons.refresh_thin,
+                size: 48,
+                color: CupertinoColors.systemGrey,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                S.of(context).noRecentUpdates,
+                style: const TextStyle(
+                  color: CupertinoColors.systemGrey,
+                  fontSize: 16,
+                ),
+              ),
+            ],
+          ),
         ),
       );
     }
@@ -81,152 +103,223 @@ class _UpdatesPageState extends State<UpdatesPage> {
       groupedUpdates[dateKey]![tokenKey]!.add(update);
     }
 
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor:
-            Theme.of(context).scaffoldBackgroundColor, // Définir le fond noir
-        title: Text(S
-            .of(context)
-            .recentUpdatesTitle), // Garde le titre dans l'AppBar fixe
+    return CupertinoPageScaffold(
+      navigationBar: CupertinoNavigationBar(
+        backgroundColor: CupertinoColors.systemBackground.resolveFrom(context),
+        middle: Text(S.of(context).recentUpdatesTitle),
       ),
-      body: NestedScrollView(
-        headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
-          return <Widget>[
-            SliverAppBar(
-              backgroundColor: Theme.of(context)
-                  .scaffoldBackgroundColor, // Définir le fond noir
-              automaticallyImplyLeading: false,
-              floating: true,
-              snap: true,
-              toolbarHeight: 56.0,
-              titleSpacing: 0.0,
-              flexibleSpace: FlexibleSpaceBar(
-                background: Container(
-                  alignment: Alignment.centerLeft,
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                  color: Theme.of(context).scaffoldBackgroundColor,
-                  child: Row(
-                    children: [
-                      Text(S.of(context).portfolio),
-                      Transform.scale(
-                        scale: 0.7,
-                        child: Switch(
-                          value: showUserTokensOnly,
-                          onChanged: (value) {
-                            setState(() {
-                              showUserTokensOnly = value;
-                            });
-                          },
-                          activeColor: Theme.of(context).primaryColor,
-                          inactiveTrackColor: Colors.grey[300],
-                        ),
-                      ),
-                    ],
+      child: SafeArea(
+        child: Column(
+          children: [
+            // En-tête avec le Switch
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              decoration: BoxDecoration(
+                color: CupertinoColors.systemBackground.resolveFrom(context),
+                border: Border(
+                  bottom: BorderSide(
+                    color: CupertinoColors.systemGrey5.resolveFrom(context),
+                    width: 0.5,
                   ),
                 ),
               ),
-            ),
-          ];
-        },
-        body: ListView.builder(
-          itemCount: groupedUpdates.keys.length,
-          itemBuilder: (context, dateIndex) {
-            final String dateKey = groupedUpdates.keys.elementAt(dateIndex);
-            final Map<String, List<Map<String, dynamic>>> updatesForDate =
-                groupedUpdates[dateKey]!;
-
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(
-                    dateKey, // Afficher la date en gras
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    S.of(context).portfolio,
                     style: TextStyle(
-                        fontSize: 18 + appState.getTextSizeOffset(),
-                        fontWeight: FontWeight.bold),
+                      fontSize: 15 + appState.getTextSizeOffset(),
+                      fontWeight: FontWeight.w500,
+                      color: CupertinoColors.label.resolveFrom(context),
+                    ),
                   ),
-                ),
-                // Afficher les tokens et leurs infos regroupées
-                ...updatesForDate.entries.map((tokenEntry) {
-                  final String tokenName = tokenEntry.key;
-                  final List<Map<String, dynamic>> updatesForToken =
-                      tokenEntry.value;
+                  CupertinoSwitch(
+                    value: showUserTokensOnly,
+                    onChanged: (value) {
+                      setState(() {
+                        showUserTokensOnly = value;
+                      });
+                    },
+                    activeColor: CupertinoColors.activeBlue,
+                  ),
+                ],
+              ),
+            ),
+            
+            // Liste des mises à jour
+            Expanded(
+              child: ListView.builder(
+                controller: _scrollController,
+                itemCount: groupedUpdates.keys.length,
+                itemBuilder: (context, dateIndex) {
+                  final String dateKey = groupedUpdates.keys.elementAt(dateIndex);
+                  final Map<String, List<Map<String, dynamic>>> updatesForDate =
+                      groupedUpdates[dateKey]!;
 
-                  // Assumer que toutes les mises à jour pour un token partagent la même image
-                  final String imageUrl = updatesForToken.first['imageLink'] ??
-                      S.of(context).noImageAvailable;
-
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 8.0, vertical: 8.0),
-                    child: Container(
-                      width: double
-                          .infinity, // Faire en sorte que la carte prenne toute la largeur disponible
-                      padding: const EdgeInsets.all(8.0),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context)
-                            .cardColor, // Utiliser la couleur du thème
-                        borderRadius:
-                            BorderRadius.circular(8), // Ajout de coins arrondis
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Afficher l'image du token si elle est disponible
-                          if (imageUrl != S.of(context).noImageAvailable)
-                            AspectRatio(
-                              aspectRatio: 16 / 9,
-                              child: ClipRRect(
-                                borderRadius: const BorderRadius.only(
-                                  topLeft: Radius.circular(12),
-                                  topRight: Radius.circular(12),
-                                ),
-                                child: kIsWeb
-                                    ? ShowNetworkImage(
-                                        imageSrc: imageUrl,
-                                        mobileBoxFit: BoxFit.cover,
-                                      )
-                                    : CachedNetworkImage(
-                                        imageUrl: imageUrl,
-                                        fit: BoxFit.cover,
-                                        errorWidget: (context, url, error) =>
-                                            const Icon(Icons.error),
-                                      ),
-                              ),
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // En-tête de date sticky
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                        decoration: BoxDecoration(
+                          color: CupertinoColors.systemGroupedBackground.resolveFrom(context),
+                          border: Border(
+                            bottom: BorderSide(
+                              color: CupertinoColors.systemGrey5.resolveFrom(context),
+                              width: 0.5,
                             ),
-                          const SizedBox(height: 8),
-                          // Afficher le nom du token
-                          Text(
-                            tokenName,
-                            style: TextStyle(
-                                fontSize: 16 + appState.getTextSizeOffset(),
-                                fontWeight: FontWeight.bold),
                           ),
-                          const SizedBox(height: 4),
-                          // Afficher les informations formatées pour ce token
-                          ...updatesForToken.map((update) {
-                            return Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(vertical: 4.0),
+                        ),
+                        child: Text(
+                          dateKey,
+                          style: TextStyle(
+                            fontSize: 17 + appState.getTextSizeOffset(),
+                            fontWeight: FontWeight.bold,
+                            color: CupertinoColors.secondaryLabel.resolveFrom(context),
+                          ),
+                        ),
+                      ),
+                      
+                      // Cartes des tokens
+                      ...updatesForDate.entries.map((tokenEntry) {
+                        final String tokenName = tokenEntry.key;
+                        final List<Map<String, dynamic>> updatesForToken = tokenEntry.value;
+                        final String imageUrl = updatesForToken.first['imageLink'] ??
+                            S.of(context).noImageAvailable;
+
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(10),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: CupertinoColors.systemBackground.resolveFrom(context),
+                                borderRadius: BorderRadius.circular(10),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: CupertinoColors.systemGrey5.resolveFrom(context),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(update['formattedKey']),
-                                  Text(
-                                      "${update['formattedOldValue']} -> ${update['formattedNewValue']}"),
+                                  // Image du token
+                                  if (imageUrl != S.of(context).noImageAvailable)
+                                    ClipRRect(
+                                      borderRadius: const BorderRadius.only(
+                                        topLeft: Radius.circular(10),
+                                        topRight: Radius.circular(10),
+                                      ),
+                                      child: AspectRatio(
+                                        aspectRatio: 16 / 9,
+                                        child: kIsWeb
+                                            ? ShowNetworkImage(
+                                                imageSrc: imageUrl,
+                                                mobileBoxFit: BoxFit.cover,
+                                              )
+                                            : CachedNetworkImage(
+                                                imageUrl: imageUrl,
+                                                fit: BoxFit.cover,
+                                                placeholder: (context, url) => const Center(
+                                                  child: CupertinoActivityIndicator(),
+                                                ),
+                                                errorWidget: (context, url, error) =>
+                                                    const Icon(CupertinoIcons.exclamationmark_triangle),
+                                              ),
+                                      ),
+                                    ),
+                                  
+                                  // Contenu de la carte
+                                  Padding(
+                                    padding: const EdgeInsets.all(16.0),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        // Nom du token
+                                        Text(
+                                          tokenName,
+                                          style: TextStyle(
+                                            fontSize: 17 + appState.getTextSizeOffset(),
+                                            fontWeight: FontWeight.bold,
+                                            color: CupertinoColors.label.resolveFrom(context),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 12),
+                                        
+                                        // Mises à jour
+                                        ...updatesForToken.map((update) {
+                                          return Padding(
+                                            padding: const EdgeInsets.only(top: 8.0),
+                                            child: Container(
+                                              padding: const EdgeInsets.all(12),
+                                              decoration: BoxDecoration(
+                                                color: CupertinoColors.systemGrey6.resolveFrom(context),
+                                                borderRadius: BorderRadius.circular(8),
+                                              ),
+                                              child: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    update['formattedKey'],
+                                                    style: TextStyle(
+                                                      fontSize: 15 + appState.getTextSizeOffset(),
+                                                      fontWeight: FontWeight.w600,
+                                                      color: CupertinoColors.systemBlue,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(height: 4),
+                                                  Row(
+                                                    children: [
+                                                      Text(
+                                                        update['formattedOldValue'],
+                                                        style: TextStyle(
+                                                          fontSize: 14 + appState.getTextSizeOffset(),
+                                                          decoration: TextDecoration.lineThrough,
+                                                          color: CupertinoColors.systemGrey,
+                                                        ),
+                                                      ),
+                                                      const SizedBox(width: 8),
+                                                      const Icon(
+                                                        CupertinoIcons.arrow_right,
+                                                        size: 12,
+                                                        color: CupertinoColors.systemGrey,
+                                                      ),
+                                                      const SizedBox(width: 8),
+                                                      Text(
+                                                        update['formattedNewValue'],
+                                                        style: TextStyle(
+                                                          fontSize: 14 + appState.getTextSizeOffset(),
+                                                          fontWeight: FontWeight.w600,
+                                                          color: CupertinoColors.label.resolveFrom(context),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          );
+                                        }),
+                                      ],
+                                    ),
+                                  ),
                                 ],
                               ),
-                            );
-                          }),
-                        ],
-                      ),
-                    ),
+                            ),
+                          ),
+                        );
+                      }),
+                    ],
                   );
-                }),
-              ],
-            );
-          },
+                },
+              ),
+            ),
+          ],
         ),
       ),
     );

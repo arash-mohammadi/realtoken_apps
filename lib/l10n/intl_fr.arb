@@ -15,7 +15,7 @@
   "portuguese": "Português",
   "manageEvmAddresses": "Gérer les portefeuilles",
   "hello": "Bonjour",
-  "lastRentReceived": "Votre dernier loyer reçu s'élève à ",
+  "lastRentReceived": "Votre dernier loyer reçu",
   "currency": "Monnaie",
   "portfolio": "Portefeuille",
   "totalPortfolio": "Portefeuille total",
@@ -242,7 +242,7 @@
   "timestamp": "Horodatage",
   "unknownDate": "Date inconnue",
   "noTransactionsAvailable": "Aucune transaction disponible",
-  "timeBeforeLiquidation": "Temps avant liquidation",
+  "timeBeforeLiquidation": "avant liquidation",
   "yamHistory": "Historique Yam",
   "daysLimit": "Limite de jours",
   "newVersionAvailable": "Nouvelle version disponible",
@@ -332,5 +332,9 @@
   "showNetTotalDescription": "Inclure les dépôts et emprunts dans le calcul du portefeuille total",
   "manualAdjustmentDescription": "Ajouter ou soustraire un montant saisi manuellement au total du portefeuille",
   "adjustmentSaved": "Ajustement enregistré avec succès",
-  "selectCurrency": "Sélectionner la devise"
+  "selectCurrency": "Sélectionner la devise",
+  "cumulativeRentGraph": "Cumul des loyers",
+  "totalRentsReceived": "Total des loyers reçus",
+  "noRentHistory": "Aucun historique de loyer disponible pour ce token",
+  "rentsFromWallets": "Loyers issues de {count} wallets"
 }

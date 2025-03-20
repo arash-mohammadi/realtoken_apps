@@ -39,18 +39,18 @@ class RentsCard extends StatelessWidget {
                 context: context,
                 builder: (BuildContext context) {
                   return AlertDialog(
-                    title: Text(S.of(context).apy), // Titre de la popup
+                    title: Text(S.of(context).apy),
                     content: Text(
-                      S.of(context).netApyHelp, // Contenu de la popup
+                      S.of(context).netApyHelp,
                       style: TextStyle(
                           fontSize: 13 + appState.getTextSizeOffset()),
                     ),
                     actions: [
                       TextButton(
                         onPressed: () {
-                          Navigator.of(context).pop(); // Fermer la popup
+                          Navigator.of(context).pop();
                         },
-                        child: Text(S.of(context).close), // Bouton de fermeture
+                        child: Text(S.of(context).close),
                       ),
                     ],
                   );
@@ -58,18 +58,19 @@ class RentsCard extends StatelessWidget {
               );
             },
             child: Icon(Icons.info_outline,
-                size: 15), // Icône sans padding implicite
+                size: 15),
+          ),
+          SizedBox(width: 8),
+          Text(
+            '(${dataManager.averageAnnualYield.toStringAsFixed(2)}% brut)',
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.grey[600],
+            ),
           ),
         ],
       ),
       [
-        UIUtils.buildTextWithShimmer(
-          '${dataManager.averageAnnualYield.toStringAsFixed(2)}%',
-          'APY brut: ',
-          dataManager.isLoadingMain,
-          context,
-        ),
-        const SizedBox(height: 10),
         UIUtils.buildTextWithShimmer(
           currencyUtils.getFormattedAmount(
               currencyUtils.convert(dataManager.dailyRent),
@@ -111,24 +112,26 @@ class RentsCard extends StatelessWidget {
       dataManager,
       context,
       hasGraph: true,
-      rightWidget: _buildMiniGraphForRendement(
-          _getLast12WeeksRent(dataManager), context, dataManager),
-      headerRightWidget: IconButton(
-        icon: Icon(
-          Icons.arrow_forward,
-          size: 24,
-          color: Colors.grey,
+      rightWidget: _buildMiniGraphForRendement(_getLast12WeeksRent(dataManager), context, dataManager),
+      headerRightWidget: Container(
+        height: 24,
+        child: IconButton(
+          icon: Icon(
+            Icons.arrow_forward,
+            size: 20,
+            color: Colors.grey,
+          ),
+          padding: EdgeInsets.zero,
+          constraints: BoxConstraints(),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const DashboardRentsDetailsPage(),
+              ),
+            );
+          },
         ),
-        padding: EdgeInsets.zero,
-        constraints: BoxConstraints(),
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const DashboardRentsDetailsPage(),
-            ),
-          );
-        },
       ),
     );
   }
@@ -137,74 +140,82 @@ class RentsCard extends StatelessWidget {
       BuildContext context, DataManager dataManager) {
     final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
 
-    return Align(
-      alignment: Alignment.center,
-      child: SizedBox(
-        height: 70,
-        width: 120,
-        child: LineChart(
-          LineChartData(
-            gridData: FlGridData(show: false),
-            titlesData: FlTitlesData(show: false),
-            borderData: FlBorderData(show: false),
-            minX: 0,
-            maxX: data.length.toDouble() - 1,
-            minY: data.map((e) => e['amount']).reduce((a, b) => a < b ? a : b),
-            maxY: data.map((e) => e['amount']).reduce((a, b) => a > b ? a : b),
-            lineBarsData: [
-              LineChartBarData(
-                spots: List.generate(data.length, (index) {
-                  double roundedValue = double.parse(currencyUtils
-                      .convert(data[index]['amount'])
-                      .toStringAsFixed(2));
-                  return FlSpot(index.toDouble(), roundedValue);
-                }),
-                isCurved: true,
-                barWidth: 2,
-                color: Theme.of(context).primaryColor,
-                dotData: FlDotData(
-                  show: true,
-                  getDotPainter: (spot, percent, barData, index) =>
-                      FlDotCirclePainter(
-                    radius: 2,
-                    color: Theme.of(context).primaryColor,
-                    strokeWidth: 0,
-                  ),
-                ),
-                belowBarData: BarAreaData(
-                  show: true,
-                  gradient: LinearGradient(
-                    colors: [
-                      Theme.of(context).primaryColor.withOpacity(0.4),
-                      Theme.of(context).primaryColor.withOpacity(0),
-                    ],
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                  ),
-                ),
-              ),
-            ],
-            // Ajout de LineTouchData pour le tooltip avec la semaine
-            lineTouchData: LineTouchData(
-              touchTooltipData: LineTouchTooltipData(
-                getTooltipItems: (List<LineBarSpot> touchedSpots) {
-                  return touchedSpots.map((touchedSpot) {
-                    final index = touchedSpot.x.toInt();
-                    final weekLabel = data[index]['week'];
-                    final amount = touchedSpot.y.toStringAsFixed(2);
+    // Calculer les valeurs min et max des données après conversion
+    List<double> convertedValues = List.generate(data.length, (index) {
+      return double.parse(currencyUtils
+          .convert(data[index]['amount'])
+          .toStringAsFixed(2));
+    });
+    
+    double minY = convertedValues.isEmpty ? 0 : convertedValues.reduce((a, b) => a < b ? a : b);
+    double maxY = convertedValues.isEmpty ? 0 : convertedValues.reduce((a, b) => a > b ? a : b);
+    
+    // Ajouter une petite marge en bas et en haut
+    minY = minY * 0.97; // 5% de marge en bas
+    maxY = maxY * 1.03; // 5% de marge en haut
 
-                    return LineTooltipItem(
-                      '$weekLabel\n$amount ${currencyUtils.currencySymbol}',
-                      const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    );
-                  }).toList();
-                },
+    return SizedBox(
+      height: 90,
+      width: 120,
+      child: LineChart(
+        LineChartData(
+          gridData: FlGridData(show: false),
+          titlesData: FlTitlesData(show: false),
+          borderData: FlBorderData(show: false),
+          minX: 0,
+          maxX: data.length.toDouble() - 1,
+          minY: minY,
+          maxY: maxY,
+          lineBarsData: [
+            LineChartBarData(
+              spots: List.generate(data.length, (index) {
+                double roundedValue = convertedValues[index];
+                return FlSpot(index.toDouble(), roundedValue);
+              }),
+              isCurved: true,
+              barWidth: 2,
+              color: Theme.of(context).primaryColor,
+              dotData: FlDotData(
+                show: true,
+                getDotPainter: (spot, percent, barData, index) =>
+                    FlDotCirclePainter(
+                  radius: 2,
+                  color: Theme.of(context).primaryColor,
+                  strokeWidth: 0,
+                ),
               ),
-              handleBuiltInTouches: true,
+              belowBarData: BarAreaData(
+                show: true,
+                gradient: LinearGradient(
+                  colors: [
+                    Theme.of(context).primaryColor.withOpacity(0.4),
+                    Theme.of(context).primaryColor.withOpacity(0),
+                  ],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+              ),
             ),
+          ],
+          lineTouchData: LineTouchData(
+            touchTooltipData: LineTouchTooltipData(
+              getTooltipItems: (List<LineBarSpot> touchedSpots) {
+                return touchedSpots.map((touchedSpot) {
+                  final index = touchedSpot.x.toInt();
+                  final weekLabel = data[index]['week'];
+                  final amount = touchedSpot.y.toStringAsFixed(2);
+
+                  return LineTooltipItem(
+                    '$weekLabel\n$amount ${currencyUtils.currencySymbol}',
+                    const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  );
+                }).toList();
+              },
+            ),
+            handleBuiltInTouches: true,
           ),
         ),
       ),

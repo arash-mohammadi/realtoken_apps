@@ -30,7 +30,19 @@ class PortfolioCard extends StatelessWidget {
     final theme = Theme.of(context);
     
     // Calcul des totaux en tenant compte des paramètres
-    double totalPortfolioValue = dataManager.totalWalletValue + Parameters.manualAdjustment;
+    double totalPortfolioValue = Parameters.showNetTotal 
+        ? dataManager.walletValue +
+          dataManager.rmmValue + 
+          dataManager.rwaHoldingsValue +
+          dataManager.totalUsdcDepositBalance +
+          dataManager.totalXdaiDepositBalance -
+          dataManager.totalUsdcBorrowBalance -
+          dataManager.totalXdaiBorrowBalance +
+          Parameters.manualAdjustment
+        : dataManager.walletValue +
+          dataManager.rmmValue + 
+          dataManager.rwaHoldingsValue +
+          Parameters.manualAdjustment;
     
     // Calcul du total sans les dépôts et emprunts si showNetTotal est false
     double portfolioDisplayValue = Parameters.showNetTotal 
@@ -49,149 +61,191 @@ class PortfolioCard extends StatelessWidget {
     double percentageYam = ((portfolioDisplayValue / totalPortfolioValue - 1) * 100);
     String percentageYamDisplay = percentageYam.isNaN || percentageYam.isInfinite ? '0' : percentageYam.toStringAsFixed(0);
 
-    return UIUtils.buildCard(
-      S.of(context).portfolio,
-      Icons.dashboard,
-      Parameters.showYamProjection 
-        ? UIUtils.buildValueBeforeText(
-            context,
-            currencyUtils.getFormattedAmount(
-                currencyUtils.convert(portfolioDisplayValue),
-                currencyUtils.currencySymbol,
-                showAmounts),
-            'projection YAM ($percentageYamDisplay%)',
-            isLoading,
-            highlightPercentage: true,
-          )
-        : const SizedBox.shrink(),
-      [
-        // Section des totaux - mise en évidence avec un style particulier
-        _buildSectionTitle(context, S.of(context).totalPortfolio, theme),
-        _buildTotalValue(
-            context,
-            currencyUtils.getFormattedAmount(
-                currencyUtils.convert(totalPortfolioValue),
-                currencyUtils.currencySymbol,
-                showAmounts),
-            isLoading,
-            theme),
-            
-        // Ajout du total investi si l'option est activée
-        if (Parameters.showTotalInvested)
-          _buildSubtotalValue(
+    // Calculer le nombre d'éléments visibles pour estimer la hauteur minimale
+    int visibleSections = 2; // Toujours afficher la section "Actifs"
+    if (Parameters.showNetTotal) visibleSections++; // Section "Dépôts & Emprunts"
+    if (Parameters.manualAdjustment != 0) visibleSections++; // Section "Ajustements"
+    if (Parameters.showTotalInvested) visibleSections++; // Total investi
+
+    // Hauteur minimale basée sur le nombre de sections visibles
+    double minHeight = 220.0; // Hauteur de base
+    if (visibleSections <= 2) minHeight = 220.0; // Hauteur minimale pour peu de contenu
+    else if (visibleSections == 3) minHeight = 240.0;
+    else minHeight = 260.0;
+
+    return Container(
+      constraints: BoxConstraints(
+        minHeight: minHeight,
+      ),
+      child: UIUtils.buildCard(
+        S.of(context).portfolio,
+        Icons.pie_chart_rounded,
+        Parameters.showYamProjection 
+          ? UIUtils.buildValueBeforeText(
               context,
               currencyUtils.getFormattedAmount(
-                  currencyUtils.convert(dataManager.initialTotalValue),
+                  currencyUtils.convert(portfolioDisplayValue),
                   currencyUtils.currencySymbol,
                   showAmounts),
-              S.of(context).initialInvestment,
+              'projection YAM ($percentageYamDisplay%)',
               isLoading,
-              theme),
+              highlightPercentage: true,
+            )
+          : const SizedBox.shrink(),
+        [
+          // Section des totaux - mise en évidence avec un style particulier
+          _buildSectionTitle(context, S.of(context).totalPortfolio, theme),
+          _buildTotalValue(
+              context,
+              currencyUtils.getFormattedAmount(
+                  currencyUtils.convert(totalPortfolioValue),
+                  currencyUtils.currencySymbol,
+                  showAmounts),
+              isLoading,
+              theme,
+              showNetLabel: Parameters.showNetTotal),
               
-        const SizedBox(height: 2), // Espace réduit entre les sections
-        
-        // Section des actifs - avec titre de section
-        _buildSectionTitle(context, "Actifs", theme),
-        _buildIndentedBalance(
-            S.of(context).wallet,
-            currencyUtils.convert(dataManager.walletValue),
-            currencyUtils.currencySymbol,
-            true,
-            context,
-            isLoading),
-        _buildIndentedBalance(
-            S.of(context).rmm,
-            currencyUtils.convert(dataManager.rmmValue),
-            currencyUtils.currencySymbol,
-            true,
-            context,
-            isLoading),
-        _buildIndentedBalance(
-            S.of(context).rwaHoldings,
-            currencyUtils.convert(dataManager.rwaHoldingsValue),
-            currencyUtils.currencySymbol,
-            true,
-            context,
-            isLoading),
-            
-        if (Parameters.showNetTotal) ...[
-          const SizedBox(height: 2), // Espace réduit entre les sections
-          // Section des dépôts et emprunts - avec titre de section
-          _buildSectionTitle(context, "Dépôts & Emprunts", theme),
+          // Ajout du total investi si l'option est activée
+          if (Parameters.showTotalInvested)
+            _buildSubtotalValue(
+                context,
+                currencyUtils.getFormattedAmount(
+                    currencyUtils.convert(dataManager.initialTotalValue + Parameters.initialInvestmentAdjustment),
+                    currencyUtils.currencySymbol,
+                    showAmounts),
+                S.of(context).initialInvestment,
+                isLoading,
+                theme),
+                
+          const SizedBox(height: 3), // Réduit de 6 à 3
+          
+          // Section des actifs - avec titre de section
+          _buildSectionTitle(context, "Actifs", theme),
           _buildIndentedBalance(
-              S.of(context).depositBalance,
-              currencyUtils.convert(dataManager.totalUsdcDepositBalance +
-                  dataManager.totalXdaiDepositBalance),
+              S.of(context).wallet,
+              currencyUtils.convert(dataManager.walletValue),
               currencyUtils.currencySymbol,
               true,
               context,
               isLoading),
           _buildIndentedBalance(
-              S.of(context).borrowBalance,
-              currencyUtils.convert(dataManager.totalUsdcBorrowBalance +
-                  dataManager.totalXdaiBorrowBalance),
+              S.of(context).rmm,
+              currencyUtils.convert(dataManager.rmmValue),
               currencyUtils.currencySymbol,
-              false,
+              true,
               context,
               isLoading),
-        ],
-        
-        // Affichage de l'ajustement manuel si différent de zéro
-        if (Parameters.manualAdjustment != 0) ...[
-          const SizedBox(height: 2), // Espace réduit entre les sections
-          _buildSectionTitle(context, "Ajustements", theme),
           _buildIndentedBalance(
-              S.of(context).manualAdjustment,
-              currencyUtils.convert(Parameters.manualAdjustment),
+              S.of(context).rwaHoldings,
+              currencyUtils.convert(dataManager.rwaHoldingsValue),
               currencyUtils.currencySymbol,
-              Parameters.manualAdjustment > 0,
+              true,
               context,
               isLoading),
-        ],
-      ],
-      dataManager,
-      context,
-      hasGraph: true,
-      rightWidget: _buildVerticalGauge(dataManager.roiGlobalValue, context),
-      headerRightWidget: Row(
-        children: [
-          _buildSettingsIcon(context),
-          IconButton(
-            icon: Icon(
-              Icons.arrow_forward,
-              size: 24,
-              color: Colors.grey,
-            ),
-            padding: EdgeInsets.zero,
-            constraints: BoxConstraints(),
-            onPressed: () {
-              Navigator.push(
+              
+          if (Parameters.showNetTotal) ...[
+            const SizedBox(height: 3), // Réduit de 6 à 3
+            // Section des dépôts et emprunts - avec titre de section
+            _buildSectionTitle(context, "Dépôts & Emprunts", theme),
+            _buildIndentedBalance(
+                S.of(context).depositBalance,
+                currencyUtils.convert(dataManager.totalUsdcDepositBalance +
+                    dataManager.totalXdaiDepositBalance),
+                currencyUtils.currencySymbol,
+                true,
                 context,
-                MaterialPageRoute(
-                  builder: (context) => const PortfolioDetailsPage(),
-                ),
-              );
-            },
-          ),
+                isLoading),
+            _buildIndentedBalance(
+                S.of(context).borrowBalance,
+                currencyUtils.convert(dataManager.totalUsdcBorrowBalance +
+                    dataManager.totalXdaiBorrowBalance),
+                currencyUtils.currencySymbol,
+                false,
+                context,
+                isLoading),
+          ],
+          
+          // Affichage de l'ajustement manuel si différent de zéro
+          if (Parameters.manualAdjustment != 0) ...[
+            const SizedBox(height: 3), // Réduit de 6 à 3
+            _buildSectionTitle(context, "Ajustements", theme),
+            _buildIndentedBalance(
+                S.of(context).manualAdjustment,
+                currencyUtils.convert(Parameters.manualAdjustment),
+                currencyUtils.currencySymbol,
+                Parameters.manualAdjustment > 0,
+                context,
+                isLoading),
+          ],
+          
+          // Ajouter un espace pour assurer une hauteur minimale si nécessaire
+          if (visibleSections <= 2)
+            SizedBox(height: 10), // Réduit de 20 à 10
         ],
-      ),
-    );
-  }
-
-  Widget _buildSettingsIcon(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(right: 2.0),
-      child: IconButton(
-        icon: Icon(
-          Icons.settings,
-          size: 18,
-          color: Theme.of(context).iconTheme.color?.withOpacity(0.7),
+        dataManager,
+        context,
+        hasGraph: true,
+        rightWidget: _buildVerticalGauge(dataManager.roiGlobalValue, context, visibleSections),
+        headerRightWidget: Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Container(
+              height: 36,
+              width: 36,
+              margin: EdgeInsets.only(right: 4),
+              child: Material(
+                color: Colors.transparent,
+                borderRadius: BorderRadius.circular(18),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(18),
+                  child: Container(
+                    padding: EdgeInsets.all(6),
+                    child: Icon(
+                      Icons.settings_outlined,
+                      size: 20,
+                      color: theme.brightness == Brightness.light 
+                          ? Colors.black54
+                          : Colors.white70,
+                    ),
+                  ),
+                  onTap: () {
+                    _showPersonalizationModal(context);
+                  },
+                ),
+              ),
+            ),
+            Container(
+              height: 36,
+              width: 36,
+              child: Material(
+                color: Colors.transparent,
+                borderRadius: BorderRadius.circular(18),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(18),
+                  child: Container(
+                    padding: EdgeInsets.all(6),
+                    child: Icon(
+                      Icons.arrow_forward_ios_rounded,
+                      size: 16,
+                      color: theme.brightness == Brightness.light 
+                          ? Colors.black54
+                          : Colors.white70,
+                    ),
+                  ),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const PortfolioDetailsPage(),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+          ],
         ),
-        padding: EdgeInsets.zero,
-        constraints: BoxConstraints(),
-        onPressed: () {
-          _showPersonalizationModal(context);
-        },
       ),
     );
   }
@@ -207,37 +261,21 @@ class PortfolioCard extends StatelessWidget {
           decoration: BoxDecoration(
             color: Theme.of(context).scaffoldBackgroundColor,
             borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(20),
-              topRight: Radius.circular(20),
+              topLeft: Radius.circular(24),
+              topRight: Radius.circular(24),
             ),
           ),
           child: Column(
             children: [
               Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(20),
-                    topRight: Radius.circular(20),
+                padding: const EdgeInsets.only(top: 12, bottom: 8),
+                child: Container(
+                  width: 40,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(2.5),
                   ),
-                  color: Theme.of(context).appBarTheme.backgroundColor,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.close),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                    Text(
-                      "Personnalisation",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(width: 40),
-                  ],
                 ),
               ),
               const Expanded(
@@ -252,23 +290,24 @@ class PortfolioCard extends StatelessWidget {
 
   Widget _buildSectionTitle(BuildContext context, String title, ThemeData theme) {
     return Padding(
-      padding: const EdgeInsets.only(top: 1.0, bottom: 1.0), // Espacement vertical réduit
+      padding: const EdgeInsets.only(top: 3.0, bottom: 2.0),
       child: Row(
         children: [
           Container(
-            height: 12, // Hauteur réduite
-            width: 3,
+            height: 16,
+            width: 4,
             decoration: BoxDecoration(
               color: theme.primaryColor,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
-          const SizedBox(width: 6), // Espacement horizontal réduit
+          const SizedBox(width: 8),
           Text(
             title,
             style: TextStyle(
-              fontSize: 11, // Taille de police légèrement réduite
-              fontWeight: FontWeight.bold,
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              letterSpacing: -0.3,
               color: theme.textTheme.titleMedium?.color,
             ),
           ),
@@ -277,56 +316,79 @@ class PortfolioCard extends StatelessWidget {
     );
   }
 
-  Widget _buildTotalValue(BuildContext context, String formattedAmount, bool isLoading, ThemeData theme) {
+  Widget _buildTotalValue(BuildContext context, String formattedAmount, bool isLoading, ThemeData theme, {bool showNetLabel = false}) {
     return Padding(
-      padding: const EdgeInsets.only(left: 6.0, right: 6.0, top: 0.5, bottom: 0.5), // Espacement vertical réduit
-      child: isLoading
-          ? Shimmer.fromColors(
-              baseColor: theme.textTheme.bodyMedium?.color?.withOpacity(0.2) ?? Colors.grey[300]!,
-              highlightColor: theme.textTheme.bodyMedium?.color?.withOpacity(0.6) ?? Colors.grey[100]!,
-              child: Text(
-                formattedAmount,
-                style: TextStyle(
-                  fontSize: 16, // Taille de police légèrement réduite
-                  fontWeight: FontWeight.bold,
-                  color: theme.primaryColor,
-                ),
-              ),
-            )
-          : Text(
-              formattedAmount,
-              style: TextStyle(
-                fontSize: 16, // Taille de police légèrement réduite
-                fontWeight: FontWeight.bold,
-                color: theme.primaryColor,
-              ),
-            ),
-    );
-  }
-
-  Widget _buildSubtotalValue(BuildContext context, String formattedAmount, String label, bool isLoading, ThemeData theme) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 12.0, top: 0.5, bottom: 0.5), // Espacement vertical réduit
+      padding: const EdgeInsets.only(left: 6.0, right: 6.0, top: 1, bottom: 2),
       child: Row(
         children: [
           isLoading
               ? Shimmer.fromColors(
                   baseColor: theme.textTheme.bodyMedium?.color?.withOpacity(0.2) ?? Colors.grey[300]!,
-                  highlightColor: theme.textTheme.bodyMedium?.color?.withOpacity(0.6) ?? Colors.grey[100]!,
-                  child: Text(
-                    formattedAmount,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: theme.textTheme.bodyLarge?.color,
+                  highlightColor: theme.textTheme.bodyMedium?.color?.withOpacity(0.5) ?? Colors.grey[100]!,
+                  child: Container(
+                    width: 120,
+                    height: 22,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(4),
                     ),
                   ),
                 )
               : Text(
                   formattedAmount,
                   style: TextStyle(
-                    fontSize: 13, // Taille de police légèrement réduite
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: -0.5,
+                    color: theme.primaryColor,
+                  ),
+                ),
+          if (showNetLabel)
+            Container(
+              margin: EdgeInsets.only(left: 8),
+              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: theme.primaryColor.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Text(
+                "net",
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                  color: theme.primaryColor,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSubtotalValue(BuildContext context, String formattedAmount, String label, bool isLoading, ThemeData theme) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 12.0, top: 1, bottom: 1),
+      child: Row(
+        children: [
+          isLoading
+              ? Shimmer.fromColors(
+                  baseColor: theme.textTheme.bodyMedium?.color?.withOpacity(0.2) ?? Colors.grey[300]!,
+                  highlightColor: theme.textTheme.bodyMedium?.color?.withOpacity(0.6) ?? Colors.grey[100]!,
+                  child: Container(
+                    width: 80,
+                    height: 18,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                )
+              : Text(
+                  formattedAmount,
+                  style: TextStyle(
+                    fontSize: 14,
                     fontWeight: FontWeight.w500,
+                    letterSpacing: -0.3,
                     color: theme.textTheme.bodyMedium?.color,
                   ),
                 ),
@@ -334,7 +396,8 @@ class PortfolioCard extends StatelessWidget {
           Text(
             label,
             style: TextStyle(
-              fontSize: 11,
+              fontSize: 12,
+              letterSpacing: -0.2,
               color: theme.textTheme.bodyMedium?.color?.withOpacity(0.8),
             ),
           ),
@@ -355,41 +418,47 @@ class PortfolioCard extends StatelessWidget {
             : "- ${currencyUtils.formatCurrency(value, symbol)}")
         : (isPositive ? "+ " : "- ") + ('*' * 10);
 
+    Color valueColor = isPositive 
+        ? Color(0xFF34C759) // Vert iOS
+        : Color(0xFFFF3B30); // Rouge iOS
+
     return Padding(
-      padding: const EdgeInsets.only(left: 12.0, top: 0.0, bottom: 0.0), // Espacement vertical minimal
+      padding: const EdgeInsets.only(left: 12.0, top: 1.0, bottom: 1.0),
       child: Row(
         children: [
           isLoading
               ? Shimmer.fromColors(
-                  baseColor:
-                      theme.textTheme.bodyMedium?.color?.withOpacity(0.2) ??
-                          Colors.grey[300]!,
-                  highlightColor:
-                      theme.textTheme.bodyMedium?.color?.withOpacity(0.6) ??
-                          Colors.grey[100]!,
-                  child: Text(
-                    formattedAmount,
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: isPositive ? Colors.green : Colors.red,
+                  baseColor: theme.textTheme.bodyMedium?.color?.withOpacity(0.2) ??
+                      Colors.grey[300]!,
+                  highlightColor: theme.textTheme.bodyMedium?.color?.withOpacity(0.5) ??
+                      Colors.grey[100]!,
+                  child: Container(
+                    width: 80,
+                    height: 18,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(4),
                     ),
                   ),
                 )
               : Text(
                   formattedAmount,
                   style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: isPositive ? Colors.green : Colors.red,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: -0.3,
+                    color: valueColor,
                   ),
                 ),
-          const SizedBox(width: 6), // Espacement horizontal réduit
+          const SizedBox(width: 8),
           Text(
             label,
             style: TextStyle(
-              fontSize: 10 + appState.getTextSizeOffset(), // Taille de police réduite
-              color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
+              fontSize: 13 + appState.getTextSizeOffset(),
+              letterSpacing: -0.2,
+              color: theme.brightness == Brightness.light 
+                ? Colors.black54 
+                : Colors.white70,
             ),
           ),
         ],
@@ -397,14 +466,15 @@ class PortfolioCard extends StatelessWidget {
     );
   }
 
-  Widget _buildVerticalGauge(double value, BuildContext context) {
+  Widget _buildVerticalGauge(double value, BuildContext context, int visibleSections) {
     // Récupérer directement du DataManager pour les calculs
     final dataManager = Provider.of<DataManager>(context, listen: false);
+    final theme = Theme.of(context);
     
     // Utiliser la méthode d'origine qui calcule le ROI basé sur les loyers reçus
     // ROI = (Total des loyers reçus / Investissement initial) * 100
     double totalRentReceived = dataManager.getTotalRentReceived();
-    double initialInvestment = dataManager.initialTotalValue;
+    double initialInvestment = dataManager.initialTotalValue + Parameters.initialInvestmentAdjustment;
     
     // Vérifier si l'investissement initial est valide pour éviter la division par zéro
     double displayValue = 0.0;
@@ -415,39 +485,41 @@ class PortfolioCard extends StatelessWidget {
       displayValue = displayValue < 0 ? 0.0 : displayValue;
     }
     
-    // Debug - afficher les valeurs utilisées pour le calcul
-    print("Total Rent Received: $totalRentReceived, Initial Investment: $initialInvestment, ROI: $displayValue%");
-    
     // S'assurer que la valeur est valide
     displayValue = displayValue.isNaN || displayValue.isInfinite ? 0.0 : displayValue;
     
     // Pourcentage limité entre 0% et 100% pour l'affichage (mais on peut avoir un ROI > 100%)
     double progress = (displayValue / 100).clamp(0.0, 1.0);
 
-    // Calculer la couleur en fonction de la progression (rouge pour 0%, vert pour 100%)
-    Color progressColor = Color.lerp(
-      Colors.red, 
-      Colors.green, 
-      progress
-    )!;
+    // Couleur unique pour la jauge
+    final Color gaugeColor = theme.primaryColor;
 
-    return SizedBox(
+    // Ajuster la hauteur de la jauge en fonction du nombre de sections visibles
+    double gaugeHeight = 90.0; // Hauteur par défaut
+    if (visibleSections <= 2) gaugeHeight = 75.0;
+    else if (visibleSections == 3) gaugeHeight = 85.0;
+    else gaugeHeight = 120.0;
+
+    double containerHeight = gaugeHeight + 50; // Ajouter de l'espace pour le texte et les marges
+
+    return Container(
       width: 90,
-      height: 140, // Hauteur harmonisée avec les jauges RMM
+      height: containerHeight,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            'ROI',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).textTheme.bodyMedium?.color,
-            ),
-          ),
           Row(
-            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              Text(
+                'ROI',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: -0.3,
+                  color: theme.textTheme.bodyMedium?.color,
+                ),
+              ),
               const SizedBox(width: 4),
               GestureDetector(
                 onTap: () {
@@ -457,6 +529,9 @@ class PortfolioCard extends StatelessWidget {
                       return AlertDialog(
                         title: Text(S.of(context).roiPerProperties),
                         content: Text(S.of(context).roiAlertInfo),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
                         actions: <Widget>[
                           TextButton(
                             onPressed: () {
@@ -471,41 +546,50 @@ class PortfolioCard extends StatelessWidget {
                 },
                 child: Icon(
                   Icons.info_outline,
-                  size: 13,
-                  color: Colors.grey,
+                  size: 14,
+                  color: theme.brightness == Brightness.light 
+                      ? Colors.black38
+                      : Colors.white38,
                 ),
               ),
             ],
           ),
           const SizedBox(height: 4),
-          Stack(
-            alignment: Alignment.bottomCenter,
-            children: [
-              Container(
-                width: 20,
-                height: 100, // Même hauteur que les jauges RMM
+          Container(
+            height: gaugeHeight,
+            width: 26,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(13),
+              color: theme.brightness == Brightness.light 
+                  ? Colors.black.withOpacity(0.05)
+                  : Colors.white.withOpacity(0.1),
+            ),
+            child: Align(
+              alignment: Alignment.bottomCenter,
+              child: Container(
+                height: progress * gaugeHeight,
+                width: 26,
                 decoration: BoxDecoration(
-                  color: Colors.grey.withOpacity(0.3),
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(13),
+                  color: gaugeColor,
                 ),
               ),
-              Container(
-                width: 20,
-                height: progress * 100, // Hauteur proportionnelle à la valeur
-                decoration: BoxDecoration(
-                  color: progressColor,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-            ],
+            ),
           ),
-          const SizedBox(height: 3),
-          Text(
-            displayValue > 3650 ? "∞" : "${displayValue.toStringAsFixed(1)}%",
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).textTheme.bodyMedium?.color,
+          const SizedBox(height: 4),
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: theme.primaryColor.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              displayValue > 3650 ? "∞" : "${displayValue.toStringAsFixed(1)}%",
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+                color: theme.primaryColor,
+              ),
             ),
           ),
         ],
