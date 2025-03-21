@@ -36,10 +36,32 @@ class ApyHistoryGraph extends StatelessWidget {
     int? selectedIndex;
 
     return Card(
-      elevation: 0.5,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
       color: Theme.of(context).cardColor,
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
+      shadowColor: Colors.black.withOpacity(0.1),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 2),
+            ),
+          ],
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Theme.of(context).cardColor,
+              Theme.of(context).cardColor.withOpacity(0.8),
+            ],
+          ),
+        ),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -50,33 +72,97 @@ class ApyHistoryGraph extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 20 + appState.getTextSizeOffset(),
                     fontWeight: FontWeight.bold,
+                    letterSpacing: -0.5,
                   ),
                 ),
                 const Spacer(),
                 IconButton(
-                  icon: const Icon(Icons.settings, size: 20.0),
+                  icon: Icon(
+                    Icons.tune_rounded,
+                    size: 20.0,
+                    color: Theme.of(context).primaryColor,
+                  ),
+                  style: IconButton.styleFrom(
+                    backgroundColor: Theme.of(context).primaryColor.withOpacity(0.1),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
                   onPressed: () {
                     showModalBottomSheet(
                       context: context,
+                      isScrollControlled: true,
+                      backgroundColor: Colors.transparent,
                       builder: (context) {
-                        return Padding(
-                          padding: const EdgeInsets.all(16.0),
+                        return Container(
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).scaffoldBackgroundColor,
+                            borderRadius: const BorderRadius.vertical(
+                              top: Radius.circular(20),
+                            ),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 24.0,
+                            horizontal: 16.0,
+                          ),
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 16.0, left: 8.0),
+                                child: Text(
+                                  'S.of(context).chartType',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18 + appState.getTextSizeOffset(),
+                                    color: Theme.of(context).primaryColor,
+                                  ),
+                                ),
+                              ),
                               ListTile(
-                                leading: const Icon(Icons.bar_chart,
-                                    color: Colors.blue),
-                                title: Text(S.of(context).barChart),
+                                leading: Icon(
+                                  Icons.bar_chart_rounded,
+                                  color: Colors.blue.shade400,
+                                  size: 28,
+                                ),
+                                title: Text(
+                                  S.of(context).barChart,
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: 16 + appState.getTextSizeOffset(),
+                                  ),
+                                ),
+                                trailing: apyIsBarChart
+                                    ? Icon(
+                                        Icons.check_circle,
+                                        color: Colors.blue.shade400,
+                                      )
+                                    : null,
                                 onTap: () {
                                   onChartTypeChanged(true);
                                   Navigator.of(context).pop();
                                 },
                               ),
                               ListTile(
-                                leading: const Icon(Icons.show_chart,
-                                    color: Colors.green),
-                                title: Text(S.of(context).lineChart),
+                                leading: Icon(
+                                  Icons.show_chart_rounded,
+                                  color: Colors.green.shade400,
+                                  size: 28,
+                                ),
+                                title: Text(
+                                  S.of(context).lineChart,
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: 16 + appState.getTextSizeOffset(),
+                                  ),
+                                ),
+                                trailing: !apyIsBarChart
+                                    ? Icon(
+                                        Icons.check_circle,
+                                        color: Colors.green.shade400,
+                                      )
+                                    : null,
                                 onTap: () {
                                   onChartTypeChanged(false);
                                   Navigator.of(context).pop();
@@ -91,32 +177,45 @@ class ApyHistoryGraph extends StatelessWidget {
                 ),
               ],
             ),
+            const SizedBox(height: 12),
             ChartUtils.buildPeriodSelector(
               context,
               selectedPeriod: selectedPeriod,
               onPeriodChanged: onPeriodChanged,
             ),
-            const SizedBox(height: 20),
-            SizedBox(
-              height: 250,
-              child: StatefulBuilder(
-                builder: (context, setState) {
-                  return apyIsBarChart
-                      ? BarChart(
+            const SizedBox(height: 24),
+            Expanded(
+              child: SizedBox(
+                child: StatefulBuilder(
+                  builder: (context, setState) {
+                    return apyIsBarChart
+                        ? BarChart(
                           BarChartData(
-                            gridData:
-                                FlGridData(show: true, drawVerticalLine: false),
+                            gridData: FlGridData(
+                              show: true,
+                              drawVerticalLine: false,
+                              getDrawingHorizontalLine: (value) {
+                                return FlLine(
+                                  color: Colors.grey.withOpacity(0.15),
+                                  strokeWidth: 1,
+                                );
+                              },
+                            ),
                             titlesData: FlTitlesData(
                               leftTitles: AxisTitles(
                                 sideTitles: SideTitles(
                                   showTitles: true,
                                   reservedSize: 45,
                                   getTitlesWidget: (value, meta) {
-                                    return Text(
-                                      '${value.toStringAsFixed(0)}%',
-                                      style: TextStyle(
-                                          fontSize: 10 +
-                                              appState.getTextSizeOffset()),
+                                    return Padding(
+                                      padding: const EdgeInsets.only(right: 8.0),
+                                      child: Text(
+                                        '${value.toStringAsFixed(0)}%',
+                                        style: TextStyle(
+                                          fontSize: 10 + appState.getTextSizeOffset(),
+                                          color: Colors.grey.shade600,
+                                        ),
+                                      ),
                                     );
                                   },
                                 ),
@@ -125,22 +224,20 @@ class ApyHistoryGraph extends StatelessWidget {
                                 sideTitles: SideTitles(
                                   showTitles: true,
                                   getTitlesWidget: (value, meta) {
-                                    List<String> labels =
-                                        _buildDateLabelsForApy(context,
-                                            dataManager, selectedPeriod);
+                                    List<String> labels = _buildDateLabelsForApy(
+                                        context, dataManager, selectedPeriod);
                                     if (value.toInt() >= 0 &&
                                         value.toInt() < labels.length) {
                                       return Padding(
-                                        padding:
-                                            const EdgeInsets.only(top: 10.0),
+                                        padding: const EdgeInsets.only(top: 10.0),
                                         child: Transform.rotate(
                                           angle: -0.5,
                                           child: Text(
                                             labels[value.toInt()],
                                             style: TextStyle(
-                                                fontSize: 10 +
-                                                    appState
-                                                        .getTextSizeOffset()),
+                                              fontSize: 10 + appState.getTextSizeOffset(),
+                                              color: Colors.grey.shade600,
+                                            ),
                                           ),
                                         ),
                                       );
@@ -162,45 +259,37 @@ class ApyHistoryGraph extends StatelessWidget {
                               ),
                             ),
                             borderData: FlBorderData(
-                              show: true,
-                              border: Border(
-                                left: BorderSide(color: Colors.transparent),
-                                bottom: BorderSide(
-                                    color: Colors.blueGrey.shade700,
-                                    width: 0.5),
-                                right: BorderSide(color: Colors.transparent),
-                                top: BorderSide(color: Colors.transparent),
-                              ),
+                              show: false,
                             ),
                             alignment: BarChartAlignment.center,
                             barGroups: apyHistoryData,
                             maxY: 20,
                             barTouchData: BarTouchData(
                               touchTooltipData: BarTouchTooltipData(
-                                getTooltipItem:
-                                    (group, groupIndex, rod, rodIndex) {
-                                  // Affiche uniquement le tooltip si l'index est sélectionné
+                                getTooltipItem: (group, groupIndex, rod, rodIndex) {
                                   if (selectedIndex == groupIndex) {
                                     String tooltip =
                                         '${S.of(context).brute}: ${group.barRods[0].rodStackItems[0].toY.toStringAsFixed(2)}%\n'
                                         '${S.of(context).net}: ${group.barRods[0].rodStackItems[1].toY.toStringAsFixed(2)}%';
                                     return BarTooltipItem(
                                       tooltip,
-                                      const TextStyle(color: Colors.white),
+                                      const TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 12,
+                                      ),
                                     );
                                   }
-                                  return null; // Aucun tooltip
+                                  return null;
                                 },
                                 fitInsideHorizontally: true,
                                 fitInsideVertically: true,
                                 tooltipMargin: 8,
                                 tooltipHorizontalOffset: 0,
-                                tooltipRoundedRadius: 8,
-                                tooltipPadding: const EdgeInsets.all(8),
-                              ),
-                              touchCallback:
-                                  (FlTouchEvent event, barTouchResponse) {
-                                // Met à jour l'index sélectionné en cas de clic
+                                tooltipRoundedRadius: 12,
+                                tooltipPadding: const EdgeInsets.all(12),
+                                getTooltipColor: (group) => Colors.black87,                              ),
+                              touchCallback: (FlTouchEvent event, barTouchResponse) {
                                 if (event is FlTapUpEvent &&
                                     barTouchResponse != null) {
                                   setState(() {
@@ -209,7 +298,6 @@ class ApyHistoryGraph extends StatelessWidget {
                                   });
                                 } else if (event is FlLongPressEnd ||
                                     event is FlPanEndEvent) {
-                                  // Désélectionne si l'utilisateur annule l'interaction
                                   setState(() {
                                     selectedIndex = null;
                                   });
@@ -219,21 +307,33 @@ class ApyHistoryGraph extends StatelessWidget {
                             ),
                           ),
                         )
-                      : LineChart(
+                        : LineChart(
                           LineChartData(
-                            gridData:
-                                FlGridData(show: true, drawVerticalLine: false),
+                            gridData: FlGridData(
+                              show: true,
+                              drawVerticalLine: false,
+                              getDrawingHorizontalLine: (value) {
+                                return FlLine(
+                                  color: Colors.grey.withOpacity(0.15),
+                                  strokeWidth: 1,
+                                );
+                              },
+                            ),
                             titlesData: FlTitlesData(
                               leftTitles: AxisTitles(
                                 sideTitles: SideTitles(
                                   showTitles: true,
                                   reservedSize: 45,
                                   getTitlesWidget: (value, meta) {
-                                    return Text(
-                                      '${value.toStringAsFixed(0)}%',
-                                      style: TextStyle(
-                                          fontSize: 10 +
-                                              appState.getTextSizeOffset()),
+                                    return Padding(
+                                      padding: const EdgeInsets.only(right: 8.0),
+                                      child: Text(
+                                        '${value.toStringAsFixed(0)}%',
+                                        style: TextStyle(
+                                          fontSize: 10 + appState.getTextSizeOffset(),
+                                          color: Colors.grey.shade600,
+                                        ),
+                                      ),
                                     );
                                   },
                                 ),
@@ -242,22 +342,20 @@ class ApyHistoryGraph extends StatelessWidget {
                                 sideTitles: SideTitles(
                                   showTitles: true,
                                   getTitlesWidget: (value, meta) {
-                                    List<String> labels =
-                                        _buildDateLabelsForApy(context,
-                                            dataManager, selectedPeriod);
+                                    List<String> labels = _buildDateLabelsForApy(
+                                        context, dataManager, selectedPeriod);
                                     if (value.toInt() >= 0 &&
                                         value.toInt() < labels.length) {
                                       return Padding(
-                                        padding:
-                                            const EdgeInsets.only(top: 10.0),
+                                        padding: const EdgeInsets.only(top: 10.0),
                                         child: Transform.rotate(
                                           angle: -0.5,
                                           child: Text(
                                             labels[value.toInt()],
                                             style: TextStyle(
-                                                fontSize: 10 +
-                                                    appState
-                                                        .getTextSizeOffset()),
+                                              fontSize: 10 + appState.getTextSizeOffset(),
+                                              color: Colors.grey.shade600,
+                                            ),
                                           ),
                                         ),
                                       );
@@ -279,15 +377,7 @@ class ApyHistoryGraph extends StatelessWidget {
                               ),
                             ),
                             borderData: FlBorderData(
-                              show: true,
-                              border: Border(
-                                left: BorderSide(color: Colors.transparent),
-                                bottom: BorderSide(
-                                    color: Colors.blueGrey.shade700,
-                                    width: 0.5),
-                                right: BorderSide(color: Colors.transparent),
-                                top: BorderSide(color: Colors.transparent),
-                              ),
+                              show: false,
                             ),
                             lineBarsData: lineChartData,
                             minY: 0,
@@ -306,8 +396,10 @@ class ApyHistoryGraph extends StatelessWidget {
                                     return LineTooltipItem(
                                       '$periodLabel\n$formattedValue',
                                       const TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold),
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 12,
+                                      ),
                                     );
                                   }).toList();
                                 },
@@ -315,15 +407,16 @@ class ApyHistoryGraph extends StatelessWidget {
                                 fitInsideVertically: true,
                                 tooltipMargin: 8,
                                 tooltipHorizontalOffset: 0,
-                                tooltipRoundedRadius: 8,
-                                tooltipPadding: const EdgeInsets.all(8),
-                              ),
+                                tooltipRoundedRadius: 12,
+                                tooltipPadding: const EdgeInsets.all(12),
+                                getTooltipColor: (group) => Colors.black87,                              ),
                               handleBuiltInTouches: true,
                               touchSpotThreshold: 20,
                             ),
                           ),
                         );
-                },
+                  },
+                ),
               ),
             ),
           ],
@@ -350,24 +443,74 @@ class ApyHistoryGraph extends StatelessWidget {
       LineChartBarData(
         spots: grossSpots,
         isCurved: true,
-        color: Colors.blue,
-        barWidth: 2,
+        curveSmoothness: 0.3,
+        color: Colors.blue.shade400,
+        barWidth: 3,
         belowBarData: BarAreaData(
           show: true,
-          color: Colors.blue.withOpacity(0.1),
+          gradient: LinearGradient(
+            colors: [
+              Colors.blue.shade400.withOpacity(0.3),
+              Colors.blue.shade400.withOpacity(0.05),
+            ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
         ),
-        dotData: FlDotData(show: false),
+        dotData: FlDotData(
+          show: true,
+          getDotPainter: (spot, percent, barData, index) {
+            return FlDotCirclePainter(
+              radius: 3,
+              color: Colors.white,
+              strokeWidth: 2,
+              strokeColor: Colors.blue.shade400,
+            );
+          },
+          checkToShowDot: (spot, barData) {
+            // Montrer les points uniquement aux extrémités et peut-être un au milieu
+            final isFirst = spot.x == 0;
+            final isLast = spot.x == barData.spots.length - 1;
+            final isMiddle = spot.x == (barData.spots.length / 2).round();
+            return isFirst || isLast || isMiddle;
+          },
+        ),
       ),
       LineChartBarData(
         spots: netSpots,
         isCurved: true,
-        color: Colors.green,
-        barWidth: 2,
+        curveSmoothness: 0.3,
+        color: Colors.green.shade400,
+        barWidth: 3,
         belowBarData: BarAreaData(
           show: true,
-          color: Colors.green.withOpacity(0.1),
+          gradient: LinearGradient(
+            colors: [
+              Colors.green.shade400.withOpacity(0.3),
+              Colors.green.shade400.withOpacity(0.05),
+            ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
         ),
-        dotData: FlDotData(show: false),
+        dotData: FlDotData(
+          show: true,
+          getDotPainter: (spot, percent, barData, index) {
+            return FlDotCirclePainter(
+              radius: 3,
+              color: Colors.white,
+              strokeWidth: 2,
+              strokeColor: Colors.green.shade400,
+            );
+          },
+          checkToShowDot: (spot, barData) {
+            // Montrer les points uniquement aux extrémités et peut-être un au milieu
+            final isFirst = spot.x == 0;
+            final isLast = spot.x == barData.spots.length - 1;
+            final isMiddle = spot.x == (barData.spots.length / 2).round();
+            return isFirst || isLast || isMiddle;
+          },
+        ),
       ),
     ];
   }
@@ -387,18 +530,29 @@ class ApyHistoryGraph extends StatelessWidget {
             BarChartRodData(
               toY: values['gross']!,
               width: 16,
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(6),
-                topRight: Radius.circular(6),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(8),
+                topRight: Radius.circular(8),
                 bottomLeft: Radius.zero,
                 bottomRight: Radius.zero,
               ),
               rodStackItems: [
                 BarChartRodStackItem(
-                    0, values['gross']!, Colors.blue.withOpacity(0.8)),
+                  0, 
+                  values['gross']!, 
+                  Colors.blue.shade400.withOpacity(0.85)
+                ),
                 BarChartRodStackItem(
-                    0, values['net']!, Colors.green.withOpacity(0.8)),
+                  0, 
+                  values['net']!, 
+                  Colors.green.shade400.withOpacity(0.85)
+                ),
               ],
+              backDrawRodData: BackgroundBarChartRodData(
+                show: true,
+                toY: 20,
+                color: Colors.grey.withOpacity(0.1),
+              ),
             ),
           ],
           showingTooltipIndicators: [0],

@@ -65,162 +65,277 @@ class DepositChart extends StatelessWidget {
     }
     final maxY = calculatedMaxY > 0 ? calculatedMaxY * 1.1 : 10.0;
 
-    return LineChart(
-      LineChartData(
-        gridData: FlGridData(show: true, drawVerticalLine: false),
-        titlesData: FlTitlesData(
-          bottomTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              getTitlesWidget: (value, meta) {
-                int index = value.toInt();
-                if (index < 0 || index >= groups.length)
-                  return const SizedBox();
-                final groupDate = groups[index].groupDate;
-                String label;
-                if (selectedPeriod == S.of(context).day) {
-                  label = DateFormat('dd/MM').format(groupDate);
-                } else if (selectedPeriod == S.of(context).week) {
-                  label =
-                      'W${CustomDateUtils.weekNumber(groupDate).toString().padLeft(2, '0')}';
-                } else if (selectedPeriod == S.of(context).month) {
-                  label = DateFormat('MM/yyyy').format(groupDate);
-                } else if (selectedPeriod == S.of(context).year) {
-                  label = DateFormat('yyyy').format(groupDate);
-                } else {
-                  label = DateFormat('dd/MM').format(groupDate);
-                }
-                return Transform.rotate(
-                  angle: -0.5,
-                  child: Text(
-                    label,
-                    style:
-                        TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
-                  ),
-                );
-              },
+    return Card(
+      elevation: 4,
+      shadowColor: Colors.black.withOpacity(0.1),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16.0),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16.0),
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Theme.of(context).cardColor,
+                Theme.of(context).cardColor.withOpacity(0.95),
+              ],
             ),
           ),
-          leftTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              reservedSize: 45,
-              getTitlesWidget: (value, meta) {
-                final formattedValue = currencyUtils.getFormattedAmount(
-                  value,
-                  currencyUtils.currencySymbol,
-                  appState.showAmounts,
-                );
-                return Transform.rotate(
-                  angle: -0.5,
-                  child: Text(
-                    formattedValue,
-                    style:
-                        TextStyle(fontSize: 10 + appState.getTextSizeOffset()),
-                  ),
-                );
-              },
-            ),
-          ),
-          rightTitles: AxisTitles(
-            sideTitles: SideTitles(showTitles: false),
-          ),
-          topTitles: AxisTitles(
-            sideTitles: SideTitles(showTitles: false),
-          ),
-        ),
-        borderData: FlBorderData(show: false),
-        minX: minX,
-        maxX: maxX,
-        minY: 0,
-        maxY: maxY,
-        lineBarsData: [
-          LineChartBarData(
-            spots: usdcSpots,
-            isCurved: false,
-            dotData: FlDotData(show: false),
-            barWidth: 2,
-            color: Colors.blue,
-            belowBarData: BarAreaData(
-              show: true,
-              gradient: LinearGradient(
-                colors: [
-                  Colors.blue.withOpacity(0.2),
-                  Colors.blue.withOpacity(0),
-                ],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-              ),
-            ),
-          ),
-          LineChartBarData(
-            spots: xdaiSpots,
-            isCurved: false,
-            dotData: FlDotData(show: false),
-            barWidth: 2,
-            color: Colors.green,
-            belowBarData: BarAreaData(
-              show: true,
-              gradient: LinearGradient(
-                colors: [
-                  Colors.green.withOpacity(0.2),
-                  Colors.green.withOpacity(0),
-                ],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-              ),
-            ),
-          ),
-        ],
-        lineTouchData: LineTouchData(
-          touchTooltipData: LineTouchTooltipData(
-            getTooltipItems: (touchedSpots) {
-              if (touchedSpots.isEmpty) return [];
-              final int index = touchedSpots.first.spotIndex;
-              if (index < 0 || index >= groups.length) return [];
-              final group = groups[index];
-              String periodLabel;
-              if (selectedPeriod == S.of(context).day) {
-                periodLabel = DateFormat('dd/MM/yyyy').format(group.groupDate);
-              } else if (selectedPeriod == S.of(context).week) {
-                periodLabel =
-                    'W${CustomDateUtils.weekNumber(group.groupDate).toString().padLeft(2, '0')}';
-              } else if (selectedPeriod == S.of(context).month) {
-                periodLabel = DateFormat('MM/yyyy').format(group.groupDate);
-              } else if (selectedPeriod == S.of(context).year) {
-                periodLabel = DateFormat('yyyy').format(group.groupDate);
-              } else {
-                periodLabel = DateFormat('dd/MM/yyyy').format(group.groupDate);
-              }
-              final tooltipText = "$periodLabel\n"
-                  "USDC: ${currencyUtils.getFormattedAmount(currencyUtils.convert(group.usdc), currencyUtils.currencySymbol, appState.showAmounts)}\n"
-                  "xDai: ${currencyUtils.getFormattedAmount(currencyUtils.convert(group.xdai), currencyUtils.currencySymbol, appState.showAmounts)}";
-              return touchedSpots.map((spot) {
-                if (identical(spot, touchedSpots.first)) {
-                  return LineTooltipItem(
-                    tooltipText,
-                    TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 10 + appState.getTextSizeOffset(),
+          child: Padding(
+            padding: const EdgeInsets.all(2.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+              
+                const SizedBox(height: 10),
+                Expanded(
+                  child: LineChart(
+                    LineChartData(
+                      gridData: FlGridData(
+                        show: true, 
+                        drawVerticalLine: false,
+                        getDrawingHorizontalLine: (value) {
+                          return FlLine(
+                            color: Colors.grey.withOpacity(0.15),
+                            strokeWidth: 1,
+                            dashArray: [5, 5],
+                          );
+                        },
+                      ),
+                      titlesData: FlTitlesData(
+                        bottomTitles: AxisTitles(
+                          sideTitles: SideTitles(
+                            showTitles: true,
+                            getTitlesWidget: (value, meta) {
+                              int index = value.toInt();
+                              if (index < 0 || index >= groups.length)
+                                return const SizedBox();
+                              final groupDate = groups[index].groupDate;
+                              String label;
+                              if (selectedPeriod == S.of(context).day) {
+                                label = DateFormat('dd/MM').format(groupDate);
+                              } else if (selectedPeriod == S.of(context).week) {
+                                label =
+                                    'S${CustomDateUtils.weekNumber(groupDate).toString().padLeft(2, '0')}';
+                              } else if (selectedPeriod == S.of(context).month) {
+                                label = DateFormat('MM/yy').format(groupDate);
+                              } else if (selectedPeriod == S.of(context).year) {
+                                label = DateFormat('yyyy').format(groupDate);
+                              } else {
+                                label = DateFormat('dd/MM').format(groupDate);
+                              }
+                              return Transform.rotate(
+                                angle: -0.5,
+                                child: Text(
+                                  label,
+                                  style: TextStyle(
+                                    fontSize: 10 + appState.getTextSizeOffset(),
+                                    color: Colors.grey.shade600,
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                        leftTitles: AxisTitles(
+                          sideTitles: SideTitles(
+                            showTitles: true,
+                            reservedSize: 45,
+                            getTitlesWidget: (value, meta) {
+                              final formattedValue = currencyUtils.getFormattedAmount(
+                                value,
+                                currencyUtils.currencySymbol,
+                                appState.showAmounts,
+                              );
+                              return Text(
+                                formattedValue,
+                                style: TextStyle(
+                                  fontSize: 10 + appState.getTextSizeOffset(),
+                                  color: Colors.grey.shade600,
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                        rightTitles: AxisTitles(
+                          sideTitles: SideTitles(showTitles: false),
+                        ),
+                        topTitles: AxisTitles(
+                          sideTitles: SideTitles(showTitles: false),
+                        ),
+                      ),
+                      borderData: FlBorderData(show: false),
+                      minX: minX,
+                      maxX: maxX,
+                      minY: 0,
+                      maxY: maxY,
+                      lineBarsData: [
+                        LineChartBarData(
+                          spots: usdcSpots,
+                          isCurved: true,
+                          curveSmoothness: 0.3,
+                          dotData: FlDotData(
+                            show: true,
+                            getDotPainter: (spot, percent, barData, index) {
+                              return FlDotCirclePainter(
+                                radius: 3,
+                                color: Colors.white,
+                                strokeWidth: 2,
+                                strokeColor: const Color(0xFF34C759), // Vert iOS
+                              );
+                            },
+                            checkToShowDot: (spot, barData) {
+                              // Afficher les points aux extrémités et quelques points intermédiaires
+                              return spot.x == 0 || 
+                                     spot.x == barData.spots.length - 1 || 
+                                     spot.x % (barData.spots.length > 8 ? 4 : 2) == 0;
+                            },
+                          ),
+                          barWidth: 2.5,
+                          color: const Color(0xFF34C759), // Vert iOS
+                          belowBarData: BarAreaData(
+                            show: true,
+                            gradient: LinearGradient(
+                              colors: [
+                                const Color(0xFF34C759).withOpacity(0.3),
+                                const Color(0xFF34C759).withOpacity(0.0),
+                              ],
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                            ),
+                          ),
+                        ),
+                        LineChartBarData(
+                          spots: xdaiSpots,
+                          isCurved: true,
+                          curveSmoothness: 0.3,
+                          dotData: FlDotData(
+                            show: true,
+                            getDotPainter: (spot, percent, barData, index) {
+                              return FlDotCirclePainter(
+                                radius: 3,
+                                color: Colors.white,
+                                strokeWidth: 2,
+                                strokeColor: const Color(0xFF007AFF), // Bleu iOS
+                              );
+                            },
+                            checkToShowDot: (spot, barData) {
+                              // Afficher les points aux extrémités et quelques points intermédiaires
+                              return spot.x == 0 || 
+                                     spot.x == barData.spots.length - 1 || 
+                                     spot.x % (barData.spots.length > 8 ? 4 : 2) == 0;
+                            },
+                          ),
+                          barWidth: 2.5,
+                          color: const Color(0xFF007AFF), // Bleu iOS
+                          belowBarData: BarAreaData(
+                            show: true,
+                            gradient: LinearGradient(
+                              colors: [
+                                const Color(0xFF007AFF).withOpacity(0.3),
+                                const Color(0xFF007AFF).withOpacity(0.0),
+                              ],
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                            ),
+                          ),
+                        ),
+                      ],
+                      lineTouchData: LineTouchData(
+                        touchTooltipData: LineTouchTooltipData(
+                          getTooltipItems: (touchedSpots) {
+                            if (touchedSpots.isEmpty) return [];
+                            
+                            final int index = touchedSpots.first.spotIndex;
+                            if (index < 0 || index >= groups.length) return [];
+                            
+                            final group = groups[index];
+                            String periodLabel;
+                            if (selectedPeriod == S.of(context).day) {
+                              periodLabel = DateFormat('dd/MM/yyyy').format(group.groupDate);
+                            } else if (selectedPeriod == S.of(context).week) {
+                              periodLabel =
+                                  'S${CustomDateUtils.weekNumber(group.groupDate).toString().padLeft(2, '0')}';
+                            } else if (selectedPeriod == S.of(context).month) {
+                              periodLabel = DateFormat('MM/yyyy').format(group.groupDate);
+                            } else if (selectedPeriod == S.of(context).year) {
+                              periodLabel = DateFormat('yyyy').format(group.groupDate);
+                            } else {
+                              periodLabel = DateFormat('dd/MM/yyyy').format(group.groupDate);
+                            }
+                            
+                            final tooltipText = "$periodLabel\n"
+                                "USDC: ${currencyUtils.getFormattedAmount(currencyUtils.convert(group.usdc), currencyUtils.currencySymbol, appState.showAmounts)}\n"
+                                "xDai: ${currencyUtils.getFormattedAmount(currencyUtils.convert(group.xdai), currencyUtils.currencySymbol, appState.showAmounts)}";
+                                
+                            return touchedSpots.map((spot) {
+                              return LineTooltipItem(
+                                tooltipText,
+                                TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 12 + appState.getTextSizeOffset(),
+                                ),
+                              );
+                            }).toList();
+                          },
+                          fitInsideHorizontally: true,
+                          fitInsideVertically: true,
+                          tooltipMargin: 8,
+                          tooltipHorizontalOffset: 0,
+                          tooltipRoundedRadius: 12,
+                          tooltipPadding: const EdgeInsets.all(12),
+                                                          getTooltipColor: (group) => Colors.black87,                              
+
+                        ),
+                        handleBuiltInTouches: true,
+                        touchSpotThreshold: 20,
+                      ),
                     ),
-                  );
-                } else {
-                  return LineTooltipItem('', const TextStyle(fontSize: 0));
-                }
-              }).toList();
-            },
-            fitInsideHorizontally: true,
-            fitInsideVertically: true,
-            tooltipMargin: 8,
-            tooltipHorizontalOffset: 0,
-            tooltipRoundedRadius: 8,
-            tooltipPadding: const EdgeInsets.all(8),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                // Légende
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _buildLegendItem('USDC', const Color(0xFF34C759)),
+                    const SizedBox(width: 24),
+                    _buildLegendItem('xDai', const Color(0xFF007AFF)),
+                  ],
+                ),
+              ],
+            ),
           ),
-          handleBuiltInTouches: true,
-          touchSpotThreshold: 20,
         ),
       ),
+    );
+  }
+
+  /// Widget de légende pour chaque série de données.
+  Widget _buildLegendItem(String label, Color color) {
+    return Row(
+      children: [
+        Container(
+          width: 12,
+          height: 12,
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(6),
+          ),
+        ),
+        const SizedBox(width: 6),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
     );
   }
 

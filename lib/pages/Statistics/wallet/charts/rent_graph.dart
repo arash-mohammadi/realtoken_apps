@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
@@ -81,10 +82,31 @@ class _RentGraphState extends State<RentGraph> {
     convertedData.sort((a, b) => a['date'].compareTo(b['date']));
 
     return Card(
-      elevation: 0.5,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
       color: Theme.of(context).cardColor,
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 2),
+            ),
+          ],
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Theme.of(context).cardColor,
+              Theme.of(context).cardColor.withOpacity(0.8),
+            ],
+          ),
+        ),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -94,26 +116,26 @@ class _RentGraphState extends State<RentGraph> {
                   _showCumulativeRent
                       ? S.of(context).cumulativeRentGraph
                       : S.of(context).groupedRentGraph,
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-                Spacer(),
-                Transform.scale(
-                  scale: 0.8, // Réduit la taille à 80% de la taille originale
-                  child: Switch(
-                    value: _showCumulativeRent,
-                    onChanged: (value) {
-                      setState(() {
-                        _showCumulativeRent = value;
-                      });
-                    },
-                    activeColor: Theme.of(context)
-                        .primaryColor, // Couleur d'accentuation en mode activé
-                    inactiveThumbColor:
-                        Colors.grey, // Couleur du bouton en mode désactivé
+                  style: TextStyle(
+                    fontSize: 20 + appState.getTextSizeOffset(),
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: -0.5,
                   ),
-                )
+                ),
+                const Spacer(),
+                CupertinoSwitch(
+                  value: _showCumulativeRent,
+                  onChanged: (value) {
+                    setState(() {
+                      _showCumulativeRent = value;
+                    });
+                  },
+                  activeColor: Theme.of(context).primaryColor,
+                  trackColor: Colors.grey.shade300,
+                ),
               ],
             ),
+            const SizedBox(height: 12),
             ChartUtils.buildPeriodSelector(
               context,
               selectedPeriod: _selectedRentPeriod,
@@ -123,142 +145,174 @@ class _RentGraphState extends State<RentGraph> {
                 });
               },
             ),
-            const SizedBox(height: 20),
-            SizedBox(
-              height: 250,
-              child: LineChart(
-                LineChartData(
-                  gridData: FlGridData(show: true, drawVerticalLine: false),
-                  titlesData: FlTitlesData(
-                    topTitles:
-                        AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    leftTitles: AxisTitles(
-                      sideTitles: SideTitles(
-                        showTitles: true,
-                        reservedSize: 45,
-                        getTitlesWidget: (value, meta) {
-                          final highestValue = convertedData
-                              .map((entry) => entry['rent'])
-                              .reduce((a, b) => a > b ? a : b);
-
-                          if (value == highestValue) {
-                            return const SizedBox.shrink();
-                          }
-
-                          final formattedValue =
-                              currencyUtils.getFormattedAmount(
-                            value,
-                            currencyUtils.currencySymbol,
-                            appState
-                                .showAmounts, // Appliquer le masquage des montants
-                          );
-
-                          return Transform.rotate(
-                            angle: -0.5,
-                            child: Text(
-                              formattedValue,
-                              style: TextStyle(
-                                  fontSize: 10 + appState.getTextSizeOffset()),
-                            ),
-                          );
-                        },
+            const SizedBox(height: 24),
+            Expanded(
+              child: SizedBox(
+                child: LineChart(
+                  LineChartData(
+                    gridData: FlGridData(
+                      show: true,
+                      drawVerticalLine: false,
+                      getDrawingHorizontalLine: (value) {
+                        return FlLine(
+                          color: Colors.grey.withOpacity(0.15),
+                          strokeWidth: 1,
+                        );
+                      },
+                    ),
+                    titlesData: FlTitlesData(
+                      topTitles: const AxisTitles(
+                        sideTitles: SideTitles(showTitles: false),
                       ),
-                    ),
-                    rightTitles: AxisTitles(
-                      sideTitles: SideTitles(showTitles: false),
-                    ),
-                    bottomTitles: AxisTitles(
-                      sideTitles: SideTitles(
-                        showTitles: true,
-                        getTitlesWidget: (value, meta) {
-                          List<String> labels = _buildDateLabels(convertedData);
-                          if (value.toInt() >= 0 &&
-                              value.toInt() < labels.length) {
+                      leftTitles: AxisTitles(
+                        sideTitles: SideTitles(
+                          showTitles: true,
+                          reservedSize: 45,
+                          getTitlesWidget: (value, meta) {
+                            final highestValue = convertedData
+                                .map((entry) => entry['rent'])
+                                .reduce((a, b) => a > b ? a : b);
+
+                            if (value == highestValue) {
+                              return const SizedBox.shrink();
+                            }
+
+                            final formattedValue =
+                                currencyUtils.getFormattedAmount(
+                              value,
+                              currencyUtils.currencySymbol,
+                              appState.showAmounts,
+                            );
+
                             return Padding(
-                              padding: const EdgeInsets.only(top: 10.0),
-                              child: Transform.rotate(
-                                angle: -0.5,
-                                child: Text(
-                                  labels[value.toInt()],
-                                  style: TextStyle(
-                                      fontSize:
-                                          10 + appState.getTextSizeOffset()),
+                              padding: const EdgeInsets.only(right: 8.0),
+                              child: Text(
+                                formattedValue,
+                                style: TextStyle(
+                                  fontSize: 10 + appState.getTextSizeOffset(),
+                                  color: Colors.grey.shade600,
                                 ),
                               ),
                             );
-                          } else {
-                            return const SizedBox.shrink();
-                          }
-                        },
+                          },
+                        ),
                       ),
-                    ),
-                  ),
-                  borderData: FlBorderData(
-                    show: true,
-                    border: Border(
-                      left: BorderSide(color: Colors.transparent),
-                      bottom: BorderSide(
-                          color: Colors.blueGrey.shade700, width: 0.5),
-                      right: BorderSide(color: Colors.transparent),
-                      top: BorderSide(color: Colors.transparent),
-                    ),
-                  ),
-                  lineBarsData: [
-                    LineChartBarData(
-                      spots: _showCumulativeRent
-                          ? _buildCumulativeChartData(convertedData)
-                          : _buildChartData(convertedData),
-                      isCurved: false,
-                      barWidth: 2,
-                      color: _showCumulativeRent ? Colors.green : Colors.blue,
-                      dotData: FlDotData(show: false),
-                      belowBarData: BarAreaData(
-                        show: true,
-                        gradient: LinearGradient(
-                          colors: [
-                            (_showCumulativeRent ? Colors.green : Colors.blue)
-                                .withOpacity(0.4),
-                            (_showCumulativeRent ? Colors.green : Colors.blue)
-                                .withOpacity(0),
-                          ],
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
+                      rightTitles: const AxisTitles(
+                        sideTitles: SideTitles(showTitles: false),
+                      ),
+                      bottomTitles: AxisTitles(
+                        sideTitles: SideTitles(
+                          showTitles: true,
+                          getTitlesWidget: (value, meta) {
+                            List<String> labels = _buildDateLabels(convertedData);
+                            if (value.toInt() >= 0 &&
+                                value.toInt() < labels.length) {
+                              return Padding(
+                                padding: const EdgeInsets.only(top: 10.0),
+                                child: Transform.rotate(
+                                  angle: -0.5,
+                                  child: Text(
+                                    labels[value.toInt()],
+                                    style: TextStyle(
+                                      fontSize: 10 + appState.getTextSizeOffset(),
+                                      color: Colors.grey.shade600,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            } else {
+                              return const SizedBox.shrink();
+                            }
+                          },
                         ),
                       ),
                     ),
-                  ],
-                  lineTouchData: LineTouchData(
-                    touchTooltipData: LineTouchTooltipData(
-                      getTooltipItems: (List<LineBarSpot> touchedSpots) {
-                        return touchedSpots.map((touchedSpot) {
-                          final index = touchedSpot.x.toInt();
-                          final value = touchedSpot.y;
-                          final String periodLabel = _buildDateLabelsForRent(
-                              context, dataManager, _selectedRentPeriod)[index];
-                          
-                          final formattedValue = currencyUtils.getFormattedAmount(
-                            value,
-                            currencyUtils.currencySymbol,
-                            appState.showAmounts,
-                          );
-                          
-                          return LineTooltipItem(
-                            '$periodLabel\n$formattedValue',
-                            const TextStyle(
+                    borderData: FlBorderData(show: false),
+                    lineBarsData: [
+                      LineChartBarData(
+                        spots: _showCumulativeRent
+                            ? _buildCumulativeChartData(convertedData)
+                            : _buildChartData(convertedData),
+                        isCurved: true,
+                        curveSmoothness: 0.3,
+                        barWidth: 3,
+                        color: _showCumulativeRent
+                            ? const Color(0xFF34C759) // iOS green
+                            : const Color(0xFF007AFF), // iOS blue
+                        dotData: FlDotData(
+                          show: true,
+                          getDotPainter: (spot, percent, barData, index) {
+                            return FlDotCirclePainter(
+                              radius: 3,
+                              color: Colors.white,
+                              strokeWidth: 2,
+                              strokeColor: _showCumulativeRent
+                                  ? const Color(0xFF34C759)
+                                  : const Color(0xFF007AFF),
+                            );
+                          },
+                          checkToShowDot: (spot, barData) {
+                            // Montrer les points uniquement aux extrémités et éventuellement quelques points intermédiaires
+                            final isFirst = spot.x == 0;
+                            final isLast = spot.x == barData.spots.length - 1;
+                            final isInteresting = spot.x % (barData.spots.length > 10 ? 5 : 2) == 0;
+                            return isFirst || isLast || isInteresting;
+                          },
+                        ),
+                        belowBarData: BarAreaData(
+                          show: true,
+                          gradient: LinearGradient(
+                            colors: [
+                              (_showCumulativeRent
+                                      ? const Color(0xFF34C759)
+                                      : const Color(0xFF007AFF))
+                                  .withOpacity(0.3),
+                              (_showCumulativeRent
+                                      ? const Color(0xFF34C759)
+                                      : const Color(0xFF007AFF))
+                                  .withOpacity(0.05),
+                            ],
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                          ),
+                        ),
+                      ),
+                    ],
+                    lineTouchData: LineTouchData(
+                      touchTooltipData: LineTouchTooltipData(
+                        getTooltipItems: (List<LineBarSpot> touchedSpots) {
+                          return touchedSpots.map((touchedSpot) {
+                            final index = touchedSpot.x.toInt();
+                            final value = touchedSpot.y;
+                            final String periodLabel = _buildDateLabelsForRent(
+                                context, dataManager, _selectedRentPeriod)[index];
+                            
+                            final formattedValue = currencyUtils.getFormattedAmount(
+                              value,
+                              currencyUtils.currencySymbol,
+                              appState.showAmounts,
+                            );
+                            
+                            return LineTooltipItem(
+                              '$periodLabel\n$formattedValue',
+                              const TextStyle(
                                 color: Colors.white,
-                                fontWeight: FontWeight.bold),
-                          );
-                        }).toList();
-                      },
-                      fitInsideHorizontally: true,
-                      fitInsideVertically: true,
-                      tooltipMargin: 8,
-                      tooltipHorizontalOffset: 0,
-                      tooltipRoundedRadius: 8,
-                      tooltipPadding: const EdgeInsets.all(8),
+                                fontWeight: FontWeight.w600,
+                                fontSize: 12,
+                              ),
+                            );
+                          }).toList();
+                        },
+                        fitInsideHorizontally: true,
+                        fitInsideVertically: true,
+                        tooltipMargin: 8,
+                        tooltipHorizontalOffset: 0,
+                        tooltipRoundedRadius: 12,
+                        tooltipPadding: const EdgeInsets.all(12),
+                      ),
+                      handleBuiltInTouches: true,
+                      touchSpotThreshold: 20,
                     ),
-                    handleBuiltInTouches: true,
-                    touchSpotThreshold: 20,
                   ),
                 ),
               ),

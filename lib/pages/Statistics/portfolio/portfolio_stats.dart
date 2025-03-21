@@ -63,67 +63,75 @@ class _PortfolioStats extends State<PortfolioStats> {
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: CustomScrollView(
-        slivers: [
-          // Ajouter le graphique RentedHistoryGraph en haut
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: RentedHistoryGraph(
-                selectedPeriod: _selectedPeriod,
-                onPeriodChanged: (period) {
-                  setState(() {
-                    _selectedPeriod = period;
-                  });
-                },
-                rentedIsBarChart: _rentedIsBarChart,
-                onChartTypeChanged: (isBarChart) {
-                  setState(() {
-                    _rentedIsBarChart = isBarChart;
-                  });
-                },
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Theme.of(context).scaffoldBackgroundColor,
+              Theme.of(context).scaffoldBackgroundColor.withOpacity(0.9),
+            ],
+          ),
+        ),
+        child: CustomScrollView(
+          physics: const BouncingScrollPhysics(),
+          slivers: [
+            // Grille pour tous les graphiques
+            SliverPadding(
+              padding: const EdgeInsets.only(
+                  top: 8.0, bottom: 80.0, left: 8.0, right: 8.0),
+              sliver: SliverGrid(
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: isWideScreen ? 2 : 1,
+                  mainAxisSpacing: 8.0,
+                  crossAxisSpacing: 8.0,
+                  mainAxisExtent: fixedCardHeight,
+                ),
+                delegate: SliverChildBuilderDelegate(
+                  (BuildContext context, int index) {
+                    switch (index) {
+                      case 0:
+                        return RentedHistoryGraph(
+                          selectedPeriod: _selectedPeriod,
+                          onPeriodChanged: (period) {
+                            setState(() {
+                              _selectedPeriod = period;
+                            });
+                          },
+                          rentedIsBarChart: _rentedIsBarChart,
+                          onChartTypeChanged: (isBarChart) {
+                            setState(() {
+                              _rentedIsBarChart = isBarChart;
+                            });
+                          },
+                        );
+                      case 1:
+                        return RentDistributionChart(dataManager: dataManager!);
+                      case 2:
+                        return TokenDistributionCard(dataManager: dataManager!);
+                      case 3:
+                        return TokenDistributionByCountryCard(
+                            dataManager: dataManager!);
+                      case 4:
+                        return TokenDistributionByRegionCard(
+                            dataManager: dataManager!);
+                      case 5:
+                        return TokenDistributionByCityCard(
+                            dataManager: dataManager!);
+                      case 6:
+                        return TokenDistributionByWalletCard(
+                            dataManager: dataManager!);
+                      default:
+                        return Container();
+                    }
+                  },
+                  childCount: 7,
+                ),
               ),
             ),
-          ),
-          // Ajouter la grille pour les autres cartes
-          SliverPadding(
-            padding: const EdgeInsets.only(
-                top: 0.0, bottom: 80.0, left: 8.0, right: 8.0),
-            sliver: SliverGrid(
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: isWideScreen ? 2 : 1,
-                mainAxisSpacing: 8.0,
-                crossAxisSpacing: 8.0,
-                mainAxisExtent: fixedCardHeight,
-              ),
-              delegate: SliverChildBuilderDelegate(
-                (BuildContext context, int index) {
-                  switch (index) {
-                    case 0:
-                      return RentDistributionCard(dataManager: dataManager!);
-                    case 1:
-                      return TokenDistributionCard(dataManager: dataManager!);
-                    case 2:
-                      return TokenDistributionByCountryCard(
-                          dataManager: dataManager!);
-                    case 3:
-                      return TokenDistributionByRegionCard(
-                          dataManager: dataManager!);
-                    case 4:
-                      return TokenDistributionByCityCard(
-                          dataManager: dataManager!);
-                    case 5:
-                      return TokenDistributionByWalletCard(
-                          dataManager: dataManager!);
-                    default:
-                      return Container();
-                  }
-                },
-                childCount: 6,
-              ),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

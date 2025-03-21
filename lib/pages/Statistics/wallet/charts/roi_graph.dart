@@ -37,10 +37,31 @@ class RoiHistoryGraph extends StatelessWidget {
         _buildDateLabelsForRoi(context, dataManager, selectedPeriod);
 
     return Card(
-      elevation: 0.5,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
       color: Theme.of(context).cardColor,
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 2),
+            ),
+          ],
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Theme.of(context).cardColor,
+              Theme.of(context).cardColor.withOpacity(0.8),
+            ],
+          ),
+        ),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -51,33 +72,97 @@ class RoiHistoryGraph extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 20 + appState.getTextSizeOffset(),
                     fontWeight: FontWeight.bold,
+                    letterSpacing: -0.5,
                   ),
                 ),
                 const Spacer(),
                 IconButton(
-                  icon: const Icon(Icons.settings, size: 20.0),
+                  icon: Icon(
+                    Icons.tune_rounded,
+                    size: 20.0,
+                    color: Theme.of(context).primaryColor,
+                  ),
+                  style: IconButton.styleFrom(
+                    backgroundColor: Theme.of(context).primaryColor.withOpacity(0.1),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
                   onPressed: () {
                     showModalBottomSheet(
                       context: context,
+                      isScrollControlled: true,
+                      backgroundColor: Colors.transparent,
                       builder: (context) {
-                        return Padding(
-                          padding: const EdgeInsets.all(16.0),
+                        return Container(
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).scaffoldBackgroundColor,
+                            borderRadius: const BorderRadius.vertical(
+                              top: Radius.circular(20),
+                            ),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 24.0,
+                            horizontal: 16.0,
+                          ),
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 16.0, left: 8.0),
+                                child: Text(
+                                  'S.of(context).chartType',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18 + appState.getTextSizeOffset(),
+                                    color: Theme.of(context).primaryColor,
+                                  ),
+                                ),
+                              ),
                               ListTile(
-                                leading: const Icon(Icons.bar_chart,
-                                    color: Colors.blue),
-                                title: Text(S.of(context).barChart),
+                                leading: Icon(
+                                  Icons.bar_chart_rounded,
+                                  color: const Color(0xFF5AC8FA),
+                                  size: 28,
+                                ),
+                                title: Text(
+                                  S.of(context).barChart,
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: 16 + appState.getTextSizeOffset(),
+                                  ),
+                                ),
+                                trailing: roiIsBarChart
+                                    ? Icon(
+                                        Icons.check_circle,
+                                        color: const Color(0xFF5AC8FA),
+                                      )
+                                    : null,
                                 onTap: () {
                                   onChartTypeChanged(true);
                                   Navigator.of(context).pop();
                                 },
                               ),
                               ListTile(
-                                leading: const Icon(Icons.show_chart,
-                                    color: Colors.green),
-                                title: Text(S.of(context).lineChart),
+                                leading: Icon(
+                                  Icons.show_chart_rounded,
+                                  color: const Color(0xFF5856D6),
+                                  size: 28,
+                                ),
+                                title: Text(
+                                  S.of(context).lineChart,
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: 16 + appState.getTextSizeOffset(),
+                                  ),
+                                ),
+                                trailing: !roiIsBarChart
+                                    ? Icon(
+                                        Icons.check_circle,
+                                        color: const Color(0xFF5856D6),
+                                      )
+                                    : null,
                                 onTap: () {
                                   onChartTypeChanged(false);
                                   Navigator.of(context).pop();
@@ -92,221 +177,256 @@ class RoiHistoryGraph extends StatelessWidget {
                 ),
               ],
             ),
+            const SizedBox(height: 12),
             ChartUtils.buildPeriodSelector(
               context,
               selectedPeriod: selectedPeriod,
               onPeriodChanged: onPeriodChanged,
             ),
-            const SizedBox(height: 20),
-            SizedBox(
-              height: 250,
-              child: StatefulBuilder(
-                builder: (context, setState) {
-                  return roiIsBarChart
-                      ? BarChart(
-                          BarChartData(
-                            gridData:
-                                FlGridData(show: true, drawVerticalLine: false),
-                            titlesData: FlTitlesData(
-                              leftTitles: AxisTitles(
-                                sideTitles: SideTitles(
-                                  showTitles: true,
-                                  reservedSize: 45,
-                                  getTitlesWidget: (value, meta) {
-                                    return Text(
-                                      '${value.toStringAsFixed(0)}%',
-                                      style: TextStyle(
-                                          fontSize: 10 +
-                                              appState.getTextSizeOffset()),
-                                    );
-                                  },
-                                ),
+            const SizedBox(height: 24),
+            Expanded(
+              child: SizedBox(
+                child: StatefulBuilder(
+                  builder: (context, setState) {
+                    return roiIsBarChart
+                        ? BarChart(
+                            BarChartData(
+                              gridData: FlGridData(
+                                show: true,
+                                drawVerticalLine: false,
+                                getDrawingHorizontalLine: (value) {
+                                  return FlLine(
+                                    color: Colors.grey.withOpacity(0.15),
+                                    strokeWidth: 1,
+                                  );
+                                },
                               ),
-                              bottomTitles: AxisTitles(
-                                sideTitles: SideTitles(
-                                  showTitles: true,
-                                  getTitlesWidget: (value, meta) {
-                                    if (value.toInt() >= 0 &&
-                                        value.toInt() < dateLabels.length) {
+                              titlesData: FlTitlesData(
+                                leftTitles: AxisTitles(
+                                  sideTitles: SideTitles(
+                                    showTitles: true,
+                                    reservedSize: 45,
+                                    getTitlesWidget: (value, meta) {
                                       return Padding(
-                                        padding:
-                                            const EdgeInsets.only(top: 10.0),
-                                        child: Transform.rotate(
-                                          angle: -0.5,
-                                          child: Text(
-                                            dateLabels[value.toInt()],
-                                            style: TextStyle(
-                                                fontSize: 10 +
-                                                    appState
-                                                        .getTextSizeOffset()),
+                                        padding: const EdgeInsets.only(right: 8.0),
+                                        child: Text(
+                                          '${value.toStringAsFixed(0)}%',
+                                          style: TextStyle(
+                                            fontSize: 10 + appState.getTextSizeOffset(),
+                                            color: Colors.grey.shade600,
                                           ),
                                         ),
                                       );
-                                    } else {
-                                      return const SizedBox.shrink();
-                                    }
-                                  },
-                                  reservedSize: 30,
-                                  interval: (dateLabels.length / 10)
-                                      .ceil()
-                                      .toDouble(), // Afficher une étiquette toutes les N barres
-                                ),
-                              ),
-                              topTitles: AxisTitles(
-                                sideTitles: SideTitles(showTitles: false),
-                              ),
-                              rightTitles: AxisTitles(
-                                sideTitles: SideTitles(showTitles: false),
-                              ),
-                            ),
-                            borderData: FlBorderData(
-                              show: true,
-                              border: Border(
-                                left: BorderSide(color: Colors.transparent),
-                                bottom: BorderSide(
-                                    color: Colors.blueGrey.shade700,
-                                    width: 0.5),
-                                right: BorderSide(color: Colors.transparent),
-                                top: BorderSide(color: Colors.transparent),
-                              ),
-                            ),
-                            barGroups: barChartData,
-                          ),
-                        )
-                      : LineChart(
-                          LineChartData(
-                            gridData:
-                                FlGridData(show: true, drawVerticalLine: false),
-                            titlesData: FlTitlesData(
-                              topTitles: AxisTitles(
-                                  sideTitles: SideTitles(showTitles: false)),
-                              leftTitles: AxisTitles(
-                                sideTitles: SideTitles(
-                                  showTitles: true,
-                                  reservedSize: 45,
-                                  getTitlesWidget: (value, meta) {
-                                    final highestValue = roiHistoryData
-                                        .map((e) => e.y)
-                                        .reduce((a, b) => a > b ? a : b);
-
-                                    if (value == highestValue) {
-                                      return const SizedBox.shrink();
-                                    }
-
-                                    return Transform.rotate(
-                                      angle: -0.5,
-                                      child: Text(
-                                        '${value.toStringAsFixed(0)}%',
-                                        style: TextStyle(
-                                            fontSize: 10 +
-                                                appState.getTextSizeOffset()),
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ),
-                              bottomTitles: AxisTitles(
-                                sideTitles: SideTitles(
-                                  showTitles: true,
-                                  getTitlesWidget: (value, meta) {
-                                    List<String> labels =
-                                        _buildDateLabelsForRoi(context,
-                                            dataManager, selectedPeriod);
-
-                                    if (value.toInt() >= 0 &&
-                                        value.toInt() < labels.length) {
-                                      return Padding(
-                                        padding:
-                                            const EdgeInsets.only(top: 10.0),
-                                        child: Transform.rotate(
-                                          angle: -0.5,
-                                          child: Text(
-                                            labels[value.toInt()],
-                                            style: TextStyle(
-                                                fontSize: 10 +
-                                                    appState
-                                                        .getTextSizeOffset()),
-                                          ),
-                                        ),
-                                      );
-                                    } else {
-                                      return const SizedBox.shrink();
-                                    }
-                                  },
-                                  reservedSize: 30,
-                                ),
-                              ),
-                              rightTitles: AxisTitles(
-                                sideTitles: SideTitles(showTitles: false),
-                              ),
-                            ),
-                            borderData: FlBorderData(
-                              show: true,
-                              border: Border(
-                                left: BorderSide(color: Colors.transparent),
-                                bottom: BorderSide(
-                                    color: Colors.blueGrey.shade700,
-                                    width: 0.5),
-                                right: BorderSide(color: Colors.transparent),
-                                top: BorderSide(color: Colors.transparent),
-                              ),
-                            ),
-                            minX: 0,
-                            maxX: (roiHistoryData.length - 1).toDouble(),
-                            minY: 0,
-                            maxY: 100,
-                            lineBarsData: [
-                              LineChartBarData(
-                                spots: roiHistoryData,
-                                isCurved: false,
-                                barWidth: 2,
-                                color: Colors.cyan,
-                                dotData: FlDotData(show: false),
-                                belowBarData: BarAreaData(
-                                  show: true,
-                                  gradient: LinearGradient(
-                                    colors: [
-                                      Colors.cyan.withOpacity(0.4),
-                                      Colors.cyan.withOpacity(0),
-                                    ],
-                                    begin: Alignment.topCenter,
-                                    end: Alignment.bottomCenter,
+                                    },
                                   ),
                                 ),
+                                bottomTitles: AxisTitles(
+                                  sideTitles: SideTitles(
+                                    showTitles: true,
+                                    getTitlesWidget: (value, meta) {
+                                      if (value.toInt() >= 0 &&
+                                          value.toInt() < dateLabels.length) {
+                                        return Padding(
+                                          padding: const EdgeInsets.only(top: 10.0),
+                                          child: Transform.rotate(
+                                            angle: -0.5,
+                                            child: Text(
+                                              dateLabels[value.toInt()],
+                                              style: TextStyle(
+                                                fontSize: 10 + appState.getTextSizeOffset(),
+                                                color: Colors.grey.shade600,
+                                              ),
+                                            ),
+                                          ),
+                                        );
+                                      } else {
+                                        return const SizedBox.shrink();
+                                      }
+                                    },
+                                    reservedSize: 30,
+                                  ),
+                                ),
+                                topTitles: AxisTitles(
+                                  sideTitles: SideTitles(showTitles: false),
+                                ),
+                                rightTitles: AxisTitles(
+                                  sideTitles: SideTitles(showTitles: false),
+                                ),
                               ),
-                            ],
-                            lineTouchData: LineTouchData(
-                              touchTooltipData: LineTouchTooltipData(
-                                getTooltipItems: (List<LineBarSpot> touchedSpots) {
-                                  return touchedSpots.map((touchedSpot) {
-                                    final index = touchedSpot.x.toInt();
-                                    final value = touchedSpot.y;
-                                    
-                                    // Récupération de la date correspondante
-                                    final String periodLabel = _buildDateLabelsForRoi(
-                                        context, dataManager, selectedPeriod)[index];
-                                    
-                                    return LineTooltipItem(
-                                      '$periodLabel\n${value.toStringAsFixed(2)}%',
-                                      const TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold),
-                                    );
-                                  }).toList();
-                                },
-                                fitInsideHorizontally: true,
-                                fitInsideVertically: true,
-                                tooltipMargin: 8,
-                                tooltipHorizontalOffset: 0,
-                                tooltipRoundedRadius: 8,
-                                tooltipPadding: const EdgeInsets.all(8),
-                              ),
-                              handleBuiltInTouches: true,
-                              touchSpotThreshold: 20,
+                              borderData: FlBorderData(show: false),
+                              barGroups: barChartData.map((group) {
+                                return BarChartGroupData(
+                                  x: group.x,
+                                  barRods: [
+                                    BarChartRodData(
+                                      toY: group.barRods.first.toY,
+                                      color: const Color(0xFF5AC8FA),
+                                      width: 12,
+                                      borderRadius: const BorderRadius.all(Radius.circular(6)),
+                                      backDrawRodData: BackgroundBarChartRodData(
+                                        show: true,
+                                        toY: 100,
+                                        color: Colors.grey.withOpacity(0.1),
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              }).toList(),
                             ),
-                          ),
-                        );
-                },
+                          )
+                        : LineChart(
+                            LineChartData(
+                              gridData: FlGridData(
+                                show: true,
+                                drawVerticalLine: false,
+                                getDrawingHorizontalLine: (value) {
+                                  return FlLine(
+                                    color: Colors.grey.withOpacity(0.15),
+                                    strokeWidth: 1,
+                                  );
+                                },
+                              ),
+                              titlesData: FlTitlesData(
+                                topTitles: AxisTitles(
+                                    sideTitles: SideTitles(showTitles: false)),
+                                leftTitles: AxisTitles(
+                                  sideTitles: SideTitles(
+                                    showTitles: true,
+                                    reservedSize: 45,
+                                    getTitlesWidget: (value, meta) {
+                                      final highestValue = roiHistoryData
+                                          .map((e) => e.y)
+                                          .reduce((a, b) => a > b ? a : b);
+
+                                      if (value == highestValue) {
+                                        return const SizedBox.shrink();
+                                      }
+
+                                      return Padding(
+                                        padding: const EdgeInsets.only(right: 8.0),
+                                        child: Text(
+                                          '${value.toStringAsFixed(0)}%',
+                                          style: TextStyle(
+                                            fontSize: 10 + appState.getTextSizeOffset(),
+                                            color: Colors.grey.shade600,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                                bottomTitles: AxisTitles(
+                                  sideTitles: SideTitles(
+                                    showTitles: true,
+                                    getTitlesWidget: (value, meta) {
+                                      List<String> labels =
+                                          _buildDateLabelsForRoi(context,
+                                              dataManager, selectedPeriod);
+
+                                      if (value.toInt() >= 0 &&
+                                          value.toInt() < labels.length) {
+                                        return Padding(
+                                          padding: const EdgeInsets.only(top: 10.0),
+                                          child: Transform.rotate(
+                                            angle: -0.5,
+                                            child: Text(
+                                              labels[value.toInt()],
+                                              style: TextStyle(
+                                                fontSize: 10 + appState.getTextSizeOffset(),
+                                                color: Colors.grey.shade600,
+                                              ),
+                                            ),
+                                          ),
+                                        );
+                                      } else {
+                                        return const SizedBox.shrink();
+                                      }
+                                    },
+                                    reservedSize: 30,
+                                  ),
+                                ),
+                                rightTitles: AxisTitles(
+                                  sideTitles: SideTitles(showTitles: false),
+                                ),
+                              ),
+                              borderData: FlBorderData(show: false),
+                              minX: 0,
+                              maxX: (roiHistoryData.length - 1).toDouble(),
+                              minY: 0,
+                              maxY: 100,
+                              lineBarsData: [
+                                LineChartBarData(
+                                  spots: roiHistoryData,
+                                  isCurved: true,
+                                  curveSmoothness: 0.3,
+                                  barWidth: 3,
+                                  color: const Color(0xFF5856D6),
+                                  dotData: FlDotData(
+                                    show: true,
+                                    getDotPainter: (spot, percent, barData, index) {
+                                      return FlDotCirclePainter(
+                                        radius: 3,
+                                        color: Colors.white,
+                                        strokeWidth: 2,
+                                        strokeColor: const Color(0xFF5856D6),
+                                      );
+                                    },
+                                    checkToShowDot: (spot, barData) {
+                                      // Montrer les points uniquement aux extrémités et peut-être un au milieu
+                                      final isFirst = spot.x == 0;
+                                      final isLast = spot.x == barData.spots.length - 1;
+                                      final isMiddle = spot.x == (barData.spots.length / 2).round();
+                                      return isFirst || isLast || isMiddle;
+                                    },
+                                  ),
+                                  belowBarData: BarAreaData(
+                                    show: true,
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        const Color(0xFF5856D6).withOpacity(0.3),
+                                        const Color(0xFF5856D6).withOpacity(0.05),
+                                      ],
+                                      begin: Alignment.topCenter,
+                                      end: Alignment.bottomCenter,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                              lineTouchData: LineTouchData(
+                                touchTooltipData: LineTouchTooltipData(
+                                  getTooltipItems: (List<LineBarSpot> touchedSpots) {
+                                    return touchedSpots.map((touchedSpot) {
+                                      final index = touchedSpot.x.toInt();
+                                      final value = touchedSpot.y;
+                                      
+                                      // Récupération de la date correspondante
+                                      final String periodLabel = _buildDateLabelsForRoi(
+                                          context, dataManager, selectedPeriod)[index];
+                                      
+                                      return LineTooltipItem(
+                                        '$periodLabel\n${value.toStringAsFixed(2)}%',
+                                        const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 12,
+                                        ),
+                                      );
+                                    }).toList();
+                                  },
+                                  fitInsideHorizontally: true,
+                                  fitInsideVertically: true,
+                                  tooltipMargin: 8,
+                                  tooltipHorizontalOffset: 0,
+                                  tooltipRoundedRadius: 12,
+                                  tooltipPadding: const EdgeInsets.all(12),
+                                ),
+                                handleBuiltInTouches: true,
+                                touchSpotThreshold: 20,
+                              ),
+                            ),
+                          );
+                  },
+                ),
               ),
             ),
           ],
@@ -392,7 +512,7 @@ class RoiHistoryGraph extends StatelessWidget {
             barRods: [
               BarChartRodData(
                 toY: entry.value.y,
-                color: Colors.cyan,
+                color: const Color(0xFF5AC8FA),
                 width: 8,
               ),
             ],

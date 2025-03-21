@@ -53,57 +53,18 @@ class _HealthAndLtvHistoryGraphState extends State<HealthAndLtvHistoryGraph> {
     List<FlSpot> spots = [];
     int index = 0;
     groupedData.forEach((date, values) {
-      double metricValue =
-          showHealthFactor ? values['healtFactor']! : values['ltv']!;
-      spots.add(FlSpot(index.toDouble(), metricValue));
-      index++;
-    });
-    lineChartData.add(
-      LineChartBarData(
-        spots: spots,
-        isCurved: true,
-        color: showHealthFactor ? Colors.blue : Colors.green,
-        barWidth: 2,
-        belowBarData: BarAreaData(
-          show: true,
-          color:
-              (showHealthFactor ? Colors.blue : Colors.green).withOpacity(0.1),
-        ),
-        dotData: FlDotData(show: false),
-      ),
-    );
-
-    // Préparation des données pour le graphique en barres.
-    List<BarChartGroupData> barGroups = [];
-    index = 0;
-    groupedData.forEach((date, values) {
-      double metricValue =
-          showHealthFactor ? values['healtFactor']! : values['ltv']!;
-      barGroups.add(
-        BarChartGroupData(
-          x: index,
-          barsSpace: 0,
-          barRods: [
-            BarChartRodData(
-              toY: metricValue,
-              width: 16,
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(6),
-                topRight: Radius.circular(6),
-              ),
-              rodStackItems: [
-                BarChartRodStackItem(
-                  0,
-                  metricValue,
-                  (showHealthFactor ? Colors.blue : Colors.green)
-                      .withOpacity(0.8),
-                ),
-              ],
-            ),
-          ],
-          showingTooltipIndicators: [0],
-        ),
-      );
+      // Vérification que les valeurs ne sont pas nulles et pas NaN
+      if (values.containsKey('healtFactor') && values.containsKey('ltv')) {
+        double? hf = values['healtFactor'];
+        double? ltv = values['ltv'];
+        
+        if (hf != null && !hf.isNaN && ltv != null && !ltv.isNaN) {
+          double metricValue = showHealthFactor ? hf : ltv;
+          if (!metricValue.isNaN) {
+            spots.add(FlSpot(index.toDouble(), metricValue));
+          }
+        }
+      }
       index++;
     });
 
@@ -111,350 +72,548 @@ class _HealthAndLtvHistoryGraphState extends State<HealthAndLtvHistoryGraph> {
     double maxY = showHealthFactor ? 10 : 100;
 
     return Card(
-      elevation: 0.5,
-      color: Theme.of(context).cardColor,
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // En-tête et réglages
-            Row(
+      elevation: 4,
+      shadowColor: Colors.black.withOpacity(0.1),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16.0),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16.0),
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Theme.of(context).cardColor,
+                Theme.of(context).cardColor.withOpacity(0.95),
+              ],
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'RMM health',
-                  style: TextStyle(
-                    fontSize: 20 + appState.getTextSizeOffset(),
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Transform.scale(
-                  scale: 0.8,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        'HF',
-                        style: TextStyle(
-                            fontSize: 14 + appState.getTextSizeOffset()),
+                // En-tête et réglages
+                Row(
+                  children: [
+                    Text(
+                      'Santé RMM',
+                      style: TextStyle(
+                        fontSize: 20 + appState.getTextSizeOffset(),
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: -0.5,
                       ),
-                      Switch(
-                        value: showHealthFactor,
-                        onChanged: (val) {
+                    ),
+                    const SizedBox(width: 16),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Colors.black12
+                            : Colors.black.withOpacity(0.05),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'LTV',
+                            style: TextStyle(
+                              fontSize: 14 + appState.getTextSizeOffset(),
+                              color: showHealthFactor ? Colors.grey : Colors.black,
+                              fontWeight: showHealthFactor ? FontWeight.normal : FontWeight.w600,
+                            ),
+                          ),
+                          Transform.scale(
+                            scale: 0.8,
+                            child: Switch.adaptive(
+                              value: showHealthFactor,
+                              onChanged: (val) {
+                                setState(() {
+                                  showHealthFactor = val;
+                                  _selectedSpotIndex = null;
+                                });
+                              },
+                              activeColor: const Color(0xFF007AFF), // Bleu iOS
+                              trackColor: MaterialStateProperty.resolveWith(
+                                (states) => states.contains(MaterialState.selected)
+                                    ? const Color(0xFF007AFF).withOpacity(0.4)
+                                    : Colors.grey.withOpacity(0.3),
+                              ),
+                            ),
+                          ),
+                          Text(
+                            'HF',
+                            style: TextStyle(
+                              fontSize: 14 + appState.getTextSizeOffset(),
+                              color: showHealthFactor ? Colors.black : Colors.grey,
+                              fontWeight: showHealthFactor ? FontWeight.w600 : FontWeight.normal,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Spacer(),
+                    // Bouton pour changer de type de graphique
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Colors.black12
+                            : Colors.black.withOpacity(0.05),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: IconButton(
+                        icon: Icon(
+                          widget.healthAndLtvIsBarChart
+                              ? Icons.show_chart
+                              : Icons.bar_chart,
+                          size: 20.0,
+                          color: const Color(0xFF007AFF),
+                        ),
+                        onPressed: () {
+                          widget.onChartTypeChanged(!widget.healthAndLtvIsBarChart);
                           setState(() {
-                            showHealthFactor = val;
                             _selectedSpotIndex = null;
                           });
                         },
-                        activeColor: Theme.of(context).primaryColor,
-                        inactiveThumbColor: Colors.grey,
+                        tooltip: widget.healthAndLtvIsBarChart
+                            ? S.of(context).lineChart
+                            : S.of(context).barChart,
                       ),
-                      Text(
-                        'LTV',
-                        style: TextStyle(
-                            fontSize: 14 + appState.getTextSizeOffset()),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-                const Spacer(),
-                IconButton(
-                  icon: const Icon(Icons.settings, size: 20.0),
-                  onPressed: () {
-                    showModalBottomSheet(
-                      context: context,
-                      builder: (context) {
-                        return Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              ListTile(
-                                leading: const Icon(Icons.bar_chart,
-                                    color: Colors.blue),
-                                title: Text(S.of(context).barChart),
-                                onTap: () {
-                                  setState(() {
-                                    _selectedSpotIndex = null;
-                                  });
-                                  widget.onChartTypeChanged(true);
-                                  Navigator.of(context).pop();
-                                },
-                              ),
-                              ListTile(
-                                leading: const Icon(Icons.show_chart,
-                                    color: Colors.green),
-                                title: Text(S.of(context).lineChart),
-                                onTap: () {
-                                  setState(() {
-                                    _selectedSpotIndex = null;
-                                  });
-                                  widget.onChartTypeChanged(false);
-                                  Navigator.of(context).pop();
-                                },
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    );
+                const SizedBox(height: 16),
+                // Sélecteur de période
+                ChartUtils.buildPeriodSelector(
+                  context,
+                  selectedPeriod: widget.selectedPeriod,
+                  onPeriodChanged: (period) {
+                    setState(() {
+                      _selectedSpotIndex = null;
+                    });
+                    widget.onPeriodChanged(period);
                   },
+                ),
+                const SizedBox(height: 20),
+                // Affichage du graphique (barres ou lignes)
+                Expanded(
+                  child: widget.healthAndLtvIsBarChart
+                    ? _buildBarChart(context, appState, groupedData, _buildDateLabelsForHealthAndLtv(context, widget.dataManager, widget.selectedPeriod))
+                    : _buildLineChart(context, appState, groupedData, spots, maxY),
+                ),
+                // Indicateur de la métrique actuelle
+                const SizedBox(height: 16),
+                Center(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: showHealthFactor 
+                          ? const Color(0xFF34C759).withOpacity(0.1) // Vert iOS
+                          : const Color(0xFFFF9500).withOpacity(0.1), // Orange iOS
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      showHealthFactor 
+                          ? 'Health Factor: Plus élevé = Plus sûr'
+                          : 'LTV: Plus bas = Plus sûr',
+                      style: TextStyle(
+                        fontSize: 12 + appState.getTextSizeOffset(),
+                        color: showHealthFactor 
+                            ? const Color(0xFF34C759) // Vert iOS
+                            : const Color(0xFFFF9500), // Orange iOS
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
                 ),
               ],
             ),
-            // Sélecteur de période
-            ChartUtils.buildPeriodSelector(
-              context,
-              selectedPeriod: widget.selectedPeriod,
-              onPeriodChanged: (String newPeriod) {
-                setState(() {
-                  _selectedSpotIndex = null;
-                });
-                widget.onPeriodChanged(newPeriod);
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBarChart(
+    BuildContext context,
+    AppState appState,
+    Map<String, Map<String, double>> groupedData,
+    List<String> labels,
+  ) {
+    return BarChart(
+      BarChartData(
+        gridData: FlGridData(
+          show: true,
+          drawVerticalLine: false,
+          getDrawingHorizontalLine: (value) {
+            return FlLine(
+              color: Colors.grey.withOpacity(0.15),
+              strokeWidth: 1,
+              dashArray: [5, 5],
+            );
+          },
+        ),
+        minY: 1.0, // Définir minY à 1.0 pour éviter l'erreur d'assertion
+        barTouchData: BarTouchData(
+          touchTooltipData: BarTouchTooltipData(
+            getTooltipItem: (group, groupIndex, rod, rodIndex) {
+              if (groupIndex < 0 || groupIndex >= labels.length) {
+                return null;
+              }
+
+              final date = labels[groupIndex];
+              
+              // Récupérer la valeur réelle pour l'affichage dans le tooltip
+              final realValue = showHealthFactor 
+                  ? groupedData[date]!['healtFactor']!
+                  : groupedData[date]!['ltv']!;
+
+              return BarTooltipItem(
+                '$date\n${showHealthFactor ? 'Health Factor' : 'LTV'}: ${realValue.toStringAsFixed(2)}${showHealthFactor ? '' : '%'}',
+                TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 12 + appState.getTextSizeOffset(),
+                ),
+              );
+            },
+            tooltipRoundedRadius: 12,
+            tooltipPadding: const EdgeInsets.all(12),
+            tooltipMargin: 8,
+            direction: TooltipDirection.top,
+            tooltipHorizontalOffset: 0,
+          ),
+          touchCallback: (FlTouchEvent event, BarTouchResponse? response) {
+            setState(() {
+              if (event is FlTapUpEvent || event is FlPanDownEvent) {
+                if (response?.spot != null) {
+                  _selectedSpotIndex = response!.spot!.touchedBarGroupIndex;
+                }
+              } else if (event is FlPanEndEvent || event is FlLongPressEnd) {
+                _selectedSpotIndex = null;
+              }
+            });
+          },
+        ),
+        titlesData: FlTitlesData(
+          leftTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              reservedSize: 45,
+              getTitlesWidget: (value, meta) {
+                return Text(
+                  showHealthFactor
+                      ? value.toStringAsFixed(1)
+                      : '${value.toStringAsFixed(0)}%',
+                  style: TextStyle(
+                    fontSize: 10 + appState.getTextSizeOffset(),
+                    color: Colors.grey.shade600,
+                  ),
+                );
               },
             ),
-            const SizedBox(height: 20),
-            // Affichage du graphique (barres ou lignes)
-            SizedBox(
-              height: 250,
-              child: widget.healthAndLtvIsBarChart
-                  ? BarChart(
-                      BarChartData(
-                        gridData:
-                            FlGridData(show: true, drawVerticalLine: false),
-                        titlesData: FlTitlesData(
-                          leftTitles: AxisTitles(
-                            sideTitles: SideTitles(
-                              showTitles: true,
-                              reservedSize: 45,
-                              getTitlesWidget: (value, meta) {
-                                return Text(
-                                  showHealthFactor
-                                      ? value.toStringAsFixed(0)
-                                      : '${value.toStringAsFixed(0)}%',
-                                  style: TextStyle(
-                                      fontSize:
-                                          10 + appState.getTextSizeOffset()),
-                                );
-                              },
-                            ),
-                          ),
-                          bottomTitles: AxisTitles(
-                            sideTitles: SideTitles(
-                              showTitles: true,
-                              getTitlesWidget: (value, meta) {
-                                List<String> labels =
-                                    _buildDateLabelsForHealthAndLtv(
-                                  context,
-                                  widget.dataManager,
-                                  widget.selectedPeriod,
-                                );
-                                if (value.toInt() >= 0 &&
-                                    value.toInt() < labels.length) {
-                                  return Padding(
-                                    padding: const EdgeInsets.only(top: 10.0),
-                                    child: Transform.rotate(
-                                      angle: -0.5,
-                                      child: Text(
-                                        labels[value.toInt()],
-                                        style: TextStyle(
-                                            fontSize: 10 +
-                                                appState.getTextSizeOffset()),
-                                      ),
-                                    ),
-                                  );
-                                } else {
-                                  return const Text('');
-                                }
-                              },
-                            ),
-                          ),
-                          topTitles: AxisTitles(
-                            sideTitles: SideTitles(showTitles: false),
-                          ),
-                          rightTitles: AxisTitles(
-                            sideTitles: SideTitles(showTitles: false),
-                          ),
-                        ),
-                        borderData: FlBorderData(
-                          show: true,
-                          border: Border(
-                            left: BorderSide(color: Colors.transparent),
-                            bottom: BorderSide(
-                                color: Colors.blueGrey.shade700, width: 0.5),
-                            right: BorderSide(color: Colors.transparent),
-                            top: BorderSide(color: Colors.transparent),
-                          ),
-                        ),
-                        alignment: BarChartAlignment.center,
-                        barGroups: barGroups,
-                        maxY: maxY,
-                        barTouchData: BarTouchData(
-                          touchTooltipData: BarTouchTooltipData(
-                            getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                              // Vérifier si c'est le groupe sélectionné
-                              if (_selectedSpotIndex != groupIndex) return null;
-                              
-                              List<String> dates =
-                                  _buildDateLabelsForHealthAndLtv(
-                                context,
-                                widget.dataManager,
-                                widget.selectedPeriod,
-                              );
-                              if (groupIndex < 0 || groupIndex >= dates.length) {
-                                return null;
-                              }
-                              final date = dates[groupIndex];
-                              final value = rod.toY;
-                              return BarTooltipItem(
-                                '$date\n${showHealthFactor ? 'Health Factor' : 'LTV'}: ${value.toStringAsFixed(2)}${showHealthFactor ? '' : '%'}',
-                                TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 10 + appState.getTextSizeOffset(),
-                                ),
-                              );
-                            },
-                            fitInsideHorizontally: true,
-                            fitInsideVertically: true,
-                            tooltipMargin: 8,
-                            tooltipHorizontalOffset: 0,
-                            tooltipRoundedRadius: 8,
-                            tooltipPadding: const EdgeInsets.all(8),
-                          ),
-                          handleBuiltInTouches: true,
-                          touchCallback: (FlTouchEvent event, BarTouchResponse? touchResponse) {
-                            setState(() {
-                              if (event is FlTapUpEvent) {
-                                if (touchResponse?.spot != null) {
-                                  _selectedSpotIndex = touchResponse!.spot!.touchedBarGroupIndex;
-                                }
-                              } else if (event is FlPanEndEvent || event is FlLongPressEnd) {
-                                _selectedSpotIndex = null;
-                              }
-                            });
-                          },
-                        ),
-                      ),
-                    )
-                  : LineChart(
-                      LineChartData(
-                        gridData:
-                            FlGridData(show: true, drawVerticalLine: false),
-                        titlesData: FlTitlesData(
-                          leftTitles: AxisTitles(
-                            sideTitles: SideTitles(
-                              showTitles: true,
-                              reservedSize: 45,
-                              getTitlesWidget: (value, meta) {
-                                return Text(
-                                  showHealthFactor
-                                      ? value.toStringAsFixed(0)
-                                      : '${value.toStringAsFixed(0)}%',
-                                  style: TextStyle(
-                                      fontSize:
-                                          10 + appState.getTextSizeOffset()),
-                                );
-                              },
-                            ),
-                          ),
-                          bottomTitles: AxisTitles(
-                            sideTitles: SideTitles(
-                              showTitles: true,
-                              getTitlesWidget: (value, meta) {
-                                List<String> labels =
-                                    _buildDateLabelsForHealthAndLtv(
-                                  context,
-                                  widget.dataManager,
-                                  widget.selectedPeriod,
-                                );
-                                if (value.toInt() >= 0 &&
-                                    value.toInt() < labels.length) {
-                                  return Padding(
-                                    padding: const EdgeInsets.only(top: 10.0),
-                                    child: Transform.rotate(
-                                      angle: -0.5,
-                                      child: Text(
-                                        labels[value.toInt()],
-                                        style: TextStyle(
-                                            fontSize: 10 +
-                                                appState.getTextSizeOffset()),
-                                      ),
-                                    ),
-                                  );
-                                }
-                                return const SizedBox.shrink();
-                              },
-                            ),
-                          ),
-                          rightTitles: AxisTitles(
-                            sideTitles: SideTitles(showTitles: false),
-                          ),
-                          topTitles: AxisTitles(
-                            sideTitles: SideTitles(showTitles: false),
-                          ),
-                        ),
-                        maxY: maxY,
-                        minY: 0,
-                        lineBarsData: lineChartData,
-                        borderData: FlBorderData(show: false),
-                        lineTouchData: LineTouchData(
-                          touchTooltipData: LineTouchTooltipData(
-                            getTooltipItems: (List<LineBarSpot> touchedBarSpots) {
-                              if (touchedBarSpots.isEmpty) return [];
-                              final spot = touchedBarSpots.first;
-                              final spotIndex = spot.spotIndex;
-                              
-                              // Vérifier si le spot est celui sélectionné
-                              if (_selectedSpotIndex != spotIndex) return [];
-                              
-                              List<String> dates =
-                                  _buildDateLabelsForHealthAndLtv(
-                                context,
-                                widget.dataManager,
-                                widget.selectedPeriod,
-                              );
-                              if (spotIndex < 0 || spotIndex >= dates.length) {
-                                return [];
-                              }
-                              final date = dates[spotIndex];
-                              return [
-                                LineTooltipItem(
-                                  '$date\n${showHealthFactor ? 'Health Factor' : 'LTV'}: ${spot.y.toStringAsFixed(2)}${showHealthFactor ? '' : '%'}',
-                                  TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 10 + appState.getTextSizeOffset(),
-                                  ),
-                                ),
-                              ];
-                            },
-                            fitInsideHorizontally: true,
-                            fitInsideVertically: true,
-                            tooltipMargin: 8,
-                            tooltipHorizontalOffset: 0,
-                            tooltipRoundedRadius: 8,
-                            tooltipPadding: const EdgeInsets.all(8),
-                          ),
-                          handleBuiltInTouches: true,
-                          touchSpotThreshold: 20,
-                          touchCallback: (FlTouchEvent event, LineTouchResponse? touchResponse) {
-                            setState(() {
-                              if (event is FlTapUpEvent) {
-                                if (touchResponse?.lineBarSpots != null && touchResponse!.lineBarSpots!.isNotEmpty) {
-                                  _selectedSpotIndex = touchResponse.lineBarSpots!.first.spotIndex;
-                                }
-                              } else if (event is FlPanEndEvent || event is FlLongPressEnd) {
-                                _selectedSpotIndex = null;
-                              }
-                            });
-                          },
+          ),
+          bottomTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              getTitlesWidget: (value, meta) {
+                if (value.toInt() >= 0 && value.toInt() < labels.length) {
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 10.0),
+                    child: Transform.rotate(
+                      angle: -0.5,
+                      child: Text(
+                        labels[value.toInt()],
+                        style: TextStyle(
+                          fontSize: 10 + appState.getTextSizeOffset(),
+                          color: Colors.grey.shade600,
                         ),
                       ),
                     ),
+                  );
+                }
+                return const SizedBox.shrink();
+              },
             ),
-          ],
+          ),
+          rightTitles: AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
+          topTitles: AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
+        ),
+        barGroups: List.generate(
+          labels.length,
+          (index) {
+            final date = labels[index];
+            final values = groupedData[date];
+            if (values == null) return BarChartGroupData(x: index);
+
+            double metricValue = showHealthFactor ? values['healtFactor']! : values['ltv']!;
+            
+            // Assurer que la valeur de la barre est au moins 1.0 pour le graphique,
+            // tout en conservant la valeur réelle pour l'affichage dans le tooltip
+            double barValue = metricValue;
+            if (barValue < 1.0) {
+              barValue = 1.0;
+            }
+
+            return BarChartGroupData(
+              x: index,
+              barRods: [
+                BarChartRodData(
+                  toY: barValue, // Utiliser la valeur ajustée qui est au moins 1.0
+                  gradient: LinearGradient(
+                    colors: showHealthFactor 
+                        ? [
+                            const Color(0xFF34C759), // Vert iOS
+                            const Color(0xFF34C759).withOpacity(0.7),
+                          ]
+                        : [
+                            const Color(0xFFFF9500), // Orange iOS
+                            const Color(0xFFFF9500).withOpacity(0.7),
+                          ],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                  ),
+                  width: 16,
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(6),
+                    topRight: Radius.circular(6),
+                  ),
+                  backDrawRodData: BackgroundBarChartRodData(
+                    show: true,
+                    toY: showHealthFactor ? 3.0 : 100,
+                    color: Colors.grey.withOpacity(0.1),
+                  ),
+                ),
+              ],
+              showingTooltipIndicators: _selectedSpotIndex == index ? [0] : [],
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLineChart(
+    BuildContext context,
+    AppState appState,
+    Map<String, Map<String, double>> groupedData,
+    List<FlSpot> spots,
+    double maxY,
+  ) {
+    // Pour le graphique linéaire, on doit aussi vérifier les valeurs
+    // et créer de nouveaux spots avec des valeurs minimales de 1.0 si nécessaire
+    List<FlSpot> adjustedSpots = [];
+    int index = 0;
+    List<String> dates = _buildDateLabelsForHealthAndLtv(
+      context,
+      widget.dataManager,
+      widget.selectedPeriod,
+    );
+    
+    // Vérifier si la liste des spots est vide
+    if (spots.isEmpty) {
+      // Retourner un graphique vide avec un message
+      return const Center(
+        child: Text('Pas de données disponibles'),
+      );
+    }
+    
+    for (var spot in spots) {
+      // Vérifier si x ou y sont NaN
+      if (spot.x.isNaN || spot.y.isNaN) {
+        continue; // Sauter ce spot s'il contient NaN
+      }
+      
+      double y = spot.y;
+      if (y < 1.0) {
+        y = 1.0; // Assurer une valeur minimum de 1.0
+      }
+      adjustedSpots.add(FlSpot(spot.x, y));
+    }
+    
+    // Vérifier si tous les spots ont été filtrés car ils contenaient NaN
+    if (adjustedSpots.isEmpty) {
+      return const Center(
+        child: Text('Données invalides pour l\'affichage du graphique'),
+      );
+    }
+    
+    return LineChart(
+      LineChartData(
+        gridData: FlGridData(
+          show: true, 
+          drawVerticalLine: false,
+          getDrawingHorizontalLine: (value) {
+            return FlLine(
+              color: Colors.grey.withOpacity(0.15),
+              strokeWidth: 1,
+              dashArray: [5, 5],
+            );
+          },
+        ),
+        titlesData: FlTitlesData(
+          leftTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              reservedSize: 45,
+              getTitlesWidget: (value, meta) {
+                return Text(
+                  showHealthFactor
+                      ? value.toStringAsFixed(1)
+                      : '${value.toStringAsFixed(0)}%',
+                  style: TextStyle(
+                    fontSize: 10 + appState.getTextSizeOffset(),
+                    color: Colors.grey.shade600,
+                  ),
+                );
+              },
+            ),
+          ),
+          bottomTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              getTitlesWidget: (value, meta) {
+                List<String> labels = _buildDateLabelsForHealthAndLtv(
+                  context,
+                  widget.dataManager,
+                  widget.selectedPeriod,
+                );
+                if (value.toInt() >= 0 && value.toInt() < labels.length) {
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 10.0),
+                    child: Transform.rotate(
+                      angle: -0.5,
+                      child: Text(
+                        labels[value.toInt()],
+                        style: TextStyle(
+                          fontSize: 10 + appState.getTextSizeOffset(),
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                    ),
+                  );
+                }
+                return const SizedBox.shrink();
+              },
+            ),
+          ),
+          rightTitles: AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
+          topTitles: AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
+        ),
+        maxY: maxY,
+        minY: 1.0, // Définir minY à 1.0 pour éviter l'erreur d'assertion
+        lineBarsData: [
+          LineChartBarData(
+            spots: adjustedSpots, // Utiliser les spots ajustés
+            isCurved: true,
+            curveSmoothness: 0.3,
+            color: showHealthFactor 
+                ? const Color(0xFF34C759) // Vert iOS
+                : const Color(0xFFFF9500), // Orange iOS
+            barWidth: 2.5,
+            dotData: FlDotData(
+              show: true,
+              getDotPainter: (spot, percent, barData, index) {
+                return FlDotCirclePainter(
+                  radius: 3,
+                  color: Colors.white,
+                  strokeWidth: 2,
+                  strokeColor: showHealthFactor 
+                      ? const Color(0xFF34C759) // Vert iOS
+                      : const Color(0xFFFF9500), // Orange iOS
+                );
+              },
+              checkToShowDot: (spot, barData) {
+                // Afficher les points aux extrémités et quelques points intermédiaires
+                return spot.x == 0 || 
+                       spot.x == barData.spots.length - 1 || 
+                       spot.x % (barData.spots.length > 8 ? 4 : 2) == 0 ||
+                       _selectedSpotIndex == spot.x.toInt();
+              },
+            ),
+            belowBarData: BarAreaData(
+              show: true,
+              gradient: LinearGradient(
+                colors: showHealthFactor
+                    ? [
+                        const Color(0xFF34C759).withOpacity(0.3), // Vert iOS
+                        const Color(0xFF34C759).withOpacity(0.0),
+                      ]
+                    : [
+                        const Color(0xFFFF9500).withOpacity(0.3), // Orange iOS
+                        const Color(0xFFFF9500).withOpacity(0.0),
+                      ],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
+            ),
+          )
+        ],
+        lineTouchData: LineTouchData(
+          touchTooltipData: LineTouchTooltipData(
+            getTooltipItems: (List<LineBarSpot> touchedBarSpots) {
+              if (touchedBarSpots.isEmpty) return [];
+              final spot = touchedBarSpots.first;
+              final spotIndex = spot.spotIndex;
+              
+              List<String> dates = _buildDateLabelsForHealthAndLtv(
+                context,
+                widget.dataManager,
+                widget.selectedPeriod,
+              );
+              if (spotIndex < 0 || spotIndex >= dates.length) {
+                return [];
+              }
+              final date = dates[spotIndex];
+              
+              // Récupérer la valeur réelle pour l'affichage
+              final realValue = showHealthFactor 
+                  ? groupedData[date]!['healtFactor']!
+                  : groupedData[date]!['ltv']!;
+                  
+              return [
+                LineTooltipItem(
+                  '$date\n${showHealthFactor ? 'Health Factor' : 'LTV'}: ${realValue.toStringAsFixed(2)}${showHealthFactor ? '' : '%'}',
+                  TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 12 + appState.getTextSizeOffset(),
+                  ),
+                ),
+              ];
+            },
+            fitInsideHorizontally: true,
+            fitInsideVertically: true,
+            tooltipMargin: 8,
+            tooltipHorizontalOffset: 0,
+            tooltipRoundedRadius: 12,
+            tooltipPadding: const EdgeInsets.all(12),
+            getTooltipColor: (group) => Colors.black87,
+          ),
+          handleBuiltInTouches: true,
+          touchSpotThreshold: 20,
+          touchCallback: (FlTouchEvent event, LineTouchResponse? touchResponse) {
+            setState(() {
+              if (event is FlTapUpEvent || event is FlPanDownEvent) {
+                if (touchResponse?.lineBarSpots != null && touchResponse!.lineBarSpots!.isNotEmpty) {
+                  _selectedSpotIndex = touchResponse.lineBarSpots!.first.spotIndex;
+                }
+              } else if (event is FlPanEndEvent || event is FlLongPressEnd) {
+                _selectedSpotIndex = null;
+              }
+            });
+          },
         ),
       ),
     );
@@ -483,11 +642,17 @@ class _HealthAndLtvHistoryGraphState extends State<HealthAndLtvHistoryGraph> {
         periodKey = date.year.toString();
       }
 
-      if (!groupedData.containsKey(periodKey)) {
-        groupedData[periodKey] = {'healtFactor': 0, 'ltv': 0};
+      // Vérifier que les valeurs ne sont pas NaN
+      double healthFactor = record.healthFactor;
+      double ltv = record.ltv;
+      
+      if (!healthFactor.isNaN && !ltv.isNaN) {
+        if (!groupedData.containsKey(periodKey)) {
+          groupedData[periodKey] = {'healtFactor': 0.0, 'ltv': 0.0};
+        }
+        groupedData[periodKey]!['healtFactor'] = healthFactor;
+        groupedData[periodKey]!['ltv'] = ltv;
       }
-      groupedData[periodKey]!['healtFactor'] = record.healthFactor;
-      groupedData[periodKey]!['ltv'] = record.ltv;
     }
     return groupedData;
   }

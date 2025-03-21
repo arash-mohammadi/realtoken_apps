@@ -1,40 +1,49 @@
 import 'package:flutter/material.dart';
 
 Color generateColor(int index) {
-  final hue = ((index * 57) + 193 * (index % 3)) % 360;
-  final saturation = (0.7 + (index % 5) * 0.06).clamp(0.4, 0.7);
-  final brightness = (0.8 + (index % 3) * 0.2).clamp(0.6, 0.9);
-  return HSVColor.fromAHSV(1.0, hue.toDouble(), saturation, brightness)
-      .toColor();
+  final List<Color> colorPalette = [
+    const Color(0xFF007AFF), // iOS blue
+    const Color(0xFF34C759), // iOS green
+    const Color(0xFFFF9500), // iOS orange
+    const Color(0xFFFF2D55), // iOS red
+    const Color(0xFF5856D6), // iOS purple
+    const Color(0xFFAF52DE), // iOS pink
+    const Color(0xFF5AC8FA), // iOS light blue
+    const Color(0xFFFF3B30), // iOS red alternative
+    const Color(0xFFFFCC00), // iOS yellow
+    const Color(0xFF4CD964), // iOS green alternative
+  ];
+
+  return colorPalette[index % colorPalette.length];
 }
 
 Color _getPropertyColor(int propertyType) {
   switch (propertyType) {
     case 1:
-      return Colors.blue;
+      return const Color(0xFF007AFF); // iOS blue
     case 2:
-      return Colors.green;
+      return const Color(0xFF34C759); // iOS green
     case 3:
-      return Colors.orange;
+      return const Color(0xFFFF9500); // iOS orange
     case 4:
-      return Colors.red;
+      return const Color(0xFFFF2D55); // iOS red
     case 5:
-      return Colors.purple;
+      return const Color(0xFF5856D6); // iOS purple
     case 6:
-      return Colors.yellow;
+      return const Color(0xFFFFCC00); // iOS yellow
     case 7:
-      return Colors.teal;
+      return const Color(0xFF5AC8FA); // iOS light blue
     case 8:
-      return Colors.brown;
+      return const Color(0xFFAF52DE); // iOS pink
     case 9:
-      return Colors.pink;
+      return const Color(0xFFFF3B30); // iOS red alternative
     case 10:
-      return Colors.cyan;
+      return const Color(0xFF4CD964); // iOS green alternative
     case 11:
-      return Colors.lime;
+      return const Color(0xFF00C7BE); // iOS teal
     case 12:
-      return Colors.indigo;
+      return const Color(0xFF32ADE6); // iOS blue-green
     default:
-      return Colors.grey;
+      return Colors.grey.shade500;
   }
 }

@@ -271,23 +271,64 @@ Future<void> showTokenDetails(
                       )
                     : SizedBox.shrink(),
                 const SizedBox(height: 5),
-                TabBar(
-                  labelColor: Theme.of(context).primaryColor,
-                  indicatorColor: Theme.of(context).primaryColor,
-                  unselectedLabelColor: Colors.grey,
-                  labelStyle: TextStyle(
-                      fontSize: 13 + appState.getTextSizeOffset(),
-                      fontWeight: FontWeight.bold),
-                  unselectedLabelStyle:
-                      TextStyle(fontSize: 13 + appState.getTextSizeOffset()),
-                  tabs: [
-                    Tab(icon: Icon(Icons.home)),
-                    Tab(icon: Icon(Icons.attach_money)),
-                    Tab(icon: Icon(Icons.store)),
-                    Tab(icon: Icon(Icons.info)),
-                    Tab(icon: Icon(Icons.insights)),
-                    Tab(icon: Icon(Icons.history)),
-                  ],
+                Container(
+                  height: 40,
+                  margin: const EdgeInsets.symmetric(horizontal: 8.0),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.black12
+                        : Colors.black.withOpacity(0.05),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: TabBar(
+                    labelColor: Colors.white,
+                    unselectedLabelColor: Colors.grey,
+                    indicatorSize: TabBarIndicatorSize.tab,
+                    indicatorPadding: EdgeInsets.zero,
+                    padding: EdgeInsets.zero,
+                    labelPadding: EdgeInsets.zero,
+                    dividerColor: Colors.transparent,
+                    indicator: BoxDecoration(
+                      color: Theme.of(context).primaryColor,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    splashFactory: NoSplash.splashFactory,
+                    overlayColor: MaterialStateProperty.resolveWith<Color?>((states) => null),
+                    labelStyle: TextStyle(
+                      fontSize: 12 + appState.getTextSizeOffset(),
+                      fontWeight: FontWeight.w600,
+                    ),
+                    unselectedLabelStyle: TextStyle(
+                      fontSize: 12 + appState.getTextSizeOffset(),
+                      fontWeight: FontWeight.normal,
+                    ),
+                    tabs: [
+                      _buildTabSegment(
+                        icon: Icons.home_outlined,
+                        label: "Property",
+                      ),
+                      _buildTabSegment(
+                        icon: Icons.attach_money_outlined,
+                        label: "Finance",
+                      ),
+                      _buildTabSegment(
+                        icon: Icons.store_outlined,
+                        label: "Market",
+                      ),
+                      _buildTabSegment(
+                        icon: Icons.info_outline,
+                        label: "Info",
+                      ),
+                      _buildTabSegment(
+                        icon: Icons.insights_outlined,
+                        label: "Insights",
+                      ),
+                      _buildTabSegment(
+                        icon: Icons.history_outlined,
+                        label: "History",
+                      ),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 10),
                 SizedBox(
@@ -356,5 +397,19 @@ Future<void> showTokenDetails(
         ),
       );
     },
+  );
+}
+
+Widget _buildTabSegment({required IconData icon, required String label}) {
+  return Tab(
+    height: 40,
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(icon, size: 16),
+        const SizedBox(height: 2),
+        Text(label, style: const TextStyle(fontSize: 10)),
+      ],
+    ),
   );
 }

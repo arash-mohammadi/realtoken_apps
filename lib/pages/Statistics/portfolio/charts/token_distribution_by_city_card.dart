@@ -5,6 +5,7 @@ import 'package:realtokens/managers/data_manager.dart';
 import 'package:realtokens/app_state.dart';
 import 'package:realtokens/generated/l10n.dart';
 import 'package:realtokens/modals/modal_others_pie.dart'; // Assurez-vous que ce fichier existe
+import 'package:realtokens/pages/Statistics/portfolio/common_functions.dart';
 
 class TokenDistributionByCityCard extends StatefulWidget {
   final DataManager dataManager;
@@ -29,10 +30,31 @@ class _TokenDistributionByCityCardState
     final appState = Provider.of<AppState>(context);
 
     return Card(
-      elevation: 0.5,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
       color: Theme.of(context).cardColor,
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 2),
+            ),
+          ],
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Theme.of(context).cardColor,
+              Theme.of(context).cardColor.withOpacity(0.8),
+            ],
+          ),
+        ),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -41,9 +63,10 @@ class _TokenDistributionByCityCardState
               style: TextStyle(
                 fontSize: 20 + appState.getTextSizeOffset(),
                 fontWeight: FontWeight.bold,
+                letterSpacing: -0.5,
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 24),
             SizedBox(
               height: 200,
               child: ValueListenableBuilder<int?>(
@@ -56,8 +79,8 @@ class _TokenDistributionByCityCardState
                         PieChartData(
                           sections: _buildDonutChartDataByCity(
                               widget.dataManager, othersDetails, selectedIndex),
-                          centerSpaceRadius: 70,
-                          sectionsSpace: 2,
+                          centerSpaceRadius: 65,
+                          sectionsSpace: 3,
                           borderData: FlBorderData(show: false),
                           pieTouchData: PieTouchData(
                             touchCallback: (FlTouchEvent event,
@@ -87,6 +110,8 @@ class _TokenDistributionByCityCardState
                             },
                           ),
                         ),
+                        swapAnimationDuration: const Duration(milliseconds: 300),
+                        swapAnimationCurve: Curves.easeInOutCubic,
                       ),
                       _buildCenterTextByCity(
                           widget.dataManager, selectedIndex, othersDetails),
@@ -134,8 +159,7 @@ class _TokenDistributionByCityCardState
       final city = entry.key;
       final value = entry.value;
       final double percentage = (value / totalCount) * 100;
-      final baseColor = generateColor(
-          sortedCities.indexOf(entry)); // Appliquer la couleur générée
+      final baseColor = generateColor(sortedCities.indexOf(entry)); // Utiliser la fonction commune
 
       // Appliquer l'opacité uniquement si un segment est sélectionné
       final bool isSelected = selectedIndex == sortedCities.indexOf(entry);
@@ -150,14 +174,23 @@ class _TokenDistributionByCityCardState
           value: value.toDouble(),
           title: '${percentage.toStringAsFixed(1)}%',
           color: baseColor.withOpacity(opacity),
-          radius: isSelected ? 50 : 40,
+          radius: isSelected ? 52 : 45,
           titleStyle: TextStyle(
             fontSize: isSelected
                 ? 14 + appState.getTextSizeOffset()
                 : 10 + appState.getTextSizeOffset(),
             color: Colors.white,
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w600,
+            shadows: [
+              Shadow(
+                color: Colors.black.withOpacity(0.3),
+                blurRadius: 3,
+                offset: const Offset(1, 1),
+              ),
+            ],
           ),
+          badgeWidget: isSelected ? _buildSelectedIndicator() : null,
+          badgePositionPercentageOffset: 1.1,
         ));
       }
     }
@@ -169,23 +202,56 @@ class _TokenDistributionByCityCardState
         value: othersValue.toDouble(),
         title:
             '${S.of(context).others} ${othersPercentage.toStringAsFixed(1)}%',
-        color: Colors.grey.withOpacity(
+        color: Colors.grey.shade400.withOpacity(
             selectedIndex != null && selectedIndex == sections.length
                 ? 1.0
                 : 0.5),
         radius:
-            selectedIndex != null && selectedIndex == sections.length ? 50 : 40,
+            selectedIndex != null && selectedIndex == sections.length ? 52 : 45,
         titleStyle: TextStyle(
           fontSize: selectedIndex != null && selectedIndex == sections.length
               ? 14 + appState.getTextSizeOffset()
               : 10 + appState.getTextSizeOffset(),
           color: Colors.white,
-          fontWeight: FontWeight.bold,
+          fontWeight: FontWeight.w600,
+          shadows: [
+            Shadow(
+              color: Colors.black.withOpacity(0.3),
+              blurRadius: 3,
+              offset: const Offset(1, 1),
+            ),
+          ],
         ),
+        badgeWidget: selectedIndex != null && selectedIndex == sections.length
+            ? _buildSelectedIndicator()
+            : null,
+        badgePositionPercentageOffset: 1.1,
       ));
     }
 
     return sections;
+  }
+
+  Widget _buildSelectedIndicator() {
+    return Container(
+      width: 12,
+      height: 12,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: Theme.of(context).primaryColor,
+          width: 2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.2),
+            blurRadius: 3,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildCenterTextByCity(DataManager dataManager, int? selectedIndex,
@@ -207,17 +273,20 @@ class _TokenDistributionByCityCardState
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            'total',
+            S.of(context).totalValue,
             style: TextStyle(
               fontSize: 16 + Provider.of<AppState>(context).getTextSizeOffset(),
               fontWeight: FontWeight.bold,
+              color: Theme.of(context).primaryColor,
             ),
           ),
+          const SizedBox(height: 4),
           Text(
             totalCount.toString(),
             style: TextStyle(
               fontSize: 14 + Provider.of<AppState>(context).getTextSizeOffset(),
-              color: Colors.grey,
+              color: Colors.grey.shade600,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],
@@ -238,13 +307,16 @@ class _TokenDistributionByCityCardState
             style: TextStyle(
               fontSize: 16 + Provider.of<AppState>(context).getTextSizeOffset(),
               fontWeight: FontWeight.bold,
+              color: generateColor(selectedIndex),
             ),
           ),
+          const SizedBox(height: 4),
           Text(
             selectedCity.value.toString(),
             style: TextStyle(
               fontSize: 14 + Provider.of<AppState>(context).getTextSizeOffset(),
-              color: Colors.grey,
+              color: Colors.grey.shade600,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],
@@ -259,15 +331,18 @@ class _TokenDistributionByCityCardState
             style: TextStyle(
               fontSize: 16 + Provider.of<AppState>(context).getTextSizeOffset(),
               fontWeight: FontWeight.bold,
+              color: Colors.grey.shade700,
             ),
           ),
+          const SizedBox(height: 4),
           Text(
             othersDetails
                 .fold<int>(0, (sum, item) => sum + (item['count'] as int))
                 .toString(),
             style: TextStyle(
               fontSize: 14 + Provider.of<AppState>(context).getTextSizeOffset(),
-              color: Colors.grey,
+              color: Colors.grey.shade600,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],
@@ -295,14 +370,14 @@ class _TokenDistributionByCityCardState
 
     List<Widget> legendItems = [];
     int othersValue = 0;
+    int indexCounter = 0;
 
     // Parcourir les villes et regrouper celles avec < 2%
     for (var entry in sortedCities) {
       final city = entry.key;
       final value = entry.value;
       final double percentage = (value / totalCount) * 100;
-      final color = generateColor(
-          sortedCities.indexOf(entry)); // Appliquer la couleur générée
+      final color = generateColor(indexCounter);
 
       if (percentage < 2) {
         // Ajouter aux "Autres" si < 2%
@@ -310,68 +385,142 @@ class _TokenDistributionByCityCardState
         othersDetails.add(
             {'city': city, 'count': value}); // Stocker les détails de "Autres"
       } else {
+        final index = sortedCities.indexOf(entry);
         // Ajouter un élément de légende pour cette ville
         legendItems.add(
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 16,
-                height: 16,
-                decoration: BoxDecoration(
-                  color: color,
-                  borderRadius: BorderRadius.circular(4),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 2,
-                      offset: Offset(1, 1),
-                    )
-                  ],
+          InkWell(
+            onTap: () {
+              _selectedIndexNotifierCity.value = (_selectedIndexNotifierCity.value == index) ? null : index;
+            },
+            borderRadius: BorderRadius.circular(8),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+              decoration: BoxDecoration(
+                color: _selectedIndexNotifierCity.value == index
+                    ? color.withOpacity(0.1)
+                    : Colors.transparent,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: _selectedIndexNotifierCity.value == index
+                      ? color
+                      : Colors.transparent,
+                  width: 1,
                 ),
               ),
-              const SizedBox(width: 4),
-              Text(
-                city,
-                style: TextStyle(fontSize: 11 + appState.getTextSizeOffset()),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 12,
+                    height: 12,
+                    decoration: BoxDecoration(
+                      color: color,
+                      borderRadius: BorderRadius.circular(4),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 2,
+                          offset: const Offset(1, 1),
+                        )
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    city,
+                    style: TextStyle(
+                      fontSize: 12 + appState.getTextSizeOffset(),
+                      color: _selectedIndexNotifierCity.value == index
+                          ? color
+                          : Theme.of(context).textTheme.bodyMedium?.color,
+                      fontWeight: _selectedIndexNotifierCity.value == index
+                          ? FontWeight.w600
+                          : FontWeight.normal,
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         );
+        indexCounter++;
       }
     }
 
     // Ajouter une légende pour "Autres" si nécessaire
     if (othersValue > 0) {
-      legendItems.add(Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 16,
-            height: 16,
-            color: Colors.grey,
+      final indexOthers = indexCounter;
+      legendItems.add(
+        InkWell(
+          onTap: () {
+            _selectedIndexNotifierCity.value = (_selectedIndexNotifierCity.value == indexOthers) ? null : indexOthers;
+            if (_selectedIndexNotifierCity.value == indexOthers) {
+              // Optionnellement, ouvrir le modal lorsqu'on clique sur "Autres" dans la légende
+              showOtherDetailsModal(
+                  context,
+                  widget.dataManager,
+                  othersDetails,
+                  'city');
+            }
+          },
+          borderRadius: BorderRadius.circular(8),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+            decoration: BoxDecoration(
+              color: _selectedIndexNotifierCity.value == indexOthers
+                  ? Colors.grey.withOpacity(0.1)
+                  : Colors.transparent,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: _selectedIndexNotifierCity.value == indexOthers
+                    ? Colors.grey
+                    : Colors.transparent,
+                width: 1,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 12,
+                  height: 12,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade400,
+                    borderRadius: BorderRadius.circular(4),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 2,
+                        offset: const Offset(1, 1),
+                      )
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  S.of(context).others,
+                  style: TextStyle(
+                    fontSize: 12 + appState.getTextSizeOffset(),
+                    color: _selectedIndexNotifierCity.value == indexOthers
+                        ? Colors.grey.shade700
+                        : Theme.of(context).textTheme.bodyMedium?.color,
+                    fontWeight: _selectedIndexNotifierCity.value == indexOthers
+                        ? FontWeight.w600
+                        : FontWeight.normal,
+                  ),
+                ),
+              ],
+            ),
           ),
-          const SizedBox(width: 4),
-          Text(
-            S.of(context).others,
-            style: TextStyle(fontSize: 11 + appState.getTextSizeOffset()),
-          ),
-        ],
-      ));
+        ),
+      );
     }
 
     return Wrap(
-      spacing: 8.0,
+      spacing: 12.0,
       runSpacing: 4.0,
+      alignment: WrapAlignment.start,
       children: legendItems,
     );
-  }
-
-  Color generateColor(int index) {
-    final hue = ((index * 57) + 193 * (index % 3)) % 360;
-    final saturation = (0.7 + (index % 5) * 0.06).clamp(0.4, 0.7);
-    final brightness = (0.8 + (index % 3) * 0.2).clamp(0.6, 0.9);
-    return HSVColor.fromAHSV(1.0, hue.toDouble(), saturation, brightness)
-        .toColor();
   }
 }

@@ -12,71 +12,55 @@ class ChartUtils {
     required String selectedPeriod,
     required Function(String) onPeriodChanged,
   }) {
-    return Row(
-      children: [
-        buildPeriodButton(
-          context: context,
-          period: S.of(context).day,
-          isSelected: selectedPeriod == S.of(context).day,
-          isFirst: true,
-          onTap: () => onPeriodChanged(S.of(context).day),
+    return Container(
+      height: 28,
+      margin: const EdgeInsets.symmetric(horizontal: 8.0),
+      decoration: BoxDecoration(
+        color: Theme.of(context).brightness == Brightness.dark
+            ? Colors.black12
+            : Colors.black.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            _buildPeriodButton(S.of(context).day, context, selectedPeriod, onPeriodChanged),
+            _buildPeriodButton(S.of(context).week, context, selectedPeriod, onPeriodChanged),
+            _buildPeriodButton(S.of(context).month, context, selectedPeriod, onPeriodChanged),
+            _buildPeriodButton(S.of(context).year, context, selectedPeriod, onPeriodChanged),
+          ],
         ),
-        buildPeriodButton(
-          context: context,
-          period: S.of(context).week,
-          isSelected: selectedPeriod == S.of(context).week,
-          onTap: () => onPeriodChanged(S.of(context).week),
-        ),
-        buildPeriodButton(
-          context: context,
-          period: S.of(context).month,
-          isSelected: selectedPeriod == S.of(context).month,
-          onTap: () => onPeriodChanged(S.of(context).month),
-        ),
-        buildPeriodButton(
-          context: context,
-          period: S.of(context).year,
-          isSelected: selectedPeriod == S.of(context).year,
-          isLast: true,
-          onTap: () => onPeriodChanged(S.of(context).year),
-        ),
-      ],
+      ),
     );
   }
 
-  static Widget buildPeriodButton({
-    required BuildContext context,
-    required String period,
-    required bool isSelected,
-    bool isFirst = false,
-    bool isLast = false,
-    required Function() onTap,
-  }) {
+  static Widget _buildPeriodButton(
+    String period, 
+    BuildContext context, 
+    String selectedPeriod, 
+    Function(String) onPeriodChanged
+  ) {
+    final isSelected = selectedPeriod == period;
     final appState = Provider.of<AppState>(context);
-    return Expanded(
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          decoration: BoxDecoration(
-            color: isSelected
-                ? Theme.of(context).primaryColor
-                : Theme.of(context).secondaryHeaderColor,
-            borderRadius: BorderRadius.horizontal(
-              left: isFirst ? const Radius.circular(8) : Radius.zero,
-              right: isLast ? const Radius.circular(8) : Radius.zero,
-            ),
-          ),
-          padding: const EdgeInsets.symmetric(vertical: 3),
-          alignment: Alignment.center,
-          child: Text(
-            period,
-            style: TextStyle(
-              fontSize: 14 + appState.getTextSizeOffset(),
-              color: isSelected
-                  ? Colors.white
-                  : Theme.of(context).textTheme.bodyLarge?.color,
-              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-            ),
+    
+    return GestureDetector(
+      onTap: () => onPeriodChanged(period),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        decoration: BoxDecoration(
+          color: isSelected 
+              ? Theme.of(context).primaryColor
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(18),
+        ),
+        child: Text(
+          period,
+          style: TextStyle(
+            fontSize: 12 + appState.getTextSizeOffset(),
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+            color: isSelected ? Colors.white : Colors.grey,
           ),
         ),
       ),
@@ -120,5 +104,44 @@ class ChartUtils {
     }
 
     return spots;
+  }
+
+  static Widget buildPeriodButton({
+    required BuildContext context,
+    required String period,
+    required bool isSelected,
+    bool isFirst = false,
+    bool isLast = false,
+    required Function() onTap,
+  }) {
+    final appState = Provider.of<AppState>(context);
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          decoration: BoxDecoration(
+            color: isSelected
+                ? Theme.of(context).primaryColor
+                : Theme.of(context).secondaryHeaderColor,
+            borderRadius: BorderRadius.horizontal(
+              left: isFirst ? const Radius.circular(8) : Radius.zero,
+              right: isLast ? const Radius.circular(8) : Radius.zero,
+            ),
+          ),
+          padding: const EdgeInsets.symmetric(vertical: 3),
+          alignment: Alignment.center,
+          child: Text(
+            period,
+            style: TextStyle(
+              fontSize: 14 + appState.getTextSizeOffset(),
+              color: isSelected
+                  ? Colors.white
+                  : Theme.of(context).textTheme.bodyLarge?.color,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }

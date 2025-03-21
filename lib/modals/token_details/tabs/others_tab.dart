@@ -30,206 +30,373 @@ Widget buildOthersTab(BuildContext context, Map<String, dynamic> token) {
   }
 
   return SingleChildScrollView(
+    padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
+    physics: const BouncingScrollPhysics(), // Comportement de scroll iOS
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Section Blockchain
-        Text(
-          S.of(context).blockchain,
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 15 + appState.getTextSizeOffset(),
-          ),
-        ),
-        const SizedBox(height: 10),
-        // Contrat Ethereum
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              children: [
-                Image.asset(
-                  'assets/ethereum.png', // Chemin de l'image Ethereum
-                  width: 18,
-                  height: 18,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  S.of(context).ethereumContract,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 13 + appState.getTextSizeOffset(),
-                  ),
-                ),
-              ],
-            ),
-            IconButton(
-              icon: const Icon(Icons.link),
-              onPressed: () {
-                final ethereumAddress = token['ethereumContract'] ?? '';
-                if (ethereumAddress.isNotEmpty) {
-                  UrlUtils.launchURL(
-                      'https://etherscan.io/address/$ethereumAddress');
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(S.of(context).notSpecified)),
-                  );
-                }
-              },
-            ),
-          ],
-        ),
-        const SizedBox(height: 4),
-        Text(
-          token['ethereumContract'] ?? S.of(context).notSpecified,
-          style: TextStyle(fontSize: 13 + appState.getTextSizeOffset()),
-        ),
-        const SizedBox(height: 10),
-        // Contrat Gnosis
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              children: [
-                Image.asset(
-                  'assets/gnosis.png', // Chemin de l'image Gnosis
-                  width: 18,
-                  height: 18,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  S.of(context).gnosisContract,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 13 + appState.getTextSizeOffset(),
-                  ),
-                ),
-              ],
-            ),
-            IconButton(
-              icon: const Icon(Icons.link),
-              onPressed: () {
-                final gnosisAddress = token['gnosisContract'] ?? '';
-                if (gnosisAddress.isNotEmpty) {
-                  UrlUtils.launchURL(
-                      'https://gnosisscan.io/address/$gnosisAddress');
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(S.of(context).notSpecified)),
-                  );
-                }
-              },
-            ),
-          ],
-        ),
-        const SizedBox(height: 4),
-        Text(
-          token['gnosisContract'] ?? S.of(context).notSpecified,
-          style: TextStyle(fontSize: 13 + appState.getTextSizeOffset()),
-        ),
-        const Divider(),
-        // Section Whitelist
-        const SizedBox(height: 10),
-        Text(
-          S.of(context).other,
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 15 + appState.getTextSizeOffset(),
-          ),
-        ),
-        const SizedBox(height: 4),
-        Row(
-          children: [
-            Icon(
-              isWhitelisted ? Icons.check_circle : Icons.cancel,
-              color: isWhitelisted ? Colors.green : Colors.red,
-              size: 18,
-            ),
-            const SizedBox(width: 8),
-            Text(
-              isWhitelisted
-                  ? S.of(context).tokenWhitelisted
-                  : S.of(context).tokenNotWhitelisted,
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: isWhitelisted ? Colors.green : Colors.red,
-                fontSize: 13 + appState.getTextSizeOffset(),
+        _buildSection(
+          context,
+          title: S.of(context).blockchain,
+          child: Column(
+            children: [
+              // Contrat Ethereum
+              _buildContractRow(
+                context,
+                icon: 'assets/ethereum.png',
+                label: S.of(context).ethereumContract,
+                address: token['ethereumContract'] ?? S.of(context).notSpecified,
+                onTap: () {
+                  final ethereumAddress = token['ethereumContract'] ?? '';
+                  if (ethereumAddress.isNotEmpty) {
+                    UrlUtils.launchURL(
+                        'https://etherscan.io/address/$ethereumAddress');
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(S.of(context).notSpecified),
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    );
+                  }
+                },
               ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 10),
-        Row(
-          children: [
-            Icon(
-              isInWallet
-                  ? Icons.account_balance_wallet
-                  : Icons.account_balance_wallet_outlined,
-              color: isInWallet ? Colors.green : Colors.red,
-              size: 18,
-            ),
-            const SizedBox(width: 8),
-            Text(
-              isInWallet
-                  ? S.of(context).presentInWallet
-                  : S.of(context).filterNotInWallet,
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: isInWallet ? Colors.green : Colors.red,
-                fontSize: 13 + appState.getTextSizeOffset(),
+
+              const Divider(height: 1, thickness: 0.5),
+
+              // Contrat Gnosis
+              _buildContractRow(
+                context,
+                icon: 'assets/gnosis.png',
+                label: S.of(context).gnosisContract,
+                address: token['gnosisContract'] ?? S.of(context).notSpecified,
+                onTap: () {
+                  final gnosisAddress = token['gnosisContract'] ?? '';
+                  if (gnosisAddress.isNotEmpty) {
+                    UrlUtils.launchURL(
+                        'https://gnosisscan.io/address/$gnosisAddress');
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(S.of(context).notSpecified),
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    );
+                  }
+                },
               ),
-            ),
-          ],
-        ),
-        const Divider(),
-        // Nouvelle section pour afficher les wallets dans lesquels ce token est présent
-        const SizedBox(height: 10),
-        Text(
-          "Wallets contenant ce token :",
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 15 + appState.getTextSizeOffset(),
+            ],
           ),
         ),
-        const SizedBox(height: 4),
-        tokenWallets.isNotEmpty
-            ? Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: tokenWallets.map((walletAddress) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 2.0),
-                    child: Row(
+
+        const SizedBox(height: 10),
+
+        // Section Whitelist et status
+        _buildSection(
+          context,
+          title: S.of(context).other,
+          child: Column(
+            children: [
+              _buildStatusRow(
+                context,
+                icon: isWhitelisted ? Icons.check_circle : Icons.cancel,
+                iconColor: isWhitelisted ? Colors.green : Colors.red,
+                label: isWhitelisted
+                    ? S.of(context).tokenWhitelisted
+                    : S.of(context).tokenNotWhitelisted,
+                textColor: isWhitelisted ? Colors.green : Colors.red,
+              ),
+
+              const Divider(height: 1, thickness: 0.5),
+
+              _buildStatusRow(
+                context,
+                icon: isInWallet
+                    ? Icons.account_balance_wallet
+                    : Icons.account_balance_wallet_outlined,
+                iconColor: isInWallet ? Colors.green : Colors.red,
+                label: isInWallet
+                    ? S.of(context).presentInWallet
+                    : S.of(context).filterNotInWallet,
+                textColor: isInWallet ? Colors.green : Colors.red,
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 10),
+
+        // Section wallets
+        _buildSection(
+          context,
+          title: "Wallets contenant ce token",
+          child: tokenWallets.isNotEmpty
+              ? Column(
+                  children: tokenWallets.map((walletAddress) {
+                    return Column(
                       children: [
-                        const Icon(
-                          Icons.account_balance_wallet,
-                          size: 16,
+                        _buildWalletRow(
+                          context,
+                          walletAddress: walletAddress,
+                          showFull: appState.showAmounts,
                         ),
-                        const SizedBox(width: 6),
-                        Flexible(
-                          child: Text(
-                            appState.showAmounts ? walletAddress : TextUtils.truncateWallet(walletAddress),
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 13 + appState.getTextSizeOffset(),
-                            ),
-                          ),
-                        ),
+                        if (tokenWallets.last != walletAddress)
+                          const Divider(height: 1, thickness: 0.5),
                       ],
+                    );
+                  }).toList(),
+                )
+              : Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Center(
+                    child: Text(
+                      S.of(context).notSpecified,
+                      style: TextStyle(
+                        fontSize: 14 + appState.getTextSizeOffset(),
+                        color: Colors.grey[600],
+                      ),
                     ),
-                  );
-                }).toList(),
-              )
-            : Text(
-                S.of(context).notSpecified,
-                style: TextStyle(fontSize: 13 + appState.getTextSizeOffset()),
-              ),
-        const Divider(),
-        // Section Informations supplémentaires (si nécessaire)
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+                  ),
+                ),
+        ),
+      ],
+    ),
+  );
+}
+
+// Widget pour construire une section avec titre
+Widget _buildSection(BuildContext context, {required String title, required Widget child}) {
+  return Container(
+    margin: const EdgeInsets.only(bottom: 6),
+    decoration: BoxDecoration(
+      color: Theme.of(context).cardColor,
+      borderRadius: BorderRadius.circular(12),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withOpacity(0.05),
+          blurRadius: 10,
+          offset: const Offset(0, 2),
+        ),
+      ],
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(12.0, 10.0, 12.0, 6.0),
+          child: Text(
+            title,
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).primaryColor,
+            ),
+          ),
+        ),
+        child,
+      ],
+    ),
+  );
+}
+
+// Widget pour les lignes de contrat
+Widget _buildContractRow(BuildContext context, {
+  required String icon,
+  required String label,
+  required String address,
+  required Function() onTap,
+}) {
+  final appState = Provider.of<AppState>(context, listen: false);
+  
+  return Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 10.0),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            // Ajoutez ici d'autres informations si nécessaire
+            Row(
+              children: [
+                Container(
+                  width: 32,
+                  height: 32,
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Image.asset(
+                    icon,
+                    width: 20,
+                    height: 20,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 14 + appState.getTextSizeOffset(),
+                    fontWeight: FontWeight.w600,
+                    color: Theme.of(context).textTheme.bodyLarge?.color,
+                  ),
+                ),
+              ],
+            ),
+            IconButton(
+              icon: Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).primaryColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  Icons.open_in_new,
+                  size: 16,
+                  color: Theme.of(context).primaryColor,
+                ),
+              ),
+              onPressed: onTap,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+            ),
           ],
+        ),
+        const SizedBox(height: 6),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: Colors.grey.withOpacity(0.05),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: Colors.grey.withOpacity(0.2),
+              width: 1,
+            ),
+          ),
+          child: Text(
+            address,
+            style: TextStyle(
+              fontSize: 12 + appState.getTextSizeOffset(),
+              fontFamily: 'Menlo', // Police monospace style iOS
+              color: Theme.of(context).textTheme.bodyMedium?.color,
+            ),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+// Widget pour les lignes de statut
+Widget _buildStatusRow(BuildContext context, {
+  required IconData icon,
+  required Color iconColor,
+  required String label,
+  required Color textColor,
+}) {
+  final appState = Provider.of<AppState>(context, listen: false);
+  
+  return Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 10.0),
+    child: Row(
+      children: [
+        Container(
+          width: 32,
+          height: 32,
+          decoration: BoxDecoration(
+            color: iconColor.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(
+            icon,
+            size: 18,
+            color: iconColor,
+          ),
+        ),
+        const SizedBox(width: 10),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 14 + appState.getTextSizeOffset(),
+            fontWeight: FontWeight.w600,
+            color: textColor,
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+// Widget pour les lignes de wallet
+Widget _buildWalletRow(BuildContext context, {
+  required String walletAddress,
+  required bool showFull,
+}) {
+  final appState = Provider.of<AppState>(context, listen: false);
+  
+  return Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 10.0),
+    child: Row(
+      children: [
+        Container(
+          width: 32,
+          height: 32,
+          decoration: BoxDecoration(
+            color: Colors.purple.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: const Icon(
+            Icons.account_balance_wallet,
+            size: 18,
+            color: Colors.purple,
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: GestureDetector(
+            onTap: () {
+              // Option: Copier l'adresse au presse-papier
+              // Clipboard.setData(ClipboardData(text: walletAddress));
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: const Text('Adresse copiée'),
+                  behavior: SnackBarBehavior.floating,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              );
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.grey.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: Colors.grey.withOpacity(0.2),
+                  width: 1,
+                ),
+              ),
+              child: Text(
+                showFull ? walletAddress : TextUtils.truncateWallet(walletAddress),
+                style: TextStyle(
+                  fontSize: 12 + appState.getTextSizeOffset(),
+                  fontFamily: 'Menlo', // Police monospace style iOS
+                  color: Theme.of(context).textTheme.bodyMedium?.color,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ),
         ),
       ],
     ),

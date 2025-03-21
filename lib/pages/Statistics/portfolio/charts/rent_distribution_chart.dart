@@ -4,19 +4,19 @@ import 'package:provider/provider.dart';
 import 'package:realtokens/managers/data_manager.dart';
 import 'package:realtokens/app_state.dart';
 import 'package:realtokens/generated/l10n.dart';
-import 'package:realtokens/utils/parameters.dart';
 import 'package:realtokens/utils/currency_utils.dart';
+import 'package:realtokens/pages/Statistics/portfolio/common_functions.dart';
 
-class RentDistributionCard extends StatefulWidget {
+class RentDistributionChart extends StatefulWidget {
   final DataManager dataManager;
 
-  const RentDistributionCard({super.key, required this.dataManager});
+  const RentDistributionChart({super.key, required this.dataManager});
 
   @override
-  _RentDistributionCardState createState() => _RentDistributionCardState();
+  _RentDistributionChartState createState() => _RentDistributionChartState();
 }
 
-class _RentDistributionCardState extends State<RentDistributionCard> {
+class _RentDistributionChartState extends State<RentDistributionChart> {
   late String _selectedFilter;
   int? _selectedIndex;
   final ValueNotifier<int?> _selectedIndexNotifier = ValueNotifier<int?>(null);
@@ -32,10 +32,31 @@ class _RentDistributionCardState extends State<RentDistributionCard> {
     final appState = Provider.of<AppState>(context);
 
     return Card(
-      elevation: 0.5,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
       color: Theme.of(context).cardColor,
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 2),
+            ),
+          ],
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Theme.of(context).cardColor,
+              Theme.of(context).cardColor.withOpacity(0.8),
+            ],
+          ),
+        ),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -47,6 +68,7 @@ class _RentDistributionCardState extends State<RentDistributionCard> {
                   style: TextStyle(
                     fontSize: 20 + appState.getTextSizeOffset(),
                     fontWeight: FontWeight.bold,
+                    letterSpacing: -0.5,
                   ),
                 ),
                 DropdownButton<String>(
@@ -68,7 +90,7 @@ class _RentDistributionCardState extends State<RentDistributionCard> {
                 ),
               ],
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 24),
             SizedBox(
               height: 200,
               child: ValueListenableBuilder<int?>(
@@ -79,10 +101,9 @@ class _RentDistributionCardState extends State<RentDistributionCard> {
                     children: [
                       PieChart(
                         PieChartData(
-                          sections: _buildRentDonutChartData(
-                              widget.dataManager, selectedIndex),
+                          sections: _buildRentDonutChartData(selectedIndex),
                           centerSpaceRadius: 65,
-                          sectionsSpace: 2,
+                          sectionsSpace: 3,
                           borderData: FlBorderData(show: false),
                           pieTouchData: PieTouchData(
                             touchCallback: (FlTouchEvent event,
@@ -99,8 +120,10 @@ class _RentDistributionCardState extends State<RentDistributionCard> {
                             },
                           ),
                         ),
+                        swapAnimationDuration: const Duration(milliseconds: 300),
+                        swapAnimationCurve: Curves.easeInOutCubic,
                       ),
-                      _buildCenterText(widget.dataManager, selectedIndex),
+                      _buildCenterText(selectedIndex),
                     ],
                   );
                 },
@@ -109,7 +132,7 @@ class _RentDistributionCardState extends State<RentDistributionCard> {
             const SizedBox(height: 20),
             Flexible(
               child: SingleChildScrollView(
-                child: _buildRentLegend(widget.dataManager),
+                child: _buildRentLegend(),
               ),
             ),
           ],
@@ -118,101 +141,10 @@ class _RentDistributionCardState extends State<RentDistributionCard> {
     );
   }
 
-  List<PieChartSectionData> _buildRentDonutChartData(
-      DataManager dataManager, int? selectedIndex) {
-    final Map<String, double> groupedData =
-        _groupRentDataBySelectedFilter(dataManager);
-    final totalRent = groupedData.values.fold(0.0, (sum, value) => sum + value);
-
-    final sortedEntries = groupedData.entries.toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
-
-    return sortedEntries.asMap().entries.map((entry) {
-      final index = entry.key;
-      final data = entry.value;
-      final percentage = (data.value / totalRent) * 100;
-
-      final bool isSelected = selectedIndex == index;
-      final opacity = selectedIndex != null && !isSelected ? 0.5 : 1.0;
-
-      return PieChartSectionData(
-        value: data.value,
-        title: '${percentage.toStringAsFixed(1)}%',
-        color: generateColor(index).withOpacity(opacity),
-        radius: isSelected ? 50 : 40,
-        titleStyle: TextStyle(
-          fontSize: isSelected
-              ? 14 + Provider.of<AppState>(context).getTextSizeOffset()
-              : 10 + Provider.of<AppState>(context).getTextSizeOffset(),
-          color: Colors.white,
-          fontWeight: FontWeight.bold,
-        ),
-      );
-    }).toList();
-  }
-
-  Widget _buildCenterText(DataManager dataManager, int? selectedIndex) {
-    final Map<String, double> groupedData =
-        _groupRentDataBySelectedFilter(dataManager);
-    final totalRent = groupedData.values.fold(0.0, (sum, value) => sum + value);
-    final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
-
-    if (selectedIndex == null) {
-      return Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            'total',
-            style: TextStyle(
-              fontSize: 16 + Provider.of<AppState>(context).getTextSizeOffset(),
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          Text(
-            currencyUtils.getFormattedAmount(currencyUtils.convert(totalRent),
-                currencyUtils.currencySymbol, true),
-            style: TextStyle(
-              fontSize: 14 + Provider.of<AppState>(context).getTextSizeOffset(),
-              color: Colors.grey,
-            ),
-          ),
-        ],
-      );
-    }
-
-    final sortedEntries = groupedData.entries.toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
-    final selectedEntry = sortedEntries[selectedIndex];
-
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          Parameters.usStateAbbreviations[selectedEntry.key] ??
-              selectedEntry.key,
-          style: TextStyle(
-            fontSize: 16 + Provider.of<AppState>(context).getTextSizeOffset(),
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        Text(
-          currencyUtils.getFormattedAmount(
-              currencyUtils.convert(selectedEntry.value),
-              currencyUtils.currencySymbol,
-              true),
-          style: TextStyle(
-            fontSize: 14 + Provider.of<AppState>(context).getTextSizeOffset(),
-            color: Colors.grey,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Map<String, double> _groupRentDataBySelectedFilter(DataManager dataManager) {
+  Map<String, double> _groupRentDataBySelectedFilter() {
     Map<String, double> groupedData = {};
 
-    for (var token in dataManager.portfolio) {
+    for (var token in widget.dataManager.portfolio) {
       String key;
       switch (_selectedFilter) {
         case 'Country':
@@ -235,64 +167,225 @@ class _RentDistributionCardState extends State<RentDistributionCard> {
     return groupedData;
   }
 
-  Widget _buildRentLegend(DataManager dataManager) {
-    final Map<String, double> groupedData =
-        _groupRentDataBySelectedFilter(dataManager);
+  List<PieChartSectionData> _buildRentDonutChartData(int? selectedIndex) {
+    final Map<String, double> groupedData = _groupRentDataBySelectedFilter();
+    final totalRent = groupedData.values.fold(0.0, (sum, value) => sum + value);
+
+    if (totalRent <= 0) {
+      return [
+        PieChartSectionData(
+          value: 1,
+          title: '',
+          color: Colors.grey.withOpacity(0.2),
+          radius: 40,
+        )
+      ];
+    }
+
+    final sortedEntries = groupedData.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+
+    return sortedEntries.asMap().entries.map((entry) {
+      final index = entry.key;
+      final data = entry.value;
+      final percentage = (data.value / totalRent) * 100;
+
+      final bool isSelected = selectedIndex == index;
+      final opacity = selectedIndex != null && !isSelected ? 0.5 : 1.0;
+
+      return PieChartSectionData(
+        value: data.value,
+        title: percentage < 5 ? '' : '${percentage.toStringAsFixed(1)}%',
+        color: generateColor(index).withOpacity(opacity),
+        radius: isSelected ? 52 : 45,
+        titleStyle: TextStyle(
+          fontSize: isSelected
+              ? 14 + Provider.of<AppState>(context).getTextSizeOffset()
+              : 10 + Provider.of<AppState>(context).getTextSizeOffset(),
+          color: Colors.white,
+          fontWeight: FontWeight.w600,
+          shadows: [
+            Shadow(
+              color: Colors.black.withOpacity(0.3),
+              blurRadius: 3,
+              offset: const Offset(1, 1),
+            ),
+          ],
+        ),
+        badgeWidget: isSelected ? _buildSelectedIndicator() : null,
+        badgePositionPercentageOffset: 1.1,
+      );
+    }).toList();
+  }
+
+  Widget _buildSelectedIndicator() {
+    return Container(
+      width: 12,
+      height: 12,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: Theme.of(context).primaryColor,
+          width: 2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.2),
+            blurRadius: 3,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCenterText(int? selectedIndex) {
+    final Map<String, double> groupedData = _groupRentDataBySelectedFilter();
+    final totalRent = groupedData.values.fold(0.0, (sum, value) => sum + value);
+    final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
+
+    if (selectedIndex == null) {
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            S.of(context).totalValue,
+            style: TextStyle(
+              fontSize: 16 + Provider.of<AppState>(context).getTextSizeOffset(),
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).primaryColor,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            currencyUtils.getFormattedAmount(
+                currencyUtils.convert(totalRent),
+                currencyUtils.currencySymbol,
+                true),
+            style: TextStyle(
+              fontSize: 14 + Provider.of<AppState>(context).getTextSizeOffset(),
+              color: Colors.grey.shade600,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      );
+    }
+
+    // Obtenir l'entrée sélectionnée
+    final sortedEntries = groupedData.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    
+    if (selectedIndex >= sortedEntries.length) return Container();
+    
+    final selectedEntry = sortedEntries[selectedIndex];
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          selectedEntry.key,
+          style: TextStyle(
+            fontSize: 16 + Provider.of<AppState>(context).getTextSizeOffset(),
+            fontWeight: FontWeight.bold,
+            color: generateColor(selectedIndex),
+          ),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 4),
+        Text(
+          currencyUtils.getFormattedAmount(
+              currencyUtils.convert(selectedEntry.value),
+              currencyUtils.currencySymbol,
+              true),
+          style: TextStyle(
+            fontSize: 14 + Provider.of<AppState>(context).getTextSizeOffset(),
+            color: Colors.grey.shade600,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRentLegend() {
+    Map<String, double> groupedData = _groupRentDataBySelectedFilter();
     final appState = Provider.of<AppState>(context);
+    final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
 
     final sortedEntries = groupedData.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
 
     return Wrap(
-      spacing: 8.0,
+      spacing: 12.0,
       runSpacing: 4.0,
       alignment: WrapAlignment.start,
-      children: sortedEntries.map((entry) {
-        final index = sortedEntries.indexOf(entry);
+      children: sortedEntries.asMap().entries.map((entry) {
+        final index = entry.key;
+        final data = entry.value;
         final color = generateColor(index);
 
-        String displayKey =
-            Parameters.usStateAbbreviations[entry.key] ?? entry.key;
-
-        return ConstrainedBox(
-          constraints: BoxConstraints(maxWidth: 200),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 16,
-                height: 16,
-                decoration: BoxDecoration(
-                  color: color,
-                  borderRadius: BorderRadius.circular(4),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 2,
-                      offset: Offset(1, 1),
-                    ),
-                  ],
-                ),
+        return InkWell(
+          onTap: () {
+            _selectedIndexNotifier.value = (_selectedIndexNotifier.value == index) ? null : index;
+          },
+          borderRadius: BorderRadius.circular(8),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+            decoration: BoxDecoration(
+              color: _selectedIndexNotifier.value == index
+                  ? color.withOpacity(0.1)
+                  : Colors.transparent,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: _selectedIndexNotifier.value == index
+                    ? color
+                    : Colors.transparent,
+                width: 1,
               ),
-              const SizedBox(width: 4),
-              Flexible(
-                child: Text(
-                  displayKey,
-                  style: TextStyle(fontSize: 11 + appState.getTextSizeOffset()),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 12,
+                  height: 12,
+                  decoration: BoxDecoration(
+                    color: color,
+                    borderRadius: BorderRadius.circular(4),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 2,
+                        offset: const Offset(1, 1),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+                const SizedBox(width: 8),
+                Text(
+                  '${data.key} (${currencyUtils.getFormattedAmount(
+                    currencyUtils.convert(data.value),
+                    currencyUtils.currencySymbol,
+                    true,
+                  )})',
+                  style: TextStyle(
+                    fontSize: 12 + appState.getTextSizeOffset(),
+                    color: _selectedIndexNotifier.value == index
+                        ? color
+                        : Theme.of(context).textTheme.bodyMedium?.color,
+                    fontWeight: _selectedIndexNotifier.value == index
+                        ? FontWeight.w600
+                        : FontWeight.normal,
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       }).toList(),
     );
   }
-
-  Color generateColor(int index) {
-    final hue = ((index * 57) + 193 * (index % 3)) % 360;
-    final saturation = (0.7 + (index % 5) * 0.06).clamp(0.4, 0.7);
-    final brightness = (0.8 + (index % 3) * 0.2).clamp(0.6, 0.9);
-    return HSVColor.fromAHSV(1.0, hue.toDouble(), saturation, brightness)
-        .toColor();
-  }
 }
+

@@ -5,6 +5,7 @@ import 'package:realtokens/managers/data_manager.dart';
 import 'package:realtokens/app_state.dart';
 import 'package:realtokens/utils/ui_utils.dart';
 import 'package:realtokens/generated/l10n.dart';
+import 'package:realtokens/pages/Statistics/portfolio/common_functions.dart';
 
 class TokenDistributionByWalletCard extends StatefulWidget {
   final DataManager dataManager;
@@ -27,10 +28,31 @@ class _TokenDistributionByWalletCardState
     final appState = Provider.of<AppState>(context);
 
     return Card(
-      elevation: 0.5,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
       color: Theme.of(context).cardColor,
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 2),
+            ),
+          ],
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Theme.of(context).cardColor,
+              Theme.of(context).cardColor.withOpacity(0.8),
+            ],
+          ),
+        ),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -39,9 +61,10 @@ class _TokenDistributionByWalletCardState
               style: TextStyle(
                 fontSize: 20 + appState.getTextSizeOffset(),
                 fontWeight: FontWeight.bold,
+                letterSpacing: -0.5,
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 24),
             SizedBox(
               height: 200,
               child: ValueListenableBuilder<int?>(
@@ -54,8 +77,8 @@ class _TokenDistributionByWalletCardState
                         PieChartData(
                           sections: _buildDonutChartDataByWallet(
                               widget.dataManager, selectedIndex),
-                          centerSpaceRadius: 70,
-                          sectionsSpace: 2,
+                          centerSpaceRadius: 65,
+                          sectionsSpace: 3,
                           borderData: FlBorderData(show: false),
                           pieTouchData: PieTouchData(
                             touchCallback: (FlTouchEvent event,
@@ -72,6 +95,8 @@ class _TokenDistributionByWalletCardState
                             },
                           ),
                         ),
+                        swapAnimationDuration: const Duration(milliseconds: 300),
+                        swapAnimationCurve: Curves.easeInOutCubic,
                       ),
                       _buildCenterTextByWallet(
                           widget.dataManager, selectedIndex),
@@ -126,22 +151,53 @@ class _TokenDistributionByWalletCardState
       final opacity = selectedIndex != null && !isSelected ? 0.5 : 1.0;
 
       // Générer une couleur basée sur l'index
-      final Color baseColor = _generateWalletColor(index);
+      final Color baseColor = generateColor(index);
 
       return PieChartSectionData(
         value: value.toDouble(),
         title: percentage < 5 ? '' : '${percentage.toStringAsFixed(1)}%',
         color: baseColor.withOpacity(opacity),
-        radius: isSelected ? 50 : 40,
+        radius: isSelected ? 52 : 45,
         titleStyle: TextStyle(
           fontSize: isSelected
               ? 14 + appState.getTextSizeOffset()
               : 10 + appState.getTextSizeOffset(),
           color: Colors.white,
-          fontWeight: FontWeight.bold,
+          fontWeight: FontWeight.w600,
+          shadows: [
+            Shadow(
+              color: Colors.black.withOpacity(0.3),
+              blurRadius: 3,
+              offset: const Offset(1, 1),
+            ),
+          ],
         ),
+        badgeWidget: isSelected ? _buildSelectedIndicator() : null,
+        badgePositionPercentageOffset: 1.1,
       );
     }).toList();
+  }
+
+  Widget _buildSelectedIndicator() {
+    return Container(
+      width: 12,
+      height: 12,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: Theme.of(context).primaryColor,
+          width: 2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.2),
+            blurRadius: 3,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildCenterTextByWallet(
@@ -165,17 +221,20 @@ class _TokenDistributionByWalletCardState
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            'total',
+            S.of(context).totalValue,
             style: TextStyle(
               fontSize: 16 + Provider.of<AppState>(context).getTextSizeOffset(),
               fontWeight: FontWeight.bold,
+              color: Theme.of(context).primaryColor,
             ),
           ),
+          const SizedBox(height: 4),
           Text(
             totalWalletTokens.toString(),
             style: TextStyle(
               fontSize: 14 + Provider.of<AppState>(context).getTextSizeOffset(),
-              color: Colors.grey,
+              color: Colors.grey.shade600,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],
@@ -198,14 +257,17 @@ class _TokenDistributionByWalletCardState
           style: TextStyle(
             fontSize: 16 + Provider.of<AppState>(context).getTextSizeOffset(),
             fontWeight: FontWeight.bold,
+            color: generateColor(selectedIndex),
           ),
           textAlign: TextAlign.center,
         ),
+        const SizedBox(height: 4),
         Text(
           walletTokenCounts[selectedWallet].toString(),
           style: TextStyle(
             fontSize: 14 + Provider.of<AppState>(context).getTextSizeOffset(),
-            color: Colors.grey,
+            color: Colors.grey.shade600,
+            fontWeight: FontWeight.w500,
           ),
         ),
       ],
@@ -234,44 +296,71 @@ class _TokenDistributionByWalletCardState
       ..sort((a, b) => walletTokenCounts[b]!.compareTo(walletTokenCounts[a]!));
 
     return Wrap(
-      spacing: 8.0,
+      spacing: 12.0,
       runSpacing: 4.0,
       alignment: WrapAlignment.start,
-      children: sortedWallets.map((wallet) {
-        final int index = sortedWallets.indexOf(wallet);
-        final color = _generateWalletColor(index);
+      children: sortedWallets.asMap().entries.map((entry) {
+        final index = entry.key;
+        final wallet = entry.value;
+        final color = generateColor(index);
         final count = walletTokenCounts[wallet];
         final percentage = (count! / totalWalletTokens) * 100;
 
-        return ConstrainedBox(
-          constraints: BoxConstraints(maxWidth: 200),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 16,
-                height: 16,
-                decoration: BoxDecoration(
-                  color: color,
-                  borderRadius: BorderRadius.circular(4),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 2,
-                      offset: Offset(1, 1),
+        return InkWell(
+          onTap: () {
+            _selectedIndexNotifierWallet.value = (_selectedIndexNotifierWallet.value == index) ? null : index;
+          },
+          borderRadius: BorderRadius.circular(8),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+            decoration: BoxDecoration(
+              color: _selectedIndexNotifierWallet.value == index
+                  ? color.withOpacity(0.1)
+                  : Colors.transparent,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: _selectedIndexNotifierWallet.value == index
+                    ? color
+                    : Colors.transparent,
+                width: 1,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 12,
+                  height: 12,
+                  decoration: BoxDecoration(
+                    color: color,
+                    borderRadius: BorderRadius.circular(4),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 2,
+                        offset: const Offset(1, 1),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Flexible(
+                  child: Text(
+                    '$wallet (${percentage.toStringAsFixed(1)}%)',
+                    style: TextStyle(
+                      fontSize: 12 + appState.getTextSizeOffset(),
+                      color: _selectedIndexNotifierWallet.value == index
+                          ? color
+                          : Theme.of(context).textTheme.bodyMedium?.color,
+                      fontWeight: _selectedIndexNotifierWallet.value == index
+                          ? FontWeight.w600
+                          : FontWeight.normal,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  ],
+                  ),
                 ),
-              ),
-              const SizedBox(width: 4),
-              Flexible(
-                child: Text(
-                  '$wallet (${percentage.toStringAsFixed(1)}%)',
-                  style: TextStyle(fontSize: 11 + appState.getTextSizeOffset()),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         );
       }).toList(),
@@ -282,30 +371,5 @@ class _TokenDistributionByWalletCardState
   String _formatWalletAddress(String address) {
     if (address.length <= 10) return address;
     return "${address.substring(0, 6)}...${address.substring(address.length - 4)}";
-  }
-
-  // Générer des couleurs basées sur l'index
-  Color _generateWalletColor(int index) {
-    final List<Color> baseColors = [
-      Colors.blue,
-      Colors.red,
-      Colors.green,
-      Colors.orange,
-      Colors.purple,
-      Colors.teal,
-      Colors.pink,
-      Colors.amber,
-      Colors.indigo,
-      Colors.cyan,
-    ];
-    
-    // Si nous avons plus de wallets que de couleurs de base, faisons tourner les couleurs mais ajustons légèrement
-    if (index < baseColors.length) {
-      return baseColors[index];
-    } else {
-      final baseColor = baseColors[index % baseColors.length];
-      // Ajuster la teinte légèrement pour différencier
-      return UIUtils.shadeColor(baseColor, 0.7 + (index / 20));
-    }
   }
 } 

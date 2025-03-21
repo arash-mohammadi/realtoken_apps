@@ -24,10 +24,31 @@ class _RentDistributionByWalletChartState extends State<RentDistributionByWallet
     final appState = Provider.of<AppState>(context);
 
     return Card(
-      elevation: 0.5,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
       color: Theme.of(context).cardColor,
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 2),
+            ),
+          ],
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Theme.of(context).cardColor,
+              Theme.of(context).cardColor.withOpacity(0.8),
+            ],
+          ),
+        ),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -39,11 +60,12 @@ class _RentDistributionByWalletChartState extends State<RentDistributionByWallet
                   style: TextStyle(
                     fontSize: 20 + appState.getTextSizeOffset(),
                     fontWeight: FontWeight.bold,
+                    letterSpacing: -0.5,
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 24),
             SizedBox(
               height: 200,
               child: ValueListenableBuilder<int?>(
@@ -56,8 +78,7 @@ class _RentDistributionByWalletChartState extends State<RentDistributionByWallet
                         PieChartData(
                           sections: _buildRentDonutChartData(selectedIndex),
                           centerSpaceRadius: 65,
-                          sectionsSpace: 2,
-                          borderData: FlBorderData(show: false),
+                          sectionsSpace: 3,
                           pieTouchData: PieTouchData(
                             touchCallback: (FlTouchEvent event, PieTouchResponse? response) {
                               if (response != null && response.touchedSection != null) {
@@ -69,6 +90,8 @@ class _RentDistributionByWalletChartState extends State<RentDistributionByWallet
                             },
                           ),
                         ),
+                        swapAnimationDuration: const Duration(milliseconds: 300),
+                        swapAnimationCurve: Curves.easeInOutCubic,
                       ),
                       _buildCenterText(selectedIndex),
                     ],
@@ -112,16 +135,47 @@ class _RentDistributionByWalletChartState extends State<RentDistributionByWallet
         value: data.value,
         title: '${percentage.toStringAsFixed(1)}%',
         color: _generateColor(index).withOpacity(opacity),
-        radius: isSelected ? 50 : 40,
+        radius: isSelected ? 52 : 45,
         titleStyle: TextStyle(
           fontSize: isSelected
               ? 14 + Provider.of<AppState>(context).getTextSizeOffset()
               : 10 + Provider.of<AppState>(context).getTextSizeOffset(),
           color: Colors.white,
-          fontWeight: FontWeight.bold,
+          fontWeight: FontWeight.w600,
+          shadows: [
+            Shadow(
+              color: Colors.black.withOpacity(0.3),
+              blurRadius: 3,
+              offset: const Offset(1, 1),
+            ),
+          ],
         ),
+        badgeWidget: isSelected ? _buildSelectedIndicator() : null,
+        badgePositionPercentageOffset: 1.1,
       );
     }).toList();
+  }
+
+  Widget _buildSelectedIndicator() {
+    return Container(
+      width: 12,
+      height: 12,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: Theme.of(context).primaryColor,
+          width: 2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.2),
+            blurRadius: 3,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildCenterText(int? selectedIndex) {
@@ -138,8 +192,10 @@ class _RentDistributionByWalletChartState extends State<RentDistributionByWallet
             style: TextStyle(
               fontSize: 16 + Provider.of<AppState>(context).getTextSizeOffset(),
               fontWeight: FontWeight.bold,
+              color: Theme.of(context).primaryColor,
             ),
           ),
+          const SizedBox(height: 4),
           Text(
             currencyUtils.getFormattedAmount(
                 currencyUtils.convert(totalRent),
@@ -147,7 +203,8 @@ class _RentDistributionByWalletChartState extends State<RentDistributionByWallet
                 true),
             style: TextStyle(
               fontSize: 14 + Provider.of<AppState>(context).getTextSizeOffset(),
-              color: Colors.grey,
+              color: Colors.grey.shade600,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],
@@ -169,8 +226,10 @@ class _RentDistributionByWalletChartState extends State<RentDistributionByWallet
           style: TextStyle(
             fontSize: 16 + Provider.of<AppState>(context).getTextSizeOffset(),
             fontWeight: FontWeight.bold,
+            color: _generateColor(selectedIndex),
           ),
         ),
+        const SizedBox(height: 4),
         Text(
           currencyUtils.getFormattedAmount(
               currencyUtils.convert(selectedEntry.value),
@@ -178,7 +237,8 @@ class _RentDistributionByWalletChartState extends State<RentDistributionByWallet
               true),
           style: TextStyle(
             fontSize: 14 + Provider.of<AppState>(context).getTextSizeOffset(),
-            color: Colors.grey,
+            color: Colors.grey.shade600,
+            fontWeight: FontWeight.w500,
           ),
         ),
       ],
@@ -193,8 +253,8 @@ class _RentDistributionByWalletChartState extends State<RentDistributionByWallet
       ..sort((a, b) => b.value.compareTo(a.value));
     
     return Wrap(
-      spacing: 8.0,
-      runSpacing: 4.0,
+      spacing: 12.0,
+      runSpacing: 8.0,
       alignment: WrapAlignment.start,
       children: sortedEntries.map((entry) {
         final index = sortedEntries.indexOf(entry);
@@ -203,34 +263,58 @@ class _RentDistributionByWalletChartState extends State<RentDistributionByWallet
         // Raccourcir l'adresse du wallet pour l'affichage
         String displayWallet = _formatWalletAddress(entry.key);
         
-        return ConstrainedBox(
-          constraints: BoxConstraints(maxWidth: 200),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 16,
-                height: 16,
-                decoration: BoxDecoration(
-                  color: color,
-                  borderRadius: BorderRadius.circular(4),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 2,
-                      offset: Offset(1, 1),
-                    ),
-                  ],
-                ),
+        return InkWell(
+          onTap: () {
+            _selectedIndexNotifier.value = index;
+          },
+          borderRadius: BorderRadius.circular(8),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+            decoration: BoxDecoration(
+              color: _selectedIndexNotifier.value == index
+                  ? color.withOpacity(0.1)
+                  : Colors.transparent,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: _selectedIndexNotifier.value == index
+                    ? color
+                    : Colors.transparent,
+                width: 1,
               ),
-              const SizedBox(width: 4),
-              Flexible(
-                child: Text(
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 12,
+                  height: 12,
+                  decoration: BoxDecoration(
+                    color: color,
+                    borderRadius: BorderRadius.circular(4),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 2,
+                        offset: const Offset(1, 1),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
                   displayWallet,
-                  style: TextStyle(fontSize: 11 + appState.getTextSizeOffset()),
+                  style: TextStyle(
+                    fontSize: 12 + appState.getTextSizeOffset(),
+                    color: _selectedIndexNotifier.value == index
+                        ? color
+                        : Theme.of(context).textTheme.bodyMedium?.color,
+                    fontWeight: _selectedIndexNotifier.value == index
+                        ? FontWeight.w600
+                        : FontWeight.normal,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         );
       }).toList(),
@@ -259,10 +343,21 @@ class _RentDistributionByWalletChartState extends State<RentDistributionByWallet
 
   // Méthode pour générer une couleur basée sur l'index
   Color _generateColor(int index) {
-    final hue = ((index * 57) + 193 * (index % 3)) % 360;
-    final saturation = (0.7 + (index % 5) * 0.06).clamp(0.4, 0.7);
-    final brightness = (0.8 + (index % 3) * 0.2).clamp(0.6, 0.9);
-    return HSVColor.fromAHSV(1.0, hue.toDouble(), saturation, brightness).toColor();
+    final List<Color> colorPalette = [
+      const Color(0xFF007AFF), // iOS blue
+      const Color(0xFF34C759), // iOS green
+      const Color(0xFFFF9500), // iOS orange
+      const Color(0xFFFF2D55), // iOS red
+      const Color(0xFF5856D6), // iOS purple
+      const Color(0xFFAF52DE), // iOS pink
+      const Color(0xFF5AC8FA), // iOS light blue
+      const Color(0xFFFF3B30), // iOS red alternative
+      const Color(0xFFFFCC00), // iOS yellow
+      const Color(0xFF4CD964), // iOS green alternative
+    ];
+
+    // Utiliser la palette de couleurs iOS-like de manière cyclique
+    return colorPalette[index % colorPalette.length];
   }
   
   // Méthode pour formater l'adresse du wallet

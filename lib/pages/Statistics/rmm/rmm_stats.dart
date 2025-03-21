@@ -72,7 +72,7 @@ class RmmStatsState extends State<RmmStats> {
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.all(8.0),
-              child: _buildApyCard(dataManager, 380),
+              child: _buildApyCard(dataManager, screenWidth),
             ),
           ),
           SliverPadding(
@@ -129,147 +129,211 @@ class RmmStatsState extends State<RmmStats> {
   }
 
   Widget _buildApyCard(DataManager dataManager, double screenWidth) {
-    return SizedBox(
-      height: 180,
-      width: double.infinity,
-      child: Card(
-        elevation: 0.5,
-        color: Theme.of(context).cardColor,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Column(
-            children: [
-              Row(
-                children: [
-                  GestureDetector(
-                    onTap: () {
-                      showDialog(
-                        context: context,
-                        builder: (context) {
-                          return AlertDialog(
-                            title: const Text('Explication APY Moyen'),
-                            content: const Text(
-                              'L\'APY moyen est calculé en moyenne sur les variations de balance entre plusieurs paires de données. '
-                              'Les valeurs avec des variations anormales (dépôts ou retraits) sont écartées.',
-                            ),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.of(context).pop(),
-                                child: const Text('OK'),
-                              ),
-                            ],
-                          );
-                        },
-                      );
-                    },
-                    child: Row(
-                      children: [
-                        Text(
-                          '${S.of(context).averageApy} ${dataManager.apyAverage.isNaN ? "0.00" : dataManager.apyAverage.toStringAsFixed(2)}%',
-                          style: const TextStyle(
-                              fontSize: 18, fontWeight: FontWeight.bold),
+    return Card(
+      elevation: 0.2,
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      color: Theme.of(context).cardColor,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(
+          color: Theme.of(context).dividerColor.withOpacity(0.1),
+          width: 0.5,
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            GestureDetector(
+              onTap: () {
+                showDialog(
+                  context: context,
+                  builder: (context) {
+                    return AlertDialog(
+                      title: Text(S.of(context).averageApy),
+                      content: const Text(
+                        'L\'APY moyen est calculé en moyenne sur les variations de balance entre plusieurs paires de données. '
+                        'Les valeurs avec des variations anormales (dépôts ou retraits) sont écartées.',
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: const Text('OK'),
                         ),
-                        const SizedBox(width: 5),
-                        const Icon(Icons.info_outline,
-                            size: 20, color: Colors.blue),
                       ],
+                    );
+                  },
+                );
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 10),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      '${S.of(context).averageApy}',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 4),
+                    Text(
+                      '${dataManager.apyAverage.isNaN ? "0.00" : dataManager.apyAverage.toStringAsFixed(2)}%',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Icon(
+                      Icons.info_outline,
+                      size: 16,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 20),
-              _buildApyTable(dataManager),
-            ],
-          ),
+            ),
+            const SizedBox(height: 12),
+            _buildApyTable(dataManager),
+          ],
         ),
       ),
     );
   }
 
   Widget _buildApyTable(DataManager dataManager) {
-    return Table(
-      border: TableBorder(
-        horizontalInside: BorderSide(
-          color: Colors.black.withOpacity(0.3),
-          width: 1,
-        ),
+    final textStyle = TextStyle(
+      fontSize: 14,
+      fontWeight: FontWeight.w500,
+    );
+    
+    final valueStyle = const TextStyle(
+      fontSize: 15,
+      fontWeight: FontWeight.w600,
+    );
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(10),
       ),
-      columnWidths: const {
-        0: FlexColumnWidth(1),
-        1: FlexColumnWidth(1),
-        2: FlexColumnWidth(1),
-      },
-      children: [
-        TableRow(
-          children: [
-            const Padding(
-              padding: EdgeInsets.all(8.0),
-              child: Text(''),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Center(
-                child:
-                    Image.asset('assets/icons/usdc.png', width: 22, height: 22),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // En-tête
+          Row(
+            children: [
+              SizedBox(width: 80, child: Container()),
+              Expanded(
+                child: Container(
+                  alignment: Alignment.center,
+                  padding: const EdgeInsets.symmetric(vertical: 6),
+                  child: Image.asset('assets/icons/usdc.png', width: 22, height: 22),
+                ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Center(
-                child:
-                    Image.asset('assets/icons/xdai.png', width: 22, height: 22),
+              Expanded(
+                child: Container(
+                  alignment: Alignment.center,
+                  padding: const EdgeInsets.symmetric(vertical: 6),
+                  child: Image.asset('assets/icons/xdai.png', width: 22, height: 22),
+                ),
               ),
-            ),
-          ],
-        ),
-        TableRow(
-          children: [
-            const Padding(
-              padding: EdgeInsets.all(8.0),
-              child: Text('Deposit',
-                  style: TextStyle(fontWeight: FontWeight.bold)),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Center(
-                child: Text('${dataManager.usdcDepositApy.toStringAsFixed(2)}%',
-                    style: const TextStyle(color: Colors.blue)),
+            ],
+          ),
+          
+          // Ligne de séparation
+          Divider(height: 0, thickness: 0.5, color: Theme.of(context).dividerColor.withOpacity(0.1)),
+          
+          // Ligne Deposit
+          Row(
+            children: [
+              SizedBox(
+                width: 80,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 6.0),
+                  child: Text('Deposit', style: textStyle),
+                ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Center(
-                child: Text('${dataManager.xdaiDepositApy.toStringAsFixed(2)}%',
-                    style: const TextStyle(color: Colors.green)),
+              Expanded(
+                child: Container(
+                  alignment: Alignment.center,
+                  padding: const EdgeInsets.symmetric(vertical: 6),
+                  child: Text(
+                    '${dataManager.usdcDepositApy.toStringAsFixed(2)}%',
+                    style: valueStyle.copyWith(
+                      color: Colors.blue.shade700,
+                    ),
+                  ),
+                ),
               ),
-            ),
-          ],
-        ),
-        TableRow(
-          children: [
-            const Padding(
-              padding: EdgeInsets.all(8.0),
-              child:
-                  Text('Borrow', style: TextStyle(fontWeight: FontWeight.bold)),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Center(
-                child: Text('${dataManager.usdcBorrowApy.toStringAsFixed(2)}%',
-                    style: const TextStyle(color: Colors.orange)),
+              Expanded(
+                child: Container(
+                  alignment: Alignment.center,
+                  padding: const EdgeInsets.symmetric(vertical: 6),
+                  child: Text(
+                    '${dataManager.xdaiDepositApy.toStringAsFixed(2)}%',
+                    style: valueStyle.copyWith(
+                      color: Colors.green.shade700,
+                    ),
+                  ),
+                ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Center(
-                child: Text('${dataManager.xdaiBorrowApy.toStringAsFixed(2)}%',
-                    style: const TextStyle(color: Colors.red)),
+            ],
+          ),
+          
+          // Ligne de séparation
+          Divider(height: 0, thickness: 0.5, color: Theme.of(context).dividerColor.withOpacity(0.1)),
+          
+          // Ligne Borrow
+          Row(
+            children: [
+              SizedBox(
+                width: 80,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 6.0),
+                  child: Text('Borrow', style: textStyle),
+                ),
               ),
-            ),
-          ],
-        ),
-      ],
+              Expanded(
+                child: Container(
+                  alignment: Alignment.center,
+                  padding: const EdgeInsets.symmetric(vertical: 6),
+                  child: Text(
+                    '${dataManager.usdcBorrowApy.toStringAsFixed(2)}%',
+                    style: valueStyle.copyWith(
+                      color: Colors.orange.shade800,
+                    ),
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Container(
+                  alignment: Alignment.center,
+                  padding: const EdgeInsets.symmetric(vertical: 6),
+                  child: Text(
+                    '${dataManager.xdaiBorrowApy.toStringAsFixed(2)}%',
+                    style: valueStyle.copyWith(
+                      color: Colors.red.shade700,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 

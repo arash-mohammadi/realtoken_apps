@@ -20,137 +20,154 @@ Widget buildInsightsTab(BuildContext context, Map<String, dynamic> token) {
   );
 
   return SingleChildScrollView(
+    padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+    physics: const BouncingScrollPhysics(), // iOS-style scroll
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 20),
+        // Section ROI
+        _buildSection(
+          context,
+          title: S.of(context).roiPerProperties,
+          helpCallback: () {
+            showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  title: Text(S.of(context).roiPerProperties),
+                  content: Text(S.of(context).roiAlertInfo),
+                  actions: <Widget>[
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: const Text('OK'),
+                    ),
+                  ],
+                );
+              },
+            );
+          },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: _buildGaugeForROI(
+              token['totalRentReceived'] / token['initialTotalValue'] * 100,
+              context,
+            ),
+          ),
+        ),
+        
+        const SizedBox(height: 12),
+        
+        // Section Évolution du Rendement
+        _buildSection(
+          context,
+          title: S.of(context).yieldEvolution,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: _buildYieldChartOrMessage(
+              context, 
+              token['historic']?['yields'] ?? [],
+              token['historic']?['init_yield'], 
+              currencyUtils
+            ),
+          ),
+        ),
+        
+        const SizedBox(height: 12),
+        
+        // Section Évolution des Prix
+        _buildSection(
+          context,
+          title: S.of(context).priceEvolution,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: _buildPriceChartOrMessage(
+              context, 
+              token['historic']?['prices'] ?? [], 
+              token['initPrice'], 
+              currencyUtils
+            ),
+          ),
+        ),
+        
+        const SizedBox(height: 12),
+        
+        // Section Cumul des Loyers
+        _buildSection(
+          context,
+          title: S.of(context).cumulativeRentGraph,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: _buildRentCumulativeChartOrMessage(
+              context, 
+              token['uuid'], 
+              dataManager, 
+              currencyUtils
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
+}
 
-        // Jauge verticale du ROI de la propriété
-        Row(
-          children: [
-            Row(
-              children: [
-                Icon(
-                  Icons.assessment, // Icône pour représenter le ROI
-                  size: 18,
-                  color: Colors.blueGrey,
+// Widget pour construire une section
+Widget _buildSection(
+  BuildContext context, {
+  required String title,
+  required Widget child,
+  Function()? helpCallback,
+}) {
+  return Container(
+    margin: const EdgeInsets.only(bottom: 4),
+    decoration: BoxDecoration(
+      color: Theme.of(context).cardColor,
+      borderRadius: BorderRadius.circular(12),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withOpacity(0.05),
+          blurRadius: 8,
+          offset: const Offset(0, 2),
+        ),
+      ],
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(12, 10, 12, 4),
+          child: Row(
+            children: [
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).primaryColor,
                 ),
-                const SizedBox(width: 8),
-                Text(
-                  S.of(context).roiPerProperties, // Titre de la jauge
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 15 + appState.getTextSizeOffset(),
+              ),
+              if (helpCallback != null) ...[
+                const SizedBox(width: 6),
+                InkWell(
+                  onTap: helpCallback,
+                  borderRadius: BorderRadius.circular(12),
+                  child: Padding(
+                    padding: const EdgeInsets.all(4.0),
+                    child: Icon(
+                      Icons.help_outline,
+                      size: 16,
+                      color: Colors.grey[600],
+                    ),
                   ),
                 ),
               ],
-            ),
-            const SizedBox(width: 8),
-            GestureDetector(
-              onTap: () {
-                showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return AlertDialog(
-                      title: Text(
-                          S.of(context).roiPerProperties), // Titre du popup
-                      content:
-                          Text(S.of(context).roiAlertInfo), // Texte explicatif
-                      actions: <Widget>[
-                        TextButton(
-                          onPressed: () {
-                            Navigator.of(context).pop(); // Fermer le popup
-                          },
-                          child: Text('OK'),
-                        ),
-                      ],
-                    );
-                  },
-                );
-              },
-              child: Icon(
-                Icons.help_outline, // Icône "?"
-                color: Colors.grey,
-                size: 20 + appState.getTextSizeOffset(),
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
-
-        const SizedBox(height: 4),
-        _buildGaugeForROI(
-          token['totalRentReceived'] /
-              token['initialTotalValue'] *
-              100, // Calcul du ROI
-          context,
+        const Divider(height: 1, thickness: 0.5),
+        Padding(
+          padding: const EdgeInsets.all(10.0),
+          child: child,
         ),
-        const SizedBox(height: 8),
-
-        // Graphique du rendement (Yield)
-        Row(
-          children: [
-            Icon(Icons.trending_up,
-                size: 18, color: Colors.blueGrey), // Icône devant le texte
-            const SizedBox(width: 8),
-            Text(
-              S.of(context).yieldEvolution, // Utilisation de la traduction
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 15 + appState.getTextSizeOffset(),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 10),
-        _buildYieldChartOrMessage(context, token['historic']?['yields'] ?? [],
-            token['historic']?['init_yield'], currencyUtils),
-
-        const SizedBox(height: 20),
-
-        // Graphique des prix
-        Row(
-          children: [
-            Icon(
-              Icons.attach_money, // Icône pour représenter l'évolution des prix
-              size: 18,
-              color: Colors.blueGrey,
-            ),
-            const SizedBox(width: 8),
-            Text(
-              S.of(context).priceEvolution, // Texte avec traduction
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 15 + appState.getTextSizeOffset(),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 10),
-        _buildPriceChartOrMessage(
-            context, token['historic']?['prices'] ?? [], token['initPrice'], currencyUtils),
-            
-        const SizedBox(height: 20),
-        
-        // Nouveau graphique : Cumul des loyers
-        Row(
-          children: [
-            Icon(
-              Icons.monetization_on, // Icône pour représenter les loyers
-              size: 18,
-              color: Colors.blueGrey,
-            ),
-            const SizedBox(width: 8),
-            Text(
-              S.of(context).cumulativeRentGraph, // Utilisation de la traduction
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 15 + appState.getTextSizeOffset(),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 10),
-        _buildRentCumulativeChartOrMessage(context, token['uuid'], dataManager, currencyUtils),
       ],
     ),
   );
@@ -161,38 +178,37 @@ Widget _buildGaugeForROI(double roiValue, BuildContext context) {
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      const SizedBox(height: 5),
       LayoutBuilder(
         builder: (context, constraints) {
-          double maxWidth = constraints.maxWidth; // Largeur disponible
+          double maxWidth = constraints.maxWidth;
 
           return Stack(
             children: [
               // Fond gris
               Container(
-                height: 15,
+                height: 14,
                 width: maxWidth,
                 decoration: BoxDecoration(
-                  color: const Color.fromARGB(255, 78, 78, 78).withOpacity(0.3),
-                  borderRadius: BorderRadius.circular(5),
+                  color: const Color.fromARGB(255, 78, 78, 78).withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(7),
                 ),
               ),
               // Barre bleue représentant le ROI
               Container(
-                height: 15,
+                height: 14,
                 width: roiValue.clamp(0, 100) / 100 * maxWidth,
                 decoration: BoxDecoration(
                   color: Theme.of(context).primaryColor,
-                  borderRadius: BorderRadius.circular(5),
+                  borderRadius: BorderRadius.circular(7),
                 ),
               ),
               // Texte centré sur la jauge
               Positioned.fill(
                 child: Center(
                   child: Text(
-                    "${roiValue.toStringAsFixed(1)} %", // Afficher avec 1 chiffre après la virgule
-                    style: TextStyle(
-                      fontSize: 14,
+                    "${roiValue.toStringAsFixed(1)} %", 
+                    style: const TextStyle(
+                      fontSize: 12,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                     ),
@@ -203,7 +219,14 @@ Widget _buildGaugeForROI(double roiValue, BuildContext context) {
           );
         },
       ),
-      const SizedBox(height: 5),
+      const SizedBox(height: 6),
+      Text(
+        "Retour sur investissement basé sur les loyers perçus",
+        style: TextStyle(
+          fontSize: 12,
+          color: Colors.grey[600],
+        ),
+      ),
     ],
   );
 }
@@ -219,20 +242,20 @@ Widget _buildYieldChartOrMessage(
       text: TextSpan(
         text: "${S.of(context).noYieldEvolution} ",
         style: TextStyle(
-          fontSize: 13 + appState.getTextSizeOffset(),
+          fontSize: 12 + appState.getTextSizeOffset(),
           color: Theme.of(context).textTheme.bodyMedium?.color,
         ),
         children: [
           TextSpan(
             text: yields.isNotEmpty
-                ? yields.first['yield'].toStringAsFixed(2) // La valeur en gras
+                ? yields.first['yield'].toStringAsFixed(2)
                 : S.of(context).notSpecified,
             style: TextStyle(
               fontWeight: FontWeight.bold,
               color: Theme.of(context).textTheme.bodyLarge?.color,
             ),
           ),
-          TextSpan(
+          const TextSpan(
             text: " %",
           ),
         ],
@@ -249,13 +272,16 @@ Widget _buildYieldChartOrMessage(
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildYieldChart(context, yields, currencyUtils),
-        const SizedBox(height: 10),
+        SizedBox(
+          height: 160,
+          child: _buildYieldChart(context, yields, currencyUtils),
+        ),
+        const SizedBox(height: 6),
         RichText(
           text: TextSpan(
             text: S.of(context).yieldEvolutionPercentage,
             style: TextStyle(
-              fontSize: 13 + appState.getTextSizeOffset(),
+              fontSize: 12 + appState.getTextSizeOffset(),
               color: Theme.of(context).textTheme.bodyMedium?.color,
             ),
             children: [
@@ -288,11 +314,10 @@ Widget _buildYieldChart(BuildContext context, List<dynamic> yields, CurrencyProv
       double y = yields[i]['yield'] != null
           ? double.tryParse(yields[i]['yield'].toString()) ?? 0
           : 0;
-      y = double.parse(
-          y.toStringAsFixed(2)); // Limiter la valeur de `y` à 2 décimales
+      y = double.parse(y.toStringAsFixed(2));
 
       spots.add(FlSpot(x, y));
-      dateLabels.add(DateFormat('MM/yyyy').format(date));
+      dateLabels.add(DateFormat('MM/yy').format(date));
     }
   }
 
@@ -310,84 +335,112 @@ Widget _buildYieldChart(BuildContext context, List<dynamic> yields, CurrencyProv
   const double marginX = 0.2;
   const double marginY = 0.5;
 
-  return SizedBox(
-    height: 180,
-    child: LineChart(
-      LineChartData(
-        gridData: FlGridData(show: true),
-        borderData: FlBorderData(show: false),
-        titlesData: FlTitlesData(
-          topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          bottomTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              getTitlesWidget: (value, meta) {
-                if (value.toInt() >= 0 && value.toInt() < dateLabels.length) {
-                  return Text(
-                    dateLabels[value.toInt()],
-                    style: TextStyle(
-                      fontSize: 10 + appState.getTextSizeOffset(),
+  return LineChart(
+    LineChartData(
+      gridData: FlGridData(
+        show: true,
+        drawVerticalLine: true,
+        drawHorizontalLine: true,
+        horizontalInterval: 1,
+        getDrawingHorizontalLine: (value) => FlLine(
+          color: Colors.grey.withOpacity(0.2),
+          strokeWidth: 0.5,
+        ),
+        getDrawingVerticalLine: (value) => FlLine(
+          color: Colors.grey.withOpacity(0.2),
+          strokeWidth: 0.5,
+        ),
+      ),
+      borderData: FlBorderData(show: false),
+      titlesData: FlTitlesData(
+        topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+        bottomTitles: AxisTitles(
+          sideTitles: SideTitles(
+            showTitles: true,
+            getTitlesWidget: (value, meta) {
+              if (value.toInt() >= 0 && value.toInt() < dateLabels.length) {
+                // N'afficher que quelques étiquettes pour éviter l'encombrement
+                if (dateLabels.length <= 4 || value.toInt() % (dateLabels.length ~/ 4 + 1) == 0) {
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 4.0),
+                    child: Text(
+                      dateLabels[value.toInt()],
+                      style: TextStyle(
+                        fontSize: 9 + appState.getTextSizeOffset(),
+                        color: Colors.grey[600],
+                      ),
                     ),
                   );
                 }
-                return const Text('');
-              },
-              interval: 1,
-            ),
-          ),
-          leftTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              reservedSize: 40,
-              getTitlesWidget: (value, meta) {
-                return Text(
-                  value.toStringAsFixed(2),
-                  style: TextStyle(
-                    fontSize: 10 + appState.getTextSizeOffset(),
-                  ),
-                );
-              },
-            ),
-          ),
-          rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-        ),
-        minX: minXValue - marginX,
-        maxX: maxXValue + marginX,
-        minY: minYValue - marginY,
-        maxY: maxYValue + marginY,
-        lineBarsData: [
-          LineChartBarData(
-            spots: spots,
-            color: Theme.of(context).primaryColor,
-            isCurved: true,
-            barWidth: 2,
-            belowBarData: BarAreaData(show: false),
-          ),
-        ],
-        // Ajouter un tooltip pour afficher les valeurs précises au survol
-        lineTouchData: LineTouchData(
-          touchTooltipData: LineTouchTooltipData(
-            getTooltipItems: (List<LineBarSpot> touchedSpots) {
-              return touchedSpots.map((LineBarSpot touchedSpot) {
-                final int index = touchedSpot.x.toInt();
-                return LineTooltipItem(
-                  '${dateLabels[index]}: ${touchedSpot.y.toStringAsFixed(2)}%',
-                  const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                );
-              }).toList();
+              }
+              return const Text('');
             },
-            // Propriétés pour éviter que le tooltip soit coupé aux bords
-            fitInsideHorizontally: true,
-            fitInsideVertically: true,
-            tooltipMargin: 8,
-            tooltipHorizontalOffset: 0,
-            tooltipRoundedRadius: 8,
-            tooltipPadding: const EdgeInsets.all(8),
+            interval: 1,
           ),
-          // Améliorer l'interaction tactile
-          handleBuiltInTouches: true,
-          touchSpotThreshold: 20,
         ),
+        leftTitles: AxisTitles(
+          sideTitles: SideTitles(
+            showTitles: true,
+            reservedSize: 30,
+            getTitlesWidget: (value, meta) {
+              return Text(
+                value.toStringAsFixed(1),
+                style: TextStyle(
+                  fontSize: 9 + appState.getTextSizeOffset(),
+                  color: Colors.grey[600],
+                ),
+              );
+            },
+            interval: 1,
+          ),
+        ),
+        rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+      ),
+      minX: minXValue - marginX,
+      maxX: maxXValue + marginX,
+      minY: minYValue - marginY,
+      maxY: maxYValue + marginY,
+      lineBarsData: [
+        LineChartBarData(
+          spots: spots,
+          color: Theme.of(context).primaryColor,
+          isCurved: true,
+          barWidth: 2,
+          isStrokeCapRound: true,
+          dotData: FlDotData(
+            show: true,
+            getDotPainter: (spot, percent, barData, index) => FlDotCirclePainter(
+              radius: 3,
+              color: Theme.of(context).primaryColor,
+              strokeWidth: 1,
+              strokeColor: Colors.white,
+            ),
+          ),
+          belowBarData: BarAreaData(
+            show: true,
+            color: Theme.of(context).primaryColor.withOpacity(0.1),
+          ),
+        ),
+      ],
+      lineTouchData: LineTouchData(
+        touchTooltipData: LineTouchTooltipData(
+          getTooltipItems: (List<LineBarSpot> touchedSpots) {
+            return touchedSpots.map((LineBarSpot touchedSpot) {
+              final int index = touchedSpot.x.toInt();
+              return LineTooltipItem(
+                '${dateLabels[index]}: ${touchedSpot.y.toStringAsFixed(2)}%',
+                const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+              );
+            }).toList();
+          },
+          fitInsideHorizontally: true,
+          fitInsideVertically: true,
+          tooltipMargin: 8,
+          tooltipRoundedRadius: 8,
+          tooltipPadding: const EdgeInsets.all(8),
+        ),
+        handleBuiltInTouches: true,
+        touchSpotThreshold: 20,
       ),
     ),
   );
@@ -404,21 +457,20 @@ Widget _buildPriceChartOrMessage(
       text: TextSpan(
         text: "${S.of(context).noPriceEvolution} ",
         style: TextStyle(
-          fontSize: 13 + appState.getTextSizeOffset(),
+          fontSize: 12 + appState.getTextSizeOffset(),
           color: Theme.of(context).textTheme.bodyMedium?.color,
         ),
         children: [
           TextSpan(
             text: prices.isNotEmpty
-                ? prices.first['price'].toStringAsFixed(2) // La valeur en gras
+                ? currencyUtils.formatCurrency(
+                    currencyUtils.convert(prices.first['price']),
+                    currencyUtils.currencySymbol)
                 : S.of(context).notSpecified,
             style: TextStyle(
               fontWeight: FontWeight.bold,
               color: Theme.of(context).textTheme.bodyLarge?.color,
             ),
-          ),
-          TextSpan(
-            text: " \$",
           ),
         ],
       ),
@@ -434,25 +486,53 @@ Widget _buildPriceChartOrMessage(
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildPriceChart(context, prices, currencyUtils),
-        const SizedBox(height: 10),
-        RichText(
-          text: TextSpan(
-            text: S.of(context).priceEvolutionPercentage,
-            style: TextStyle(
-              fontSize: 13 + appState.getTextSizeOffset(),
-              color: Theme.of(context).textTheme.bodyMedium?.color,
-            ),
-            children: [
-              TextSpan(
-                text: " ${percentageChange.toStringAsFixed(2)} %",
+        SizedBox(
+          height: 160,
+          child: _buildPriceChart(context, prices, currencyUtils),
+        ),
+        const SizedBox(height: 6),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            RichText(
+              text: TextSpan(
+                text: S.of(context).priceEvolutionPercentage,
                 style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: percentageChange < 0 ? Colors.red : Colors.green,
+                  fontSize: 12 + appState.getTextSizeOffset(),
+                  color: Theme.of(context).textTheme.bodyMedium?.color,
                 ),
+                children: [
+                  TextSpan(
+                    text: " ${percentageChange.toStringAsFixed(2)} %",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: percentageChange < 0 ? Colors.red : Colors.green,
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+            RichText(
+              text: TextSpan(
+                text: "Prix actuel: ",
+                style: TextStyle(
+                  fontSize: 12 + appState.getTextSizeOffset(),
+                  color: Theme.of(context).textTheme.bodyMedium?.color,
+                ),
+                children: [
+                  TextSpan(
+                    text: currencyUtils.formatCurrency(
+                        currencyUtils.convert(lastPrice),
+                        currencyUtils.currencySymbol),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).primaryColor,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ],
     );
@@ -472,7 +552,7 @@ Widget _buildPriceChart(BuildContext context, List<dynamic> prices, CurrencyProv
     double y = prices[i]['price']?.toDouble() ?? 0;
 
     spots.add(FlSpot(x, y));
-    dateLabels.add(DateFormat('MM/yyyy').format(date));
+    dateLabels.add(DateFormat('MM/yy').format(date));
   }
 
   // Calcul des marges
@@ -489,85 +569,113 @@ Widget _buildPriceChart(BuildContext context, List<dynamic> prices, CurrencyProv
   const double marginX = 0.1;
   const double marginY = 0.2;
 
-  return SizedBox(
-    height: 180,
-    child: LineChart(
-      LineChartData(
-        gridData: FlGridData(show: true),
-        borderData: FlBorderData(show: false),
-        titlesData: FlTitlesData(
-          topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          bottomTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              getTitlesWidget: (value, meta) {
-                if (value.toInt() >= 0 && value.toInt() < dateLabels.length) {
-                  return Text(
-                    dateLabels[value.toInt()],
-                    style: TextStyle(
-                      fontSize: 10 + appState.getTextSizeOffset(),
+  return LineChart(
+    LineChartData(
+      gridData: FlGridData(
+        show: true,
+        drawVerticalLine: true,
+        drawHorizontalLine: true,
+        getDrawingHorizontalLine: (value) => FlLine(
+          color: Colors.grey.withOpacity(0.2),
+          strokeWidth: 0.5,
+        ),
+        getDrawingVerticalLine: (value) => FlLine(
+          color: Colors.grey.withOpacity(0.2),
+          strokeWidth: 0.5,
+        ),
+      ),
+      borderData: FlBorderData(show: false),
+      titlesData: FlTitlesData(
+        topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+        bottomTitles: AxisTitles(
+          sideTitles: SideTitles(
+            showTitles: true,
+            getTitlesWidget: (value, meta) {
+              if (value.toInt() >= 0 && value.toInt() < dateLabels.length) {
+                // N'afficher que quelques étiquettes pour éviter l'encombrement
+                if (dateLabels.length <= 4 || value.toInt() % (dateLabels.length ~/ 4 + 1) == 0) {
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 4.0),
+                    child: Text(
+                      dateLabels[value.toInt()],
+                      style: TextStyle(
+                        fontSize: 9 + appState.getTextSizeOffset(),
+                        color: Colors.grey[600],
+                      ),
                     ),
                   );
                 }
-                return const Text('');
-              },
-              interval: 1,
-            ),
-          ),
-          leftTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              reservedSize: 40,
-              getTitlesWidget: (value, meta) {
-                return Text(
-                  value.toStringAsFixed(2),
-                  style: TextStyle(
-                    fontSize: 10 + appState.getTextSizeOffset(),
-                  ),
-                );
-              },
-            ),
-          ),
-          rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-        ),
-        minX: minXValue - marginX,
-        maxX: maxXValue + marginX,
-        minY: minYValue - marginY,
-        maxY: maxYValue + marginY,
-        lineBarsData: [
-          LineChartBarData(
-            spots: spots,
-            color: Theme.of(context).primaryColor,
-            isCurved: true,
-            barWidth: 2,
-            belowBarData: BarAreaData(show: false),
-          ),
-        ],
-        // Ajouter un tooltip pour afficher les valeurs précises au survol
-        lineTouchData: LineTouchData(
-          touchTooltipData: LineTouchTooltipData(
-            getTooltipItems: (List<LineBarSpot> touchedSpots) {
-              return touchedSpots.map((LineBarSpot touchedSpot) {
-                final int index = touchedSpot.x.toInt();
-                final convertedValue = currencyUtils.convert(touchedSpot.y);
-                return LineTooltipItem(
-                  '${dateLabels[index]}: ${currencyUtils.formatCurrency(convertedValue, currencyUtils.currencySymbol)}',
-                  const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                );
-              }).toList();
+              }
+              return const Text('');
             },
-            // Propriétés pour éviter que le tooltip soit coupé aux bords
-            fitInsideHorizontally: true,
-            fitInsideVertically: true,
-            tooltipMargin: 8,
-            tooltipHorizontalOffset: 0,
-            tooltipRoundedRadius: 8,
-            tooltipPadding: const EdgeInsets.all(8),
+            interval: 1,
           ),
-          // Améliorer l'interaction tactile
-          handleBuiltInTouches: true,
-          touchSpotThreshold: 20,
         ),
+        leftTitles: AxisTitles(
+          sideTitles: SideTitles(
+            showTitles: true,
+            reservedSize: 30,
+            getTitlesWidget: (value, meta) {
+              // Formater les valeurs monétaires de manière compacte
+              final convertedValue = currencyUtils.convert(value);
+              return Text(
+                currencyUtils.formatCurrency(convertedValue, ''),
+                style: TextStyle(
+                  fontSize: 9 + appState.getTextSizeOffset(),
+                  color: Colors.grey[600],
+                ),
+              );
+            },
+          ),
+        ),
+        rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+      ),
+      minX: minXValue - marginX,
+      maxX: maxXValue + marginX,
+      minY: minYValue - marginY,
+      maxY: maxYValue + marginY,
+      lineBarsData: [
+        LineChartBarData(
+          spots: spots,
+          color: Theme.of(context).primaryColor,
+          isCurved: true,
+          barWidth: 2,
+          isStrokeCapRound: true,
+          dotData: FlDotData(
+            show: true,
+            getDotPainter: (spot, percent, barData, index) => FlDotCirclePainter(
+              radius: 3,
+              color: Theme.of(context).primaryColor,
+              strokeWidth: 1,
+              strokeColor: Colors.white,
+            ),
+          ),
+          belowBarData: BarAreaData(
+            show: true,
+            color: Theme.of(context).primaryColor.withOpacity(0.1),
+          ),
+        ),
+      ],
+      lineTouchData: LineTouchData(
+        touchTooltipData: LineTouchTooltipData(
+          getTooltipItems: (List<LineBarSpot> touchedSpots) {
+            return touchedSpots.map((LineBarSpot touchedSpot) {
+              final int index = touchedSpot.x.toInt();
+              final convertedValue = currencyUtils.convert(touchedSpot.y);
+              return LineTooltipItem(
+                '${dateLabels[index]}: ${currencyUtils.formatCurrency(convertedValue, currencyUtils.currencySymbol)}',
+                const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+              );
+            }).toList();
+          },
+          fitInsideHorizontally: true,
+          fitInsideVertically: true,
+          tooltipMargin: 8,
+          tooltipRoundedRadius: 8,
+          tooltipPadding: const EdgeInsets.all(8),
+        ),
+        handleBuiltInTouches: true,
+        touchSpotThreshold: 20,
       ),
     ),
   );
@@ -589,7 +697,7 @@ Widget _buildRentCumulativeChartOrMessage(
     return Text(
       "Aucun historique de loyer disponible pour ce token",
       style: TextStyle(
-        fontSize: 13 + appState.getTextSizeOffset(),
+        fontSize: 12 + appState.getTextSizeOffset(),
         color: Theme.of(context).textTheme.bodyMedium?.color,
       ),
     );
@@ -601,33 +709,44 @@ Widget _buildRentCumulativeChartOrMessage(
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildRentCumulativeChart(context, rentHistory, currencyUtils),
-        const SizedBox(height: 10),
-        RichText(
-          text: TextSpan(
-            text: "Total des loyers reçus: ",
-            style: TextStyle(
-              fontSize: 13 + appState.getTextSizeOffset(),
-              color: Theme.of(context).textTheme.bodyMedium?.color,
-            ),
-            children: [
-              TextSpan(
-                text: " ${currencyUtils.getFormattedAmount(currencyUtils.convert(totalRent), currencyUtils.currencySymbol, appState.showAmounts)}",
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).primaryColor,
-                ),
-              ),
-            ],
-          ),
+        SizedBox(
+          height: 160,
+          child: _buildRentCumulativeChart(context, rentHistory, currencyUtils),
         ),
-        
-        Text(
-          "Loyers issues de $walletCount wallets",
-          style: TextStyle(
-            fontSize: 13 + appState.getTextSizeOffset(),
-            color: Colors.grey,
-          ),
+        const SizedBox(height: 6),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              "Loyers depuis ${walletCount > 1 ? '$walletCount wallets' : '1 wallet'}",
+              style: TextStyle(
+                fontSize: 12 + appState.getTextSizeOffset(),
+                color: Colors.grey[600],
+              ),
+            ),
+            RichText(
+              text: TextSpan(
+                text: "Total: ",
+                style: TextStyle(
+                  fontSize: 12 + appState.getTextSizeOffset(),
+                  color: Theme.of(context).textTheme.bodyMedium?.color,
+                ),
+                children: [
+                  TextSpan(
+                    text: currencyUtils.getFormattedAmount(
+                      currencyUtils.convert(totalRent), 
+                      currencyUtils.currencySymbol, 
+                      appState.showAmounts
+                    ),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.green[700],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ],
     );
@@ -682,7 +801,7 @@ Widget _buildRentCumulativeChart(BuildContext context, List<Map<String, dynamic>
     
     // Formater la date pour l'affichage
     DateTime dateObj = DateTime.parse(date);
-    dateLabels.add(DateFormat('dd/MM/yy').format(dateObj));
+    dateLabels.add(DateFormat('MM/yy').format(dateObj));
   }
 
   // Calcul des marges
@@ -694,96 +813,104 @@ Widget _buildRentCumulativeChart(BuildContext context, List<Map<String, dynamic>
   const double marginX = 0.2;
   const double marginY = 0.5;
 
-  return SizedBox(
-    height: 180,
-    child: LineChart(
-      LineChartData(
-        gridData: FlGridData(show: true),
-        borderData: FlBorderData(show: false),
-        titlesData: FlTitlesData(
-          topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          bottomTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              getTitlesWidget: (value, meta) {
-                if (value.toInt() >= 0 && value.toInt() < dateLabels.length) {
-                  // N'afficher que quelques dates pour éviter la surcharge
-                  if (dateLabels.length <= 5 || value.toInt() % (dateLabels.length ~/ 5 + 1) == 0) {
-                    return Padding(
-                      padding: const EdgeInsets.only(top: 8.0),
-                      child: Text(
-                        dateLabels[value.toInt()],
-                        style: TextStyle(
-                          fontSize: 10 + appState.getTextSizeOffset(),
-                        ),
+  return LineChart(
+    LineChartData(
+      gridData: FlGridData(
+        show: true,
+        drawVerticalLine: true,
+        drawHorizontalLine: true,
+        getDrawingHorizontalLine: (value) => FlLine(
+          color: Colors.grey.withOpacity(0.2),
+          strokeWidth: 0.5,
+        ),
+        getDrawingVerticalLine: (value) => FlLine(
+          color: Colors.grey.withOpacity(0.2),
+          strokeWidth: 0.5,
+        ),
+      ),
+      borderData: FlBorderData(show: false),
+      titlesData: FlTitlesData(
+        topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+        bottomTitles: AxisTitles(
+          sideTitles: SideTitles(
+            showTitles: true,
+            getTitlesWidget: (value, meta) {
+              if (value.toInt() >= 0 && value.toInt() < dateLabels.length) {
+                // N'afficher que quelques dates pour éviter la surcharge
+                if (dateLabels.length <= 4 || value.toInt() % (dateLabels.length ~/ 4 + 1) == 0) {
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 4.0),
+                    child: Text(
+                      dateLabels[value.toInt()],
+                      style: TextStyle(
+                        fontSize: 9 + appState.getTextSizeOffset(),
+                        color: Colors.grey[600],
                       ),
-                    );
-                  }
+                    ),
+                  );
                 }
-                return const Text('');
-              },
-              interval: 1,
-            ),
-          ),
-          leftTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              reservedSize: 40,
-              getTitlesWidget: (value, meta) {
-                final convertedValue = currencyUtils.convert(value);
-                return Text(
-                  currencyUtils.formatCurrency(convertedValue, ''),
-                  style: TextStyle(
-                    fontSize: 10 + appState.getTextSizeOffset(),
-                  ),
-                );
-              },
-            ),
-          ),
-          rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-        ),
-        minX: minXValue - marginX,
-        maxX: maxXValue + marginX,
-        minY: 0 - marginY, // Le minimum est toujours 0 pour un graphique cumulatif
-        maxY: maxYValue + marginY,
-        lineBarsData: [
-          LineChartBarData(
-            spots: spots,
-            color: Colors.green, // Couleur différente pour distinguer ce graphique
-            isCurved: false, // Pas de courbe pour mieux voir les paliers
-            barWidth: 2,
-            belowBarData: BarAreaData(
-              show: true,
-              color: Colors.green.withOpacity(0.1), // Remplissage semi-transparent
-            ),
-            dotData: FlDotData(show: false), // Cacher les points pour un graphique plus propre
-          ),
-        ],
-        // Configurer le tooltip pour qu'il reste visible aux bords de l'écran
-        lineTouchData: LineTouchData(
-          touchTooltipData: LineTouchTooltipData(
-            getTooltipItems: (List<LineBarSpot> touchedSpots) {
-              return touchedSpots.map((LineBarSpot touchedSpot) {
-                final int index = touchedSpot.x.toInt();
-                final convertedValue = currencyUtils.convert(touchedSpot.y);
-                return LineTooltipItem(
-                  '${dateLabels[index]}: ${currencyUtils.formatCurrency(convertedValue, currencyUtils.currencySymbol)}',
-                  const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                );
-              }).toList();
+              }
+              return const Text('');
             },
-            // Propriétés pour éviter que le tooltip soit coupé aux bords
-            fitInsideHorizontally: true,
-            fitInsideVertically: true,
-            tooltipMargin: 8,
-            tooltipHorizontalOffset: 0,
-            tooltipRoundedRadius: 8,
-            tooltipPadding: const EdgeInsets.all(8),
+            interval: 1,
           ),
-          // Améliorer l'interaction tactile
-          handleBuiltInTouches: true,
-          touchSpotThreshold: 20,
         ),
+        leftTitles: AxisTitles(
+          sideTitles: SideTitles(
+            showTitles: true,
+            reservedSize: 35,
+            getTitlesWidget: (value, meta) {
+              final convertedValue = currencyUtils.convert(value);
+              return Text(
+                currencyUtils.formatCurrency(convertedValue, ''),
+                style: TextStyle(
+                  fontSize: 9 + appState.getTextSizeOffset(),
+                  color: Colors.grey[600],
+                ),
+              );
+            },
+          ),
+        ),
+        rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+      ),
+      minX: minXValue - marginX,
+      maxX: maxXValue + marginX,
+      minY: 0 - marginY/2, // Le minimum est toujours 0 pour un graphique cumulatif
+      maxY: maxYValue + marginY,
+      lineBarsData: [
+        LineChartBarData(
+          spots: spots,
+          color: Colors.green[700],
+          isCurved: true,
+          barWidth: 2,
+          isStrokeCapRound: true,
+          dotData: FlDotData(show: false),
+          belowBarData: BarAreaData(
+            show: true,
+            color: Colors.green.withOpacity(0.1),
+          ),
+        ),
+      ],
+      lineTouchData: LineTouchData(
+        touchTooltipData: LineTouchTooltipData(
+          getTooltipItems: (List<LineBarSpot> touchedSpots) {
+            return touchedSpots.map((LineBarSpot touchedSpot) {
+              final int index = touchedSpot.x.toInt();
+              final convertedValue = currencyUtils.convert(touchedSpot.y);
+              return LineTooltipItem(
+                '${dateLabels[index]}: ${currencyUtils.formatCurrency(convertedValue, currencyUtils.currencySymbol)}',
+                const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+              );
+            }).toList();
+          },
+          fitInsideHorizontally: true,
+          fitInsideVertically: true,
+          tooltipMargin: 8,
+          tooltipRoundedRadius: 8,
+          tooltipPadding: const EdgeInsets.all(8),
+        ),
+        handleBuiltInTouches: true,
+        touchSpotThreshold: 20,
       ),
     ),
   );
