@@ -26,7 +26,7 @@ class TokensCard extends StatelessWidget {
       children: [
         UIUtils.buildCard(
           S.of(context).tokens,
-          Icons.account_balance_wallet,
+          Icons.token_outlined,
           UIUtils.buildValueBeforeText(
               context,
               dataManager.totalTokens.toStringAsFixed(2) as String?,

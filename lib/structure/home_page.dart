@@ -142,7 +142,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     Icon(
                       Icons.account_balance_wallet_rounded,
                       size: 22 + appState.getTextSizeOffset(),
-                      color: Theme.of(context).colorScheme.primary,
+                      color: Theme.of(context).primaryColor,
                     ),
                     const SizedBox(width: 8),
                     Text(
@@ -170,10 +170,10 @@ class _MyHomePageState extends State<MyHomePage> {
                 margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                  color: Theme.of(context).primaryColor.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+                    color: Theme.of(context).primaryColor.withOpacity(0.2),
                     width: 1,
                   ),
                 ),
@@ -325,13 +325,13 @@ class _MyHomePageState extends State<MyHomePage> {
                                 Container(
                                   padding: const EdgeInsets.all(4),
                                   decoration: BoxDecoration(
-                                    color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                                    color: Theme.of(context).primaryColor.withOpacity(0.1),
                                     borderRadius: BorderRadius.circular(6),
                                   ),
                                   child: Icon(
                                     Icons.account_balance_wallet_outlined,
                                     size: 14 + appState.getTextSizeOffset(),
-                                    color: Theme.of(context).colorScheme.primary,
+                                    color: Theme.of(context).primaryColor,
                                   ),
                                 ),
                                 const SizedBox(width: 6),

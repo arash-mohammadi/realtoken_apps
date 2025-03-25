@@ -365,446 +365,451 @@ class PortfolioPageState extends State<PortfolioPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Consumer<DataManager>(
-        builder: (context, dataManager, child) {
-          final sortedFilteredPortfolio =
-              _filterAndSortPortfolio(dataManager.portfolio);
-          final uniqueCities = _getUniqueCities(dataManager.portfolio);
-          final uniqueRegions = _getUniqueRegions(dataManager.portfolio);
-          final uniqueCountries = _getUniqueCountries(dataManager.portfolio);
+    return MediaQuery.removeViewPadding(
+      context: context,
+      removeTop: true,
+      child: Scaffold(
+        appBar: AppBar(
+          toolbarHeight: 0,
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+        ),
+        extendBodyBehindAppBar: false,
+        body: Consumer<DataManager>(
+          builder: (context, dataManager, child) {
+            final sortedFilteredPortfolio = _filterAndSortPortfolio(dataManager.portfolio);
+            final uniqueCities = _getUniqueCities(dataManager.portfolio);
+            final uniqueRegions = _getUniqueRegions(dataManager.portfolio);
+            final uniqueCountries = _getUniqueCountries(dataManager.portfolio);
 
-          return Padding(
-            padding: const EdgeInsets.only(top: 0),
-            child: NestedScrollView(
-              headerSliverBuilder:
-                  (BuildContext context, bool innerBoxIsScrolled) {
-                return <Widget>[
-                  SliverAppBar(
-                    floating: true,
-                    snap: true,
-                    automaticallyImplyLeading: false,
-                    expandedHeight: UIUtils.getSliverAppBarHeight(
-                        context) + 65, // Hauteur étendue
-                    flexibleSpace: FlexibleSpaceBar(
-                      background: Container(
-                        color: Theme.of(context).scaffoldBackgroundColor,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment
-                              .end, // Aligne les éléments vers le bas
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 16.0, vertical: 2.0), // Ajout de marges horizontales
-                              child: Column(
-                                children: [
-                                  // Barre avec recherche et bouton d'affichage
-                                  Row(
-                                    children: [
-                                      // Conteneur de recherche avec bords arrondis
-                                      Expanded(
-                                        child: Container(
-                                          margin: const EdgeInsets.only(bottom: 8, right: 8),
-                                          decoration: BoxDecoration(
-                                            color: Theme.of(context).cardColor,
-                                            borderRadius: BorderRadius.circular(24),
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: Colors.black.withOpacity(0.03),
-                                                blurRadius: 8,
-                                                offset: const Offset(0, 2),
-                                              ),
-                                            ],
-                                          ),
-                                          child: Row(
-                                            children: [
-                                              // Icône de recherche
-                                              Padding(
-                                                padding: const EdgeInsets.only(left: 12.0),
-                                                child: Icon(
-                                                  Icons.search,
-                                                  color: Theme.of(context).primaryColor,
-                                                  size: 18,
-                                                ),
-                                              ),
-                                              const SizedBox(width: 8),
-                                              // Champ de recherche
-                                              Expanded(
-                                                child: TextField(
-                                                  onChanged: (value) {
-                                                    _updateSearchQuery(value);
-                                                  },
-                                                  style: const TextStyle(fontSize: 14),
-                                                  decoration: InputDecoration(
-                                                    isDense: true,
-                                                    hintText: S.of(context).searchHint,
-                                                    hintStyle: TextStyle(
-                                                      fontSize: 14,
-                                                      color: Theme.of(context).textTheme.bodySmall?.color,
-                                                    ),
-                                                    border: InputBorder.none,
-                                                    contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                      
-                                      // Bouton d'affichage séparé
-                                      Container(
-                                        margin: const EdgeInsets.only(bottom: 8),
-                                        padding: EdgeInsets.zero,
-                                        child: _buildFilterButton(
-                                          icon: _isDisplay1 ? Icons.view_module : Icons.view_list,
-                                          label: _isDisplay1 ? "Grid" : "List",
-                                          onTap: _toggleDisplay,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  
-                                  // Ligne des contrôles principaux
-                                  Padding(
-                                    padding: const EdgeInsets.only(bottom: 8),
-                                    child: Row(
+            return Padding(
+              padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top + kToolbarHeight),
+              child: NestedScrollView(
+                headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
+                  return <Widget>[
+                    SliverAppBar(
+                      floating: true,
+                      snap: true,
+                      automaticallyImplyLeading: false,
+                      expandedHeight: UIUtils.getSliverAppBarHeight(context) + 65,
+                      flexibleSpace: FlexibleSpaceBar(
+                        background: Container(
+                          color: Theme.of(context).scaffoldBackgroundColor,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 2.0),
+                                child: Column(
+                                  children: [
+                                    // Barre avec recherche et bouton d'affichage
+                                    Row(
                                       children: [
-                                        // Filtre par Région
-                                        _buildFilterPopupMenu(
-                                          context: context,
-                                          icon: Icons.map,
-                                          label: _selectedRegion != null 
-                                            ? (Parameters.usStateAbbreviations[_selectedRegion!] ?? _selectedRegion!)
-                                            : "Region",
-                                          items: [
-                                            PopupMenuItem(
-                                              value: "all_regions",
-                                              child: Text("All Regions"),
-                                            ),
-                                            ...(_getUniqueRegions(Provider.of<DataManager>(context, listen: false).portfolio)
-                                              .map((region) => PopupMenuItem(
-                                                value: region,
-                                                child: Text(Parameters.usStateAbbreviations[region] ?? region),
-                                              ))),
-                                          ],
-                                          onSelected: (String value) {
-                                            _updateRegionFilter(
-                                              value == "all_regions" ? null : value);
-                                          },
-                                        ),
-                                        
-                                        // Filtre par Pays
-                                        _buildFilterPopupMenu(
-                                          context: context,
-                                          icon: Icons.flag,
-                                          label: _selectedCountry ?? "Country",
-                                          items: [
-                                            PopupMenuItem(
-                                              value: "all_countries",
-                                              child: Text("All Countries"),
-                                            ),
-                                            ...(_getUniqueCountries(Provider.of<DataManager>(context, listen: false).portfolio)
-                                              .map((country) => PopupMenuItem(
-                                                value: country,
-                                                child: Row(
-                                                  children: [
-                                                    if (country != "Unknown Country") 
-                                                      Padding(
-                                                        padding: const EdgeInsets.only(right: 8.0),
-                                                        child: Image.asset(
-                                                          'assets/country/${country.toLowerCase()}.png',
-                                                          width: 24,
-                                                          height: 16,
-                                                          errorBuilder: (context, _, __) => const Icon(Icons.flag, size: 20),
-                                                        ),
-                                                      ),
-                                                    Text(country),
-                                                  ],
+                                        // Conteneur de recherche avec bords arrondis
+                                        Expanded(
+                                          child: Container(
+                                            margin: const EdgeInsets.only(bottom: 8, right: 8),
+                                            decoration: BoxDecoration(
+                                              color: Theme.of(context).cardColor,
+                                              borderRadius: BorderRadius.circular(24),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: Colors.black.withOpacity(0.03),
+                                                  blurRadius: 8,
+                                                  offset: const Offset(0, 2),
                                                 ),
-                                              ))),
-                                          ],
-                                          onSelected: (String value) {
-                                            _updateCountryFilter(
-                                              value == "all_countries" ? null : value);
-                                          },
-                                        ),
-                                        
-                                        // Filtres combinés: Statut de location et Type de token
-                                        _buildFilterPopupMenu(
-                                          context: context,
-                                          icon: Icons.filter_alt,
-                                          label: _getCombinedFilterLabel(),
-                                          items: [
-                                            // Section Statut de location
-                                            PopupMenuItem(
-                                              value: "rental_header",
-                                              enabled: false,
-                                              child: Row(
-                                                children: [
-                                                  const Icon(Icons.home_work, size: 20),
-                                                  const SizedBox(width: 8.0),
-                                                  Text(
-                                                    "Statut de location",
-                                                    style: TextStyle(fontWeight: FontWeight.bold),
+                                              ],
+                                            ),
+                                            child: Row(
+                                              children: [
+                                                // Icône de recherche
+                                                Padding(
+                                                  padding: const EdgeInsets.only(left: 12.0),
+                                                  child: Icon(
+                                                    Icons.search,
+                                                    color: Theme.of(context).primaryColor,
+                                                    size: 18,
                                                   ),
-                                                ],
-                                              ),
-                                            ),
-                                            PopupMenuItem(
-                                              value: "rental_all",
-                                              child: Row(
-                                                children: [
-                                                  const Icon(Icons.home_work_outlined, size: 20),
-                                                  const SizedBox(width: 8.0),
-                                                  Text(S.of(context).rentalStatusAll),
-                                                ],
-                                              ),
-                                            ),
-                                            PopupMenuItem(
-                                              value: "rental_rented",
-                                              child: Row(
-                                                children: [
-                                                  const Icon(Icons.check_circle, size: 20, color: Colors.green),
-                                                  const SizedBox(width: 8.0),
-                                                  Text(S.of(context).rentalStatusRented),
-                                                ],
-                                              ),
-                                            ),
-                                            PopupMenuItem(
-                                              value: "rental_partially",
-                                              child: Row(
-                                                children: [
-                                                  const Icon(Icons.adjust, size: 20, color: Colors.orange),
-                                                  const SizedBox(width: 8.0),
-                                                  Text(S.of(context).rentalStatusPartiallyRented),
-                                                ],
-                                              ),
-                                            ),
-                                            PopupMenuItem(
-                                              value: "rental_not",
-                                              child: Row(
-                                                children: [
-                                                  const Icon(Icons.cancel, size: 20, color: Colors.red),
-                                                  const SizedBox(width: 8.0),
-                                                  Text(S.of(context).rentalStatusNotRented),
-                                                ],
-                                              ),
-                                            ),
-                                            
-                                            // Séparateur
-                                            const PopupMenuDivider(),
-                                            
-                                            // Section Type de token
-                                            PopupMenuItem(
-                                              value: "type_header",
-                                              enabled: false,
-                                              child: Row(
-                                                children: const [
-                                                  Icon(Icons.category, size: 20),
-                                                  SizedBox(width: 8.0),
-                                                  Text(
-                                                    "Type de token",
-                                                    style: TextStyle(fontWeight: FontWeight.bold),
+                                                ),
+                                                const SizedBox(width: 8),
+                                                // Champ de recherche
+                                                Expanded(
+                                                  child: TextField(
+                                                    onChanged: (value) {
+                                                      _updateSearchQuery(value);
+                                                    },
+                                                    style: const TextStyle(fontSize: 14),
+                                                    decoration: InputDecoration(
+                                                      isDense: true,
+                                                      hintText: S.of(context).searchHint,
+                                                      hintStyle: TextStyle(
+                                                        fontSize: 14,
+                                                        color: Theme.of(context).textTheme.bodySmall?.color,
+                                                      ),
+                                                      border: InputBorder.none,
+                                                      contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                                                    ),
                                                   ),
-                                                ],
-                                              ),
+                                                ),
+                                              ],
                                             ),
-                                            PopupMenuItem(
-                                              value: "type_wallet_toggle",
-                                              child: StatefulBuilder(
-                                                builder: (context, setStateLocal) {
-                                                  return InkWell(
-                                                    onTap: () {
-                                                      setState(() {
-                                                        if (_selectedTokenTypes.contains("wallet")) {
-                                                          _selectedTokenTypes.remove("wallet");
-                                                        } else {
-                                                          _selectedTokenTypes.add("wallet");
-                                                        }
-                                                      });
-                                                      setStateLocal(() {});
-                                                    },
-                                                    child: Row(
-                                                      children: [
-                                                        _selectedTokenTypes.contains("wallet")
-                                                            ? const Icon(Icons.check, size: 20)
-                                                            : const SizedBox(width: 20),
-                                                        const SizedBox(width: 8.0),
-                                                        const Icon(Icons.account_balance_wallet, size: 20),
-                                                        const SizedBox(width: 8.0),
-                                                        const Text("Wallet"),
-                                                      ],
-                                                    ),
-                                                  );
-                                                },
-                                              ),
-                                            ),
-                                            PopupMenuItem(
-                                              value: "type_rmm_toggle",
-                                              child: StatefulBuilder(
-                                                builder: (context, setStateLocal) {
-                                                  return InkWell(
-                                                    onTap: () {
-                                                      setState(() {
-                                                        if (_selectedTokenTypes.contains("RMM")) {
-                                                          _selectedTokenTypes.remove("RMM");
-                                                        } else {
-                                                          _selectedTokenTypes.add("RMM");
-                                                        }
-                                                      });
-                                                      setStateLocal(() {});
-                                                    },
-                                                    child: Row(
-                                                      children: [
-                                                        _selectedTokenTypes.contains("RMM")
-                                                            ? const Icon(Icons.check, size: 20)
-                                                            : const SizedBox(width: 20),
-                                                        const SizedBox(width: 8.0),
-                                                        const Icon(Icons.business, size: 20),
-                                                        const SizedBox(width: 8.0),
-                                                        const Text("RMM"),
-                                                      ],
-                                                    ),
-                                                  );
-                                                },
-                                              ),
-                                            ),
-                                          ],
-                                          onSelected: (String value) {
-                                            if (value.startsWith("rental_")) {
-                                              switch (value) {
-                                                case "rental_all":
-                                                  _updateRentalStatusFilter(S.of(context).rentalStatusAll);
-                                                  break;
-                                                case "rental_rented":
-                                                  _updateRentalStatusFilter(S.of(context).rentalStatusRented);
-                                                  break;
-                                                case "rental_partially":
-                                                  _updateRentalStatusFilter(S.of(context).rentalStatusPartiallyRented);
-                                                  break;
-                                                case "rental_not":
-                                                  _updateRentalStatusFilter(S.of(context).rentalStatusNotRented);
-                                                  break;
-                                              }
-                                              _saveFilterPreferences();
-                                            }
-                                          },
+                                          ),
                                         ),
                                         
-                                        // Filtres Wallet
-                                        _buildWalletFilterMenu(
-                                          context: context,
-                                          icon: Icons.account_balance_wallet,
-                                          selectedWallets: _selectedWallets,
-                                          onWalletsChanged: (newSelectedWallets) {
-                                            setState(() {
-                                              _selectedWallets = newSelectedWallets;
-                                            });
-                                          },
-                                        ),
-                                        
-                                        // Espace flexible pour pousser le tri à droite
-                                        const Spacer(),
-                                        
-                                        // Tri
+                                        // Bouton d'affichage séparé
                                         Container(
-                                          margin: EdgeInsets.zero, // Sans marge
-                                          child: PopupMenuButton<String>(
-                                            tooltip: _getSortLabel(context),
-                                            onSelected: (String value) {
-                                              if (value == 'asc' || value == 'desc') {
-                                                setState(() {
-                                                  _isAscending = (value == 'asc');
-                                                });
-                                                _saveFilterPreferences(); // Sauvegarder après la modification
-                                              } else {
-                                                _updateSortOption(value);
-                                              }
-                                            },
-                                            offset: const Offset(0, 40),
-                                            elevation: 8,
-                                            color: Theme.of(context).cardColor.withOpacity(0.97),
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(16),
-                                            ),
-                                            child: Container(
-                                              padding: const EdgeInsets.all(8),
-                                              decoration: BoxDecoration(
-                                                color: Theme.of(context).primaryColor.withOpacity(0.1),
-                                                borderRadius: BorderRadius.circular(12),
-                                              ),
-                                              child: Row(
-                                                mainAxisSize: MainAxisSize.min,
-                                                children: [
-                                                  Icon(
-                                                    Icons.sort,
-                                                    size: 20,
-                                                    color: Theme.of(context).primaryColor,
-                                                  ),
-                                                  Icon(
-                                                    Icons.arrow_drop_down,
-                                                    size: 20,
-                                                    color: Theme.of(context).primaryColor,
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                            itemBuilder: (context) => [
-                                              CheckedPopupMenuItem(
-                                                value: S.of(context).sortByName,
-                                                checked: _sortOption == S.of(context).sortByName,
-                                                child: Text(S.of(context).sortByName),
-                                              ),
-                                              CheckedPopupMenuItem(
-                                                value: S.of(context).sortByValue,
-                                                checked: _sortOption == S.of(context).sortByValue,
-                                                child: Text(S.of(context).sortByValue),
-                                              ),
-                                              CheckedPopupMenuItem(
-                                                value: S.of(context).sortByAPY,
-                                                checked: _sortOption == S.of(context).sortByAPY,
-                                                child: Text(S.of(context).sortByAPY),
-                                              ),
-                                              CheckedPopupMenuItem(
-                                                value: S.of(context).sortByInitialLaunchDate,
-                                                checked: _sortOption == S.of(context).sortByInitialLaunchDate,
-                                                child: Text(S.of(context).sortByInitialLaunchDate),
-                                              ),
-                                              const PopupMenuDivider(),
-                                              CheckedPopupMenuItem(
-                                                value: 'asc',
-                                                checked: _isAscending,
-                                                child: Text(S.of(context).ascending),
-                                              ),
-                                              CheckedPopupMenuItem(
-                                                value: 'desc',
-                                                checked: !_isAscending,
-                                                child: Text(S.of(context).descending),
-                                              ),
-                                            ],
+                                          margin: const EdgeInsets.only(bottom: 8),
+                                          padding: EdgeInsets.zero,
+                                          child: _buildFilterButton(
+                                            icon: _isDisplay1 ? Icons.view_module : Icons.view_list,
+                                            label: _isDisplay1 ? "Grid" : "List",
+                                            onTap: _toggleDisplay,
                                           ),
                                         ),
                                       ],
                                     ),
-                                  ),
-                                ],
+                                    
+                                    // Ligne des contrôles principaux
+                                    Padding(
+                                      padding: const EdgeInsets.only(bottom: 8),
+                                      child: Row(
+                                        children: [
+                                          // Filtre par Région
+                                          _buildFilterPopupMenu(
+                                            context: context,
+                                            icon: Icons.map,
+                                            label: _selectedRegion != null 
+                                              ? (Parameters.usStateAbbreviations[_selectedRegion!] ?? _selectedRegion!)
+                                              : "Region",
+                                            items: [
+                                              PopupMenuItem(
+                                                value: "all_regions",
+                                                child: Text("All Regions"),
+                                              ),
+                                              ...(_getUniqueRegions(Provider.of<DataManager>(context, listen: false).portfolio)
+                                                .map((region) => PopupMenuItem(
+                                                  value: region,
+                                                  child: Text(Parameters.usStateAbbreviations[region] ?? region),
+                                                ))),
+                                            ],
+                                            onSelected: (String value) {
+                                              _updateRegionFilter(
+                                                value == "all_regions" ? null : value);
+                                            },
+                                          ),
+                                          
+                                          // Filtre par Pays
+                                          _buildFilterPopupMenu(
+                                            context: context,
+                                            icon: Icons.flag,
+                                            label: _selectedCountry ?? "Country",
+                                            items: [
+                                              PopupMenuItem(
+                                                value: "all_countries",
+                                                child: Text("All Countries"),
+                                              ),
+                                              ...(_getUniqueCountries(Provider.of<DataManager>(context, listen: false).portfolio)
+                                                .map((country) => PopupMenuItem(
+                                                  value: country,
+                                                  child: Row(
+                                                    children: [
+                                                      if (country != "Unknown Country") 
+                                                        Padding(
+                                                          padding: const EdgeInsets.only(right: 8.0),
+                                                          child: Image.asset(
+                                                            'assets/country/${country.toLowerCase()}.png',
+                                                            width: 24,
+                                                            height: 16,
+                                                            errorBuilder: (context, _, __) => const Icon(Icons.flag, size: 20),
+                                                          ),
+                                                        ),
+                                                      Text(country),
+                                                    ],
+                                                  ),
+                                                ))),
+                                            ],
+                                            onSelected: (String value) {
+                                              _updateCountryFilter(
+                                                value == "all_countries" ? null : value);
+                                            },
+                                          ),
+                                          
+                                          // Filtres combinés: Statut de location et Type de token
+                                          _buildFilterPopupMenu(
+                                            context: context,
+                                            icon: Icons.filter_alt,
+                                            label: _getCombinedFilterLabel(),
+                                            items: [
+                                              // Section Statut de location
+                                              PopupMenuItem(
+                                                value: "rental_header",
+                                                enabled: false,
+                                                child: Row(
+                                                  children: [
+                                                    const Icon(Icons.home_work, size: 20),
+                                                    const SizedBox(width: 8.0),
+                                                    Text(
+                                                      "Statut de location",
+                                                      style: TextStyle(fontWeight: FontWeight.bold),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                              PopupMenuItem(
+                                                value: "rental_all",
+                                                child: Row(
+                                                  children: [
+                                                    const Icon(Icons.home_work_outlined, size: 20),
+                                                    const SizedBox(width: 8.0),
+                                                    Text(S.of(context).rentalStatusAll),
+                                                  ],
+                                                ),
+                                              ),
+                                              PopupMenuItem(
+                                                value: "rental_rented",
+                                                child: Row(
+                                                  children: [
+                                                    const Icon(Icons.check_circle, size: 20, color: Colors.green),
+                                                    const SizedBox(width: 8.0),
+                                                    Text(S.of(context).rentalStatusRented),
+                                                  ],
+                                                ),
+                                              ),
+                                              PopupMenuItem(
+                                                value: "rental_partially",
+                                                child: Row(
+                                                  children: [
+                                                    const Icon(Icons.adjust, size: 20, color: Colors.orange),
+                                                    const SizedBox(width: 8.0),
+                                                    Text(S.of(context).rentalStatusPartiallyRented),
+                                                  ],
+                                                ),
+                                              ),
+                                              PopupMenuItem(
+                                                value: "rental_not",
+                                                child: Row(
+                                                  children: [
+                                                    const Icon(Icons.cancel, size: 20, color: Colors.red),
+                                                    const SizedBox(width: 8.0),
+                                                    Text(S.of(context).rentalStatusNotRented),
+                                                  ],
+                                                ),
+                                              ),
+                                              
+                                              // Séparateur
+                                              const PopupMenuDivider(),
+                                              
+                                              // Section Type de token
+                                              PopupMenuItem(
+                                                value: "type_header",
+                                                enabled: false,
+                                                child: Row(
+                                                  children: const [
+                                                    Icon(Icons.category, size: 20),
+                                                    SizedBox(width: 8.0),
+                                                    Text(
+                                                      "Type de token",
+                                                      style: TextStyle(fontWeight: FontWeight.bold),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                              PopupMenuItem(
+                                                value: "type_wallet_toggle",
+                                                child: StatefulBuilder(
+                                                  builder: (context, setStateLocal) {
+                                                    return InkWell(
+                                                      onTap: () {
+                                                        setState(() {
+                                                          if (_selectedTokenTypes.contains("wallet")) {
+                                                            _selectedTokenTypes.remove("wallet");
+                                                          } else {
+                                                            _selectedTokenTypes.add("wallet");
+                                                          }
+                                                        });
+                                                        setStateLocal(() {});
+                                                      },
+                                                      child: Row(
+                                                        children: [
+                                                          _selectedTokenTypes.contains("wallet")
+                                                              ? const Icon(Icons.check, size: 20)
+                                                              : const SizedBox(width: 20),
+                                                          const SizedBox(width: 8.0),
+                                                          const Icon(Icons.account_balance_wallet, size: 20),
+                                                          const SizedBox(width: 8.0),
+                                                          const Text("Wallet"),
+                                                        ],
+                                                      ),
+                                                    );
+                                                  },
+                                                ),
+                                              ),
+                                              PopupMenuItem(
+                                                value: "type_rmm_toggle",
+                                                child: StatefulBuilder(
+                                                  builder: (context, setStateLocal) {
+                                                    return InkWell(
+                                                      onTap: () {
+                                                        setState(() {
+                                                          if (_selectedTokenTypes.contains("RMM")) {
+                                                            _selectedTokenTypes.remove("RMM");
+                                                          } else {
+                                                            _selectedTokenTypes.add("RMM");
+                                                          }
+                                                        });
+                                                        setStateLocal(() {});
+                                                      },
+                                                      child: Row(
+                                                        children: [
+                                                          _selectedTokenTypes.contains("RMM")
+                                                              ? const Icon(Icons.check, size: 20)
+                                                              : const SizedBox(width: 20),
+                                                          const SizedBox(width: 8.0),
+                                                          const Icon(Icons.business, size: 20),
+                                                          const SizedBox(width: 8.0),
+                                                          const Text("RMM"),
+                                                        ],
+                                                      ),
+                                                    );
+                                                  },
+                                                ),
+                                              ),
+                                            ],
+                                            onSelected: (String value) {
+                                              if (value.startsWith("rental_")) {
+                                                switch (value) {
+                                                  case "rental_all":
+                                                    _updateRentalStatusFilter(S.of(context).rentalStatusAll);
+                                                    break;
+                                                  case "rental_rented":
+                                                    _updateRentalStatusFilter(S.of(context).rentalStatusRented);
+                                                    break;
+                                                  case "rental_partially":
+                                                    _updateRentalStatusFilter(S.of(context).rentalStatusPartiallyRented);
+                                                    break;
+                                                  case "rental_not":
+                                                    _updateRentalStatusFilter(S.of(context).rentalStatusNotRented);
+                                                    break;
+                                                }
+                                                _saveFilterPreferences();
+                                              }
+                                            },
+                                          ),
+                                          
+                                          // Filtres Wallet
+                                          _buildWalletFilterMenu(
+                                            context: context,
+                                            icon: Icons.account_balance_wallet,
+                                            selectedWallets: _selectedWallets,
+                                            onWalletsChanged: (newSelectedWallets) {
+                                              setState(() {
+                                                _selectedWallets = newSelectedWallets;
+                                              });
+                                            },
+                                          ),
+                                          
+                                          // Espace flexible pour pousser le tri à droite
+                                          const Spacer(),
+                                          
+                                          // Tri
+                                          Container(
+                                            margin: EdgeInsets.zero, // Sans marge
+                                            child: PopupMenuButton<String>(
+                                              tooltip: _getSortLabel(context),
+                                              onSelected: (String value) {
+                                                if (value == 'asc' || value == 'desc') {
+                                                  setState(() {
+                                                    _isAscending = (value == 'asc');
+                                                  });
+                                                  _saveFilterPreferences(); // Sauvegarder après la modification
+                                                } else {
+                                                  _updateSortOption(value);
+                                                }
+                                              },
+                                              offset: const Offset(0, 40),
+                                              elevation: 8,
+                                              color: Theme.of(context).cardColor.withOpacity(0.97),
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius: BorderRadius.circular(16),
+                                              ),
+                                              child: Container(
+                                                padding: const EdgeInsets.all(8),
+                                                decoration: BoxDecoration(
+                                                  color: Theme.of(context).primaryColor.withOpacity(0.1),
+                                                  borderRadius: BorderRadius.circular(12),
+                                                ),
+                                                child: Row(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  children: [
+                                                    Icon(
+                                                      Icons.sort,
+                                                      size: 20,
+                                                      color: Theme.of(context).primaryColor,
+                                                    ),
+                                                    Icon(
+                                                      Icons.arrow_drop_down,
+                                                      size: 20,
+                                                      color: Theme.of(context).primaryColor,
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                              itemBuilder: (context) => [
+                                                CheckedPopupMenuItem(
+                                                  value: S.of(context).sortByName,
+                                                  checked: _sortOption == S.of(context).sortByName,
+                                                  child: Text(S.of(context).sortByName),
+                                                ),
+                                                CheckedPopupMenuItem(
+                                                  value: S.of(context).sortByValue,
+                                                  checked: _sortOption == S.of(context).sortByValue,
+                                                  child: Text(S.of(context).sortByValue),
+                                                ),
+                                                CheckedPopupMenuItem(
+                                                  value: S.of(context).sortByAPY,
+                                                  checked: _sortOption == S.of(context).sortByAPY,
+                                                  child: Text(S.of(context).sortByAPY),
+                                                ),
+                                                CheckedPopupMenuItem(
+                                                  value: S.of(context).sortByInitialLaunchDate,
+                                                  checked: _sortOption == S.of(context).sortByInitialLaunchDate,
+                                                  child: Text(S.of(context).sortByInitialLaunchDate),
+                                                ),
+                                                const PopupMenuDivider(),
+                                                CheckedPopupMenuItem(
+                                                  value: 'asc',
+                                                  checked: _isAscending,
+                                                  child: Text(S.of(context).ascending),
+                                                ),
+                                                CheckedPopupMenuItem(
+                                                  value: 'desc',
+                                                  checked: !_isAscending,
+                                                  child: Text(S.of(context).descending),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                  )
-                ];
-              },
-              body: _isDisplay1
-                  ? PortfolioDisplay1(portfolio: sortedFilteredPortfolio)
-                  : PortfolioDisplay2(portfolio: sortedFilteredPortfolio),
-            ),
-          );
-        },
+                    )
+                  ];
+                },
+                body: _isDisplay1
+                    ? PortfolioDisplay1(portfolio: sortedFilteredPortfolio)
+                    : PortfolioDisplay2(portfolio: sortedFilteredPortfolio),
+              ),
+            );
+          },
+        ),
       ),
     );
   }

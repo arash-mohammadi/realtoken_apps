@@ -383,8 +383,38 @@ class RmmCard extends StatelessWidget {
         ? ((walletBorrow / walletDeposit * 100).clamp(0.0, 100.0)) / 100
         : 0;
 
-    // Couleur unique pour les jauges
-    final Color gaugeColor = theme.primaryColor; // Utiliser la couleur primaire du thème
+    // Définition des couleurs pour la jauge HF en fonction du facteur
+    Color getHFColor(double hfValue) {
+      if (hfValue <= 1.1) {
+        return Color(0xFFFF3B30); // Rouge pour valeurs dangereuses (HF proche de 1)
+      } else if (hfValue <= 1.5) {
+        return Color(0xFFFF9500); // Orange pour valeurs à risque modéré
+      } else if (hfValue <= 2.5) {
+        return Color(0xFFFFCC00); // Jaune pour valeurs moyennes
+      } else {
+        return Color(0xFF34C759); // Vert pour valeurs sûres
+      }
+    }
+    
+    // Fonction pour déterminer la couleur de la jauge LTV en fonction de sa valeur
+    Color getLTVColor(double ltvPercent) {
+      if (ltvPercent >= 65) {
+        return Color(0xFFFF3B30); // Rouge pour valeurs dangereuses (LTV proche de 70%)
+      } else if (ltvPercent >= 55) {
+        return Color(0xFFFF9500); // Orange pour valeurs à risque modéré
+      } else if (ltvPercent >= 40) {
+        return Color(0xFFFFCC00); // Jaune pour valeurs moyennes
+      } else {
+        return Color(0xFF34C759); // Vert pour valeurs sûres
+      }
+    }
+    
+    // Couleur de la jauge HF basée sur la valeur réelle
+    final Color hfGaugeColor = getHFColor(factor);
+    
+    // Calculer la valeur LTV en pourcentage et déterminer sa couleur
+    final double ltvPercent = progressLTV * 100;
+    final Color ltvGaugeColor = getLTVColor(ltvPercent);
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -425,8 +455,12 @@ class RmmCard extends StatelessWidget {
                         height: progressHF * 80,
                         width: 20,
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          color: gaugeColor,
+borderRadius: BorderRadius.only(
+                    topLeft: progressHF > 0.95 ? Radius.circular(13) : Radius.zero,
+                    topRight: progressHF > 0.95 ? Radius.circular(13) : Radius.zero,
+                    bottomLeft: Radius.circular(13),
+                    bottomRight: Radius.circular(13),
+                  ),                          color: hfGaugeColor,
                         ),
                       ),
                     ),
@@ -435,7 +469,7 @@ class RmmCard extends StatelessWidget {
                   Container(
                     padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
-                      color: theme.primaryColor.withOpacity(0.15),
+                      color: hfGaugeColor.withOpacity(0.15),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(
@@ -443,7 +477,7 @@ class RmmCard extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
-                        color: theme.primaryColor,
+                        color: hfGaugeColor,
                       ),
                     ),
                   ),
@@ -478,8 +512,12 @@ class RmmCard extends StatelessWidget {
                         height: progressLTV * 80,
                         width: 20,
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          color: gaugeColor,
+                          borderRadius: BorderRadius.only(
+                    topLeft: progressLTV > 0.95 ? Radius.circular(13) : Radius.zero,
+                    topRight: progressLTV > 0.95 ? Radius.circular(13) : Radius.zero,
+                    bottomLeft: Radius.circular(13),
+                    bottomRight: Radius.circular(13),
+                  ),                          color: ltvGaugeColor,
                         ),
                       ),
                     ),
@@ -488,7 +526,7 @@ class RmmCard extends StatelessWidget {
                   Container(
                     padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
-                      color: theme.primaryColor.withOpacity(0.15),
+                      color: ltvGaugeColor.withOpacity(0.15),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(
@@ -496,7 +534,7 @@ class RmmCard extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
-                        color: theme.primaryColor,
+                        color: ltvGaugeColor,
                       ),
                     ),
                   ),

@@ -500,8 +500,8 @@ class PortfolioCard extends StatelessWidget {
     // Ajuster la hauteur de la jauge en fonction du nombre de sections visibles
     double gaugeHeight = 90.0; // Hauteur par défaut
     if (visibleSections <= 2) gaugeHeight = 75.0;
-    else if (visibleSections == 3) gaugeHeight = 100.0;
-    else gaugeHeight = 140.0;
+    else if (visibleSections == 3) gaugeHeight = 120.0;
+    else gaugeHeight = 160.0;
 
     double containerHeight = gaugeHeight + 50; // Ajouter de l'espace pour le texte et les marges
 
@@ -573,7 +573,12 @@ class PortfolioCard extends StatelessWidget {
                 height: progress * gaugeHeight,
                 width: 26,
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(13),
+                  borderRadius: BorderRadius.only(
+                    topLeft: progress > 0.95 ? Radius.circular(13) : Radius.zero,
+                    topRight: progress > 0.95 ? Radius.circular(13) : Radius.zero,
+                    bottomLeft: Radius.circular(13),
+                    bottomRight: Radius.circular(13),
+                  ),
                   color: gaugeColor,
                 ),
               ),

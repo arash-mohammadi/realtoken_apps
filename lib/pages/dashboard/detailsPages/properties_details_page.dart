@@ -1,20 +1,110 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:realtokens/managers/data_manager.dart';
 import 'package:realtokens/generated/l10n.dart';
 import 'package:realtokens/pages/Statistics/portfolio/charts/token_distribution_chart.dart';
 import 'package:realtokens/pages/Statistics/portfolio/charts/token_distribution_by_wallet_card.dart';
-import 'package:syncfusion_flutter_gauges/gauges.dart';
+import 'package:flutter/services.dart';
 import 'package:realtokens/app_state.dart';
-import 'package:realtokens/utils/currency_utils.dart';
-import 'package:flutter/rendering.dart';
-import 'package:flutter/services.dart'; // Pour Clipboard
+import 'package:fl_chart/fl_chart.dart'; // Nouvelle bibliothèque pour graphiques
 
 class PropertiesDetailsPage extends StatelessWidget {
   const PropertiesDetailsPage({super.key});
 
-  Widget _buildInfoCards(
-      BuildContext context, DataManager dataManager, AppState appState) {
+  @override
+  Widget build(BuildContext context) {
+    final dataManager = Provider.of<DataManager>(context);
+    final appState = Provider.of<AppState>(context);
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+    return Scaffold(
+      backgroundColor: isDarkMode ? const Color(0xFF1C1C1E) : const Color(0xFFF2F2F7),
+      appBar: AppBar(
+        title: Text(
+          S.of(context).properties,
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 17 + appState.getTextSizeOffset(),
+          ),
+        ),
+        backgroundColor: isDarkMode ? const Color(0xFF1C1C1E) : const Color(0xFFF2F2F7),
+        elevation: 0,
+        scrolledUnderElevation: 0,
+      ),
+      body: dataManager.portfolio.isEmpty
+          ? Center(
+              child: Text(
+                'Aucune donnée disponible.',
+                style: TextStyle(
+                  fontSize: 17 + appState.getTextSizeOffset(),
+                  color: isDarkMode ? Colors.white70 : Colors.black54,
+                ),
+              ),
+            )
+          : CustomScrollView(
+              physics: const BouncingScrollPhysics(),
+              slivers: [
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildSectionTitle(context, 'Vue d\'ensemble', appState),
+                        const SizedBox(height: 12),
+                        _buildOverviewCards(context, dataManager, appState),
+                        const SizedBox(height: 24),
+                        _buildSectionTitle(context, 'Taux d\'occupation', appState),
+                        const SizedBox(height: 12),
+                        _buildOccupancyChart(context, dataManager, appState),
+                        const SizedBox(height: 24),
+                        _buildSectionTitle(context, 'Distribution des tokens', appState),
+                        const SizedBox(height: 12),
+                        _buildTokenDistribution(context, dataManager),
+                        const SizedBox(height: 24),
+                        _buildSectionTitle(context, 'Portefeuilles', appState),
+                      ],
+                    ),
+                  ),
+                ),
+                SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      final walletDetails = _getSortedWalletDetails(dataManager);
+                      if (walletDetails.isEmpty) {
+                        return Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Center(
+                            child: Text(
+                              'Aucun portefeuille disponible.',
+                              style: TextStyle(
+                                fontSize: 16 + appState.getTextSizeOffset(),
+                                color: isDarkMode ? Colors.white70 : Colors.black54,
+                              ),
+                            ),
+                          ),
+                        );
+                      }
+                      return Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                        child: _buildWalletCard(context, walletDetails[index], appState),
+                      );
+                    },
+                    childCount: _getSortedWalletDetails(dataManager).isEmpty
+                        ? 1
+                        : _getSortedWalletDetails(dataManager).length,
+                  ),
+                ),
+                SliverToBoxAdapter(
+                  child: SizedBox(height: 20),
+                ),
+              ],
+            ),
+    );
+  }
+
+  List<Map<String, dynamic>> _getSortedWalletDetails(DataManager dataManager) {
     final List<Map<String, dynamic>> walletDetails = dataManager.walletStats;
     final List<Map<String, dynamic>> perWalletBalances = dataManager.perWalletBalances;
     
@@ -44,115 +134,383 @@ class PropertiesDetailsPage extends StatelessWidget {
       
       return bTotalValue.compareTo(aTotalValue); // Tri décroissant
     });
+    
+    return walletDetails;
+  }
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 20.0),
-      child: Column(
-        children: walletDetails.isEmpty
-            ? [
-                Center(
-                  child: Text(
-                    'Aucun portefeuille disponible.',
-                    style: Theme.of(context).textTheme.bodyLarge,
-                  ),
-                )
-              ]
-            : walletDetails
-                .map((wallet) => _buildWalletCard(context, wallet, appState))
-                .toList(),
+  Widget _buildSectionTitle(BuildContext context, String title, AppState appState) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    
+    return Text(
+      title,
+      style: TextStyle(
+        fontSize: 20 + appState.getTextSizeOffset(),
+        fontWeight: FontWeight.bold,
+        color: isDarkMode ? Colors.white : Colors.black,
       ),
     );
   }
 
-  Widget _buildWalletCard(
-      BuildContext context, Map<String, dynamic> wallet, AppState appState) {
+  Widget _buildOverviewCards(BuildContext context, DataManager dataManager, AppState appState) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final cardColor = isDarkMode ? const Color(0xFF2C2C2E) : Colors.white;
+    
+    return Row(
+      children: [
+        Expanded(
+          child: _buildOverviewCard(
+            context,
+            'Propriétés',
+            dataManager.portfolio.length.toString(),
+            Icons.home_outlined,
+            cardColor,
+            appState,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _buildOverviewCard(
+            context,
+            'Tokens',
+            dataManager.totalRealtTokens.toString(),
+            Icons.token_outlined,
+            cardColor,
+            appState,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildOverviewCard(
+    BuildContext context, 
+    String title, 
+    String value, 
+    IconData icon, 
+    Color cardColor,
+    AppState appState,
+  ) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+      decoration: BoxDecoration(
+        color: cardColor,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            icon,
+            size: 28,
+            color: Theme.of(context).primaryColor,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 22 + appState.getTextSizeOffset(),
+              fontWeight: FontWeight.bold,
+              color: isDarkMode ? Colors.white : Colors.black,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 14 + appState.getTextSizeOffset(),
+              color: isDarkMode ? Colors.white70 : Colors.black54,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOccupancyChart(BuildContext context, DataManager dataManager, AppState appState) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final cardColor = isDarkMode ? const Color(0xFF2C2C2E) : Colors.white;
+    final double rentedPercentage = (dataManager.rentedUnits / dataManager.totalUnits) * 100;
+    
+    // Déterminer la couleur en fonction du pourcentage
+    Color progressColor;
+    if (rentedPercentage < 50) {
+      progressColor = Colors.redAccent;
+    } else if (rentedPercentage < 80) {
+      progressColor = Colors.orangeAccent;
+    } else {
+      progressColor = Colors.greenAccent;
+    }
+    
+    // Déterminer le statut
+    String status = rentedPercentage < 50 ? 'Faible' : 
+                    rentedPercentage < 80 ? 'Moyen' : 'Élevé';
+    
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: cardColor,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${rentedPercentage.toStringAsFixed(1)}%',
+                    style: TextStyle(
+                      fontSize: 28 + appState.getTextSizeOffset(),
+                      fontWeight: FontWeight.bold,
+                      color: progressColor,
+                    ),
+                  ),
+                  Text(
+                    'Unités louées: ${dataManager.rentedUnits}/${dataManager.totalUnits}',
+                    style: TextStyle(
+                      fontSize: 14 + appState.getTextSizeOffset(),
+                      color: isDarkMode ? Colors.white70 : Colors.black54,
+                    ),
+                  ),
+                ],
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: progressColor.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  status,
+                  style: TextStyle(
+                    fontSize: 14 + appState.getTextSizeOffset(),
+                    fontWeight: FontWeight.w500,
+                    color: progressColor,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          Container(
+            height: 10,
+            decoration: BoxDecoration(
+              color: isDarkMode ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.05),
+              borderRadius: BorderRadius.circular(5),
+            ),
+            child: Stack(
+              children: [
+                FractionallySizedBox(
+                  widthFactor: rentedPercentage / 100,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [progressColor.withOpacity(0.7), progressColor],
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
+                      ),
+                      borderRadius: BorderRadius.circular(5),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTokenDistribution(BuildContext context, DataManager dataManager) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final cardColor = isDarkMode ? const Color(0xFF2C2C2E) : Colors.white;
+    
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: cardColor,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      height: 300,
+      child: TokenDistributionCard(dataManager: dataManager),
+    );
+  }
+
+  Widget _buildWalletCard(BuildContext context, Map<String, dynamic> wallet, AppState appState) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final cardColor = isDarkMode ? const Color(0xFF2C2C2E) : Colors.white;
     final String address = wallet['address'] as String;
     final int tokenCount = wallet['tokenCount'] as int? ?? 0;
     final double walletTokensSum = wallet['walletTokensSum'] as double? ?? 0;
     final double rmmTokensSum = wallet['rmmTokensSum'] as double? ?? 0;
+    final double totalTokens = walletTokensSum + rmmTokensSum;
     
-    return Card(
-      elevation: 2.0,
-      margin: const EdgeInsets.only(bottom: 8.0),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  _truncateWallet(address),
-                  style: TextStyle(
-                    fontSize: 14 + appState.getTextSizeOffset(),
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).primaryColor,
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: cardColor,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).primaryColor.withOpacity(0.2),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Center(
+                      child: Icon(
+                        CupertinoIcons.creditcard,
+                        color: Theme.of(context).primaryColor,
+                        size: 20,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    _truncateWallet(address),
+                    style: TextStyle(
+                      fontSize: 16 + appState.getTextSizeOffset(),
+                      fontWeight: FontWeight.w600,
+                      color: isDarkMode ? Colors.white : Colors.black,
+                    ),
+                  ),
+                ],
+              ),
+              GestureDetector(
+                onTap: () => _copyToClipboard(context, address),
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: isDarkMode ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.05),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    CupertinoIcons.doc_on_doc,
+                    color: isDarkMode ? Colors.white70 : Colors.black54,
+                    size: 16,
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.copy, color: Colors.grey, size: 20),
-                  onPressed: () {
-                    _copyToClipboard(context, address);
-                  },
-                  tooltip: 'Copier l\'adresse',
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Container(
+            decoration: BoxDecoration(
+              color: isDarkMode ? Colors.black.withOpacity(0.2) : Colors.grey.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _buildWalletStat(context, 'Propriétés', tokenCount.toString(), appState),
+                    _buildWalletStat(context, 'Wallet', walletTokensSum.toStringAsFixed(2), appState),
+                    _buildWalletStat(context, 'RMM', rmmTokensSum.toStringAsFixed(2), appState),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Divider(
+                  color: isDarkMode ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.1),
+                  height: 1,
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Total tokens',
+                      style: TextStyle(
+                        fontSize: 14 + appState.getTextSizeOffset(),
+                        color: isDarkMode ? Colors.white70 : Colors.black54,
+                      ),
+                    ),
+                    Text(
+                      totalTokens.toStringAsFixed(2),
+                      style: TextStyle(
+                        fontSize: 16 + appState.getTextSizeOffset(),
+                        fontWeight: FontWeight.bold,
+                        color: isDarkMode ? Colors.white : Colors.black,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
-            const Divider(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                _buildCardInfo(context, tokenCount.toString(), S.of(context).properties, appState),
-                _buildCardInfo(context, walletTokensSum.toStringAsFixed(2), S.of(context).wallet, appState),
-                _buildCardInfo(context, rmmTokensSum.toStringAsFixed(2), S.of(context).rmm, appState),
-              ],
-            ),
-            const SizedBox(height: 8),
-            _buildCardInfo(context, (walletTokensSum + rmmTokensSum).toStringAsFixed(2), S.of(context).tokens, appState, fullWidth: true),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildCardInfo(
-      BuildContext context, String value, String label, AppState appState, {bool fullWidth = false}) {
-    final cardWidget = Card(
-      elevation: 0.5,
-      color: Theme.of(context).cardColor,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              value,
-              style: TextStyle(
-                fontSize: 16 + appState.getTextSizeOffset(),
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            SizedBox(height: 2),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 12 + appState.getTextSizeOffset(),
-                color: Colors.grey.shade600,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+  Widget _buildWalletStat(BuildContext context, String label, String value, AppState appState) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     
-    return fullWidth 
-        ? SizedBox(width: double.infinity, child: cardWidget)
-        : Expanded(child: cardWidget);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 13 + appState.getTextSizeOffset(),
+            color: isDarkMode ? Colors.white70 : Colors.black54,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 15 + appState.getTextSizeOffset(),
+            fontWeight: FontWeight.w500,
+            color: isDarkMode ? Colors.white : Colors.black,
+          ),
+        ),
+      ],
+    );
   }
 
   String _truncateWallet(String address) {
@@ -162,234 +520,22 @@ class PropertiesDetailsPage extends StatelessWidget {
 
   void _copyToClipboard(BuildContext context, String text) {
     Clipboard.setData(ClipboardData(text: text));
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Adresse copiée dans le presse-papier'),
-        duration: const Duration(seconds: 2),
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final dataManager = Provider.of<DataManager>(context);
-    final appState = Provider.of<AppState>(context);
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(S.of(context).properties),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
-        child: dataManager.portfolio.isEmpty
-            ? Center(
-                child: Text(
-                  'No data available.',
-                  style: Theme.of(context).textTheme.bodyLarge,
-                ),
-              )
-            : Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        flex: 1,
-                        child: Padding(
-                          padding: const EdgeInsets.all(4.0),
-                          child: _buildRentedUnitsGauge(context, dataManager, appState),
-                        ),
-                      ),
-                      Expanded(
-                        flex: 1,
-                        child: Padding(
-                          padding: const EdgeInsets.all(4.0),
-                          child: SizedBox(
-                            height: 250,
-                            child: FittedBox(
-                              fit: BoxFit.contain,
-                              child: SizedBox(
-                                width: 300,
-                                height: 350,
-                                child: TokenDistributionByWalletCard(dataManager: dataManager),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  _buildInfoCards(context, dataManager, appState),
-                  SizedBox(height: 10),
-                  Padding(
-                    padding: const EdgeInsets.all(4.0),
-                    child: SizedBox(
-                      height: 300,
-                      child: TokenDistributionCard(dataManager: dataManager),
-                    ),
-                  ),
-                ],
-              ),
-      ),
-    );
-  }
-
-  Widget _buildRentedUnitsGauge(
-      BuildContext context, DataManager dataManager, AppState appState) {
-    final double rentedPercentage =
-        (dataManager.rentedUnits / dataManager.totalUnits) * 100;
-    Color gaugeColor = _getGaugeColor(rentedPercentage);
-
-    return Card(
-      elevation: 0.5,
-      color: Theme.of(context).cardColor,
-      child: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Unités Louées',
-              style: TextStyle(
-                fontSize: 18 + appState.getTextSizeOffset(),
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 15),
-            SizedBox(
-              height: 200,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  SfRadialGauge(
-                    axes: <RadialAxis>[
-                      RadialAxis(
-                        minimum: 0,
-                        maximum: 100,
-                        showLabels: false,
-                        showTicks: false,
-                        startAngle: 270,
-                        endAngle: 270,
-                        axisLineStyle: AxisLineStyle(
-                          thickness: 0.25,
-                          cornerStyle: CornerStyle.bothCurve,
-                          color: Colors.grey.shade300,
-                          thicknessUnit: GaugeSizeUnit.factor,
-                        ),
-                        pointers: <GaugePointer>[
-                          RangePointer(
-                            value: rentedPercentage,
-                            width: 0.25,
-                            enableAnimation: true,
-                            cornerStyle: CornerStyle.bothCurve,
-                            color: gaugeColor,
-                            sizeUnit: GaugeSizeUnit.factor,
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  Container(
-                    width: 100, 
-                    height: 100,
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).cardColor,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
-                          blurRadius: 8,
-                          spreadRadius: 2,
-                        ),
-                      ],
-                    ),
-                    alignment: Alignment.center,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          '${rentedPercentage.toStringAsFixed(1)}%',
-                          style: TextStyle(
-                            fontSize: 16 + appState.getTextSizeOffset(),
-                            fontWeight: FontWeight.bold,
-                            color: gaugeColor,
-                          ),
-                        ),
-                        SizedBox(height: 3),
-                        Text(
-                          '${dataManager.rentedUnits} / ${dataManager.totalUnits}',
-                          style: TextStyle(
-                            fontSize: 12 + appState.getTextSizeOffset(),
-                            color: Colors.grey.shade600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 15),
-            _buildRentedLegend(context, rentedPercentage, gaugeColor),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildRentedLegend(BuildContext context, double percentage, Color gaugeColor) {
-    final appState = Provider.of<AppState>(context);
-    String status = percentage < 50 ? 'Faible' : 
-                     percentage < 80 ? 'Moyen' : 'Élevé';
     
-    return Wrap(
-      spacing: 8.0,
-      runSpacing: 4.0,
-      alignment: WrapAlignment.start,
-      children: [
-        ConstrainedBox(
-          constraints: BoxConstraints(maxWidth: 200),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 16,
-                height: 16,
-                decoration: BoxDecoration(
-                  color: gaugeColor,
-                  borderRadius: BorderRadius.circular(4),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 2,
-                      offset: Offset(1, 1),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 4),
-              Flexible(
-                child: Text(
-                  'Taux d\'occupation: $status',
-                  style: TextStyle(fontSize: 11 + appState.getTextSizeOffset()),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
+    // Afficher une notification iOS style
+    showCupertinoModalPopup(
+      context: context,
+      builder: (BuildContext context) => CupertinoActionSheet(
+        title: const Text('Copié !'),
+        message: Text('L\'adresse a été copiée dans le presse-papier.'),
+        actions: [
+          CupertinoActionSheetAction(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: const Text('OK'),
           ),
-        ),
-      ],
+        ],
+      ),
     );
-  }
-
-  Color _getGaugeColor(double percentage) {
-    if (percentage < 50) {
-      return Colors.red;
-    } else if (percentage < 80) {
-      return Colors.orange;
-    } else {
-      return Colors.green;
-    }
   }
 }
