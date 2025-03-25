@@ -149,10 +149,6 @@ class ManageEvmAddressesPageState extends State<ManageEvmAddressesPage> {
     final dataManager = Provider.of<DataManager>(context);
     final appState =
         Provider.of<AppState>(context); // Récupérer AppState pour le texte
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    final backgroundColor = isDarkMode 
-        ? const Color(0xFF1C1C1E) 
-        : const Color(0xFFF2F2F7);
 
     // Récupérer toutes les adresses liées à un userId
     final List linkedAddresses = dataManager
@@ -166,7 +162,7 @@ class ManageEvmAddressesPageState extends State<ManageEvmAddressesPage> {
         .toList();
 
     return Scaffold(
-      backgroundColor: backgroundColor,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
         elevation: 0,
@@ -207,7 +203,7 @@ class ManageEvmAddressesPageState extends State<ManageEvmAddressesPage> {
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                         placeholder: 'Wallet Address',
                         decoration: BoxDecoration(
-                          color: isDarkMode ? const Color(0xFF2C2C2E) : Colors.white,
+                          color: Theme.of(context).cardColor,
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(color: Colors.grey.withOpacity(0.3)),
                         ),
@@ -221,7 +217,7 @@ class ManageEvmAddressesPageState extends State<ManageEvmAddressesPage> {
                         height: 36,
                         width: 36,
                         decoration: BoxDecoration(
-                          color: Colors.blue,
+                          color: Theme.of(context).primaryColor,
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: const Icon(CupertinoIcons.qrcode_viewfinder, color: Colors.white, size: 20),
@@ -234,7 +230,7 @@ class ManageEvmAddressesPageState extends State<ManageEvmAddressesPage> {
                   width: double.infinity,
                   child: CupertinoButton(
                     padding: const EdgeInsets.symmetric(vertical: 8),
-                    color: Colors.blue,
+                    color: Theme.of(context).primaryColor,
                     borderRadius: BorderRadius.circular(8),
                     onPressed: () {
                       String enteredAddress = _evmAddressController.text;
@@ -352,7 +348,7 @@ class ManageEvmAddressesPageState extends State<ManageEvmAddressesPage> {
               ),
             ),
             IconButton(
-              icon: const Icon(CupertinoIcons.doc_on_clipboard, color: Colors.blue, size: 20),
+              icon: Icon(CupertinoIcons.doc_on_clipboard, color: Theme.of(context).primaryColor, size: 20),
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(),
               onPressed: () {
@@ -461,7 +457,7 @@ class ManageEvmAddressesPageState extends State<ManageEvmAddressesPage> {
                         ),
                       ),
                       IconButton(
-                        icon: const Icon(CupertinoIcons.doc_on_clipboard, color: Colors.blue, size: 20),
+                        icon: Icon(CupertinoIcons.doc_on_clipboard, color: Theme.of(context).primaryColor, size: 20),
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(),
                         onPressed: () {

@@ -204,20 +204,7 @@ class RoiHistoryGraph extends StatelessWidget {
                               titlesData: FlTitlesData(
                                 leftTitles: AxisTitles(
                                   sideTitles: SideTitles(
-                                    showTitles: true,
-                                    reservedSize: 45,
-                                    getTitlesWidget: (value, meta) {
-                                      return Padding(
-                                        padding: const EdgeInsets.only(right: 8.0),
-                                        child: Text(
-                                          '${value.toStringAsFixed(0)}%',
-                                          style: TextStyle(
-                                            fontSize: 10 + appState.getTextSizeOffset(),
-                                            color: Colors.grey.shade600,
-                                          ),
-                                        ),
-                                      );
-                                    },
+                                    showTitles: false,
                                   ),
                                 ),
                                 bottomTitles: AxisTitles(
@@ -250,7 +237,22 @@ class RoiHistoryGraph extends StatelessWidget {
                                   sideTitles: SideTitles(showTitles: false),
                                 ),
                                 rightTitles: AxisTitles(
-                                  sideTitles: SideTitles(showTitles: false),
+                                  sideTitles: SideTitles(
+                                    showTitles: true,
+                                    reservedSize: 35,
+                                    getTitlesWidget: (value, meta) {
+                                      return Padding(
+                                        padding: const EdgeInsets.only(left: 8.0),
+                                        child: Text(
+                                          '${value.toInt()}%',
+                                          style: TextStyle(
+                                            fontSize: 10 + appState.getTextSizeOffset(),
+                                            color: Colors.grey.shade600,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
                                 ),
                               ),
                               borderData: FlBorderData(show: false),
@@ -272,6 +274,27 @@ class RoiHistoryGraph extends StatelessWidget {
                                   ],
                                 );
                               }).toList(),
+                              barTouchData: BarTouchData(
+                                touchTooltipData: BarTouchTooltipData(
+                                  getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                                    if (groupIndex >= 0 && groupIndex < dateLabels.length) {
+                                      return BarTooltipItem(
+                                        '${dateLabels[groupIndex]}\n${rod.toY.toInt()}%',
+                                        const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 12,
+                                        ),
+                                      );
+                                    }
+                                    return null;
+                                  },
+                                  fitInsideHorizontally: true,
+                                  fitInsideVertically: true,
+                                  tooltipRoundedRadius: 12,
+                                  tooltipPadding: const EdgeInsets.all(12),
+                                ),
+                              ),
                             ),
                           )
                         : LineChart(
@@ -291,28 +314,7 @@ class RoiHistoryGraph extends StatelessWidget {
                                     sideTitles: SideTitles(showTitles: false)),
                                 leftTitles: AxisTitles(
                                   sideTitles: SideTitles(
-                                    showTitles: true,
-                                    reservedSize: 45,
-                                    getTitlesWidget: (value, meta) {
-                                      final highestValue = roiHistoryData
-                                          .map((e) => e.y)
-                                          .reduce((a, b) => a > b ? a : b);
-
-                                      if (value == highestValue) {
-                                        return const SizedBox.shrink();
-                                      }
-
-                                      return Padding(
-                                        padding: const EdgeInsets.only(right: 8.0),
-                                        child: Text(
-                                          '${value.toStringAsFixed(0)}%',
-                                          style: TextStyle(
-                                            fontSize: 10 + appState.getTextSizeOffset(),
-                                            color: Colors.grey.shade600,
-                                          ),
-                                        ),
-                                      );
-                                    },
+                                    showTitles: false,
                                   ),
                                 ),
                                 bottomTitles: AxisTitles(
@@ -346,7 +348,30 @@ class RoiHistoryGraph extends StatelessWidget {
                                   ),
                                 ),
                                 rightTitles: AxisTitles(
-                                  sideTitles: SideTitles(showTitles: false),
+                                  sideTitles: SideTitles(
+                                    showTitles: true,
+                                    reservedSize: 35,
+                                    getTitlesWidget: (value, meta) {
+                                      final highestValue = roiHistoryData
+                                          .map((e) => e.y)
+                                          .reduce((a, b) => a > b ? a : b);
+
+                                      if (value == highestValue) {
+                                        return const SizedBox.shrink();
+                                      }
+
+                                      return Padding(
+                                        padding: const EdgeInsets.only(left: 8.0),
+                                        child: Text(
+                                          '${value.toInt()}%',
+                                          style: TextStyle(
+                                            fontSize: 10 + appState.getTextSizeOffset(),
+                                            color: Colors.grey.shade600,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
                                 ),
                               ),
                               borderData: FlBorderData(show: false),
@@ -404,7 +429,7 @@ class RoiHistoryGraph extends StatelessWidget {
                                           context, dataManager, selectedPeriod)[index];
                                       
                                       return LineTooltipItem(
-                                        '$periodLabel\n${value.toStringAsFixed(2)}%',
+                                        '$periodLabel\n${value.toInt()}%',
                                         const TextStyle(
                                           color: Colors.white,
                                           fontWeight: FontWeight.w600,

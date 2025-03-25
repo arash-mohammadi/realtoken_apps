@@ -133,7 +133,7 @@ class _RentDistributionByWalletChartState extends State<RentDistributionByWallet
       
       return PieChartSectionData(
         value: data.value,
-        title: '${percentage.toStringAsFixed(1)}%',
+        title: '${percentage.toInt()}%',
         color: _generateColor(index).withOpacity(opacity),
         radius: isSelected ? 52 : 45,
         titleStyle: TextStyle(
@@ -197,10 +197,10 @@ class _RentDistributionByWalletChartState extends State<RentDistributionByWallet
           ),
           const SizedBox(height: 4),
           Text(
-            currencyUtils.getFormattedAmount(
+            currencyUtils.formatCompactCurrency(
                 currencyUtils.convert(totalRent),
                 currencyUtils.currencySymbol,
-                true),
+            ),
             style: TextStyle(
               fontSize: 14 + Provider.of<AppState>(context).getTextSizeOffset(),
               color: Colors.grey.shade600,
@@ -231,10 +231,10 @@ class _RentDistributionByWalletChartState extends State<RentDistributionByWallet
         ),
         const SizedBox(height: 4),
         Text(
-          currencyUtils.getFormattedAmount(
+          currencyUtils.formatCompactCurrency(
               currencyUtils.convert(selectedEntry.value),
               currencyUtils.currencySymbol,
-              true),
+          ),
           style: TextStyle(
             fontSize: 14 + Provider.of<AppState>(context).getTextSizeOffset(),
             color: Colors.grey.shade600,

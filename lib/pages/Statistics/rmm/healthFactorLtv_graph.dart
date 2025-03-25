@@ -108,7 +108,7 @@ class _HealthAndLtvHistoryGraphState extends State<HealthAndLtvHistoryGraph> {
                     ),
                     const SizedBox(width: 16),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
                       decoration: BoxDecoration(
                         color: Theme.of(context).brightness == Brightness.dark
                             ? Colors.black12
@@ -139,7 +139,7 @@ class _HealthAndLtvHistoryGraphState extends State<HealthAndLtvHistoryGraph> {
                               activeColor: const Color(0xFF007AFF), // Bleu iOS
                               trackColor: MaterialStateProperty.resolveWith(
                                 (states) => states.contains(MaterialState.selected)
-                                    ? const Color(0xFF007AFF).withOpacity(0.4)
+                                    ? Theme.of(context).primaryColor
                                     : Colors.grey.withOpacity(0.3),
                               ),
                             ),
@@ -256,6 +256,7 @@ class _HealthAndLtvHistoryGraphState extends State<HealthAndLtvHistoryGraph> {
             );
           },
         ),
+        borderData: FlBorderData(show: false),
         minY: 1.0, // Définir minY à 1.0 pour éviter l'erreur d'assertion
         barTouchData: BarTouchData(
           touchTooltipData: BarTouchTooltipData(
@@ -272,7 +273,7 @@ class _HealthAndLtvHistoryGraphState extends State<HealthAndLtvHistoryGraph> {
                   : groupedData[date]!['ltv']!;
 
               return BarTooltipItem(
-                '$date\n${showHealthFactor ? 'Health Factor' : 'LTV'}: ${realValue.toStringAsFixed(2)}${showHealthFactor ? '' : '%'}',
+                '$date\n${showHealthFactor ? 'Health Factor' : 'LTV'}: ${showHealthFactor ? realValue.toInt() : realValue.toInt()}${showHealthFactor ? '' : '%'}',
                 TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.w600,
@@ -301,19 +302,7 @@ class _HealthAndLtvHistoryGraphState extends State<HealthAndLtvHistoryGraph> {
         titlesData: FlTitlesData(
           leftTitles: AxisTitles(
             sideTitles: SideTitles(
-              showTitles: true,
-              reservedSize: 45,
-              getTitlesWidget: (value, meta) {
-                return Text(
-                  showHealthFactor
-                      ? value.toStringAsFixed(1)
-                      : '${value.toStringAsFixed(0)}%',
-                  style: TextStyle(
-                    fontSize: 10 + appState.getTextSizeOffset(),
-                    color: Colors.grey.shade600,
-                  ),
-                );
-              },
+              showTitles: false,
             ),
           ),
           bottomTitles: AxisTitles(
@@ -340,7 +329,24 @@ class _HealthAndLtvHistoryGraphState extends State<HealthAndLtvHistoryGraph> {
             ),
           ),
           rightTitles: AxisTitles(
-            sideTitles: SideTitles(showTitles: false),
+            sideTitles: SideTitles(
+              showTitles: true,
+              reservedSize: 35,
+              getTitlesWidget: (value, meta) {
+                return Padding(
+                  padding: const EdgeInsets.only(left: 8.0),
+                  child: Text(
+                    showHealthFactor
+                        ? value.toInt().toString()
+                        : '${value.toInt()}%',
+                    style: TextStyle(
+                      fontSize: 10 + appState.getTextSizeOffset(),
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                );
+              },
+            ),
           ),
           topTitles: AxisTitles(
             sideTitles: SideTitles(showTitles: false),
@@ -458,22 +464,11 @@ class _HealthAndLtvHistoryGraphState extends State<HealthAndLtvHistoryGraph> {
             );
           },
         ),
+        borderData: FlBorderData(show: false),
         titlesData: FlTitlesData(
           leftTitles: AxisTitles(
             sideTitles: SideTitles(
-              showTitles: true,
-              reservedSize: 45,
-              getTitlesWidget: (value, meta) {
-                return Text(
-                  showHealthFactor
-                      ? value.toStringAsFixed(1)
-                      : '${value.toStringAsFixed(0)}%',
-                  style: TextStyle(
-                    fontSize: 10 + appState.getTextSizeOffset(),
-                    color: Colors.grey.shade600,
-                  ),
-                );
-              },
+              showTitles: false,
             ),
           ),
           bottomTitles: AxisTitles(
@@ -505,7 +500,24 @@ class _HealthAndLtvHistoryGraphState extends State<HealthAndLtvHistoryGraph> {
             ),
           ),
           rightTitles: AxisTitles(
-            sideTitles: SideTitles(showTitles: false),
+            sideTitles: SideTitles(
+              showTitles: true,
+              reservedSize: 35,
+              getTitlesWidget: (value, meta) {
+                return Padding(
+                  padding: const EdgeInsets.only(left: 8.0),
+                  child: Text(
+                    showHealthFactor
+                        ? value.toInt().toString()
+                        : '${value.toInt()}%',
+                    style: TextStyle(
+                      fontSize: 10 + appState.getTextSizeOffset(),
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                );
+              },
+            ),
           ),
           topTitles: AxisTitles(
             sideTitles: SideTitles(showTitles: false),
@@ -584,7 +596,7 @@ class _HealthAndLtvHistoryGraphState extends State<HealthAndLtvHistoryGraph> {
                   
               return [
                 LineTooltipItem(
-                  '$date\n${showHealthFactor ? 'Health Factor' : 'LTV'}: ${realValue.toStringAsFixed(2)}${showHealthFactor ? '' : '%'}',
+                  '$date\n${showHealthFactor ? 'Health Factor' : 'LTV'}: ${showHealthFactor ? realValue.toInt() : realValue.toInt()}${showHealthFactor ? '' : '%'}',
                   TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w600,

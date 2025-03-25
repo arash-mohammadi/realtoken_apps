@@ -89,13 +89,9 @@ class _SynchronizationSettingsPageState
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    final backgroundColor = isDarkMode 
-        ? const Color(0xFF1C1C1E) 
-        : const Color(0xFFF2F2F7);
-        
+
     return Scaffold(
-      backgroundColor: backgroundColor,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
         elevation: 0,

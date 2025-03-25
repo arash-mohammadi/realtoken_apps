@@ -155,26 +155,26 @@ class DashboardPageState extends State<DashboardPage> {
                         children: [
                           Row(
                             children: [
-                                                            dataManager.isLoadingMain
+                              dataManager.isLoadingMain || _isPageLoading
                                 ? Shimmer.fromColors(
                                     baseColor: Theme.of(context)
                                             .textTheme
                                             .bodyMedium
                                             ?.color
-                                            ?.withOpacity(0.6) ??
+                                            ?.withOpacity(0.2) ??
                                         Colors.grey[300]!,
                                     highlightColor: Theme.of(context)
                                             .textTheme
                                             .bodyMedium
                                             ?.color
-                                            ?.withOpacity(0.9) ??
+                                            ?.withOpacity(0.5) ??
                                         Colors.grey[100]!,
-                                    child: Container(
-                                      width: 150,
-                                      height: 28,
-                                      decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        borderRadius: BorderRadius.circular(4),
+                                    child: Text(
+                                      lastRentReceived,
+                                      style: TextStyle(
+                                        fontSize: 22 + appState.getTextSizeOffset(),
+                                        fontWeight: FontWeight.bold,
+                                        color: Theme.of(context).textTheme.bodyLarge?.color,
                                       ),
                                     ),
                                   )
@@ -205,7 +205,7 @@ class DashboardPageState extends State<DashboardPage> {
                             children: [
                              
                               SizedBox(width: 8),
-                              dataManager.isLoadingMain
+                              dataManager.isLoadingMain || _isPageLoading
                                 ? Shimmer.fromColors(
                                     baseColor: Theme.of(context)
                                             .textTheme
@@ -219,13 +219,27 @@ class DashboardPageState extends State<DashboardPage> {
                                             ?.color
                                             ?.withOpacity(0.5) ??
                                         Colors.grey[100]!,
-                                    child: Container(
-                                      width: 100,
-                                      height: 20,
-                                      decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        borderRadius: BorderRadius.circular(4),
-                                      ),
+                                    child: Row(
+                                      children: [
+                                        Text(
+                                          totalRentReceived,
+                                          style: TextStyle(
+                                            fontSize: 17 + Provider.of<AppState>(context).getTextSizeOffset(),
+                                            fontWeight: FontWeight.w600,
+                                            color: Theme.of(context).textTheme.bodyLarge?.color,
+                                          ),
+                                        ),
+                                        SizedBox(width: 4),
+                                        Text(
+                                          'since $timeElapsed',
+                                          style: TextStyle(
+                                            fontSize: 14 + appState.getTextSizeOffset(),
+                                            fontWeight: FontWeight.w500,
+                                            color: Theme.of(context).primaryColor,
+                                            letterSpacing: -0.3,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   )
                                 : Row(
@@ -233,7 +247,7 @@ class DashboardPageState extends State<DashboardPage> {
                                       Text(
                                         totalRentReceived,
                                         style: TextStyle(
-                                          fontSize: 17 + appState.getTextSizeOffset(),
+                                          fontSize: 17 + Provider.of<AppState>(context).getTextSizeOffset(),
                                           fontWeight: FontWeight.w600,
                                           color: Theme.of(context).textTheme.bodyLarge?.color,
                                         ),
@@ -310,7 +324,7 @@ class DashboardPageState extends State<DashboardPage> {
             Text(
               S.of(context).noDataAvailable,
               style: TextStyle(
-                fontSize: 17,
+                fontSize: 17 + Provider.of<AppState>(context).getTextSizeOffset(),
                 fontWeight: FontWeight.bold,
                 color: Theme.of(context).brightness == Brightness.light 
                     ? Color(0xFF007AFF) 

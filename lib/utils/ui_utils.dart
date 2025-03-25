@@ -340,6 +340,7 @@ class UIUtils {
   static Widget buildTextWithShimmer(
       String? value, String text, bool isLoading, BuildContext context) {
     final appState = Provider.of<AppState>(context);
+    final theme = Theme.of(context);
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
@@ -360,24 +361,18 @@ class UIUtils {
           SizedBox(width: 12),
           isLoading
               ? Shimmer.fromColors(
-                  baseColor: Theme.of(context)
-                          .textTheme
-                          .bodyMedium
-                          ?.color
-                          ?.withOpacity(0.2) ??
+                  baseColor: theme.textTheme.bodyMedium?.color?.withOpacity(0.2) ??
                       Colors.grey[300]!,
-                  highlightColor: Theme.of(context)
-                          .textTheme
-                          .bodyMedium
-                          ?.color
-                          ?.withOpacity(0.5) ??
+                  highlightColor: theme.textTheme.bodyMedium?.color?.withOpacity(0.5) ??
                       Colors.grey[100]!,
-                  child: Container(
-                    width: 80,
-                    height: 16,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(4),
+                  child: Text(
+                    value ?? '',
+                    style: TextStyle(
+                      fontSize: 15 + appState.getTextSizeOffset(),
+                      fontWeight: FontWeight.w600,
+                      color: theme.textTheme.bodyLarge?.color,
+                      letterSpacing: -0.3,
+                      height: 1.1,
                     ),
                   ),
                 )

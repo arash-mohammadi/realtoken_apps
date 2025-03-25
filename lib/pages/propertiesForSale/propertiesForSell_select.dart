@@ -15,6 +15,12 @@ class PropertiesForSalePage extends StatefulWidget {
 
 class _PropertiesForSalePageState extends State<PropertiesForSalePage> {
   String _selectedPage = 'RealT'; // Valeur par défaut
+  
+  // Couleurs spécifiques pour chaque sélecteur
+  final Map<String, Color> _pageColors = {
+    'RealT': Colors.blue,
+    'Secondary': Colors.green,
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -76,8 +82,8 @@ class _PropertiesForSalePageState extends State<PropertiesForSalePage> {
   Widget _buildPageSelector() {
     return Row(
       children: [
-        _buildPageChip('RealT', S.of(context).realt),
-        _buildPageChip('Secondary', S.of(context).secondary),
+        _buildPageChip('RealT', S.of(context).realt, Icons.home),
+        _buildPageChip('Secondary', S.of(context).secondary, Icons.swap_horiz),
       ],
     );
   }
@@ -93,9 +99,10 @@ class _PropertiesForSalePageState extends State<PropertiesForSalePage> {
     return textPainter.width + 24; // Ajout de padding pour l'esthétique
   }
 
-  Widget _buildPageChip(String value, String label) {
+  Widget _buildPageChip(String value, String label, IconData icon) {
     final appState = Provider.of<AppState>(context);
     bool isSelected = _selectedPage == value;
+    Color chipColor = _pageColors[value] ?? Theme.of(context).primaryColor;
 
     double textSizeOffset = appState.getTextSizeOffset();
     TextStyle textStyle = TextStyle(
@@ -103,11 +110,13 @@ class _PropertiesForSalePageState extends State<PropertiesForSalePage> {
       fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
     );
 
-    double minWidth = _calculateTextWidth(context, label, textStyle);
+    double minWidth = isSelected 
+        ? _calculateTextWidth(context, label, textStyle) 
+        : 56; // Largeur minimale pour les icônes non sélectionnées
 
     return isSelected
         ? Expanded(
-            // La Chip sélectionnée prend tout l’espace restant
+            // La Chip sélectionnée prend tout l'espace restant
             child: GestureDetector(
               onTap: () {
                 setState(() {
@@ -120,16 +129,21 @@ class _PropertiesForSalePageState extends State<PropertiesForSalePage> {
                 height: 40,
                 margin: const EdgeInsets.symmetric(horizontal: 4),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).primaryColor,
-                  borderRadius: BorderRadius.circular(10),
+                  color: chipColor,
+                  borderRadius: BorderRadius.circular(17),
                 ),
-                child: Center(
-                  child: AnimatedDefaultTextStyle(
-                    duration: const Duration(milliseconds: 500),
-                    curve: Curves.easeInOut,
-                    style: textStyle.copyWith(color: Colors.white),
-                    child: Text(label),
-                  ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(icon, color: Colors.white, size: 20),
+                    const SizedBox(width: 8),
+                    AnimatedDefaultTextStyle(
+                      duration: const Duration(milliseconds: 500),
+                      curve: Curves.easeInOut,
+                      style: textStyle.copyWith(color: Colors.white),
+                      child: Text(label),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -151,15 +165,13 @@ class _PropertiesForSalePageState extends State<PropertiesForSalePage> {
                 margin: const EdgeInsets.symmetric(horizontal: 4),
                 decoration: BoxDecoration(
                   color: Theme.of(context).cardColor,
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(20),
                 ),
                 child: Center(
-                  child: AnimatedDefaultTextStyle(
-                    duration: const Duration(milliseconds: 500),
-                    curve: Curves.easeInOut,
-                    style: textStyle.copyWith(
-                        color: Theme.of(context).primaryColor),
-                    child: Text(label),
+                  child: Icon(
+                    icon,
+                    color: Colors.grey, // Icônes inactives en gris
+                    size: 20,
                   ),
                 ),
               ),

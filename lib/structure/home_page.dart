@@ -58,7 +58,7 @@ class _MyHomePageState extends State<MyHomePage> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.8,
+        maxHeight: MediaQuery.of(context).size.height * 0.85,
       ),
       builder: (context) => AgendaCalendar(portfolio: portfolio),
     );
@@ -82,7 +82,7 @@ class _MyHomePageState extends State<MyHomePage> {
           "Timestamp: ${walletInfo['timestamp']}");
     }
 
-    // Fonction locale pour tronquer l'adresse (affiche les 6 premiers et 4 derniers caractères)
+    // Fonction locale pour tronquer l'adresse
     String truncateAddress(String address) {
       if (address.length <= 12) return address;
       return address.substring(0, 6) +
@@ -90,180 +90,353 @@ class _MyHomePageState extends State<MyHomePage> {
           address.substring(address.length - 4);
     }
 
-    final RenderBox renderBox =
-        _walletIconKey.currentContext!.findRenderObject() as RenderBox;
-    final Offset position = renderBox.localToGlobal(Offset.zero);
-    final double iconSize = renderBox.size.height;
-
     final double usdcBalance = dataManager.gnosisUsdcBalance;
     final double xdaiBalance = dataManager.gnosisXdaiBalance;
 
-    showMenu(
+    showModalBottomSheet(
       context: context,
-      color: Theme.of(context).cardColor,
-      position: RelativeRect.fromLTRB(
-        position.dx,
-        position.dy + iconSize, // positionné juste en dessous de l'icône
-        position.dx + renderBox.size.width,
-        position.dy +
-            iconSize +
-            300, // hauteur ajustable pour contenir la liste
-      ),
-      items: [
-        PopupMenuItem(
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "💰 Solde Wallet",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14 + appState.getTextSizeOffset(),
-                    color: Theme.of(context).textTheme.bodyMedium?.color,
-                  ),
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          decoration: BoxDecoration(
+            color: Theme.of(context).brightness == Brightness.dark
+                ? Colors.black.withOpacity(0.9)
+                : Colors.white.withOpacity(0.9),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 10,
+                spreadRadius: 0,
+              ),
+            ],
+          ),
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.6,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Indicateur de drag (poignée)
+              Container(
+                margin: const EdgeInsets.symmetric(vertical: 8),
+                width: 36,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.white.withOpacity(0.2)
+                      : Colors.black.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(4),
                 ),
-                const Divider(),
-                Row(
+              ),
+              // En-tête
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+                child: Row(
                   children: [
-                    Image.asset(
-                      'assets/icons/usdc.png',
-                      width: 20 + appState.getTextSizeOffset(),
-                      height: 20 + appState.getTextSizeOffset(),
+                    Icon(
+                      Icons.account_balance_wallet_rounded,
+                      size: 22 + appState.getTextSizeOffset(),
+                      color: Theme.of(context).colorScheme.primary,
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      currencyUtils.formatCurrency(
-                        currencyUtils.convert(usdcBalance),
-                        currencyUtils.currencySymbol,
-                      ),
+                      "Portefeuille",
                       style: TextStyle(
-                        fontSize: 14 + appState.getTextSizeOffset(),
-                        color: Theme.of(context).textTheme.bodyMedium?.color,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18 + appState.getTextSizeOffset(),
+                        color: Theme.of(context).textTheme.bodyLarge?.color,
                       ),
+                    ),
+                    const Spacer(),
+                    IconButton(
+                      icon: const Icon(Icons.close_rounded, size: 20),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      onPressed: () => Navigator.pop(context),
+                      color: Theme.of(context).textTheme.bodyLarge?.color,
                     ),
                   ],
                 ),
-                const SizedBox(height: 6),
-                Row(
-                  children: [
-                    Image.asset(
-                      'assets/icons/xdai.png',
-                      width: 22 + appState.getTextSizeOffset(),
-                      height: 22 + appState.getTextSizeOffset(),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      currencyUtils.formatCurrency(
-                        currencyUtils.convert(xdaiBalance),
-                        currencyUtils.currencySymbol,
-                      ),
-                      style: TextStyle(
-                        fontSize: 14 + appState.getTextSizeOffset(),
-                        color: Theme.of(context).textTheme.bodyMedium?.color,
-                      ),
-                    ),
-                  ],
-                ),
-                const Divider(),
-                Text(
-                  "Détails par wallet :",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14 + appState.getTextSizeOffset(),
-                    color: Theme.of(context).textTheme.bodyMedium?.color,
+              ),
+              
+              // Solde total
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+                    width: 1,
                   ),
                 ),
-                const SizedBox(height: 4),
-                // Affichage des détails pour chaque wallet
-                ...walletDetails.map((walletInfo) {
-                  final String truncated =
-                      truncateAddress(walletInfo['address']);
-                  // On formate les montants à 2 décimales.
-                  final String gnosisUsdc =
-                      (walletInfo['gnosisUsdc'] as num).toStringAsFixed(2);
-                  final String gnosisXdai =
-                      (walletInfo['gnosisXdai'] as num).toStringAsFixed(2);
-
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Solde Total",
+                      style: TextStyle(
+                        fontSize: 14 + appState.getTextSizeOffset(),
+                        fontWeight: FontWeight.w500,
+                        color: Theme.of(context).textTheme.bodyLarge?.color,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    // USDC et XDAI côte à côte
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
-                        // Ligne avec l'adresse tronquée
-                        Row(
-                          children: [
-                            const Icon(Icons.account_balance_wallet, size: 14),
-                            const SizedBox(width: 4),
-                            Flexible(
-                              child: Text(
-                                truncated,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  fontSize: 12 + appState.getTextSizeOffset(),
-                                  color: Theme.of(context)
-                                      .textTheme
-                                      .bodyMedium
-                                      ?.color,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 2),
-                        // Ligne avec l'icône USDC et sa valeur
+                        // USDC
                         Row(
                           children: [
                             Image.asset(
                               'assets/icons/usdc.png',
-                              width: 16 + appState.getTextSizeOffset(),
-                              height: 16 + appState.getTextSizeOffset(),
+                              width: 28 + appState.getTextSizeOffset(),
+                              height: 28 + appState.getTextSizeOffset(),
                             ),
-                            const SizedBox(width: 4),
-                            Text(
-                              gnosisUsdc,
-                              style: TextStyle(
-                                fontSize: 12 + appState.getTextSizeOffset(),
-                                color: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium
-                                    ?.color,
-                              ),
+                            const SizedBox(width: 8),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "USDC",
+                                  style: TextStyle(
+                                    fontSize: 12 + appState.getTextSizeOffset(),
+                                    color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7),
+                                  ),
+                                ),
+                                Text(
+                                  currencyUtils.formatCurrency(
+                                    currencyUtils.convert(usdcBalance),
+                                    currencyUtils.currencySymbol,
+                                  ),
+                                  style: TextStyle(
+                                    fontSize: 16 + appState.getTextSizeOffset(),
+                                    fontWeight: FontWeight.bold,
+                                    color: Theme.of(context).textTheme.bodyLarge?.color,
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
-                        const SizedBox(height: 2),
-                        // Ligne avec l'icône XDAI et sa valeur
+                        // XDAI
                         Row(
                           children: [
                             Image.asset(
                               'assets/icons/xdai.png',
-                              width: 18 + appState.getTextSizeOffset(),
-                              height: 18 + appState.getTextSizeOffset(),
+                              width: 28 + appState.getTextSizeOffset(),
+                              height: 28 + appState.getTextSizeOffset(),
                             ),
-                            const SizedBox(width: 4),
-                            Text(
-                              gnosisXdai,
-                              style: TextStyle(
-                                fontSize: 12 + appState.getTextSizeOffset(),
-                                color: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium
-                                    ?.color,
-                              ),
+                            const SizedBox(width: 8),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "XDAI",
+                                  style: TextStyle(
+                                    fontSize: 12 + appState.getTextSizeOffset(),
+                                    color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7),
+                                  ),
+                                ),
+                                Text(
+                                  currencyUtils.formatCurrency(
+                                    currencyUtils.convert(xdaiBalance),
+                                    currencyUtils.currencySymbol,
+                                  ),
+                                  style: TextStyle(
+                                    fontSize: 16 + appState.getTextSizeOffset(),
+                                    fontWeight: FontWeight.bold,
+                                    color: Theme.of(context).textTheme.bodyLarge?.color,
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
-                        const Divider(),
                       ],
                     ),
-                  );
-                }).toList(),
-              ],
-            ),
+                  ],
+                ),
+              ),
+              
+              // Détails par wallet
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    "Détails par Wallet",
+                    style: TextStyle(
+                      fontSize: 16 + appState.getTextSizeOffset(),
+                      fontWeight: FontWeight.w600,
+                      color: Theme.of(context).textTheme.bodyLarge?.color,
+                    ),
+                  ),
+                ),
+              ),
+              
+              Expanded(
+                child: ListView.builder(
+                  padding: const EdgeInsets.fromLTRB(12, 4, 12, 16),
+                  itemCount: walletDetails.length,
+                  itemBuilder: (context, index) {
+                    final walletInfo = walletDetails[index];
+                    final String truncated = truncateAddress(walletInfo['address']);
+                    final String gnosisUsdc = currencyUtils.getFormattedAmount(
+                      currencyUtils.convert(walletInfo['gnosisUsdc']),
+                      currencyUtils.currencySymbol,
+                      appState.showAmounts,
+                    );
+                    final String gnosisXdai = currencyUtils.getFormattedAmount(
+                      currencyUtils.convert(walletInfo['gnosisXdai']),
+                      currencyUtils.currencySymbol,
+                      appState.showAmounts,
+                    );
+                    
+                    return Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Colors.white.withOpacity(0.05)
+                            : Colors.black.withOpacity(0.03),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? Colors.white.withOpacity(0.1)
+                              : Colors.black.withOpacity(0.05),
+                          width: 1,
+                        ),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(10.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(4),
+                                  decoration: BoxDecoration(
+                                    color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Icon(
+                                    Icons.account_balance_wallet_outlined,
+                                    size: 14 + appState.getTextSizeOffset(),
+                                    color: Theme.of(context).colorScheme.primary,
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                Expanded(
+                                  child: Text(
+                                    truncated,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontSize: 12 + appState.getTextSizeOffset(),
+                                      fontWeight: FontWeight.w600,
+                                      color: Theme.of(context).textTheme.bodyLarge?.color,
+                                    ),
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: Icon(
+                                    Icons.copy_rounded,
+                                    size: 14 + appState.getTextSizeOffset(),
+                                    color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.6),
+                                  ),
+                                  constraints: const BoxConstraints(),
+                                  padding: EdgeInsets.zero,
+                                  onPressed: () {
+                                    // Logique pour copier l'adresse
+                                  },
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  children: [
+                                    Image.asset(
+                                      'assets/icons/usdc.png',
+                                      width: 20 + appState.getTextSizeOffset(),
+                                      height: 20 + appState.getTextSizeOffset(),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          "USDC",
+                                          style: TextStyle(
+                                            fontSize: 10 + appState.getTextSizeOffset(),
+                                            color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7),
+                                          ),
+                                        ),
+                                        Text(
+                                          gnosisUsdc,
+                                          style: TextStyle(
+                                            fontSize: 14 + appState.getTextSizeOffset(),
+                                            fontWeight: FontWeight.w500,
+                                            color: Theme.of(context).textTheme.bodyLarge?.color,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                                Row(
+                                  children: [
+                                    Image.asset(
+                                      'assets/icons/xdai.png',
+                                      width: 20 + appState.getTextSizeOffset(),
+                                      height: 20 + appState.getTextSizeOffset(),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          "XDAI",
+                                          style: TextStyle(
+                                            fontSize: 10 + appState.getTextSizeOffset(),
+                                            color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7),
+                                          ),
+                                        ),
+                                        Text(
+                                          gnosisXdai,
+                                          style: TextStyle(
+                                            fontSize: 14 + appState.getTextSizeOffset(),
+                                            fontWeight: FontWeight.w500,
+                                            color: Theme.of(context).textTheme.bodyLarge?.color,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
           ),
         ),
-      ],
+      ),
     );
   }
 

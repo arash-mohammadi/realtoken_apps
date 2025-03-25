@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'dart:ui';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:hive/hive.dart';
 import 'package:provider/provider.dart';
@@ -119,357 +120,508 @@ class _PropertiesForSaleSecondaryState
     });
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Barre de recherche et affichage de la dernière mise à jour
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: isSearching
-                      ? TextField(
-                          controller: searchController,
-                          decoration: InputDecoration(
-                            hintText: S.of(context).search_hint,
-                            border: const OutlineInputBorder(),
-                            isDense: true,
-                          ),
-                        )
-                      : Text(
-                          '${S.of(context).last_update} ${CustomDateUtils.formatReadableDateWithTime(lastUpdateTime!)}',
-                          style: TextStyle(
-                            fontSize: 14 + appState.getTextSizeOffset(),
-                            color: Colors.grey[600],
-                          ),
+      backgroundColor: Theme.of(context).brightness == Brightness.light 
+          ? Color(0xFFF2F2F7) // iOS light background
+          : Color(0xFF000000), // iOS dark background
+      body: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Barre de recherche et affichage de la dernière mise à jour dans un style iOS
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (!isSearching)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8.0),
+                      child: Text(
+                        '${S.of(context).last_update} ${CustomDateUtils.formatReadableDateWithTime(lastUpdateTime!)}',
+                        style: TextStyle(
+                          fontSize: 12 + appState.getTextSizeOffset(),
+                          color: Colors.grey[600],
                         ),
-                ),
-                IconButton(
-                  icon: Icon(isSearching ? Icons.close : Icons.search),
-                  onPressed: () {
-                    setState(() {
-                      if (isSearching) searchController.clear();
-                      isSearching = !isSearching;
-                    });
-                  },
-                ),
-              ],
-            ),
-          ),
-          // Barre des filtres et du tri
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                // Filtres par type d'offre avec ChoiceChips
-                Row(
-                  children: [
-                    ChoiceChip(
-                      label: Icon(
-                        Icons.all_inclusive,
-                        size: 16,
                       ),
-                      selected: selectedOfferType == "tout",
-                      selectedColor: Theme.of(context).primaryColor,
-                      backgroundColor: Theme.of(context).cardColor,
-                      onSelected: (selected) {
-                        setState(() {
-                          selectedOfferType = "tout";
-                        });
-                      },
                     ),
-                    const SizedBox(width: 8),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        ChoiceChip(
-                          label: Icon(
-                            Icons.add_shopping_cart,
-                            size: 16,
+                  Container(
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).brightness == Brightness.light
+                          ? Color(0xFFE5E5EA) // iOS search bar background light
+                          : Color(0xFF1C1C1E), // iOS search bar background dark
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: isSearching
+                        ? TextField(
+                            controller: searchController,
+                            decoration: InputDecoration(
+                              hintText: S.of(context).search_hint,
+                              prefixIcon: Icon(Icons.search, color: Colors.grey, size: 20),
+                              suffixIcon: IconButton(
+                                icon: Icon(Icons.clear, color: Colors.grey, size: 18),
+                                onPressed: () {
+                                  setState(() {
+                                    searchController.clear();
+                                    isSearching = false;
+                                  });
+                                },
+                              ),
+                              border: InputBorder.none,
+                              contentPadding: EdgeInsets.zero,
+                            ),
+                          )
+                        : InkWell(
+                            onTap: () {
+                              setState(() {
+                                isSearching = true;
+                              });
+                            },
+                            child: Row(
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                  child: Icon(Icons.search, color: Colors.grey, size: 20),
+                                ),
+                                Text(
+                                  S.of(context).search_hint,
+                                  style: TextStyle(
+                                    color: Colors.grey[600],
+                                    fontSize: 14 + appState.getTextSizeOffset(),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                          selected: selectedOfferType == "vente",
-                          selectedColor: Theme.of(context).primaryColor,
-                          backgroundColor: Theme.of(context).cardColor,
-                          onSelected: (selected) {
-                            setState(() {
-                              selectedOfferType = "vente";
-                            });
-                          },
+                  ),
+                ],
+              ),
+            ),
+            // Filtres et contrôles de tri modernisés
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Étiquettes de type d'offre - partie gauche
+                  Expanded(
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [
+                          _buildFilterChip(
+                            "tout", 
+                            Icons.all_inclusive, 
+                            selectedOfferType == "tout",
+                            context
+                          ),
+                          const SizedBox(width: 8),
+                          _buildFilterChip(
+                            "vente", 
+                            Icons.add_shopping_cart, 
+                            selectedOfferType == "vente",
+                            context
+                          ),
+                          const SizedBox(width: 8),
+                          _buildFilterChip(
+                            "achat", 
+                            Icons.sell, 
+                            selectedOfferType == "achat",
+                            context
+                          ),
+                          const SizedBox(width: 8),
+                          // Contrôle de visibilité
+                          _buildFilterChip(
+                            hideNonWhitelisted ? "whitelisted" : "all", 
+                            hideNonWhitelisted ? Icons.visibility_off : Icons.visibility, 
+                            false,
+                            context,
+                            onTap: () {
+                              setState(() {
+                                hideNonWhitelisted = !hideNonWhitelisted;
+                              });
+                            },
+                            customColor: hideNonWhitelisted ? Colors.red.withOpacity(0.2) : Colors.green.withOpacity(0.2),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  
+                  // Menu déroulant de tri combiné style iOS - partie droite
+                  Container(
+                    margin: EdgeInsets.only(left: 8),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).brightness == Brightness.light
+                          ? Colors.white
+                          : Color(0xFF1C1C1E),
+                      borderRadius: BorderRadius.circular(6),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 3,
+                          offset: Offset(0, 1),
                         ),
                       ],
                     ),
-                    const SizedBox(width: 8),
-                    ChoiceChip(
-                      label: Icon(
-                        Icons.sell,
-                        size: 16,
-                      ),
-                      selected: selectedOfferType == "achat",
-                      selectedColor: Theme.of(context).primaryColor,
-                      backgroundColor: Theme.of(context).cardColor,
-                      onSelected: (selected) {
-                        setState(() {
-                          selectedOfferType = "achat";
-                        });
-                      },
-                    ),
-                  ],
-                ),
-// Contrôles de tri
-                Row(
-                  children: [
-                    IconButton(
-                      icon: Icon(
-                        hideNonWhitelisted
-                            ? Icons.visibility_off
-                            : Icons.visibility,
-                        size: 18,
-                        color: hideNonWhitelisted ? Colors.red : Colors.green,
-                      ),
-                      tooltip: hideNonWhitelisted
-                          ? "Afficher les propriétés non whitelistées"
-                          : "Cacher les propriétés non whitelistées",
-                      onPressed: () {
-                        setState(() {
-                          hideNonWhitelisted = !hideNonWhitelisted;
-                        });
-                      },
-                    ),
-                    Text(
-                      S.of(context).sort_label,
-                      style: const TextStyle(fontSize: 12),
-                    ),
-                    const SizedBox(width: 4),
-                    DropdownButton<String>(
-                      value: selectedSortOption,
+                    padding: EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                    child: DropdownButton<String>(
+                      value: selectedSortOption == "delta" ? "delta" : "date",
+                      underline: SizedBox(),
+                      isDense: true,
+                      icon: Icon(Icons.keyboard_arrow_down, color: Theme.of(context).primaryColor, size: 18),
                       items: [
-                        DropdownMenuItem(
-                          value: "date",
-                          child: Text(
-                            S.of(context).sort_date,
-                            style: const TextStyle(fontSize: 12),
-                          ),
-                        ),
                         DropdownMenuItem(
                           value: "delta",
                           child: Text(
                             S.of(context).sort_delta,
-                            style: const TextStyle(fontSize: 12),
+                            style: TextStyle(
+                              fontSize: 13 + appState.getTextSizeOffset(),
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        DropdownMenuItem(
+                          value: "date",
+                          child: Text(
+                            S.of(context).sort_date,
+                            style: TextStyle(
+                              fontSize: 13 + appState.getTextSizeOffset(),
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        // Divider entre options de tri et ordre
+                        DropdownMenuItem(
+                          enabled: false,
+                          child: Divider(height: 1, thickness: 1),
+                        ),
+                        // Options d'ordre
+                        DropdownMenuItem(
+                          value: "asc",
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.arrow_upward, size: 14, color: ascending ? Theme.of(context).primaryColor : Colors.grey),
+                              SizedBox(width: 3),
+                              Text(
+                                "Ascendant",
+                                style: TextStyle(
+                                  fontSize: 13 + appState.getTextSizeOffset(),
+                                  color: ascending ? Theme.of(context).primaryColor : Colors.grey,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        DropdownMenuItem(
+                          value: "desc",
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.arrow_downward, size: 14, color: !ascending ? Theme.of(context).primaryColor : Colors.grey),
+                              SizedBox(width: 3),
+                              Text(
+                                "Descendant",
+                                style: TextStyle(
+                                  fontSize: 13 + appState.getTextSizeOffset(),
+                                  color: !ascending ? Theme.of(context).primaryColor : Colors.grey,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
                       onChanged: (value) {
                         if (value != null) {
                           setState(() {
-                            selectedSortOption = value;
+                            if (value == "asc") {
+                              ascending = true;
+                            } else if (value == "desc") {
+                              ascending = false;
+                            } else {
+                              selectedSortOption = value;
+                            }
                           });
                         }
                       },
                     ),
-                    IconButton(
-                      icon: Icon(
-                        ascending ? Icons.arrow_upward : Icons.arrow_downward,
-                        size: 20,
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          ascending = !ascending;
-                        });
-                      },
-                    ),
-                  ],
-                ),
-              ],
+                  ),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(height: 8),
-          Expanded(
-            child: groupedOffers.isEmpty
-                ? Center(
-                    child: Text(
-                      S.of(context).no_market_offers_available,
-                      style: TextStyle(
-                        fontSize: 16 + appState.getTextSizeOffset(),
+            const SizedBox(height: 8),
+            Expanded(
+              child: groupedOffers.isEmpty
+                  ? Center(
+                      child: Text(
+                        S.of(context).no_market_offers_available,
+                        style: TextStyle(
+                          fontSize: 16 + appState.getTextSizeOffset(),
+                        ),
                       ),
-                    ),
-                  )
-                : LayoutBuilder(
-                    builder: (context, constraints) {
-                      // Choisir 2 colonnes si la largeur est supérieure à 700, sinon 1 colonne
-                      int crossAxisCount = constraints.maxWidth > 700 ? 2 : 1;
-                      return MasonryGridView.count(
-                        crossAxisCount: crossAxisCount,
-                        mainAxisSpacing: 16,
-                        crossAxisSpacing: 16,
-                        padding: const EdgeInsets.all(16),
-                        itemCount: groupedOffers.keys.length,
-                        itemBuilder: (context, index) {
-                          String tokenKey = groupedOffers.keys.elementAt(index);
-                          List<Map<String, dynamic>> offers =
-                              groupedOffers[tokenKey]!;
-                          final imageUrl = (offers.first['imageLink'] != null &&
-                                  offers.first['imageLink'] is List &&
-                                  offers.first['imageLink'].isNotEmpty)
-                              ? offers.first['imageLink'][0]
-                              : '';
-                          final shortName = offers.first['shortName'] ?? 'N/A';
-                          final country = offers.first['country'] ?? 'USA';
-                          final String? tokenIdentifier =
-                              offers.first['token_to_sell'] ??
-                                  offers.first['token_to_buy'];
-                          final bool isWhitelisted = dataManager.whitelistTokens
-                              .any((whitelisted) =>
-                                  whitelisted['token'].toLowerCase() ==
-                                  tokenIdentifier?.toLowerCase());
+                    )
+                  : LayoutBuilder(
+                      builder: (context, constraints) {
+                        // Choisir 2 colonnes si la largeur est supérieure à 700, sinon 1 colonne
+                        int crossAxisCount = constraints.maxWidth > 700 ? 2 : 1;
+                        return MasonryGridView.count(
+                          crossAxisCount: crossAxisCount,
+                          mainAxisSpacing: 16,
+                          crossAxisSpacing: 16,
+                          padding: const EdgeInsets.all(16),
+                          itemCount: groupedOffers.keys.length,
+                          itemBuilder: (context, index) {
+                            String tokenKey = groupedOffers.keys.elementAt(index);
+                            List<Map<String, dynamic>> offers =
+                                groupedOffers[tokenKey]!;
+                            final imageUrl = (offers.first['imageLink'] != null &&
+                                    offers.first['imageLink'] is List &&
+                                    offers.first['imageLink'].isNotEmpty)
+                                ? offers.first['imageLink'][0]
+                                : '';
+                            final shortName = offers.first['shortName'] ?? 'N/A';
+                            final country = offers.first['country'] ?? 'USA';
+                            final String? tokenIdentifier =
+                                offers.first['token_to_sell'] ??
+                                    offers.first['token_to_buy'];
+                            final bool isWhitelisted = dataManager.whitelistTokens
+                                .any((whitelisted) =>
+                                    whitelisted['token'].toLowerCase() ==
+                                    tokenIdentifier?.toLowerCase());
 
-                          return Card(
-                            margin: const EdgeInsets.symmetric(vertical: 4),
-                            elevation: 1,
-                            color: Theme.of(context).cardColor,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(12.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  // Affichage de l'image de la propriété si disponible
-                                  if (imageUrl.isNotEmpty)
-                                    AspectRatio(
-                                      aspectRatio: 16 / 9,
-                                      child: ClipRRect(
-                                        borderRadius: const BorderRadius.only(
-                                          topLeft: Radius.circular(12),
-                                          topRight: Radius.circular(12),
-                                        ),
-                                        child: kIsWeb
-                                            ? ShowNetworkImage(
-                                                imageSrc: imageUrl,
-                                                mobileBoxFit: BoxFit.cover,
-                                              )
-                                            : CachedNetworkImage(
-                                                imageUrl: imageUrl,
-                                                fit: BoxFit.cover,
-                                                errorWidget:
-                                                    (context, url, error) =>
-                                                        const Icon(Icons.error),
-                                              ),
-                                      ),
-                                    ),
-                                  const SizedBox(height: 10),
-                                  // Affichage des informations de la propriété
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Expanded(
-                                        child: Row(
-                                          children: [
-                                            Padding(
-                                              padding: const EdgeInsets.only(
-                                                  right: 8.0),
-                                              child: Image.asset(
-                                                'assets/country/${country.toLowerCase()}.png',
-                                                width: 24,
-                                                height: 24,
-                                                errorBuilder: (context, error,
-                                                    stackTrace) {
-                                                  return const Icon(Icons.flag,
-                                                      size: 24);
-                                                },
-                                              ),
-                                            ),
-                                            Text(
-                                              shortName,
-                                              style: TextStyle(
-                                                fontSize: 18 +
-                                                    appState
-                                                        .getTextSizeOffset(),
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                            const SizedBox(height: 4),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
+                            // Card style iOS
+                            return Container(
+                              margin: const EdgeInsets.symmetric(vertical: 3),
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).brightness == Brightness.light 
+                                  ? Colors.white 
+                                  : Color(0xFF1C1C1E),
+                                borderRadius: BorderRadius.circular(14),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.05),
+                                    blurRadius: 8,
+                                    offset: Offset(0, 2),
                                   ),
-                                  Row(
-                                    children: [
-                                      Icon(
-                                        isWhitelisted
-                                            ? Icons.check_circle
-                                            : Icons.cancel,
-                                        color: isWhitelisted
-                                            ? Colors.green
-                                            : Colors.red,
-                                        size: 18,
-                                      ),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        isWhitelisted
-                                            ? S.of(context).tokenWhitelisted
-                                            : S.of(context).tokenNotWhitelisted,
-                                        style: TextStyle(
-                                          color: isWhitelisted
-                                              ? Colors.green
-                                              : Colors.red,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 8),
-                                  // Affichage des offres pour ce groupe
-                                  ...offers.map((offer) {
-                                    bool isTokenWhitelisted =
-                                        true; // À ajuster selon votre logique
-                                    if (selectedOfferType == "vente") {
-                                      return _buildSaleOfferCard(
-                                          context,
-                                          appState,
-                                          currencyUtils,
-                                          offer,
-                                          isTokenWhitelisted);
-                                    } else if (selectedOfferType == "achat") {
-                                      return _buildPurchaseOfferCard(
-                                          context,
-                                          appState,
-                                          currencyUtils,
-                                          offer,
-                                          isTokenWhitelisted);
-                                    } else {
-                                      if (offer['token_to_buy'] == null) {
-                                        return _buildSaleOfferCard(
-                                            context,
-                                            appState,
-                                            currencyUtils,
-                                            offer,
-                                            isTokenWhitelisted);
-                                      } else {
-                                        return _buildPurchaseOfferCard(
-                                            context,
-                                            appState,
-                                            currencyUtils,
-                                            offer,
-                                            isTokenWhitelisted);
-                                      }
-                                    }
-                                  }),
                                 ],
                               ),
-                            ),
-                          );
-                        },
-                      );
-                    },
-                  ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(14),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    // Image avec overlay pour les badges
+                                    if (imageUrl.isNotEmpty)
+                                      Stack(
+                                        children: [
+                                          AspectRatio(
+                                            aspectRatio: 16 / 9,
+                                            child: kIsWeb
+                                                ? ShowNetworkImage(
+                                                    imageSrc: imageUrl,
+                                                    mobileBoxFit: BoxFit.cover,
+                                                  )
+                                                : CachedNetworkImage(
+                                                    imageUrl: imageUrl,
+                                                    fit: BoxFit.cover,
+                                                    errorWidget:
+                                                        (context, url, error) =>
+                                                            const Icon(Icons.error),
+                                                  ),
+                                          ),
+                                          // Badge style iOS pour whitelisted
+                                          Positioned(
+                                            top: 6,
+                                            right: 6,
+                                            child: Container(
+                                              padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                              decoration: BoxDecoration(
+                                                color: isWhitelisted 
+                                                  ? Colors.green.withOpacity(0.8) 
+                                                  : Colors.red.withOpacity(0.8),
+                                                borderRadius: BorderRadius.circular(10),
+                                              ),
+                                              child: Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  Icon(
+                                                    isWhitelisted 
+                                                      ? Icons.check_circle 
+                                                      : Icons.cancel,
+                                                    color: Colors.white,
+                                                    size: 10,
+                                                  ),
+                                                  SizedBox(width: 2),
+                                                  Text(
+                                                    isWhitelisted
+                                                      ? S.of(context).tokenWhitelisted
+                                                      : S.of(context).tokenNotWhitelisted,
+                                                    style: TextStyle(
+                                                      color: Colors.white,
+                                                      fontSize: 9,
+                                                      fontWeight: FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    
+                                    // Infos et offres
+                                    Padding(
+                                      padding: const EdgeInsets.all(12.0),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          // Nom de la propriété avec icône pays à gauche
+                                          Row(
+                                            children: [
+                                              Image.asset(
+                                                'assets/country/${country.toLowerCase()}.png',
+                                                width: 16,
+                                                height: 16,
+                                                errorBuilder: (context, error, stackTrace) {
+                                                  return const Icon(Icons.flag, size: 16);
+                                                },
+                                              ),
+                                              SizedBox(width: 6),
+                                              Expanded(
+                                                child: Text(
+                                                  shortName,
+                                                  style: TextStyle(
+                                                    fontSize: 16 + appState.getTextSizeOffset(),
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 8),
+                                          // Affichage des offres pour ce groupe
+                                          ...offers.map((offer) {
+                                            bool isTokenWhitelisted = true;
+                                            if (selectedOfferType == "vente") {
+                                              return _buildSaleOfferCard(
+                                                  context,
+                                                  appState,
+                                                  currencyUtils,
+                                                  offer,
+                                                  isTokenWhitelisted);
+                                            } else if (selectedOfferType == "achat") {
+                                              return _buildPurchaseOfferCard(
+                                                  context,
+                                                  appState,
+                                                  currencyUtils,
+                                                  offer,
+                                                  isTokenWhitelisted);
+                                            } else {
+                                              if (offer['token_to_buy'] == null) {
+                                                return _buildSaleOfferCard(
+                                                    context,
+                                                    appState,
+                                                    currencyUtils,
+                                                    offer,
+                                                    isTokenWhitelisted);
+                                              } else {
+                                                return _buildPurchaseOfferCard(
+                                                    context,
+                                                    appState,
+                                                    currencyUtils,
+                                                    offer,
+                                                    isTokenWhitelisted);
+                                              }
+                                            }
+                                          }),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Widget pour créer un filtre chip style iOS
+  Widget _buildFilterChip(
+    String type, 
+    IconData icon, 
+    bool isSelected, 
+    BuildContext context, 
+    {VoidCallback? onTap, Color? customColor}
+  ) {
+    final color = customColor ?? (isSelected 
+        ? Theme.of(context).primaryColor.withOpacity(0.2) 
+        : Theme.of(context).brightness == Brightness.light 
+            ? Colors.white 
+            : Color(0xFF1C1C1E));
+    
+    return GestureDetector(
+      onTap: onTap ?? () {
+        setState(() {
+          selectedOfferType = type;
+        });
+      },
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isSelected 
+                ? Theme.of(context).primaryColor 
+                : Colors.transparent,
+            width: 1,
           ),
-        ],
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.03),
+              blurRadius: 4,
+              offset: Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 16,
+              color: isSelected
+                  ? Theme.of(context).primaryColor
+                  : Colors.grey[600],
+            ),
+            if (type == "whitelisted" || type == "all")
+              SizedBox(width: 4),
+              if (type == "whitelisted")
+                Text(
+                  "Whitelisted",
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[600],
+                  ),
+                ),
+              if (type == "all")
+                Text(
+                  "Tous",
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[600],
+                  ),
+                ),
+          ],
+        ),
       ),
     );
   }
@@ -483,7 +635,7 @@ class _PropertiesForSaleSecondaryState
     bool isTokenWhitelisted,
   ) {
     final dataManager = Provider.of<DataManager>(context, listen: false);
-    // Exemple de vérification : utilisez la clé qui identifie le token dans offer.
+    // Vérification du statut du token
     final String? tokenIdentifier =
         offer['token_to_sell'] ?? offer['token_to_buy'];
     final bool isTokenWhitelisted = dataManager.whitelistTokens.any(
@@ -507,95 +659,177 @@ class _PropertiesForSaleSecondaryState
     final double deltaValue =
         ((offer['token_value'] / offer['token_price'] - 1) * 100);
 
-    Color customColor;
+    // Définir les couleurs selon le delta avec une palette plus iOS
+    Color deltaColor;
     if (deltaValue >= 1 && deltaValue <= 7) {
-      customColor = Colors.orange;
+      deltaColor = Color(0xFFFF9500); // Orange iOS
     } else if (deltaValue > 7) {
-      customColor = Colors.red;
+      deltaColor = Color(0xFFFF3B30); // Rouge iOS
     } else {
-      customColor = Colors.green;
+      deltaColor = Color(0xFF34C759); // Vert iOS
     }
 
     return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-        child: Opacity(
-          opacity: isTokenWhitelisted ? 1.0 : 0.5,
-          child: Card(
-            color: Theme.of(context).scaffoldBackgroundColor,
-            elevation: 0.5,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Stack(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(12.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // En-tête : ID et date
-                      Row(
-                        children: [
-                          Image.asset(
-                            'assets/logo.png', // Chemin vers l'image dans assets
-                            height: 24, // Ajuster la taille de l'image
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: Opacity(
+        opacity: isTokenWhitelisted ? 1.0 : 0.7,
+        child: Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).brightness == Brightness.light
+                ? Color(0xFFEEEEF0) // Gris plus distinct en mode clair
+                : Color(0xFF2C2C2E),
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 6,
+                offset: Offset(0, 1),
+              ),
+            ],
+          ),
+          child: Stack(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // En-tête avec ID et date
+                    Row(
+                      children: [
+                        Container(
+                          padding: EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).primaryColor.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(10),
                           ),
-                          const SizedBox(width: 4),
-                          Text(
-                            '${S.of(context).offer_id}: ${offer['id_offer']}',
-                            style: TextStyle(
-                              fontSize: 14 + appState.getTextSizeOffset(),
-                              fontWeight: FontWeight.bold,
-                            ),
+                          child: Image.asset(
+                            'assets/logo.png',
+                            height: 16,
                           ),
-                          const Spacer(),
-                          Text(
-                            CustomDateUtils.formatReadableDate(
-                                offer['creationDate']),
-                            style: TextStyle(
-                              fontSize: 12 + appState.getTextSizeOffset(),
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      // Montant du token
-                      Text(
-                        '${S.of(context).token_amount}: ${offer['token_amount']?.toStringAsFixed(3)}',
-                        style: TextStyle(
-                          fontSize: 12 + appState.getTextSizeOffset(),
-                          color: Colors.grey[600],
                         ),
-                      ),
-                      const SizedBox(height: 4),
-                      // Delta Price
-                      Row(
-                        children: [
-                          Text(
-                            '${S.of(context).delta_price}: ',
-                            style: TextStyle(
-                              fontSize: 12 + appState.getTextSizeOffset(),
-                              color: Colors.grey[600],
+                        const SizedBox(width: 8),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '${S.of(context).offer_id}: ${offer['id_offer']}',
+                              style: TextStyle(
+                                fontSize: 12 + appState.getTextSizeOffset(),
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              CustomDateUtils.formatReadableDate(offer['creationDate']),
+                              style: TextStyle(
+                                fontSize: 10 + appState.getTextSizeOffset(),
+                                color: Colors.grey[500],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    
+                    const SizedBox(height: 10),
+                    
+                    // Informations sur le montant et le delta
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        // Montant du token
+                        Expanded(
+                          child: Container(
+                            padding: EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).brightness == Brightness.light
+                                  ? Colors.grey[100]
+                                  : Color(0xFF3A3A3C),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  S.of(context).token_amount,
+                                  style: TextStyle(
+                                    fontSize: 10 + appState.getTextSizeOffset(),
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
+                                Text(
+                                  '${offer['token_amount']?.toStringAsFixed(3)}',
+                                  style: TextStyle(
+                                    fontSize: 14 + appState.getTextSizeOffset(),
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                          Text(
-                            '${deltaValue.toStringAsFixed(2)}%',
-                            style: TextStyle(
-                              fontSize: 12 + appState.getTextSizeOffset(),
-                              // On conserve ici le style de delta : négatif en vert, positif en rouge
-                              color:
-                                  (deltaValue < 0 ? Colors.green : Colors.red),
-                              fontWeight: FontWeight.bold,
+                        ),
+                        
+                        const SizedBox(width: 8),
+                        
+                        // Delta price
+                        Expanded(
+                          child: Container(
+                            padding: EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+                            decoration: BoxDecoration(
+                              color: deltaColor.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  S.of(context).delta_price,
+                                  style: TextStyle(
+                                    fontSize: 10 + appState.getTextSizeOffset(),
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
+                                Row(
+                                  children: [
+                                    Icon(
+                                      deltaValue < 0 ? Icons.arrow_downward : Icons.arrow_upward,
+                                      color: deltaColor,
+                                      size: 12,
+                                    ),
+                                    Text(
+                                      '${deltaValue.abs().toStringAsFixed(2)}%',
+                                      style: TextStyle(
+                                        fontSize: 14 + appState.getTextSizeOffset(),
+                                        fontWeight: FontWeight.bold,
+                                        color: deltaColor,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ),
                           ),
-                        ],
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 8),
+                    
+                    // Comparaison des prix
+                    Container(
+                      padding: EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Colors.blue.withOpacity(0.1),
+                            deltaColor.withOpacity(0.1),
+                          ],
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                        ),
+                        borderRadius: BorderRadius.circular(10),
                       ),
-
-                      const SizedBox(height: 8),
-                      // Comparaison des prix
-
-                      Row(
+                      child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Column(
@@ -604,47 +838,70 @@ class _PropertiesForSaleSecondaryState
                               Text(
                                 S.of(context).current_price,
                                 style: TextStyle(
-                                  fontSize: 12 + appState.getTextSizeOffset(),
-                                  color: Colors.grey[600],
+                                  fontSize: 10 + appState.getTextSizeOffset(),
+                                  color: Colors.grey[700],
+                                  fontWeight: FontWeight.w500,
                                 ),
                               ),
                               Text(
                                 currencyUtils.formatCurrency(
                                     initialPrice, currencyUtils.currencySymbol),
                                 style: TextStyle(
-                                  fontSize: 14 + appState.getTextSizeOffset(),
+                                  fontSize: 13 + appState.getTextSizeOffset(),
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.blue,
+                                  color: Color(0xFF007AFF), // Bleu iOS
                                 ),
                               ),
                             ],
                           ),
+                          Icon(
+                            Icons.arrow_forward,
+                            color: Colors.grey[400],
+                            size: 16,
+                          ),
                           Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
                               Text(
                                 S.of(context).offer_price,
                                 style: TextStyle(
-                                  fontSize: 12 + appState.getTextSizeOffset(),
-                                  color: Colors.grey[600],
+                                  fontSize: 10 + appState.getTextSizeOffset(),
+                                  color: Colors.grey[700],
+                                  fontWeight: FontWeight.w500,
                                 ),
                               ),
                               Text(
                                 currencyUtils.formatCurrency(
                                     offerPrice, currencyUtils.currencySymbol),
                                 style: TextStyle(
-                                  fontSize: 14 + appState.getTextSizeOffset(),
+                                  fontSize: 13 + appState.getTextSizeOffset(),
                                   fontWeight: FontWeight.bold,
-                                  color: customColor,
+                                  color: deltaColor,
                                 ),
                               ),
                             ],
                           ),
                         ],
                       ),
-                      const SizedBox(height: 8),
-                      // Comparaison des yields et ROI
-                      Row(
+                    ),
+                    
+                    const SizedBox(height: 8),
+                    
+                    // Comparaison des yields
+                    Container(
+                      padding: EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Colors.blue.withOpacity(0.1),
+                            deltaColor.withOpacity(0.1),
+                          ],
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                        ),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Column(
@@ -653,19 +910,25 @@ class _PropertiesForSaleSecondaryState
                               Text(
                                 S.of(context).current_yield,
                                 style: TextStyle(
-                                  fontSize: 12 + appState.getTextSizeOffset(),
-                                  color: Colors.grey[600],
+                                  fontSize: 10 + appState.getTextSizeOffset(),
+                                  color: Colors.grey[700],
+                                  fontWeight: FontWeight.w500,
                                 ),
                               ),
                               Text(
                                 '${baseYield.toStringAsFixed(2)}%',
                                 style: TextStyle(
-                                  fontSize: 14 + appState.getTextSizeOffset(),
+                                  fontSize: 13 + appState.getTextSizeOffset(),
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.blue,
+                                  color: Color(0xFF007AFF), // Bleu iOS
                                 ),
                               ),
                             ],
+                          ),
+                          Icon(
+                            Icons.arrow_forward,
+                            color: Colors.grey[400],
+                            size: 16,
                           ),
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.end,
@@ -673,94 +936,149 @@ class _PropertiesForSaleSecondaryState
                               Text(
                                 S.of(context).new_yield,
                                 style: TextStyle(
-                                  fontSize: 12 + appState.getTextSizeOffset(),
-                                  color: Colors.grey[600],
+                                  fontSize: 10 + appState.getTextSizeOffset(),
+                                  color: Colors.grey[700],
+                                  fontWeight: FontWeight.w500,
                                 ),
                               ),
                               Text(
                                 '${newYield.toStringAsFixed(2)}%',
                                 style: TextStyle(
-                                  fontSize: 14 + appState.getTextSizeOffset(),
+                                  fontSize: 13 + appState.getTextSizeOffset(),
                                   fontWeight: FontWeight.bold,
-                                  color: customColor,
+                                  color: deltaColor,
                                 ),
                               ),
                             ],
                           ),
                         ],
                       ),
-                      const SizedBox(height: 8),
-                      // Affichage du ROI
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 4),
+                    ),
+                    
+                    const SizedBox(height: 8),
+                    
+                    // ROI et bouton d'action
+                    Row(
+                      children: [
+                        // ROI badge
+                        Expanded(
+                          child: Container(
+                            padding: EdgeInsets.symmetric(vertical: 6),
+                            decoration: BoxDecoration(
+                              color: Color(0xFFFF9500).withOpacity(0.2), // Orange iOS
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Center(
+                              child: Text(
+                                S.of(context).roi_label(roiWeeks.toStringAsFixed(1)),
+                                style: TextStyle(
+                                  fontSize: 12 + appState.getTextSizeOffset(),
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFFFF9500), // Orange iOS
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        
+                        const SizedBox(width: 8),
+                        
+                        // Bouton d'achat style iOS
+                        Expanded(
+                          child: Material(
+                            borderRadius: BorderRadius.circular(10),
+                            color: isTokenWhitelisted ? Color(0xFF007AFF) : Colors.grey,
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(10),
+                              onTap: isTokenWhitelisted
+                                  ? () {
+                                      UrlUtils.launchURL(
+                                          'https://yambyofferid.netlify.app/?offerId=${offer['id_offer']}');
+                                    }
+                                  : null,
+                              child: Container(
+                                padding: EdgeInsets.symmetric(vertical: 8),
+                                child: Center(
+                                  child: Text(
+                                    S.of(context).buy_token,
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 12 + appState.getTextSizeOffset(),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              // Badge de paiement
+              Positioned(
+                top: 10,
+                right: 10,
+                child: Builder(
+                  builder: (context) {
+                    if (offer['token_to_pay'] ==
+                            '0x0ca4f5554dd9da6217d62d8df2816c82bba4157b' ||
+                        offer['token_to_pay'] ==
+                            '0xe91d153e0b41518a2ce8dd3d7944fa863463a97d') {
+                      return Container(
+                        padding: EdgeInsets.all(3),
                         decoration: BoxDecoration(
-                          color: Colors.orangeAccent,
-                          borderRadius: BorderRadius.circular(8),
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(6),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 3,
+                              offset: Offset(0, 1),
+                            ),
+                          ],
                         ),
-                        child: Text(
-                          S.of(context).roi_label(roiWeeks.toStringAsFixed(1)),
-                          style: TextStyle(
-                            fontSize: 14 + appState.getTextSizeOffset(),
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Center(
-                        child: ElevatedButton(
-                          onPressed: isTokenWhitelisted
-                              ? () {
-                                  UrlUtils.launchURL(
-                                      'https://yambyofferid.netlify.app/?offerId=${offer['id_offer']}');
-                                }
-                              : null,
-                          style: ElevatedButton.styleFrom(
-                            foregroundColor: Colors.white,
-                            backgroundColor: Colors.blue,
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 4),
-                            minimumSize: const Size(80, 30),
-                          ),
-                          child: Text(S.of(context).buy_token),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Positioned(
-                  top: 35,
-                  right: 25,
-                  child: Builder(
-                    builder: (context) {
-                      if (offer['token_to_pay'] ==
-                              '0x0ca4f5554dd9da6217d62d8df2816c82bba4157b' ||
-                          offer['token_to_pay'] ==
-                              '0xe91d153e0b41518a2ce8dd3d7944fa863463a97d') {
-                        return Image.asset(
+                        child: Image.asset(
                           'assets/icons/xdai.png',
-                          width: 28,
-                          height: 28,
-                        );
-                      } else if (offer['token_to_pay'] ==
-                              '0xddafbb505ad214d7b80b1f830fccc89b60fb7a83' ||
-                          offer['token_to_pay'] ==
-                              '0xed56f76e9cbc6a64b821e9c016eafbd3db5436d1') {
-                        return Image.asset(
+                          width: 18,
+                          height: 18,
+                        ),
+                      );
+                    } else if (offer['token_to_pay'] ==
+                            '0xddafbb505ad214d7b80b1f830fccc89b60fb7a83' ||
+                        offer['token_to_pay'] ==
+                            '0xed56f76e9cbc6a64b821e9c016eafbd3db5436d1') {
+                      return Container(
+                        padding: EdgeInsets.all(3),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(6),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 3,
+                              offset: Offset(0, 1),
+                            ),
+                          ],
+                        ),
+                        child: Image.asset(
                           'assets/icons/usdc.png',
-                          width: 24,
-                          height: 24,
-                        );
-                      }
-                      return const SizedBox();
-                    },
-                  ),
+                          width: 16,
+                          height: 16,
+                        ),
+                      );
+                    }
+                    return const SizedBox();
+                  },
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ));
+        ),
+      ),
+    );
   }
 
   // Fonction de construction d'une carte d'offre "Buy"
@@ -772,140 +1090,276 @@ class _PropertiesForSaleSecondaryState
     bool isTokenWhitelisted,
   ) {
     final dataManager = Provider.of<DataManager>(context, listen: false);
-    // Exemple de vérification : utilisez la clé qui identifie le token dans offer.
-    final String? tokenIdentifier =
+    final String? tokenIdentifier = 
         offer['token_to_sell'] ?? offer['token_to_buy'];
     final bool isTokenWhitelisted = dataManager.whitelistTokens.any(
         (whitelisted) =>
             whitelisted['token'].toLowerCase() ==
             tokenIdentifier?.toLowerCase());
+    
+    final double deltaValue = 
+        ((offer['token_value'] / offer['token_price'] - 1) * 100);
+    
+    // Définir les couleurs selon le delta avec une palette plus iOS
+    Color deltaColor = ((offer['token_value'] / offer['token_price'] - 1) * 100) < 0
+        ? Color(0xFFFF3B30) // Rouge iOS
+        : Color(0xFF34C759); // Vert iOS
+    
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+      padding: const EdgeInsets.only(bottom: 8.0),
       child: Opacity(
-        opacity: isTokenWhitelisted ? 1.0 : 0.5,
-        child: Card(
-          color: Theme.of(context).scaffoldBackgroundColor,
-          elevation: 0.5,
-          shape: RoundedRectangleBorder(
+        opacity: isTokenWhitelisted ? 1.0 : 0.7,
+        child: Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).brightness == Brightness.light
+                ? Color(0xFFEEEEF0) // Gris plus distinct en mode clair
+                : Color(0xFF2C2C2E),
             borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 6,
+                offset: Offset(0, 1),
+              ),
+            ],
           ),
           child: Stack(
             children: [
               Padding(
-                padding: const EdgeInsets.all(12.0),
+                padding: const EdgeInsets.all(10.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // En-tête avec ID et date
                     Row(
                       children: [
-                        Image.asset(
-                          'assets/logo.png', // Chemin vers l'image dans assets
-                          height: 24, // Ajuster la taille de l'image
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '${S.of(context).offer_id}: ${offer['id_offer']}',
-                          style: TextStyle(
-                            fontSize: 14 + appState.getTextSizeOffset(),
-                            fontWeight: FontWeight.bold,
+                        Container(
+                          padding: EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).primaryColor.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Image.asset(
+                            'assets/logo.png',
+                            height: 16,
                           ),
                         ),
-                        const Spacer(),
-                        Text(
-                          CustomDateUtils.formatReadableDate(
-                              offer['creationDate']),
-                          style: TextStyle(
-                            fontSize: 12 + appState.getTextSizeOffset(),
-                            color: Colors.grey[600],
+                        const SizedBox(width: 8),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '${S.of(context).offer_id}: ${offer['id_offer']}',
+                              style: TextStyle(
+                                fontSize: 12 + appState.getTextSizeOffset(),
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              CustomDateUtils.formatReadableDate(
+                                  offer['creationDate']),
+                              style: TextStyle(
+                                fontSize: 10 + appState.getTextSizeOffset(),
+                                color: Colors.grey[500],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    
+                    const SizedBox(height: 10),
+                    
+                    // Informations principales
+                    Row(
+                      children: [
+                        // Montant du token
+                        Expanded(
+                          child: Container(
+                            padding: EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).brightness == Brightness.light
+                                  ? Colors.grey[100]
+                                  : Color(0xFF3A3A3C),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  S.of(context).token_amount,
+                                  style: TextStyle(
+                                    fontSize: 10 + appState.getTextSizeOffset(),
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
+                                Text(
+                                  '${offer['token_amount']?.toStringAsFixed(3)}',
+                                  style: TextStyle(
+                                    fontSize: 14 + appState.getTextSizeOffset(),
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        
+                        const SizedBox(width: 8),
+                        
+                        // Valeur du token
+                        Expanded(
+                          child: Container(
+                            padding: EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).brightness == Brightness.light
+                                  ? Colors.grey[100]
+                                  : Color(0xFF3A3A3C),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  S.of(context).token_value,
+                                  style: TextStyle(
+                                    fontSize: 10 + appState.getTextSizeOffset(),
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
+                                Text(
+                                  currencyUtils.formatCurrency(currencyUtils.convert(offer['token_value']), currencyUtils.currencySymbol),
+                                  style: TextStyle(
+                                    fontSize: 14 + appState.getTextSizeOffset(),
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '${S.of(context).token_amount}: ${offer['token_amount']?.toStringAsFixed(3)}',
-                      style: TextStyle(
-                        fontSize: 12 + appState.getTextSizeOffset(),
-                        color: Colors.grey[600],
+                    
+                    const SizedBox(height: 10),
+                    
+                    // Delta
+                    Container(
+                      padding: EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: deltaColor.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            '${S.of(context).delta_price}: ',
+                            style: TextStyle(
+                              fontSize: 12 + appState.getTextSizeOffset(),
+                              color: Colors.grey[700],
+                            ),
+                          ),
+                          Icon(
+                            deltaValue < 0 ? Icons.arrow_downward : Icons.arrow_upward,
+                            color: deltaColor,
+                            size: 14,
+                          ),
+                          Text(
+                            '${deltaValue.abs().toStringAsFixed(2)}%',
+                            style: TextStyle(
+                              fontSize: 14 + appState.getTextSizeOffset(),
+                              fontWeight: FontWeight.bold,
+                              color: deltaColor,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    Text(
-                      '${S.of(context).token_value}: ${currencyUtils.formatCurrency(currencyUtils.convert(offer['token_value']), currencyUtils.currencySymbol)}',
-                      style: TextStyle(
-                        fontSize: 12 + appState.getTextSizeOffset(),
-                        color: Colors.grey[600],
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Text(
-                          '${S.of(context).delta_price}: ',
-                          style: TextStyle(
-                            fontSize: 12 + appState.getTextSizeOffset(),
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                        Text(
-                          '${((offer['token_value'] / offer['token_price'] - 1) * 100).toStringAsFixed(2)}%',
-                          style: TextStyle(
-                            fontSize: 12 + appState.getTextSizeOffset(),
-                            color:
-                                ((offer['token_value'] / offer['token_price'] -
-                                                1) *
-                                            100) <
-                                        0
-                                    ? Colors.red
-                                    : Colors.green,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Center(
-                      child: ElevatedButton(
-                        onPressed: isTokenWhitelisted
+                    
+                    const SizedBox(height: 10),
+                    
+                    // Bouton d'action style iOS
+                    Material(
+                      borderRadius: BorderRadius.circular(10),
+                      color: isTokenWhitelisted ? Color(0xFF34C759) : Colors.grey, // Vert iOS
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(10),
+                        onTap: isTokenWhitelisted
                             ? () {
                                 UrlUtils.launchURL(
                                     'https://yambyofferid.netlify.app/?offerId=${offer['id_offer']}');
                               }
                             : null,
-                        style: ElevatedButton.styleFrom(
-                          foregroundColor: Colors.white,
-                          backgroundColor: Colors.green,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 4),
-                          minimumSize: const Size(80, 30),
+                        child: Container(
+                          padding: EdgeInsets.symmetric(vertical: 8),
+                          child: Center(
+                            child: Text(
+                              S.of(context).sell_token,
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12 + appState.getTextSizeOffset(),
+                              ),
+                            ),
+                          ),
                         ),
-                        child: Text(S.of(context).sell_token),
                       ),
                     ),
                   ],
                 ),
               ),
+              // Badge de paiement
               Positioned(
-                top: 35,
-                right: 25,
+                top: 10,
+                right: 10,
                 child: Builder(
                   builder: (context) {
                     if (offer['token_to_pay'] ==
                             '0x0ca4f5554dd9da6217d62d8df2816c82bba4157b' ||
                         offer['token_to_pay'] ==
                             '0xe91d153e0b41518a2ce8dd3d7944fa863463a97d') {
-                      return Image.asset(
-                        'assets/icons/xdai.png',
-                        width: 28,
-                        height: 28,
+                      return Container(
+                        padding: EdgeInsets.all(3),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(6),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 3,
+                              offset: Offset(0, 1),
+                            ),
+                          ],
+                        ),
+                        child: Image.asset(
+                          'assets/icons/xdai.png',
+                          width: 18,
+                          height: 18,
+                        ),
                       );
                     } else if (offer['token_to_pay'] ==
                             '0xddafbb505ad214d7b80b1f830fccc89b60fb7a83' ||
                         offer['token_to_pay'] ==
                             '0xed56f76e9cbc6a64b821e9c016eafbd3db5436d1') {
-                      return Image.asset(
-                        'assets/icons/usdc.png',
-                        width: 24,
-                        height: 24,
+                      return Container(
+                        padding: EdgeInsets.all(3),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(6),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 3,
+                              offset: Offset(0, 1),
+                            ),
+                          ],
+                        ),
+                        child: Image.asset(
+                          'assets/icons/usdc.png',
+                          width: 16,
+                          height: 16,
+                        ),
                       );
                     }
                     return const SizedBox();
@@ -919,3 +1373,4 @@ class _PropertiesForSaleSecondaryState
     );
   }
 }
+

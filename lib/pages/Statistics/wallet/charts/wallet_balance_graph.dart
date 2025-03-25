@@ -219,29 +219,7 @@ class WalletBalanceGraph extends StatelessWidget {
                         ),
                         titlesData: FlTitlesData(
                           leftTitles: AxisTitles(
-                            sideTitles: SideTitles(
-                              showTitles: true,
-                              reservedSize: 45,
-                              getTitlesWidget: (value, meta) {
-                                final formattedValue =
-                                    currencyUtils.getFormattedAmount(
-                                  value,
-                                  currencyUtils.currencySymbol,
-                                  appState.showAmounts,
-                                );
-
-                                return Padding(
-                                  padding: const EdgeInsets.only(right: 8.0),
-                                  child: Text(
-                                    formattedValue,
-                                    style: TextStyle(
-                                      fontSize: 10 + appState.getTextSizeOffset(),
-                                      color: Colors.grey.shade600,
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
+                            sideTitles: SideTitles(showTitles: false),
                           ),
                           bottomTitles: AxisTitles(
                             sideTitles: SideTitles(
@@ -274,7 +252,27 @@ class WalletBalanceGraph extends StatelessWidget {
                             sideTitles: SideTitles(showTitles: false),
                           ),
                           rightTitles: AxisTitles(
-                            sideTitles: SideTitles(showTitles: false),
+                            sideTitles: SideTitles(
+                              showTitles: true,
+                              reservedSize: 40,
+                              getTitlesWidget: (value, meta) {
+                                final formattedValue = currencyUtils.formatCompactCurrency(
+                                  value,
+                                  currencyUtils.currencySymbol,
+                                );
+
+                                return Padding(
+                                  padding: const EdgeInsets.only(left: 8.0),
+                                  child: Text(
+                                    formattedValue,
+                                    style: TextStyle(
+                                      fontSize: 10 + appState.getTextSizeOffset(),
+                                      color: Colors.grey.shade600,
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
                           ),
                         ),
                         borderData: FlBorderData(show: false),
@@ -305,10 +303,9 @@ class WalletBalanceGraph extends StatelessWidget {
                                   context, dataManager, selectedPeriod);
                               
                               if (groupIndex >= 0 && groupIndex < labels.length) {
-                                final formattedValue = currencyUtils.getFormattedAmount(
+                                final formattedValue = currencyUtils.formatCompactCurrency(
                                   rod.toY,
                                   currencyUtils.currencySymbol,
-                                  appState.showAmounts,
                                 );
                                 
                                 return BarTooltipItem(
@@ -344,29 +341,7 @@ class WalletBalanceGraph extends StatelessWidget {
                         ),
                         titlesData: FlTitlesData(
                           leftTitles: AxisTitles(
-                            sideTitles: SideTitles(
-                              showTitles: true,
-                              reservedSize: 45,
-                              getTitlesWidget: (value, meta) {
-                                final formattedValue =
-                                    currencyUtils.getFormattedAmount(
-                                  value,
-                                  currencyUtils.currencySymbol,
-                                  appState.showAmounts,
-                                );
-
-                                return Padding(
-                                  padding: const EdgeInsets.only(right: 8.0),
-                                  child: Text(
-                                    formattedValue,
-                                    style: TextStyle(
-                                      fontSize: 10 + appState.getTextSizeOffset(),
-                                      color: Colors.grey.shade600,
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
+                            sideTitles: SideTitles(showTitles: false),
                           ),
                           bottomTitles: AxisTitles(
                             sideTitles: SideTitles(
@@ -399,7 +374,27 @@ class WalletBalanceGraph extends StatelessWidget {
                             sideTitles: SideTitles(showTitles: false),
                           ),
                           rightTitles: AxisTitles(
-                            sideTitles: SideTitles(showTitles: false),
+                            sideTitles: SideTitles(
+                              showTitles: true,
+                              reservedSize: 40,
+                              getTitlesWidget: (value, meta) {
+                                final formattedValue = currencyUtils.formatCompactCurrency(
+                                  value,
+                                  currencyUtils.currencySymbol,
+                                );
+
+                                return Padding(
+                                  padding: const EdgeInsets.only(left: 8.0),
+                                  child: Text(
+                                    formattedValue,
+                                    style: TextStyle(
+                                      fontSize: 10 + appState.getTextSizeOffset(),
+                                      color: Colors.grey.shade600,
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
                           ),
                         ),
                         borderData: FlBorderData(show: false),
@@ -453,11 +448,9 @@ class WalletBalanceGraph extends StatelessWidget {
                                     dataManager,
                                     selectedPeriod)[index];
 
-                                final formattedValue =
-                                    currencyUtils.getFormattedAmount(
-                                  averageBalance,
+                                final formattedValue = currencyUtils.formatCompactCurrency(
+                                  touchedSpot.y, 
                                   currencyUtils.currencySymbol,
-                                  appState.showAmounts,
                                 );
 
                                 return LineTooltipItem(

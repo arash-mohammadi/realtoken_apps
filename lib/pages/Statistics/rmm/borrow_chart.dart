@@ -140,26 +140,30 @@ class BorrowChart extends StatelessWidget {
                         ),
                         leftTitles: AxisTitles(
                           sideTitles: SideTitles(
+                            showTitles: false,
+                          ),
+                        ),
+                        rightTitles: AxisTitles(
+                          sideTitles: SideTitles(
                             showTitles: true,
-                            reservedSize: 45,
+                            reservedSize: 35,
                             getTitlesWidget: (value, meta) {
-                              final formattedValue = currencyUtils.getFormattedAmount(
+                              final formattedValue = currencyUtils.formatCompactCurrency(
                                 value,
                                 currencyUtils.currencySymbol,
-                                appState.showAmounts,
                               );
-                              return Text(
-                                formattedValue,
-                                style: TextStyle(
-                                  fontSize: 10 + appState.getTextSizeOffset(),
-                                  color: Colors.grey.shade600,
+                              return Padding(
+                                padding: const EdgeInsets.only(left: 8.0),
+                                child: Text(
+                                  formattedValue,
+                                  style: TextStyle(
+                                    fontSize: 10 + appState.getTextSizeOffset(),
+                                    color: Colors.grey.shade600,
+                                  ),
                                 ),
                               );
                             },
                           ),
-                        ),
-                        rightTitles: AxisTitles(
-                          sideTitles: SideTitles(showTitles: false),
                         ),
                         topTitles: AxisTitles(
                           sideTitles: SideTitles(showTitles: false),
@@ -266,8 +270,8 @@ class BorrowChart extends StatelessWidget {
                             }
                             
                             final tooltipText = "$periodLabel\n"
-                                "USDC: ${currencyUtils.getFormattedAmount(currencyUtils.convert(group.usdc), currencyUtils.currencySymbol, appState.showAmounts)}\n"
-                                "xDai: ${currencyUtils.getFormattedAmount(currencyUtils.convert(group.xdai), currencyUtils.currencySymbol, appState.showAmounts)}";
+                                "USDC: ${currencyUtils.formatCompactCurrency(currencyUtils.convert(group.usdc), currencyUtils.currencySymbol)}\n"
+                                "xDai: ${currencyUtils.formatCompactCurrency(currencyUtils.convert(group.xdai), currencyUtils.currencySymbol)}";
                                 
                             return touchedSpots.map((spot) {
                               return LineTooltipItem(

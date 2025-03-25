@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:provider/provider.dart';
 import 'package:realtokens/app_state.dart';
@@ -35,31 +36,34 @@ class _PropertiesForSaleRealtState extends State<PropertiesForSaleRealt> {
             double maxWidth = constraints.maxWidth;
             return Stack(
               children: [
-                Container(
-                  height: 15,
-                  width: maxWidth,
-                  decoration: BoxDecoration(
-                    color:
-                        Colors.black.withOpacity(0.3), // Couleur du fond grisé
-                    borderRadius: BorderRadius.circular(5),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Container(
+                    height: 12,
+                    width: maxWidth,
+                    decoration: BoxDecoration(
+                      color: CupertinoColors.systemGrey5,
+                    ),
                   ),
                 ),
-                Container(
-                  height: 14,
-                  width: rentValue.clamp(0, 100) / 100 * maxWidth,
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).primaryColor,
-                    borderRadius: BorderRadius.circular(5),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Container(
+                    height: 12,
+                    width: rentValue.clamp(0, 100) / 100 * maxWidth,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).primaryColor,
+                    ),
                   ),
                 ),
                 Positioned.fill(
                   child: Center(
                     child: Text(
-                      "${rentValue.toStringAsFixed(1)} %",
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                      "${rentValue.toStringAsFixed(1)}%",
+                      style: const TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        color: CupertinoColors.white,
                       ),
                     ),
                   ),
@@ -85,15 +89,19 @@ class _PropertiesForSaleRealtState extends State<PropertiesForSaleRealt> {
           ? Center(
               child: Text(
                 S.of(context).noPropertiesForSale,
-                style: TextStyle(fontSize: 16 + appState.getTextSizeOffset()),
+                style: TextStyle(
+                  fontSize: 16 + appState.getTextSizeOffset(),
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             )
           : AlignedGridView.count(
-              padding: const EdgeInsets.only(top: 10, bottom: 80),
+              padding: const EdgeInsets.only(top: 16, bottom: 80, left: 16, right: 16),
               crossAxisCount: MediaQuery.of(context).size.width > 700
                   ? 2
-                  : 1, // Nombre de colonnes selon la largeur de l'écran
-
+                  : 1,
+              mainAxisSpacing: 16,
+              crossAxisSpacing: 16,
               itemCount: propertiesForSale.length,
               itemBuilder: (context, index) {
                 final property = propertiesForSale[index];
@@ -102,7 +110,7 @@ class _PropertiesForSaleRealtState extends State<PropertiesForSaleRealt> {
                         property['imageLink'] is List &&
                         property['imageLink'].isNotEmpty)
                     ? property['imageLink'][0]
-                    : ''; // Une image par défaut en cas d'erreur
+                    : '';
                 final title =
                     property['shortName'] ?? S.of(context).nameUnavailable;
                 final double stock =
@@ -124,19 +132,26 @@ class _PropertiesForSaleRealtState extends State<PropertiesForSaleRealt> {
                 final sellPercentage =
                     (totalTokens - stock) / totalTokens * 100;
 
-                return Padding(
-                  padding: const EdgeInsets.symmetric(
-                      vertical: 8.0, horizontal: 8.0),
-                  child: GestureDetector(
-                    onTap: () {
-                      // Implémentez l'action au clic sur la carte, par exemple, afficher les détails
-                    },
-                    child: Card(
+                return GestureDetector(
+                  onTap: () {
+                    // Implémentez l'action au clic sur la carte
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
                       color: Theme.of(context).cardColor,
-                      elevation: 0.5,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Theme.of(context).brightness == Brightness.dark 
+                            ? Colors.black.withOpacity(0.2)
+                            : Colors.black.withOpacity(0.05),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
@@ -144,117 +159,211 @@ class _PropertiesForSaleRealtState extends State<PropertiesForSaleRealt> {
                             children: [
                               AspectRatio(
                                 aspectRatio: 16 / 9,
-                                child: ClipRRect(
-                                  borderRadius: const BorderRadius.only(
-                                    topLeft: Radius.circular(12),
-                                    topRight: Radius.circular(12),
+                                child: kIsWeb
+                                  ? ShowNetworkImage(
+                                      imageSrc: imageUrl,
+                                      mobileBoxFit: BoxFit.cover,
+                                    )
+                                  : CachedNetworkImage(
+                                      imageUrl: imageUrl,
+                                      fit: BoxFit.cover,
+                                      errorWidget: (context, url, error) =>
+                                          const Icon(CupertinoIcons.photo, color: CupertinoColors.systemGrey),
+                                    ),
+                              ),
+                              Positioned(
+                                top: 12,
+                                right: 12,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                  decoration: BoxDecoration(
+                                    color: status == 'Available' 
+                                      ? CupertinoColors.activeGreen 
+                                      : CupertinoColors.systemRed,
+                                    borderRadius: BorderRadius.circular(20),
                                   ),
-                                  child: kIsWeb
-                                      ? ShowNetworkImage(
-                                          imageSrc: imageUrl,
-                                          mobileBoxFit: BoxFit.cover,
-                                        )
-                                      : CachedNetworkImage(
-                                          imageUrl: imageUrl,
-                                          fit: BoxFit.cover,
-                                          errorWidget: (context, url, error) =>
-                                              const Icon(Icons.error),
-                                        ),
+                                  child: Text(
+                                    status,
+                                    style: TextStyle(
+                                      color: CupertinoColors.white,
+                                      fontSize: 12 + appState.getTextSizeOffset(),
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
                                 ),
                               ),
                             ],
                           ),
                           Padding(
-                            padding: const EdgeInsets.all(8.0),
+                            padding: const EdgeInsets.all(16.0),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Expanded(
-                                      child: Row(
-                                        children: [
-                                          if (country != null)
-                                            Padding(
-                                              padding: const EdgeInsets.only(
-                                                  right: 8.0),
-                                              child: Image.asset(
-                                                'assets/country/${country.toLowerCase()}.png',
-                                                width: 24,
-                                                height: 24,
-                                                errorBuilder: (context, error,
-                                                    stackTrace) {
-                                                  return const Icon(Icons.flag,
-                                                      size: 24);
-                                                },
+                                    if (country != 'unknown')
+                                      Padding(
+                                        padding: const EdgeInsets.only(right: 8.0),
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(4),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Theme.of(context).brightness == Brightness.dark 
+                                                  ? Colors.black.withOpacity(0.2)
+                                                  : Colors.black.withOpacity(0.05),
+                                                blurRadius: 2,
+                                                offset: const Offset(0, 1),
                                               ),
-                                            ),
-                                          Text(
-                                            title,
-                                            style: TextStyle(
-                                              fontSize: 18 +
-                                                  appState.getTextSizeOffset(),
-                                              fontWeight: FontWeight.bold,
+                                            ],
+                                          ),
+                                          child: ClipRRect(
+                                            borderRadius: BorderRadius.circular(4),
+                                            child: Image.asset(
+                                              'assets/country/${country.toLowerCase()}.png',
+                                              width: 24,
+                                              height: 24,
+                                              errorBuilder: (context, error, stackTrace) {
+                                                return Icon(CupertinoIcons.flag, size: 24, color: Theme.of(context).textTheme.bodyMedium?.color);
+                                              },
                                             ),
                                           ),
-                                        ],
+                                        ),
                                       ),
-                                    ),
-                                    Text(
-                                      status,
-                                      style: TextStyle(
-                                        color: status == 'Available'
-                                            ? Colors.green
-                                            : Colors.red,
-                                        fontSize:
-                                            13 + appState.getTextSizeOffset(),
-                                        fontWeight: FontWeight.bold,
+                                    Expanded(
+                                      child: Text(
+                                        title,
+                                        style: TextStyle(
+                                          fontSize: 18 + appState.getTextSizeOffset(),
+                                          fontWeight: FontWeight.w600,
+                                          color: Theme.of(context).textTheme.bodyLarge?.color,
+                                          letterSpacing: -0.5,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
                                   ],
                                 ),
                                 const SizedBox(height: 4),
-                                Text(
-                                  city,
-                                  style: TextStyle(
-                                    fontSize: 16 + appState.getTextSizeOffset(),
-                                    color: Colors.grey,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                _buildGaugeForRent(sellPercentage, context),
-                                const SizedBox(height: 8),
-                                Text(
-                                  'Stock: $totalTokens Left: $stock ',
-                                  style: TextStyle(
-                                    fontSize: 15 + appState.getTextSizeOffset(),
-                                  ),
-                                ),
-                                Text(
-                                  'Price: ${currencyUtils.formatCurrency(tokenPrice, currencyUtils.currencySymbol)} Yield: ${annualPercentageYield.toStringAsFixed(2)}%',
-                                  style: TextStyle(
-                                    fontSize: 15 + appState.getTextSizeOffset(),
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Center(
-                                  child: ElevatedButton(
-                                    onPressed: () => UrlUtils.launchURL(
-                                        property['marketplaceLink']),
-                                    style: ElevatedButton.styleFrom(
-                                      foregroundColor: Colors.white,
-                                      backgroundColor:
-                                          Theme.of(context).primaryColor,
-                                      padding: const EdgeInsets.symmetric(
-                                          vertical: 8, horizontal: 8),
-                                      textStyle: TextStyle(
-                                        fontSize:
-                                            13 + appState.getTextSizeOffset(),
+                                Row(
+                                  children: [
+                                    Icon(
+                                      CupertinoIcons.location_solid,
+                                      size: 14,
+                                      color: Theme.of(context).textTheme.bodyMedium?.color,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      city,
+                                      style: TextStyle(
+                                        fontSize: 14 + appState.getTextSizeOffset(),
+                                        color: Theme.of(context).textTheme.bodyMedium?.color,
+                                        fontWeight: FontWeight.w500,
                                       ),
                                     ),
-                                    child: Text('Acheter cette propriété'),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                _buildGaugeForRent(sellPercentage, context),
+                                const SizedBox(height: 12),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'Stock',
+                                            style: TextStyle(
+                                              fontSize: 12 + appState.getTextSizeOffset(),
+                                              color: Theme.of(context).textTheme.bodyMedium?.color,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            '${stock.toInt()} / ${totalTokens.toInt()}',
+                                            style: TextStyle(
+                                              fontSize: 14 + appState.getTextSizeOffset(),
+                                              color: Theme.of(context).textTheme.bodyLarge?.color,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'Prix',
+                                            style: TextStyle(
+                                              fontSize: 12 + appState.getTextSizeOffset(),
+                                              color: Theme.of(context).textTheme.bodyMedium?.color,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            currencyUtils.formatCurrency(tokenPrice, currencyUtils.currencySymbol),
+                                            style: TextStyle(
+                                              fontSize: 14 + appState.getTextSizeOffset(),
+                                              color: Theme.of(context).textTheme.bodyLarge?.color,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'Rendement',
+                                            style: TextStyle(
+                                              fontSize: 12 + appState.getTextSizeOffset(),
+                                              color: Theme.of(context).textTheme.bodyMedium?.color,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            '${annualPercentageYield.toStringAsFixed(2)}%',
+                                            style: TextStyle(
+                                              fontSize: 14 + appState.getTextSizeOffset(),
+                                              color: CupertinoColors.activeGreen,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 16),
+                                CupertinoButton(
+                                  padding: EdgeInsets.zero,
+                                  onPressed: () => UrlUtils.launchURL(property['marketplaceLink']),
+                                  child: Container(
+                                    width: double.infinity,
+                                    padding: const EdgeInsets.symmetric(vertical: 12),
+                                    decoration: BoxDecoration(
+                                      color: CupertinoColors.activeBlue,
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    alignment: Alignment.center,
+                                    child: Text(
+                                      'Acheter cette propriété',
+                                      style: TextStyle(
+                                        color: CupertinoColors.white,
+                                        fontSize: 15 + appState.getTextSizeOffset(),
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
                                   ),
                                 ),
                               ],

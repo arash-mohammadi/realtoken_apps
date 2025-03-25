@@ -29,150 +29,145 @@ Widget buildOthersTab(BuildContext context, Map<String, dynamic> token) {
     tokenWallets = List<String>.from(portfolioItem['wallets']);
   }
 
-  return SingleChildScrollView(
-    padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
-    physics: const BouncingScrollPhysics(), // Comportement de scroll iOS
+  return Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 0.0),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Section Blockchain
-        _buildSection(
+        _buildSectionCard(
           context,
           title: S.of(context).blockchain,
-          child: Column(
-            children: [
-              // Contrat Ethereum
-              _buildContractRow(
-                context,
-                icon: 'assets/ethereum.png',
-                label: S.of(context).ethereumContract,
-                address: token['ethereumContract'] ?? S.of(context).notSpecified,
-                onTap: () {
-                  final ethereumAddress = token['ethereumContract'] ?? '';
-                  if (ethereumAddress.isNotEmpty) {
-                    UrlUtils.launchURL(
-                        'https://etherscan.io/address/$ethereumAddress');
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(S.of(context).notSpecified),
-                        behavior: SnackBarBehavior.floating,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
+          children: [
+            // Contrat Ethereum
+            _buildContractRow(
+              context,
+              icon: 'assets/ethereum.png',
+              label: S.of(context).ethereumContract,
+              address: token['ethereumContract'] ?? S.of(context).notSpecified,
+              onTap: () {
+                final ethereumAddress = token['ethereumContract'] ?? '';
+                if (ethereumAddress.isNotEmpty) {
+                  UrlUtils.launchURL(
+                      'https://etherscan.io/address/$ethereumAddress');
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(S.of(context).notSpecified),
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
                       ),
-                    );
-                  }
-                },
-              ),
+                    ),
+                  );
+                }
+              },
+            ),
 
-              const Divider(height: 1, thickness: 0.5),
+            const Divider(height: 1, thickness: 0.5),
 
-              // Contrat Gnosis
-              _buildContractRow(
-                context,
-                icon: 'assets/gnosis.png',
-                label: S.of(context).gnosisContract,
-                address: token['gnosisContract'] ?? S.of(context).notSpecified,
-                onTap: () {
-                  final gnosisAddress = token['gnosisContract'] ?? '';
-                  if (gnosisAddress.isNotEmpty) {
-                    UrlUtils.launchURL(
-                        'https://gnosisscan.io/address/$gnosisAddress');
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(S.of(context).notSpecified),
-                        behavior: SnackBarBehavior.floating,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
+            // Contrat Gnosis
+            _buildContractRow(
+              context,
+              icon: 'assets/gnosis.png',
+              label: S.of(context).gnosisContract,
+              address: token['gnosisContract'] ?? S.of(context).notSpecified,
+              onTap: () {
+                final gnosisAddress = token['gnosisContract'] ?? '';
+                if (gnosisAddress.isNotEmpty) {
+                  UrlUtils.launchURL(
+                      'https://gnosisscan.io/address/$gnosisAddress');
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(S.of(context).notSpecified),
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
                       ),
-                    );
-                  }
-                },
-              ),
-            ],
-          ),
+                    ),
+                  );
+                }
+              },
+            ),
+          ],
         ),
 
-        const SizedBox(height: 10),
+        const SizedBox(height: 5),
 
         // Section Whitelist et status
-        _buildSection(
+        _buildSectionCard(
           context,
           title: S.of(context).other,
-          child: Column(
-            children: [
-              _buildStatusRow(
-                context,
-                icon: isWhitelisted ? Icons.check_circle : Icons.cancel,
-                iconColor: isWhitelisted ? Colors.green : Colors.red,
-                label: isWhitelisted
-                    ? S.of(context).tokenWhitelisted
-                    : S.of(context).tokenNotWhitelisted,
-                textColor: isWhitelisted ? Colors.green : Colors.red,
-              ),
+          children: [
+            _buildStatusRow(
+              context,
+              icon: isWhitelisted ? Icons.check_circle : Icons.cancel,
+              iconColor: isWhitelisted ? Colors.green : Colors.red,
+              label: isWhitelisted
+                  ? S.of(context).tokenWhitelisted
+                  : S.of(context).tokenNotWhitelisted,
+              textColor: isWhitelisted ? Colors.green : Colors.red,
+            ),
 
-              const Divider(height: 1, thickness: 0.5),
+            const Divider(height: 1, thickness: 0.5),
 
-              _buildStatusRow(
-                context,
-                icon: isInWallet
-                    ? Icons.account_balance_wallet
-                    : Icons.account_balance_wallet_outlined,
-                iconColor: isInWallet ? Colors.green : Colors.red,
-                label: isInWallet
-                    ? S.of(context).presentInWallet
-                    : S.of(context).filterNotInWallet,
-                textColor: isInWallet ? Colors.green : Colors.red,
-              ),
-            ],
-          ),
+            _buildStatusRow(
+              context,
+              icon: isInWallet
+                  ? Icons.account_balance_wallet
+                  : Icons.account_balance_wallet_outlined,
+              iconColor: isInWallet ? Colors.green : Colors.red,
+              label: isInWallet
+                  ? S.of(context).presentInWallet
+                  : S.of(context).filterNotInWallet,
+              textColor: isInWallet ? Colors.green : Colors.red,
+            ),
+          ],
         ),
 
-        const SizedBox(height: 10),
+        const SizedBox(height: 5),
 
         // Section wallets
-        _buildSection(
+        _buildSectionCard(
           context,
           title: "Wallets contenant ce token",
-          child: tokenWallets.isNotEmpty
-              ? Column(
-                  children: tokenWallets.map((walletAddress) {
-                    return Column(
-                      children: [
-                        _buildWalletRow(
-                          context,
-                          walletAddress: walletAddress,
-                          showFull: appState.showAmounts,
+          children: tokenWallets.isNotEmpty
+              ? tokenWallets.map((walletAddress) {
+                  return Column(
+                    children: [
+                      _buildWalletRow(
+                        context,
+                        walletAddress: walletAddress,
+                        showFull: appState.showAmounts,
+                      ),
+                      if (tokenWallets.last != walletAddress)
+                        const Divider(height: 1, thickness: 0.5),
+                    ],
+                  );
+                }).toList()
+              : [
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Center(
+                      child: Text(
+                        S.of(context).notSpecified,
+                        style: TextStyle(
+                          fontSize: 14 + appState.getTextSizeOffset(),
+                          color: Theme.of(context).textTheme.bodyMedium?.color,
                         ),
-                        if (tokenWallets.last != walletAddress)
-                          const Divider(height: 1, thickness: 0.5),
-                      ],
-                    );
-                  }).toList(),
-                )
-              : Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Center(
-                    child: Text(
-                      S.of(context).notSpecified,
-                      style: TextStyle(
-                        fontSize: 14 + appState.getTextSizeOffset(),
-                        color: Colors.grey[600],
                       ),
                     ),
                   ),
-                ),
+                ],
         ),
       ],
     ),
   );
 }
 
-// Widget pour construire une section avec titre
-Widget _buildSection(BuildContext context, {required String title, required Widget child}) {
+// Widget pour construire une section avec titre, comme dans property_tab.dart
+Widget _buildSectionCard(BuildContext context, {required String title, required List<Widget> children}) {
   return Container(
     margin: const EdgeInsets.only(bottom: 6),
     decoration: BoxDecoration(
@@ -194,13 +189,13 @@ Widget _buildSection(BuildContext context, {required String title, required Widg
           child: Text(
             title,
             style: TextStyle(
-              fontSize: 18,
+              fontSize: 18 + Provider.of<AppState>(context).getTextSizeOffset(),
               fontWeight: FontWeight.bold,
               color: Theme.of(context).primaryColor,
             ),
           ),
         ),
-        child,
+        Column(children: children),
       ],
     ),
   );
@@ -244,8 +239,8 @@ Widget _buildContractRow(BuildContext context, {
                   label,
                   style: TextStyle(
                     fontSize: 14 + appState.getTextSizeOffset(),
-                    fontWeight: FontWeight.w600,
-                    color: Theme.of(context).textTheme.bodyLarge?.color,
+                    fontWeight: FontWeight.w300,
+                    color: Theme.of(context).textTheme.bodyMedium?.color,
                   ),
                 ),
               ],
@@ -327,7 +322,7 @@ Widget _buildStatusRow(BuildContext context, {
           label,
           style: TextStyle(
             fontSize: 14 + appState.getTextSizeOffset(),
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.w300,
             color: textColor,
           ),
         ),

@@ -103,7 +103,7 @@ class RealtPageState extends State<SupportPage> {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: CupertinoColors.systemBackground.resolveFrom(context),
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(10),
         boxShadow: [
           BoxShadow(
@@ -129,7 +129,7 @@ class RealtPageState extends State<SupportPage> {
                       Container(
                         padding: const EdgeInsets.all(8.0),
                         decoration: BoxDecoration(
-                          color: CupertinoColors.systemGrey6.resolveFrom(context),
+                          color: iconColor.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Icon(
@@ -194,7 +194,7 @@ class RealtPageState extends State<SupportPage> {
   Widget _buildDonationCard(BuildContext context, AppState appState) {
     return Container(
       decoration: BoxDecoration(
-        color: CupertinoColors.systemBackground.resolveFrom(context),
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(10),
         boxShadow: [
           BoxShadow(
@@ -214,7 +214,7 @@ class RealtPageState extends State<SupportPage> {
                 Container(
                   padding: const EdgeInsets.all(8.0),
                   decoration: BoxDecoration(
-                    color: CupertinoColors.systemGrey6.resolveFrom(context),
+                    color: CupertinoColors.systemGreen.resolveFrom(context).withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(

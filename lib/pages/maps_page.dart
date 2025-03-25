@@ -13,6 +13,10 @@ import 'package:realtokens/utils/url_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:realtokens/managers/data_manager.dart';
 import 'package:show_network_image/show_network_image.dart';
+import 'package:realtokens/app_state.dart';
+import 'package:flutter/cupertino.dart';
+import 'dart:math';
+import 'package:realtokens/generated/l10n.dart';
 
 class MapsPage extends StatefulWidget {
   const MapsPage({super.key});
@@ -289,7 +293,7 @@ class MapsPageState extends State<MapsPage> {
                 Text(_forceLightMode ? 'Light' : 'Auto'),
                 Transform.scale(
                   scale: 0.8, // Réduire la taille du switch à 80%
-                  child: Switch(
+                  child: CupertinoSwitch(
                     value: _forceLightMode,
                     onChanged: (value) {
                       setState(() {
@@ -299,8 +303,7 @@ class MapsPageState extends State<MapsPage> {
                       _saveThemePreference(); // Sauvegarder la préférence
                     },
                     activeColor: Theme.of(context).primaryColor,
-                    inactiveThumbColor: Colors.grey,
-                    inactiveTrackColor: Colors.grey[300],
+                    trackColor: Colors.grey.shade300,
                   ),
                 ),
               ],
@@ -315,7 +318,7 @@ class MapsPageState extends State<MapsPage> {
                 // Switch pour Portfolio / All Tokens
                 Transform.scale(
                   scale: 0.8,
-                  child: Switch(
+                  child: CupertinoSwitch(
                     value: _showAllTokens,
                     onChanged: (value) {
                       setState(() {
@@ -323,7 +326,7 @@ class MapsPageState extends State<MapsPage> {
                       });
                     },
                     activeColor: Theme.of(context).primaryColor,
-                    inactiveThumbColor: Colors.grey,
+                    trackColor: Colors.grey.shade300,
                   ),
                 ),
                 const SizedBox(width: 4),
@@ -334,7 +337,7 @@ class MapsPageState extends State<MapsPage> {
                 // Switch pour afficher uniquement les tokens whitelist
                 Transform.scale(
                   scale: 0.8,
-                  child: Switch(
+                  child: CupertinoSwitch(
                     value: _showWhitelistedTokens,
                     onChanged: (value) {
                       setState(() {
@@ -342,7 +345,7 @@ class MapsPageState extends State<MapsPage> {
                       });
                     },
                     activeColor: Theme.of(context).primaryColor,
-                    inactiveThumbColor: Colors.grey,
+                    trackColor: Colors.grey.shade300,
                   ),
                 ),
                 const SizedBox(width: 4),
@@ -378,31 +381,31 @@ class MapsPageState extends State<MapsPage> {
                       Text(
                         "Fully Rented",
                         style: TextStyle(
-                          fontSize: 13, // Taille du texte ajustée
+                          fontSize: 13 + Provider.of<AppState>(context).getTextSizeOffset(), // Taille du texte ajustée
                         ),
                       ),
                     ],
                   ),
                   Row(
-                    children: const [
+                    children: [
                       Icon(Icons.location_on, color: Colors.orange),
                       SizedBox(width: 4),
                       Text(
                         "Partially Rented",
                         style: TextStyle(
-                          fontSize: 13, // Taille du texte ajustée
+                          fontSize: 13 + Provider.of<AppState>(context).getTextSizeOffset(), // Taille du texte ajustée
                         ),
                       ),
                     ],
                   ),
                   Row(
-                    children: const [
+                    children: [
                       Icon(Icons.location_on, color: Colors.red),
                       SizedBox(width: 4),
                       Text(
                         "Not Rented",
                         style: TextStyle(
-                          fontSize: 13, // Taille du texte ajustée
+                          fontSize: 13 + Provider.of<AppState>(context).getTextSizeOffset(), // Taille du texte ajustée
                         ),
                       ),
                     ],

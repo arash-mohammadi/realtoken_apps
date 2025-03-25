@@ -8,19 +8,15 @@ import 'personalization_settings_page.dart';
 import 'synchronization_settings_page.dart';
 import 'notifications_settings_page.dart';
 import 'advanced_settings_page.dart';
+import 'biometric_settings_page.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    final backgroundColor = isDarkMode 
-        ? const Color(0xFF1C1C1E) 
-        : const Color(0xFFF2F2F7);
-    
     return Scaffold(
-      backgroundColor: backgroundColor,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(S.of(context).settings),
         backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
@@ -62,6 +58,13 @@ class SettingsPage extends StatelessWidget {
                 color: Colors.orange,
                 title: S.of(context).notifications,
                 onTap: () => _navigateTo(context, NotificationsSettingsPage()),
+              ),
+              _buildSettingsItem(
+                context,
+                icon: CupertinoIcons.lock_shield,
+                color: Colors.red,
+                title: 'Sécurité',
+                onTap: () => _navigateTo(context, BiometricSettingsPage()),
               ),
               _buildSettingsItem(
                 context,

@@ -127,7 +127,7 @@ class RealtPageState extends State<RealtPage> {
   ) {
     return Container(
       decoration: BoxDecoration(
-        color: CupertinoColors.systemBackground.resolveFrom(context),
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
@@ -147,7 +147,7 @@ class RealtPageState extends State<RealtPage> {
                 Container(
                   padding: const EdgeInsets.all(8.0),
                   decoration: BoxDecoration(
-                    color: CupertinoColors.systemGrey6.resolveFrom(context),
+                    color: iconColor.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(

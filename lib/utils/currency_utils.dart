@@ -77,4 +77,30 @@ class CurrencyProvider extends ChangeNotifier {
               .length; // Retourne une série d'astérisques de la même longueur
     }
   }
+
+  // Méthode pour formater les grands nombres
+  String formatCompactCurrency(double value, String symbol) {
+    // Si la valeur a plus de 4 chiffres, on utilise le format compact
+    if (value >= 10000) {
+      // Divise par 1000 et ajoute le suffixe "k"
+      double compactValue = value / 1000;
+      // Formatage sans décimales
+      String formattedValue = compactValue.toInt().toString();
+      
+      // Position du symbole en fonction de la devise
+      // Devises qui s'affichent après le montant
+      List<String> postfixSymbols = ['€', '£', '¥', '₽', '₿', '₹'];
+      if (postfixSymbols.contains(symbol)) {
+        return '$formattedValue k$symbol';
+      } 
+      // Devises qui s'affichent avant le montant
+      else {
+        return '$symbol$formattedValue k';
+      }
+    } 
+    // Pour les valeurs inférieures à 10000, on utilise le formatage normal sans décimales
+    else {
+      return formatCurrency(value, symbol).replaceAll(RegExp(r'\,\d+'), '');
+    }
+  }
 }

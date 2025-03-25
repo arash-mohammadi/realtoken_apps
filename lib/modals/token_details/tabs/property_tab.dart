@@ -11,12 +11,40 @@ Widget buildPropertiesTab(BuildContext context, Map<String, dynamic> token,
     bool convertToSquareMeters) {
   final appState = Provider.of<AppState>(context, listen: false);
 
-  return SingleChildScrollView(
+  return Padding(
     padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 0.0),
-    physics: const BouncingScrollPhysics(), // iOS-style scroll
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Section loyers
+        _buildSectionCard(
+          context,
+          title: S.of(context).rents,
+          children: [
+            _buildRentalStatusRow(
+              context,
+              token: token,
+              appState: appState,
+            ),
+            const Divider(height: 1, thickness: 0.5),
+            _buildRentStartDateRow(
+              context,
+              token: token,
+              appState: appState,
+            ),
+            const Divider(height: 1, thickness: 0.5),
+            _buildDetailRow(
+              context,
+              S.of(context).section8paid,
+              '${((token['section8paid']) / (token['grossRentMonth']) * 100).toStringAsFixed(2)}%',
+              icon: Icons.attach_money,
+              iconColor: Colors.green,
+            ),
+          ],
+        ),
+
+        const SizedBox(height: 5),
+
         // Section caractéristiques
         _buildSectionCard(
           context,
@@ -77,35 +105,6 @@ Widget buildPropertiesTab(BuildContext context, Map<String, dynamic> token,
             ),
           ],
         ),
-
-        const SizedBox(height: 5),
-
-        // Section loyers
-        _buildSectionCard(
-          context,
-          title: S.of(context).rents,
-          children: [
-            _buildRentalStatusRow(
-              context,
-              token: token,
-              appState: appState,
-            ),
-            const Divider(height: 1, thickness: 0.5),
-            _buildRentStartDateRow(
-              context,
-              token: token,
-              appState: appState,
-            ),
-            const Divider(height: 1, thickness: 0.5),
-            _buildDetailRow(
-              context,
-              S.of(context).section8paid,
-              '${((token['section8paid']) / (token['grossRentMonth']) * 100).toStringAsFixed(2)}%',
-              icon: Icons.attach_money,
-              iconColor: Colors.green,
-            ),
-          ],
-        ),
       ],
     ),
   );
@@ -134,7 +133,7 @@ Widget _buildSectionCard(BuildContext context, {required String title, required 
           child: Text(
             title,
             style: TextStyle(
-              fontSize: 18,
+              fontSize: 18 + Provider.of<AppState>(context).getTextSizeOffset(),
               fontWeight: FontWeight.bold,
               color: Theme.of(context).primaryColor,
             ),
@@ -257,17 +256,22 @@ Widget _buildRentalStatusRow(BuildContext context, {required Map<String, dynamic
             color: Colors.grey.withOpacity(0.2),
             borderRadius: BorderRadius.circular(4),
           ),
-          child: Row(
-            children: [
-              Container(
-                height: 8,
-                width: occupancyRate * 0.01 * MediaQuery.of(context).size.width * 0.8,
-                decoration: BoxDecoration(
-                  color: statusColor,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-              ),
-            ],
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              double maxWidth = constraints.maxWidth;
+              return Row(
+                children: [
+                  Container(
+                    height: 8,
+                    width: occupancyRate * 0.01 * maxWidth,
+                    decoration: BoxDecoration(
+                      color: statusColor,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
         ),
         const SizedBox(height: 3),

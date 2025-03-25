@@ -325,12 +325,13 @@ class PortfolioCard extends StatelessWidget {
               ? Shimmer.fromColors(
                   baseColor: theme.textTheme.bodyMedium?.color?.withOpacity(0.2) ?? Colors.grey[300]!,
                   highlightColor: theme.textTheme.bodyMedium?.color?.withOpacity(0.5) ?? Colors.grey[100]!,
-                  child: Container(
-                    width: 120,
-                    height: 22,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(4),
+                  child: Text(
+                    formattedAmount,
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: -0.5,
+                      color: theme.primaryColor,
                     ),
                   ),
                 )
@@ -374,12 +375,13 @@ class PortfolioCard extends StatelessWidget {
               ? Shimmer.fromColors(
                   baseColor: theme.textTheme.bodyMedium?.color?.withOpacity(0.2) ?? Colors.grey[300]!,
                   highlightColor: theme.textTheme.bodyMedium?.color?.withOpacity(0.6) ?? Colors.grey[100]!,
-                  child: Container(
-                    width: 80,
-                    height: 18,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(4),
+                  child: Text(
+                    formattedAmount,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      letterSpacing: -0.3,
+                      color: theme.textTheme.bodyMedium?.color,
                     ),
                   ),
                 )
@@ -432,12 +434,13 @@ class PortfolioCard extends StatelessWidget {
                       Colors.grey[300]!,
                   highlightColor: theme.textTheme.bodyMedium?.color?.withOpacity(0.5) ??
                       Colors.grey[100]!,
-                  child: Container(
-                    width: 80,
-                    height: 18,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(4),
+                  child: Text(
+                    formattedAmount,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: -0.3,
+                      color: valueColor,
                     ),
                   ),
                 )
@@ -497,8 +500,8 @@ class PortfolioCard extends StatelessWidget {
     // Ajuster la hauteur de la jauge en fonction du nombre de sections visibles
     double gaugeHeight = 90.0; // Hauteur par défaut
     if (visibleSections <= 2) gaugeHeight = 75.0;
-    else if (visibleSections == 3) gaugeHeight = 85.0;
-    else gaugeHeight = 120.0;
+    else if (visibleSections == 3) gaugeHeight = 100.0;
+    else gaugeHeight = 140.0;
 
     double containerHeight = gaugeHeight + 50; // Ajouter de l'espace pour le texte et les marges
 

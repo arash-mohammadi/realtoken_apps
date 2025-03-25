@@ -204,20 +204,7 @@ class ApyHistoryGraph extends StatelessWidget {
                             titlesData: FlTitlesData(
                               leftTitles: AxisTitles(
                                 sideTitles: SideTitles(
-                                  showTitles: true,
-                                  reservedSize: 45,
-                                  getTitlesWidget: (value, meta) {
-                                    return Padding(
-                                      padding: const EdgeInsets.only(right: 8.0),
-                                      child: Text(
-                                        '${value.toStringAsFixed(0)}%',
-                                        style: TextStyle(
-                                          fontSize: 10 + appState.getTextSizeOffset(),
-                                          color: Colors.grey.shade600,
-                                        ),
-                                      ),
-                                    );
-                                  },
+                                  showTitles: false,
                                 ),
                               ),
                               bottomTitles: AxisTitles(
@@ -254,7 +241,20 @@ class ApyHistoryGraph extends StatelessWidget {
                               ),
                               rightTitles: AxisTitles(
                                 sideTitles: SideTitles(
-                                  showTitles: false,
+                                  showTitles: true,
+                                  reservedSize: 30,
+                                  getTitlesWidget: (value, meta) {
+                                    return Padding(
+                                      padding: const EdgeInsets.only(left: 8.0),
+                                      child: Text(
+                                        '${value.toInt()}%',
+                                        style: TextStyle(
+                                          fontSize: 10 + appState.getTextSizeOffset(),
+                                          color: Colors.grey.shade600,
+                                        ),
+                                      ),
+                                    );
+                                  },
                                 ),
                               ),
                             ),
@@ -269,8 +269,8 @@ class ApyHistoryGraph extends StatelessWidget {
                                 getTooltipItem: (group, groupIndex, rod, rodIndex) {
                                   if (selectedIndex == groupIndex) {
                                     String tooltip =
-                                        '${S.of(context).brute}: ${group.barRods[0].rodStackItems[0].toY.toStringAsFixed(2)}%\n'
-                                        '${S.of(context).net}: ${group.barRods[0].rodStackItems[1].toY.toStringAsFixed(2)}%';
+                                        '${S.of(context).brute}: ${group.barRods[0].rodStackItems[0].toY.toInt()}%\n'
+                                        '${S.of(context).net}: ${group.barRods[0].rodStackItems[1].toY.toInt()}%';
                                     return BarTooltipItem(
                                       tooltip,
                                       const TextStyle(
@@ -322,20 +322,7 @@ class ApyHistoryGraph extends StatelessWidget {
                             titlesData: FlTitlesData(
                               leftTitles: AxisTitles(
                                 sideTitles: SideTitles(
-                                  showTitles: true,
-                                  reservedSize: 45,
-                                  getTitlesWidget: (value, meta) {
-                                    return Padding(
-                                      padding: const EdgeInsets.only(right: 8.0),
-                                      child: Text(
-                                        '${value.toStringAsFixed(0)}%',
-                                        style: TextStyle(
-                                          fontSize: 10 + appState.getTextSizeOffset(),
-                                          color: Colors.grey.shade600,
-                                        ),
-                                      ),
-                                    );
-                                  },
+                                  showTitles: false,
                                 ),
                               ),
                               bottomTitles: AxisTitles(
@@ -372,7 +359,20 @@ class ApyHistoryGraph extends StatelessWidget {
                               ),
                               rightTitles: AxisTitles(
                                 sideTitles: SideTitles(
-                                  showTitles: false,
+                                  showTitles: true,
+                                  reservedSize: 30,
+                                  getTitlesWidget: (value, meta) {
+                                    return Padding(
+                                      padding: const EdgeInsets.only(left: 8.0),
+                                      child: Text(
+                                        '${value.toInt()}%',
+                                        style: TextStyle(
+                                          fontSize: 10 + appState.getTextSizeOffset(),
+                                          color: Colors.grey.shade600,
+                                        ),
+                                      ),
+                                    );
+                                  },
                                 ),
                               ),
                             ),
@@ -391,7 +391,7 @@ class ApyHistoryGraph extends StatelessWidget {
                                     final periodLabel = _buildDateLabelsForApy(
                                         context, dataManager, selectedPeriod)[index];
                                     
-                                    final formattedValue = '${value.toStringAsFixed(2)}%';
+                                    final formattedValue = '${value.toInt()}%';
                                     
                                     return LineTooltipItem(
                                       '$periodLabel\n$formattedValue',

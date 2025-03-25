@@ -103,7 +103,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
           ),
           content: Text(
             "La demande de notation n'a pas pu être affichée. Souhaitez-vous ouvrir la page de l'application dans le Store pour laisser un avis ?",
-            style: TextStyle(fontSize: 14),
+            style: TextStyle(fontSize: 14 + Provider.of<AppState>(context).getTextSizeOffset()),
           ),
           actions: [
             CupertinoDialogAction(
@@ -261,216 +261,249 @@ class _CustomDrawerState extends State<CustomDrawer> {
                                   const SizedBox(height: 16),
                                   
                                   // Section Accounts
-                                  _buildSectionHeader(context, 'Comptes', appState),
-                                  _buildMenuTile(
-                                    context,
-                                    icon: CupertinoIcons.person_crop_circle_fill,
-                                    title: S.of(context).manageEvmAddresses,
-                                    appState: appState,
-                                    onTap: () {
-                                      Navigator.pop(context);
-                                      Navigator.push(
+                                  _buildSectionCard(
+                                    context, 
+                                    'Comptes', 
+                                    appState,
+                                    children: [
+                                      _buildMenuTile(
                                         context,
-                                        MaterialPageRoute(
-                                          builder: (context) => const ManageEvmAddressesPage(),
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                  
-                                  const Padding(
-                                    padding: EdgeInsets.symmetric(horizontal: 16.0),
-                                    child: Divider(height: 1, thickness: 0.3),
-                                  ),
-                                  
-                                  // Section Principales Fonctionnalités
-                                  _buildSectionHeader(context, 'Fonctionnalités', appState, topPadding: 8.0),
-                                  _buildMenuTile(
-                                    context,
-                                    icon: CupertinoIcons.house_fill,
-                                    title: S.of(context).propertiesForSale,
-                                    appState: appState,
-                                    onTap: () {
-                                      Navigator.pop(context);
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => const PropertiesForSalePage(),
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                  _buildMenuTile(
-                                    context,
-                                    icon: CupertinoIcons.list_bullet,
-                                    title: S.of(context).realTokensList,
-                                    appState: appState,
-                                    onTap: () {
-                                      Navigator.pop(context);
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => const RealTokensPage(),
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                  _buildMenuTile(
-                                    context,
-                                    icon: CupertinoIcons.arrow_clockwise_circle_fill,
-                                    title: S.of(context).recentChanges,
-                                    appState: appState,
-                                    onTap: () {
-                                      Navigator.pop(context);
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => const UpdatesPage(),
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                  _buildMenuTile(
-                                    context,
-                                    icon: CupertinoIcons.graph_square_fill,
-                                    title: 'RealT stats',
-                                    appState: appState,
-                                    onTap: () {
-                                      Navigator.pop(context);
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => const RealtPage(),
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                  _buildMenuTile(
-                                    context,
-                                    icon: CupertinoIcons.link,
-                                    title: S.of(context).links,
-                                    appState: appState,
-                                    onTap: () {
-                                      Navigator.pop(context);
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => const LinksPage(),
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                  
-                                  const Padding(
-                                    padding: EdgeInsets.symmetric(horizontal: 16.0),
-                                    child: Divider(height: 1, thickness: 0.3),
-                                  ),
-                                  
-                                  // Section Support
-                                  _buildSectionHeader(context, 'Support & Paramètres', appState, topPadding: 8.0),
-                                  _buildMenuTile(
-                                    context,
-                                    icon: CupertinoIcons.gauge,
-                                    title: S.of(context).serviceStatus,
-                                    appState: appState,
-                                    onTap: () {
-                                      Navigator.pop(context);
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => const ServiceStatusPage(),
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                  _buildMenuTile(
-                                    context,
-                                    icon: CupertinoIcons.chat_bubble_text_fill,
-                                    title: 'Support',
-                                    appState: appState,
-                                    onTap: () {
-                                      Navigator.pop(context);
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => const SupportPage(),
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                  _buildMenuTile(
-                                    context,
-                                    icon: CupertinoIcons.star_fill,
-                                    iconColor: CupertinoColors.systemYellow,
-                                    title: 'Noter l\'application',
-                                    appState: appState,
-                                    onTap: () async {
-                                      Navigator.pop(context);
-                                      await _requestReview(context);
-                                    },
-                                  ),
-                                  _buildMenuTile(
-                                    context,
-                                    icon: CupertinoIcons.settings,
-                                    title: S.of(context).settings,
-                                    appState: appState,
-                                    onTap: () {
-                                      Navigator.pop(context);
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => const SettingsPage(),
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                  
-                                  const Padding(
-                                    padding: EdgeInsets.symmetric(horizontal: 16.0),
-                                    child: Divider(height: 1, thickness: 0.3),
-                                  ),
-                                  
-                                  // Section À propos
-                                  _buildSectionHeader(context, 'À propos', appState, topPadding: 8.0),
-                                  _buildMenuTile(
-                                    context,
-                                    icon: CupertinoIcons.arrow_up_doc_fill,
-                                    title: 'Changelog',
-                                    appState: appState,
-                                    onTap: () {
-                                      showModalBottomSheet(
-                                        context: context,
-                                        isScrollControlled: true,
-                                        backgroundColor: CupertinoColors.systemBackground.resolveFrom(context),
-                                        shape: const RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-                                        ),
-                                        builder: (BuildContext context) {
-                                          return SizedBox(
-                                            height: MediaQuery.of(context).size.height * 0.8,
-                                            child: const ChangelogPage(),
+                                        icon: CupertinoIcons.person_crop_circle_fill,
+                                        title: S.of(context).manageEvmAddresses,
+                                        appState: appState,
+                                        onTap: () {
+                                          Navigator.pop(context);
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => const ManageEvmAddressesPage(),
+                                            ),
                                           );
                                         },
-                                      );
-                                    },
-                                  ),
-                                  _buildMenuTile(
-                                    context,
-                                    icon: CupertinoIcons.info_circle_fill,
-                                    title: S.of(context).about,
-                                    appState: appState,
-                                    onTap: () {
-                                      Navigator.pop(context);
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => const AboutPage(),
-                                        ),
-                                      );
-                                    },
+                                      ),
+                                    ]
                                   ),
                                   
                                   const SizedBox(height: 10),
+                                  
+                                  // Section Principales Fonctionnalités
+                                  _buildSectionCard(
+                                    context, 
+                                    'Fonctionnalités', 
+                                    appState,
+                                    children: [
+                                      _buildMenuTile(
+                                        context,
+                                        icon: CupertinoIcons.house_fill,
+                                        title: S.of(context).propertiesForSale,
+                                        appState: appState,
+                                        iconColor: Colors.teal,
+                                        onTap: () {
+                                          Navigator.pop(context);
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => const PropertiesForSalePage(),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                      _buildDivider(),
+                                      _buildMenuTile(
+                                        context,
+                                        icon: CupertinoIcons.list_bullet,
+                                        title: S.of(context).realTokensList,
+                                        appState: appState,
+                                        iconColor: Colors.blue,
+                                        onTap: () {
+                                          Navigator.pop(context);
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => const RealTokensPage(),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                      _buildDivider(),
+                                      _buildMenuTile(
+                                        context,
+                                        icon: CupertinoIcons.arrow_clockwise_circle_fill,
+                                        title: S.of(context).recentChanges,
+                                        appState: appState,
+                                        iconColor: Colors.orange,
+                                        onTap: () {
+                                          Navigator.pop(context);
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => const UpdatesPage(),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                      _buildDivider(),
+                                      _buildMenuTile(
+                                        context,
+                                        icon: CupertinoIcons.graph_square_fill,
+                                        title: 'RealT stats',
+                                        appState: appState,
+                                        iconColor: Colors.purple,
+                                        onTap: () {
+                                          Navigator.pop(context);
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => const RealtPage(),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                      _buildDivider(),
+                                      _buildMenuTile(
+                                        context,
+                                        icon: CupertinoIcons.link,
+                                        title: S.of(context).links,
+                                        appState: appState,
+                                        iconColor: Colors.indigo,
+                                        onTap: () {
+                                          Navigator.pop(context);
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => const LinksPage(),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ]
+                                  ),
+                                  
+                                  const SizedBox(height: 10),
+                                  
+                                  // Section Support
+                                  _buildSectionCard(
+                                    context, 
+                                    'Support & Paramètres', 
+                                    appState,
+                                    children: [
+                                      _buildMenuTile(
+                                        context,
+                                        icon: CupertinoIcons.gauge,
+                                        title: S.of(context).serviceStatus,
+                                        appState: appState,
+                                        iconColor: Colors.red,
+                                        onTap: () {
+                                          Navigator.pop(context);
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => const ServiceStatusPage(),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                      _buildDivider(),
+                                      _buildMenuTile(
+                                        context,
+                                        icon: CupertinoIcons.chat_bubble_text_fill,
+                                        title: 'Support',
+                                        appState: appState,
+                                        iconColor: Colors.green,
+                                        onTap: () {
+                                          Navigator.pop(context);
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => const SupportPage(),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                      _buildDivider(),
+                                      _buildMenuTile(
+                                        context,
+                                        icon: CupertinoIcons.star_fill,
+                                        iconColor: CupertinoColors.systemYellow,
+                                        title: 'Noter l\'application',
+                                        appState: appState,
+                                        onTap: () async {
+                                          Navigator.pop(context);
+                                          await _requestReview(context);
+                                        },
+                                      ),
+                                      _buildDivider(),
+                                      _buildMenuTile(
+                                        context,
+                                        icon: CupertinoIcons.settings,
+                                        title: S.of(context).settings,
+                                        appState: appState,
+                                        iconColor: Colors.grey,
+                                        onTap: () {
+                                          Navigator.pop(context);
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => const SettingsPage(),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ]
+                                  ),
+                                  
+                                  const SizedBox(height: 10),
+                                  
+                                  // Section À propos
+                                  _buildSectionCard(
+                                    context, 
+                                    'À propos', 
+                                    appState,
+                                    children: [
+                                      _buildMenuTile(
+                                        context,
+                                        icon: CupertinoIcons.arrow_up_doc_fill,
+                                        title: 'Changelog',
+                                        appState: appState,
+                                        iconColor: Colors.amber,
+                                        onTap: () {
+                                          showModalBottomSheet(
+                                            context: context,
+                                            isScrollControlled: true,
+                                            backgroundColor: CupertinoColors.systemBackground.resolveFrom(context),
+                                            shape: const RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                                            ),
+                                            builder: (BuildContext context) {
+                                              return SizedBox(
+                                                height: MediaQuery.of(context).size.height * 0.8,
+                                                child: const ChangelogPage(),
+                                              );
+                                            },
+                                          );
+                                        },
+                                      ),
+                                      _buildDivider(),
+                                      _buildMenuTile(
+                                        context,
+                                        icon: CupertinoIcons.info_circle_fill,
+                                        title: S.of(context).about,
+                                        appState: appState,
+                                        iconColor: Colors.blue,
+                                        onTap: () {
+                                          Navigator.pop(context);
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => const AboutPage(),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ]
+                                  ),
+                                  
+                                  const SizedBox(height: 16),
                                 ],
                               ),
                             ),
@@ -488,19 +521,42 @@ class _CustomDrawerState extends State<CustomDrawer> {
     );
   }
   
-  Widget _buildSectionHeader(BuildContext context, String title, AppState appState, {double topPadding = 12.0}) {
-    return Padding(
-      padding: EdgeInsets.only(left: 16.0, right: 16.0, top: topPadding, bottom: 2.0),
-      child: Text(
-        title.toUpperCase(),
-        style: TextStyle(
-          fontSize: 14 + appState.getTextSizeOffset(),
-          fontWeight: FontWeight.w600,
-          color: CupertinoColors.secondaryLabel.resolveFrom(context),
-          letterSpacing: 0.5,
-        ),
+  Widget _buildSectionCard(BuildContext context, String title, AppState appState, {required List<Widget> children}) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12.0, 10.0, 12.0, 8.0),
+            child: Text(
+              title,
+              style: TextStyle(
+                fontSize: 18 + appState.getTextSizeOffset(),
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).primaryColor,
+              ),
+            ),
+          ),
+          Column(children: children),
+        ],
       ),
     );
+  }
+
+  Widget _buildDivider() {
+    return const Divider(height: 1, thickness: 0.5, indent: 60);
   }
   
   Widget _buildMenuTile(
@@ -515,28 +571,31 @@ class _CustomDrawerState extends State<CustomDrawer> {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6.0),
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
           child: Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(5.0),
+                width: 32,
+                height: 32,
                 decoration: BoxDecoration(
-                  color: CupertinoColors.systemGrey6.resolveFrom(context),
-                  borderRadius: BorderRadius.circular(7.0),
+                  color: (iconColor ?? Theme.of(context).primaryColor).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(
                   icon,
-                  size: 18 + appState.getTextSizeOffset() * 0.5,
+                  size: 18,
                   color: iconColor ?? Theme.of(context).primaryColor,
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 12),
               Expanded(
                 child: Text(
                   title,
                   style: TextStyle(
-                    fontSize: 16 + appState.getTextSizeOffset(),
+                    fontSize: 14 + appState.getTextSizeOffset(),
+                    fontWeight: FontWeight.w400,
                     color: CupertinoColors.label.resolveFrom(context),
                   ),
                 ),

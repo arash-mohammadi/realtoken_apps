@@ -5,6 +5,7 @@ import 'package:realtokens/pages/Statistics/wallet/wallet_stats.dart';
 import 'package:provider/provider.dart';
 import 'package:realtokens/app_state.dart';
 import 'package:realtokens/utils/ui_utils.dart';
+import 'package:realtokens/generated/l10n.dart';
 
 class StatsSelectorPage extends StatefulWidget {
   const StatsSelectorPage({super.key});
@@ -13,8 +14,71 @@ class StatsSelectorPage extends StatefulWidget {
   StatsSelectorPageState createState() => StatsSelectorPageState();
 }
 
-class StatsSelectorPageState extends State<StatsSelectorPage> {
+class StatsSelectorPageState extends State<StatsSelectorPage> with TickerProviderStateMixin {
   String _selectedStats = 'WalletStats';
+  String _previousSelectedStats = 'WalletStats';
+  
+  // Couleurs spécifiques pour chaque sélecteur
+  final Map<String, Color> _statsColors = {
+    'WalletStats': Colors.blue,
+    'PortfolioStats': Colors.green,
+    'RMMStats': Colors.orange,
+  };
+
+  // Contrôleurs d'animation pour chaque sélecteur
+  final Map<String, AnimationController> _animationControllers = {};
+  final Map<String, Animation<double>> _scaleAnimations = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _initAnimations();
+  }
+
+  void _initAnimations() {
+    // Initialiser les contrôleurs d'animation pour chaque sélecteur
+    for (String key in ['WalletStats', 'PortfolioStats', 'RMMStats']) {
+      _animationControllers[key] = AnimationController(
+        vsync: this,
+        duration: const Duration(milliseconds: 400),
+        value: key == _selectedStats ? 1.0 : 0.0,
+      );
+
+      _scaleAnimations[key] = Tween<double>(
+        begin: 0.95,  // Taille réduite
+        end: 1.05,    // Taille augmentée
+      ).animate(
+        CurvedAnimation(
+          parent: _animationControllers[key]!,
+          curve: Curves.easeInOut,
+        ),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    // Nettoyer les contrôleurs d'animation
+    for (var controller in _animationControllers.values) {
+      controller.dispose();
+    }
+    super.dispose();
+  }
+
+  void _updateAnimations(String newValue) {
+    _previousSelectedStats = _selectedStats;
+    _selectedStats = newValue;
+
+    // Animer la réduction du sélecteur qui devient inactif
+    if (_animationControllers[_previousSelectedStats] != null) {
+      _animationControllers[_previousSelectedStats]!.reverse();
+    }
+
+    // Animer l'agrandissement du sélecteur qui devient actif
+    if (_animationControllers[newValue] != null) {
+      _animationControllers[newValue]!.forward();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -67,16 +131,17 @@ class StatsSelectorPageState extends State<StatsSelectorPage> {
   Widget _buildStatsSelector() {
     return Row(
       children: [
-        _buildStatsChip('WalletStats', 'Wallet'),
-        _buildStatsChip('PortfolioStats', 'Portfolio'),
-        _buildStatsChip('RMMStats', 'RMM'),
+        _buildStatsChip('WalletStats', S.of(context).wallet, Icons.account_balance_wallet),
+        _buildStatsChip('PortfolioStats', S.of(context).portfolio, Icons.business),
+        _buildStatsChip('RMMStats', S.of(context).rmm, Icons.money),
       ],
     );
   }
 
-  Widget _buildStatsChip(String value, String label) {
+  Widget _buildStatsChip(String value, String label, IconData icon) {
     final appState = Provider.of<AppState>(context);
     bool isSelected = _selectedStats == value;
+    Color chipColor = _statsColors[value] ?? Theme.of(context).primaryColor;
 
     double textSizeOffset = appState.getTextSizeOffset();
     TextStyle textStyle = TextStyle(
@@ -84,7 +149,63 @@ class StatsSelectorPageState extends State<StatsSelectorPage> {
       fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
     );
 
-    double minWidth = _calculateTextWidth(context, label, textStyle);
+    double minWidth = isSelected 
+        ? _calculateTextWidth(context, label, textStyle) 
+        : 56; // Largeur minimale pour les icônes non sélectionnées
+
+    // Utiliser l'animation d'échelle si disponible
+    Widget animatedContent = _scaleAnimations.containsKey(value) 
+      ? AnimatedBuilder(
+          animation: _scaleAnimations[value]!,
+          builder: (context, child) {
+            return Transform.scale(
+              scale: isSelected ? _scaleAnimations[value]!.value : 1.0,
+              child: child,
+            );
+          },
+          child: isSelected
+            ? Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(icon, color: Colors.white, size: 20),
+                  const SizedBox(width: 8),
+                  AnimatedDefaultTextStyle(
+                    duration: const Duration(milliseconds: 500),
+                    curve: Curves.easeInOut,
+                    style: textStyle.copyWith(color: Colors.white),
+                    child: Text(label),
+                  ),
+                ],
+              )
+            : Center(
+                child: Icon(
+                  icon,
+                  color: Colors.grey, // Icônes inactives en gris
+                  size: 20,
+                ),
+              ),
+        )
+      : isSelected
+        ? Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, color: Colors.white, size: 20),
+              const SizedBox(width: 8),
+              AnimatedDefaultTextStyle(
+                duration: const Duration(milliseconds: 500),
+                curve: Curves.easeInOut,
+                style: textStyle.copyWith(color: Colors.white),
+                child: Text(label),
+              ),
+            ],
+          )
+        : Center(
+            child: Icon(
+              icon,
+              color: Colors.grey, // Icônes inactives en gris
+              size: 20,
+            ),
+          );
 
     return isSelected
         ? Expanded(
@@ -92,7 +213,7 @@ class StatsSelectorPageState extends State<StatsSelectorPage> {
             child: GestureDetector(
               onTap: () {
                 setState(() {
-                  _selectedStats = value;
+                  _updateAnimations(value);
                 });
               },
               child: AnimatedContainer(
@@ -101,17 +222,10 @@ class StatsSelectorPageState extends State<StatsSelectorPage> {
                 height: 40,
                 margin: const EdgeInsets.symmetric(horizontal: 4),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).primaryColor,
-                  borderRadius: BorderRadius.circular(10),
+                  color: chipColor,
+                  borderRadius: BorderRadius.circular(17),
                 ),
-                child: Center(
-                  child: AnimatedDefaultTextStyle(
-                    duration: const Duration(milliseconds: 500),
-                    curve: Curves.easeInOut,
-                    style: textStyle.copyWith(color: Colors.white),
-                    child: Text(label),
-                  ),
-                ),
+                child: animatedContent,
               ),
             ),
           )
@@ -121,7 +235,7 @@ class StatsSelectorPageState extends State<StatsSelectorPage> {
             child: GestureDetector(
               onTap: () {
                 setState(() {
-                  _selectedStats = value;
+                  _updateAnimations(value);
                 });
               },
               child: AnimatedContainer(
@@ -132,17 +246,9 @@ class StatsSelectorPageState extends State<StatsSelectorPage> {
                 margin: const EdgeInsets.symmetric(horizontal: 4),
                 decoration: BoxDecoration(
                   color: Theme.of(context).cardColor,
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(20),
                 ),
-                child: Center(
-                  child: AnimatedDefaultTextStyle(
-                    duration: const Duration(milliseconds: 500),
-                    curve: Curves.easeInOut,
-                    style: textStyle.copyWith(
-                        color: Theme.of(context).primaryColor),
-                    child: Text(label),
-                  ),
-                ),
+                child: animatedContent,
               ),
             ),
           );

@@ -31,18 +31,18 @@ class TokensCard extends StatelessWidget {
               context,
               dataManager.totalTokens.toStringAsFixed(2) as String?,
               S.of(context).totalTokens,
-              dataManager.isLoadingMain),
+              isLoading || dataManager.isLoadingMain),
           [
             UIUtils.buildTextWithShimmer(
               dataManager.walletTokensSums.toStringAsFixed(2),
               S.of(context).wallet,
-              dataManager.isLoadingMain,
+              isLoading || dataManager.isLoadingMain,
               context,
             ),
             UIUtils.buildTextWithShimmer(
               dataManager.rmmTokensSums.toStringAsFixed(2),
               S.of(context).rmm,
-              dataManager.isLoadingMain,
+              isLoading || dataManager.isLoadingMain,
               context,
             ),
           ],

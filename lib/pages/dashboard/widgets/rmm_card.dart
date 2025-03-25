@@ -277,12 +277,13 @@ class RmmCard extends StatelessWidget {
                 ? Shimmer.fromColors(
                     baseColor: theme.textTheme.bodyMedium?.color?.withOpacity(0.2) ?? Colors.grey[300]!,
                       highlightColor: theme.textTheme.bodyMedium?.color?.withOpacity(0.5) ?? Colors.grey[100]!,
-                      child: Container(
-                        width: 80,
-                        height: 18,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(4),
+                      child: Text(
+                        amount,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          letterSpacing: -0.3,
+                          color: theme.textTheme.bodyLarge?.color,
                         ),
                       ),
                     )
@@ -303,14 +304,22 @@ class RmmCard extends StatelessWidget {
                     baseColor: theme.textTheme.bodyMedium?.color?.withOpacity(0.2) ?? Colors.grey[300]!,
                       highlightColor: theme.textTheme.bodyMedium?.color?.withOpacity(0.5) ?? Colors.grey[100]!,
                     child: Container(
-                        width: 40,
-                        height: 18,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: (apy >= 0 ? Color(0xFF34C759) : Color(0xFFFF3B30)).withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        '${apy.toStringAsFixed(1)}%',
+                        style: TextStyle(
+                          color: apy >= 0 ? Color(0xFF34C759) : Color(0xFFFF3B30),
+                          fontWeight: FontWeight.w500,
+                          fontSize: 12,
+                          letterSpacing: -0.3,
                         ),
                       ),
-                    )
+                    ),
+                  )
                   : Container(
                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
@@ -541,12 +550,13 @@ class RmmCard extends StatelessWidget {
       return Shimmer.fromColors(
         baseColor: theme.textTheme.bodyMedium?.color?.withOpacity(0.2) ?? Colors.grey[300]!,
         highlightColor: theme.textTheme.bodyMedium?.color?.withOpacity(0.5) ?? Colors.grey[100]!,
-        child: Container(
-          height: 24,
-          width: 200,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(4),
+        child: Text(
+          "${S.of(context).timeBeforeLiquidation}",
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+            color: theme.textTheme.bodyMedium?.color,
+            letterSpacing: -0.3,
           ),
         ),
       );
@@ -590,7 +600,7 @@ class RmmCard extends StatelessWidget {
     }
     
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
         color: bgColor,
         borderRadius: BorderRadius.circular(12),

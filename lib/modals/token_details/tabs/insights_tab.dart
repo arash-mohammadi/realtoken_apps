@@ -19,14 +19,13 @@ Widget buildInsightsTab(BuildContext context, Map<String, dynamic> token) {
     decimalDigits: 2,
   );
 
-  return SingleChildScrollView(
-    padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
-    physics: const BouncingScrollPhysics(), // iOS-style scroll
+  return Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 0.0),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Section ROI
-        _buildSection(
+        _buildSectionCard(
           context,
           title: S.of(context).roiPerProperties,
           helpCallback: () {
@@ -46,86 +45,94 @@ Widget buildInsightsTab(BuildContext context, Map<String, dynamic> token) {
               },
             );
           },
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8.0),
-            child: _buildGaugeForROI(
-              token['totalRentReceived'] / token['initialTotalValue'] * 100,
-              context,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+              child: _buildGaugeForROI(
+                token['totalRentReceived'] / token['initialTotalValue'] * 100,
+                context,
+              ),
             ),
-          ),
+          ],
         ),
         
-        const SizedBox(height: 12),
+        const SizedBox(height: 5),
         
         // Section Évolution du Rendement
-        _buildSection(
+        _buildSectionCard(
           context,
           title: S.of(context).yieldEvolution,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8.0),
-            child: _buildYieldChartOrMessage(
-              context, 
-              token['historic']?['yields'] ?? [],
-              token['historic']?['init_yield'], 
-              currencyUtils
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+              child: _buildYieldChartOrMessage(
+                context, 
+                token['historic']?['yields'] ?? [],
+                token['historic']?['init_yield'], 
+                currencyUtils
+              ),
             ),
-          ),
+          ],
         ),
         
-        const SizedBox(height: 12),
+        const SizedBox(height: 5),
         
         // Section Évolution des Prix
-        _buildSection(
+        _buildSectionCard(
           context,
           title: S.of(context).priceEvolution,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8.0),
-            child: _buildPriceChartOrMessage(
-              context, 
-              token['historic']?['prices'] ?? [], 
-              token['initPrice'], 
-              currencyUtils
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+              child: _buildPriceChartOrMessage(
+                context, 
+                token['historic']?['prices'] ?? [], 
+                token['initPrice'], 
+                currencyUtils
+              ),
             ),
-          ),
+          ],
         ),
         
-        const SizedBox(height: 12),
+        const SizedBox(height: 5),
         
         // Section Cumul des Loyers
-        _buildSection(
+        _buildSectionCard(
           context,
           title: S.of(context).cumulativeRentGraph,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8.0),
-            child: _buildRentCumulativeChartOrMessage(
-              context, 
-              token['uuid'], 
-              dataManager, 
-              currencyUtils
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+              child: _buildRentCumulativeChartOrMessage(
+                context, 
+                token['uuid'], 
+                dataManager, 
+                currencyUtils
+              ),
             ),
-          ),
+          ],
         ),
       ],
     ),
   );
 }
 
-// Widget pour construire une section
-Widget _buildSection(
+// Widget pour construire une section, comme dans property_tab.dart
+Widget _buildSectionCard(
   BuildContext context, {
   required String title,
-  required Widget child,
+  required List<Widget> children,
   Function()? helpCallback,
 }) {
   return Container(
-    margin: const EdgeInsets.only(bottom: 4),
+    margin: const EdgeInsets.only(bottom: 6),
     decoration: BoxDecoration(
       color: Theme.of(context).cardColor,
       borderRadius: BorderRadius.circular(12),
       boxShadow: [
         BoxShadow(
           color: Colors.black.withOpacity(0.05),
-          blurRadius: 8,
+          blurRadius: 10,
           offset: const Offset(0, 2),
         ),
       ],
@@ -134,13 +141,13 @@ Widget _buildSection(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(12, 10, 12, 4),
+          padding: const EdgeInsets.fromLTRB(12.0, 10.0, 12.0, 6.0),
           child: Row(
             children: [
               Text(
                 title,
                 style: TextStyle(
-                  fontSize: 16,
+                  fontSize: 18 + Provider.of<AppState>(context).getTextSizeOffset(),
                   fontWeight: FontWeight.bold,
                   color: Theme.of(context).primaryColor,
                 ),
@@ -154,7 +161,7 @@ Widget _buildSection(
                     padding: const EdgeInsets.all(4.0),
                     child: Icon(
                       Icons.help_outline,
-                      size: 16,
+                      size: 18,
                       color: Colors.grey[600],
                     ),
                   ),
@@ -163,11 +170,7 @@ Widget _buildSection(
             ],
           ),
         ),
-        const Divider(height: 1, thickness: 0.5),
-        Padding(
-          padding: const EdgeInsets.all(10.0),
-          child: child,
-        ),
+        Column(children: children),
       ],
     ),
   );
@@ -175,6 +178,8 @@ Widget _buildSection(
 
 // Méthode pour construire la jauge du ROI
 Widget _buildGaugeForROI(double roiValue, BuildContext context) {
+  final appState = Provider.of<AppState>(context, listen: false);
+  
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
@@ -207,8 +212,8 @@ Widget _buildGaugeForROI(double roiValue, BuildContext context) {
                 child: Center(
                   child: Text(
                     "${roiValue.toStringAsFixed(1)} %", 
-                    style: const TextStyle(
-                      fontSize: 12,
+                    style: TextStyle(
+                      fontSize: 12 + appState.getTextSizeOffset(),
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                     ),
@@ -223,8 +228,8 @@ Widget _buildGaugeForROI(double roiValue, BuildContext context) {
       Text(
         "Retour sur investissement basé sur les loyers perçus",
         style: TextStyle(
-          fontSize: 12,
-          color: Colors.grey[600],
+          fontSize: 12 + appState.getTextSizeOffset(),
+          color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.8),
         ),
       ),
     ],
@@ -242,7 +247,7 @@ Widget _buildYieldChartOrMessage(
       text: TextSpan(
         text: "${S.of(context).noYieldEvolution} ",
         style: TextStyle(
-          fontSize: 12 + appState.getTextSizeOffset(),
+          fontSize: 14 + appState.getTextSizeOffset(),
           color: Theme.of(context).textTheme.bodyMedium?.color,
         ),
         children: [
@@ -281,7 +286,7 @@ Widget _buildYieldChartOrMessage(
           text: TextSpan(
             text: S.of(context).yieldEvolutionPercentage,
             style: TextStyle(
-              fontSize: 12 + appState.getTextSizeOffset(),
+              fontSize: 14 + appState.getTextSizeOffset(),
               color: Theme.of(context).textTheme.bodyMedium?.color,
             ),
             children: [
@@ -429,7 +434,11 @@ Widget _buildYieldChart(BuildContext context, List<dynamic> yields, CurrencyProv
               final int index = touchedSpot.x.toInt();
               return LineTooltipItem(
                 '${dateLabels[index]}: ${touchedSpot.y.toStringAsFixed(2)}%',
-                const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                TextStyle(
+                  color: Colors.white, 
+                  fontWeight: FontWeight.bold, 
+                  fontSize: 12 + appState.getTextSizeOffset()
+                ),
               );
             }).toList();
           },
@@ -457,7 +466,7 @@ Widget _buildPriceChartOrMessage(
       text: TextSpan(
         text: "${S.of(context).noPriceEvolution} ",
         style: TextStyle(
-          fontSize: 12 + appState.getTextSizeOffset(),
+          fontSize: 14 + appState.getTextSizeOffset(),
           color: Theme.of(context).textTheme.bodyMedium?.color,
         ),
         children: [
@@ -498,7 +507,7 @@ Widget _buildPriceChartOrMessage(
               text: TextSpan(
                 text: S.of(context).priceEvolutionPercentage,
                 style: TextStyle(
-                  fontSize: 12 + appState.getTextSizeOffset(),
+                  fontSize: 14 + appState.getTextSizeOffset(),
                   color: Theme.of(context).textTheme.bodyMedium?.color,
                 ),
                 children: [
@@ -516,7 +525,7 @@ Widget _buildPriceChartOrMessage(
               text: TextSpan(
                 text: "Prix actuel: ",
                 style: TextStyle(
-                  fontSize: 12 + appState.getTextSizeOffset(),
+                  fontSize: 14 + appState.getTextSizeOffset(),
                   color: Theme.of(context).textTheme.bodyMedium?.color,
                 ),
                 children: [
@@ -664,7 +673,11 @@ Widget _buildPriceChart(BuildContext context, List<dynamic> prices, CurrencyProv
               final convertedValue = currencyUtils.convert(touchedSpot.y);
               return LineTooltipItem(
                 '${dateLabels[index]}: ${currencyUtils.formatCurrency(convertedValue, currencyUtils.currencySymbol)}',
-                const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                TextStyle(
+                  color: Colors.white, 
+                  fontWeight: FontWeight.bold, 
+                  fontSize: 12 + appState.getTextSizeOffset()
+                ),
               );
             }).toList();
           },
@@ -697,7 +710,7 @@ Widget _buildRentCumulativeChartOrMessage(
     return Text(
       "Aucun historique de loyer disponible pour ce token",
       style: TextStyle(
-        fontSize: 12 + appState.getTextSizeOffset(),
+        fontSize: 14 + appState.getTextSizeOffset(),
         color: Theme.of(context).textTheme.bodyMedium?.color,
       ),
     );
@@ -720,15 +733,15 @@ Widget _buildRentCumulativeChartOrMessage(
             Text(
               "Loyers depuis ${walletCount > 1 ? '$walletCount wallets' : '1 wallet'}",
               style: TextStyle(
-                fontSize: 12 + appState.getTextSizeOffset(),
-                color: Colors.grey[600],
+                fontSize: 14 + appState.getTextSizeOffset(),
+                color: Theme.of(context).textTheme.bodyMedium?.color,
               ),
             ),
             RichText(
               text: TextSpan(
                 text: "Total: ",
                 style: TextStyle(
-                  fontSize: 12 + appState.getTextSizeOffset(),
+                  fontSize: 14 + appState.getTextSizeOffset(),
                   color: Theme.of(context).textTheme.bodyMedium?.color,
                 ),
                 children: [
@@ -899,7 +912,11 @@ Widget _buildRentCumulativeChart(BuildContext context, List<Map<String, dynamic>
               final convertedValue = currencyUtils.convert(touchedSpot.y);
               return LineTooltipItem(
                 '${dateLabels[index]}: ${currencyUtils.formatCurrency(convertedValue, currencyUtils.currencySymbol)}',
-                const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                TextStyle(
+                  color: Colors.white, 
+                  fontWeight: FontWeight.bold, 
+                  fontSize: 12 + appState.getTextSizeOffset()
+                ),
               );
             }).toList();
           },

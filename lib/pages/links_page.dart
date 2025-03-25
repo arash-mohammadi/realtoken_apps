@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:realtokens/utils/url_utils.dart';
+import 'package:realtokens/app_state.dart';
 
 class LinksPage extends StatefulWidget {
   const LinksPage({super.key});
@@ -31,7 +32,7 @@ class RealtPageState extends State<LinksPage> {
           'Links',
           style: TextStyle(
             fontWeight: FontWeight.w600,
-            fontSize: 17,
+            fontSize: 17 + Provider.of<AppState>(context).getTextSizeOffset(),
           ),
         ),
       ),
@@ -87,7 +88,7 @@ class RealtPageState extends State<LinksPage> {
       onTap: () => UrlUtils.launchURL(linkUrl),
       child: Container(
         decoration: BoxDecoration(
-          color: CupertinoColors.systemBackground.resolveFrom(context),
+          color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(10),
           boxShadow: [
             BoxShadow(
@@ -125,7 +126,7 @@ class RealtPageState extends State<LinksPage> {
                           Text(
                             linkText,
                             style: TextStyle(
-                              fontSize: 16,
+                              fontSize: 16 + Provider.of<AppState>(context).getTextSizeOffset(),
                               fontWeight: FontWeight.w500,
                               color: CupertinoColors.systemBlue.resolveFrom(context),
                             ),
@@ -134,7 +135,7 @@ class RealtPageState extends State<LinksPage> {
                           Text(
                             description,
                             style: TextStyle(
-                              fontSize: 14,
+                              fontSize: 14 + Provider.of<AppState>(context).getTextSizeOffset(),
                               color: CupertinoColors.secondaryLabel.resolveFrom(context),
                             ),
                           ),

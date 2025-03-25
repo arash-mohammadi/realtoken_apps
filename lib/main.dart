@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
+import 'package:realtokens/services/biometric_service.dart';
 import 'package:realtokens/services/google_drive_service.dart';
 import 'package:realtokens/structure/home_page.dart';
 import 'package:realtokens/utils/currency_utils.dart';
@@ -20,6 +21,7 @@ import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart'; // 👈 Importation de dotenv
 import 'managers/archive_manager.dart';
 import 'managers/apy_manager.dart';
+import 'screens/lock_screen.dart';
 
 void main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
@@ -109,12 +111,17 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
   final _googleDriveService = GoogleDriveService();
   bool _isGoogleDriveConnected = false;
   bool _autoSyncEnabled = false;
+  bool _isAuthenticated = false;
+  final BiometricService _biometricService = BiometricService();
+  DateTime? _lastAuthTime;
+  AppLifecycleState _lastLifecycleState = AppLifecycleState.resumed;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     dataManager = Provider.of<DataManager>(context, listen: false);
+    _checkAuthentication();
     _checkGoogleDriveConnection();
     _autoSyncEnabled = widget.autoSyncEnabled;
     if (!kIsWeb) {
@@ -122,6 +129,47 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
     } else {
       debugPrint("🚫 OneSignal non activé sur le Web.");
     }
+  }
+
+  Future<void> _checkAuthentication() async {
+    final biometricEnabled = await _biometricService.isBiometricEnabled();
+    
+    // Si la biométrie n'est pas activée, on considère l'utilisateur comme authentifié
+    if (!biometricEnabled) {
+      setState(() {
+        _isAuthenticated = true;
+      });
+      return;
+    }
+    
+    // Si l'utilisateur est déjà authentifié, vérifier s'il s'est authentifié récemment (moins de 10 minutes)
+    if (_lastAuthTime != null) {
+      final now = DateTime.now();
+      final difference = now.difference(_lastAuthTime!);
+      
+      // Si moins de 10 minutes ont passé depuis la dernière authentification, 
+      // ne pas redemander d'authentification
+      if (difference.inMinutes < 10) {
+        setState(() {
+          _isAuthenticated = true;
+        });
+        return;
+      }
+    }
+    
+    // Dans les autres cas, l'utilisateur doit s'authentifier
+    setState(() {
+      _isAuthenticated = false;
+    });
+  }
+  
+  void setAuthenticated(bool value) {
+    setState(() {
+      _isAuthenticated = value;
+      if (value) {
+        _lastAuthTime = DateTime.now();
+      }
+    });
   }
 
   Future<void> _checkGoogleDriveConnection() async {
@@ -165,7 +213,24 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Sauvegarder l'état précédent avant de le mettre à jour
+    final previousState = _lastLifecycleState;
+    _lastLifecycleState = state;
+    
     if (state == AppLifecycleState.resumed) {
+      // Demander l'authentification UNIQUEMENT si l'application était en arrière-plan (inactive ou paused)
+      // et qu'elle revient au premier plan après un certain temps
+      if (previousState == AppLifecycleState.paused || previousState == AppLifecycleState.inactive) {
+        final now = DateTime.now();
+        final needsAuth = _lastAuthTime == null || 
+                         now.difference(_lastAuthTime!).inMinutes >= 5; // Redemander après 5 minutes
+        
+        if (needsAuth) {
+          _checkAuthentication();
+        }
+      }
+      
+      // Toujours recharger les données
       _reloadData();
     }
   }
@@ -234,7 +299,11 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
           theme: getLightTheme(appState.primaryColor),
           darkTheme: getDarkTheme(appState.primaryColor),
           themeMode: appState.isDarkTheme ? ThemeMode.dark : ThemeMode.light,
-          home: const MyHomePage(),
+          home: _isAuthenticated 
+              ? const MyHomePage()
+              : LockScreen(
+                  onAuthenticated: () => setAuthenticated(true),
+                ),
         );
       },
     );

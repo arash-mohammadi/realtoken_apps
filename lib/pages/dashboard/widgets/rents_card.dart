@@ -77,7 +77,7 @@ class RentsCard extends StatelessWidget {
               currencyUtils.currencySymbol,
               showAmounts),
           S.of(context).daily,
-          dataManager.isLoadingMain,
+          isLoading || dataManager.isLoadingMain,
           context,
         ),
         UIUtils.buildTextWithShimmer(
@@ -86,7 +86,7 @@ class RentsCard extends StatelessWidget {
               currencyUtils.currencySymbol,
               showAmounts),
           S.of(context).weekly,
-          dataManager.isLoadingMain,
+          isLoading || dataManager.isLoadingMain,
           context,
         ),
         UIUtils.buildTextWithShimmer(
@@ -96,7 +96,7 @@ class RentsCard extends StatelessWidget {
             showAmounts,
           ),
           S.of(context).monthly,
-          dataManager.isLoadingMain,
+          isLoading || dataManager.isLoadingMain,
           context,
         ),
         UIUtils.buildTextWithShimmer(
@@ -105,7 +105,7 @@ class RentsCard extends StatelessWidget {
               currencyUtils.currencySymbol,
               showAmounts),
           S.of(context).annually,
-          dataManager.isLoadingMain,
+          isLoading || dataManager.isLoadingMain,
           context,
         ),
       ],

@@ -123,15 +123,18 @@ class _RentGraphState extends State<RentGraph> {
                   ),
                 ),
                 const Spacer(),
-                CupertinoSwitch(
-                  value: _showCumulativeRent,
-                  onChanged: (value) {
-                    setState(() {
-                      _showCumulativeRent = value;
-                    });
-                  },
-                  activeColor: Theme.of(context).primaryColor,
-                  trackColor: Colors.grey.shade300,
+                Transform.scale(
+                  scale: 0.8,
+                  child: CupertinoSwitch(
+                    value: _showCumulativeRent,
+                    onChanged: (value) {
+                      setState(() {
+                        _showCumulativeRent = value;
+                      });
+                    },
+                    activeColor: Theme.of(context).primaryColor,
+                    trackColor: Colors.grey.shade300,
+                  ),
                 ),
               ],
             ),
@@ -166,8 +169,13 @@ class _RentGraphState extends State<RentGraph> {
                       ),
                       leftTitles: AxisTitles(
                         sideTitles: SideTitles(
+                          showTitles: false,
+                        ),
+                      ),
+                      rightTitles: AxisTitles(
+                        sideTitles: SideTitles(
                           showTitles: true,
-                          reservedSize: 45,
+                          reservedSize: 40,
                           getTitlesWidget: (value, meta) {
                             final highestValue = convertedData
                                 .map((entry) => entry['rent'])
@@ -177,15 +185,13 @@ class _RentGraphState extends State<RentGraph> {
                               return const SizedBox.shrink();
                             }
 
-                            final formattedValue =
-                                currencyUtils.getFormattedAmount(
+                            final formattedValue = currencyUtils.formatCompactCurrency(
                               value,
                               currencyUtils.currencySymbol,
-                              appState.showAmounts,
                             );
 
                             return Padding(
-                              padding: const EdgeInsets.only(right: 8.0),
+                              padding: const EdgeInsets.only(left: 8.0),
                               child: Text(
                                 formattedValue,
                                 style: TextStyle(
@@ -196,9 +202,6 @@ class _RentGraphState extends State<RentGraph> {
                             );
                           },
                         ),
-                      ),
-                      rightTitles: const AxisTitles(
-                        sideTitles: SideTitles(showTitles: false),
                       ),
                       bottomTitles: AxisTitles(
                         sideTitles: SideTitles(
@@ -287,10 +290,9 @@ class _RentGraphState extends State<RentGraph> {
                             final String periodLabel = _buildDateLabelsForRent(
                                 context, dataManager, _selectedRentPeriod)[index];
                             
-                            final formattedValue = currencyUtils.getFormattedAmount(
+                            final formattedValue = currencyUtils.formatCompactCurrency(
                               value,
                               currencyUtils.currencySymbol,
-                              appState.showAmounts,
                             );
                             
                             return LineTooltipItem(

@@ -44,8 +44,8 @@ class AboutPage extends StatelessWidget {
               _buildInfoCard(
                 context,
                 CupertinoIcons.info_circle,
+                "Name",
                 S.of(context).appName,
-                'RealToken App',
                 appState.getTextSizeOffset(),
               ),
               FutureBuilder<String>(
@@ -66,50 +66,70 @@ class AboutPage extends StatelessWidget {
                 S.of(context).author,
                 'Byackee',
                 appState.getTextSizeOffset(),
+                linkUrl: 'https://linktr.ee/byackee',
               ),
-
-              // Lien personnel
-              Padding(
-                padding: const EdgeInsets.only(left: 16.0, top: 4.0, bottom: 16.0),
-                child: GestureDetector(
-                  onTap: () => UrlUtils.launchURL('https://linktr.ee/byackee'),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: CupertinoColors.systemBackground.resolveFrom(context),
-                      borderRadius: BorderRadius.circular(8),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.03),
-                          blurRadius: 3,
-                          offset: const Offset(0, 1),
-                        ),
-                      ],
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
-                      child: Row(
-                        children: [
-                          Icon(
+              GestureDetector(
+                onTap: () => UrlUtils.launchURL('https://linktr.ee/byackee'),
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 10.0),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).cardColor,
+                    borderRadius: BorderRadius.circular(10),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12.0),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8.0),
+                          decoration: BoxDecoration(
+                            color: CupertinoColors.systemGrey6.resolveFrom(context),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Icon(
                             CupertinoIcons.link,
                             color: CupertinoColors.systemBlue.resolveFrom(context),
-                            size: 20,
+                            size: 22,
                           ),
-                          const SizedBox(width: 12),
-                          Text(
-                            'My linktree',
-                            style: TextStyle(
-                              fontSize: 15 + appState.getTextSizeOffset(),
-                              color: CupertinoColors.systemBlue.resolveFrom(context),
-                            ),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Linktree',
+                                style: TextStyle(
+                                  fontSize: 15 + appState.getTextSizeOffset(),
+                                  fontWeight: FontWeight.w500,
+                                  color: CupertinoColors.label.resolveFrom(context),
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'https://linktr.ee/byackee',
+                                style: TextStyle(
+                                  fontSize: 14 + appState.getTextSizeOffset(),
+                                  color: CupertinoColors.systemBlue.resolveFrom(context),
+                                ),
+                              ),
+                            ],
                           ),
-                          const Spacer(),
-                          Icon(
-                            CupertinoIcons.chevron_right,
-                            size: 16,
-                            color: CupertinoColors.systemGrey.resolveFrom(context),
-                          ),
-                        ],
-                      ),
+                        ),
+                        Icon(
+                          CupertinoIcons.chevron_right,
+                          size: 16,
+                          color: CupertinoColors.systemGrey.resolveFrom(context),
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -155,12 +175,13 @@ class AboutPage extends StatelessWidget {
     IconData icon,
     String title,
     String subtitle,
-    double textSizeOffset,
-  ) {
-    return Container(
+    double textSizeOffset, {
+    String? linkUrl,
+  }) {
+    Widget card = Container(
       margin: const EdgeInsets.only(bottom: 10.0),
       decoration: BoxDecoration(
-        color: CupertinoColors.systemBackground.resolveFrom(context),
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(10),
         boxShadow: [
           BoxShadow(
@@ -211,10 +232,26 @@ class AboutPage extends StatelessWidget {
                 ],
               ),
             ),
+            if (linkUrl != null) ...[
+              Icon(
+                CupertinoIcons.chevron_right,
+                size: 16,
+                color: CupertinoColors.systemGrey.resolveFrom(context),
+              ),
+            ],
           ],
         ),
       ),
     );
+
+    if (linkUrl != null) {
+      return GestureDetector(
+        onTap: () => UrlUtils.launchURL(linkUrl),
+        child: card,
+      );
+    }
+
+    return card;
   }
   
   Widget _buildThanksCard(

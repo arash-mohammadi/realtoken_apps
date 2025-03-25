@@ -188,7 +188,7 @@ class RmmStatsState extends State<RmmStats> {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      '${dataManager.apyAverage.isNaN ? "0.00" : dataManager.apyAverage.toStringAsFixed(2)}%',
+                      '${dataManager.apyAverage.isNaN ? "0" : dataManager.apyAverage.toInt()}%',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -271,7 +271,7 @@ class RmmStatsState extends State<RmmStats> {
                   alignment: Alignment.center,
                   padding: const EdgeInsets.symmetric(vertical: 6),
                   child: Text(
-                    '${dataManager.usdcDepositApy.toStringAsFixed(2)}%',
+                    '${dataManager.usdcDepositApy.toInt()}%',
                     style: valueStyle.copyWith(
                       color: Colors.blue.shade700,
                     ),
@@ -283,7 +283,7 @@ class RmmStatsState extends State<RmmStats> {
                   alignment: Alignment.center,
                   padding: const EdgeInsets.symmetric(vertical: 6),
                   child: Text(
-                    '${dataManager.xdaiDepositApy.toStringAsFixed(2)}%',
+                    '${dataManager.xdaiDepositApy.toInt()}%',
                     style: valueStyle.copyWith(
                       color: Colors.green.shade700,
                     ),
@@ -311,7 +311,7 @@ class RmmStatsState extends State<RmmStats> {
                   alignment: Alignment.center,
                   padding: const EdgeInsets.symmetric(vertical: 6),
                   child: Text(
-                    '${dataManager.usdcBorrowApy.toStringAsFixed(2)}%',
+                    '${dataManager.usdcBorrowApy.toInt()}%',
                     style: valueStyle.copyWith(
                       color: Colors.orange.shade800,
                     ),
@@ -323,7 +323,7 @@ class RmmStatsState extends State<RmmStats> {
                   alignment: Alignment.center,
                   padding: const EdgeInsets.symmetric(vertical: 6),
                   child: Text(
-                    '${dataManager.xdaiBorrowApy.toStringAsFixed(2)}%',
+                    '${dataManager.xdaiBorrowApy.toInt()}%',
                     style: valueStyle.copyWith(
                       color: Colors.red.shade700,
                     ),
