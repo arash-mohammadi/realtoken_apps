@@ -13,17 +13,13 @@ class TokenDistributionByCityCard extends StatefulWidget {
   const TokenDistributionByCityCard({super.key, required this.dataManager});
 
   @override
-  _TokenDistributionByCityCardState createState() =>
-      _TokenDistributionByCityCardState();
+  _TokenDistributionByCityCardState createState() => _TokenDistributionByCityCardState();
 }
 
-class _TokenDistributionByCityCardState
-    extends State<TokenDistributionByCityCard> {
+class _TokenDistributionByCityCardState extends State<TokenDistributionByCityCard> {
   int? _selectedIndexCity;
-  final ValueNotifier<int?> _selectedIndexNotifierCity =
-      ValueNotifier<int?>(null);
-  List<Map<String, dynamic>> othersDetails =
-      []; // Pour stocker les détails de la section "Autres"
+  final ValueNotifier<int?> _selectedIndexNotifierCity = ValueNotifier<int?>(null);
+  List<Map<String, dynamic>> othersDetails = []; // Pour stocker les détails de la section "Autres"
 
   @override
   Widget build(BuildContext context) {
@@ -77,31 +73,20 @@ class _TokenDistributionByCityCardState
                     children: [
                       PieChart(
                         PieChartData(
-                          sections: _buildDonutChartDataByCity(
-                              widget.dataManager, othersDetails, selectedIndex),
+                          sections: _buildDonutChartDataByCity(widget.dataManager, othersDetails, selectedIndex),
                           centerSpaceRadius: 65,
                           sectionsSpace: 3,
                           borderData: FlBorderData(show: false),
                           pieTouchData: PieTouchData(
-                            touchCallback: (FlTouchEvent event,
-                                PieTouchResponse? response) {
-                              if (response != null &&
-                                  response.touchedSection != null) {
-                                final touchedIndex = response
-                                    .touchedSection!.touchedSectionIndex;
-                                _selectedIndexNotifierCity.value =
-                                    touchedIndex >= 0 ? touchedIndex : null;
+                            touchCallback: (FlTouchEvent event, PieTouchResponse? response) {
+                              if (response != null && response.touchedSection != null) {
+                                final touchedIndex = response.touchedSection!.touchedSectionIndex;
+                                _selectedIndexNotifierCity.value = touchedIndex >= 0 ? touchedIndex : null;
 
                                 if (event is FlTapUpEvent) {
-                                  final section =
-                                      response.touchedSection!.touchedSection;
-                                  if (section!.title
-                                      .contains(S.of(context).others)) {
-                                    showOtherDetailsModal(
-                                        context,
-                                        widget.dataManager,
-                                        othersDetails,
-                                        'city');
+                                  final section = response.touchedSection!.touchedSection;
+                                  if (section!.title.contains(S.of(context).others)) {
+                                    showOtherDetailsModal(context, widget.dataManager, othersDetails, 'city');
                                   }
                                 }
                               } else {
@@ -113,8 +98,7 @@ class _TokenDistributionByCityCardState
                         swapAnimationDuration: const Duration(milliseconds: 300),
                         swapAnimationCurve: Curves.easeInOutCubic,
                       ),
-                      _buildCenterTextByCity(
-                          widget.dataManager, selectedIndex, othersDetails),
+                      _buildCenterTextByCity(widget.dataManager, selectedIndex, othersDetails),
                     ],
                   );
                 },
@@ -132,8 +116,7 @@ class _TokenDistributionByCityCardState
     );
   }
 
-  List<PieChartSectionData> _buildDonutChartDataByCity(DataManager dataManager,
-      List<Map<String, dynamic>> othersDetails, int? selectedIndex) {
+  List<PieChartSectionData> _buildDonutChartDataByCity(DataManager dataManager, List<Map<String, dynamic>> othersDetails, int? selectedIndex) {
     Map<String, int> cityCount = {};
     final appState = Provider.of<AppState>(context);
 
@@ -147,8 +130,7 @@ class _TokenDistributionByCityCardState
     int totalCount = cityCount.values.fold(0, (sum, value) => sum + value);
 
     // Trier les villes par 'count' croissant
-    final sortedCities = cityCount.entries.toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
+    final sortedCities = cityCount.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
 
     List<PieChartSectionData> sections = [];
     othersDetails.clear(); // Clear previous details of "Autres"
@@ -167,8 +149,7 @@ class _TokenDistributionByCityCardState
 
       if (percentage < 2) {
         othersValue += value;
-        othersDetails.add(
-            {'city': city, 'count': value}); // Stocker les détails de "Autres"
+        othersDetails.add({'city': city, 'count': value}); // Stocker les détails de "Autres"
       } else {
         sections.add(PieChartSectionData(
           value: value.toDouble(),
@@ -176,9 +157,7 @@ class _TokenDistributionByCityCardState
           color: baseColor.withOpacity(opacity),
           radius: isSelected ? 52 : 45,
           titleStyle: TextStyle(
-            fontSize: isSelected
-                ? 14 + appState.getTextSizeOffset()
-                : 10 + appState.getTextSizeOffset(),
+            fontSize: isSelected ? 14 + appState.getTextSizeOffset() : 10 + appState.getTextSizeOffset(),
             color: Colors.white,
             fontWeight: FontWeight.w600,
             shadows: [
@@ -200,18 +179,11 @@ class _TokenDistributionByCityCardState
       final double othersPercentage = (othersValue / totalCount) * 100;
       sections.add(PieChartSectionData(
         value: othersValue.toDouble(),
-        title:
-            '${S.of(context).others} ${othersPercentage.toStringAsFixed(1)}%',
-        color: Colors.grey.shade400.withOpacity(
-            selectedIndex != null && selectedIndex == sections.length
-                ? 1.0
-                : 0.5),
-        radius:
-            selectedIndex != null && selectedIndex == sections.length ? 52 : 45,
+        title: '${S.of(context).others} ${othersPercentage.toStringAsFixed(1)}%',
+        color: Colors.grey.shade400.withOpacity(selectedIndex != null && selectedIndex == sections.length ? 1.0 : 0.5),
+        radius: selectedIndex != null && selectedIndex == sections.length ? 52 : 45,
         titleStyle: TextStyle(
-          fontSize: selectedIndex != null && selectedIndex == sections.length
-              ? 14 + appState.getTextSizeOffset()
-              : 10 + appState.getTextSizeOffset(),
+          fontSize: selectedIndex != null && selectedIndex == sections.length ? 14 + appState.getTextSizeOffset() : 10 + appState.getTextSizeOffset(),
           color: Colors.white,
           fontWeight: FontWeight.w600,
           shadows: [
@@ -222,9 +194,7 @@ class _TokenDistributionByCityCardState
             ),
           ],
         ),
-        badgeWidget: selectedIndex != null && selectedIndex == sections.length
-            ? _buildSelectedIndicator()
-            : null,
+        badgeWidget: selectedIndex != null && selectedIndex == sections.length ? _buildSelectedIndicator() : null,
         badgePositionPercentageOffset: 1.1,
       ));
     }
@@ -254,8 +224,7 @@ class _TokenDistributionByCityCardState
     );
   }
 
-  Widget _buildCenterTextByCity(DataManager dataManager, int? selectedIndex,
-      List<Map<String, dynamic>> othersDetails) {
+  Widget _buildCenterTextByCity(DataManager dataManager, int? selectedIndex, List<Map<String, dynamic>> othersDetails) {
     Map<String, int> cityCount = {};
 
     // Remplir le dictionnaire avec les counts par ville
@@ -294,8 +263,7 @@ class _TokenDistributionByCityCardState
     }
 
     // Afficher les détails du segment sélectionné
-    final sortedCities = cityCount.entries.toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
+    final sortedCities = cityCount.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
 
     if (selectedIndex < sortedCities.length) {
       final selectedCity = sortedCities[selectedIndex];
@@ -336,9 +304,7 @@ class _TokenDistributionByCityCardState
           ),
           const SizedBox(height: 4),
           Text(
-            othersDetails
-                .fold<int>(0, (sum, item) => sum + (item['count'] as int))
-                .toString(),
+            othersDetails.fold<int>(0, (sum, item) => sum + (item['count'] as int)).toString(),
             style: TextStyle(
               fontSize: 14 + Provider.of<AppState>(context).getTextSizeOffset(),
               color: Colors.grey.shade600,
@@ -350,8 +316,7 @@ class _TokenDistributionByCityCardState
     }
   }
 
-  Widget _buildLegendByCity(
-      DataManager dataManager, List<Map<String, dynamic>> othersDetails) {
+  Widget _buildLegendByCity(DataManager dataManager, List<Map<String, dynamic>> othersDetails) {
     Map<String, int> cityCount = {};
     final appState = Provider.of<AppState>(context);
 
@@ -365,8 +330,7 @@ class _TokenDistributionByCityCardState
     int totalCount = cityCount.values.fold(0, (sum, value) => sum + value);
 
     // Trier les villes par 'count' croissant
-    final sortedCities = cityCount.entries.toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
+    final sortedCities = cityCount.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
 
     List<Widget> legendItems = [];
     int othersValue = 0;
@@ -382,8 +346,7 @@ class _TokenDistributionByCityCardState
       if (percentage < 2) {
         // Ajouter aux "Autres" si < 2%
         othersValue += value;
-        othersDetails.add(
-            {'city': city, 'count': value}); // Stocker les détails de "Autres"
+        othersDetails.add({'city': city, 'count': value}); // Stocker les détails de "Autres"
       } else {
         final index = sortedCities.indexOf(entry);
         // Ajouter un élément de légende pour cette ville
@@ -394,16 +357,12 @@ class _TokenDistributionByCityCardState
             },
             borderRadius: BorderRadius.circular(8),
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+              padding: const EdgeInsets.symmetric(horizontal: 6.0, vertical: 2.0),
               decoration: BoxDecoration(
-                color: _selectedIndexNotifierCity.value == index
-                    ? color.withOpacity(0.1)
-                    : Colors.transparent,
+                color: _selectedIndexNotifierCity.value == index ? color.withOpacity(0.1) : Colors.transparent,
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
-                  color: _selectedIndexNotifierCity.value == index
-                      ? color
-                      : Colors.transparent,
+                  color: _selectedIndexNotifierCity.value == index ? color : Colors.transparent,
                   width: 1,
                 ),
               ),
@@ -430,12 +389,8 @@ class _TokenDistributionByCityCardState
                     city,
                     style: TextStyle(
                       fontSize: 12 + appState.getTextSizeOffset(),
-                      color: _selectedIndexNotifierCity.value == index
-                          ? color
-                          : Theme.of(context).textTheme.bodyMedium?.color,
-                      fontWeight: _selectedIndexNotifierCity.value == index
-                          ? FontWeight.w600
-                          : FontWeight.normal,
+                      color: _selectedIndexNotifierCity.value == index ? color : Theme.of(context).textTheme.bodyMedium?.color,
+                      fontWeight: _selectedIndexNotifierCity.value == index ? FontWeight.w600 : FontWeight.normal,
                     ),
                   ),
                 ],
@@ -456,25 +411,17 @@ class _TokenDistributionByCityCardState
             _selectedIndexNotifierCity.value = (_selectedIndexNotifierCity.value == indexOthers) ? null : indexOthers;
             if (_selectedIndexNotifierCity.value == indexOthers) {
               // Optionnellement, ouvrir le modal lorsqu'on clique sur "Autres" dans la légende
-              showOtherDetailsModal(
-                  context,
-                  widget.dataManager,
-                  othersDetails,
-                  'city');
+              showOtherDetailsModal(context, widget.dataManager, othersDetails, 'city');
             }
           },
           borderRadius: BorderRadius.circular(8),
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+            padding: const EdgeInsets.symmetric(horizontal: 6.0, vertical: 2.0),
             decoration: BoxDecoration(
-              color: _selectedIndexNotifierCity.value == indexOthers
-                  ? Colors.grey.withOpacity(0.1)
-                  : Colors.transparent,
+              color: _selectedIndexNotifierCity.value == indexOthers ? Colors.grey.withOpacity(0.1) : Colors.transparent,
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
-                color: _selectedIndexNotifierCity.value == indexOthers
-                    ? Colors.grey
-                    : Colors.transparent,
+                color: _selectedIndexNotifierCity.value == indexOthers ? Colors.grey : Colors.transparent,
                 width: 1,
               ),
             ),
@@ -501,12 +448,8 @@ class _TokenDistributionByCityCardState
                   S.of(context).others,
                   style: TextStyle(
                     fontSize: 12 + appState.getTextSizeOffset(),
-                    color: _selectedIndexNotifierCity.value == indexOthers
-                        ? Colors.grey.shade700
-                        : Theme.of(context).textTheme.bodyMedium?.color,
-                    fontWeight: _selectedIndexNotifierCity.value == indexOthers
-                        ? FontWeight.w600
-                        : FontWeight.normal,
+                    color: _selectedIndexNotifierCity.value == indexOthers ? Colors.grey.shade700 : Theme.of(context).textTheme.bodyMedium?.color,
+                    fontWeight: _selectedIndexNotifierCity.value == indexOthers ? FontWeight.w600 : FontWeight.normal,
                   ),
                 ),
               ],

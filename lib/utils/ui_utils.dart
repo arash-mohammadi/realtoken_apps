@@ -11,11 +11,11 @@ import 'package:realtokens/pages/dashboard/detailsPages/rent_details_page.dart';
 import 'package:realtokens/pages/dashboard/detailsPages/rmm_details_page.dart';
 import 'package:realtokens/pages/dashboard/detailsPages/portfolio_details_page.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:realtokens/utils/shimmer_utils.dart';
 
 class UIUtils {
   static double getAppBarHeight(BuildContext context) {
-    double pixelRatio =
-        MediaQuery.of(context).devicePixelRatio; // Ratio de densité
+    double pixelRatio = MediaQuery.of(context).devicePixelRatio; // Ratio de densité
     double longestSide = MediaQuery.of(context).size.longestSide * pixelRatio;
     double shortestSide = MediaQuery.of(context).size.shortestSide * pixelRatio;
 
@@ -38,19 +38,13 @@ class UIUtils {
 
       if (shortestSide >= 1500) {
         // Tablettes (toute orientation)
-        return orientation == Orientation.portrait
-            ? kToolbarHeight
-            : kToolbarHeight; // Exemple d'ajustement en paysage
+        return orientation == Orientation.portrait ? kToolbarHeight : kToolbarHeight; // Exemple d'ajustement en paysage
       } else if (longestSide > 2000) {
         // Grands téléphones
-        return orientation == Orientation.portrait
-            ? kToolbarHeight + 40
-            : kToolbarHeight; // Exemple d'ajustement en paysage
+        return orientation == Orientation.portrait ? kToolbarHeight + 40 : kToolbarHeight; // Exemple d'ajustement en paysage
       } else {
         // Taille par défaut pour les téléphones standards
-        return orientation == Orientation.portrait
-            ? kToolbarHeight
-            : kToolbarHeight - 10; // Exemple d'ajustement en paysage
+        return orientation == Orientation.portrait ? kToolbarHeight : kToolbarHeight - 10; // Exemple d'ajustement en paysage
       }
     } else {
       // Par défaut pour desktop
@@ -61,8 +55,7 @@ class UIUtils {
   static double getSliverAppBarHeight(BuildContext context) {
     double baseHeight = getAppBarHeight(context);
 
-    double pixelRatio =
-        MediaQuery.of(context).devicePixelRatio; // Ratio de densité
+    double pixelRatio = MediaQuery.of(context).devicePixelRatio; // Ratio de densité
     double longestSide = MediaQuery.of(context).size.longestSide * pixelRatio;
     double shortestSide = MediaQuery.of(context).size.shortestSide * pixelRatio;
 
@@ -85,21 +78,13 @@ class UIUtils {
 
       if (shortestSide >= 1500) {
         // Tablettes
-        return orientation == Orientation.portrait
-            ? baseHeight + 25
-            : baseHeight + 25; // Ajustement en paysage pour les tablettes
+        return orientation == Orientation.portrait ? baseHeight + 25 : baseHeight + 25; // Ajustement en paysage pour les tablettes
       } else if (longestSide > 2500) {
         // Grands téléphones
-        return orientation == Orientation.portrait
-            ? baseHeight - 15
-            : baseHeight +
-                40; // Ajustement en paysage pour les grands téléphones
+        return orientation == Orientation.portrait ? baseHeight - 15 : baseHeight + 40; // Ajustement en paysage pour les grands téléphones
       } else {
         // Taille par défaut pour téléphones standards
-        return orientation == Orientation.portrait
-            ? baseHeight + 30
-            : baseHeight +
-                45; // Ajustement en paysage pour téléphones standards
+        return orientation == Orientation.portrait ? baseHeight + 30 : baseHeight + 45; // Ajustement en paysage pour téléphones standards
       }
     } else {
       // Par défaut pour desktop
@@ -144,12 +129,8 @@ class UIUtils {
         borderRadius: BorderRadius.circular(16),
       ),
       elevation: 0.3,
-      shadowColor: Theme.of(context).brightness == Brightness.light 
-          ? Colors.black.withOpacity(0.1) 
-          : Colors.white.withOpacity(0.05),
-      color: Theme.of(context).brightness == Brightness.light 
-          ? Colors.white 
-          : Color(0xFF1C1C1E),
+      shadowColor: Theme.of(context).brightness == Brightness.light ? Colors.black.withOpacity(0.1) : Colors.white.withOpacity(0.05),
+      color: Theme.of(context).brightness == Brightness.light ? Colors.white : Color(0xFF1C1C1E),
       margin: EdgeInsets.symmetric(vertical: 6.0, horizontal: 2.0),
       child: Padding(
         padding: const EdgeInsets.all(12.0),
@@ -218,7 +199,7 @@ class UIUtils {
                   ),
                 ),
                 // Graphique si présent
-                if (hasGraph && rightWidget != null) 
+                if (hasGraph && rightWidget != null)
                   Padding(
                     padding: const EdgeInsets.only(top: 2.0, left: 8.0),
                     child: rightWidget,
@@ -252,9 +233,7 @@ class UIUtils {
     }
   }
 
-  static Widget buildValueBeforeText(
-      BuildContext context, String? value, String text, bool isLoading,
-      {bool highlightPercentage = false}) {
+  static Widget buildValueBeforeText(BuildContext context, String? value, String text, bool isLoading, {bool highlightPercentage = false}) {
     final appState = Provider.of<AppState>(context);
     final theme = Theme.of(context);
 
@@ -274,13 +253,7 @@ class UIUtils {
     return Row(
       children: [
         isLoading
-            ? Shimmer.fromColors(
-                baseColor:
-                    theme.textTheme.bodyMedium?.color?.withOpacity(0.2) ??
-                        Colors.grey[300]!,
-                highlightColor:
-                    theme.textTheme.bodyMedium?.color?.withOpacity(0.6) ??
-                        Colors.grey[100]!,
+            ? ShimmerUtils.originalColorShimmer(
                 child: Text(
                   value ?? '',
                   style: TextStyle(
@@ -290,6 +263,7 @@ class UIUtils {
                     height: 1.1,
                   ),
                 ),
+                color: theme.textTheme.bodyLarge?.color,
               )
             : Text(
                 value ?? '',
@@ -337,8 +311,7 @@ class UIUtils {
     );
   }
 
-  static Widget buildTextWithShimmer(
-      String? value, String text, bool isLoading, BuildContext context) {
+  static Widget buildTextWithShimmer(String? value, String text, bool isLoading, BuildContext context) {
     final appState = Provider.of<AppState>(context);
     final theme = Theme.of(context);
 
@@ -351,20 +324,14 @@ class UIUtils {
             text,
             style: TextStyle(
               fontSize: 14 + appState.getTextSizeOffset(),
-              color: Theme.of(context).brightness == Brightness.light 
-                ? Colors.black54 
-                : Colors.white70,
+              color: Theme.of(context).brightness == Brightness.light ? Colors.black54 : Colors.white70,
               letterSpacing: -0.2,
               height: 1.1,
             ),
           ),
           SizedBox(width: 12),
           isLoading
-              ? Shimmer.fromColors(
-                  baseColor: theme.textTheme.bodyMedium?.color?.withOpacity(0.2) ??
-                      Colors.grey[300]!,
-                  highlightColor: theme.textTheme.bodyMedium?.color?.withOpacity(0.5) ??
-                      Colors.grey[100]!,
+              ? ShimmerUtils.originalColorShimmer(
                   child: Text(
                     value ?? '',
                     style: TextStyle(
@@ -375,6 +342,7 @@ class UIUtils {
                       height: 1.1,
                     ),
                   ),
+                  color: theme.textTheme.bodyLarge?.color,
                 )
               : Text(
                   value ?? '',

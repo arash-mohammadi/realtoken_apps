@@ -260,8 +260,7 @@ class RealtPageState extends State<SupportPage> {
                       'PayPal',
                       CupertinoIcons.money_dollar,
                       CupertinoColors.systemBlue,
-                      () => UrlUtils.launchURL(
-                          'https://paypal.me/byackee?country.x=FR&locale.x=fr_FR'),
+                      () => UrlUtils.launchURL('https://paypal.me/byackee?country.x=FR&locale.x=fr_FR'),
                       appState.getTextSizeOffset(),
                     ),
                     _buildDonationButton(

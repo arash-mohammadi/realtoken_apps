@@ -50,16 +50,12 @@ class RealtPageState extends State<RealtPage> {
                   context,
                   'investment',
                   CupertinoIcons.money_dollar_circle,
-                  currencyUtils.formatCurrency(
-                      currencyUtils.convert(dataManager.totalRealtInvestment),
-                      currencyUtils.currencySymbol),
+                  currencyUtils.formatCurrency(currencyUtils.convert(dataManager.totalRealtInvestment), currencyUtils.currencySymbol),
                   S.of(context).totalInvestment,
                   [
                     _buildIOSValueRow(
                       context,
-                      currencyUtils.formatCurrency(
-                          currencyUtils.convert(dataManager.netRealtRentYear),
-                          currencyUtils.currencySymbol),
+                      currencyUtils.formatCurrency(currencyUtils.convert(dataManager.netRealtRentYear), currencyUtils.currencySymbol),
                       'net rent',
                     ),
                   ],
@@ -81,7 +77,7 @@ class RealtPageState extends State<RealtPage> {
                     _buildIOSValueRow(
                       context,
                       '${dataManager.rentedRealtUnits}',
-                      S.of(context).rentedUnits,
+          S.of(context).rentedUnits(dataManager.rentedUnits.toString(), dataManager.totalUnits.toString()),
                     ),
                     _buildIOSValueRow(
                       context,

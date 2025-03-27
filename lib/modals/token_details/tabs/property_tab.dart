@@ -7,8 +7,7 @@ import 'package:realtokens/utils/location_utils.dart';
 import 'package:realtokens/utils/parameters.dart';
 import 'package:realtokens/utils/ui_utils.dart';
 
-Widget buildPropertiesTab(BuildContext context, Map<String, dynamic> token,
-    bool convertToSquareMeters) {
+Widget buildPropertiesTab(BuildContext context, Map<String, dynamic> token, bool convertToSquareMeters) {
   final appState = Provider.of<AppState>(context, listen: false);
 
   return Padding(
@@ -146,8 +145,7 @@ Widget _buildSectionCard(BuildContext context, {required String title, required 
 }
 
 // Méthode pour construire les lignes de détails
-Widget _buildDetailRow(BuildContext context, String label, String value,
-    {IconData? icon, Color? iconColor}) {
+Widget _buildDetailRow(BuildContext context, String label, String value, {IconData? icon, Color? iconColor}) {
   final appState = Provider.of<AppState>(context, listen: false);
 
   return Padding(
@@ -200,9 +198,9 @@ Widget _buildRentalStatusRow(BuildContext context, {required Map<String, dynamic
   final rentedUnits = token['rentedUnits'] ?? 0;
   final totalUnits = token['totalUnits'] ?? 1;
   final occupancyRate = (rentedUnits / totalUnits * 100).round();
-  
+
   final statusColor = UIUtils.getRentalStatusColor(rentedUnits, totalUnits);
-  
+
   return Padding(
     padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 10.0),
     child: Column(
@@ -228,7 +226,7 @@ Widget _buildRentalStatusRow(BuildContext context, {required Map<String, dynamic
                 ),
                 const SizedBox(width: 10),
                 Text(
-                  S.of(context).rentedUnits,
+          S.of(context).rented,
                   style: TextStyle(
                     fontSize: 14 + appState.getTextSizeOffset(),
                     fontWeight: FontWeight.w500,
@@ -299,7 +297,7 @@ Widget _buildRentStartDateRow(BuildContext context, {required Map<String, dynami
   final isActive = DateTime.parse(rentStartDate).isBefore(DateTime.now());
   final statusColor = isActive ? Colors.green : Colors.red;
   final statusText = isActive ? "Actif" : "En attente";
-  
+
   return Padding(
     padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 5.0),
     child: Row(

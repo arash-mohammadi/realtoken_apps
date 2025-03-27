@@ -57,9 +57,9 @@ class ServiceStatusPage extends StatelessWidget {
               padding: EdgeInsets.zero,
               children: [
                 const SizedBox(height: 12),
-                
+
                 _buildSectionHeader(context, "État des services", CupertinoIcons.gauge),
-                
+
                 // Afficher le texte en fonction de allAreUpToDate
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -83,9 +83,7 @@ class ServiceStatusPage extends StatelessWidget {
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            allAreUpToDate
-                                ? S.of(context).allWorkCorrectly
-                                : S.of(context).somethingWrong,
+                            allAreUpToDate ? S.of(context).allWorkCorrectly : S.of(context).somethingWrong,
                             style: TextStyle(
                               fontSize: 15 + appState.getTextSizeOffset(),
                               fontWeight: FontWeight.w500,
@@ -97,9 +95,9 @@ class ServiceStatusPage extends StatelessWidget {
                     ),
                   ),
                 ),
-                
+
                 const SizedBox(height: 8),
-                
+
                 _buildSettingsSection(
                   context,
                   children: executionTimesMap.entries.map((entry) {
@@ -151,7 +149,7 @@ class ServiceStatusPage extends StatelessWidget {
             ),
     );
   }
-  
+
   Widget _buildSectionHeader(BuildContext context, String title, IconData icon) {
     return Padding(
       padding: const EdgeInsets.only(left: 16, bottom: 6, top: 2),
@@ -172,7 +170,7 @@ class ServiceStatusPage extends StatelessWidget {
       ),
     );
   }
-  
+
   Widget _buildSettingsSection(
     BuildContext context, {
     required List<Widget> children,
@@ -196,7 +194,7 @@ class ServiceStatusPage extends StatelessWidget {
       ),
     );
   }
-  
+
   Widget _buildServiceItem({
     required BuildContext context,
     required String title,

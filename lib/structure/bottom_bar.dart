@@ -14,12 +14,9 @@ class CustomBottomNavigationBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return BottomNavigationBar(
       items: const <BottomNavigationBarItem>[
-        BottomNavigationBarItem(
-            icon: Icon(Icons.dashboard), label: 'Dashboard'),
-        BottomNavigationBarItem(
-            icon: Icon(Icons.wallet_rounded), label: 'Portfolio'),
-        BottomNavigationBarItem(
-            icon: Icon(Icons.bar_chart), label: 'Statistiques'),
+        BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Dashboard'),
+        BottomNavigationBarItem(icon: Icon(Icons.wallet_rounded), label: 'Portfolio'),
+        BottomNavigationBarItem(icon: Icon(Icons.bar_chart), label: 'Statistiques'),
         BottomNavigationBarItem(icon: Icon(Icons.map), label: 'Maps'),
       ],
       currentIndex: selectedIndex,

@@ -77,7 +77,6 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
         padding: EdgeInsets.zero,
         children: [
           const SizedBox(height: 12),
-          
           _buildSectionHeader(context, "Thème", CupertinoIcons.sun_max),
           _buildSettingsSection(
             context,
@@ -97,9 +96,7 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
               ),
             ],
           ),
-          
           const SizedBox(height: 12),
-          
           _buildSectionHeader(context, "Couleur principale", CupertinoIcons.color_filter),
           _buildSettingsSection(
             context,
@@ -119,11 +116,7 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           color: entry.value,
-                          border: _selectedColor == entry.key
-                              ? Border.all(
-                                  color: Theme.of(context).textTheme.bodyLarge?.color ?? Colors.grey,
-                                  width: 2)
-                              : null,
+                          border: _selectedColor == entry.key ? Border.all(color: Theme.of(context).textTheme.bodyLarge?.color ?? Colors.grey, width: 2) : null,
                           boxShadow: [
                             BoxShadow(
                               color: Colors.black.withOpacity(0.1),
@@ -139,9 +132,7 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
               ),
             ],
           ),
-          
           const SizedBox(height: 12),
-          
           _buildSectionHeader(context, "Affichage", CupertinoIcons.textformat_size),
           _buildSettingsSection(
             context,
@@ -198,19 +189,26 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
       ),
     );
   }
-  
+
   String _getLanguageName(String languageCode, BuildContext context) {
     switch (languageCode) {
-      case 'en': return S.of(context).english;
-      case 'fr': return S.of(context).french;
-      case 'es': return S.of(context).spanish;
-      case 'it': return S.of(context).italian;
-      case 'pt': return S.of(context).portuguese;
-      case 'zh': return S.of(context).chinese;
-      default: return S.of(context).english;
+      case 'en':
+        return S.of(context).english;
+      case 'fr':
+        return S.of(context).french;
+      case 'es':
+        return S.of(context).spanish;
+      case 'it':
+        return S.of(context).italian;
+      case 'pt':
+        return S.of(context).portuguese;
+      case 'zh':
+        return S.of(context).chinese;
+      default:
+        return S.of(context).english;
     }
   }
-  
+
   void _showTextSizePicker(BuildContext context, AppState appState) {
     showCupertinoModalPopup(
       context: context,
@@ -254,9 +252,11 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
                 scrollController: FixedExtentScrollController(
                   initialItem: Parameters.textSizeOptions.indexOf(appState.selectedTextSize),
                 ),
-                children: Parameters.textSizeOptions.map((size) => Center(
-                  child: Text(size, style: TextStyle(fontSize: 15)),
-                )).toList(),
+                children: Parameters.textSizeOptions
+                    .map((size) => Center(
+                          child: Text(size, style: TextStyle(fontSize: 15)),
+                        ))
+                    .toList(),
               ),
             ),
           ],
@@ -264,7 +264,7 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
       ),
     );
   }
-  
+
   void _showLanguagePicker(BuildContext context, AppState appState) {
     showCupertinoModalPopup(
       context: context,
@@ -309,9 +309,11 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
                 scrollController: FixedExtentScrollController(
                   initialItem: Parameters.languages.indexOf(appState.selectedLanguage),
                 ),
-                children: Parameters.languages.map((languageCode) => Center(
-                  child: Text(_getLanguageName(languageCode, context), style: TextStyle(fontSize: 15)),
-                )).toList(),
+                children: Parameters.languages
+                    .map((languageCode) => Center(
+                          child: Text(_getLanguageName(languageCode, context), style: TextStyle(fontSize: 15)),
+                        ))
+                    .toList(),
               ),
             ),
           ],
@@ -319,11 +321,11 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
       ),
     );
   }
-  
+
   bool isDarkMode(BuildContext context) {
     return Theme.of(context).brightness == Brightness.dark;
   }
-  
+
   Widget _buildSectionHeader(BuildContext context, String title, IconData icon) {
     return Padding(
       padding: const EdgeInsets.only(left: 16, bottom: 6, top: 2),
@@ -344,7 +346,7 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
       ),
     );
   }
-  
+
   Widget _buildSettingsSection(
     BuildContext context, {
     required List<Widget> children,
@@ -423,15 +425,13 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
 
   Widget _buildModernThemeSelector(BuildContext context, AppState appState) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Container(
       width: 270,
       height: 60,
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: isDark 
-            ? Colors.grey.shade800.withOpacity(0.3) 
-            : Colors.grey.shade200.withOpacity(0.7),
+        color: isDark ? Colors.grey.shade800.withOpacity(0.3) : Colors.grey.shade200.withOpacity(0.7),
         borderRadius: BorderRadius.circular(30),
         boxShadow: [
           BoxShadow(
@@ -447,18 +447,16 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
           AnimatedPositioned(
             duration: const Duration(milliseconds: 250),
             curve: Curves.easeInOut,
-            left: appState.themeMode == 'light' 
-                ? 0 
-                : appState.themeMode == 'dark' 
-                    ? 87 
+            left: appState.themeMode == 'light'
+                ? 0
+                : appState.themeMode == 'dark'
+                    ? 87
                     : 174,
             child: Container(
               width: 86,
               height: 52,
               decoration: BoxDecoration(
-                color: isDark 
-                    ? Colors.grey.shade700 
-                    : Colors.white,
+                color: isDark ? Colors.grey.shade700 : Colors.white,
                 borderRadius: BorderRadius.circular(26),
                 boxShadow: [
                   BoxShadow(
@@ -470,7 +468,7 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
               ),
             ),
           ),
-          
+
           // Options
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -517,18 +515,10 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
       ),
     );
   }
-  
-  Widget _buildThemeOption({
-    required BuildContext context, 
-    required IconData icon, 
-    required String label, 
-    required bool isSelected, 
-    required VoidCallback onTap
-  }) {
-    final textColor = isSelected 
-        ? Theme.of(context).primaryColor 
-        : Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.6);
-    
+
+  Widget _buildThemeOption({required BuildContext context, required IconData icon, required String label, required bool isSelected, required VoidCallback onTap}) {
+    final textColor = isSelected ? Theme.of(context).primaryColor : Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.6);
+
     return GestureDetector(
       onTap: onTap,
       child: Container(

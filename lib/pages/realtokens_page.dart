@@ -46,12 +46,8 @@ class RealTokensPageState extends State<RealTokensPage> {
       _isAscending = prefs.getBool('isAscending') ?? true;
       _showNonWhitelisted = prefs.getBool('showNonWhitelisted') ?? true;
       _filterNotInWallet = prefs.getBool('filterNotInWallet') ?? false;
-      _selectedRegion = prefs.getString('selectedRegion')?.isEmpty ?? true
-          ? null
-          : prefs.getString('selectedRegion');
-      _selectedCountry = prefs.getString('selectedCountry')?.isEmpty ?? true
-          ? null
-          : prefs.getString('selectedCountry');
+      _selectedRegion = prefs.getString('selectedRegion')?.isEmpty ?? true ? null : prefs.getString('selectedRegion');
+      _selectedCountry = prefs.getString('selectedCountry')?.isEmpty ?? true ? null : prefs.getString('selectedCountry');
     });
   }
 
@@ -66,51 +62,31 @@ class RealTokensPageState extends State<RealTokensPage> {
   }
 
   List<Map<String, dynamic>> _filterAndSortTokens(DataManager dataManager) {
-    List<Map<String, dynamic>> filteredTokens =
-        dataManager.allTokens.where((token) {
-      final matchesSearchQuery =
-          token['fullName'].toLowerCase().contains(_searchQuery.toLowerCase());
-      final matchesCity =
-          _selectedCity == null || token['fullName'].contains(_selectedCity!);
-      final matchesRegion = _selectedRegion == null || 
-          (token['regionCode'] != null && token['regionCode'] == _selectedRegion);
-      final matchesCountry = _selectedCountry == null || 
-          (token['country'] != null && token['country'] == _selectedCountry);
-          
+    List<Map<String, dynamic>> filteredTokens = dataManager.allTokens.where((token) {
+      final matchesSearchQuery = token['fullName'].toLowerCase().contains(_searchQuery.toLowerCase());
+      final matchesCity = _selectedCity == null || token['fullName'].contains(_selectedCity!);
+      final matchesRegion = _selectedRegion == null || (token['regionCode'] != null && token['regionCode'] == _selectedRegion);
+      final matchesCountry = _selectedCountry == null || (token['country'] != null && token['country'] == _selectedCountry);
+
       return matchesSearchQuery && matchesCity && matchesRegion && matchesCountry;
     }).toList();
 
     if (_filterNotInWallet) {
-      filteredTokens = filteredTokens
-          .where((token) => !dataManager.portfolio.any(
-              (p) => p['uuid'].toLowerCase() == token['uuid'].toLowerCase()))
-          .toList();
+      filteredTokens = filteredTokens.where((token) => !dataManager.portfolio.any((p) => p['uuid'].toLowerCase() == token['uuid'].toLowerCase())).toList();
     }
 
     if (!_showNonWhitelisted) {
-      filteredTokens = filteredTokens
-          .where((token) => dataManager.whitelistTokens.any((whitelisted) =>
-              whitelisted['token'].toLowerCase() ==
-              token['uuid'].toLowerCase()))
-          .toList();
+      filteredTokens = filteredTokens.where((token) => dataManager.whitelistTokens.any((whitelisted) => whitelisted['token'].toLowerCase() == token['uuid'].toLowerCase())).toList();
     }
 
     if (_sortOption == S.of(context).sortByName) {
-      filteredTokens.sort((a, b) => _isAscending
-          ? a['shortName'].compareTo(b['shortName'])
-          : b['shortName'].compareTo(a['shortName']));
+      filteredTokens.sort((a, b) => _isAscending ? a['shortName'].compareTo(b['shortName']) : b['shortName'].compareTo(a['shortName']));
     } else if (_sortOption == S.of(context).sortByValue) {
-      filteredTokens.sort((a, b) => _isAscending
-          ? a['totalValue'].compareTo(b['totalValue'])
-          : b['totalValue'].compareTo(a['totalValue']));
+      filteredTokens.sort((a, b) => _isAscending ? a['totalValue'].compareTo(b['totalValue']) : b['totalValue'].compareTo(a['totalValue']));
     } else if (_sortOption == S.of(context).sortByAPY) {
-      filteredTokens.sort((a, b) => _isAscending
-          ? a['annualPercentageYield'].compareTo(b['annualPercentageYield'])
-          : b['annualPercentageYield'].compareTo(a['annualPercentageYield']));
+      filteredTokens.sort((a, b) => _isAscending ? a['annualPercentageYield'].compareTo(b['annualPercentageYield']) : b['annualPercentageYield'].compareTo(a['annualPercentageYield']));
     } else if (_sortOption == S.of(context).sortByInitialLaunchDate) {
-      filteredTokens.sort((a, b) => _isAscending
-          ? a['initialLaunchDate'].compareTo(b['initialLaunchDate'])
-          : b['initialLaunchDate'].compareTo(a['initialLaunchDate']));
+      filteredTokens.sort((a, b) => _isAscending ? a['initialLaunchDate'].compareTo(b['initialLaunchDate']) : b['initialLaunchDate'].compareTo(a['initialLaunchDate']));
     }
 
     return filteredTokens;
@@ -120,9 +96,7 @@ class RealTokensPageState extends State<RealTokensPage> {
     final cities = tokens
         .map((token) {
           List<String> parts = token['fullName'].split(',');
-          return parts.length >= 2
-              ? parts[1].trim()
-              : S.of(context).unknownCity;
+          return parts.length >= 2 ? parts[1].trim() : S.of(context).unknownCity;
         })
         .toSet()
         .toList();
@@ -132,24 +106,14 @@ class RealTokensPageState extends State<RealTokensPage> {
 
   // Méthode pour obtenir la liste unique des régions
   List<String> _getUniqueRegions(List<Map<String, dynamic>> tokens) {
-    final regions = tokens
-        .map((token) => token['regionCode'] ?? "Unknown Region")
-        .where((region) => region != null)
-        .toSet()
-        .cast<String>()
-        .toList();
+    final regions = tokens.map((token) => token['regionCode'] ?? "Unknown Region").where((region) => region != null).toSet().cast<String>().toList();
     regions.sort();
     return regions;
   }
-  
+
   // Méthode pour obtenir la liste unique des pays
   List<String> _getUniqueCountries(List<Map<String, dynamic>> tokens) {
-    final countries = tokens
-        .map((token) => token['country'] ?? "Unknown Country")
-        .where((country) => country != null)
-        .toSet()
-        .cast<String>()
-        .toList();
+    final countries = tokens.map((token) => token['country'] ?? "Unknown Country").where((country) => country != null).toSet().cast<String>().toList();
     countries.sort();
     return countries;
   }
@@ -186,7 +150,7 @@ class RealTokensPageState extends State<RealTokensPage> {
       ),
     );
   }
-  
+
   // Helper pour construire un popup de filtre
   Widget _buildFilterPopupMenu({
     required BuildContext context,
@@ -249,19 +213,19 @@ class RealTokensPageState extends State<RealTokensPage> {
   // Helper pour obtenir le label des filtres combinés
   String _getFilterLabel() {
     List<String> activeFilters = [];
-    
+
     if (_filterNotInWallet) {
       activeFilters.add("NW");
     }
-    
+
     if (!_showNonWhitelisted) {
       activeFilters.add("WL");
     }
-    
+
     if (activeFilters.isNotEmpty) {
       return activeFilters.join('+');
     }
-    
+
     return "Filtres";
   }
 
@@ -278,12 +242,10 @@ class RealTokensPageState extends State<RealTokensPage> {
           final uniqueCities = _getUniqueCities(dataManager.allTokens);
           final uniqueRegions = _getUniqueRegions(dataManager.allTokens);
           final uniqueCountries = _getUniqueCountries(dataManager.allTokens);
-          final currencyUtils =
-              Provider.of<CurrencyProvider>(context, listen: false);
+          final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
 
           return NestedScrollView(
-            headerSliverBuilder:
-                (BuildContext context, bool innerBoxIsScrolled) {
+            headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
               return <Widget>[
                 SliverAppBar(
                   floating: true,
@@ -356,7 +318,7 @@ class RealTokensPageState extends State<RealTokensPage> {
                                 ),
                               ],
                             ),
-                            
+
                             // Rangée avec les filtres
                             Padding(
                               padding: const EdgeInsets.only(bottom: 8),
@@ -373,9 +335,9 @@ class RealTokensPageState extends State<RealTokensPage> {
                                         child: Text(S.of(context).allCities),
                                       ),
                                       ...uniqueCities.map((city) => PopupMenuItem(
-                                        value: city,
-                                        child: Text(city),
-                                      )),
+                                            value: city,
+                                            child: Text(city),
+                                          )),
                                     ],
                                     onSelected: (String value) {
                                       setState(() {
@@ -383,23 +345,21 @@ class RealTokensPageState extends State<RealTokensPage> {
                                       });
                                     },
                                   ),
-                                  
+
                                   // Filtre par région
                                   _buildFilterPopupMenu(
                                     context: context,
                                     icon: Icons.map,
-                                    label: _selectedRegion != null 
-                                        ? (Parameters.usStateAbbreviations[_selectedRegion!] ?? _selectedRegion!)
-                                        : "Région",
+                                    label: _selectedRegion != null ? (Parameters.usStateAbbreviations[_selectedRegion!] ?? _selectedRegion!) : "Région",
                                     items: [
                                       const PopupMenuItem(
                                         value: "all_regions",
                                         child: Text("Toutes les régions"),
                                       ),
                                       ...uniqueRegions.map((region) => PopupMenuItem(
-                                        value: region,
-                                        child: Text(Parameters.usStateAbbreviations[region] ?? region),
-                                      )),
+                                            value: region,
+                                            child: Text(Parameters.usStateAbbreviations[region] ?? region),
+                                          )),
                                     ],
                                     onSelected: (String value) {
                                       setState(() {
@@ -408,7 +368,7 @@ class RealTokensPageState extends State<RealTokensPage> {
                                       });
                                     },
                                   ),
-                                  
+
                                   // Filtre par pays
                                   _buildFilterPopupMenu(
                                     context: context,
@@ -420,23 +380,23 @@ class RealTokensPageState extends State<RealTokensPage> {
                                         child: Text("Tous les pays"),
                                       ),
                                       ...uniqueCountries.map((country) => PopupMenuItem(
-                                        value: country,
-                                        child: Row(
-                                          children: [
-                                            if (country != "Unknown Country") 
-                                              Padding(
-                                                padding: const EdgeInsets.only(right: 8.0),
-                                                child: Image.asset(
-                                                  'assets/country/${country.toLowerCase()}.png',
-                                                  width: 24,
-                                                  height: 16,
-                                                  errorBuilder: (context, _, __) => const Icon(Icons.flag, size: 20),
-                                                ),
-                                              ),
-                                            Text(country),
-                                          ],
-                                        ),
-                                      )),
+                                            value: country,
+                                            child: Row(
+                                              children: [
+                                                if (country != "Unknown Country")
+                                                  Padding(
+                                                    padding: const EdgeInsets.only(right: 8.0),
+                                                    child: Image.asset(
+                                                      'assets/country/${country.toLowerCase()}.png',
+                                                      width: 24,
+                                                      height: 16,
+                                                      errorBuilder: (context, _, __) => const Icon(Icons.flag, size: 20),
+                                                    ),
+                                                  ),
+                                                Text(country),
+                                              ],
+                                            ),
+                                          )),
                                     ],
                                     onSelected: (String value) {
                                       setState(() {
@@ -500,10 +460,10 @@ class RealTokensPageState extends State<RealTokensPage> {
                                       });
                                     },
                                   ),
-                                  
+
                                   // Espace flexible pour pousser le tri à droite
                                   const Spacer(),
-                                  
+
                                   // Menu de tri
                                   Container(
                                     margin: EdgeInsets.zero,
@@ -598,8 +558,7 @@ class RealTokensPageState extends State<RealTokensPage> {
                 : GridView.builder(
                     padding: const EdgeInsets.all(12.0),
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount:
-                          MediaQuery.of(context).size.width > 700 ? 2 : 1,
+                      crossAxisCount: MediaQuery.of(context).size.width > 700 ? 2 : 1,
                       crossAxisSpacing: 16,
                       mainAxisSpacing: 16,
                       mainAxisExtent: 160,
@@ -607,13 +566,9 @@ class RealTokensPageState extends State<RealTokensPage> {
                     itemCount: filteredAndSortedTokens.length,
                     itemBuilder: (context, index) {
                       final token = filteredAndSortedTokens[index];
-                      final bool isInPortfolio = dataManager.portfolio.any(
-                          (portfolioItem) => portfolioItem['uuid'].toLowerCase() == 
-                          token['uuid'].toLowerCase());
-                      final bool isWhitelisted = dataManager.whitelistTokens.any(
-                          (whitelisted) => whitelisted['token'].toLowerCase() ==
-                          token['uuid'].toLowerCase());
-                          
+                      final bool isInPortfolio = dataManager.portfolio.any((portfolioItem) => portfolioItem['uuid'].toLowerCase() == token['uuid'].toLowerCase());
+                      final bool isWhitelisted = dataManager.whitelistTokens.any((whitelisted) => whitelisted['token'].toLowerCase() == token['uuid'].toLowerCase());
+
                       return GestureDetector(
                         onTap: () => showTokenDetails(context, token),
                         child: Container(
@@ -647,14 +602,13 @@ class RealTokensPageState extends State<RealTokensPage> {
                                         : CachedNetworkImage(
                                             imageUrl: token['imageLink'][0],
                                             fit: BoxFit.cover,
-                                            errorWidget: (context, url, error) =>
-                                                Container(
-                                                  color: Theme.of(context).primaryColor.withOpacity(0.1),
-                                                  child: const Icon(Icons.image_not_supported, size: 40),
-                                                ),
+                                            errorWidget: (context, url, error) => Container(
+                                              color: Theme.of(context).primaryColor.withOpacity(0.1),
+                                              child: const Icon(Icons.image_not_supported, size: 40),
+                                            ),
                                           ),
                                   ),
-                                  
+
                                   // Indicateurs en haut de l'image (portfolio + whitelist)
                                   Positioned(
                                     top: 0,
@@ -717,7 +671,7 @@ class RealTokensPageState extends State<RealTokensPage> {
                                   ),
                                 ],
                               ),
-                              
+
                               // Informations sur le token avec design amélioré
                               Expanded(
                                 child: Padding(
@@ -752,7 +706,7 @@ class RealTokensPageState extends State<RealTokensPage> {
                                           ),
                                         ],
                                       ),
-                                      
+
                                       // Affichage de la région
                                       if (token['regionCode'] != null)
                                         Padding(
@@ -767,9 +721,9 @@ class RealTokensPageState extends State<RealTokensPage> {
                                             overflow: TextOverflow.ellipsis,
                                           ),
                                         ),
-                                      
+
                                       const SizedBox(height: 4),
-                                      
+
                                       // Informations de prix
                                       Container(
                                         padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
@@ -822,9 +776,9 @@ class RealTokensPageState extends State<RealTokensPage> {
                                           ],
                                         ),
                                       ),
-                                      
+
                                       const Spacer(),
-                                      
+
                                       // Rendement attendu avec style iOS
                                       Container(
                                         padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
@@ -852,9 +806,9 @@ class RealTokensPageState extends State<RealTokensPage> {
                                           ],
                                         ),
                                       ),
-                                      
+
                                       const SizedBox(height: 4),
-                                      
+
                                       // Statut de whitelist discret
                                       Row(
                                         mainAxisSize: MainAxisSize.min,
@@ -866,9 +820,7 @@ class RealTokensPageState extends State<RealTokensPage> {
                                           ),
                                           const SizedBox(width: 4),
                                           Text(
-                                            isWhitelisted 
-                                              ? S.of(context).tokenWhitelisted
-                                              : S.of(context).tokenNotWhitelisted,
+                                            isWhitelisted ? S.of(context).tokenWhitelisted : S.of(context).tokenNotWhitelisted,
                                             style: TextStyle(
                                               color: isWhitelisted ? Colors.green : Colors.red,
                                               fontWeight: FontWeight.w500,
@@ -895,7 +847,7 @@ class RealTokensPageState extends State<RealTokensPage> {
                                               padding: const EdgeInsets.only(left: 4.0),
                                               child: Icon(
                                                 Icons.info_outline,
-                                                size: 14, 
+                                                size: 14,
                                                 color: Theme.of(context).textTheme.bodySmall?.color,
                                               ),
                                             ),

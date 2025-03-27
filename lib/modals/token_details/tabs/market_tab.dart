@@ -31,11 +31,11 @@ class _MarketTabState extends State<MarketTab> {
   final Color _iosPrimaryColor = const Color(0xFF007AFF); // Bleu iOS
   final Color _iosSuccessColor = const Color(0xFF34C759); // Vert iOS
   final Color _iosWarningColor = const Color(0xFFFF9500); // Orange iOS
-  final Color _iosDangerColor = const Color(0xFFFF3B30);  // Rouge iOS
-  final Color _iosLabelColor = const Color(0xFF000000);   // Noir iOS pour text
+  final Color _iosDangerColor = const Color(0xFFFF3B30); // Rouge iOS
+  final Color _iosLabelColor = const Color(0xFF000000); // Noir iOS pour text
   final Color _iosSecondaryLabelColor = const Color(0xFF8E8E93); // Gris iOS
   final Color _iosBackgroundColor = const Color(0xFFF2F2F7); // Background iOS
-  final Color _iosSurfaceColor = const Color(0xFFFFFFFF);  // Surface iOS
+  final Color _iosSurfaceColor = const Color(0xFFFFFFFF); // Surface iOS
 
   ScrollController? _parentScrollController;
 
@@ -87,15 +87,15 @@ class _MarketTabState extends State<MarketTab> {
     final appState = Provider.of<AppState>(context, listen: false);
     final dataManager = Provider.of<DataManager>(context, listen: false);
     final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
-    
+
     // Utilisation des couleurs du thème si disponibles
     final isDarkMode = MediaQuery.of(context).platformBrightness == Brightness.dark;
-    
+
     // Si c'est une modale plein écran séparée
     if (widget.isModal) {
       return _buildModalContent(appState, dataManager, currencyUtils, isDarkMode);
     }
-    
+
     // Si c'est intégré dans la page de détails du token
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -104,7 +104,7 @@ class _MarketTabState extends State<MarketTab> {
         children: [
           // Barre de filtres en haut - fixe
           _buildFilterBar(isDarkMode, appState),
-          
+
           // Contenu principal avec liste défilante qui s'active quand la TabBar est sticky
           Expanded(
             child: FutureBuilder<List<Map<String, dynamic>>>(
@@ -120,11 +120,11 @@ class _MarketTabState extends State<MarketTab> {
                   return _buildEmptyWidget(appState, isDarkMode);
                 } else {
                   final offers = _getSortedOffers(snapshot.data!);
-                  
+
                   // Utiliser un ListView avec ScrollPhysics adaptatif selon l'état de la TabBar
                   return ListView(
                     // Changer la physique selon si la TabBar est sticky ou non
-                    physics: isTabBarSticky 
+                    physics: isTabBarSticky
                         ? const BouncingScrollPhysics() // Activer le défilement quand la TabBar est sticky
                         : const NeverScrollableScrollPhysics(), // Désactiver le défilement sinon
                     children: [
@@ -140,7 +140,7 @@ class _MarketTabState extends State<MarketTab> {
                           ),
                         ),
                       ),
-                      
+
                       // Construction de toutes les offres dans le ListView
                       ...offers.map((offer) {
                         final bool isTokenWhitelisted = dataManager.whitelistTokens.any(
@@ -155,7 +155,7 @@ class _MarketTabState extends State<MarketTab> {
                           return const SizedBox.shrink(); // Ne devrait jamais arriver
                         }
                       }).toList(),
-                      
+
                       // Espace en bas
                       const SizedBox(height: 16),
                     ],
@@ -168,7 +168,7 @@ class _MarketTabState extends State<MarketTab> {
       ),
     );
   }
-  
+
   // Contenu pour l'affichage modal plein écran
   Widget _buildModalContent(AppState appState, DataManager dataManager, CurrencyProvider currencyUtils, bool isDarkMode) {
     return Column(
@@ -208,11 +208,11 @@ class _MarketTabState extends State<MarketTab> {
             ],
           ),
         ),
-        
+
         // Barre de filtres
         _buildFilterBar(isDarkMode, appState),
-        
-        // Contenu principal 
+
+        // Contenu principal
         Expanded(
           child: Container(
             color: isDarkMode ? Colors.black : _iosBackgroundColor,
@@ -232,7 +232,7 @@ class _MarketTabState extends State<MarketTab> {
                     ),
                   ),
                 ),
-                
+
                 // Liste des offres
                 FutureBuilder<List<Map<String, dynamic>>>(
                   future: _getFilteredOffers(dataManager, widget.token['uuid'], selectedOfferType),
@@ -277,7 +277,7 @@ class _MarketTabState extends State<MarketTab> {
                     }
                   },
                 ),
-                
+
                 // Espace en bas
                 const SizedBox(height: 20),
               ],
@@ -287,7 +287,7 @@ class _MarketTabState extends State<MarketTab> {
       ],
     );
   }
-  
+
   // Barre de filtres commune
   Widget _buildFilterBar(bool isDarkMode, AppState appState) {
     return Container(
@@ -314,7 +314,7 @@ class _MarketTabState extends State<MarketTab> {
         children: [
           // Filtres
           _buildIOSSegmentedControl(),
-          
+
           // Options de tri
           Row(
             children: [
@@ -341,7 +341,7 @@ class _MarketTabState extends State<MarketTab> {
                   });
                 },
               ),
-              
+
               // Bouton pour ouvrir en plein écran
               if (!widget.isModal)
                 CupertinoButton(
@@ -385,7 +385,7 @@ class _MarketTabState extends State<MarketTab> {
       ),
     );
   }
-  
+
   // Widget pour l'erreur
   Widget _buildErrorWidget(String errorMessage, bool isDarkMode) {
     return Center(
@@ -409,7 +409,7 @@ class _MarketTabState extends State<MarketTab> {
       ),
     );
   }
-  
+
   // Widget pour l'état vide
   Widget _buildEmptyWidget(AppState appState, bool isDarkMode) {
     return Center(
@@ -435,7 +435,7 @@ class _MarketTabState extends State<MarketTab> {
       ),
     );
   }
-  
+
   // Tri des offres
   List<Map<String, dynamic>> _getSortedOffers(List<Map<String, dynamic>> offers) {
     offers.sort((a, b) {
@@ -458,61 +458,40 @@ class _MarketTabState extends State<MarketTab> {
       scrollDirection: Axis.horizontal,
       child: Row(
         children: [
-          _buildFilterChip(
-            "tout", 
-            CupertinoIcons.rectangle_grid_1x2_fill, 
-            selectedOfferType == "tout",
-            context
-          ),
+          _buildFilterChip("tout", CupertinoIcons.rectangle_grid_1x2_fill, selectedOfferType == "tout", context),
           const SizedBox(width: 8),
-          _buildFilterChip(
-            "vente", 
-            CupertinoIcons.shopping_cart, 
-            selectedOfferType == "vente",
-            context
-          ),
+          _buildFilterChip("vente", CupertinoIcons.shopping_cart, selectedOfferType == "vente", context),
           const SizedBox(width: 8),
-          _buildFilterChip(
-            "achat", 
-            CupertinoIcons.tag_fill, 
-            selectedOfferType == "achat",
-            context
-          ),
+          _buildFilterChip("achat", CupertinoIcons.tag_fill, selectedOfferType == "achat", context),
         ],
       ),
     );
   }
 
   // Widget pour créer un filtre chip style iOS
-  Widget _buildFilterChip(
-    String type, 
-    IconData icon, 
-    bool isSelected, 
-    BuildContext context, 
-    {VoidCallback? onTap, Color? customColor}
-  ) {
+  Widget _buildFilterChip(String type, IconData icon, bool isSelected, BuildContext context, {VoidCallback? onTap, Color? customColor}) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    final color = customColor ?? (isSelected 
-        ? Theme.of(context).primaryColor.withOpacity(0.2) 
-        : isDarkMode
-            ? const Color(0xFF1C1C1E)
-            : Colors.white);
-    
+    final color = customColor ??
+        (isSelected
+            ? Theme.of(context).primaryColor.withOpacity(0.2)
+            : isDarkMode
+                ? const Color(0xFF1C1C1E)
+                : Colors.white);
+
     return GestureDetector(
-      onTap: onTap ?? () {
-        setState(() {
-          selectedOfferType = type;
-        });
-      },
+      onTap: onTap ??
+          () {
+            setState(() {
+              selectedOfferType = type;
+            });
+          },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           color: color,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected 
-                ? Theme.of(context).primaryColor 
-                : Colors.transparent,
+            color: isSelected ? Theme.of(context).primaryColor : Colors.transparent,
             width: 1,
           ),
           boxShadow: [
@@ -529,9 +508,7 @@ class _MarketTabState extends State<MarketTab> {
             Icon(
               icon,
               size: 16,
-              color: isSelected
-                  ? Theme.of(context).primaryColor
-                  : Colors.grey[600],
+              color: isSelected ? Theme.of(context).primaryColor : Colors.grey[600],
             ),
           ],
         ),
@@ -764,9 +741,9 @@ class _MarketTabState extends State<MarketTab> {
                         ),
                       ],
                     ),
-                    
+
                     const SizedBox(height: 10),
-                    
+
                     // Informations sur le montant et le delta
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -776,9 +753,7 @@ class _MarketTabState extends State<MarketTab> {
                           child: Container(
                             padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
                             decoration: BoxDecoration(
-                              color: isDarkMode
-                                  ? const Color(0xFF3A3A3C)
-                                  : Colors.grey[100],
+                              color: isDarkMode ? const Color(0xFF3A3A3C) : Colors.grey[100],
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: Column(
@@ -802,9 +777,9 @@ class _MarketTabState extends State<MarketTab> {
                             ),
                           ),
                         ),
-                        
+
                         const SizedBox(width: 8),
-                        
+
                         // Delta price
                         Expanded(
                           child: Container(
@@ -846,9 +821,9 @@ class _MarketTabState extends State<MarketTab> {
                         ),
                       ],
                     ),
-                    
+
                     const SizedBox(height: 8),
-                    
+
                     // Comparaison des prix
                     Container(
                       padding: const EdgeInsets.all(8),
@@ -878,8 +853,7 @@ class _MarketTabState extends State<MarketTab> {
                                 ),
                               ),
                               Text(
-                                currencyUtils.formatCurrency(
-                                    initialPrice, currencyUtils.currencySymbol),
+                                currencyUtils.formatCurrency(initialPrice, currencyUtils.currencySymbol),
                                 style: TextStyle(
                                   fontSize: 13 + appState.getTextSizeOffset(),
                                   fontWeight: FontWeight.bold,
@@ -905,8 +879,7 @@ class _MarketTabState extends State<MarketTab> {
                                 ),
                               ),
                               Text(
-                                currencyUtils.formatCurrency(
-                                    offerPrice, currencyUtils.currencySymbol),
+                                currencyUtils.formatCurrency(offerPrice, currencyUtils.currencySymbol),
                                 style: TextStyle(
                                   fontSize: 13 + appState.getTextSizeOffset(),
                                   fontWeight: FontWeight.bold,
@@ -918,9 +891,9 @@ class _MarketTabState extends State<MarketTab> {
                         ],
                       ),
                     ),
-                    
+
                     const SizedBox(height: 8),
-                    
+
                     // Comparaison des yields
                     Container(
                       padding: const EdgeInsets.all(8),
@@ -988,9 +961,9 @@ class _MarketTabState extends State<MarketTab> {
                         ],
                       ),
                     ),
-                    
+
                     const SizedBox(height: 8),
-                    
+
                     // ROI et bouton d'action
                     Row(
                       children: [
@@ -1014,9 +987,9 @@ class _MarketTabState extends State<MarketTab> {
                             ),
                           ),
                         ),
-                        
+
                         const SizedBox(width: 8),
-                        
+
                         // Bouton d'achat style iOS
                         Expanded(
                           child: Material(
@@ -1026,8 +999,7 @@ class _MarketTabState extends State<MarketTab> {
                               borderRadius: BorderRadius.circular(10),
                               onTap: isTokenWhitelisted
                                   ? () {
-                                      UrlUtils.launchURL(
-                                          'https://yambyofferid.netlify.app/?offerId=${offer['id_offer']}');
+                                      UrlUtils.launchURL('https://yambyofferid.netlify.app/?offerId=${offer['id_offer']}');
                                     }
                                   : null,
                               child: Container(
@@ -1058,9 +1030,8 @@ class _MarketTabState extends State<MarketTab> {
                 child: Builder(
                   builder: (context) {
                     Widget icon = const SizedBox();
-                    
-                    if (offer['token_to_pay'] == '0x0ca4f5554dd9da6217d62d8df2816c82bba4157b' ||
-                        offer['token_to_pay'] == '0xe91d153e0b41518a2ce8dd3d7944fa863463a97d') {
+
+                    if (offer['token_to_pay'] == '0x0ca4f5554dd9da6217d62d8df2816c82bba4157b' || offer['token_to_pay'] == '0xe91d153e0b41518a2ce8dd3d7944fa863463a97d') {
                       icon = Container(
                         padding: const EdgeInsets.all(3),
                         decoration: BoxDecoration(
@@ -1080,8 +1051,7 @@ class _MarketTabState extends State<MarketTab> {
                           height: 18,
                         ),
                       );
-                    } else if (offer['token_to_pay'] == '0xddafbb505ad214d7b80b1f830fccc89b60fb7a83' ||
-                               offer['token_to_pay'] == '0xed56f76e9cbc6a64b821e9c016eafbd3db5436d1') {
+                    } else if (offer['token_to_pay'] == '0xddafbb505ad214d7b80b1f830fccc89b60fb7a83' || offer['token_to_pay'] == '0xed56f76e9cbc6a64b821e9c016eafbd3db5436d1') {
                       icon = Container(
                         padding: const EdgeInsets.all(3),
                         decoration: BoxDecoration(
@@ -1102,7 +1072,7 @@ class _MarketTabState extends State<MarketTab> {
                         ),
                       );
                     }
-                    
+
                     return icon;
                   },
                 ),
@@ -1123,11 +1093,11 @@ class _MarketTabState extends State<MarketTab> {
     bool isDarkMode,
   ) {
     final double deltaValue = ((offer['token_value'] / offer['token_price'] - 1) * 100);
-    
+
     // Définir les couleurs selon le delta
     Color deltaColor = deltaValue < 0
-        ? _iosSuccessColor  // Vert iOS pour les offres où on peut acheter moins cher
-        : _iosDangerColor;  // Rouge iOS pour les offres où il faut payer plus cher
+        ? _iosSuccessColor // Vert iOS pour les offres où on peut acheter moins cher
+        : _iosDangerColor; // Rouge iOS pour les offres où il faut payer plus cher
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -1211,8 +1181,7 @@ class _MarketTabState extends State<MarketTab> {
                               ),
                             ),
                             Text(
-                              CustomDateUtils.formatReadableDate(
-                                  offer['creationDate']),
+                              CustomDateUtils.formatReadableDate(offer['creationDate']),
                               style: TextStyle(
                                 fontSize: 10 + appState.getTextSizeOffset(),
                                 color: Colors.grey[500],
@@ -1222,9 +1191,9 @@ class _MarketTabState extends State<MarketTab> {
                         ),
                       ],
                     ),
-                    
+
                     const SizedBox(height: 10),
-                    
+
                     // Informations principales
                     Row(
                       children: [
@@ -1233,9 +1202,7 @@ class _MarketTabState extends State<MarketTab> {
                           child: Container(
                             padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
                             decoration: BoxDecoration(
-                              color: isDarkMode
-                                  ? const Color(0xFF3A3A3C)
-                                  : Colors.grey[100],
+                              color: isDarkMode ? const Color(0xFF3A3A3C) : Colors.grey[100],
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: Column(
@@ -1259,17 +1226,15 @@ class _MarketTabState extends State<MarketTab> {
                             ),
                           ),
                         ),
-                        
+
                         const SizedBox(width: 8),
-                        
+
                         // Valeur du token
                         Expanded(
                           child: Container(
                             padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
                             decoration: BoxDecoration(
-                              color: isDarkMode
-                                  ? const Color(0xFF3A3A3C)
-                                  : Colors.grey[100],
+                              color: isDarkMode ? const Color(0xFF3A3A3C) : Colors.grey[100],
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: Column(
@@ -1295,9 +1260,9 @@ class _MarketTabState extends State<MarketTab> {
                         ),
                       ],
                     ),
-                    
+
                     const SizedBox(height: 10),
-                    
+
                     // Delta
                     Container(
                       padding: const EdgeInsets.all(8),
@@ -1331,9 +1296,9 @@ class _MarketTabState extends State<MarketTab> {
                         ],
                       ),
                     ),
-                    
+
                     const SizedBox(height: 10),
-                    
+
                     // Bouton d'action style iOS
                     Material(
                       borderRadius: BorderRadius.circular(10),
@@ -1342,8 +1307,7 @@ class _MarketTabState extends State<MarketTab> {
                         borderRadius: BorderRadius.circular(10),
                         onTap: isTokenWhitelisted
                             ? () {
-                                UrlUtils.launchURL(
-                                    'https://yambyofferid.netlify.app/?offerId=${offer['id_offer']}');
+                                UrlUtils.launchURL('https://yambyofferid.netlify.app/?offerId=${offer['id_offer']}');
                               }
                             : null,
                         child: Container(
@@ -1372,9 +1336,8 @@ class _MarketTabState extends State<MarketTab> {
                 child: Builder(
                   builder: (context) {
                     Widget icon = const SizedBox();
-                    
-                    if (offer['token_to_pay'] == '0x0ca4f5554dd9da6217d62d8df2816c82bba4157b' ||
-                        offer['token_to_pay'] == '0xe91d153e0b41518a2ce8dd3d7944fa863463a97d') {
+
+                    if (offer['token_to_pay'] == '0x0ca4f5554dd9da6217d62d8df2816c82bba4157b' || offer['token_to_pay'] == '0xe91d153e0b41518a2ce8dd3d7944fa863463a97d') {
                       icon = Container(
                         padding: const EdgeInsets.all(3),
                         decoration: BoxDecoration(
@@ -1394,8 +1357,7 @@ class _MarketTabState extends State<MarketTab> {
                           height: 18,
                         ),
                       );
-                    } else if (offer['token_to_pay'] == '0xddafbb505ad214d7b80b1f830fccc89b60fb7a83' ||
-                               offer['token_to_pay'] == '0xed56f76e9cbc6a64b821e9c016eafbd3db5436d1') {
+                    } else if (offer['token_to_pay'] == '0xddafbb505ad214d7b80b1f830fccc89b60fb7a83' || offer['token_to_pay'] == '0xed56f76e9cbc6a64b821e9c016eafbd3db5436d1') {
                       icon = Container(
                         padding: const EdgeInsets.all(3),
                         decoration: BoxDecoration(
@@ -1416,7 +1378,7 @@ class _MarketTabState extends State<MarketTab> {
                         ),
                       );
                     }
-                    
+
                     return icon;
                   },
                 ),
@@ -1478,10 +1440,8 @@ Future<List<Map<String, dynamic>>> _getFilteredOffers(
   String tokenUuid,
   String offerType,
 ) async {
-  List<Map<String, dynamic>> filteredOffers =
-      dataManager.yamMarket.where((offer) {
-    bool matchToken = offer['token_to_sell'] == tokenUuid.toLowerCase() ||
-        offer['token_to_buy'] == tokenUuid.toLowerCase();
+  List<Map<String, dynamic>> filteredOffers = dataManager.yamMarket.where((offer) {
+    bool matchToken = offer['token_to_sell'] == tokenUuid.toLowerCase() || offer['token_to_buy'] == tokenUuid.toLowerCase();
     if (!matchToken) return false;
     if (offerType == "vente") {
       return offer['token_to_buy'] == null;

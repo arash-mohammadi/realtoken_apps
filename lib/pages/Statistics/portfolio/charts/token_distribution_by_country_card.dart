@@ -13,15 +13,12 @@ class TokenDistributionByCountryCard extends StatefulWidget {
   const TokenDistributionByCountryCard({super.key, required this.dataManager});
 
   @override
-  _TokenDistributionByCountryCardState createState() =>
-      _TokenDistributionByCountryCardState();
+  _TokenDistributionByCountryCardState createState() => _TokenDistributionByCountryCardState();
 }
 
-class _TokenDistributionByCountryCardState
-    extends State<TokenDistributionByCountryCard> {
+class _TokenDistributionByCountryCardState extends State<TokenDistributionByCountryCard> {
   int? _selectedIndexCountry;
-  final ValueNotifier<int?> _selectedIndexNotifierCountry =
-      ValueNotifier<int?>(null);
+  final ValueNotifier<int?> _selectedIndexNotifierCountry = ValueNotifier<int?>(null);
 
   @override
   Widget build(BuildContext context) {
@@ -75,20 +72,15 @@ class _TokenDistributionByCountryCardState
                     children: [
                       PieChart(
                         PieChartData(
-                          sections: _buildDonutChartDataByCountry(
-                              widget.dataManager, selectedIndex),
+                          sections: _buildDonutChartDataByCountry(widget.dataManager, selectedIndex),
                           centerSpaceRadius: 65,
                           sectionsSpace: 3,
                           borderData: FlBorderData(show: false),
                           pieTouchData: PieTouchData(
-                            touchCallback: (FlTouchEvent event,
-                                PieTouchResponse? response) {
-                              if (response != null &&
-                                  response.touchedSection != null) {
-                                final touchedIndex = response
-                                    .touchedSection!.touchedSectionIndex;
-                                _selectedIndexNotifierCountry.value =
-                                    touchedIndex >= 0 ? touchedIndex : null;
+                            touchCallback: (FlTouchEvent event, PieTouchResponse? response) {
+                              if (response != null && response.touchedSection != null) {
+                                final touchedIndex = response.touchedSection!.touchedSectionIndex;
+                                _selectedIndexNotifierCountry.value = touchedIndex >= 0 ? touchedIndex : null;
                               } else {
                                 _selectedIndexNotifierCountry.value = null;
                               }
@@ -98,8 +90,7 @@ class _TokenDistributionByCountryCardState
                         swapAnimationDuration: const Duration(milliseconds: 300),
                         swapAnimationCurve: Curves.easeInOutCubic,
                       ),
-                      _buildCenterTextByCountry(
-                          widget.dataManager, selectedIndex),
+                      _buildCenterTextByCountry(widget.dataManager, selectedIndex),
                     ],
                   );
                 },
@@ -117,19 +108,23 @@ class _TokenDistributionByCountryCardState
     );
   }
 
-  List<PieChartSectionData> _buildDonutChartDataByCountry(
-      DataManager dataManager, int? selectedIndex) {
+  List<PieChartSectionData> _buildDonutChartDataByCountry(DataManager dataManager, int? selectedIndex) {
     Map<String, int> countryCount = {};
     final appState = Provider.of<AppState>(context);
 
+    print('Nombre de tokens dans le portfolio: ${dataManager.portfolio.length}');
+
     // Remplir le dictionnaire avec les counts par pays
     for (var token in dataManager.portfolio) {
-      String fullName = token['fullName'];
-      List<String> parts = fullName.split(',');
-      String country = parts.length == 4 ? parts[3].trim() : 'United States';
+      String country = token['country'] ?? S.of(context).unknownCountry;
+      print('Token: ${token['id']}');
+      print('Pays: $country');
 
       countryCount[country] = (countryCount[country] ?? 0) + 1;
     }
+
+    print('Nombre de pays trouvés: ${countryCount.length}');
+    print('Pays et leurs counts: $countryCount');
 
     // Trier les pays par ordre alphabétique pour garantir un ordre constant
     final sortedCountries = countryCount.keys.toList()..sort();
@@ -139,8 +134,7 @@ class _TokenDistributionByCountryCardState
       final index = entry.key;
       final country = entry.value;
       final int value = countryCount[country]!;
-      final double percentage =
-          (value / countryCount.values.reduce((a, b) => a + b)) * 100;
+      final double percentage = (value / countryCount.values.reduce((a, b) => a + b)) * 100;
 
       final bool isSelected = selectedIndex == index;
       final opacity = selectedIndex != null && !isSelected ? 0.5 : 1.0;
@@ -154,9 +148,7 @@ class _TokenDistributionByCountryCardState
         color: baseColor.withOpacity(opacity),
         radius: isSelected ? 52 : 45,
         titleStyle: TextStyle(
-          fontSize: isSelected
-              ? 14 + appState.getTextSizeOffset()
-              : 10 + appState.getTextSizeOffset(),
+          fontSize: isSelected ? 14 + appState.getTextSizeOffset() : 10 + appState.getTextSizeOffset(),
           color: Colors.white,
           fontWeight: FontWeight.w600,
           shadows: [
@@ -195,16 +187,12 @@ class _TokenDistributionByCountryCardState
     );
   }
 
-  Widget _buildCenterTextByCountry(
-      DataManager dataManager, int? selectedIndex) {
+  Widget _buildCenterTextByCountry(DataManager dataManager, int? selectedIndex) {
     Map<String, int> countryCount = {};
 
     // Remplir le dictionnaire avec les counts par pays
     for (var token in dataManager.portfolio) {
-      String fullName = token['fullName'];
-      List<String> parts = fullName.split(',');
-      String country = parts.length == 4 ? parts[3].trim() : 'United States';
-
+      String country = token['country'] ?? S.of(context).unknownCountry;
       countryCount[country] = (countryCount[country] ?? 0) + 1;
     }
 
@@ -270,10 +258,7 @@ class _TokenDistributionByCountryCardState
 
     // Compter les occurrences par pays
     for (var token in dataManager.portfolio) {
-      String fullName = token['fullName'];
-      List<String> parts = fullName.split(',');
-      String country = parts.length == 4 ? parts[3].trim() : 'United States';
-
+      String country = token['country'] ?? S.of(context).unknownCountry;
       countryCount[country] = (countryCount[country] ?? 0) + 1;
     }
 
@@ -281,8 +266,8 @@ class _TokenDistributionByCountryCardState
     final sortedCountries = countryCount.keys.toList()..sort();
 
     return Wrap(
-      spacing: 12.0,
-      runSpacing: 4.0,
+      spacing: 8.0,
+      runSpacing: 3.0,
       alignment: WrapAlignment.start,
       children: sortedCountries.asMap().entries.map((entry) {
         final index = entry.key;
@@ -295,16 +280,12 @@ class _TokenDistributionByCountryCardState
           },
           borderRadius: BorderRadius.circular(8),
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+            padding: const EdgeInsets.symmetric(horizontal: 6.0, vertical: 2.0),
             decoration: BoxDecoration(
-              color: _selectedIndexNotifierCountry.value == index
-                  ? color.withOpacity(0.1)
-                  : Colors.transparent,
+              color: _selectedIndexNotifierCountry.value == index ? color.withOpacity(0.1) : Colors.transparent,
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
-                color: _selectedIndexNotifierCountry.value == index
-                    ? color
-                    : Colors.transparent,
+                color: _selectedIndexNotifierCountry.value == index ? color : Colors.transparent,
                 width: 1,
               ),
             ),
@@ -331,12 +312,8 @@ class _TokenDistributionByCountryCardState
                   country,
                   style: TextStyle(
                     fontSize: 12 + appState.getTextSizeOffset(),
-                    color: _selectedIndexNotifierCountry.value == index
-                        ? color
-                        : Theme.of(context).textTheme.bodyMedium?.color,
-                    fontWeight: _selectedIndexNotifierCountry.value == index
-                        ? FontWeight.w600
-                        : FontWeight.normal,
+                    color: _selectedIndexNotifierCountry.value == index ? color : Theme.of(context).textTheme.bodyMedium?.color,
+                    fontWeight: _selectedIndexNotifierCountry.value == index ? FontWeight.w600 : FontWeight.normal,
                   ),
                 ),
               ],
@@ -351,7 +328,6 @@ class _TokenDistributionByCountryCardState
     final hue = ((index * 57) + 193 * (index % 3)) % 360;
     final saturation = (0.7 + (index % 5) * 0.06).clamp(0.4, 0.7);
     final brightness = (0.8 + (index % 3) * 0.2).clamp(0.6, 0.9);
-    return HSVColor.fromAHSV(1.0, hue.toDouble(), saturation, brightness)
-        .toColor();
+    return HSVColor.fromAHSV(1.0, hue.toDouble(), saturation, brightness).toColor();
   }
 }

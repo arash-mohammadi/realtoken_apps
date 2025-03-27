@@ -9,6 +9,7 @@ import 'package:realtokens/generated/l10n.dart';
 import 'package:realtokens/settings/manage_evm_addresses_page.dart';
 import 'package:realtokens/app_state.dart';
 import 'package:realtokens/utils/ui_utils.dart';
+import 'package:realtokens/utils/shimmer_utils.dart';
 import 'package:show_network_image/show_network_image.dart';
 import 'package:realtokens/managers/data_manager.dart';
 import 'dart:ui';
@@ -16,7 +17,13 @@ import 'dart:math' as Math;
 
 class PortfolioDisplay1 extends StatelessWidget {
   final List<Map<String, dynamic>> portfolio;
-  const PortfolioDisplay1({super.key, required this.portfolio});
+  final bool isLoading;
+  
+  const PortfolioDisplay1({
+    super.key, 
+    required this.portfolio,
+    this.isLoading = false,
+  });
 
   // Méthode pour construire la jauge de rentabilité
   Widget _buildGaugeForRent(double rentValue, BuildContext context) {
@@ -26,7 +33,7 @@ class PortfolioDisplay1 extends StatelessWidget {
         builder: (context, constraints) {
           double maxWidth = constraints.maxWidth; // Utiliser la largeur complète
           final bool showTextInside = rentValue >= 15; // Afficher le texte à l'intérieur seulement si >= 15%
-          
+
           return Stack(
             children: [
               // Fond de la jauge
@@ -51,26 +58,52 @@ class PortfolioDisplay1 extends StatelessWidget {
                     begin: Alignment.centerLeft,
                     end: Alignment.centerRight,
                   ),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.only(
+                    topLeft: const Radius.circular(8),
+                    bottomLeft: const Radius.circular(8),
+                    topRight: Radius.circular(rentValue < 5 ? 0 : 8),
+                    bottomRight: Radius.circular(rentValue < 5 ? 0 : 8),
+                  ),
                 ),
                 // Texte du pourcentage à l'intérieur de la barre seulement si assez d'espace
-                child: showTextInside ? Center(
-                  child: Text(
-                    "${rentValue.toStringAsFixed(1)}%",
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                      shadows: [
-                        Shadow(
-                          offset: const Offset(0, 1),
-                          blurRadius: 1,
-                          color: Colors.black.withOpacity(0.5),
-                        ),
-                      ],
-                    ),
-                  ),
-                ) : null,
+                child: showTextInside
+                    ? Center(
+                        child: isLoading 
+                          ? ShimmerUtils.originalColorShimmer(
+                              child: Text(
+                                "${rentValue.toStringAsFixed(1)}%",
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                  shadows: [
+                                    Shadow(
+                                      offset: const Offset(0, 1),
+                                      blurRadius: 1,
+                                      color: Colors.black.withOpacity(0.5),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              color: Colors.white,
+                            )
+                          : Text(
+                              "${rentValue.toStringAsFixed(1)}%",
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
+                                shadows: [
+                                  Shadow(
+                                    offset: const Offset(0, 1),
+                                    blurRadius: 1,
+                                    color: Colors.black.withOpacity(0.5),
+                                  ),
+                                ],
+                              ),
+                            ),
+                      )
+                    : null,
               ),
               // Texte du pourcentage visible en dehors de la barre seulement si < 15%
               if (!showTextInside)
@@ -79,14 +112,26 @@ class PortfolioDisplay1 extends StatelessWidget {
                   top: 0,
                   bottom: 0,
                   child: Center(
-                    child: Text(
-                      "${rentValue.toStringAsFixed(1)}%",
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w600,
-                        color: Theme.of(context).textTheme.bodyLarge?.color,
-                      ),
-                    ),
+                    child: isLoading
+                      ? ShimmerUtils.originalColorShimmer(
+                          child: Text(
+                            "${rentValue.toStringAsFixed(1)}%",
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                              color: Theme.of(context).textTheme.bodyLarge?.color,
+                            ),
+                          ),
+                          color: Theme.of(context).textTheme.bodyLarge?.color,
+                        )
+                      : Text(
+                          "${rentValue.toStringAsFixed(1)}%",
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                            color: Theme.of(context).textTheme.bodyLarge?.color,
+                          ),
+                        ),
                   ),
                 ),
             ],
@@ -125,8 +170,7 @@ class PortfolioDisplay1 extends StatelessWidget {
                       onPressed: () {
                         Navigator.of(context).push(
                           MaterialPageRoute(
-                            builder: (context) =>
-                                const ManageEvmAddressesPage(),
+                            builder: (context) => const ManageEvmAddressesPage(),
                           ),
                         );
                       },
@@ -149,16 +193,12 @@ class PortfolioDisplay1 extends StatelessWidget {
               ),
             )
           : GridView.builder(
-              padding:
-                  const EdgeInsets.only(top: 8, bottom: 80, right: 16, left: 16),
+              padding: const EdgeInsets.only(top: 8, bottom: 80, right: 16, left: 16),
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: MediaQuery.of(context).size.width > 700 ? 2 : 1,
                 crossAxisSpacing: 16,
                 mainAxisSpacing: 16,
-                mainAxisExtent: 190 *
-                    (1 +
-                        (appState.getTextSizeOffset() /
-                            35)),
+                mainAxisExtent: 190 * (1 + (appState.getTextSizeOffset() / 35)),
               ),
               itemCount: portfolio.length,
               itemBuilder: (context, index) {
@@ -168,29 +208,18 @@ class PortfolioDisplay1 extends StatelessWidget {
                 final city = LocationUtils.extractCity(token['fullName'] ?? '');
 
                 // Vérifier si la date de 'rent_start' est dans le futur
-                final rentStartDate = DateTime.parse(
-                    token['rentStartDate'] ?? DateTime.now().toString());
-                final bool isFutureRentStart =
-                    rentStartDate.isAfter(DateTime.now());
+                final rentStartDate = DateTime.parse(token['rentStartDate'] ?? DateTime.now().toString());
+                final bool isFutureRentStart = rentStartDate.isAfter(DateTime.now());
 
                 // Récupérer les loyers cumulés de tous les wallets pour ce token
                 String tokenId = token['uuid']?.toLowerCase() ?? '';
-                double totalRentReceived = tokenId.isNotEmpty 
-                    ? dataManager.cumulativeRentsByToken[tokenId] ?? token['totalRentReceived'] ?? 0
-                    : token['totalRentReceived'] ?? 0;
+                double totalRentReceived = tokenId.isNotEmpty ? dataManager.cumulativeRentsByToken[tokenId] ?? token['totalRentReceived'] ?? 0 : token['totalRentReceived'] ?? 0;
 
-                final rentPercentage = (totalRentReceived != null &&
-                        token['initialTotalValue'] != null &&
-                        token['initialTotalValue'] != 0)
-                    ? (totalRentReceived /
-                            token['initialTotalValue']) *
-                        100
-                    : 0.5;
+                final rentPercentage =
+                    (totalRentReceived != null && token['initialTotalValue'] != null && token['initialTotalValue'] != 0) ? (totalRentReceived / token['initialTotalValue']) * 100 : 0.5;
 
                 // Récupérer le nombre de wallets possédant ce token
-                int walletCount = tokenId.isNotEmpty 
-                    ? dataManager.getWalletCountForToken(tokenId) 
-                    : 0;
+                int walletCount = tokenId.isNotEmpty ? dataManager.getWalletCountForToken(tokenId) : 0;
 
                 return Container(
                   decoration: BoxDecoration(
@@ -222,11 +251,7 @@ class PortfolioDisplay1 extends StatelessWidget {
                               child: Stack(
                                 children: [
                                   ColorFiltered(
-                                    colorFilter: isFutureRentStart
-                                        ? const ColorFilter.mode(
-                                            Colors.black45, BlendMode.darken)
-                                        : const ColorFilter.mode(
-                                            Colors.transparent, BlendMode.multiply),
+                                    colorFilter: isFutureRentStart ? const ColorFilter.mode(Colors.black45, BlendMode.darken) : const ColorFilter.mode(Colors.transparent, BlendMode.multiply),
                                     child: SizedBox(
                                       width: kIsWeb ? 150 : 120,
                                       height: double.infinity,
@@ -238,8 +263,7 @@ class PortfolioDisplay1 extends StatelessWidget {
                                           : CachedNetworkImage(
                                               imageUrl: token['imageLink'][0],
                                               fit: BoxFit.cover,
-                                              errorWidget: (context, url, error) =>
-                                                  const Icon(Icons.error),
+                                              errorWidget: (context, url, error) => const Icon(Icons.error),
                                             ),
                                     ),
                                   ),
@@ -248,8 +272,7 @@ class PortfolioDisplay1 extends StatelessWidget {
                                   if (kIsWeb)
                                     Positioned.fill(
                                       child: GestureDetector(
-                                        behavior: HitTestBehavior
-                                            .translucent,
+                                        behavior: HitTestBehavior.translucent,
                                         onTap: () {
                                           print("✅ Image cliquée sur Web !");
                                           showTokenDetails(context, token);
@@ -297,8 +320,7 @@ class PortfolioDisplay1 extends StatelessWidget {
                                               child: BackdropFilter(
                                                 filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
                                                 child: Container(
-                                                  padding: const EdgeInsets.symmetric(
-                                                      horizontal: 8, vertical: 4),
+                                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                                   decoration: BoxDecoration(
                                                     color: Colors.black.withOpacity(0.3),
                                                     borderRadius: BorderRadius.circular(8),
@@ -321,8 +343,7 @@ class PortfolioDisplay1 extends StatelessWidget {
                                               child: BackdropFilter(
                                                 filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
                                                 child: Container(
-                                                  padding: const EdgeInsets.symmetric(
-                                                      horizontal: 8, vertical: 4),
+                                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                                   decoration: BoxDecoration(
                                                     color: const Color.fromARGB(150, 165, 100, 21),
                                                     borderRadius: BorderRadius.circular(8),
@@ -459,24 +480,34 @@ class PortfolioDisplay1 extends StatelessWidget {
                                     const SizedBox(height: 6),
                                     SizedBox(
                                       width: double.infinity,
-                                      child: rentPercentage != null
-                                          ? _buildGaugeForRent(rentPercentage, context)
-                                          : const SizedBox.shrink(),
+                                      child: rentPercentage != null ? _buildGaugeForRent(rentPercentage, context) : const SizedBox.shrink(),
                                     ),
                                     const SizedBox(height: 2),
                                     Row(
                                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                       children: [
                                         Expanded(
-                                          child: Text(
-                                            '${token['amount']?.toStringAsFixed(2) ?? '0.00'} / ${token['totalTokens'] ?? 'N/A'}',
-                                            style: TextStyle(
-                                              fontSize: 12 + appState.getTextSizeOffset(),
-                                              fontWeight: FontWeight.w500,
-                                              color: Theme.of(context).textTheme.bodySmall?.color,
-                                            ),
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
+                                          child: isLoading 
+                                            ? ShimmerUtils.originalColorShimmer(
+                                                child: Text(
+                                                  '${token['amount']?.toStringAsFixed(2) ?? '0.00'} / ${token['totalTokens'] ?? 'N/A'}',
+                                                  style: TextStyle(
+                                                    fontSize: 12 + appState.getTextSizeOffset(),
+                                                    fontWeight: FontWeight.w500,
+                                                    color: Theme.of(context).textTheme.bodySmall?.color,
+                                                  ),
+                                                ),
+                                                color: Theme.of(context).textTheme.bodySmall?.color,
+                                              )
+                                            : Text(
+                                                '${token['amount']?.toStringAsFixed(2) ?? '0.00'} / ${token['totalTokens'] ?? 'N/A'}',
+                                                style: TextStyle(
+                                                  fontSize: 12 + appState.getTextSizeOffset(),
+                                                  fontWeight: FontWeight.w500,
+                                                  color: Theme.of(context).textTheme.bodySmall?.color,
+                                                ),
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
                                         ),
                                         Row(
                                           children: [
@@ -486,21 +517,32 @@ class PortfolioDisplay1 extends StatelessWidget {
                                               color: Theme.of(context).primaryColor,
                                             ),
                                             const SizedBox(width: 2),
-                                            Text(
-                                              '${token['annualPercentageYield']?.toStringAsFixed(2) ?? 'N/A'}%',
-                                              style: TextStyle(
-                                                fontSize: 13 + appState.getTextSizeOffset(),
-                                                fontWeight: FontWeight.w600,
-                                                color: Theme.of(context).primaryColor,
-                                              ),
-                                            ),
+                                            isLoading
+                                              ? ShimmerUtils.originalColorShimmer(
+                                                  child: Text(
+                                                    '${token['annualPercentageYield']?.toStringAsFixed(2) ?? 'N/A'}%',
+                                                    style: TextStyle(
+                                                      fontSize: 13 + appState.getTextSizeOffset(),
+                                                      fontWeight: FontWeight.w600,
+                                                      color: Theme.of(context).primaryColor,
+                                                    ),
+                                                  ),
+                                                  color: Theme.of(context).primaryColor,
+                                                )
+                                              : Text(
+                                                  '${token['annualPercentageYield']?.toStringAsFixed(2) ?? 'N/A'}%',
+                                                  style: TextStyle(
+                                                    fontSize: 13 + appState.getTextSizeOffset(),
+                                                    fontWeight: FontWeight.w600,
+                                                    color: Theme.of(context).primaryColor,
+                                                  ),
+                                                ),
                                           ],
                                         ),
                                       ],
                                     ),
                                     const SizedBox(height: 4),
                                     Container(
-                                 
                                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                                       child: Row(
                                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -516,17 +558,32 @@ class PortfolioDisplay1 extends StatelessWidget {
                                                   fontWeight: FontWeight.w500,
                                                 ),
                                               ),
-                                              Text(
-                                                currencyUtils.getFormattedAmount(
-                                                  currencyUtils.convert(token['totalValue']),
-                                                  currencyUtils.currencySymbol,
-                                                  appState.showAmounts,
-                                                ),
-                                                style: TextStyle(
-                                                  fontSize: 13 + appState.getTextSizeOffset(),
-                                                  fontWeight: FontWeight.w600,
-                                                ),
-                                              ),
+                                              isLoading
+                                                ? ShimmerUtils.originalColorShimmer(
+                                                    child: Text(
+                                                      currencyUtils.getFormattedAmount(
+                                                        currencyUtils.convert(token['totalValue']),
+                                                        currencyUtils.currencySymbol,
+                                                        appState.showAmounts,
+                                                      ),
+                                                      style: TextStyle(
+                                                        fontSize: 13 + appState.getTextSizeOffset(),
+                                                        fontWeight: FontWeight.w600,
+                                                      ),
+                                                    ),
+                                                    color: Theme.of(context).textTheme.bodyLarge?.color,
+                                                  )
+                                                : Text(
+                                                    currencyUtils.getFormattedAmount(
+                                                      currencyUtils.convert(token['totalValue']),
+                                                      currencyUtils.currencySymbol,
+                                                      appState.showAmounts,
+                                                    ),
+                                                    style: TextStyle(
+                                                      fontSize: 13 + appState.getTextSizeOffset(),
+                                                      fontWeight: FontWeight.w600,
+                                                    ),
+                                                  ),
                                             ],
                                           ),
                                           Column(
@@ -542,31 +599,49 @@ class PortfolioDisplay1 extends StatelessWidget {
                                               ),
                                               Row(
                                                 children: [
-                                                  Text(
-                                                    currencyUtils.getFormattedAmount(
-                                                      currencyUtils.convert((token['yamAverageValue'] * token['amount'])),
-                                                      currencyUtils.currencySymbol,
-                                                      appState.showAmounts
-                                                    ),
-                                                    style: TextStyle(
-                                                      fontSize: 13 + appState.getTextSizeOffset(),
-                                                      fontWeight: FontWeight.w600,
-                                                      color: (token['yamAverageValue'] * token['amount']) >= token['totalValue']
-                                                          ? Colors.green.shade600
-                                                          : Colors.red.shade600,
-                                                    ),
-                                                  ),
+                                                  isLoading
+                                                    ? ShimmerUtils.originalColorShimmer(
+                                                        child: Text(
+                                                          currencyUtils.getFormattedAmount(
+                                                              currencyUtils.convert((token['yamAverageValue'] * token['amount'])), currencyUtils.currencySymbol, appState.showAmounts),
+                                                          style: TextStyle(
+                                                            fontSize: 13 + appState.getTextSizeOffset(),
+                                                            fontWeight: FontWeight.w600,
+                                                            color: (token['yamAverageValue'] * token['amount']) >= token['totalValue'] ? Colors.green.shade600 : Colors.red.shade600,
+                                                          ),
+                                                        ),
+                                                        color: (token['yamAverageValue'] * token['amount']) >= token['totalValue'] ? Colors.green.shade600 : Colors.red.shade600,
+                                                      )
+                                                    : Text(
+                                                        currencyUtils.getFormattedAmount(
+                                                            currencyUtils.convert((token['yamAverageValue'] * token['amount'])), currencyUtils.currencySymbol, appState.showAmounts),
+                                                        style: TextStyle(
+                                                          fontSize: 13 + appState.getTextSizeOffset(),
+                                                          fontWeight: FontWeight.w600,
+                                                          color: (token['yamAverageValue'] * token['amount']) >= token['totalValue'] ? Colors.green.shade600 : Colors.red.shade600,
+                                                        ),
+                                                      ),
                                                   const SizedBox(width: 4),
-                                                  Text(
-                                                    '(${((token['yamAverageValue'] / token['tokenPrice'] - 1) * 100).toStringAsFixed(0)}%)',
-                                                    style: TextStyle(
-                                                      fontSize: 11 + appState.getTextSizeOffset(),
-                                                      fontWeight: FontWeight.w500,
-                                                      color: (token['yamAverageValue'] * token['amount']) >= token['totalValue']
-                                                          ? Colors.green.shade600
-                                                          : Colors.red.shade600,
-                                                    ),
-                                                  ),
+                                                  isLoading
+                                                    ? ShimmerUtils.originalColorShimmer(
+                                                        child: Text(
+                                                          '(${((token['yamAverageValue'] / token['tokenPrice'] - 1) * 100).toStringAsFixed(0)}%)',
+                                                          style: TextStyle(
+                                                            fontSize: 11 + appState.getTextSizeOffset(),
+                                                            fontWeight: FontWeight.w500,
+                                                            color: (token['yamAverageValue'] * token['amount']) >= token['totalValue'] ? Colors.green.shade600 : Colors.red.shade600,
+                                                          ),
+                                                        ),
+                                                        color: (token['yamAverageValue'] * token['amount']) >= token['totalValue'] ? Colors.green.shade600 : Colors.red.shade600,
+                                                      )
+                                                    : Text(
+                                                        '(${((token['yamAverageValue'] / token['tokenPrice'] - 1) * 100).toStringAsFixed(0)}%)',
+                                                        style: TextStyle(
+                                                          fontSize: 11 + appState.getTextSizeOffset(),
+                                                          fontWeight: FontWeight.w500,
+                                                          color: (token['yamAverageValue'] * token['amount']) >= token['totalValue'] ? Colors.green.shade600 : Colors.red.shade600,
+                                                        ),
+                                                      ),
                                                 ],
                                               ),
                                             ],
@@ -605,17 +680,24 @@ class PortfolioDisplay1 extends StatelessWidget {
                                                       color: Theme.of(context).textTheme.bodySmall?.color,
                                                     ),
                                                   ),
-                                                  Text(
-                                                    currencyUtils.getFormattedAmount(
-                                                      currencyUtils.convert(token['dailyIncome']),
-                                                      currencyUtils.currencySymbol,
-                                                      appState.showAmounts
-                                                    ),
-                                                    style: TextStyle(
-                                                      fontSize: 13 + appState.getTextSizeOffset(),
-                                                      fontWeight: FontWeight.w600,
-                                                    ),
-                                                  ),
+                                                  isLoading
+                                                    ? ShimmerUtils.originalColorShimmer(
+                                                        child: Text(
+                                                          currencyUtils.getFormattedAmount(currencyUtils.convert(token['dailyIncome']), currencyUtils.currencySymbol, appState.showAmounts),
+                                                          style: TextStyle(
+                                                            fontSize: 13 + appState.getTextSizeOffset(),
+                                                            fontWeight: FontWeight.w600,
+                                                          ),
+                                                        ),
+                                                        color: Theme.of(context).textTheme.bodyLarge?.color,
+                                                      )
+                                                    : Text(
+                                                        currencyUtils.getFormattedAmount(currencyUtils.convert(token['dailyIncome']), currencyUtils.currencySymbol, appState.showAmounts),
+                                                        style: TextStyle(
+                                                          fontSize: 13 + appState.getTextSizeOffset(),
+                                                          fontWeight: FontWeight.w600,
+                                                        ),
+                                                      ),
                                                 ],
                                               ),
                                               Column(
@@ -628,17 +710,24 @@ class PortfolioDisplay1 extends StatelessWidget {
                                                       color: Theme.of(context).textTheme.bodySmall?.color,
                                                     ),
                                                   ),
-                                                  Text(
-                                                    currencyUtils.getFormattedAmount(
-                                                      currencyUtils.convert(token['monthlyIncome']),
-                                                      currencyUtils.currencySymbol,
-                                                      appState.showAmounts
-                                                    ),
-                                                    style: TextStyle(
-                                                      fontSize: 13 + appState.getTextSizeOffset(),
-                                                      fontWeight: FontWeight.w600,
-                                                    ),
-                                                  ),
+                                                  isLoading
+                                                    ? ShimmerUtils.originalColorShimmer(
+                                                        child: Text(
+                                                          currencyUtils.getFormattedAmount(currencyUtils.convert(token['monthlyIncome']), currencyUtils.currencySymbol, appState.showAmounts),
+                                                          style: TextStyle(
+                                                            fontSize: 13 + appState.getTextSizeOffset(),
+                                                            fontWeight: FontWeight.w600,
+                                                          ),
+                                                        ),
+                                                        color: Theme.of(context).textTheme.bodyLarge?.color,
+                                                      )
+                                                    : Text(
+                                                        currencyUtils.getFormattedAmount(currencyUtils.convert(token['monthlyIncome']), currencyUtils.currencySymbol, appState.showAmounts),
+                                                        style: TextStyle(
+                                                          fontSize: 13 + appState.getTextSizeOffset(),
+                                                          fontWeight: FontWeight.w600,
+                                                        ),
+                                                      ),
                                                 ],
                                               ),
                                               Column(
@@ -651,17 +740,24 @@ class PortfolioDisplay1 extends StatelessWidget {
                                                       color: Theme.of(context).textTheme.bodySmall?.color,
                                                     ),
                                                   ),
-                                                  Text(
-                                                    currencyUtils.getFormattedAmount(
-                                                      currencyUtils.convert(token['yearlyIncome']),
-                                                      currencyUtils.currencySymbol,
-                                                      appState.showAmounts
-                                                    ),
-                                                    style: TextStyle(
-                                                      fontSize: 13 + appState.getTextSizeOffset(),
-                                                      fontWeight: FontWeight.w600,
-                                                    ),
-                                                  ),
+                                                  isLoading
+                                                    ? ShimmerUtils.originalColorShimmer(
+                                                        child: Text(
+                                                          currencyUtils.getFormattedAmount(currencyUtils.convert(token['yearlyIncome']), currencyUtils.currencySymbol, appState.showAmounts),
+                                                          style: TextStyle(
+                                                            fontSize: 13 + appState.getTextSizeOffset(),
+                                                            fontWeight: FontWeight.w600,
+                                                          ),
+                                                        ),
+                                                        color: Theme.of(context).textTheme.bodyLarge?.color,
+                                                      )
+                                                    : Text(
+                                                        currencyUtils.getFormattedAmount(currencyUtils.convert(token['yearlyIncome']), currencyUtils.currencySymbol, appState.showAmounts),
+                                                        style: TextStyle(
+                                                          fontSize: 13 + appState.getTextSizeOffset(),
+                                                          fontWeight: FontWeight.w600,
+                                                        ),
+                                                      ),
                                                 ],
                                               ),
                                             ],

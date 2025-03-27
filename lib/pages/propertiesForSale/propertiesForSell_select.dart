@@ -15,7 +15,7 @@ class PropertiesForSalePage extends StatefulWidget {
 
 class _PropertiesForSalePageState extends State<PropertiesForSalePage> {
   String _selectedPage = 'RealT'; // Valeur par défaut
-  
+
   // Couleurs spécifiques pour chaque sélecteur
   final Map<String, Color> _pageColors = {
     'RealT': Colors.blue,
@@ -45,8 +45,7 @@ class _PropertiesForSalePageState extends State<PropertiesForSalePage> {
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8.0, vertical: 4.0),
+                          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
                           child: _buildPageSelector(),
                         ),
                       ],
@@ -71,9 +70,7 @@ class _PropertiesForSalePageState extends State<PropertiesForSalePage> {
               ),
             );
           },
-          child: _selectedPage == 'RealT'
-              ? const PropertiesForSaleRealt(key: ValueKey('RealT'))
-              : const PropertiesForSaleSecondary(key: ValueKey('Secondary')),
+          child: _selectedPage == 'RealT' ? const PropertiesForSaleRealt(key: ValueKey('RealT')) : const PropertiesForSaleSecondary(key: ValueKey('Secondary')),
         ),
       ),
     );
@@ -88,8 +85,7 @@ class _PropertiesForSalePageState extends State<PropertiesForSalePage> {
     );
   }
 
-  double _calculateTextWidth(
-      BuildContext context, String text, TextStyle style) {
+  double _calculateTextWidth(BuildContext context, String text, TextStyle style) {
     final TextPainter textPainter = TextPainter(
       text: TextSpan(text: text, style: style),
       maxLines: 1,
@@ -110,9 +106,7 @@ class _PropertiesForSalePageState extends State<PropertiesForSalePage> {
       fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
     );
 
-    double minWidth = isSelected 
-        ? _calculateTextWidth(context, label, textStyle) 
-        : 56; // Largeur minimale pour les icônes non sélectionnées
+    double minWidth = isSelected ? _calculateTextWidth(context, label, textStyle) : 56; // Largeur minimale pour les icônes non sélectionnées
 
     return isSelected
         ? Expanded(

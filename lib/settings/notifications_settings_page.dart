@@ -9,8 +9,7 @@ class NotificationsSettingsPage extends StatefulWidget {
   const NotificationsSettingsPage({super.key});
 
   @override
-  _NotificationsSettingsPageState createState() =>
-      _NotificationsSettingsPageState();
+  _NotificationsSettingsPageState createState() => _NotificationsSettingsPageState();
 }
 
 class _NotificationsSettingsPageState extends State<NotificationsSettingsPage> {
@@ -60,7 +59,6 @@ class _NotificationsSettingsPageState extends State<NotificationsSettingsPage> {
         padding: EdgeInsets.zero,
         children: [
           const SizedBox(height: 12),
-          
           _buildSectionHeader(context, "Notifications", CupertinoIcons.bell),
           _buildSettingsSection(
             context,
@@ -79,7 +77,7 @@ class _NotificationsSettingsPageState extends State<NotificationsSettingsPage> {
       ),
     );
   }
-  
+
   Widget _buildSectionHeader(BuildContext context, String title, IconData icon) {
     return Padding(
       padding: const EdgeInsets.only(left: 16, bottom: 6, top: 2),

@@ -9,14 +9,20 @@ import 'package:provider/provider.dart'; // Pour accéder à DataManager
 import 'package:realtokens/generated/l10n.dart'; // Import des traductions
 import 'package:realtokens/settings/manage_evm_addresses_page.dart'; // Import de la page de gestion des adresses EVM
 import 'package:realtokens/app_state.dart';
+import 'package:realtokens/utils/shimmer_utils.dart';
 import 'package:show_network_image/show_network_image.dart'; // Import de AppState
 import 'dart:ui';
 import 'dart:math' as Math;
 
 class PortfolioDisplay2 extends StatefulWidget {
   final List<Map<String, dynamic>> portfolio;
+  final bool isLoading;
 
-  const PortfolioDisplay2({super.key, required this.portfolio});
+  const PortfolioDisplay2({
+    super.key, 
+    required this.portfolio,
+    this.isLoading = false,
+  });
 
   @override
   PortfolioDisplay2State createState() => PortfolioDisplay2State();
@@ -30,7 +36,7 @@ class PortfolioDisplay2State extends State<PortfolioDisplay2> {
         builder: (context, constraints) {
           double maxWidth = constraints.maxWidth;
           final bool showTextInside = rentValue >= 15; // Afficher le texte à l'intérieur seulement si >= 15%
-          
+
           return Stack(
             children: [
               // Fond de la jauge
@@ -58,23 +64,44 @@ class PortfolioDisplay2State extends State<PortfolioDisplay2> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 // Texte du pourcentage à l'intérieur de la barre seulement si assez d'espace
-                child: showTextInside ? Center(
-                  child: Text(
-                    "${rentValue.toStringAsFixed(1)}%",
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                      shadows: [
-                        Shadow(
-                          offset: const Offset(0, 1),
-                          blurRadius: 1,
-                          color: Colors.black.withOpacity(0.5),
-                        ),
-                      ],
-                    ),
-                  ),
-                ) : null,
+                child: showTextInside
+                    ? Center(
+                        child: widget.isLoading 
+                          ? ShimmerUtils.originalColorShimmer(
+                              child: Text(
+                                "${rentValue.toStringAsFixed(1)}%",
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                  shadows: [
+                                    Shadow(
+                                      offset: const Offset(0, 1),
+                                      blurRadius: 1,
+                                      color: Colors.black.withOpacity(0.5),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              color: Colors.white,
+                            )
+                          : Text(
+                              "${rentValue.toStringAsFixed(1)}%",
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
+                                shadows: [
+                                  Shadow(
+                                    offset: const Offset(0, 1),
+                                    blurRadius: 1,
+                                    color: Colors.black.withOpacity(0.5),
+                                  ),
+                                ],
+                              ),
+                            ),
+                      )
+                    : null,
               ),
               // Texte du pourcentage visible en dehors de la barre seulement si < 15%
               if (!showTextInside)
@@ -83,14 +110,26 @@ class PortfolioDisplay2State extends State<PortfolioDisplay2> {
                   top: 0,
                   bottom: 0,
                   child: Center(
-                    child: Text(
-                      "${rentValue.toStringAsFixed(1)}%",
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w600,
-                        color: Theme.of(context).textTheme.bodyLarge?.color,
-                      ),
-                    ),
+                    child: widget.isLoading
+                      ? ShimmerUtils.originalColorShimmer(
+                          child: Text(
+                            "${rentValue.toStringAsFixed(1)}%",
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                              color: Theme.of(context).textTheme.bodyLarge?.color,
+                            ),
+                          ),
+                          color: Theme.of(context).textTheme.bodyLarge?.color,
+                        )
+                      : Text(
+                          "${rentValue.toStringAsFixed(1)}%",
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                            color: Theme.of(context).textTheme.bodyLarge?.color,
+                          ),
+                        ),
                   ),
                 ),
             ],
@@ -106,7 +145,7 @@ class PortfolioDisplay2State extends State<PortfolioDisplay2> {
     final appState = Provider.of<AppState>(context);
     final filteredPortfolio = widget.portfolio;
     final widthScreen = MediaQuery.of(context).size.width;
-    
+
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Column(
@@ -133,8 +172,7 @@ class PortfolioDisplay2State extends State<PortfolioDisplay2> {
                             onPressed: () {
                               Navigator.of(context).push(
                                 MaterialPageRoute(
-                                  builder: (context) =>
-                                      const ManageEvmAddressesPage(),
+                                  builder: (context) => const ManageEvmAddressesPage(),
                                 ),
                               );
                             },
@@ -171,12 +209,9 @@ class PortfolioDisplay2State extends State<PortfolioDisplay2> {
                       final city = LocationUtils.extractCity(token['fullName'] ?? '');
 
                       final rentStartDate = DateTime.tryParse(token['rentStartDate'] ?? '');
-                      final bool isFutureRentStart = rentStartDate != null &&
-                          rentStartDate.isAfter(DateTime.now());
+                      final bool isFutureRentStart = rentStartDate != null && rentStartDate.isAfter(DateTime.now());
 
-                      final rentPercentage = (token['totalRentReceived'] != null &&
-                              token['initialTotalValue'] != null &&
-                              token['initialTotalValue'] != 0)
+                      final rentPercentage = (token['totalRentReceived'] != null && token['initialTotalValue'] != null && token['initialTotalValue'] != 0)
                           ? (token['totalRentReceived'] / token['initialTotalValue']) * 100
                           : 0.5;
 
@@ -216,13 +251,7 @@ class PortfolioDisplay2State extends State<PortfolioDisplay2> {
                                             topRight: Radius.circular(20),
                                           ),
                                           child: ColorFiltered(
-                                            colorFilter: isFutureRentStart
-                                                ? const ColorFilter.mode(
-                                                    Colors.black45,
-                                                    BlendMode.darken)
-                                                : const ColorFilter.mode(
-                                                    Colors.transparent,
-                                                    BlendMode.multiply),
+                                            colorFilter: isFutureRentStart ? const ColorFilter.mode(Colors.black45, BlendMode.darken) : const ColorFilter.mode(Colors.transparent, BlendMode.multiply),
                                             child: kIsWeb
                                                 ? ShowNetworkImage(
                                                     imageSrc: token['imageLink'][0],
@@ -231,8 +260,7 @@ class PortfolioDisplay2State extends State<PortfolioDisplay2> {
                                                 : CachedNetworkImage(
                                                     imageUrl: token['imageLink'][0],
                                                     fit: BoxFit.cover,
-                                                    errorWidget: (context, url, error) =>
-                                                        const Icon(Icons.error),
+                                                    errorWidget: (context, url, error) => const Icon(Icons.error),
                                                   ),
                                           ),
                                         ),
@@ -274,7 +302,7 @@ class PortfolioDisplay2State extends State<PortfolioDisplay2> {
                                             ),
                                           ),
                                         ),
-                                        
+
                                       // Indicateurs en haut à gauche
                                       if (isWallet || isRMM)
                                         Positioned(
@@ -288,8 +316,7 @@ class PortfolioDisplay2State extends State<PortfolioDisplay2> {
                                                   child: BackdropFilter(
                                                     filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
                                                     child: Container(
-                                                      padding: const EdgeInsets.symmetric(
-                                                          horizontal: 8, vertical: 4),
+                                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                                       decoration: BoxDecoration(
                                                         color: Colors.black.withOpacity(0.3),
                                                         borderRadius: BorderRadius.circular(8),
@@ -312,8 +339,7 @@ class PortfolioDisplay2State extends State<PortfolioDisplay2> {
                                                   child: BackdropFilter(
                                                     filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
                                                     child: Container(
-                                                      padding: const EdgeInsets.symmetric(
-                                                          horizontal: 8, vertical: 4),
+                                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                                       decoration: BoxDecoration(
                                                         color: const Color.fromARGB(150, 165, 100, 21),
                                                         borderRadius: BorderRadius.circular(8),
@@ -421,15 +447,27 @@ class PortfolioDisplay2State extends State<PortfolioDisplay2> {
                                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                           children: [
                                             Expanded(
-                                              child: Text(
-                                                '${token['amount']?.toStringAsFixed(2) ?? '0.00'} / ${token['totalTokens'] ?? 'N/A'}',
-                                                style: TextStyle(
-                                                  fontSize: 12 + appState.getTextSizeOffset(),
-                                                  fontWeight: FontWeight.w500,
-                                                  color: Theme.of(context).textTheme.bodySmall?.color,
-                                                ),
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
+                                              child: widget.isLoading
+                                                ? ShimmerUtils.originalColorShimmer(
+                                                    child: Text(
+                                                      '${token['amount']?.toStringAsFixed(2) ?? '0.00'} / ${token['totalTokens'] ?? 'N/A'}',
+                                                      style: TextStyle(
+                                                        fontSize: 12 + appState.getTextSizeOffset(),
+                                                        fontWeight: FontWeight.w500,
+                                                        color: Theme.of(context).textTheme.bodySmall?.color,
+                                                      ),
+                                                    ),
+                                                    color: Theme.of(context).textTheme.bodySmall?.color,
+                                                  )
+                                                : Text(
+                                                    '${token['amount']?.toStringAsFixed(2) ?? '0.00'} / ${token['totalTokens'] ?? 'N/A'}',
+                                                    style: TextStyle(
+                                                      fontSize: 12 + appState.getTextSizeOffset(),
+                                                      fontWeight: FontWeight.w500,
+                                                      color: Theme.of(context).textTheme.bodySmall?.color,
+                                                    ),
+                                                    overflow: TextOverflow.ellipsis,
+                                                  ),
                                             ),
                                             Row(
                                               children: [
@@ -439,23 +477,34 @@ class PortfolioDisplay2State extends State<PortfolioDisplay2> {
                                                   color: Theme.of(context).primaryColor,
                                                 ),
                                                 const SizedBox(width: 2),
-                                                Text(
-                                                  '${token['annualPercentageYield']?.toStringAsFixed(2) ?? 'N/A'}%',
-                                                  style: TextStyle(
-                                                    fontSize: 13 + appState.getTextSizeOffset(),
-                                                    fontWeight: FontWeight.w600,
-                                                    color: Theme.of(context).primaryColor,
-                                                  ),
-                                                ),
+                                                widget.isLoading
+                                                  ? ShimmerUtils.originalColorShimmer(
+                                                      child: Text(
+                                                        '${token['annualPercentageYield']?.toStringAsFixed(2) ?? 'N/A'}%',
+                                                        style: TextStyle(
+                                                          fontSize: 13 + appState.getTextSizeOffset(),
+                                                          fontWeight: FontWeight.w600,
+                                                          color: Theme.of(context).primaryColor,
+                                                        ),
+                                                      ),
+                                                      color: Theme.of(context).primaryColor,
+                                                    )
+                                                  : Text(
+                                                      '${token['annualPercentageYield']?.toStringAsFixed(2) ?? 'N/A'}%',
+                                                      style: TextStyle(
+                                                        fontSize: 13 + appState.getTextSizeOffset(),
+                                                        fontWeight: FontWeight.w600,
+                                                        color: Theme.of(context).primaryColor,
+                                                      ),
+                                                    ),
                                               ],
                                             ),
                                           ],
                                         ),
                                         const SizedBox(height: 8),
-                                        
+
                                         // Valeurs totales
                                         Container(
-                                    
                                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                                           child: Row(
                                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -471,17 +520,32 @@ class PortfolioDisplay2State extends State<PortfolioDisplay2> {
                                                       fontWeight: FontWeight.w500,
                                                     ),
                                                   ),
-                                                  Text(
-                                                    currencyUtils.getFormattedAmount(
-                                                      currencyUtils.convert(token['totalValue']),
-                                                      currencyUtils.currencySymbol,
-                                                      appState.showAmounts,
-                                                    ),
-                                                    style: TextStyle(
-                                                      fontSize: 13 + appState.getTextSizeOffset(),
-                                                      fontWeight: FontWeight.w600,
-                                                    ),
-                                                  ),
+                                                  widget.isLoading
+                                                    ? ShimmerUtils.originalColorShimmer(
+                                                        child: Text(
+                                                          currencyUtils.getFormattedAmount(
+                                                            currencyUtils.convert(token['totalValue']),
+                                                            currencyUtils.currencySymbol,
+                                                            appState.showAmounts,
+                                                          ),
+                                                          style: TextStyle(
+                                                            fontSize: 13 + appState.getTextSizeOffset(),
+                                                            fontWeight: FontWeight.w600,
+                                                          ),
+                                                        ),
+                                                        color: Theme.of(context).textTheme.bodyLarge?.color,
+                                                      )
+                                                    : Text(
+                                                        currencyUtils.getFormattedAmount(
+                                                          currencyUtils.convert(token['totalValue']),
+                                                          currencyUtils.currencySymbol,
+                                                          appState.showAmounts,
+                                                        ),
+                                                        style: TextStyle(
+                                                          fontSize: 13 + appState.getTextSizeOffset(),
+                                                          fontWeight: FontWeight.w600,
+                                                        ),
+                                                      ),
                                                 ],
                                               ),
                                               Column(
@@ -497,31 +561,49 @@ class PortfolioDisplay2State extends State<PortfolioDisplay2> {
                                                   ),
                                                   Row(
                                                     children: [
-                                                      Text(
-                                                        currencyUtils.getFormattedAmount(
-                                                          currencyUtils.convert((token['yamAverageValue'] * token['amount'])),
-                                                          currencyUtils.currencySymbol,
-                                                          appState.showAmounts
-                                                        ),
-                                                        style: TextStyle(
-                                                          fontSize: 13 + appState.getTextSizeOffset(),
-                                                          fontWeight: FontWeight.w600,
-                                                          color: (token['yamAverageValue'] * token['amount']) >= token['totalValue']
-                                                              ? Colors.green.shade600
-                                                              : Colors.red.shade600,
-                                                        ),
-                                                      ),
+                                                      widget.isLoading
+                                                        ? ShimmerUtils.originalColorShimmer(
+                                                            child: Text(
+                                                              currencyUtils.getFormattedAmount(
+                                                                  currencyUtils.convert((token['yamAverageValue'] * token['amount'])), currencyUtils.currencySymbol, appState.showAmounts),
+                                                              style: TextStyle(
+                                                                fontSize: 13 + appState.getTextSizeOffset(),
+                                                                fontWeight: FontWeight.w600,
+                                                                color: (token['yamAverageValue'] * token['amount']) >= token['totalValue'] ? Colors.green.shade600 : Colors.red.shade600,
+                                                              ),
+                                                            ),
+                                                            color: (token['yamAverageValue'] * token['amount']) >= token['totalValue'] ? Colors.green.shade600 : Colors.red.shade600,
+                                                          )
+                                                        : Text(
+                                                            currencyUtils.getFormattedAmount(
+                                                                currencyUtils.convert((token['yamAverageValue'] * token['amount'])), currencyUtils.currencySymbol, appState.showAmounts),
+                                                            style: TextStyle(
+                                                              fontSize: 13 + appState.getTextSizeOffset(),
+                                                              fontWeight: FontWeight.w600,
+                                                              color: (token['yamAverageValue'] * token['amount']) >= token['totalValue'] ? Colors.green.shade600 : Colors.red.shade600,
+                                                            ),
+                                                          ),
                                                       const SizedBox(width: 4),
-                                                      Text(
-                                                        '(${((token['yamAverageValue'] / token['tokenPrice'] - 1) * 100).toStringAsFixed(0)}%)',
-                                                        style: TextStyle(
-                                                          fontSize: 11 + appState.getTextSizeOffset(),
-                                                          fontWeight: FontWeight.w500,
-                                                          color: (token['yamAverageValue'] * token['amount']) >= token['totalValue']
-                                                              ? Colors.green.shade600
-                                                              : Colors.red.shade600,
-                                                        ),
-                                                      ),
+                                                      widget.isLoading
+                                                        ? ShimmerUtils.originalColorShimmer(
+                                                            child: Text(
+                                                              '(${((token['yamAverageValue'] / token['tokenPrice'] - 1) * 100).toStringAsFixed(0)}%)',
+                                                              style: TextStyle(
+                                                                fontSize: 11 + appState.getTextSizeOffset(),
+                                                                fontWeight: FontWeight.w500,
+                                                                color: (token['yamAverageValue'] * token['amount']) >= token['totalValue'] ? Colors.green.shade600 : Colors.red.shade600,
+                                                              ),
+                                                            ),
+                                                            color: (token['yamAverageValue'] * token['amount']) >= token['totalValue'] ? Colors.green.shade600 : Colors.red.shade600,
+                                                          )
+                                                        : Text(
+                                                            '(${((token['yamAverageValue'] / token['tokenPrice'] - 1) * 100).toStringAsFixed(0)}%)',
+                                                            style: TextStyle(
+                                                              fontSize: 11 + appState.getTextSizeOffset(),
+                                                              fontWeight: FontWeight.w500,
+                                                              color: (token['yamAverageValue'] * token['amount']) >= token['totalValue'] ? Colors.green.shade600 : Colors.red.shade600,
+                                                            ),
+                                                          ),
                                                     ],
                                                   ),
                                                 ],
@@ -530,7 +612,7 @@ class PortfolioDisplay2State extends State<PortfolioDisplay2> {
                                           ),
                                         ),
                                         const SizedBox(height: 8),
-                                        
+
                                         // Section Revenus
                                         Container(
                                           decoration: BoxDecoration(
@@ -563,17 +645,24 @@ class PortfolioDisplay2State extends State<PortfolioDisplay2> {
                                                           color: Theme.of(context).textTheme.bodySmall?.color,
                                                         ),
                                                       ),
-                                                      Text(
-                                                        currencyUtils.getFormattedAmount(
-                                                          currencyUtils.convert(token['dailyIncome']),
-                                                          currencyUtils.currencySymbol,
-                                                          appState.showAmounts
-                                                        ),
-                                                        style: TextStyle(
-                                                          fontSize: 13 + appState.getTextSizeOffset(),
-                                                          fontWeight: FontWeight.w600,
-                                                        ),
-                                                      ),
+                                                      widget.isLoading
+                                                        ? ShimmerUtils.originalColorShimmer(
+                                                            child: Text(
+                                                              currencyUtils.getFormattedAmount(currencyUtils.convert(token['dailyIncome']), currencyUtils.currencySymbol, appState.showAmounts),
+                                                              style: TextStyle(
+                                                                fontSize: 13 + appState.getTextSizeOffset(),
+                                                                fontWeight: FontWeight.w600,
+                                                              ),
+                                                            ),
+                                                            color: Theme.of(context).textTheme.bodyLarge?.color,
+                                                          )
+                                                        : Text(
+                                                            currencyUtils.getFormattedAmount(currencyUtils.convert(token['dailyIncome']), currencyUtils.currencySymbol, appState.showAmounts),
+                                                            style: TextStyle(
+                                                              fontSize: 13 + appState.getTextSizeOffset(),
+                                                              fontWeight: FontWeight.w600,
+                                                            ),
+                                                          ),
                                                     ],
                                                   ),
                                                   Column(
@@ -586,17 +675,24 @@ class PortfolioDisplay2State extends State<PortfolioDisplay2> {
                                                           color: Theme.of(context).textTheme.bodySmall?.color,
                                                         ),
                                                       ),
-                                                      Text(
-                                                        currencyUtils.getFormattedAmount(
-                                                          currencyUtils.convert(token['monthlyIncome']),
-                                                          currencyUtils.currencySymbol,
-                                                          appState.showAmounts
-                                                        ),
-                                                        style: TextStyle(
-                                                          fontSize: 13 + appState.getTextSizeOffset(),
-                                                          fontWeight: FontWeight.w600,
-                                                        ),
-                                                      ),
+                                                      widget.isLoading
+                                                        ? ShimmerUtils.originalColorShimmer(
+                                                            child: Text(
+                                                              currencyUtils.getFormattedAmount(currencyUtils.convert(token['monthlyIncome']), currencyUtils.currencySymbol, appState.showAmounts),
+                                                              style: TextStyle(
+                                                                fontSize: 13 + appState.getTextSizeOffset(),
+                                                                fontWeight: FontWeight.w600,
+                                                              ),
+                                                            ),
+                                                            color: Theme.of(context).textTheme.bodyLarge?.color,
+                                                          )
+                                                        : Text(
+                                                            currencyUtils.getFormattedAmount(currencyUtils.convert(token['monthlyIncome']), currencyUtils.currencySymbol, appState.showAmounts),
+                                                            style: TextStyle(
+                                                              fontSize: 13 + appState.getTextSizeOffset(),
+                                                              fontWeight: FontWeight.w600,
+                                                            ),
+                                                          ),
                                                     ],
                                                   ),
                                                   Column(
@@ -609,17 +705,24 @@ class PortfolioDisplay2State extends State<PortfolioDisplay2> {
                                                           color: Theme.of(context).textTheme.bodySmall?.color,
                                                         ),
                                                       ),
-                                                      Text(
-                                                        currencyUtils.getFormattedAmount(
-                                                          currencyUtils.convert(token['yearlyIncome']),
-                                                          currencyUtils.currencySymbol,
-                                                          appState.showAmounts
-                                                        ),
-                                                        style: TextStyle(
-                                                          fontSize: 13 + appState.getTextSizeOffset(),
-                                                          fontWeight: FontWeight.w600,
-                                                        ),
-                                                      ),
+                                                      widget.isLoading
+                                                        ? ShimmerUtils.originalColorShimmer(
+                                                            child: Text(
+                                                              currencyUtils.getFormattedAmount(currencyUtils.convert(token['yearlyIncome']), currencyUtils.currencySymbol, appState.showAmounts),
+                                                              style: TextStyle(
+                                                                fontSize: 13 + appState.getTextSizeOffset(),
+                                                                fontWeight: FontWeight.w600,
+                                                              ),
+                                                            ),
+                                                            color: Theme.of(context).textTheme.bodyLarge?.color,
+                                                          )
+                                                        : Text(
+                                                            currencyUtils.getFormattedAmount(currencyUtils.convert(token['yearlyIncome']), currencyUtils.currencySymbol, appState.showAmounts),
+                                                            style: TextStyle(
+                                                              fontSize: 13 + appState.getTextSizeOffset(),
+                                                              fontWeight: FontWeight.w600,
+                                                            ),
+                                                          ),
                                                     ],
                                                   ),
                                                 ],

@@ -65,4 +65,28 @@ Ce projet est sous licence MIT - voir le fichier [LICENSE](LICENSE) pour plus de
 
 RealT permet aux investisseurs de posséder des parts fractionnées de biens immobiliers via des jetons basés sur la blockchain. En achetant des jetons, les investisseurs peuvent accéder à des revenus locatifs, à l'appréciation des biens immobiliers et à d'autres avantages financiers. Pour en savoir plus sur la plateforme RealT, visitez [realt.co](https://realt.co).
 
+### Internationalisation
+
+#### Ajouter de nouvelles clés de traduction
+
+1. Ajoutez les nouvelles clés et leurs traductions dans les fichiers ARB :
+   - `lib/l10n/intl_en.arb` (anglais)
+   - `lib/l10n/intl_fr.arb` (français)
+   - et les autres langues supportées
+
+2. Régénérez les fichiers de traduction avec la commande :
+   ```bash
+   flutter pub run intl_utils:generate
+   ```
+
+3. Utilisez les traductions dans votre code :
+   ```dart
+   Text(S.of(context).maNouvelleCle)
+   ```
+
+4. Vous pouvez aussi utiliser des variables :
+   ```dart
+   S.of(context).monTexteAvecVariable.replaceAll('{maVariable}', maVariableValeur)
+   ```
+
 

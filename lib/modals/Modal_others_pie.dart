@@ -3,19 +3,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:realtokens/generated/l10n.dart';
 
-void showOtherDetailsModal(BuildContext context, dataManager,
-    List<Map<String, dynamic>> othersDetails, String key) {
+void showOtherDetailsModal(BuildContext context, dataManager, List<Map<String, dynamic>> othersDetails, String key) {
   // S'assurer que la liste n'est pas vide pour éviter les erreurs de rendu
   if (othersDetails.isEmpty) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Aucune donnée disponible')),
+      SnackBar(content: Text(S.of(context).noDataAvailable)),
     );
     return;
   }
-  
+
   // ValueNotifier pour suivre l'élément sélectionné
   final ValueNotifier<int?> selectedIndexNotifier = ValueNotifier<int?>(null);
-  
+
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
@@ -48,58 +47,51 @@ void showOtherDetailsModal(BuildContext context, dataManager,
                       Text(
                         S.of(context).othersTitle,
                         style: TextStyle(
-                          fontSize: 22, 
+                          fontSize: 22,
                           fontWeight: FontWeight.bold,
                           color: CupertinoColors.label,
                         ),
                       ),
                       SizedBox(height: 10),
-                      
+
                       // Graphique avec sélection
                       SizedBox(
                         height: 250,
                         child: ValueListenableBuilder<int?>(
-                          valueListenable: selectedIndexNotifier,
-                          builder: (context, selectedIndex, _) {
-                            return Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                PieChart(
-                                  PieChartData(
-                                    sections: _buildOtherDetailsDonutData(
-                                      othersDetails, 
-                                      key, 
-                                      selectedIndex
-                                    ),
-                                    centerSpaceRadius: 55,
-                                    sectionsSpace: 3,
-                                    pieTouchData: PieTouchData(
-                                      touchCallback: (FlTouchEvent event, PieTouchResponse? touchResponse) {
-                                        if (touchResponse != null && 
-                                            touchResponse.touchedSection != null) {
-                                          final touchedIndex = touchResponse.touchedSection!.touchedSectionIndex;
-                                          if (event is FlTapUpEvent) {
-                                            selectedIndexNotifier.value = 
-                                              selectedIndex == touchedIndex ? null : touchedIndex;
+                            valueListenable: selectedIndexNotifier,
+                            builder: (context, selectedIndex, _) {
+                              return Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  PieChart(
+                                    PieChartData(
+                                      sections: _buildOtherDetailsDonutData(othersDetails, key, selectedIndex),
+                                      centerSpaceRadius: 55,
+                                      sectionsSpace: 3,
+                                      pieTouchData: PieTouchData(
+                                        touchCallback: (FlTouchEvent event, PieTouchResponse? touchResponse) {
+                                          if (touchResponse != null && touchResponse.touchedSection != null) {
+                                            final touchedIndex = touchResponse.touchedSection!.touchedSectionIndex;
+                                            if (event is FlTapUpEvent) {
+                                              selectedIndexNotifier.value = selectedIndex == touchedIndex ? null : touchedIndex;
+                                            }
                                           }
-                                        }
-                                      },
+                                        },
+                                      ),
+                                      borderData: FlBorderData(show: false),
                                     ),
-                                    borderData: FlBorderData(show: false),
                                   ),
-                                ),
-                                _buildCenterText(othersDetails, key, selectedIndex),
-                              ],
-                            );
-                          }
-                        ),
+                                  _buildCenterText(context, othersDetails, key, selectedIndex),
+                                ],
+                              );
+                            }),
                       ),
-                      
+
                       SizedBox(height: 10),
 
                       // Titre pour la légende
                       Text(
-                        "Légende",
+                        S.of(context).legend,
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -117,19 +109,12 @@ void showOtherDetailsModal(BuildContext context, dataManager,
                           ),
                           padding: EdgeInsets.all(12),
                           child: ValueListenableBuilder<int?>(
-                            valueListenable: selectedIndexNotifier,
-                            builder: (context, selectedIndex, _) {
-                              return _buildLegendGrid(
-                                othersDetails, 
-                                key, 
-                                selectedIndex, 
-                                (index) {
-                                  selectedIndexNotifier.value = 
-                                    selectedIndex == index ? null : index;
-                                }
-                              );
-                            }
-                          ),
+                              valueListenable: selectedIndexNotifier,
+                              builder: (context, selectedIndex, _) {
+                                return _buildLegendGrid(othersDetails, key, selectedIndex, (index) {
+                                  selectedIndexNotifier.value = selectedIndex == index ? null : index;
+                                });
+                              }),
                         ),
                       )
                     ],
@@ -145,24 +130,19 @@ void showOtherDetailsModal(BuildContext context, dataManager,
 }
 
 // Widget pour afficher le texte au centre du donut
-Widget _buildCenterText(List<Map<String, dynamic>> othersDetails, String key, int? selectedIndex) {
+Widget _buildCenterText(BuildContext context, List<Map<String, dynamic>> othersDetails, String key, int? selectedIndex) {
   if (selectedIndex == null) {
     // Afficher le total quand rien n'est sélectionné
-    final int totalCount = othersDetails.fold(
-      0, 
-      (sum, item) {
-        final count = item['count'] is int 
-            ? item['count'] as int 
-            : (item['count'] as double).round();
-        return sum + count;
-      }
-    );
-    
+    final int totalCount = othersDetails.fold(0, (sum, item) {
+      final count = item['count'] is int ? item['count'] as int : (item['count'] as double).round();
+      return sum + count;
+    });
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          'Total',
+          S.of(context).total,
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
@@ -184,11 +164,9 @@ Widget _buildCenterText(List<Map<String, dynamic>> othersDetails, String key, in
     // Afficher le détail de l'élément sélectionné
     if (selectedIndex < othersDetails.length) {
       final selectedItem = othersDetails[selectedIndex];
-      final String name = selectedItem[key] ?? 'Inconnu';
-      final count = selectedItem['count'] is int 
-          ? selectedItem['count'] as int 
-          : (selectedItem['count'] as double).round();
-      
+      final String name = selectedItem[key] ?? S.of(context).unknown;
+      final count = selectedItem['count'] is int ? selectedItem['count'] as int : (selectedItem['count'] as double).round();
+
       return Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -215,14 +193,13 @@ Widget _buildCenterText(List<Map<String, dynamic>> othersDetails, String key, in
         ],
       );
     }
-    
+
     // En cas d'index invalide
     return Container();
   }
 }
 
-List<PieChartSectionData> _buildOtherDetailsDonutData(
-    List<Map<String, dynamic>> othersDetails, String key, int? selectedIndex) {
+List<PieChartSectionData> _buildOtherDetailsDonutData(List<Map<String, dynamic>> othersDetails, String key, int? selectedIndex) {
   // Couleurs iOS
   final List<Color> sectionColors = [
     CupertinoColors.systemBlue,
@@ -238,30 +215,26 @@ List<PieChartSectionData> _buildOtherDetailsDonutData(
     Color(0xFF5D5FEE),
     Color(0xFFAF7CEF),
   ];
-  
+
   // Calculer la valeur totale
   double totalValue = 0;
   for (var item in othersDetails) {
-    double itemValue = (item['count'] is int) 
-        ? (item['count'] as int).toDouble() 
-        : (item['count'] as double);
+    double itemValue = (item['count'] is int) ? (item['count'] as int).toDouble() : (item['count'] as double);
     totalValue += itemValue;
   }
-  
+
   // Créer les sections
   List<PieChartSectionData> sections = [];
-  
+
   for (int i = 0; i < othersDetails.length; i++) {
     final item = othersDetails[i];
-    final double value = (item['count'] is int) 
-        ? (item['count'] as int).toDouble() 
-        : (item['count'] as double);
-    
+    final double value = (item['count'] is int) ? (item['count'] as int).toDouble() : (item['count'] as double);
+
     final double percentage = (value / totalValue) * 100;
     final bool isSelected = selectedIndex == i;
     final double radius = isSelected ? 65 : 55;
     final Color color = sectionColors[i % sectionColors.length];
-    
+
     sections.add(PieChartSectionData(
       value: value,
       title: '${percentage.toStringAsFixed(1)}%',
@@ -277,15 +250,11 @@ List<PieChartSectionData> _buildOtherDetailsDonutData(
       badgePositionPercentageOffset: 0.98,
     ));
   }
-  
+
   return sections;
 }
 
-Widget _buildLegendGrid(
-    List<Map<String, dynamic>> othersDetails, 
-    String key, 
-    int? selectedIndex,
-    Function(int) onTap) {
+Widget _buildLegendGrid(List<Map<String, dynamic>> othersDetails, String key, int? selectedIndex, Function(int) onTap) {
   // Couleurs iOS
   final List<Color> sectionColors = [
     CupertinoColors.systemBlue,
@@ -301,7 +270,7 @@ Widget _buildLegendGrid(
     Color(0xFF5D5FEE),
     Color(0xFFAF7CEF),
   ];
-  
+
   return GridView.builder(
     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
       crossAxisCount: 2,
@@ -315,12 +284,10 @@ Widget _buildLegendGrid(
     itemBuilder: (context, index) {
       final item = othersDetails[index];
       final String name = item[key] ?? 'Inconnu';
-      final double value = (item['count'] is int) 
-          ? (item['count'] as int).toDouble() 
-          : (item['count'] as double);
+      final double value = (item['count'] is int) ? (item['count'] as int).toDouble() : (item['count'] as double);
       final Color color = sectionColors[index % sectionColors.length];
       final bool isSelected = selectedIndex == index;
-      
+
       return GestureDetector(
         onTap: () => onTap(index),
         child: Container(
@@ -417,6 +384,6 @@ Color _getColorForIndex(int index) {
     Color(0xFF5D5FEE),
     Color(0xFFAF7CEF),
   ];
-  
+
   return sectionColors[index % sectionColors.length];
 }

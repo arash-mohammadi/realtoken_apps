@@ -10,6 +10,7 @@ import 'package:realtokens/utils/parameters.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:realtokens/settings/personalization_settings_page.dart';
 import 'package:realtokens/pages/dashboard/detailsPages/portfolio_details_page.dart';
+import 'package:realtokens/utils/shimmer_utils.dart';
 
 class PortfolioCard extends StatelessWidget {
   final bool showAmounts;
@@ -28,34 +29,29 @@ class PortfolioCard extends StatelessWidget {
     final dataManager = Provider.of<DataManager>(context);
     final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
     final theme = Theme.of(context);
-    
+
     // Calcul des totaux en tenant compte des paramètres
-    double totalPortfolioValue = Parameters.showNetTotal 
+    double totalPortfolioValue = Parameters.showNetTotal
         ? dataManager.walletValue +
-          dataManager.rmmValue + 
-          dataManager.rwaHoldingsValue +
-          dataManager.totalUsdcDepositBalance +
-          dataManager.totalXdaiDepositBalance -
-          dataManager.totalUsdcBorrowBalance -
-          dataManager.totalXdaiBorrowBalance +
-          Parameters.manualAdjustment
-        : dataManager.walletValue +
-          dataManager.rmmValue + 
-          dataManager.rwaHoldingsValue +
-          Parameters.manualAdjustment;
-    
+            dataManager.rmmValue +
+            dataManager.rwaHoldingsValue +
+            dataManager.totalUsdcDepositBalance +
+            dataManager.totalXdaiDepositBalance -
+            dataManager.totalUsdcBorrowBalance -
+            dataManager.totalXdaiBorrowBalance +
+            Parameters.manualAdjustment
+        : dataManager.walletValue + dataManager.rmmValue + dataManager.rwaHoldingsValue + Parameters.manualAdjustment;
+
     // Calcul du total sans les dépôts et emprunts si showNetTotal est false
-    double portfolioDisplayValue = Parameters.showNetTotal 
+    double portfolioDisplayValue = Parameters.showNetTotal
         ? dataManager.yamTotalValue +
-          dataManager.rwaHoldingsValue +
-          dataManager.totalUsdcDepositBalance +
-          dataManager.totalXdaiDepositBalance -
-          dataManager.totalUsdcBorrowBalance -
-          dataManager.totalXdaiBorrowBalance +
-          Parameters.manualAdjustment
-        : dataManager.yamTotalValue +
-          dataManager.rwaHoldingsValue +
-          Parameters.manualAdjustment;
+            dataManager.rwaHoldingsValue +
+            dataManager.totalUsdcDepositBalance +
+            dataManager.totalXdaiDepositBalance -
+            dataManager.totalUsdcBorrowBalance -
+            dataManager.totalXdaiBorrowBalance +
+            Parameters.manualAdjustment
+        : dataManager.yamTotalValue + dataManager.rwaHoldingsValue + Parameters.manualAdjustment;
 
     // Calcul du pourcentage de rendement par rapport à l'investissement total
     double percentageYam = ((portfolioDisplayValue / totalPortfolioValue - 1) * 100);
@@ -69,9 +65,12 @@ class PortfolioCard extends StatelessWidget {
 
     // Hauteur minimale basée sur le nombre de sections visibles
     double minHeight = 220.0; // Hauteur de base
-    if (visibleSections <= 2) minHeight = 220.0; // Hauteur minimale pour peu de contenu
-    else if (visibleSections == 3) minHeight = 240.0;
-    else minHeight = 260.0;
+    if (visibleSections <= 2)
+      minHeight = 220.0; // Hauteur minimale pour peu de contenu
+    else if (visibleSections == 3)
+      minHeight = 240.0;
+    else
+      minHeight = 260.0;
 
     return Container(
       constraints: BoxConstraints(
@@ -80,107 +79,58 @@ class PortfolioCard extends StatelessWidget {
       child: UIUtils.buildCard(
         S.of(context).portfolio,
         Icons.pie_chart_rounded,
-        Parameters.showYamProjection 
-          ? UIUtils.buildValueBeforeText(
-              context,
-              currencyUtils.getFormattedAmount(
-                  currencyUtils.convert(portfolioDisplayValue),
-                  currencyUtils.currencySymbol,
-                  showAmounts),
-              'projection YAM ($percentageYamDisplay%)',
-              isLoading,
-              highlightPercentage: true,
-            )
-          : const SizedBox.shrink(),
+        Parameters.showYamProjection
+            ? UIUtils.buildValueBeforeText(
+                context,
+                currencyUtils.getFormattedAmount(currencyUtils.convert(portfolioDisplayValue), currencyUtils.currencySymbol, showAmounts),
+                '${S.of(context).projection} YAM ($percentageYamDisplay%)',
+                isLoading,
+                highlightPercentage: true,
+              )
+            : const SizedBox.shrink(),
         [
           // Section des totaux - mise en évidence avec un style particulier
           _buildSectionTitle(context, S.of(context).totalPortfolio, theme),
-          _buildTotalValue(
-              context,
-              currencyUtils.getFormattedAmount(
-                  currencyUtils.convert(totalPortfolioValue),
-                  currencyUtils.currencySymbol,
-                  showAmounts),
-              isLoading,
-              theme,
+          _buildTotalValue(context, currencyUtils.getFormattedAmount(currencyUtils.convert(totalPortfolioValue), currencyUtils.currencySymbol, showAmounts), isLoading, theme,
               showNetLabel: Parameters.showNetTotal),
-              
+
           // Ajout du total investi si l'option est activée
           if (Parameters.showTotalInvested)
             _buildSubtotalValue(
                 context,
-                currencyUtils.getFormattedAmount(
-                    currencyUtils.convert(dataManager.initialTotalValue + Parameters.initialInvestmentAdjustment),
-                    currencyUtils.currencySymbol,
-                    showAmounts),
+                currencyUtils.getFormattedAmount(currencyUtils.convert(dataManager.initialTotalValue + Parameters.initialInvestmentAdjustment), currencyUtils.currencySymbol, showAmounts),
                 S.of(context).initialInvestment,
                 isLoading,
                 theme),
-                
+
           const SizedBox(height: 3), // Réduit de 6 à 3
-          
+
           // Section des actifs - avec titre de section
-          _buildSectionTitle(context, "Actifs", theme),
-          _buildIndentedBalance(
-              S.of(context).wallet,
-              currencyUtils.convert(dataManager.walletValue),
-              currencyUtils.currencySymbol,
-              true,
-              context,
-              isLoading),
-          _buildIndentedBalance(
-              S.of(context).rmm,
-              currencyUtils.convert(dataManager.rmmValue),
-              currencyUtils.currencySymbol,
-              true,
-              context,
-              isLoading),
-          _buildIndentedBalance(
-              S.of(context).rwaHoldings,
-              currencyUtils.convert(dataManager.rwaHoldingsValue),
-              currencyUtils.currencySymbol,
-              true,
-              context,
-              isLoading),
-              
+          _buildSectionTitle(context, S.of(context).assets, theme),
+          _buildIndentedBalance(S.of(context).wallet, currencyUtils.convert(dataManager.walletValue), currencyUtils.currencySymbol, true, context, isLoading),
+          _buildIndentedBalance(S.of(context).rmm, currencyUtils.convert(dataManager.rmmValue), currencyUtils.currencySymbol, true, context, isLoading),
+          _buildIndentedBalance(S.of(context).rwaHoldings, currencyUtils.convert(dataManager.rwaHoldingsValue), currencyUtils.currencySymbol, true, context, isLoading),
+
           if (Parameters.showNetTotal) ...[
             const SizedBox(height: 3), // Réduit de 6 à 3
             // Section des dépôts et emprunts - avec titre de section
-            _buildSectionTitle(context, "Dépôts & Emprunts", theme),
+            _buildSectionTitle(context, S.of(context).depositsAndLoans, theme),
             _buildIndentedBalance(
-                S.of(context).depositBalance,
-                currencyUtils.convert(dataManager.totalUsdcDepositBalance +
-                    dataManager.totalXdaiDepositBalance),
-                currencyUtils.currencySymbol,
-                true,
-                context,
-                isLoading),
+                S.of(context).depositBalance, currencyUtils.convert(dataManager.totalUsdcDepositBalance + dataManager.totalXdaiDepositBalance), currencyUtils.currencySymbol, true, context, isLoading),
             _buildIndentedBalance(
-                S.of(context).borrowBalance,
-                currencyUtils.convert(dataManager.totalUsdcBorrowBalance +
-                    dataManager.totalXdaiBorrowBalance),
-                currencyUtils.currencySymbol,
-                false,
-                context,
-                isLoading),
+                S.of(context).borrowBalance, currencyUtils.convert(dataManager.totalUsdcBorrowBalance + dataManager.totalXdaiBorrowBalance), currencyUtils.currencySymbol, false, context, isLoading),
           ],
-          
+
           // Affichage de l'ajustement manuel si différent de zéro
           if (Parameters.manualAdjustment != 0) ...[
             const SizedBox(height: 3), // Réduit de 6 à 3
-            _buildSectionTitle(context, "Ajustements", theme),
+            _buildSectionTitle(context, S.of(context).adjustments, theme),
             _buildIndentedBalance(
-                S.of(context).manualAdjustment,
-                currencyUtils.convert(Parameters.manualAdjustment),
-                currencyUtils.currencySymbol,
-                Parameters.manualAdjustment > 0,
-                context,
-                isLoading),
+                S.of(context).manualAdjustment, currencyUtils.convert(Parameters.manualAdjustment), currencyUtils.currencySymbol, Parameters.manualAdjustment > 0, context, isLoading),
           ],
-          
+
           // Ajouter un espace pour assurer une hauteur minimale si nécessaire
-          if (visibleSections <= 2)
-            SizedBox(height: 10), // Réduit de 20 à 10
+          if (visibleSections <= 2) SizedBox(height: 10), // Réduit de 20 à 10
         ],
         dataManager,
         context,
@@ -204,9 +154,7 @@ class PortfolioCard extends StatelessWidget {
                     child: Icon(
                       Icons.settings_outlined,
                       size: 20,
-                      color: theme.brightness == Brightness.light 
-                          ? Colors.black54
-                          : Colors.white70,
+                      color: theme.brightness == Brightness.light ? Colors.black54 : Colors.white70,
                     ),
                   ),
                   onTap: () {
@@ -228,9 +176,7 @@ class PortfolioCard extends StatelessWidget {
                     child: Icon(
                       Icons.arrow_forward_ios_rounded,
                       size: 16,
-                      color: theme.brightness == Brightness.light 
-                          ? Colors.black54
-                          : Colors.white70,
+                      color: theme.brightness == Brightness.light ? Colors.black54 : Colors.white70,
                     ),
                   ),
                   onTap: () {
@@ -322,9 +268,7 @@ class PortfolioCard extends StatelessWidget {
       child: Row(
         children: [
           isLoading
-              ? Shimmer.fromColors(
-                  baseColor: theme.textTheme.bodyMedium?.color?.withOpacity(0.2) ?? Colors.grey[300]!,
-                  highlightColor: theme.textTheme.bodyMedium?.color?.withOpacity(0.5) ?? Colors.grey[100]!,
+              ? ShimmerUtils.originalColorShimmer(
                   child: Text(
                     formattedAmount,
                     style: TextStyle(
@@ -334,6 +278,7 @@ class PortfolioCard extends StatelessWidget {
                       color: theme.primaryColor,
                     ),
                   ),
+                  color: theme.primaryColor,
                 )
               : Text(
                   formattedAmount,
@@ -372,9 +317,7 @@ class PortfolioCard extends StatelessWidget {
       child: Row(
         children: [
           isLoading
-              ? Shimmer.fromColors(
-                  baseColor: theme.textTheme.bodyMedium?.color?.withOpacity(0.2) ?? Colors.grey[300]!,
-                  highlightColor: theme.textTheme.bodyMedium?.color?.withOpacity(0.6) ?? Colors.grey[100]!,
+              ? ShimmerUtils.originalColorShimmer(
                   child: Text(
                     formattedAmount,
                     style: TextStyle(
@@ -384,6 +327,7 @@ class PortfolioCard extends StatelessWidget {
                       color: theme.textTheme.bodyMedium?.color,
                     ),
                   ),
+                  color: theme.textTheme.bodyMedium?.color,
                 )
               : Text(
                   formattedAmount,
@@ -408,19 +352,15 @@ class PortfolioCard extends StatelessWidget {
     );
   }
 
-  Widget _buildIndentedBalance(String label, double value, String symbol,
-      bool isPositive, BuildContext context, bool isLoading) {
+  Widget _buildIndentedBalance(String label, double value, String symbol, bool isPositive, BuildContext context, bool isLoading) {
     final appState = Provider.of<AppState>(context);
     final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
     final theme = Theme.of(context);
 
-    String formattedAmount = showAmounts
-        ? (isPositive
-            ? "+ ${currencyUtils.formatCurrency(value, symbol)}"
-            : "- ${currencyUtils.formatCurrency(value, symbol)}")
-        : (isPositive ? "+ " : "- ") + ('*' * 10);
+    String formattedAmount =
+        showAmounts ? (isPositive ? "+ ${currencyUtils.formatCurrency(value, symbol)}" : "- ${currencyUtils.formatCurrency(value, symbol)}") : (isPositive ? "+ " : "- ") + ('*' * 10);
 
-    Color valueColor = isPositive 
+    Color valueColor = isPositive
         ? Color(0xFF34C759) // Vert iOS
         : Color(0xFFFF3B30); // Rouge iOS
 
@@ -429,11 +369,7 @@ class PortfolioCard extends StatelessWidget {
       child: Row(
         children: [
           isLoading
-              ? Shimmer.fromColors(
-                  baseColor: theme.textTheme.bodyMedium?.color?.withOpacity(0.2) ??
-                      Colors.grey[300]!,
-                  highlightColor: theme.textTheme.bodyMedium?.color?.withOpacity(0.5) ??
-                      Colors.grey[100]!,
+              ? ShimmerUtils.originalColorShimmer(
                   child: Text(
                     formattedAmount,
                     style: TextStyle(
@@ -443,6 +379,7 @@ class PortfolioCard extends StatelessWidget {
                       color: valueColor,
                     ),
                   ),
+                  color: valueColor,
                 )
               : Text(
                   formattedAmount,
@@ -459,9 +396,7 @@ class PortfolioCard extends StatelessWidget {
             style: TextStyle(
               fontSize: 13 + appState.getTextSizeOffset(),
               letterSpacing: -0.2,
-              color: theme.brightness == Brightness.light 
-                ? Colors.black54 
-                : Colors.white70,
+              color: theme.brightness == Brightness.light ? Colors.black54 : Colors.white70,
             ),
           ),
         ],
@@ -473,24 +408,24 @@ class PortfolioCard extends StatelessWidget {
     // Récupérer directement du DataManager pour les calculs
     final dataManager = Provider.of<DataManager>(context, listen: false);
     final theme = Theme.of(context);
-    
+
     // Utiliser la méthode d'origine qui calcule le ROI basé sur les loyers reçus
     // ROI = (Total des loyers reçus / Investissement initial) * 100
     double totalRentReceived = dataManager.getTotalRentReceived();
     double initialInvestment = dataManager.initialTotalValue + Parameters.initialInvestmentAdjustment;
-    
+
     // Vérifier si l'investissement initial est valide pour éviter la division par zéro
     double displayValue = 0.0;
     if (initialInvestment > 0) {
       displayValue = (totalRentReceived / initialInvestment) * 100;
-      
+
       // S'assurer que le ROI n'est jamais négatif
       displayValue = displayValue < 0 ? 0.0 : displayValue;
     }
-    
+
     // S'assurer que la valeur est valide
     displayValue = displayValue.isNaN || displayValue.isInfinite ? 0.0 : displayValue;
-    
+
     // Pourcentage limité entre 0% et 100% pour l'affichage (mais on peut avoir un ROI > 100%)
     double progress = (displayValue / 100).clamp(0.0, 1.0);
 
@@ -499,9 +434,12 @@ class PortfolioCard extends StatelessWidget {
 
     // Ajuster la hauteur de la jauge en fonction du nombre de sections visibles
     double gaugeHeight = 90.0; // Hauteur par défaut
-    if (visibleSections <= 2) gaugeHeight = 75.0;
-    else if (visibleSections == 3) gaugeHeight = 120.0;
-    else gaugeHeight = 160.0;
+    if (visibleSections <= 2)
+      gaugeHeight = 75.0;
+    else if (visibleSections == 3)
+      gaugeHeight = 120.0;
+    else
+      gaugeHeight = 160.0;
 
     double containerHeight = gaugeHeight + 50; // Ajouter de l'espace pour le texte et les marges
 
@@ -550,9 +488,7 @@ class PortfolioCard extends StatelessWidget {
                 child: Icon(
                   Icons.info_outline,
                   size: 14,
-                  color: theme.brightness == Brightness.light 
-                      ? Colors.black38
-                      : Colors.white38,
+                  color: theme.brightness == Brightness.light ? Colors.black38 : Colors.white38,
                 ),
               ),
             ],
@@ -563,9 +499,7 @@ class PortfolioCard extends StatelessWidget {
             width: 26,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(13),
-              color: theme.brightness == Brightness.light 
-                  ? Colors.black.withOpacity(0.05)
-                  : Colors.white.withOpacity(0.1),
+              color: theme.brightness == Brightness.light ? Colors.black.withOpacity(0.05) : Colors.white.withOpacity(0.1),
             ),
             child: Align(
               alignment: Alignment.bottomCenter,

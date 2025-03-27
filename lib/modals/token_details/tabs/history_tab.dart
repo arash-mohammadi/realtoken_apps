@@ -5,6 +5,8 @@ import 'package:realtokens/utils/currency_utils.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:realtokens/generated/l10n.dart';
 import 'package:realtokens/app_state.dart';
+import 'package:realtokens/managers/data_manager.dart';
+import 'package:realtokens/utils/shimmer_utils.dart';
 
 Widget buildHistoryTab(BuildContext context, Map<String, dynamic> token,
     bool isLoadingTransactions) {
@@ -48,9 +50,7 @@ Widget buildHistoryTab(BuildContext context, Map<String, dynamic> token,
                       padding: const EdgeInsets.all(16.0),
                       child: Row(
                         children: [
-                          Shimmer.fromColors(
-                            baseColor: Colors.grey[300]!,
-                            highlightColor: Colors.grey[100]!,
+                          ShimmerUtils.standardShimmer(
                             child: Container(
                               width: 40,
                               height: 40,
@@ -65,9 +65,7 @@ Widget buildHistoryTab(BuildContext context, Map<String, dynamic> token,
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Shimmer.fromColors(
-                                  baseColor: Colors.grey[300]!,
-                                  highlightColor: Colors.grey[100]!,
+                                ShimmerUtils.standardShimmer(
                                   child: Container(
                                     width: double.infinity,
                                     height: 14,
@@ -78,9 +76,7 @@ Widget buildHistoryTab(BuildContext context, Map<String, dynamic> token,
                                   ),
                                 ),
                                 const SizedBox(height: 8.0),
-                                Shimmer.fromColors(
-                                  baseColor: Colors.grey[300]!,
-                                  highlightColor: Colors.grey[100]!,
+                                ShimmerUtils.standardShimmer(
                                   child: Container(
                                     width: 100,
                                     height: 12,
@@ -117,15 +113,15 @@ Widget buildHistoryTab(BuildContext context, Map<String, dynamic> token,
                 Color iconColor;
                 Color bgColor;
 
-                if (transactionType == S.of(context).purchase) {
+                if (transactionType == DataManager.transactionTypePurchase) {
                   icon = Icons.shopping_cart;
                   iconColor = Colors.white;
                   bgColor = Colors.blue;
-                } else if (transactionType == S.of(context).internal_transfer) {
+                } else if (transactionType == DataManager.transactionTypeTransfer) {
                   icon = Icons.swap_horiz;
                   iconColor = Colors.white;
                   bgColor = Colors.grey;
-                } else if (transactionType == S.of(context).yam) {
+                } else if (transactionType == DataManager.transactionTypeYam) {
                   icon = Icons.price_change;
                   iconColor = Colors.white;
                   bgColor = Colors.orange;
@@ -154,7 +150,7 @@ Widget buildHistoryTab(BuildContext context, Map<String, dynamic> token,
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(12),
                       child: Material(
-                        color: Colors.transparent,
+                        color: Theme.of(context).cardColor,
                         child: InkWell(
                           onTap: () {
                             // Optionnellement: afficher plus de détails sur la transaction
@@ -189,7 +185,7 @@ Widget buildHistoryTab(BuildContext context, Map<String, dynamic> token,
                                     children: [
                                       // Type de transaction
                                       Text(
-                                        transactionType,
+                                        _getLocalizedTransactionType(transactionType, context),
                                         style: TextStyle(
                                           fontSize: 16 + appState.getTextSizeOffset(),
                                           fontWeight: FontWeight.w400,
@@ -281,7 +277,7 @@ Widget _buildSectionCard(BuildContext context, {required String title, required 
   return Container(
     margin: const EdgeInsets.only(bottom: 6),
     decoration: BoxDecoration(
-      color: Theme.of(context).cardColor,
+      color: Theme.of(context).scaffoldBackgroundColor,
       borderRadius: BorderRadius.circular(12),
       boxShadow: [
         BoxShadow(
@@ -309,4 +305,17 @@ Widget _buildSectionCard(BuildContext context, {required String title, required 
       ],
     ),
   );
+}
+
+// Méthode pour traduire les constantes en textes localisés
+String _getLocalizedTransactionType(String transactionType, BuildContext context) {
+  if (transactionType == DataManager.transactionTypePurchase) {
+    return S.of(context).purchase;
+  } else if (transactionType == DataManager.transactionTypeTransfer) {
+    return S.of(context).internal_transfer;
+  } else if (transactionType == DataManager.transactionTypeYam) {
+    return S.of(context).yam;
+  } else {
+    return S.of(context).unknownTransaction;
+  }
 }

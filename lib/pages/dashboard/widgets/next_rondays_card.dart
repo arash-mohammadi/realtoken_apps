@@ -13,8 +13,7 @@ class NextRondaysCard extends StatelessWidget {
   final bool showAmounts;
   final bool isLoading;
 
-  const NextRondaysCard(
-      {super.key, required this.showAmounts, required this.isLoading});
+  const NextRondaysCard({super.key, required this.showAmounts, required this.isLoading});
 
   @override
   Widget build(BuildContext context) {
@@ -36,21 +35,21 @@ class NextRondaysCard extends StatelessWidget {
   Widget _buildCumulativeRentHeader(BuildContext context, DataManager dataManager) {
     final theme = Theme.of(context);
     final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
-    
+
     final cumulativeRentEvolution = dataManager.getCumulativeRentEvolution();
     DateTime today = DateTime.now();
-    
+
     // Filtrer pour n'afficher que les dates futures
     final futureRentEvolution = cumulativeRentEvolution.where((entry) {
       DateTime rentStartDate = entry['rentStartDate'];
       return rentStartDate.isAfter(today);
     }).toList();
-    
+
     if (futureRentEvolution.isEmpty) {
       return Container(
         padding: EdgeInsets.symmetric(vertical: 8),
         child: Text(
-          "Aucun RONday programmé",
+          S.of(context).noScheduledRonday,
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w500,
@@ -60,11 +59,11 @@ class NextRondaysCard extends StatelessWidget {
         ),
       );
     }
-    
+
     // Trouver la prochaine date
     DateTime nextDate = futureRentEvolution.first['rentStartDate'];
     double nextAmount = futureRentEvolution.first['cumulativeRent'];
-    
+
     for (var entry in futureRentEvolution) {
       DateTime entryDate = entry['rentStartDate'];
       if (entryDate.isBefore(nextDate)) {
@@ -72,10 +71,10 @@ class NextRondaysCard extends StatelessWidget {
         nextAmount = entry['cumulativeRent'];
       }
     }
-    
+
     // Calculer le nombre de jours restants
     int daysRemaining = nextDate.difference(today).inDays;
-    
+
     return Container(
       padding: EdgeInsets.symmetric(vertical: 4),
       child: Row(
@@ -84,7 +83,7 @@ class NextRondaysCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                "Prochain RONday dans $daysRemaining jours",
+                S.of(context).nextRondayInDays(daysRemaining),
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
@@ -99,9 +98,7 @@ class NextRondaysCard extends StatelessWidget {
                   fontSize: 13,
                   fontWeight: FontWeight.w400,
                   letterSpacing: -0.3,
-                  color: theme.brightness == Brightness.light 
-                    ? Colors.black54 
-                    : Colors.white70,
+                  color: theme.brightness == Brightness.light ? Colors.black54 : Colors.white70,
                 ),
               ),
             ],
@@ -111,8 +108,7 @@ class NextRondaysCard extends StatelessWidget {
     );
   }
 
-  Widget _buildMiniGraphForNextRondays(
-      DataManager dataManager, BuildContext context) {
+  Widget _buildMiniGraphForNextRondays(DataManager dataManager, BuildContext context) {
     final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
     final theme = Theme.of(context);
     final cumulativeRentEvolution = dataManager.getCumulativeRentEvolution();
@@ -158,9 +154,7 @@ class NextRondaysCard extends StatelessWidget {
           child: Icon(
             Icons.event_busy_rounded,
             size: 40,
-            color: theme.brightness == Brightness.light
-                ? Colors.black12
-                : Colors.white10,
+            color: theme.brightness == Brightness.light ? Colors.black12 : Colors.white10,
           ),
         ),
       );
@@ -192,9 +186,7 @@ class NextRondaysCard extends StatelessWidget {
                         graphData[value.toInt()]['date'],
                         style: TextStyle(
                           fontSize: 9,
-                          color: theme.brightness == Brightness.light
-                            ? Colors.black54
-                            : Colors.white70,
+                          color: theme.brightness == Brightness.light ? Colors.black54 : Colors.white70,
                           letterSpacing: -0.5,
                         ),
                       ),
@@ -274,9 +266,7 @@ class NextRondaysCard extends StatelessWidget {
     List<Widget> rentItems = [];
 
     if (futureRentEvolution.isEmpty) {
-      return [
-        SizedBox.shrink()
-      ];
+      return [SizedBox.shrink()];
     }
 
     // Titre de section
@@ -295,7 +285,7 @@ class NextRondaysCard extends StatelessWidget {
             ),
             const SizedBox(width: 8),
             Text(
-              "Calendrier",
+              S.of(context).calendar,
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
@@ -315,24 +305,20 @@ class NextRondaysCard extends StatelessWidget {
       if (displayedDates.contains(rentStartDate)) {
         continue;
       }
-      
+
       displayedDates.add(rentStartDate);
 
-      String displayDate = rentStartDate == DateTime(3000, 1, 1)
-          ? 'Date non communiquée'
-          : DateFormat('dd MMM yyyy').format(rentStartDate);
+      String displayDate = rentStartDate == DateTime(3000, 1, 1) ? S.of(context).dateNotCommunicated : DateFormat('dd MMM yyyy').format(rentStartDate);
 
       // Calculer le nombre de jours restants
       int daysRemaining = rentStartDate.difference(today).inDays;
-      
+
       rentItems.add(
         Container(
           margin: EdgeInsets.symmetric(vertical: 2),
           padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
           decoration: BoxDecoration(
-            color: theme.brightness == Brightness.light
-                ? Color(0xFFF2F2F7)
-                : Colors.black26,
+            color: theme.brightness == Brightness.light ? Color(0xFFF2F2F7) : Colors.black26,
             borderRadius: BorderRadius.circular(8),
           ),
           child: Row(
@@ -360,23 +346,17 @@ class NextRondaysCard extends StatelessWidget {
                   ),
                   SizedBox(width: 4),
                   Text(
-                    "+$daysRemaining j",
+                    S.of(context).daysShort(daysRemaining),
                     style: TextStyle(
                       fontSize: 11,
                       letterSpacing: -0.3,
-                      color: theme.brightness == Brightness.light
-                          ? Colors.black38
-                          : Colors.white54,
+                      color: theme.brightness == Brightness.light ? Colors.black38 : Colors.white54,
                     ),
                   ),
                 ],
               ),
               Text(
-                currencyUtils.getFormattedAmount(
-                  currencyUtils.convert(entry['cumulativeRent']),
-                  currencyUtils.currencySymbol,
-                  showAmounts
-                ),
+                currencyUtils.getFormattedAmount(currencyUtils.convert(entry['cumulativeRent']), currencyUtils.currencySymbol, showAmounts),
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,

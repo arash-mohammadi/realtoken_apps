@@ -291,10 +291,10 @@ class S {
   }
 
   /// `Rented Units`
-  String get rentedUnits {
+  String get rentedUnitsSimple {
     return Intl.message(
       'Rented Units',
-      name: 'rentedUnits',
+      name: 'rentedUnitsSimple',
       desc: '',
       args: [],
     );
@@ -750,6 +750,26 @@ class S {
     );
   }
 
+  /// `Unknown Region`
+  String get unknownRegion {
+    return Intl.message(
+      'Unknown Region',
+      name: 'unknownRegion',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Unknown country`
+  String get unknownCountry {
+    return Intl.message(
+      'Unknown country',
+      name: 'unknownCountry',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Name Unavailable`
   String get nameUnavailable {
     return Intl.message(
@@ -1100,10 +1120,10 @@ class S {
     );
   }
 
-  /// `Token Distribution by Property Type`
+  /// `Token Distribution`
   String get tokenDistribution {
     return Intl.message(
-      'Token Distribution by Property Type',
+      'Token Distribution',
       name: 'tokenDistribution',
       desc: '',
       args: [],
@@ -2200,16 +2220,6 @@ class S {
     );
   }
 
-  /// `Unknown country`
-  String get unknownCountry {
-    return Intl.message(
-      'Unknown country',
-      name: 'unknownCountry',
-      desc: '',
-      args: [],
-    );
-  }
-
   /// `No market offers available`
   String get no_market_offers_available {
     return Intl.message(
@@ -2640,10 +2650,10 @@ class S {
     );
   }
 
-  /// `Not Connected`
+  /// `Not connected`
   String get notConnected {
     return Intl.message(
-      'Not Connected',
+      'Not connected',
       name: 'notConnected',
       desc: '',
       args: [],
@@ -3080,6 +3090,546 @@ class S {
     );
   }
 
+  /// `Legend`
+  String get legend {
+    return Intl.message(
+      'Legend',
+      name: 'legend',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Total`
+  String get total {
+    return Intl.message(
+      'Total',
+      name: 'total',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Invalid coordinates for the property`
+  String get invalidCoordinates {
+    return Intl.message(
+      'Invalid coordinates for the property',
+      name: 'invalidCoordinates',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Investment`
+  String get investment {
+    return Intl.message(
+      'Investment',
+      name: 'investment',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Wallets containing this token`
+  String get walletsContainingToken {
+    return Intl.message(
+      'Wallets containing this token',
+      name: 'walletsContainingToken',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No tokens available`
+  String get noTokensAvailable {
+    return Intl.message(
+      'No tokens available',
+      name: 'noTokensAvailable',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No tokens with valid coordinates found on the map`
+  String get noTokensWithValidCoordinates {
+    return Intl.message(
+      'No tokens with valid coordinates found on the map',
+      name: 'noTokensWithValidCoordinates',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Assets`
+  String get assets {
+    return Intl.message(
+      'Assets',
+      name: 'assets',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Deposits & Loans`
+  String get depositsAndLoans {
+    return Intl.message(
+      'Deposits & Loans',
+      name: 'depositsAndLoans',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Adjustments`
+  String get adjustments {
+    return Intl.message(
+      'Adjustments',
+      name: 'adjustments',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `projection`
+  String get projection {
+    return Intl.message(
+      'projection',
+      name: 'projection',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Show YAM projection`
+  String get showYamProjection {
+    return Intl.message(
+      'Show YAM projection',
+      name: 'showYamProjection',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Portfolio projection by YAM`
+  String get yamProjectionDescription {
+    return Intl.message(
+      'Portfolio projection by YAM',
+      name: 'yamProjectionDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Google Drive`
+  String get googleDriveTitle {
+    return Intl.message(
+      'Google Drive',
+      name: 'googleDriveTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Google Drive connection`
+  String get googleDriveConnection {
+    return Intl.message(
+      'Google Drive connection',
+      name: 'googleDriveConnection',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Automatic synchronization`
+  String get autoSync {
+    return Intl.message(
+      'Automatic synchronization',
+      name: 'autoSync',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Synchronization completed with Google Drive`
+  String get syncCompleteWithGoogleDrive {
+    return Intl.message(
+      'Synchronization completed with Google Drive',
+      name: 'syncCompleteWithGoogleDrive',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Connect to Google Drive before synchronization`
+  String get connectBeforeSyncMessage {
+    return Intl.message(
+      'Connect to Google Drive before synchronization',
+      name: 'connectBeforeSyncMessage',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Data backup`
+  String get dataBackup {
+    return Intl.message(
+      'Data backup',
+      name: 'dataBackup',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Add address`
+  String get addAddress {
+    return Intl.message(
+      'Add address',
+      name: 'addAddress',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Wallet address`
+  String get walletAddress {
+    return Intl.message(
+      'Wallet address',
+      name: 'walletAddress',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Invalid wallet address`
+  String get invalidWalletAddress {
+    return Intl.message(
+      'Invalid wallet address',
+      name: 'invalidWalletAddress',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Wallet saved: {address}`
+  String walletSaved(Object address) {
+    return Intl.message(
+      'Wallet saved: $address',
+      name: 'walletSaved',
+      desc: '',
+      args: [address],
+    );
+  }
+
+  /// `Invalid wallet in QR Code`
+  String get invalidWalletInQR {
+    return Intl.message(
+      'Invalid wallet in QR Code',
+      name: 'invalidWalletInQR',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Scan QR Code`
+  String get scanQRCode {
+    return Intl.message(
+      'Scan QR Code',
+      name: 'scanQRCode',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Biometric authentication`
+  String get biometricAuthentication {
+    return Intl.message(
+      'Biometric authentication',
+      name: 'biometricAuthentication',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Security`
+  String get security {
+    return Intl.message(
+      'Security',
+      name: 'security',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Checking biometric capabilities...`
+  String get checkingBiometricCapabilities {
+    return Intl.message(
+      'Checking biometric capabilities...',
+      name: 'checkingBiometricCapabilities',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `This device supports {biometricType}`
+  String deviceSupportsBiometric(String biometricType) {
+    return Intl.message(
+      'This device supports $biometricType',
+      name: 'deviceSupportsBiometric',
+      desc: '',
+      args: [biometricType],
+    );
+  }
+
+  /// `This device does not support biometric authentication`
+  String get deviceDoesNotSupportBiometric {
+    return Intl.message(
+      'This device does not support biometric authentication',
+      name: 'deviceDoesNotSupportBiometric',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Biometric error`
+  String get biometricError {
+    return Intl.message(
+      'Biometric error',
+      name: 'biometricError',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Testing authentication...`
+  String get testingAuthentication {
+    return Intl.message(
+      'Testing authentication...',
+      name: 'testingAuthentication',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `This is a biometric authentication test`
+  String get testAuthenticationReason {
+    return Intl.message(
+      'This is a biometric authentication test',
+      name: 'testAuthenticationReason',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Test successful`
+  String get testSuccessful {
+    return Intl.message(
+      'Test successful',
+      name: 'testSuccessful',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Test failed`
+  String get testFailed {
+    return Intl.message(
+      'Test failed',
+      name: 'testFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Error during test: {error}`
+  String errorDuringTest(String error) {
+    return Intl.message(
+      'Error during test: $error',
+      name: 'errorDuringTest',
+      desc: '',
+      args: [error],
+    );
+  }
+
+  /// `Refresh`
+  String get refresh {
+    return Intl.message(
+      'Refresh',
+      name: 'refresh',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Biometrics not available`
+  String get biometricsNotAvailable {
+    return Intl.message(
+      'Biometrics not available',
+      name: 'biometricsNotAvailable',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Your device does not support biometric authentication or no biometric data is registered in the device settings.`
+  String get deviceDoesNotSupport {
+    return Intl.message(
+      'Your device does not support biometric authentication or no biometric data is registered in the device settings.',
+      name: 'deviceDoesNotSupport',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Configure in system settings`
+  String get configureInSystemSettings {
+    return Intl.message(
+      'Configure in system settings',
+      name: 'configureInSystemSettings',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Enable biometric authentication`
+  String get enableBiometricAuthentication {
+    return Intl.message(
+      'Enable biometric authentication',
+      name: 'enableBiometricAuthentication',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Biometric authentication disabled`
+  String get biometricAuthenticationDisabled {
+    return Intl.message(
+      'Biometric authentication disabled',
+      name: 'biometricAuthenticationDisabled',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Test biometric authentication`
+  String get testBiometricAuthentication {
+    return Intl.message(
+      'Test biometric authentication',
+      name: 'testBiometricAuthentication',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `You can test biometric authentication to verify it works properly.`
+  String get testBiometricDescription {
+    return Intl.message(
+      'You can test biometric authentication to verify it works properly.',
+      name: 'testBiometricDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Biometric authentication activated successfully`
+  String get biometricAuthSuccessful {
+    return Intl.message(
+      'Biometric authentication activated successfully',
+      name: 'biometricAuthSuccessful',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `All Regions`
+  String get allRegions {
+    return Intl.message(
+      'All Regions',
+      name: 'allRegions',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Region`
+  String get regionFilterLabel {
+    return Intl.message(
+      'Region',
+      name: 'regionFilterLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `All Countries`
+  String get allCountries {
+    return Intl.message(
+      'All Countries',
+      name: 'allCountries',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Rental Status`
+  String get rentalStatusTitle {
+    return Intl.message(
+      'Rental Status',
+      name: 'rentalStatusTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Token Type`
+  String get tokenTypeTitle {
+    return Intl.message(
+      'Token Type',
+      name: 'tokenTypeTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Grid`
+  String get gridView {
+    return Intl.message(
+      'Grid',
+      name: 'gridView',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `List`
+  String get listView {
+    return Intl.message(
+      'List',
+      name: 'listView',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Export`
+  String get exportButton {
+    return Intl.message(
+      'Export',
+      name: 'exportButton',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Import`
+  String get importButton {
+    return Intl.message(
+      'Import',
+      name: 'importButton',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Bedroom/Bath`
   String get bedroomBath {
     return Intl.message(
@@ -3177,6 +3727,496 @@ class S {
       name: 'selectCurrency',
       desc: '',
       args: [],
+    );
+  }
+
+  /// `Thank you for your feedback!`
+  String get thankYouForFeedback {
+    return Intl.message(
+      'Thank you for your feedback!',
+      name: 'thankYouForFeedback',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `The review request couldn't be displayed. Would you like to open the app page in the Store to leave a review?`
+  String get reviewRequestUnavailable {
+    return Intl.message(
+      'The review request couldn\'t be displayed. Would you like to open the app page in the Store to leave a review?',
+      name: 'reviewRequestUnavailable',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No, thanks`
+  String get noThanks {
+    return Intl.message(
+      'No, thanks',
+      name: 'noThanks',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Yes, with pleasure`
+  String get yesWithPleasure {
+    return Intl.message(
+      'Yes, with pleasure',
+      name: 'yesWithPleasure',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Verifying authentication...`
+  String get verifyingAuthentication {
+    return Intl.message(
+      'Verifying authentication...',
+      name: 'verifyingAuthentication',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Authenticate with {biometricType}`
+  String authenticateWithBiometric(Object biometricType) {
+    return Intl.message(
+      'Authenticate with $biometricType',
+      name: 'authenticateWithBiometric',
+      desc: '',
+      args: [biometricType],
+    );
+  }
+
+  /// `Continue without authentication`
+  String get continueWithoutAuthentication {
+    return Intl.message(
+      'Continue without authentication',
+      name: 'continueWithoutAuthentication',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Please authenticate to continue`
+  String get pleaseAuthenticateToAccess {
+    return Intl.message(
+      'Please authenticate to continue',
+      name: 'pleaseAuthenticateToAccess',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Biometric authentication failed`
+  String get biometricAuthenticationFailed {
+    return Intl.message(
+      'Biometric authentication failed',
+      name: 'biometricAuthenticationFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No scheduled RONday`
+  String get noScheduledRonday {
+    return Intl.message(
+      'No scheduled RONday',
+      name: 'noScheduledRonday',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Next RONday in {days} days`
+  String nextRondayInDays(Object days) {
+    return Intl.message(
+      'Next RONday in $days days',
+      name: 'nextRondayInDays',
+      desc: '',
+      args: [days],
+    );
+  }
+
+  /// `Calendar`
+  String get calendar {
+    return Intl.message(
+      'Calendar',
+      name: 'calendar',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Date not communicated`
+  String get dateNotCommunicated {
+    return Intl.message(
+      'Date not communicated',
+      name: 'dateNotCommunicated',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `+{days} d`
+  String daysShort(Object days) {
+    return Intl.message(
+      '+$days d',
+      name: 'daysShort',
+      desc: '',
+      args: [days],
+    );
+  }
+
+  /// `RMM Health`
+  String get rmmHealth {
+    return Intl.message(
+      'RMM Health',
+      name: 'rmmHealth',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Health Factor: Higher = Safer`
+  String get healthFactorSafer {
+    return Intl.message(
+      'Health Factor: Higher = Safer',
+      name: 'healthFactorSafer',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `LTV: Lower = Safer`
+  String get ltvSafer {
+    return Intl.message(
+      'LTV: Lower = Safer',
+      name: 'ltvSafer',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Invalid data for chart display`
+  String get invalidDataForChart {
+    return Intl.message(
+      'Invalid data for chart display',
+      name: 'invalidDataForChart',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `LTV`
+  String get ltv {
+    return Intl.message(
+      'LTV',
+      name: 'ltv',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `HF`
+  String get hf {
+    return Intl.message(
+      'HF',
+      name: 'hf',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Rent distribution by wallet`
+  String get rentDistributionByWallet {
+    return Intl.message(
+      'Rent distribution by wallet',
+      name: 'rentDistributionByWallet',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Chart type`
+  String get chartType {
+    return Intl.message(
+      'Chart type',
+      name: 'chartType',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Total Balance`
+  String get totalBalance {
+    return Intl.message(
+      'Total Balance',
+      name: 'totalBalance',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Wallet Details`
+  String get walletDetails {
+    return Intl.message(
+      'Wallet Details',
+      name: 'walletDetails',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Support`
+  String get support {
+    return Intl.message(
+      'Support',
+      name: 'support',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Rate App`
+  String get rateApp {
+    return Intl.message(
+      'Rate App',
+      name: 'rateApp',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Changelog`
+  String get changelog {
+    return Intl.message(
+      'Changelog',
+      name: 'changelog',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Settings`
+  String get settingsCategory {
+    return Intl.message(
+      'Settings',
+      name: 'settingsCategory',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Net APY`
+  String get netApy {
+    return Intl.message(
+      'Net APY',
+      name: 'netApy',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Copy address`
+  String get copyAddress {
+    return Intl.message(
+      'Copy address',
+      name: 'copyAddress',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Global Portfolio`
+  String get portfolioGlobal {
+    return Intl.message(
+      'Global Portfolio',
+      name: 'portfolioGlobal',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `RMM Details`
+  String get rmmDetails {
+    return Intl.message(
+      'RMM Details',
+      name: 'rmmDetails',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Deposits`
+  String get deposits {
+    return Intl.message(
+      'Deposits',
+      name: 'deposits',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Loans`
+  String get loans {
+    return Intl.message(
+      'Loans',
+      name: 'loans',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `RMM Value`
+  String get rmmValue {
+    return Intl.message(
+      'RMM Value',
+      name: 'rmmValue',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Wallets without RMM usage`
+  String get walletsWithoutRmmUsage {
+    return Intl.message(
+      'Wallets without RMM usage',
+      name: 'walletsWithoutRmmUsage',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No data available.`
+  String get noDataAvailableDot {
+    return Intl.message(
+      'No data available.',
+      name: 'noDataAvailableDot',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Overview`
+  String get overview {
+    return Intl.message(
+      'Overview',
+      name: 'overview',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Occupancy Rate`
+  String get occupancyRate {
+    return Intl.message(
+      'Occupancy Rate',
+      name: 'occupancyRate',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Wallets`
+  String get wallets {
+    return Intl.message(
+      'Wallets',
+      name: 'wallets',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Rented units: {rented}/{total}`
+  String rentedUnits(Object rented, Object total) {
+    return Intl.message(
+      'Rented units: $rented/$total',
+      name: 'rentedUnits',
+      desc: '',
+      args: [rented, total],
+    );
+  }
+
+  /// `Low`
+  String get occupancyStatusLow {
+    return Intl.message(
+      'Low',
+      name: 'occupancyStatusLow',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Medium`
+  String get occupancyStatusMedium {
+    return Intl.message(
+      'Medium',
+      name: 'occupancyStatusMedium',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `High`
+  String get occupancyStatusHigh {
+    return Intl.message(
+      'High',
+      name: 'occupancyStatusHigh',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Total tokens`
+  String get totalTokensLabel {
+    return Intl.message(
+      'Total tokens',
+      name: 'totalTokensLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Copied!`
+  String get copied {
+    return Intl.message(
+      'Copied!',
+      name: 'copied',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `The address has been copied to the clipboard.`
+  String get addressCopiedMessage {
+    return Intl.message(
+      'The address has been copied to the clipboard.',
+      name: 'addressCopiedMessage',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No wallets available.`
+  String get noWalletsAvailable {
+    return Intl.message(
+      'No wallets available.',
+      name: 'noWalletsAvailable',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Rented units: {rented}/{total}`
+  String unitesLouees(Object rented, Object total) {
+    return Intl.message(
+      'Rented units: $rented/$total',
+      name: 'unitesLouees',
+      desc: '',
+      args: [rented, total],
     );
   }
 }

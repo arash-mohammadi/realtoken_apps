@@ -49,7 +49,6 @@ class _AdvancedSettingsPageState extends State<AdvancedSettingsPage> {
         padding: EdgeInsets.zero,
         children: [
           const SizedBox(height: 12),
-          
           _buildSectionHeader(context, "Historique YAM", CupertinoIcons.chart_bar_alt_fill),
           _buildSettingsSection(
             context,
@@ -65,9 +64,7 @@ class _AdvancedSettingsPageState extends State<AdvancedSettingsPage> {
               ),
             ],
           ),
-          
           const SizedBox(height: 12),
-          
           _buildSectionHeader(context, "Réactivité APY", CupertinoIcons.waveform_path),
           _buildSettingsSection(
             context,
@@ -111,9 +108,7 @@ class _AdvancedSettingsPageState extends State<AdvancedSettingsPage> {
               ),
             ],
           ),
-          
           const SizedBox(height: 12),
-          
           _buildSectionHeader(context, "Gestion des données", CupertinoIcons.delete),
           _buildSettingsSection(
             context,
@@ -133,7 +128,7 @@ class _AdvancedSettingsPageState extends State<AdvancedSettingsPage> {
       ),
     );
   }
-  
+
   Widget _buildSectionHeader(BuildContext context, String title, IconData icon) {
     return Padding(
       padding: const EdgeInsets.only(left: 16, bottom: 6, top: 2),
@@ -154,7 +149,7 @@ class _AdvancedSettingsPageState extends State<AdvancedSettingsPage> {
       ),
     );
   }
-  
+
   Widget _buildSettingsSection(
     BuildContext context, {
     String? footnote,

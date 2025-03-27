@@ -7,9 +7,7 @@ import 'package:hive/hive.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiService {
-
-
-   /// Récupère toutes les adresses associées à une adresse Ethereum via FastAPI
+  /// Récupère toutes les adresses associées à une adresse Ethereum via FastAPI
   static Future<Map<String, dynamic>?> fetchUserAndAddresses(String address) async {
     final apiUrl = "${Parameters.mainApiUrl}/wallet_userId/$address";
 
@@ -47,58 +45,95 @@ class ApiService {
   }
 
   // Méthode factorisée pour fetch les tokens depuis The Graph
- static Future<List<dynamic>> fetchWalletTokens({bool forceFetch = false}) async {
-  final box = Hive.box('realTokens');
-  final prefs = await SharedPreferences.getInstance();
-  List<String> evmAddresses = prefs.getStringList('evmAddresses') ?? [];
+  static Future<List<dynamic>> fetchWalletTokens({bool forceFetch = false}) async {
+    final box = Hive.box('realTokens');
+    final prefs = await SharedPreferences.getInstance();
+    List<String> evmAddresses = prefs.getStringList('evmAddresses') ?? [];
 
-  if (evmAddresses.isEmpty) {
-    return [];
-  }
+    if (evmAddresses.isEmpty) {
+      return [];
+    }
 
-  final DateTime now = DateTime.now();
-  final cacheKey = 'wallet_tokens';
-  final lastFetchTime = box.get('lastFetchTime_$cacheKey');
+    final DateTime now = DateTime.now();
+    final cacheKey = 'wallet_tokens';
+    final lastFetchTime = box.get('lastFetchTime_$cacheKey');
 
-  if (!forceFetch && lastFetchTime != null) {
-    final DateTime lastFetch = DateTime.parse(lastFetchTime);
-    if (now.difference(lastFetch) < Parameters.apiCacheDuration) {
+    if (!forceFetch && lastFetchTime != null) {
+      final DateTime lastFetch = DateTime.parse(lastFetchTime);
+      if (now.difference(lastFetch) < Parameters.apiCacheDuration) {
+        final cachedData = box.get('cachedTokenData_$cacheKey');
+        if (cachedData != null) {
+          final tokens = jsonDecode(cachedData);
+          debugPrint("🔵 Tokens chargés depuis le cache: ${tokens.length} tokens");
+          return tokens;
+        }
+      }
+    }
+
+    try {
+      List<dynamic> allWalletTokens = [];
+      int successCount = 0;
+      int errorCount = 0;
+
+      for (String wallet in evmAddresses) {
+        final apiUrl = '${Parameters.mainApiUrl}/wallet_tokens/$wallet';
+        debugPrint("🔄 Récupération des tokens pour le wallet: $wallet");
+
+        try {
+          final response = await http.get(Uri.parse(apiUrl))
+              .timeout(Duration(seconds: 5), onTimeout: () {
+            throw TimeoutException('Délai dépassé pour la récupération des tokens du wallet $wallet');
+          });
+
+          if (response.statusCode == 200) {
+            final walletData = jsonDecode(response.body);
+            if (walletData is List && walletData.isNotEmpty) {
+              allWalletTokens.addAll(walletData);
+              successCount++;
+              debugPrint("✅ ${walletData.length} tokens récupérés pour le wallet $wallet");
+            } else {
+              debugPrint("⚠️ Aucun token trouvé pour le wallet $wallet");
+            }
+          } else {
+            errorCount++;
+            debugPrint("❌ Erreur récupération tokens wallet $wallet: Code HTTP ${response.statusCode}");
+          }
+        } catch (e) {
+          errorCount++;
+          debugPrint("❌ Exception lors de la récupération des tokens pour le wallet $wallet: $e");
+        }
+      }
+
+      debugPrint("📊 Récapitulatif: $successCount wallets réussis, $errorCount wallets en erreur");
+
+      // Mise en cache des données globales même si partielles
+      if (allWalletTokens.isNotEmpty) {
+        box.put('cachedTokenData_$cacheKey', jsonEncode(allWalletTokens));
+        debugPrint("🔵 Tokens fetched from API: ${allWalletTokens.length} tokens");
+        box.put('lastFetchTime_$cacheKey', now.toIso8601String());
+        box.put('lastExecutionTime_Portfolio ($cacheKey)', now.toIso8601String());
+      } else if (errorCount > 0) {
+        // Si échec complet mais cache disponible, on utilise le cache précédent
+        final cachedData = box.get('cachedTokenData_$cacheKey');
+        if (cachedData != null) {
+          debugPrint("⚠️ Utilisation du cache précédent suite à des erreurs");
+          return jsonDecode(cachedData);
+        }
+      }
+
+      return allWalletTokens;
+    } catch (e) {
+      debugPrint("❌ Erreur générale dans fetchWalletTokens: $e");
+      
+      // Utiliser le cache en cas d'échec complet
       final cachedData = box.get('cachedTokenData_$cacheKey');
       if (cachedData != null) {
+        debugPrint("⚠️ Utilisation du cache précédent suite à une erreur générale");
         return jsonDecode(cachedData);
       }
+      throw Exception('Échec récupération tokens: $e');
     }
   }
-
-  try {
-    List<dynamic> allWalletTokens = [];
-
-    for (String wallet in evmAddresses) {
-      final apiUrl = '${Parameters.mainApiUrl}/wallet_tokens/$wallet';
-
-      final response = await http.get(Uri.parse(apiUrl));
-
-      if (response.statusCode == 200) {
-        final walletData = jsonDecode(response.body);
-        allWalletTokens.addAll(walletData);
-      } else {
-        debugPrint('Erreur récupération tokens wallet $wallet');
-      }
-    }
-
-    // Mise en cache des données globales
-    box.put('cachedTokenData_$cacheKey', jsonEncode(allWalletTokens));
-    debugPrint("🔵 Tokens fetched from API: ${allWalletTokens.length} tokens");
-    //debugPrint("🔵 Tokens fetched from API: ${allWalletTokens}");
-    box.put('lastFetchTime_$cacheKey', now.toIso8601String());
-    box.put('lastExecutionTime_Portfolio ($cacheKey)', now.toIso8601String());
-
-    return allWalletTokens;
-  } catch (e) {
-    throw Exception('Échec récupération tokens: $e');
-  }
-}
-
 
   // Récupérer la liste complète des RealTokens depuis l'API pitswap
   static Future<List<dynamic>> fetchRealTokens({bool forceFetch = false}) async {
@@ -245,11 +280,11 @@ class ApiService {
     // Vérification du jour de la semaine et de la date de dernière mise à jour
     final lastFetchTime = box.get('lastRentFetchTime');
     bool shouldFetch = forceFetch;
-    
+
     if (!shouldFetch) {
       // Vérifier si aujourd'hui est mardi (jour 2 de la semaine)
       final bool isTuesday = now.weekday == DateTime.tuesday;
-      
+
       // Vérifier si la dernière mise à jour date de plus de 7 jours
       bool isOlderThanOneWeek = false;
       if (lastFetchTime != null) {
@@ -259,16 +294,16 @@ class ApiService {
         // Si pas de dernière mise à jour, on considère que c'est plus vieux que 7 jours
         isOlderThanOneWeek = true;
       }
-      
+
       // On fetch seulement si c'est mardi ou si ça fait plus de 7 jours
       shouldFetch = isTuesday || isOlderThanOneWeek;
-      
+
       if (!shouldFetch) {
         debugPrint("🛑 apiService: fetchRentData -> Requête annulée, ce n'est pas mardi et dernière mise à jour < 7 jours");
         return []; // Retourner une liste vide, le DataManager utilisera le cache
       }
     }
-    
+
     // Vérification du cache standard (temps minimum)
     if (!forceFetch && lastFetchTime != null) {
       final DateTime lastFetch = DateTime.parse(lastFetchTime);
@@ -304,7 +339,7 @@ class ApiService {
         for (var rentEntry in rentData) {
           // Vérifier si la date est une chaîne, puis la convertir en DateTime
           DateTime rentDate = DateTime.parse(rentEntry['date']);
-          
+
           // Ajouter 1 jour
           rentDate = rentDate.add(Duration(days: 1));
 
@@ -320,7 +355,7 @@ class ApiService {
             existingEntry['rent'] = (existingEntry['rent'] ?? 0) + (rentEntry['rent'] ?? 0);
           } else {
             mergedRentData.add({
-              'date': updatedDate,  // Utilisation de la date mise à jour
+              'date': updatedDate, // Utilisation de la date mise à jour
               'rent': rentEntry['rent'] ?? 0,
             });
           }
@@ -405,49 +440,49 @@ class ApiService {
     return mergedWhitelistTokens;
   }
 
- static Future<Map<String, dynamic>> fetchCurrencies() async {
-  final prefs = await SharedPreferences.getInstance();
+  static Future<Map<String, dynamic>> fetchCurrencies() async {
+    final prefs = await SharedPreferences.getInstance();
 
-  // Vérifier si les devises sont déjà en cache
-  final cachedData = prefs.getString('cachedCurrencies');
-  final cacheTime = prefs.getInt('cachedCurrenciesTime');
+    // Vérifier si les devises sont déjà en cache
+    final cachedData = prefs.getString('cachedCurrencies');
+    final cacheTime = prefs.getInt('cachedCurrenciesTime');
 
-  final currentTime = DateTime.now().millisecondsSinceEpoch;
-  const cacheDuration = 3600000; // 1 heure en millisecondes
+    final currentTime = DateTime.now().millisecondsSinceEpoch;
+    const cacheDuration = 3600000; // 1 heure en millisecondes
 
-  // Si les données sont en cache et n'ont pas expiré, retourner le cache
-  if (cachedData != null && cacheTime != null && (currentTime - cacheTime) < cacheDuration) {
-    return jsonDecode(cachedData) as Map<String, dynamic>;
-  }
-
-  try {
-    // Récupérer les devises depuis l'API
-    final response = await http.get(Uri.parse(Parameters.coingeckoUrl));
-
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      final currencies = data['market_data']['current_price'] as Map<String, dynamic>;
-
-      // Stocker les devises en cache
-      await prefs.setString('cachedCurrencies', jsonEncode(currencies));
-      await prefs.setInt('cachedCurrenciesTime', currentTime);
-      return currencies;
-    } else {
-      debugPrint('Erreur lors de la récupération des devises: ${response.statusCode}');
+    // Si les données sont en cache et n'ont pas expiré, retourner le cache
+    if (cachedData != null && cacheTime != null && (currentTime - cacheTime) < cacheDuration) {
+      return jsonDecode(cachedData) as Map<String, dynamic>;
     }
-  } catch (e) {
-    debugPrint('Exception lors du chargement des devises: $e');
-  }
 
-  // En cas d'erreur, retourner le cache si disponible ou un objet vide pour éviter le blocage
-  if (cachedData != null) {
-    return jsonDecode(cachedData) as Map<String, dynamic>;
-  } else {
-    return {};
+    try {
+      // Récupérer les devises depuis l'API
+      final response = await http.get(Uri.parse(Parameters.coingeckoUrl));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final currencies = data['market_data']['current_price'] as Map<String, dynamic>;
+
+        // Stocker les devises en cache
+        await prefs.setString('cachedCurrencies', jsonEncode(currencies));
+        await prefs.setInt('cachedCurrenciesTime', currentTime);
+        return currencies;
+      } else {
+        debugPrint('Erreur lors de la récupération des devises: ${response.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('Exception lors du chargement des devises: $e');
+    }
+
+    // En cas d'erreur, retourner le cache si disponible ou un objet vide pour éviter le blocage
+    if (cachedData != null) {
+      return jsonDecode(cachedData) as Map<String, dynamic>;
+    } else {
+      return {};
+    }
   }
-}
   // Récupérer le userId associé à une adresse Ethereum
-  
+
   static Future<List<Map<String, dynamic>>> fetchRmmBalances({bool forceFetch = false}) async {
     final prefs = await SharedPreferences.getInstance();
     List<String> evmAddresses = prefs.getStringList('evmAddresses') ?? [];
@@ -479,12 +514,7 @@ class ApiService {
       final gnosisXdaiResponse = await _fetchNativeBalance(address, forceFetch: forceFetch);
 
       // Vérification que toutes les requêtes ont retourné une valeur
-      if (usdcDepositResponse != null &&
-          usdcBorrowResponse != null &&
-          xdaiDepositResponse != null &&
-          xdaiBorrowResponse != null &&
-          gnosisUsdcResponse != null &&
-          gnosisXdaiResponse != null) {
+      if (usdcDepositResponse != null && usdcBorrowResponse != null && xdaiDepositResponse != null && xdaiBorrowResponse != null && gnosisUsdcResponse != null && gnosisXdaiResponse != null) {
         final timestamp = DateTime.now().toIso8601String();
 
         // Conversion des balances en double (USDC : 6 décimales, XDAI : 18 décimales)
@@ -650,20 +680,20 @@ class ApiService {
         // Si aujourd'hui n'est pas mardi, et le dernier fetch un mardi est de moins de 7 jours, charger depuis le cache
         if (now.weekday != DateTime.tuesday || (lastFetch.weekday == DateTime.tuesday && now.difference(lastFetch).inDays <= 7)) {
           debugPrint('⚠️ apiService: ehpst -> Pas de fetch API pour $walletAddress, chargement du cache');
-          
+
           // Charger depuis le cache pour ce wallet
           final cachedData = box.get('cachedDetailedRentData_$walletAddress');
           if (cachedData != null) {
             try {
               final List<Map<String, dynamic>> rentData = List<Map<String, dynamic>>.from(json.decode(cachedData));
-              
+
               // Vérifier et ajouter l'adresse du wallet si nécessaire
               for (var entry in rentData) {
                 if (!entry.containsKey('wallet') || entry['wallet'] == null) {
                   entry['wallet'] = walletAddress;
                 }
               }
-              
+
               allRentData.addAll(rentData);
               debugPrint("✅ apiService: Données de loyer chargées du cache pour $walletAddress (${rentData.length} entrées)");
             } catch (e) {
@@ -672,7 +702,7 @@ class ApiService {
           } else {
             debugPrint('⚠️ apiService: Pas de données en cache pour $walletAddress');
           }
-          
+
           continue; // Passer au wallet suivant
         }
       }
@@ -680,7 +710,7 @@ class ApiService {
       // Si on est mardi ou si le dernier fetch d'un mardi date de plus de 7 jours, effectuer la requête HTTP avec un timeout de 2 minutes
       final url = '${Parameters.rentTrackerUrl}/detailed_rent_holder/$walletAddress';
       debugPrint("🌐 apiService: Tentative de requête API pour $walletAddress: $url");
-      
+
       try {
         final response = await http.get(Uri.parse(url)).timeout(Duration(minutes: 2), onTimeout: () {
           // Gérer le timeout ici
@@ -691,10 +721,10 @@ class ApiService {
         // Si on reçoit un code 429, sauvegarder l'heure et arrêter
         if (response.statusCode == 429) {
           debugPrint('⚠️ apiService: ehpst -> 429 Too Many Requests pour le wallet $walletAddress');
-          
+
           // Essayer de charger depuis le cache
           _loadFromCache(box, walletAddress, allRentData);
-          
+
           break; // Sortir de la boucle et arrêter la méthode
         }
 
@@ -716,18 +746,18 @@ class ApiService {
           allRentData.addAll(rentData);
         } else {
           debugPrint('❌ apiService: Échec de la requête pour $walletAddress: ${response.statusCode}');
-          
+
           // Charger depuis le cache en cas d'échec
           _loadFromCache(box, walletAddress, allRentData);
         }
       } catch (e) {
         debugPrint('❌ Erreur lors de la requête HTTP pour $walletAddress: $e');
-        
+
         // Charger depuis le cache en cas d'erreur
         _loadFromCache(box, walletAddress, allRentData);
       }
     }
-    
+
     // Vérification finale pour s'assurer que toutes les entrées ont un wallet
     int entriesSansWallet = 0;
     for (var entry in allRentData) {
@@ -739,11 +769,11 @@ class ApiService {
     if (entriesSansWallet > 0) {
       debugPrint('⚠️ apiService: $entriesSansWallet entrées sans wallet ont été assignées à "unknown"');
     }
-    
+
     box.put('lastExecutionTime_Rents', now.toIso8601String());
-    
+
     debugPrint('✅ apiService: Fin du traitement - ${allRentData.length} entrées de données de loyer au total');
-    
+
     // Comptage des entrées par wallet
     Map<String, int> entriesPerWallet = {};
     for (var entry in allRentData) {
@@ -765,14 +795,14 @@ class ApiService {
     if (cachedData != null) {
       try {
         final List<Map<String, dynamic>> rentData = List<Map<String, dynamic>>.from(json.decode(cachedData));
-        
+
         // Vérifier et ajouter l'adresse du wallet si nécessaire
         for (var entry in rentData) {
           if (!entry.containsKey('wallet') || entry['wallet'] == null) {
             entry['wallet'] = walletAddress;
           }
         }
-        
+
         allRentData.addAll(rentData);
         debugPrint("✅ apiService: Données de loyer chargées du cache pour $walletAddress (${rentData.length} entrées)");
       } catch (e) {
@@ -847,110 +877,109 @@ class ApiService {
     }
   }
 
+  static Future<List<dynamic>> fetchTransactionsHistory({bool forceFetch = false}) async {
+    var box = Hive.box('realTokens');
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String> evmAddresses = prefs.getStringList('evmAddresses') ?? [];
 
-
- static Future<List<dynamic>> fetchTransactionsHistory({bool forceFetch = false}) async {
-  var box = Hive.box('realTokens');
-  final SharedPreferences prefs = await SharedPreferences.getInstance();
-  List<String> evmAddresses = prefs.getStringList('evmAddresses') ?? [];
-
-  if (evmAddresses.isEmpty) {
-    return [];
-  }
-
-  final DateTime now = DateTime.now();
-  final cacheKey = 'transactions_history';
-  final lastFetchTime = box.get('lastFetchTime_$cacheKey');
-
-  // Vérifier le cache avant de récupérer à nouveau les données
-  if (!forceFetch && lastFetchTime != null) {
-    final DateTime lastFetch = DateTime.parse(lastFetchTime);
-    if (now.difference(lastFetch) < Parameters.apiCacheDuration) {
-      final cachedData = box.get('cachedTransactionsData_$cacheKey');
-      if (cachedData != null) {
-        return jsonDecode(cachedData);
-      }
+    if (evmAddresses.isEmpty) {
+      return [];
     }
-  }
 
-  try {
-    List<dynamic> allTransactions = [];
+    final DateTime now = DateTime.now();
+    final cacheKey = 'transactions_history';
+    final lastFetchTime = box.get('lastFetchTime_$cacheKey');
 
-    for (String wallet in evmAddresses) {
-      final apiUrl = '${Parameters.mainApiUrl}/transactions_history/$wallet';
-
-      final response = await http.get(Uri.parse(apiUrl));
-
-      if (response.statusCode == 200) {
-        final walletData = jsonDecode(response.body);
-        allTransactions.addAll(walletData);
-      } else {
-        debugPrint("⚠️ Erreur récupération transactions pour le wallet: $wallet");
+    // Vérifier le cache avant de récupérer à nouveau les données
+    if (!forceFetch && lastFetchTime != null) {
+      final DateTime lastFetch = DateTime.parse(lastFetchTime);
+      if (now.difference(lastFetch) < Parameters.apiCacheDuration) {
+        final cachedData = box.get('cachedTransactionsData_$cacheKey');
+        if (cachedData != null) {
+          return jsonDecode(cachedData);
+        }
       }
     }
 
-    // Mise en cache des données globales
-    box.put('cachedTransactionsData_$cacheKey', jsonEncode(allTransactions));
-    box.put('lastFetchTime_$cacheKey', now.toIso8601String());
-    box.put('lastExecutionTime_Transactions', now.toIso8601String());
+    try {
+      List<dynamic> allTransactions = [];
 
-    debugPrint("✅ Transactions récupérées: ${allTransactions.length}");
+      for (String wallet in evmAddresses) {
+        final apiUrl = '${Parameters.mainApiUrl}/transactions_history/$wallet';
 
-    return allTransactions;
-  } catch (e) {
-    throw Exception('❌ Échec récupération des transactions: $e');
+        final response = await http.get(Uri.parse(apiUrl));
+
+        if (response.statusCode == 200) {
+          final walletData = jsonDecode(response.body);
+          allTransactions.addAll(walletData);
+        } else {
+          debugPrint("⚠️ Erreur récupération transactions pour le wallet: $wallet");
+        }
+      }
+
+      // Mise en cache des données globales
+      box.put('cachedTransactionsData_$cacheKey', jsonEncode(allTransactions));
+      box.put('lastFetchTime_$cacheKey', now.toIso8601String());
+      box.put('lastExecutionTime_Transactions', now.toIso8601String());
+
+      debugPrint("✅ Transactions récupérées: ${allTransactions.length}");
+
+      return allTransactions;
+    } catch (e) {
+      throw Exception('❌ Échec récupération des transactions: $e');
+    }
+  }
+
+  static Future<List<dynamic>> fetchYamWalletsTransactions({bool forceFetch = false}) async {
+    var box = Hive.box('realTokens');
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String> evmAddresses = prefs.getStringList('evmAddresses') ?? [];
+
+    if (evmAddresses.isEmpty) {
+      return [];
+    }
+
+    final DateTime now = DateTime.now();
+    final cacheKey = 'yam_wallet_transactions';
+    final lastFetchTime = box.get('lastFetchTime_$cacheKey');
+
+    // Vérifier le cache avant de récupérer à nouveau les données
+    if (!forceFetch && lastFetchTime != null) {
+      final DateTime lastFetch = DateTime.parse(lastFetchTime);
+      if (now.difference(lastFetch) < Parameters.apiCacheDuration) {
+        final cachedData = box.get('cachedTransactionsData_$cacheKey');
+        if (cachedData != null) {
+          return jsonDecode(cachedData);
+        }
+      }
+    }
+
+    try {
+      List<dynamic> allYamTransactions = [];
+
+      for (String wallet in evmAddresses) {
+        final apiUrl = '${Parameters.mainApiUrl}/YAM_transactions_history/$wallet';
+
+        final response = await http.get(Uri.parse(apiUrl));
+
+        if (response.statusCode == 200) {
+          final walletData = jsonDecode(response.body);
+          allYamTransactions.addAll(walletData);
+        } else {
+          debugPrint("⚠️ Erreur récupération transactions YAM pour le wallet: $wallet");
+        }
+      }
+
+      // Mise en cache des données globales
+      box.put('cachedTransactionsData_$cacheKey', jsonEncode(allYamTransactions));
+      box.put('lastFetchTime_$cacheKey', now.toIso8601String());
+      box.put('lastExecutionTime_YAM transactions', now.toIso8601String());
+
+      debugPrint("✅ Transactions YAM récupérées: ${allYamTransactions.length}");
+
+      return allYamTransactions;
+    } catch (e) {
+      throw Exception('❌ Échec récupération des transactions YAM: $e');
+    }
   }
 }
-
-static Future<List<dynamic>> fetchYamWalletsTransactions({bool forceFetch = false}) async {
-  var box = Hive.box('realTokens');
-  final SharedPreferences prefs = await SharedPreferences.getInstance();
-  List<String> evmAddresses = prefs.getStringList('evmAddresses') ?? [];
-
-  if (evmAddresses.isEmpty) {
-    return [];
-  }
-
-  final DateTime now = DateTime.now();
-  final cacheKey = 'yam_wallet_transactions';
-  final lastFetchTime = box.get('lastFetchTime_$cacheKey');
-
-  // Vérifier le cache avant de récupérer à nouveau les données
-  if (!forceFetch && lastFetchTime != null) {
-    final DateTime lastFetch = DateTime.parse(lastFetchTime);
-    if (now.difference(lastFetch) < Parameters.apiCacheDuration) {
-      final cachedData = box.get('cachedTransactionsData_$cacheKey');
-      if (cachedData != null) {
-        return jsonDecode(cachedData);
-      }
-    }
-  }
-
-  try {
-    List<dynamic> allYamTransactions = [];
-
-    for (String wallet in evmAddresses) {
-      final apiUrl = '${Parameters.mainApiUrl}/YAM_transactions_history/$wallet';
-
-      final response = await http.get(Uri.parse(apiUrl));
-
-      if (response.statusCode == 200) {
-        final walletData = jsonDecode(response.body);
-        allYamTransactions.addAll(walletData);
-      } else {
-        debugPrint("⚠️ Erreur récupération transactions YAM pour le wallet: $wallet");
-      }
-    }
-
-    // Mise en cache des données globales
-    box.put('cachedTransactionsData_$cacheKey', jsonEncode(allYamTransactions));
-    box.put('lastFetchTime_$cacheKey', now.toIso8601String());
-    box.put('lastExecutionTime_YAM transactions', now.toIso8601String());
-
-    debugPrint("✅ Transactions YAM récupérées: ${allYamTransactions.length}");
-
-    return allYamTransactions;
-  } catch (e) {
-    throw Exception('❌ Échec récupération des transactions YAM: $e');
-  }
-}}

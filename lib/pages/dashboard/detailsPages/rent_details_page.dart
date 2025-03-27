@@ -16,8 +16,7 @@ class DashboardRentsDetailsPage extends StatefulWidget {
   const DashboardRentsDetailsPage({super.key});
 
   @override
-  _DashboardRentsDetailsPageState createState() =>
-      _DashboardRentsDetailsPageState();
+  _DashboardRentsDetailsPageState createState() => _DashboardRentsDetailsPageState();
 }
 
 class _DashboardRentsDetailsPageState extends State<DashboardRentsDetailsPage> with SingleTickerProviderStateMixin {
@@ -31,17 +30,15 @@ class _DashboardRentsDetailsPageState extends State<DashboardRentsDetailsPage> w
     super.initState();
     _scrollController = ScrollController();
     _scrollController.addListener(_onScroll);
-    
+
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 300),
     );
-    
-    _animation = Tween<double>(begin: 1.0, end: 0.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut)
-    );
+
+    _animation = Tween<double>(begin: 1.0, end: 0.0).animate(CurvedAnimation(parent: _animationController, curve: Curves.easeInOut));
   }
-  
+
   void _onScroll() {
     if (_scrollController.offset > 50 && _isGraphVisible) {
       setState(() {
@@ -156,31 +153,21 @@ class _DashboardRentsDetailsPageState extends State<DashboardRentsDetailsPage> w
                         ),
                       );
                     },
-                    child: Container(
-                      margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                      decoration: BoxDecoration(
-                        color: theme.cardColor,
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: theme.brightness == Brightness.light 
-                                ? Colors.black.withOpacity(0.05)
-                                : Colors.black.withOpacity(0.2),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(20),
-                        child: RentGraph(
-                          groupedData: _groupByMonth(dataManager.rentData),
-                          dataManager: dataManager,
-                          showCumulativeRent: false,
-                          selectedPeriod: S.of(context).month,
-                          onPeriodChanged: (period) {},
-                          onCumulativeRentChanged: (value) {},
-                        ),
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                      child: RentGraph(
+                        groupedData: _groupByMonth(dataManager.rentData),
+                        dataManager: dataManager,
+                        showCumulativeRent: false,
+                        selectedPeriod: S.of(context).month,
+                        onPeriodChanged: (period) {},
+                        onCumulativeRentChanged: (value) {},
+                        selectedTimeRange: 'all',
+                        onTimeRangeChanged: (newRange) {},
+                        timeOffset: 0,
+                        onTimeOffsetChanged: (newOffset) {},
+                        rentIsBarChart: false,
+                        onChartTypeChanged: (isBarChart) {},
                       ),
                     ),
                   ),
@@ -230,7 +217,11 @@ class _DashboardRentsDetailsPageState extends State<DashboardRentsDetailsPage> w
                   sliver: SliverList(
                     delegate: SliverChildBuilderDelegate(
                       (context, index) {
-                        final rentEntry = dataManager.rentData[index];
+                        // Trier les données par date décroissante
+                        final sortedData = List<dynamic>.from(dataManager.rentData)
+                          ..sort((a, b) => DateTime.parse(b['date']).compareTo(DateTime.parse(a['date'])));
+                        
+                        final rentEntry = sortedData[index];
                         final rentDate = CustomDateUtils.formatDate(rentEntry['date']);
                         final rentAmount = currencyUtils.formatCurrency(
                           currencyUtils.convert(rentEntry['rent']),
@@ -243,16 +234,15 @@ class _DashboardRentsDetailsPageState extends State<DashboardRentsDetailsPage> w
                           isNewMonth = true;
                         } else {
                           final currentDate = DateTime.parse(rentEntry['date']);
-                          final previousDate = DateTime.parse(dataManager.rentData[index - 1]['date']);
-                          isNewMonth = currentDate.year != previousDate.year || 
-                                       currentDate.month != previousDate.month;
+                          final previousDate = DateTime.parse(sortedData[index - 1]['date']);
+                          isNewMonth = currentDate.year != previousDate.year || currentDate.month != previousDate.month;
                         }
 
                         // Si c'est un nouveau mois, ajouter un en-tête
                         if (isNewMonth) {
                           final date = DateTime.parse(rentEntry['date']);
                           final monthName = DateFormat('MMMM yyyy', 'fr_FR').format(date);
-                          
+
                           return Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -273,14 +263,14 @@ class _DashboardRentsDetailsPageState extends State<DashboardRentsDetailsPage> w
                             ],
                           );
                         }
-                        
+
                         return _buildRentCard(rentDate, rentAmount, context);
                       },
                       childCount: dataManager.rentData.length,
                     ),
                   ),
                 ),
-                
+
                 // Espace en bas pour éviter que le dernier élément ne soit caché
                 const SliverPadding(padding: EdgeInsets.only(bottom: 24.0)),
               ],
@@ -290,7 +280,7 @@ class _DashboardRentsDetailsPageState extends State<DashboardRentsDetailsPage> w
 
   Widget _buildRentCard(String date, String amount, BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
@@ -298,9 +288,7 @@ class _DashboardRentsDetailsPageState extends State<DashboardRentsDetailsPage> w
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: theme.brightness == Brightness.light 
-                ? Colors.black.withOpacity(0.03)
-                : Colors.black.withOpacity(0.15),
+            color: theme.brightness == Brightness.light ? Colors.black.withOpacity(0.03) : Colors.black.withOpacity(0.15),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -379,12 +367,8 @@ class _DashboardRentsDetailsPageState extends State<DashboardRentsDetailsPage> w
       String monthKey = DateFormat('yyyy/MM').format(date);
       groupedData[monthKey] = (groupedData[monthKey] ?? 0) + entry['rent'];
     }
-    List<Map<String, dynamic>> list = groupedData.entries
-        .map((e) => {'date': e.key, 'rent': e.value})
-        .toList();
-    list.sort((a, b) => DateFormat('yyyy/MM')
-        .parse(a['date'])
-        .compareTo(DateFormat('yyyy/MM').parse(b['date'])));
+    List<Map<String, dynamic>> list = groupedData.entries.map((e) => {'date': e.key, 'rent': e.value}).toList();
+    list.sort((a, b) => DateFormat('yyyy/MM').parse(a['date']).compareTo(DateFormat('yyyy/MM').parse(b['date'])));
     return list;
   }
 }

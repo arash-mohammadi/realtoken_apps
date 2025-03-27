@@ -62,7 +62,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   Color _primaryColor = Colors.blue; // Default primary color
   bool _showAmounts = true; // Par défaut, les montants sont visibles
   DataManager? dataManager; // Référence au DataManager
-  
+
   // Variables de paramètres du portfolio
   bool _showTotalInvested = false;
   bool _showNetTotal = true;
@@ -72,20 +72,18 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
 
   AppState() {
     _loadSettings();
-    WidgetsBinding.instance
-        .addObserver(this); // Add observer to listen to system changes
+    WidgetsBinding.instance.addObserver(this); // Add observer to listen to system changes
   }
 
   @override
   void dispose() {
-    WidgetsBinding.instance
-        .removeObserver(this); // Remove observer when AppState is disposed
+    WidgetsBinding.instance.removeObserver(this); // Remove observer when AppState is disposed
     super.dispose();
   }
 
   Color get primaryColor => _primaryColor;
   bool get showAmounts => _showAmounts; // Getter pour accéder à l'état
-  
+
   // Getters pour les paramètres du portfolio
   bool get showTotalInvested => _showTotalInvested;
   bool get showNetTotal => _showNetTotal;
@@ -102,9 +100,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     selectedLanguage = prefs.getString('language') ?? 'en';
     evmAddresses = prefs.getStringList('evmAddresses'); // Load EVM addresses
     _primaryColor = await getSavedPrimaryColor(); // Load primary color
-    _showAmounts = prefs.getBool('showAmounts') ??
-        true; // Charge la préférence du montant affiché
-        
+    _showAmounts = prefs.getBool('showAmounts') ?? true; // Charge la préférence du montant affiché
+
     // Charger les paramètres du portfolio
     _showTotalInvested = prefs.getBool('showTotalInvested') ?? false;
     _showNetTotal = prefs.getBool('showNetTotal') ?? true;
@@ -125,8 +122,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   void toggleShowAmounts() async {
     _showAmounts = !_showAmounts;
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(
-        'showAmounts', _showAmounts); // Sauvegarde la préférence utilisateur
+    await prefs.setBool('showAmounts', _showAmounts); // Sauvegarde la préférence utilisateur
     notifyListeners(); // Notifie les widgets dépendants
   }
 
@@ -165,8 +161,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   // Update dark/light theme directly and save to SharedPreferences (for manual switch)
   void updateTheme(bool value) async {
     isDarkTheme = value;
-    themeMode =
-        value ? 'dark' : 'light'; // Set theme mode based on manual selection
+    themeMode = value ? 'dark' : 'light'; // Set theme mode based on manual selection
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('isDarkTheme', value);
     await prefs.setString('themeMode', themeMode); // Save theme mode
@@ -212,13 +207,13 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       debugPrint("❌ DataManager n'est pas initialisé dans AppState");
       return;
     }
-    
+
     // Appeler la méthode adjustApyReactivity du DataManager
     dataManager!.adjustApyReactivity(reactivityLevel);
-    
+
     // Pas besoin de notifier ici car le DataManager le fera
   }
-  
+
   // Méthodes pour mettre à jour les paramètres du portfolio
   void updateShowTotalInvested(bool value) async {
     _showTotalInvested = value;
@@ -226,28 +221,28 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     await prefs.setBool('showTotalInvested', value);
     notifyListeners();
   }
-  
+
   void updateShowNetTotal(bool value) async {
     _showNetTotal = value;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('showNetTotal', value);
     notifyListeners();
   }
-  
+
   void updateManualAdjustment(double value) async {
     _manualAdjustment = value;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setDouble('manualAdjustment', value);
     notifyListeners();
   }
-  
+
   void updateShowYamProjection(bool value) async {
     _showYamProjection = value;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('showYamProjection', value);
     notifyListeners();
   }
-  
+
   void updateInitialInvestmentAdjustment(double value) async {
     _initialInvestmentAdjustment = value;
     final prefs = await SharedPreferences.getInstance();

@@ -13,8 +13,7 @@ class RentsCard extends StatelessWidget {
   final bool showAmounts;
   final bool isLoading;
 
-  const RentsCard(
-      {super.key, required this.showAmounts, required this.isLoading});
+  const RentsCard({super.key, required this.showAmounts, required this.isLoading});
 
   @override
   Widget build(BuildContext context) {
@@ -27,11 +26,7 @@ class RentsCard extends StatelessWidget {
       Icons.attach_money,
       Row(
         children: [
-          UIUtils.buildValueBeforeText(
-              context,
-              '${dataManager.netGlobalApy.toStringAsFixed(2)}%' as String?,
-              S.of(context).annualYield,
-              dataManager.isLoadingMain),
+          UIUtils.buildValueBeforeText(context, '${dataManager.netGlobalApy.toStringAsFixed(2)}%' as String?, S.of(context).annualYield, dataManager.isLoadingMain),
           SizedBox(width: 6),
           GestureDetector(
             onTap: () {
@@ -42,8 +37,7 @@ class RentsCard extends StatelessWidget {
                     title: Text(S.of(context).apy),
                     content: Text(
                       S.of(context).netApyHelp,
-                      style: TextStyle(
-                          fontSize: 13 + appState.getTextSizeOffset()),
+                      style: TextStyle(fontSize: 13 + appState.getTextSizeOffset()),
                     ),
                     actions: [
                       TextButton(
@@ -57,8 +51,7 @@ class RentsCard extends StatelessWidget {
                 },
               );
             },
-            child: Icon(Icons.info_outline,
-                size: 15),
+            child: Icon(Icons.info_outline, size: 15),
           ),
           SizedBox(width: 8),
           Text(
@@ -72,19 +65,13 @@ class RentsCard extends StatelessWidget {
       ),
       [
         UIUtils.buildTextWithShimmer(
-          currencyUtils.getFormattedAmount(
-              currencyUtils.convert(dataManager.dailyRent),
-              currencyUtils.currencySymbol,
-              showAmounts),
+          currencyUtils.getFormattedAmount(currencyUtils.convert(dataManager.dailyRent), currencyUtils.currencySymbol, showAmounts),
           S.of(context).daily,
           isLoading || dataManager.isLoadingMain,
           context,
         ),
         UIUtils.buildTextWithShimmer(
-          currencyUtils.getFormattedAmount(
-              currencyUtils.convert(dataManager.weeklyRent),
-              currencyUtils.currencySymbol,
-              showAmounts),
+          currencyUtils.getFormattedAmount(currencyUtils.convert(dataManager.weeklyRent), currencyUtils.currencySymbol, showAmounts),
           S.of(context).weekly,
           isLoading || dataManager.isLoadingMain,
           context,
@@ -100,10 +87,7 @@ class RentsCard extends StatelessWidget {
           context,
         ),
         UIUtils.buildTextWithShimmer(
-          currencyUtils.getFormattedAmount(
-              currencyUtils.convert(dataManager.yearlyRent),
-              currencyUtils.currencySymbol,
-              showAmounts),
+          currencyUtils.getFormattedAmount(currencyUtils.convert(dataManager.yearlyRent), currencyUtils.currencySymbol, showAmounts),
           S.of(context).annually,
           isLoading || dataManager.isLoadingMain,
           context,
@@ -136,20 +120,17 @@ class RentsCard extends StatelessWidget {
     );
   }
 
-  Widget _buildMiniGraphForRendement(List<Map<String, dynamic>> data,
-      BuildContext context, DataManager dataManager) {
+  Widget _buildMiniGraphForRendement(List<Map<String, dynamic>> data, BuildContext context, DataManager dataManager) {
     final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
 
     // Calculer les valeurs min et max des données après conversion
     List<double> convertedValues = List.generate(data.length, (index) {
-      return double.parse(currencyUtils
-          .convert(data[index]['amount'])
-          .toStringAsFixed(2));
+      return double.parse(currencyUtils.convert(data[index]['amount']).toStringAsFixed(2));
     });
-    
+
     double minY = convertedValues.isEmpty ? 0 : convertedValues.reduce((a, b) => a < b ? a : b);
     double maxY = convertedValues.isEmpty ? 0 : convertedValues.reduce((a, b) => a > b ? a : b);
-    
+
     // Ajouter une petite marge en bas et en haut
     minY = minY * 0.97; // 5% de marge en bas
     maxY = maxY * 1.03; // 5% de marge en haut
@@ -177,8 +158,7 @@ class RentsCard extends StatelessWidget {
               color: Theme.of(context).primaryColor,
               dotData: FlDotData(
                 show: true,
-                getDotPainter: (spot, percent, barData, index) =>
-                    FlDotCirclePainter(
+                getDotPainter: (spot, percent, barData, index) => FlDotCirclePainter(
                   radius: 2,
                   color: Theme.of(context).primaryColor,
                   strokeWidth: 0,
@@ -226,8 +206,7 @@ class RentsCard extends StatelessWidget {
     final currentDate = DateTime.now();
     final rentData = dataManager.rentData;
 
-    DateTime currentMonday =
-        currentDate.subtract(Duration(days: currentDate.weekday - 1));
+    DateTime currentMonday = currentDate.subtract(Duration(days: currentDate.weekday - 1));
 
     Map<String, double> weeklyRent = {};
 
@@ -244,14 +223,10 @@ class RentsCard extends StatelessWidget {
     }
 
     List<Map<String, dynamic>> last12WeeksData = List.generate(12, (index) {
-      DateTime pastMonday =
-          currentMonday.subtract(Duration(days: (index + 1) * 7));
+      DateTime pastMonday = currentMonday.subtract(Duration(days: (index + 1) * 7));
       String weekLabel = DateFormat('dd MMM yyyy').format(pastMonday);
 
-      return {
-        'week': weekLabel,
-        'amount': weeklyRent[DateFormat('yyyy-MM-dd').format(pastMonday)] ?? 0
-      };
+      return {'week': weekLabel, 'amount': weeklyRent[DateFormat('yyyy-MM-dd').format(pastMonday)] ?? 0};
     }).reversed.toList();
 
     return last12WeeksData;

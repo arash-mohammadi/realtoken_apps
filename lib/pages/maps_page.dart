@@ -22,8 +22,7 @@ class MapsPage extends StatefulWidget {
   const MapsPage({super.key});
 
   @override
-  MapsPageState createState() =>
-      MapsPageState(); // Remplacer _MapsPageState par MapsPageState
+  MapsPageState createState() => MapsPageState(); // Remplacer _MapsPageState par MapsPageState
 }
 
 class MapsPageState extends State<MapsPage> {
@@ -48,39 +47,26 @@ class MapsPageState extends State<MapsPage> {
   Future<void> _loadThemePreference() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
-      _forceLightMode =
-          prefs.getBool('forceLightMode') ?? false; // Charger le mode forcé
+      _forceLightMode = prefs.getBool('forceLightMode') ?? false; // Charger le mode forcé
     });
   }
 
   // Sauvegarder la préférence du mode dans SharedPreferences
   Future<void> _saveThemePreference() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(
-        'forceLightMode', _forceLightMode); // Sauvegarder le mode forcé
+    await prefs.setBool('forceLightMode', _forceLightMode); // Sauvegarder le mode forcé
   }
 
   // Méthode pour filtrer et trier les tokens (même approche que PortfolioPage)
-  List<Map<String, dynamic>> _filterAndSortTokens(
-      List<Map<String, dynamic>> tokens) {
-    List<Map<String, dynamic>> filteredTokens = tokens
-        .where((token) => token['fullName']
-            .toLowerCase()
-            .contains(_searchQuery.toLowerCase()))
-        .toList();
+  List<Map<String, dynamic>> _filterAndSortTokens(List<Map<String, dynamic>> tokens) {
+    List<Map<String, dynamic>> filteredTokens = tokens.where((token) => token['fullName'].toLowerCase().contains(_searchQuery.toLowerCase())).toList();
 
     if (_sortOption == 'Name') {
-      filteredTokens.sort((a, b) => _isAscending
-          ? a['shortName'].compareTo(b['shortName'])
-          : b['shortName'].compareTo(a['shortName']));
+      filteredTokens.sort((a, b) => _isAscending ? a['shortName'].compareTo(b['shortName']) : b['shortName'].compareTo(a['shortName']));
     } else if (_sortOption == 'Value') {
-      filteredTokens.sort((a, b) => _isAscending
-          ? a['totalValue'].compareTo(b['totalValue'])
-          : b['totalValue'].compareTo(a['totalValue']));
+      filteredTokens.sort((a, b) => _isAscending ? a['totalValue'].compareTo(b['totalValue']) : b['totalValue'].compareTo(a['totalValue']));
     } else if (_sortOption == 'APY') {
-      filteredTokens.sort((a, b) => _isAscending
-          ? a['annualPercentageYield'].compareTo(b['annualPercentageYield'])
-          : b['annualPercentageYield'].compareTo(a['annualPercentageYield']));
+      filteredTokens.sort((a, b) => _isAscending ? a['annualPercentageYield'].compareTo(b['annualPercentageYield']) : b['annualPercentageYield'].compareTo(a['annualPercentageYield']));
     }
 
     return filteredTokens;
@@ -90,19 +76,13 @@ class MapsPageState extends State<MapsPage> {
   Widget build(BuildContext context) {
     final dataManager = Provider.of<DataManager>(context);
 
-    final tokensToShow = _showAllTokens
-        ? _filterAndSortTokens(dataManager.allTokens)
-        : _filterAndSortTokens(dataManager.portfolio);
+    final tokensToShow = _showAllTokens ? _filterAndSortTokens(dataManager.allTokens) : _filterAndSortTokens(dataManager.portfolio);
 
-    final displayedTokens = _showWhitelistedTokens
-        ? tokensToShow
-            .where((token) => dataManager.whitelistTokens.any(
-                (w) => w['token'].toLowerCase() == token['uuid'].toLowerCase()))
-            .toList()
-        : tokensToShow;
+    final displayedTokens =
+        _showWhitelistedTokens ? tokensToShow.where((token) => dataManager.whitelistTokens.any((w) => w['token'].toLowerCase() == token['uuid'].toLowerCase())).toList() : tokensToShow;
 
     if (displayedTokens.isEmpty) {
-      return const Center(child: Text('No tokens available'));
+      return Center(child: Text(S.of(context).noTokensAvailable));
     }
 
     final List<Marker> markers = [];
@@ -128,15 +108,12 @@ class MapsPageState extends State<MapsPage> {
               children: [
                 // ✅ Conteneur avec bordure circulaire
                 Container(
-                  width:
-                      40.0, // Augmentez cette valeur pour une image plus grande
-                  height:
-                      40.0, // Augmentez cette valeur pour une image plus grande
+                  width: 40.0, // Augmentez cette valeur pour une image plus grande
+                  height: 40.0, // Augmentez cette valeur pour une image plus grande
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color:
-                          UIUtils.getRentalStatusColor(rentedUnits, totalUnits),
+                      color: UIUtils.getRentalStatusColor(rentedUnits, totalUnits),
                       width: 3.0,
                     ),
                   ),
@@ -152,10 +129,8 @@ class MapsPageState extends State<MapsPage> {
                             : CachedNetworkImage(
                                 imageUrl: matchingToken['imageLink'][0],
                                 fit: BoxFit.cover,
-                                placeholder: (context, url) =>
-                                    const CircularProgressIndicator(),
-                                errorWidget: (context, url, error) =>
-                                    const Icon(
+                                placeholder: (context, url) => const CircularProgressIndicator(),
+                                errorWidget: (context, url, error) => const Icon(
                                   Icons.error,
                                   color: Colors.red,
                                 ),
@@ -210,8 +185,7 @@ class MapsPageState extends State<MapsPage> {
     }
 
     if (markers.isEmpty) {
-      return const Center(
-          child: Text('No tokens with valid coordinates found on the map'));
+      return Center(child: Text(S.of(context).noTokensWithValidCoordinates));
     }
 
     return Scaffold(
@@ -219,17 +193,13 @@ class MapsPageState extends State<MapsPage> {
       body: Stack(
         children: [
           Container(
-            color: Theme.of(context)
-                .scaffoldBackgroundColor, // Définit la couleur de fond pour la carte
+            color: Theme.of(context).scaffoldBackgroundColor, // Définit la couleur de fond pour la carte
             child: FlutterMap(
               options: MapOptions(
                 initialCenter: LatLng(42.367476, -83.130921),
                 initialZoom: 8.0,
                 onTap: (_, __) => _popupController.hideAllPopups(),
-                interactionOptions: const InteractionOptions(
-                    flags: InteractiveFlag.pinchZoom |
-                        InteractiveFlag.drag |
-                        InteractiveFlag.scrollWheelZoom),
+                interactionOptions: const InteractionOptions(flags: InteractiveFlag.pinchZoom | InteractiveFlag.drag | InteractiveFlag.scrollWheelZoom),
               ),
               children: [
                 TileLayer(
@@ -242,9 +212,8 @@ class MapsPageState extends State<MapsPage> {
                   subdomains: ['a', 'b', 'c'],
                   tileProvider: kIsWeb
                       ? NetworkTileProvider() // Utilisé uniquement pour le web
-                      : FMTCStore('mapStore')
-                          .getTileProvider(), // Utilisé pour iOS, Android, etc.
-                  userAgentPackageName: 'com.byackee.realtokens',
+                      : FMTCStore('mapStore').getTileProvider(), // Utilisé pour iOS, Android, etc.
+                  userAgentPackageName: 'com.byackee.realt_apps',
                   retinaMode: true,
                 ),
                 MarkerClusterLayerWidget(
@@ -297,8 +266,7 @@ class MapsPageState extends State<MapsPage> {
                     value: _forceLightMode,
                     onChanged: (value) {
                       setState(() {
-                        _forceLightMode =
-                            value; // Mettre à jour le switch pour forcer le mode clair
+                        _forceLightMode = value; // Mettre à jour le switch pour forcer le mode clair
                       });
                       _saveThemePreference(); // Sauvegarder la préférence
                     },
@@ -355,8 +323,7 @@ class MapsPageState extends State<MapsPage> {
           ),
           // Légende en bas à gauche
           Positioned(
-            bottom:
-                90, // Remonter la légende pour la placer au-dessus de la BottomBar
+            bottom: 90, // Remonter la légende pour la placer au-dessus de la BottomBar
             left: 16,
             child: Container(
               padding: const EdgeInsets.all(8),
@@ -452,21 +419,16 @@ class MapsPageState extends State<MapsPage> {
     // Récupérer le DataManager pour accéder au portefeuille et à la whitelist
     final dataManager = Provider.of<DataManager>(context, listen: false);
     final bool isInWallet = dataManager.portfolio.any(
-      (portfolioItem) =>
-          portfolioItem['uuid'].toLowerCase() ==
-          matchingToken['uuid'].toLowerCase(),
+      (portfolioItem) => portfolioItem['uuid'].toLowerCase() == matchingToken['uuid'].toLowerCase(),
     );
     final bool isWhitelisted = dataManager.whitelistTokens.any(
-      (whitelisted) =>
-          whitelisted['token'].toLowerCase() ==
-          matchingToken['uuid'].toLowerCase(),
+      (whitelisted) => whitelisted['token'].toLowerCase() == matchingToken['uuid'].toLowerCase(),
     );
 
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        final currencyUtils =
-            Provider.of<CurrencyProvider>(context, listen: false);
+        final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
         final rentedUnits = matchingToken['rentedUnits'] ?? 0;
         final totalUnits = matchingToken['totalUnits'] ?? 1;
         final lat = double.tryParse(matchingToken['lat']) ?? 0.0;
@@ -485,8 +447,7 @@ class MapsPageState extends State<MapsPage> {
                     imageUrl: matchingToken['imageLink'][0],
                     width: 200,
                     fit: BoxFit.cover,
-                    placeholder: (context, url) =>
-                        const CircularProgressIndicator(),
+                    placeholder: (context, url) => const CircularProgressIndicator(),
                     errorWidget: (context, url, error) => const Icon(
                       Icons.error,
                       color: Colors.red,
@@ -513,9 +474,7 @@ class MapsPageState extends State<MapsPage> {
                     'Token Price: ',
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  Text(currencyUtils.formatCurrency(
-                      currencyUtils.convert(matchingToken['tokenPrice']),
-                      currencyUtils.currencySymbol)),
+                  Text(currencyUtils.formatCurrency(currencyUtils.convert(matchingToken['tokenPrice']), currencyUtils.currencySymbol)),
                 ],
               ),
               Row(
@@ -525,8 +484,7 @@ class MapsPageState extends State<MapsPage> {
                     'Token Yield: ',
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  Text(
-                      '${matchingToken['annualPercentageYield'] != null ? matchingToken['annualPercentageYield'].toStringAsFixed(2) : 'N/A'}%'),
+                  Text('${matchingToken['annualPercentageYield'] != null ? matchingToken['annualPercentageYield'].toStringAsFixed(2) : 'N/A'}%'),
                 ],
               ),
               Row(
@@ -544,16 +502,12 @@ class MapsPageState extends State<MapsPage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(
-                    isInWallet
-                        ? Icons.account_balance_wallet
-                        : Icons.account_balance_wallet_outlined,
+                    isInWallet ? Icons.account_balance_wallet : Icons.account_balance_wallet_outlined,
                     color: isInWallet ? Colors.green : Colors.grey,
                   ),
                   const SizedBox(width: 4),
                   Text(
-                    isInWallet
-                        ? "Présent dans wallet"
-                        : "Non présent dans wallet",
+                    isInWallet ? "Présent dans wallet" : "Non présent dans wallet",
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ],
@@ -577,8 +531,7 @@ class MapsPageState extends State<MapsPage> {
               IconButton(
                 icon: const Icon(Icons.streetview, color: Colors.blue),
                 onPressed: () {
-                  final googleStreetViewUrl =
-                      'https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=$lat,$lng';
+                  final googleStreetViewUrl = 'https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=$lat,$lng';
                   UrlUtils.launchURL(googleStreetViewUrl);
                 },
               ),

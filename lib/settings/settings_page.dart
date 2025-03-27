@@ -26,7 +26,7 @@ class SettingsPage extends StatelessWidget {
         padding: EdgeInsets.zero,
         children: [
           const SizedBox(height: 12),
-          _buildSectionHeader(context, "Paramètres", CupertinoIcons.gear),
+          _buildSectionHeader(context, S.of(context).settingsCategory, CupertinoIcons.gear),
           _buildSettingsSection(
             context,
             children: [
@@ -63,7 +63,7 @@ class SettingsPage extends StatelessWidget {
                 context,
                 icon: CupertinoIcons.lock_shield,
                 color: Colors.red,
-                title: 'Sécurité',
+                title: S.of(context).security,
                 onTap: () => _navigateTo(context, BiometricSettingsPage()),
               ),
               _buildSettingsItem(

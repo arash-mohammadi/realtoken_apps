@@ -19,8 +19,7 @@ class HealthAndLtvRecord {
     return HealthAndLtvRecord(
       healthFactor: (json['healthFactor'] ?? 0.0) as double, // Correction ici
       ltv: (json['ltv'] ?? 0.0) as double,
-      timestamp:
-          DateTime.parse(json['timestamp'] ?? DateTime.now().toIso8601String()),
+      timestamp: DateTime.parse(json['timestamp'] ?? DateTime.now().toIso8601String()),
     );
   }
 }

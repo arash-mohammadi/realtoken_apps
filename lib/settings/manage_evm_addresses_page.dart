@@ -8,6 +8,7 @@ import 'package:realtokens/services/api_service.dart';
 import 'package:realtokens/utils/data_fetch_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/services.dart'; // Pour copier dans le presse-papiers
+import 'package:realtokens/generated/l10n.dart';
 
 class ManageEvmAddressesPage extends StatefulWidget {
   const ManageEvmAddressesPage({super.key});
@@ -27,8 +28,13 @@ class ManageEvmAddressesPageState extends State<ManageEvmAddressesPage> {
     // Charger les relations userId-adresses
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final dataManager = Provider.of<DataManager>(context, listen: false);
+      debugPrint("🔑 ManageEvmAddresses: chargement des relations userId-adresses");
       dataManager.loadUserIdToAddresses(); // Charger les relations userId-adresses
-      DataFetchUtils.loadData(context);
+      
+      // Forcé la mise à jour des données car c'est une page de gestion d'adresses
+      // On a besoin des données les plus récentes ici
+      debugPrint("🔑 ManageEvmAddresses: forçage de la mise à jour des données");
+      DataFetchUtils.refreshData(context);
     });
   }
 
@@ -83,8 +89,9 @@ class ManageEvmAddressesPageState extends State<ManageEvmAddressesPage> {
         await prefs.setStringList('evmAddresses', evmAddresses);
       }
 
-      // Recharger les données après l'ajout
-      DataFetchUtils.loadData(context);
+      // Forcer la mise à jour des données après l'ajout
+      debugPrint("🔑 ManageEvmAddresses: forçage de la mise à jour après ajout d'adresse");
+      DataFetchUtils.refreshData(context);
     }
   }
 
@@ -147,26 +154,20 @@ class ManageEvmAddressesPageState extends State<ManageEvmAddressesPage> {
   @override
   Widget build(BuildContext context) {
     final dataManager = Provider.of<DataManager>(context);
-    final appState =
-        Provider.of<AppState>(context); // Récupérer AppState pour le texte
+    final appState = Provider.of<AppState>(context); // Récupérer AppState pour le texte
 
     // Récupérer toutes les adresses liées à un userId
-    final List linkedAddresses = dataManager
-        .getAllUserIds()
-        .expand((userId) => dataManager.getAddressesForUserId(userId) ?? [])
-        .toList();
+    final List linkedAddresses = dataManager.getAllUserIds().expand((userId) => dataManager.getAddressesForUserId(userId) ?? []).toList();
 
     // Filtrer les adresses non liées
-    final unlinkedAddresses = evmAddresses
-        .where((address) => !linkedAddresses.contains(address))
-        .toList();
+    final unlinkedAddresses = evmAddresses.where((address) => !linkedAddresses.contains(address)).toList();
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
         elevation: 0,
-        title: const Text('Manage Wallets'),
+        title: Text(S.of(context).manageEvmAddresses),
         leading: IconButton(
           icon: const Icon(CupertinoIcons.back),
           onPressed: () => Navigator.of(context).pop(),
@@ -176,8 +177,7 @@ class ManageEvmAddressesPageState extends State<ManageEvmAddressesPage> {
         padding: EdgeInsets.zero,
         children: [
           const SizedBox(height: 12),
-
-          _buildSectionHeader(context, "Ajouter une adresse", CupertinoIcons.plus_circle),
+          _buildSectionHeader(context, S.of(context).addAddress, CupertinoIcons.plus_circle),
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 16),
             padding: const EdgeInsets.all(12),
@@ -201,7 +201,7 @@ class ManageEvmAddressesPageState extends State<ManageEvmAddressesPage> {
                       child: CupertinoTextField(
                         controller: _evmAddressController,
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                        placeholder: 'Wallet Address',
+                        placeholder: S.of(context).walletAddress,
                         decoration: BoxDecoration(
                           color: Theme.of(context).cardColor,
                           borderRadius: BorderRadius.circular(8),
@@ -255,7 +255,6 @@ class ManageEvmAddressesPageState extends State<ManageEvmAddressesPage> {
               ],
             ),
           ),
-
           if (unlinkedAddresses.isNotEmpty) ...[
             const SizedBox(height: 16),
             _buildSectionHeader(context, "Adresses non associées", CupertinoIcons.creditcard),
@@ -274,11 +273,10 @@ class ManageEvmAddressesPageState extends State<ManageEvmAddressesPage> {
               },
             ),
           ],
-
           if (dataManager.getAllUserIds().isNotEmpty) ...[
             const SizedBox(height: 16),
             _buildSectionHeader(context, "Adresses associées", CupertinoIcons.person_crop_circle),
-            for (final userId in dataManager.getAllUserIds()) 
+            for (final userId in dataManager.getAllUserIds())
               _buildUserSection(
                 context,
                 userId: userId,
@@ -286,13 +284,12 @@ class ManageEvmAddressesPageState extends State<ManageEvmAddressesPage> {
                 dataManager: dataManager,
               ),
           ],
-          
           const SizedBox(height: 20),
         ],
       ),
     );
   }
-  
+
   Widget _buildSectionHeader(BuildContext context, String title, IconData icon) {
     return Padding(
       padding: const EdgeInsets.only(left: 16, bottom: 6, top: 2),
@@ -313,14 +310,14 @@ class ManageEvmAddressesPageState extends State<ManageEvmAddressesPage> {
       ),
     );
   }
-  
+
   Widget _buildAddressCard(
     BuildContext context, {
     required String address,
     required VoidCallback onDelete,
   }) {
     final appState = Provider.of<AppState>(context);
-    
+
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 6),
       decoration: BoxDecoration(
@@ -370,7 +367,7 @@ class ManageEvmAddressesPageState extends State<ManageEvmAddressesPage> {
       ),
     );
   }
-  
+
   Widget _buildUserSection(
     BuildContext context, {
     required String userId,
@@ -378,7 +375,7 @@ class ManageEvmAddressesPageState extends State<ManageEvmAddressesPage> {
     required DataManager dataManager,
   }) {
     final appState = Provider.of<AppState>(context);
-    
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       decoration: BoxDecoration(
@@ -438,11 +435,10 @@ class ManageEvmAddressesPageState extends State<ManageEvmAddressesPage> {
               ],
             ),
           ),
-          for (var i = 0; i < addresses.length; i++) 
+          for (var i = 0; i < addresses.length; i++)
             Column(
               children: [
-                if (i == 0)
-                  const Divider(height: 1, thickness: 0.5),
+                if (i == 0) const Divider(height: 1, thickness: 0.5),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   child: Row(

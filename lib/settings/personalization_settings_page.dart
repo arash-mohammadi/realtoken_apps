@@ -13,12 +13,10 @@ class PersonalizationSettingsPage extends StatefulWidget {
   const PersonalizationSettingsPage({super.key});
 
   @override
-  _PersonalizationSettingsPageState createState() =>
-      _PersonalizationSettingsPageState();
+  _PersonalizationSettingsPageState createState() => _PersonalizationSettingsPageState();
 }
 
-class _PersonalizationSettingsPageState
-    extends State<PersonalizationSettingsPage> {
+class _PersonalizationSettingsPageState extends State<PersonalizationSettingsPage> {
   Map<String, dynamic> _currencies = {};
   final TextEditingController _adjustmentController = TextEditingController();
   final TextEditingController _initialInvestmentAdjustmentController = TextEditingController();
@@ -45,13 +43,13 @@ class _PersonalizationSettingsPageState
     Parameters.setShowYamProjection(value);
     setState(() {});
   }
-  
+
   Future<void> _saveManualAdjustment(double value) async {
     Parameters.setManualAdjustment(value);
     setState(() {
       _adjustmentController.text = value.toString();
     });
-    
+
     if (!mounted) return;
     final dataManager = Provider.of<DataManager>(context, listen: false);
     await dataManager.fetchAndCalculateData();
@@ -62,7 +60,7 @@ class _PersonalizationSettingsPageState
     setState(() {
       _initialInvestmentAdjustmentController.text = value.toString();
     });
-    
+
     if (!mounted) return;
     final dataManager = Provider.of<DataManager>(context, listen: false);
     await dataManager.fetchAndCalculateData();
@@ -103,39 +101,39 @@ class _PersonalizationSettingsPageState
         padding: EdgeInsets.zero,
         children: [
           const SizedBox(height: 12),
-          
+
           // Portfolio Settings
           _buildSectionHeader(context, S.of(context).portfolio, CupertinoIcons.chart_bar_square),
           _buildSettingsSection(
             context,
             children: [
               _buildSwitchItem(
-                context, 
+                context,
                 title: S.of(context).showTotalInvested,
                 value: Parameters.showTotalInvested,
                 onChanged: _saveShowTotalInvested,
                 isFirst: true,
               ),
               _buildSwitchItem(
-                context, 
+                context,
                 title: S.of(context).showNetTotal,
                 value: Parameters.showNetTotal,
                 onChanged: _saveShowNetTotal,
                 subtitle: S.of(context).showNetTotalDescription,
               ),
               _buildSwitchItem(
-                context, 
-                title: "Afficher projection YAM",
+                context,
+                title: S.of(context).showYamProjection,
                 value: Parameters.showYamProjection,
                 onChanged: _saveShowYamProjection,
-                subtitle: "Projection du portefeuille par YAM",
+                subtitle: S.of(context).yamProjectionDescription,
                 isLast: true,
               ),
             ],
           ),
-          
+
           const SizedBox(height: 12),
-          
+
           // Units Settings
           _buildSectionHeader(context, S.of(context).units, CupertinoIcons.arrow_right_arrow_left),
           _buildSettingsSection(
@@ -151,9 +149,9 @@ class _PersonalizationSettingsPageState
               ),
             ],
           ),
-          
+
           const SizedBox(height: 12),
-          
+
           // Currency Settings
           _buildSectionHeader(context, S.of(context).currency, CupertinoIcons.money_dollar_circle),
           _buildSettingsSection(
@@ -190,9 +188,9 @@ class _PersonalizationSettingsPageState
               ),
             ],
           ),
-          
+
           const SizedBox(height: 12),
-          
+
           // Adjustments
           _buildSectionHeader(context, "Ajustements", CupertinoIcons.slider_horizontal_3),
           _buildCompactAdjustments(context),
@@ -203,7 +201,7 @@ class _PersonalizationSettingsPageState
 
   Widget _buildCompactAdjustments(BuildContext context) {
     final appState = Provider.of<AppState>(context);
-    
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
@@ -300,12 +298,12 @@ class _PersonalizationSettingsPageState
               ],
             ),
           ),
-          
+
           const Padding(
             padding: EdgeInsets.only(left: 12),
             child: Divider(height: 1, thickness: 0.5),
           ),
-          
+
           // Initial Investment Adjustment
           Padding(
             padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
@@ -526,7 +524,7 @@ class _PersonalizationSettingsPageState
 
   void _showCurrencyPicker(BuildContext context, CurrencyProvider currencyProvider) {
     final appState = Provider.of<AppState>(context, listen: false);
-    
+
     showCupertinoModalPopup(
       context: context,
       builder: (context) => Container(
@@ -567,12 +565,14 @@ class _PersonalizationSettingsPageState
                 scrollController: FixedExtentScrollController(
                   initialItem: _currencies.keys.toList().indexOf(currencyProvider.selectedCurrency),
                 ),
-                children: _currencies.keys.map((key) => Center(
-                  child: Text(
-                    key.toUpperCase(), 
-                    style: TextStyle(fontSize: 16 + appState.getTextSizeOffset()),
-                  ),
-                )).toList(),
+                children: _currencies.keys
+                    .map((key) => Center(
+                          child: Text(
+                            key.toUpperCase(),
+                            style: TextStyle(fontSize: 16 + appState.getTextSizeOffset()),
+                          ),
+                        ))
+                    .toList(),
               ),
             ),
           ],
@@ -603,11 +603,11 @@ class _PersonalizationSettingsPageState
   Future<void> _loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
     if (!mounted) return;
-    
+
     setState(() {
       Parameters.convertToSquareMeters = prefs.getBool('convertToSquareMeters') ?? false;
       Parameters.selectedCurrency = prefs.getString('selectedCurrency') ?? 'usd';
-      
+
       _adjustmentController.text = Parameters.manualAdjustment.toString();
       _initialInvestmentAdjustmentController.text = Parameters.initialInvestmentAdjustment.toString();
     });

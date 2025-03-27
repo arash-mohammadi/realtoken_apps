@@ -21,12 +21,10 @@ class PortfolioDetailsPage extends StatelessWidget {
     final appState = Provider.of<AppState>(context);
     final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
     final theme = Theme.of(context);
-    
+
     // Récupérer les données par wallet depuis la nouvelle structure
-    final List<Map<String, dynamic>> walletDetails = 
-        dataManager.walletStats;
-    final List<Map<String, dynamic>> perWalletBalances =
-        dataManager.perWalletBalances;
+    final List<Map<String, dynamic>> walletDetails = dataManager.walletStats;
+    final List<Map<String, dynamic>> perWalletBalances = dataManager.perWalletBalances;
 
     // Associer les informations d'emprunt et de dépôt à chaque wallet
     for (var wallet in walletDetails) {
@@ -47,11 +45,11 @@ class PortfolioDetailsPage extends StatelessWidget {
       final double aWalletValue = a['walletValueSum'] as double? ?? 0;
       final double aRmmValue = a['rmmValue'] as double? ?? 0;
       final double aTotalValue = aWalletValue + aRmmValue;
-      
+
       final double bWalletValue = b['walletValueSum'] as double? ?? 0;
       final double bRmmValue = b['rmmValue'] as double? ?? 0;
       final double bTotalValue = bWalletValue + bRmmValue;
-      
+
       return bTotalValue.compareTo(aTotalValue); // Tri décroissant
     });
 
@@ -72,7 +70,7 @@ class PortfolioDetailsPage extends StatelessWidget {
       body: walletDetails.isEmpty
           ? Center(
               child: Text(
-                'Aucune donnée disponible',
+                S.of(context).noDataAvailable,
                 style: theme.textTheme.bodyLarge,
               ),
             )
@@ -104,10 +102,9 @@ class PortfolioDetailsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildGlobalInfo(BuildContext context, DataManager dataManager, 
-      AppState appState, CurrencyProvider currencyUtils) {
+  Widget _buildGlobalInfo(BuildContext context, DataManager dataManager, AppState appState, CurrencyProvider currencyUtils) {
     final theme = Theme.of(context);
-    
+
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -139,7 +136,7 @@ class PortfolioDetailsPage extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Portefeuille Global',
+                  S.of(context).portfolioGlobal,
                   style: TextStyle(
                     fontSize: 20 + appState.getTextSizeOffset(),
                     fontWeight: FontWeight.w700,
@@ -163,11 +160,7 @@ class PortfolioDetailsPage extends StatelessWidget {
                             children: [
                               _buildInfoRow(
                                 S.of(context).totalPortfolio,
-                                currencyUtils.getFormattedAmount(
-                                  currencyUtils.convert(dataManager.totalWalletValue),
-                                  currencyUtils.currencySymbol,
-                                  true
-                                ),
+                                currencyUtils.getFormattedAmount(currencyUtils.convert(dataManager.totalWalletValue), currencyUtils.currencySymbol, true),
                                 context,
                                 appState,
                                 isWhite: true,
@@ -176,11 +169,7 @@ class PortfolioDetailsPage extends StatelessWidget {
                               const SizedBox(height: 12),
                               _buildInfoRow(
                                 S.of(context).wallet,
-                                currencyUtils.getFormattedAmount(
-                                  currencyUtils.convert(dataManager.walletValue),
-                                  currencyUtils.currencySymbol,
-                                  true
-                                ),
+                                currencyUtils.getFormattedAmount(currencyUtils.convert(dataManager.walletValue), currencyUtils.currencySymbol, true),
                                 context,
                                 appState,
                                 isWhite: true,
@@ -188,11 +177,7 @@ class PortfolioDetailsPage extends StatelessWidget {
                               const SizedBox(height: 12),
                               _buildInfoRow(
                                 S.of(context).rmm,
-                                currencyUtils.getFormattedAmount(
-                                  currencyUtils.convert(dataManager.rmmValue),
-                                  currencyUtils.currencySymbol,
-                                  true
-                                ),
+                                currencyUtils.getFormattedAmount(currencyUtils.convert(dataManager.rmmValue), currencyUtils.currencySymbol, true),
                                 context,
                                 appState,
                                 isWhite: true,
@@ -204,12 +189,7 @@ class PortfolioDetailsPage extends StatelessWidget {
                             children: [
                               _buildInfoRow(
                                 S.of(context).depositBalance,
-                                currencyUtils.getFormattedAmount(
-                                  currencyUtils.convert(dataManager.totalUsdcDepositBalance + 
-                                    dataManager.totalXdaiDepositBalance),
-                                  currencyUtils.currencySymbol,
-                                  true
-                                ),
+                                currencyUtils.getFormattedAmount(currencyUtils.convert(dataManager.totalUsdcDepositBalance + dataManager.totalXdaiDepositBalance), currencyUtils.currencySymbol, true),
                                 context,
                                 appState,
                                 isWhite: true,
@@ -217,19 +197,14 @@ class PortfolioDetailsPage extends StatelessWidget {
                               const SizedBox(height: 12),
                               _buildInfoRow(
                                 S.of(context).borrowBalance,
-                                currencyUtils.getFormattedAmount(
-                                  currencyUtils.convert(dataManager.totalUsdcBorrowBalance + 
-                                    dataManager.totalXdaiBorrowBalance),
-                                  currencyUtils.currencySymbol,
-                                  true
-                                ),
+                                currencyUtils.getFormattedAmount(currencyUtils.convert(dataManager.totalUsdcBorrowBalance + dataManager.totalXdaiBorrowBalance), currencyUtils.currencySymbol, true),
                                 context,
                                 appState,
                                 isWhite: true,
                               ),
                               const SizedBox(height: 12),
                               _buildInfoRow(
-                                'APY Net',
+                                S.of(context).netApy,
                                 "${dataManager.netGlobalApy.toStringAsFixed(2)}%",
                                 context,
                                 appState,
@@ -247,7 +222,7 @@ class PortfolioDetailsPage extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           _buildInfoWithIcon(
-                            'Tokens',
+                            S.of(context).tokens,
                             dataManager.totalRealtTokens.toStringAsFixed(2),
                             Icons.token_outlined,
                             context,
@@ -255,7 +230,7 @@ class PortfolioDetailsPage extends StatelessWidget {
                             isWhite: true,
                           ),
                           _buildInfoWithIcon(
-                            'Properties',
+                            S.of(context).properties,
                             dataManager.totalTokenCount.toString(),
                             Icons.home_outlined,
                             context,
@@ -275,10 +250,9 @@ class PortfolioDetailsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildWalletCard(BuildContext context, Map<String, dynamic> wallet, 
-      DataManager dataManager, AppState appState, CurrencyProvider currencyUtils) {
+  Widget _buildWalletCard(BuildContext context, Map<String, dynamic> wallet, DataManager dataManager, AppState appState, CurrencyProvider currencyUtils) {
     final theme = Theme.of(context);
-    
+
     final String address = wallet['address'] as String;
     final double walletValue = wallet['walletValueSum'] as double? ?? 0;
     final double rmmValue = wallet['rmmValue'] as double? ?? 0;
@@ -286,25 +260,22 @@ class PortfolioDetailsPage extends StatelessWidget {
     final double xdaiDeposit = wallet['xdaiDeposit'] as double? ?? 0;
     final double usdcBorrow = wallet['usdcBorrow'] as double? ?? 0;
     final double xdaiBorrow = wallet['xdaiBorrow'] as double? ?? 0;
-    
+
     // Récupérer les statistiques supplémentaires sur les tokens
     final int tokenCount = wallet['tokenCount'] as int? ?? 0;
     final double walletTokensSum = wallet['walletTokensSum'] as double? ?? 0;
     final double rmmTokensSum = wallet['rmmTokensSum'] as double? ?? 0;
-    
+
     // Calculer le total pour ce wallet
-    final double totalWalletValue = walletValue + rmmValue + usdcDeposit + 
-        xdaiDeposit - usdcBorrow - xdaiBorrow;
-    
+    final double totalWalletValue = walletValue + rmmValue + usdcDeposit + xdaiDeposit - usdcBorrow - xdaiBorrow;
+
     return Container(
       decoration: BoxDecoration(
         color: theme.cardColor,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: theme.brightness == Brightness.light 
-                ? Colors.black.withOpacity(0.05)
-                : Colors.black.withOpacity(0.2),
+            color: theme.brightness == Brightness.light ? Colors.black.withOpacity(0.05) : Colors.black.withOpacity(0.2),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -345,17 +316,13 @@ class PortfolioDetailsPage extends StatelessWidget {
                   ],
                 ),
                 IconButton(
-                  icon: Icon(Icons.copy, color: theme.brightness == Brightness.light 
-                      ? Colors.grey 
-                      : Colors.grey.shade400),
+                  icon: Icon(Icons.copy, color: theme.brightness == Brightness.light ? Colors.grey : Colors.grey.shade400),
                   onPressed: () {
                     _copyToClipboard(context, address);
                   },
-                  tooltip: 'Copier l\'adresse',
+                  tooltip: S.of(context).copyAddress,
                   style: IconButton.styleFrom(
-                    backgroundColor: theme.brightness == Brightness.light 
-                        ? Colors.grey.withOpacity(0.1)
-                        : Colors.grey.shade800.withOpacity(0.3),
+                    backgroundColor: theme.brightness == Brightness.light ? Colors.grey.withOpacity(0.1) : Colors.grey.shade800.withOpacity(0.3),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -367,21 +334,15 @@ class PortfolioDetailsPage extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: theme.brightness == Brightness.light 
-                    ? Colors.grey.shade50 
-                    : theme.cardColor.withOpacity(0.7),
+                color: theme.brightness == Brightness.light ? Colors.grey.shade50 : theme.cardColor.withOpacity(0.7),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: theme.brightness == Brightness.light
-                      ? Colors.grey.shade200
-                      : theme.dividerColor,
+                  color: theme.brightness == Brightness.light ? Colors.grey.shade200 : theme.dividerColor,
                   width: 1.0,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: theme.brightness == Brightness.light
-                        ? Colors.black.withOpacity(0.02)
-                        : Colors.black.withOpacity(0.1),
+                    color: theme.brightness == Brightness.light ? Colors.black.withOpacity(0.02) : Colors.black.withOpacity(0.1),
                     blurRadius: 3,
                     offset: const Offset(0, 1),
                   ),
@@ -391,12 +352,8 @@ class PortfolioDetailsPage extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildInfoRow(
-                    'Valeur Totale',
-                    currencyUtils.getFormattedAmount(
-                      currencyUtils.convert(totalWalletValue),
-                      currencyUtils.currencySymbol,
-                      true
-                    ),
+                    S.of(context).totalValue,
+                    currencyUtils.getFormattedAmount(currencyUtils.convert(totalWalletValue), currencyUtils.currencySymbol, true),
                     context,
                     appState,
                     isBold: true,
@@ -408,22 +365,14 @@ class PortfolioDetailsPage extends StatelessWidget {
                     children: [
                       _buildInfoWithIcon(
                         S.of(context).wallet,
-                        currencyUtils.getFormattedAmount(
-                          currencyUtils.convert(walletValue),
-                          currencyUtils.currencySymbol,
-                          true
-                        ),
+                        currencyUtils.getFormattedAmount(currencyUtils.convert(walletValue), currencyUtils.currencySymbol, true),
                         Icons.account_balance_wallet,
                         context,
                         appState,
                       ),
                       _buildInfoWithIcon(
                         S.of(context).rmm,
-                        currencyUtils.getFormattedAmount(
-                          currencyUtils.convert(rmmValue),
-                          currencyUtils.currencySymbol,
-                          true
-                        ),
+                        currencyUtils.getFormattedAmount(currencyUtils.convert(rmmValue), currencyUtils.currencySymbol, true),
                         Icons.pie_chart_outline,
                         context,
                         appState,
@@ -438,21 +387,15 @@ class PortfolioDetailsPage extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: theme.brightness == Brightness.light 
-                    ? Colors.grey.shade50 
-                    : theme.cardColor.withOpacity(0.7),
+                color: theme.brightness == Brightness.light ? Colors.grey.shade50 : theme.cardColor.withOpacity(0.7),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: theme.brightness == Brightness.light
-                      ? Colors.grey.shade200
-                      : theme.dividerColor,
+                  color: theme.brightness == Brightness.light ? Colors.grey.shade200 : theme.dividerColor,
                   width: 1.0,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: theme.brightness == Brightness.light
-                        ? Colors.black.withOpacity(0.02)
-                        : Colors.black.withOpacity(0.1),
+                    color: theme.brightness == Brightness.light ? Colors.black.withOpacity(0.02) : Colors.black.withOpacity(0.1),
                     blurRadius: 3,
                     offset: const Offset(0, 1),
                   ),
@@ -521,21 +464,15 @@ class PortfolioDetailsPage extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: theme.brightness == Brightness.light 
-                    ? Colors.grey.shade50 
-                    : theme.cardColor.withOpacity(0.7),
+                color: theme.brightness == Brightness.light ? Colors.grey.shade50 : theme.cardColor.withOpacity(0.7),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: theme.brightness == Brightness.light
-                      ? Colors.grey.shade200
-                      : theme.dividerColor,
+                  color: theme.brightness == Brightness.light ? Colors.grey.shade200 : theme.dividerColor,
                   width: 1.0,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: theme.brightness == Brightness.light
-                        ? Colors.black.withOpacity(0.02)
-                        : Colors.black.withOpacity(0.1),
+                    color: theme.brightness == Brightness.light ? Colors.black.withOpacity(0.02) : Colors.black.withOpacity(0.1),
                     blurRadius: 3,
                     offset: const Offset(0, 1),
                   ),
@@ -561,11 +498,7 @@ class PortfolioDetailsPage extends StatelessWidget {
                         children: [
                           _buildInfoRow(
                             "USDC Dépôt",
-                            currencyUtils.getFormattedAmount(
-                              currencyUtils.convert(usdcDeposit),
-                              currencyUtils.currencySymbol,
-                              true
-                            ),
+                            currencyUtils.getFormattedAmount(currencyUtils.convert(usdcDeposit), currencyUtils.currencySymbol, true),
                             context,
                             appState,
                             valueColor: Colors.green.shade700,
@@ -573,11 +506,7 @@ class PortfolioDetailsPage extends StatelessWidget {
                           const SizedBox(height: 8),
                           _buildInfoRow(
                             "XDAI Dépôt",
-                            currencyUtils.getFormattedAmount(
-                              currencyUtils.convert(xdaiDeposit),
-                              currencyUtils.currencySymbol,
-                              true
-                            ),
+                            currencyUtils.getFormattedAmount(currencyUtils.convert(xdaiDeposit), currencyUtils.currencySymbol, true),
                             context,
                             appState,
                             valueColor: Colors.green.shade700,
@@ -589,11 +518,7 @@ class PortfolioDetailsPage extends StatelessWidget {
                         children: [
                           _buildInfoRow(
                             "USDC Emprunt",
-                            currencyUtils.getFormattedAmount(
-                              currencyUtils.convert(usdcBorrow),
-                              currencyUtils.currencySymbol,
-                              true
-                            ),
+                            currencyUtils.getFormattedAmount(currencyUtils.convert(usdcBorrow), currencyUtils.currencySymbol, true),
                             context,
                             appState,
                             valueColor: Colors.red.shade700,
@@ -601,11 +526,7 @@ class PortfolioDetailsPage extends StatelessWidget {
                           const SizedBox(height: 8),
                           _buildInfoRow(
                             "XDAI Emprunt",
-                            currencyUtils.getFormattedAmount(
-                              currencyUtils.convert(xdaiBorrow),
-                              currencyUtils.currencySymbol,
-                              true
-                            ),
+                            currencyUtils.getFormattedAmount(currencyUtils.convert(xdaiBorrow), currencyUtils.currencySymbol, true),
                             context,
                             appState,
                             valueColor: Colors.red.shade700,
@@ -632,12 +553,12 @@ class PortfolioDetailsPage extends StatelessWidget {
   // Méthode pour copier dans le presse-papier
   void _copyToClipboard(BuildContext context, String text) {
     final theme = Theme.of(context);
-    
+
     Clipboard.setData(ClipboardData(text: text));
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          'Adresse copiée dans le presse-papier',
+          S.of(context).addressCopied,
           style: TextStyle(color: theme.textTheme.bodyLarge?.color),
         ),
         behavior: SnackBarBehavior.floating,
@@ -650,10 +571,9 @@ class PortfolioDetailsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoRow(String label, String value, BuildContext context, 
-      AppState appState, {bool isBold = false, bool isWhite = false, Color? valueColor, double textSize = 14}) {
+  Widget _buildInfoRow(String label, String value, BuildContext context, AppState appState, {bool isBold = false, bool isWhite = false, Color? valueColor, double textSize = 14}) {
     final theme = Theme.of(context);
-    
+
     return Row(
       children: [
         Text(
@@ -677,10 +597,9 @@ class PortfolioDetailsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoWithIcon(String label, String value, IconData icon, 
-      BuildContext context, AppState appState, {bool isWhite = false}) {
+  Widget _buildInfoWithIcon(String label, String value, IconData icon, BuildContext context, AppState appState, {bool isWhite = false}) {
     final theme = Theme.of(context);
-    
+
     return Row(
       children: [
         Container(
@@ -719,4 +638,4 @@ class PortfolioDetailsPage extends StatelessWidget {
       ],
     );
   }
-} 
+}

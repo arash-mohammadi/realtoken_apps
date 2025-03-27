@@ -23,6 +23,30 @@ class _RentDistributionByWalletChartState extends State<RentDistributionByWallet
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
 
+    // Vérifier si les données sont valides
+    final Map<String, double> walletRentTotals = _calculateWalletRentTotals();
+    if (walletRentTotals.isEmpty) {
+      return Card(
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        color: Theme.of(context).cardColor,
+        child: Container(
+          padding: const EdgeInsets.all(16.0),
+          child: Center(
+            child: Text(
+              S.of(context).noDataAvailable,
+              style: TextStyle(
+                fontSize: 16 + appState.getTextSizeOffset(),
+                color: Colors.grey.shade600,
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
@@ -56,7 +80,7 @@ class _RentDistributionByWalletChartState extends State<RentDistributionByWallet
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  "${S.of(context).rentDistribution} par portefeuille",
+                  S.of(context).rentDistributionByWallet,
                   style: TextStyle(
                     fontSize: 20 + appState.getTextSizeOffset(),
                     fontWeight: FontWeight.bold,
@@ -114,32 +138,44 @@ class _RentDistributionByWalletChartState extends State<RentDistributionByWallet
   List<PieChartSectionData> _buildRentDonutChartData(int? selectedIndex) {
     // Obtenir les données de loyers par wallet
     final Map<String, double> walletRentTotals = _calculateWalletRentTotals();
-    
+
+    // Vérifier si les données sont valides
+    if (walletRentTotals.isEmpty) {
+      return [];
+    }
+
     // Calculer le total des loyers
     final double totalRent = walletRentTotals.values.fold(0.0, (sum, value) => sum + value);
-    
+
+    // Vérifier si le total est valide
+    if (totalRent <= 0) {
+      return [];
+    }
+
     // Trier les entrées par montant décroissant
-    final sortedEntries = walletRentTotals.entries.toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
-    
-    // Créer les sections du donut chart
+    final sortedEntries = walletRentTotals.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
+
+    // Créer les sections du donut chart avec des vérifications de sécurité
     return sortedEntries.asMap().entries.map((entry) {
       final index = entry.key;
       final data = entry.value;
-      final percentage = (data.value / totalRent) * 100;
       
+      // Vérifier si la valeur est valide
+      if (data.value <= 0) {
+        return null;
+      }
+
+      final percentage = (data.value / totalRent) * 100;
       final bool isSelected = selectedIndex == index;
       final double opacity = selectedIndex != null && !isSelected ? 0.5 : 1.0;
-      
+
       return PieChartSectionData(
         value: data.value,
         title: '${percentage.toInt()}%',
         color: _generateColor(index).withOpacity(opacity),
         radius: isSelected ? 52 : 45,
         titleStyle: TextStyle(
-          fontSize: isSelected
-              ? 14 + Provider.of<AppState>(context).getTextSizeOffset()
-              : 10 + Provider.of<AppState>(context).getTextSizeOffset(),
+          fontSize: isSelected ? 14 + Provider.of<AppState>(context).getTextSizeOffset() : 10 + Provider.of<AppState>(context).getTextSizeOffset(),
           color: Colors.white,
           fontWeight: FontWeight.w600,
           shadows: [
@@ -153,7 +189,7 @@ class _RentDistributionByWalletChartState extends State<RentDistributionByWallet
         badgeWidget: isSelected ? _buildSelectedIndicator() : null,
         badgePositionPercentageOffset: 1.1,
       );
-    }).toList();
+    }).whereType<PieChartSectionData>().toList();
   }
 
   Widget _buildSelectedIndicator() {
@@ -182,7 +218,7 @@ class _RentDistributionByWalletChartState extends State<RentDistributionByWallet
     final Map<String, double> walletRentTotals = _calculateWalletRentTotals();
     final double totalRent = walletRentTotals.values.fold(0.0, (sum, value) => sum + value);
     final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
-    
+
     if (selectedIndex == null) {
       return Column(
         mainAxisSize: MainAxisSize.min,
@@ -198,8 +234,8 @@ class _RentDistributionByWalletChartState extends State<RentDistributionByWallet
           const SizedBox(height: 4),
           Text(
             currencyUtils.formatCompactCurrency(
-                currencyUtils.convert(totalRent),
-                currencyUtils.currencySymbol,
+              currencyUtils.convert(totalRent),
+              currencyUtils.currencySymbol,
             ),
             style: TextStyle(
               fontSize: 14 + Provider.of<AppState>(context).getTextSizeOffset(),
@@ -210,14 +246,13 @@ class _RentDistributionByWalletChartState extends State<RentDistributionByWallet
         ],
       );
     }
-    
-    final sortedEntries = walletRentTotals.entries.toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
+
+    final sortedEntries = walletRentTotals.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
     final selectedEntry = sortedEntries[selectedIndex];
-    
+
     // Raccourcir l'adresse du wallet pour l'affichage
     String displayWallet = _formatWalletAddress(selectedEntry.key);
-    
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -232,8 +267,8 @@ class _RentDistributionByWalletChartState extends State<RentDistributionByWallet
         const SizedBox(height: 4),
         Text(
           currencyUtils.formatCompactCurrency(
-              currencyUtils.convert(selectedEntry.value),
-              currencyUtils.currencySymbol,
+            currencyUtils.convert(selectedEntry.value),
+            currencyUtils.currencySymbol,
           ),
           style: TextStyle(
             fontSize: 14 + Provider.of<AppState>(context).getTextSizeOffset(),
@@ -248,37 +283,32 @@ class _RentDistributionByWalletChartState extends State<RentDistributionByWallet
   Widget _buildRentLegend() {
     final Map<String, double> walletRentTotals = _calculateWalletRentTotals();
     final appState = Provider.of<AppState>(context);
-    
-    final sortedEntries = walletRentTotals.entries.toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
-    
+
+    final sortedEntries = walletRentTotals.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
+
     return Wrap(
-      spacing: 12.0,
-      runSpacing: 8.0,
+      spacing: 8.0,
+      runSpacing: 6.0,
       alignment: WrapAlignment.start,
       children: sortedEntries.map((entry) {
         final index = sortedEntries.indexOf(entry);
         final color = _generateColor(index);
-        
+
         // Raccourcir l'adresse du wallet pour l'affichage
         String displayWallet = _formatWalletAddress(entry.key);
-        
+
         return InkWell(
           onTap: () {
             _selectedIndexNotifier.value = index;
           },
           borderRadius: BorderRadius.circular(8),
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 6.0),
             decoration: BoxDecoration(
-              color: _selectedIndexNotifier.value == index
-                  ? color.withOpacity(0.1)
-                  : Colors.transparent,
+              color: _selectedIndexNotifier.value == index ? color.withOpacity(0.1) : Colors.transparent,
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
-                color: _selectedIndexNotifier.value == index
-                    ? color
-                    : Colors.transparent,
+                color: _selectedIndexNotifier.value == index ? color : Colors.transparent,
                 width: 1,
               ),
             ),
@@ -305,12 +335,8 @@ class _RentDistributionByWalletChartState extends State<RentDistributionByWallet
                   displayWallet,
                   style: TextStyle(
                     fontSize: 12 + appState.getTextSizeOffset(),
-                    color: _selectedIndexNotifier.value == index
-                        ? color
-                        : Theme.of(context).textTheme.bodyMedium?.color,
-                    fontWeight: _selectedIndexNotifier.value == index
-                        ? FontWeight.w600
-                        : FontWeight.normal,
+                    color: _selectedIndexNotifier.value == index ? color : Theme.of(context).textTheme.bodyMedium?.color,
+                    fontWeight: _selectedIndexNotifier.value == index ? FontWeight.w600 : FontWeight.normal,
                   ),
                 ),
               ],
@@ -324,20 +350,20 @@ class _RentDistributionByWalletChartState extends State<RentDistributionByWallet
   // Méthode pour calculer le total des loyers par wallet
   Map<String, double> _calculateWalletRentTotals() {
     Map<String, double> result = {};
-    
+
     // Obtenir les données de loyers par wallet depuis le DataManager
     Map<String, Map<String, double>> rentsByWallet = widget.dataManager.getRentsByWallet();
-    
+
     // Calculer le total des loyers pour chaque wallet
     for (var walletEntry in rentsByWallet.entries) {
       String wallet = walletEntry.key;
       Map<String, double> tokenRents = walletEntry.value;
-      
+
       // Somme des loyers pour tous les tokens de ce wallet
       double totalForWallet = tokenRents.values.fold(0.0, (sum, rent) => sum + rent);
       result[wallet] = totalForWallet;
     }
-    
+
     return result;
   }
 
@@ -359,11 +385,11 @@ class _RentDistributionByWalletChartState extends State<RentDistributionByWallet
     // Utiliser la palette de couleurs iOS-like de manière cyclique
     return colorPalette[index % colorPalette.length];
   }
-  
+
   // Méthode pour formater l'adresse du wallet
   String _formatWalletAddress(String address) {
     if (address == 'unknown') return S.of(context).unknown;
     if (address.length <= 8) return address;
     return '${address.substring(0, 6)}...${address.substring(address.length - 4)}';
   }
-} 
+}

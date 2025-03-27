@@ -17,7 +17,7 @@ class StatsSelectorPage extends StatefulWidget {
 class StatsSelectorPageState extends State<StatsSelectorPage> with TickerProviderStateMixin {
   String _selectedStats = 'WalletStats';
   String _previousSelectedStats = 'WalletStats';
-  
+
   // Couleurs spécifiques pour chaque sélecteur
   final Map<String, Color> _statsColors = {
     'WalletStats': Colors.blue,
@@ -45,8 +45,8 @@ class StatsSelectorPageState extends State<StatsSelectorPage> with TickerProvide
       );
 
       _scaleAnimations[key] = Tween<double>(
-        begin: 0.95,  // Taille réduite
-        end: 1.05,    // Taille augmentée
+        begin: 0.95, // Taille réduite
+        end: 1.05, // Taille augmentée
       ).animate(
         CurvedAnimation(
           parent: _animationControllers[key]!,
@@ -108,8 +108,7 @@ class StatsSelectorPageState extends State<StatsSelectorPage> with TickerProvide
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
                           Padding(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8.0, vertical: 4.0),
+                            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
                             child: _buildStatsSelector(),
                           ),
                         ],
@@ -162,21 +161,41 @@ class StatsSelectorPageState extends State<StatsSelectorPage> with TickerProvide
       fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
     );
 
-    double minWidth = isSelected 
-        ? _calculateTextWidth(context, label, textStyle) 
-        : 56; // Largeur minimale pour les icônes non sélectionnées
+    double minWidth = isSelected ? _calculateTextWidth(context, label, textStyle) : 56; // Largeur minimale pour les icônes non sélectionnées
 
     // Utiliser l'animation d'échelle si disponible
-    Widget animatedContent = _scaleAnimations.containsKey(value) 
-      ? AnimatedBuilder(
-          animation: _scaleAnimations[value]!,
-          builder: (context, child) {
-            return Transform.scale(
-              scale: isSelected ? _scaleAnimations[value]!.value : 1.0,
-              child: child,
-            );
-          },
-          child: isSelected
+    Widget animatedContent = _scaleAnimations.containsKey(value)
+        ? AnimatedBuilder(
+            animation: _scaleAnimations[value]!,
+            builder: (context, child) {
+              return Transform.scale(
+                scale: isSelected ? _scaleAnimations[value]!.value : 1.0,
+                child: child,
+              );
+            },
+            child: isSelected
+                ? Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(icon, color: Colors.white, size: 20),
+                      const SizedBox(width: 8),
+                      AnimatedDefaultTextStyle(
+                        duration: const Duration(milliseconds: 500),
+                        curve: Curves.easeInOut,
+                        style: textStyle.copyWith(color: Colors.white),
+                        child: Text(label),
+                      ),
+                    ],
+                  )
+                : Center(
+                    child: Icon(
+                      icon,
+                      color: Colors.grey, // Icônes inactives en gris
+                      size: 20,
+                    ),
+                  ),
+          )
+        : isSelected
             ? Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -196,29 +215,7 @@ class StatsSelectorPageState extends State<StatsSelectorPage> with TickerProvide
                   color: Colors.grey, // Icônes inactives en gris
                   size: 20,
                 ),
-              ),
-        )
-      : isSelected
-        ? Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, color: Colors.white, size: 20),
-              const SizedBox(width: 8),
-              AnimatedDefaultTextStyle(
-                duration: const Duration(milliseconds: 500),
-                curve: Curves.easeInOut,
-                style: textStyle.copyWith(color: Colors.white),
-                child: Text(label),
-              ),
-            ],
-          )
-        : Center(
-            child: Icon(
-              icon,
-              color: Colors.grey, // Icônes inactives en gris
-              size: 20,
-            ),
-          );
+              );
 
     return isSelected
         ? Expanded(
@@ -267,16 +264,14 @@ class StatsSelectorPageState extends State<StatsSelectorPage> with TickerProvide
           );
   }
 
-  double _calculateTextWidth(
-      BuildContext context, String text, TextStyle style) {
+  double _calculateTextWidth(BuildContext context, String text, TextStyle style) {
     final TextPainter textPainter = TextPainter(
       text: TextSpan(text: text, style: style),
       maxLines: 1,
       textDirection: TextDirection.ltr,
     )..layout();
 
-    return textPainter.width +
-        24; // Ajout de padding pour éviter que le texte touche les bords
+    return textPainter.width + 24; // Ajout de padding pour éviter que le texte touche les bords
   }
 
   Widget _getSelectedStatsPage() {

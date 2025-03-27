@@ -97,40 +97,27 @@ class _PropertiesForSaleRealtState extends State<PropertiesForSaleRealt> {
             )
           : AlignedGridView.count(
               padding: const EdgeInsets.only(top: 16, bottom: 80, left: 16, right: 16),
-              crossAxisCount: MediaQuery.of(context).size.width > 700
-                  ? 2
-                  : 1,
+              crossAxisCount: MediaQuery.of(context).size.width > 700 ? 2 : 1,
               mainAxisSpacing: 16,
               crossAxisSpacing: 16,
               itemCount: propertiesForSale.length,
               itemBuilder: (context, index) {
                 final property = propertiesForSale[index];
 
-                final imageUrl = (property['imageLink'] != null &&
-                        property['imageLink'] is List &&
-                        property['imageLink'].isNotEmpty)
-                    ? property['imageLink'][0]
-                    : '';
-                final title =
-                    property['shortName'] ?? S.of(context).nameUnavailable;
-                final double stock =
-                    (property['stock'] as num?)?.toDouble() ?? 0.0;
+                final imageUrl = (property['imageLink'] != null && property['imageLink'] is List && property['imageLink'].isNotEmpty) ? property['imageLink'][0] : '';
+                final title = property['shortName'] ?? S.of(context).nameUnavailable;
+                final double stock = (property['stock'] as num?)?.toDouble() ?? 0.0;
 
-                final double tokenPrice =
-                    (property['tokenPrice'] as num?)?.toDouble() ?? 0.0;
-                final double annualPercentageYield =
-                    (property['annualPercentageYield'] as num?)?.toDouble() ??
-                        0.0;
+                final double tokenPrice = (property['tokenPrice'] as num?)?.toDouble() ?? 0.0;
+                final double annualPercentageYield = (property['annualPercentageYield'] as num?)?.toDouble() ?? 0.0;
 
-                final double totalTokens =
-                    (property['totalTokens'] as num?)?.toDouble() ?? 0.0;
+                final double totalTokens = (property['totalTokens'] as num?)?.toDouble() ?? 0.0;
 
                 final country = property['country'] ?? 'unknown';
 
                 final city = property['city'] ?? 'unknown';
                 final status = property['status'] ?? 'Unknown';
-                final sellPercentage =
-                    (totalTokens - stock) / totalTokens * 100;
+                final sellPercentage = (totalTokens - stock) / totalTokens * 100;
 
                 return GestureDetector(
                   onTap: () {
@@ -142,9 +129,7 @@ class _PropertiesForSaleRealtState extends State<PropertiesForSaleRealt> {
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
-                          color: Theme.of(context).brightness == Brightness.dark 
-                            ? Colors.black.withOpacity(0.2)
-                            : Colors.black.withOpacity(0.05),
+                          color: Theme.of(context).brightness == Brightness.dark ? Colors.black.withOpacity(0.2) : Colors.black.withOpacity(0.05),
                           blurRadius: 10,
                           offset: const Offset(0, 4),
                         ),
@@ -160,16 +145,15 @@ class _PropertiesForSaleRealtState extends State<PropertiesForSaleRealt> {
                               AspectRatio(
                                 aspectRatio: 16 / 9,
                                 child: kIsWeb
-                                  ? ShowNetworkImage(
-                                      imageSrc: imageUrl,
-                                      mobileBoxFit: BoxFit.cover,
-                                    )
-                                  : CachedNetworkImage(
-                                      imageUrl: imageUrl,
-                                      fit: BoxFit.cover,
-                                      errorWidget: (context, url, error) =>
-                                          const Icon(CupertinoIcons.photo, color: CupertinoColors.systemGrey),
-                                    ),
+                                    ? ShowNetworkImage(
+                                        imageSrc: imageUrl,
+                                        mobileBoxFit: BoxFit.cover,
+                                      )
+                                    : CachedNetworkImage(
+                                        imageUrl: imageUrl,
+                                        fit: BoxFit.cover,
+                                        errorWidget: (context, url, error) => const Icon(CupertinoIcons.photo, color: CupertinoColors.systemGrey),
+                                      ),
                               ),
                               Positioned(
                                 top: 12,
@@ -177,9 +161,7 @@ class _PropertiesForSaleRealtState extends State<PropertiesForSaleRealt> {
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                                   decoration: BoxDecoration(
-                                    color: status == 'Available' 
-                                      ? CupertinoColors.activeGreen 
-                                      : CupertinoColors.systemRed,
+                                    color: status == 'Available' ? CupertinoColors.activeGreen : CupertinoColors.systemRed,
                                     borderRadius: BorderRadius.circular(20),
                                   ),
                                   child: Text(
@@ -209,9 +191,7 @@ class _PropertiesForSaleRealtState extends State<PropertiesForSaleRealt> {
                                             borderRadius: BorderRadius.circular(4),
                                             boxShadow: [
                                               BoxShadow(
-                                                color: Theme.of(context).brightness == Brightness.dark 
-                                                  ? Colors.black.withOpacity(0.2)
-                                                  : Colors.black.withOpacity(0.05),
+                                                color: Theme.of(context).brightness == Brightness.dark ? Colors.black.withOpacity(0.2) : Colors.black.withOpacity(0.05),
                                                 blurRadius: 2,
                                                 offset: const Offset(0, 1),
                                               ),

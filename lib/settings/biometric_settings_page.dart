@@ -36,21 +36,19 @@ class _BiometricSettingsPageState extends State<BiometricSettingsPage> {
       _isLoading = true;
       _statusMessage = 'Vérification des capacités biométriques...';
     });
-    
+
     try {
       final isAvailable = await _biometricService.isBiometricAvailable();
       final isEnabled = await _biometricService.isBiometricEnabled();
       final availableBiometrics = await _biometricService.getAvailableBiometrics();
       final biometricType = await _biometricService.getBiometricTypeName();
-      
+
       setState(() {
         _isBiometricAvailable = isAvailable;
         _isBiometricEnabled = isEnabled;
         _availableBiometrics = availableBiometrics;
         _biometricType = biometricType;
-        _statusMessage = isAvailable 
-            ? 'Votre appareil prend en charge $_biometricType'
-            : 'Votre appareil ne prend pas en charge l\'authentification biométrique';
+        _statusMessage = isAvailable ? 'Votre appareil prend en charge $_biometricType' : 'Votre appareil ne prend pas en charge l\'authentification biométrique';
         _isLoading = false;
       });
     } catch (e) {
@@ -74,16 +72,12 @@ class _BiometricSettingsPageState extends State<BiometricSettingsPage> {
       _isTesting = true;
       _statusMessage = 'Test d\'authentification...';
     });
-    
+
     try {
-      final authenticated = await _biometricService.authenticate(
-        reason: 'Ceci est un test d\'authentification biométrique'
-      );
-      
+      final authenticated = await _biometricService.authenticate(reason: 'Ceci est un test d\'authentification biométrique');
+
       setState(() {
-        _statusMessage = authenticated 
-            ? 'Test réussi! L\'authentification biométrique fonctionne correctement.'
-            : 'Échec du test. Veuillez réessayer.';
+        _statusMessage = authenticated ? 'Test réussi! L\'authentification biométrique fonctionne correctement.' : 'Échec du test. Veuillez réessayer.';
         _isTesting = false;
       });
     } catch (e) {
@@ -97,7 +91,7 @@ class _BiometricSettingsPageState extends State<BiometricSettingsPage> {
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
-    
+
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
@@ -114,7 +108,8 @@ class _BiometricSettingsPageState extends State<BiometricSettingsPage> {
         ],
       ),
       body: _isLoading
-          ? Center(child: Column(
+          ? Center(
+              child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 CircularProgressIndicator(),
@@ -126,16 +121,9 @@ class _BiometricSettingsPageState extends State<BiometricSettingsPage> {
               children: [
                 const SizedBox(height: 12),
                 _buildSectionHeader(context, "Sécurité", CupertinoIcons.lock),
-                
-                if (!_isBiometricAvailable)
-                  _buildErrorCard()
-                else
-                  _buildSettingsCard(),
-                
+                if (!_isBiometricAvailable) _buildErrorCard() else _buildSettingsCard(),
                 const SizedBox(height: 24),
-                
-                if (_isBiometricAvailable && _isBiometricEnabled)
-                  _buildTestSection(),
+                if (_isBiometricAvailable && _isBiometricEnabled) _buildTestSection(),
               ],
             ),
     );
@@ -317,11 +305,9 @@ class _BiometricSettingsPageState extends State<BiometricSettingsPage> {
     setState(() {
       _statusMessage = 'Authentification en cours...';
     });
-    
-    final authenticated = await _biometricService.authenticate(
-      reason: 'Authentifiez-vous pour activer la biométrie'
-    );
-    
+
+    final authenticated = await _biometricService.authenticate(reason: 'Authentifiez-vous pour activer la biométrie');
+
     if (authenticated) {
       await _saveSetting(true);
       setState(() {
@@ -388,4 +374,4 @@ class _BiometricSettingsPageState extends State<BiometricSettingsPage> {
       ),
     );
   }
-} 
+}

@@ -9,15 +9,13 @@ class TokensCard extends StatelessWidget {
   final bool showAmounts;
   final bool isLoading;
 
-  const TokensCard(
-      {super.key, required this.showAmounts, required this.isLoading});
+  const TokensCard({super.key, required this.showAmounts, required this.isLoading});
 
   @override
   Widget build(BuildContext context) {
     final dataManager = Provider.of<DataManager>(context);
 
-    double rentedPercentage =
-        dataManager.walletTokensSums / dataManager.totalTokens * 100;
+    double rentedPercentage = dataManager.walletTokensSums / dataManager.totalTokens * 100;
     if (rentedPercentage.isNaN || rentedPercentage < 0) {
       rentedPercentage = 0;
     }
@@ -27,11 +25,7 @@ class TokensCard extends StatelessWidget {
         UIUtils.buildCard(
           S.of(context).tokens,
           Icons.token_outlined,
-          UIUtils.buildValueBeforeText(
-              context,
-              dataManager.totalTokens.toStringAsFixed(2) as String?,
-              S.of(context).totalTokens,
-              isLoading || dataManager.isLoadingMain),
+          UIUtils.buildValueBeforeText(context, dataManager.totalTokens.toStringAsFixed(2) as String?, S.of(context).totalTokens, isLoading || dataManager.isLoadingMain),
           [
             UIUtils.buildTextWithShimmer(
               dataManager.walletTokensSums.toStringAsFixed(2),
@@ -85,17 +79,13 @@ class TokensCard extends StatelessWidget {
             ),
             PieChartSectionData(
               value: 100 - rentedPercentage,
-              color: Theme.of(context)
-                  .primaryColor, // Couleur pour les unités non louées
+              color: Theme.of(context).primaryColor, // Couleur pour les unités non louées
               title: '',
               radius: 17, // Taille de la section non louée
               gradient: LinearGradient(
                 colors: [
-                  Theme.of(context)
-                      .primaryColor
-                      .withOpacity(0.6), // Remplace Colors.blue.shade300
-                  Theme.of(context)
-                      .primaryColor, // Remplace Colors.blue.shade700
+                  Theme.of(context).primaryColor.withOpacity(0.6), // Remplace Colors.blue.shade300
+                  Theme.of(context).primaryColor, // Remplace Colors.blue.shade700
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
@@ -103,14 +93,11 @@ class TokensCard extends StatelessWidget {
             ),
           ],
           borderData: FlBorderData(show: false),
-          sectionsSpace:
-              2, // Un léger espace entre les sections pour les démarquer
+          sectionsSpace: 2, // Un léger espace entre les sections pour les démarquer
           centerSpaceRadius: 23, // Taille de l'espace central
         ),
-        swapAnimationDuration:
-            const Duration(milliseconds: 800), // Durée de l'animation
-        swapAnimationCurve:
-            Curves.easeInOut, // Courbe pour rendre l'animation fluide
+        swapAnimationDuration: const Duration(milliseconds: 800), // Durée de l'animation
+        swapAnimationCurve: Curves.easeInOut, // Courbe pour rendre l'animation fluide
       ),
     );
   }

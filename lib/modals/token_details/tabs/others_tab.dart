@@ -48,8 +48,7 @@ Widget buildOthersTab(BuildContext context, Map<String, dynamic> token) {
               onTap: () {
                 final ethereumAddress = token['ethereumContract'] ?? '';
                 if (ethereumAddress.isNotEmpty) {
-                  UrlUtils.launchURL(
-                      'https://etherscan.io/address/$ethereumAddress');
+                  UrlUtils.launchURL('https://etherscan.io/address/$ethereumAddress');
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
@@ -75,8 +74,7 @@ Widget buildOthersTab(BuildContext context, Map<String, dynamic> token) {
               onTap: () {
                 final gnosisAddress = token['gnosisContract'] ?? '';
                 if (gnosisAddress.isNotEmpty) {
-                  UrlUtils.launchURL(
-                      'https://gnosisscan.io/address/$gnosisAddress');
+                  UrlUtils.launchURL('https://gnosisscan.io/address/$gnosisAddress');
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
@@ -104,23 +102,15 @@ Widget buildOthersTab(BuildContext context, Map<String, dynamic> token) {
               context,
               icon: isWhitelisted ? Icons.check_circle : Icons.cancel,
               iconColor: isWhitelisted ? Colors.green : Colors.red,
-              label: isWhitelisted
-                  ? S.of(context).tokenWhitelisted
-                  : S.of(context).tokenNotWhitelisted,
+              label: isWhitelisted ? S.of(context).tokenWhitelisted : S.of(context).tokenNotWhitelisted,
               textColor: isWhitelisted ? Colors.green : Colors.red,
             ),
-
             const Divider(height: 1, thickness: 0.5),
-
             _buildStatusRow(
               context,
-              icon: isInWallet
-                  ? Icons.account_balance_wallet
-                  : Icons.account_balance_wallet_outlined,
+              icon: isInWallet ? Icons.account_balance_wallet : Icons.account_balance_wallet_outlined,
               iconColor: isInWallet ? Colors.green : Colors.red,
-              label: isInWallet
-                  ? S.of(context).presentInWallet
-                  : S.of(context).filterNotInWallet,
+              label: isInWallet ? S.of(context).presentInWallet : S.of(context).filterNotInWallet,
               textColor: isInWallet ? Colors.green : Colors.red,
             ),
           ],
@@ -131,7 +121,7 @@ Widget buildOthersTab(BuildContext context, Map<String, dynamic> token) {
         // Section wallets
         _buildSectionCard(
           context,
-          title: "Wallets contenant ce token",
+          title: S.of(context).walletsContainingToken,
           children: tokenWallets.isNotEmpty
               ? tokenWallets.map((walletAddress) {
                   return Column(
@@ -141,8 +131,7 @@ Widget buildOthersTab(BuildContext context, Map<String, dynamic> token) {
                         walletAddress: walletAddress,
                         showFull: appState.showAmounts,
                       ),
-                      if (tokenWallets.last != walletAddress)
-                        const Divider(height: 1, thickness: 0.5),
+                      if (tokenWallets.last != walletAddress) const Divider(height: 1, thickness: 0.5),
                     ],
                   );
                 }).toList()
@@ -202,14 +191,15 @@ Widget _buildSectionCard(BuildContext context, {required String title, required 
 }
 
 // Widget pour les lignes de contrat
-Widget _buildContractRow(BuildContext context, {
+Widget _buildContractRow(
+  BuildContext context, {
   required String icon,
   required String label,
   required String address,
   required Function() onTap,
 }) {
   final appState = Provider.of<AppState>(context, listen: false);
-  
+
   return Padding(
     padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 10.0),
     child: Column(
@@ -292,14 +282,15 @@ Widget _buildContractRow(BuildContext context, {
 }
 
 // Widget pour les lignes de statut
-Widget _buildStatusRow(BuildContext context, {
+Widget _buildStatusRow(
+  BuildContext context, {
   required IconData icon,
   required Color iconColor,
   required String label,
   required Color textColor,
 }) {
   final appState = Provider.of<AppState>(context, listen: false);
-  
+
   return Padding(
     padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 10.0),
     child: Row(
@@ -332,12 +323,13 @@ Widget _buildStatusRow(BuildContext context, {
 }
 
 // Widget pour les lignes de wallet
-Widget _buildWalletRow(BuildContext context, {
+Widget _buildWalletRow(
+  BuildContext context, {
   required String walletAddress,
   required bool showFull,
 }) {
   final appState = Provider.of<AppState>(context, listen: false);
-  
+
   return Padding(
     padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 10.0),
     child: Row(

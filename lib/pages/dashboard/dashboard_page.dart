@@ -6,8 +6,11 @@ import 'package:realtokens/settings/manage_evm_addresses_page.dart';
 import 'package:realtokens/utils/currency_utils.dart';
 import 'package:realtokens/utils/data_fetch_utils.dart';
 import 'package:realtokens/utils/ui_utils.dart';
+import 'package:realtokens/utils/shimmer_utils.dart';
 import 'package:realtokens/generated/l10n.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:flutter/rendering.dart';
+import 'dart:ui'; // Pour ImageFilter
 
 import 'widgets/portfolio_card.dart';
 import 'widgets/rmm_card.dart';
@@ -30,41 +33,52 @@ class DashboardPageState extends State<DashboardPage> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await DataFetchUtils.loadData(context);
-      setState(() {
-        _isPageLoading = false;
-      });
+      // Vérifier si les données sont déjà chargées
+      final dataManager = Provider.of<DataManager>(context, listen: false);
+      
+      // Si les données principales sont déjà chargées (depuis main.dart)
+      if (!dataManager.isLoadingMain && dataManager.evmAddresses.isNotEmpty && dataManager.portfolio.isNotEmpty) {
+        debugPrint("📊 Dashboard: données déjà chargées, skip chargement");
+        setState(() {
+          _isPageLoading = false;
+        });
+      } 
+      // Sinon, charger les données avec cache
+      else {
+        debugPrint("📊 Dashboard: chargement des données nécessaire");
+        await DataFetchUtils.loadDataWithCache(context);
+        setState(() {
+          _isPageLoading = false;
+        });
+      }
     });
   }
 
   // Calcule le temps écoulé depuis le premier loyer reçu
   String _getTimeElapsedSinceFirstRent(DataManager dataManager) {
     final rentData = dataManager.rentData;
-    
+
     if (rentData.isEmpty) {
       return "";
     }
-    
+
     // Trier les données par date (la plus ancienne en premier)
-    rentData.sort((a, b) => 
-      DateTime.parse(a['date']).compareTo(DateTime.parse(b['date'])));
-    
+    rentData.sort((a, b) => DateTime.parse(a['date']).compareTo(DateTime.parse(b['date'])));
+
     // Date du premier loyer
     final firstRentDate = DateTime.parse(rentData.first['date']);
     final today = DateTime.now();
-    
+
     // Calcul de la différence
     final difference = today.difference(firstRentDate);
-    
+
     // Calcul en années et mois
     int years = difference.inDays ~/ 365;
     int months = (difference.inDays % 365) ~/ 30;
-    
+
     // Format plus lisible
     if (years > 0) {
-      return years == 1 
-          ? "$years year ${months > 0 ? '$months month${months > 1 ? 's' : ''}' : ''}"
-          : "$years years ${months > 0 ? '$months month${months > 1 ? 's' : ''}' : ''}";
+      return years == 1 ? "$years year ${months > 0 ? '$months month${months > 1 ? 's' : ''}' : ''}" : "$years years ${months > 0 ? '$months month${months > 1 ? 's' : ''}' : ''}";
     } else if (months > 0) {
       return "$months month${months > 1 ? 's' : ''}";
     } else {
@@ -80,14 +94,14 @@ class DashboardPageState extends State<DashboardPage> {
     final appState = Provider.of<AppState>(context);
 
     final lastRentReceived = _getLastRentReceived(dataManager);
-    final totalRentReceived = currencyUtils.getFormattedAmount(
-        currencyUtils.convert(dataManager.getTotalRentReceived()),
-        currencyUtils.currencySymbol,
-        appState.showAmounts);
+    final totalRentReceived = currencyUtils.getFormattedAmount(currencyUtils.convert(dataManager.getTotalRentReceived()), currencyUtils.currencySymbol, appState.showAmounts);
     final timeElapsed = _getTimeElapsedSinceFirstRent(dataManager);
+    
+    // Vérifier si des données sont en cours de mise à jour pour les shimmers
+    final bool shouldShowShimmers = _isPageLoading || dataManager.isUpdatingData;
 
     return Scaffold(
-      backgroundColor: Theme.of(context).brightness == Brightness.light 
+      backgroundColor: Theme.of(context).brightness == Brightness.light
           ? Color(0xFFF2F2F7) // Couleur de fond iOS light mode
           : Color(0xFF000000), // Couleur de fond iOS dark mode
       body: Stack(
@@ -102,16 +116,13 @@ class DashboardPageState extends State<DashboardPage> {
                 _isPageLoading = false;
               });
             },
-            color: Color(0xFF007AFF), // Couleur iOS
-            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-            displacement: 80,
+            color: Theme.of(context).primaryColor,
+            backgroundColor: Theme.of(context).cardColor,
+            displacement: 110,
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               child: Padding(
-                padding: EdgeInsets.only(
-                    top: UIUtils.getAppBarHeight(context),
-                    left: 12.0,
-                    right: 12.0),
+                padding: EdgeInsets.only(top: UIUtils.getAppBarHeight(context), left: 12.0, right: 12.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -122,178 +133,178 @@ class DashboardPageState extends State<DashboardPage> {
                         children: [
                           Text(
                             S.of(context).hello,
-                            style: TextStyle(
-                                fontSize: 28 + appState.getTextSizeOffset(),
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: -0.5,
-                                color: Theme.of(context).textTheme.bodyLarge?.color),
+                            style: TextStyle(fontSize: 28 + appState.getTextSizeOffset(), fontWeight: FontWeight.bold, letterSpacing: -0.5, color: Theme.of(context).textTheme.bodyLarge?.color),
                           ),
                         ],
                       ),
                     ),
-                    if (!_isPageLoading && (dataManager.evmAddresses.isEmpty))
-                      _buildNoWalletCard(context),
+                    if (!_isPageLoading && (dataManager.evmAddresses.isEmpty)) _buildNoWalletCard(context),
                     const SizedBox(height: 8),
                     Container(
                       margin: EdgeInsets.only(bottom: 12.0),
-                      padding: EdgeInsets.all(16.0),
                       decoration: BoxDecoration(
-                        color: Theme.of(context).brightness == Brightness.light 
-                            ? Colors.white 
-                            : Color(0xFF1C1C1E),
-                        borderRadius: BorderRadius.circular(16),
+                        gradient: LinearGradient(
+                          colors: [
+                            Theme.of(context).primaryColor.withOpacity(0.8),
+                            Theme.of(context).primaryColor,
+                          ],
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          stops: const [0.2, 1.0],
+                        ),
+                        borderRadius: BorderRadius.circular(24),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
-                            blurRadius: 10,
-                            offset: Offset(0, 2),
+                            color: Theme.of(context).primaryColor.withOpacity(0.2),
+                            blurRadius: 5,
+                            offset: const Offset(0, 4),
+                            spreadRadius: -2,
                           ),
                         ],
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              dataManager.isLoadingMain || _isPageLoading
-                                ? Shimmer.fromColors(
-                                    baseColor: Theme.of(context)
-                                            .textTheme
-                                            .bodyMedium
-                                            ?.color
-                                            ?.withOpacity(0.2) ??
-                                        Colors.grey[300]!,
-                                    highlightColor: Theme.of(context)
-                                            .textTheme
-                                            .bodyMedium
-                                            ?.color
-                                            ?.withOpacity(0.5) ??
-                                        Colors.grey[100]!,
-                                    child: Text(
-                                      lastRentReceived,
-                                      style: TextStyle(
-                                        fontSize: 22 + appState.getTextSizeOffset(),
-                                        fontWeight: FontWeight.bold,
-                                        color: Theme.of(context).textTheme.bodyLarge?.color,
-                                      ),
-                                    ),
-                                  )
-                                : Text(
-                                    lastRentReceived,
-                                    style: TextStyle(
-                                      fontSize: 22 + appState.getTextSizeOffset(),
-                                      fontWeight: FontWeight.bold,
-                                      color: Theme.of(context).textTheme.bodyLarge?.color,
-                                    ),
-                                  ),
-                                  SizedBox(width: 8),
-
-                                  Text(
-                                S.of(context).lastRentReceived,
-                                style: TextStyle(
-                                  fontSize: 15 + appState.getTextSizeOffset(),
-                                  color: Theme.of(context).brightness == Brightness.light 
-                                      ? Colors.black54 
-                                      : Colors.white70,
-                                  letterSpacing: -0.2,
-                                ),
-                              ),
-                            ],
-                          ),
-                          SizedBox(height: 5),
-                          Row(
-                            children: [
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(24),
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
                              
-                              SizedBox(width: 8),
-                              dataManager.isLoadingMain || _isPageLoading
-                                ? Shimmer.fromColors(
-                                    baseColor: Theme.of(context)
-                                            .textTheme
-                                            .bodyMedium
-                                            ?.color
-                                            ?.withOpacity(0.2) ??
-                                        Colors.grey[300]!,
-                                    highlightColor: Theme.of(context)
-                                            .textTheme
-                                            .bodyMedium
-                                            ?.color
-                                            ?.withOpacity(0.5) ??
-                                        Colors.grey[100]!,
-                                    child: Row(
-                                      children: [
-                                        Text(
-                                          totalRentReceived,
-                                          style: TextStyle(
-                                            fontSize: 17 + Provider.of<AppState>(context).getTextSizeOffset(),
-                                            fontWeight: FontWeight.w600,
-                                            color: Theme.of(context).textTheme.bodyLarge?.color,
-                                          ),
-                                        ),
-                                        SizedBox(width: 4),
-                                        Text(
-                                          'since $timeElapsed',
-                                          style: TextStyle(
-                                            fontSize: 14 + appState.getTextSizeOffset(),
-                                            fontWeight: FontWeight.w500,
-                                            color: Theme.of(context).primaryColor,
-                                            letterSpacing: -0.3,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  )
-                                : Row(
+                                Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.15),
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: [
-                                      Text(
-                                        totalRentReceived,
-                                        style: TextStyle(
-                                          fontSize: 17 + Provider.of<AppState>(context).getTextSizeOffset(),
-                                          fontWeight: FontWeight.w600,
-                                          color: Theme.of(context).textTheme.bodyLarge?.color,
-                                        ),
+                                      Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            S.of(context).lastRentReceived,
+                                            style: TextStyle(
+                                              fontSize: 13 + appState.getTextSizeOffset(),
+                                              color: Colors.white70,
+                                              letterSpacing: -0.2,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 2),
+                                          dataManager.isLoadingMain || shouldShowShimmers
+                                            ? ShimmerUtils.originalColorShimmer(
+                                                child: Text(
+                                                  lastRentReceived,
+                                                  style: TextStyle(
+                                                    fontSize: 20 + appState.getTextSizeOffset(),
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.white,
+                                                  ),
+                                                ),
+                                                color: Colors.white,
+                                              )
+                                            : Text(
+                                                lastRentReceived,
+                                                style: TextStyle(
+                                                  fontSize: 20 + appState.getTextSizeOffset(),
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                        ],
                                       ),
-                                      SizedBox(width: 4),
-                                      Text(
-                                        'since $timeElapsed',
-                                        style: TextStyle(
-                                          fontSize: 14 + appState.getTextSizeOffset(),
-                                          fontWeight: FontWeight.w500,
-                                          color: Theme.of(context).primaryColor,
-                                          letterSpacing: -0.3,
-                                        ),
+                                      Column(
+                                        crossAxisAlignment: CrossAxisAlignment.end,
+                                        children: [
+                                          Text(
+                                            'Total des loyers',
+                                            style: TextStyle(
+                                              fontSize: 13 + appState.getTextSizeOffset(),
+                                              color: Colors.white70,
+                                              letterSpacing: -0.2,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 2),
+                                          dataManager.isLoadingMain || shouldShowShimmers
+                                            ? ShimmerUtils.originalColorShimmer(
+                                                child: Text(
+                                                  totalRentReceived,
+                                                  style: TextStyle(
+                                                    fontSize: 20 + appState.getTextSizeOffset(),
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.white,
+                                                  ),
+                                                ),
+                                                color: Colors.white,
+                                              )
+                                            : Text(
+                                                totalRentReceived,
+                                                style: TextStyle(
+                                                  fontSize: 20 + appState.getTextSizeOffset(),
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                        ],
                                       ),
                                     ],
                                   ),
-                            ],
+                                ),
+                                const SizedBox(height: 8),
+                                   Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    const Spacer(),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withOpacity(0.15),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          const Icon(
+                                            Icons.calendar_today_outlined,
+                                            color: Colors.white,
+                                            size: 14,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            'Depuis $timeElapsed',
+                                            style: TextStyle(
+                                              fontSize: 12 + appState.getTextSizeOffset(),
+                                              fontWeight: FontWeight.w500,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
-                        ],
+                        ),
                       ),
                     ),
                     PortfolioCard(
                       showAmounts: appState.showAmounts,
-                      isLoading: _isPageLoading,
+                      isLoading: shouldShowShimmers,
                       context: context,
                     ),
                     const SizedBox(height: 8),
-                    RmmCard(
-                        showAmounts: appState.showAmounts,
-                        isLoading: _isPageLoading),
+                    RmmCard(showAmounts: appState.showAmounts, isLoading: shouldShowShimmers),
                     const SizedBox(height: 8),
-                    PropertiesCard(
-                        showAmounts: appState.showAmounts,
-                        isLoading: _isPageLoading),
+                    PropertiesCard(showAmounts: appState.showAmounts, isLoading: shouldShowShimmers),
                     const SizedBox(height: 8),
-                    TokensCard(
-                        showAmounts: appState.showAmounts,
-                        isLoading: _isPageLoading),
+                    TokensCard(showAmounts: appState.showAmounts, isLoading: shouldShowShimmers),
                     const SizedBox(height: 8),
-                    RentsCard(
-                        showAmounts: appState.showAmounts,
-                        isLoading: _isPageLoading),
+                    RentsCard(showAmounts: appState.showAmounts, isLoading: shouldShowShimmers),
                     const SizedBox(height: 8),
-                    NextRondaysCard(
-                        showAmounts: appState.showAmounts,
-                        isLoading: _isPageLoading),
+                    NextRondaysCard(showAmounts: appState.showAmounts, isLoading: shouldShowShimmers),
                     const SizedBox(height: 80),
                   ],
                 ),
@@ -310,9 +321,7 @@ class DashboardPageState extends State<DashboardPage> {
       margin: EdgeInsets.symmetric(vertical: 12.0),
       width: double.infinity,
       decoration: BoxDecoration(
-        color: Theme.of(context).brightness == Brightness.light 
-            ? Color(0xFFE5F2FF) 
-            : Color(0xFF0A3060),
+        color: Theme.of(context).brightness == Brightness.light ? Color(0xFFE5F2FF) : Color(0xFF0A3060),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Padding(
@@ -326,9 +335,7 @@ class DashboardPageState extends State<DashboardPage> {
               style: TextStyle(
                 fontSize: 17 + Provider.of<AppState>(context).getTextSizeOffset(),
                 fontWeight: FontWeight.bold,
-                color: Theme.of(context).brightness == Brightness.light 
-                    ? Color(0xFF007AFF) 
-                    : Colors.white,
+                color: Theme.of(context).brightness == Brightness.light ? Color(0xFF007AFF) : Colors.white,
               ),
               textAlign: TextAlign.center,
             ),
@@ -370,12 +377,10 @@ class DashboardPageState extends State<DashboardPage> {
       return S.of(context).noRentReceived;
     }
 
-    rentData.sort((a, b) =>
-        DateTime.parse(b['date']).compareTo(DateTime.parse(a['date'])));
+    rentData.sort((a, b) => DateTime.parse(b['date']).compareTo(DateTime.parse(a['date'])));
     final lastRent = rentData.first['rent'];
 
     // Utiliser _getFormattedAmount pour masquer ou afficher la valeur
-    return currencyUtils.getFormattedAmount(currencyUtils.convert(lastRent),
-        currencyUtils.currencySymbol, appState.showAmounts);
+    return currencyUtils.getFormattedAmount(currencyUtils.convert(lastRent), currencyUtils.currencySymbol, appState.showAmounts);
   }
 }

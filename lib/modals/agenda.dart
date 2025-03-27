@@ -214,6 +214,9 @@ class AgendaCalendarState extends State<AgendaCalendar> {
                               event.containsKey('transactionType')
                                   ? event['transactionType']
                                   : S.of(context).unknownTransaction;
+                          
+                          // Obtenir la version localisée du type de transaction pour l'affichage
+                          final localizedTransactionType = _getLocalizedTransactionType(transactionType, context);
 
                           return Container(
                             padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
@@ -256,7 +259,7 @@ class AgendaCalendarState extends State<AgendaCalendar> {
                                             ),
                                             const SizedBox(height: 4),
                                             Text(
-                                              "$transactionType • ${S.of(context).quantity}: $amount",
+                                              "$localizedTransactionType • ${S.of(context).quantity}: $amount",
                                               style: TextStyle(
                                                 fontSize: 14 + appState.getTextSizeOffset(),
                                                 color: CupertinoColors.secondaryLabel.resolveFrom(context),
@@ -523,13 +526,13 @@ class AgendaCalendarState extends State<AgendaCalendar> {
               .any((e) => (e as Map<String, dynamic>)['type'] == 'rent');
           bool hasPurchase = events.any((e) =>
               (e as Map<String, dynamic>)['type'] == 'transaction' &&
-              e['transactionType'] == S.of(context).purchase);
+              e['transactionType'] == DataManager.transactionTypePurchase);
           bool hasYAM = events.any((e) =>
               (e as Map<String, dynamic>)['type'] == 'transaction' &&
-              e['transactionType'] == S.of(context).yam);
+              e['transactionType'] == DataManager.transactionTypeYam);
           bool hasTransfer = events.any((e) =>
               (e as Map<String, dynamic>)['type'] == 'transaction' &&
-              e['transactionType'] == S.of(context).internal_transfer);
+              e['transactionType'] == DataManager.transactionTypeTransfer);
 
           if (hasRent) {
             markers.add(Container(
@@ -587,11 +590,11 @@ class AgendaCalendarState extends State<AgendaCalendar> {
   }
 
   IconData _getTransactionIcon(String transactionType) {
-    if (transactionType == S.of(context).purchase) {
+    if (transactionType == DataManager.transactionTypePurchase) {
       return CupertinoIcons.cart_fill;
-    } else if (transactionType == S.of(context).internal_transfer) {
+    } else if (transactionType == DataManager.transactionTypeTransfer) {
       return CupertinoIcons.arrow_right_arrow_left_square_fill;
-    } else if (transactionType == S.of(context).yam) {
+    } else if (transactionType == DataManager.transactionTypeYam) {
       return CupertinoIcons.money_dollar_circle_fill;
     } else {
       return CupertinoIcons.creditcard_fill;
@@ -599,14 +602,27 @@ class AgendaCalendarState extends State<AgendaCalendar> {
   }
 
   Color _getIconBackground(String transactionType, BuildContext context) {
-    if (transactionType == S.of(context).purchase) {
+    if (transactionType == DataManager.transactionTypePurchase) {
       return CupertinoColors.systemBlue.resolveFrom(context);
-    } else if (transactionType == S.of(context).internal_transfer) {
+    } else if (transactionType == DataManager.transactionTypeTransfer) {
       return CupertinoColors.systemGrey.resolveFrom(context);
-    } else if (transactionType == S.of(context).yam) {
+    } else if (transactionType == DataManager.transactionTypeYam) {
       return CupertinoColors.systemOrange.resolveFrom(context);
     } else {
       return CupertinoColors.systemTeal.resolveFrom(context);
+    }
+  }
+  
+  // Méthode pour traduire les constantes en textes localisés
+  String _getLocalizedTransactionType(String transactionType, BuildContext context) {
+    if (transactionType == DataManager.transactionTypePurchase) {
+      return S.of(context).purchase;
+    } else if (transactionType == DataManager.transactionTypeTransfer) {
+      return S.of(context).internal_transfer;
+    } else if (transactionType == DataManager.transactionTypeYam) {
+      return S.of(context).yam;
+    } else {
+      return S.of(context).unknownTransaction;
     }
   }
 }

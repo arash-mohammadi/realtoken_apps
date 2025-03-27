@@ -16,6 +16,20 @@ import 'package:realtokens/managers/apy_manager.dart';
 import 'package:flutter/foundation.dart';
 
 class DataManager extends ChangeNotifier {
+  // Constantes pour les types de transaction
+  static const String transactionTypeTransfer = 'transfer';
+  static const String transactionTypePurchase = 'purchase';
+  static const String transactionTypeYam = 'yam';
+
+  // Préfixes de log pour différents niveaux hiérarchiques
+  static const String _logMain = "[MAIN] 📊";
+  static const String _logSub = "  [SUB] 📌";
+  static const String _logTask = "    [TASK] 🔹";
+  static const String _logDetail = "      [DETAIL] ▫️";
+  static const String _logWarning = "⚠️";
+  static const String _logError = "❌";
+  static const String _logSuccess = "✅";
+
   // Singleton pour DataManager
   static final DataManager _instance = DataManager._internal(
     archiveManager: ArchiveManager(),
@@ -27,6 +41,11 @@ class DataManager extends ChangeNotifier {
   // Variables finales pour les managers
   final ArchiveManager _archiveManager;
   final ApyManager apyManager;
+
+  // Flags pour suivre l'état d'exécution des fonctions de chargement de données
+  bool _isLoadingFromCache = false;
+  bool _isUpdatingMainInformations = false;
+  bool _isUpdatingSecondaryInformations = false;
 
   // Constructeur privé pour le singleton
   DataManager._internal({
@@ -43,6 +62,9 @@ class DataManager extends ChangeNotifier {
 
   /// Charge la préférence de réactivité APY depuis SharedPreferences
   Future<void> _loadApyReactivityPreference() async {
+    final startTime = DateTime.now();
+    debugPrint("$_logTask Chargement de la préférence de réactivité APY...");
+    
     try {
       final prefs = await SharedPreferences.getInstance();
       double reactivity = prefs.getDouble('apyReactivity') ?? 0.2;
@@ -50,14 +72,18 @@ class DataManager extends ChangeNotifier {
       // Appliquer la valeur de réactivité aux paramètres de l'ApyManager
       adjustApyReactivity(reactivity);
       
-      debugPrint("✅ Préférence de réactivité APY chargée: $reactivity");
+      final duration = DateTime.now().difference(startTime);
+      debugPrint("$_logSuccess Préférence de réactivité APY chargée: $reactivity (${duration.inMilliseconds}ms)");
     } catch (e) {
-      debugPrint("❌ Erreur lors du chargement de la préférence de réactivité APY: $e");
+      debugPrint("$_logError Erreur lors du chargement de la préférence de réactivité APY: $e");
     }
   }
 
   bool isLoading = true;
   bool isLoadingSecondary = true;
+  bool isLoadingMain = true;
+  bool isLoadingTransactions = true;
+  bool isUpdatingData = false; // Nouvelle variable pour suivre les mises à jour en cours
 
   // Variables globales pour la gestion des données
   Map<String, dynamic> tokenDataFetched = {};
@@ -124,8 +150,6 @@ class DataManager extends ChangeNotifier {
   int rmmTokenCount = 0;
   int totalTokenCount = 0;
   int duplicateTokenCount = 0;
-  bool isLoadingMain = true;
-  bool isLoadingTransactions = true;
   List<Map<String, dynamic>> rentData = [];
   List<Map<String, dynamic>> propertyData = [];
   List<Map<String, dynamic>> perWalletBalances = [];
@@ -142,8 +166,8 @@ class DataManager extends ChangeNotifier {
   List<Map<String, dynamic>> tempRentData = [];
   List<BalanceRecord> balanceHistory = [];
   List<BalanceRecord> walletBalanceHistory = [];
-  List<RoiRecord> roiHistory = [];
-  List<ApyRecord> apyHistory = [];
+  List<ROIRecord> roiHistory = [];
+  List<APYRecord> apyHistory = [];
   List<HealthAndLtvRecord> healthAndLtvHistory = [];
   List<RentedRecord> rentedHistory = [];
   Map<String, double> customInitPrices = {};
@@ -170,182 +194,260 @@ class DataManager extends ChangeNotifier {
   // ... existing code ...
 
   Future<void> loadWalletsAddresses({bool forceFetch = false}) async {
+    final startTime = DateTime.now();
+    debugPrint("$_logTask Chargement des adresses de wallets...");
+    
     final prefs = await SharedPreferences.getInstance();
-// Charger les adresses
+    // Charger les adresses
     evmAddresses = prefs.getStringList('evmAddresses') ?? [];
+    
+    final duration = DateTime.now().difference(startTime);
+    debugPrint("$_logSuccess ${evmAddresses.length} adresses de wallets chargées (${duration.inMilliseconds}ms)");
   }
 
   Future<void> updateMainInformations({bool forceFetch = false}) async {
+    // Vérifier si déjà en cours d'exécution
+    if (_isUpdatingMainInformations) {
+      debugPrint("$_logWarning updateMainInformations déjà en cours d'exécution, requête ignorée");
+      return;
+    }
+    
+    // Vérifier si des adresses de wallet sont disponibles
+    if (evmAddresses.isEmpty) {
+      debugPrint("$_logWarning updateMainInformations : aucune adresse de wallet disponible");
+      return;
+    }
+    
+    // Marquer comme en cours d'exécution et activer les shimmers
+    _isUpdatingMainInformations = true;
+    isUpdatingData = true; // Active les shimmers dans l'UI
+    notifyListeners(); // Notifier les observateurs pour afficher les shimmers
+    
+    final startTime = DateTime.now();
     var box = Hive.box('realTokens'); // Ouvrir la boîte Hive pour le cache
+
+    debugPrint("$_logMain Début de la mise à jour des informations principales...");
 
     // Vérifier si une mise à jour est nécessaire
     if (!forceFetch &&
         _lastUpdated != null &&
         DateTime.now().difference(_lastUpdated!) < _updateCooldown) {
-      debugPrint("⏳ Mise à jour ignorée : déjà effectuée récemment.");
+      debugPrint("$_logWarning Mise à jour ignorée: déjà effectuée récemment");
+      _isUpdatingMainInformations = false; // Réinitialiser le flag
+      isUpdatingData = false; // Désactiver les shimmers
+      notifyListeners(); // Notifier les observateurs
       return;
     }
 
     _lastUpdated = DateTime.now();
-    debugPrint("🔄 Début de la mise à jour des informations principales...");
 
-    // Fonction générique pour fetch + cache
-    Future<void> fetchData({
-      required Future<List<dynamic>> Function() apiCall,
-      required String cacheKey,
-      required void Function(List<Map<String, dynamic>>) updateVariable,
-      required String debugName,
-    }) async {
-      try {
-        var data = await apiCall();
-        if (data.isNotEmpty) {
-          debugPrint("✅ Mise à jour des données $debugName.");
-          box.put(cacheKey, json.encode(data));
-          updateVariable(List<Map<String, dynamic>>.from(data));
-        } else {
-          debugPrint(
-              "⚠️ Pas de nouvelles données $debugName, chargement du cache...");
-          var cachedData = box.get(cacheKey);
-          if (cachedData != null) {
-            updateVariable(
-                List<Map<String, dynamic>>.from(json.decode(cachedData)));
+    try {
+      // Fonction générique pour fetch + cache
+      Future<void> fetchData({
+        required Future<List<dynamic>> Function() apiCall,
+        required String cacheKey,
+        required void Function(List<Map<String, dynamic>>) updateVariable,
+        required String debugName,
+      }) async {
+        final fetchStartTime = DateTime.now();
+        try {
+          debugPrint("$_logSub Récupération des données $debugName...");
+          var data = await apiCall();
+          if (data.isNotEmpty) {
+            final fetchDuration = DateTime.now().difference(fetchStartTime);
+            debugPrint("$_logSuccess Données $debugName mises à jour (${fetchDuration.inMilliseconds}ms)");
+            box.put(cacheKey, json.encode(data));
+            updateVariable(List<Map<String, dynamic>>.from(data));
+          } else {
+            debugPrint("$_logWarning Pas de nouvelles données $debugName, chargement du cache");
+            var cachedData = box.get(cacheKey);
+            if (cachedData != null) {
+              updateVariable(
+                  List<Map<String, dynamic>>.from(json.decode(cachedData)));
+            }
           }
+          notifyListeners();
+        } catch (e) {
+          debugPrint("$_logError Erreur lors de la mise à jour $debugName: $e");
         }
-        notifyListeners();
-      } catch (e) {
-        debugPrint("❌ Erreur lors de la mise à jour $debugName : $e");
       }
+
+      // Exécution des mises à jour en parallèle
+      await Future.wait([
+        fetchData(
+            apiCall: () => ApiService.fetchWalletTokens(forceFetch: forceFetch),
+            cacheKey: 'cachedTokenData_tokens',
+            updateVariable: (data) => walletTokens = data,
+            debugName: "Tokens"),
+
+        fetchData(
+            apiCall: () => ApiService.fetchRealTokens(forceFetch: forceFetch),
+            cacheKey: 'cachedRealTokens',
+            updateVariable: (data) => realTokens = data,
+            debugName: "RealTokens"),
+        fetchData(
+            apiCall: () => ApiService.fetchRmmBalances(forceFetch: forceFetch),
+            cacheKey: 'rmmBalances',
+            updateVariable: (data) {
+              rmmBalances = data;
+              fetchRmmBalances();
+            },
+            debugName: "RMM Balances"),
+        fetchData(
+            apiCall: () => ApiService.fetchRentData(forceFetch: forceFetch),
+            cacheKey: 'tempRentData',
+            updateVariable: (data) => tempRentData = data,
+            debugName: "Loyer temporaire"),
+        fetchData(
+            apiCall: () => ApiService.fetchPropertiesForSale(),
+            cacheKey: 'cachedPropertiesForSaleData',
+            updateVariable: (data) => propertiesForSaleFetched = data,
+            debugName: "Propriétés en vente"),
+        // Ajout de l'appel pour récupérer les tokens whitelistés pour chaque wallet
+        fetchData(
+            apiCall: () =>
+                ApiService.fetchWhitelistTokens(forceFetch: forceFetch),
+            cacheKey: 'cachedWhitelistTokens',
+            updateVariable: (data) => whitelistTokens = data,
+            debugName: "Whitelist")
+      ]);
+
+      // Charger les historiques
+      debugPrint("$_logSub Chargement des historiques...");
+      final histStartTime = DateTime.now();
+      
+      loadWalletBalanceHistory();
+      loadRentedHistory();
+      loadRoiHistory();
+      loadApyHistory();
+      loadHealthAndLtvHistory();
+      
+      final histDuration = DateTime.now().difference(histStartTime);
+      debugPrint("$_logSuccess Historiques chargés (${histDuration.inMilliseconds}ms)");
+      
+      isLoadingMain = false;
+      
+      final totalDuration = DateTime.now().difference(startTime);
+      debugPrint("$_logMain Mise à jour principale terminée (${totalDuration.inMilliseconds}ms)");
+    } catch (e) {
+      debugPrint("$_logError Erreur globale dans updateMainInformations: $e");
+    } finally {
+      _isUpdatingMainInformations = false; // Réinitialiser le flag
+      isUpdatingData = false; // Désactiver les shimmers
+      notifyListeners(); // Notifier les observateurs que la mise à jour est terminée
     }
-
-    // Exécution des mises à jour en parallèle
-    await Future.wait([
-      fetchData(
-          apiCall: () => ApiService.fetchWalletTokens(forceFetch: forceFetch),
-          cacheKey: 'cachedTokenData_tokens',
-          updateVariable: (data) => walletTokens = data,
-          debugName: "Tokens"),
-
-      fetchData(
-          apiCall: () => ApiService.fetchRealTokens(forceFetch: forceFetch),
-          cacheKey: 'cachedRealTokens',
-          updateVariable: (data) => realTokens = data,
-          debugName: "RealTokens"),
-      fetchData(
-          apiCall: () => ApiService.fetchRmmBalances(forceFetch: forceFetch),
-          cacheKey: 'rmmBalances',
-          updateVariable: (data) {
-            rmmBalances = data;
-            fetchRmmBalances();
-          },
-          debugName: "RMM Balances"),
-      fetchData(
-          apiCall: () => ApiService.fetchRentData(forceFetch: forceFetch),
-          cacheKey: 'tempRentData',
-          updateVariable: (data) => tempRentData = data,
-          debugName: "Loyer temporaire"),
-      fetchData(
-          apiCall: () => ApiService.fetchPropertiesForSale(),
-          cacheKey: 'cachedPropertiesForSaleData',
-          updateVariable: (data) => propertiesForSaleFetched = data,
-          debugName: "Propriétés en vente"),
-      // Ajout de l'appel pour récupérer les tokens whitelistés pour chaque wallet
-      fetchData(
-          apiCall: () =>
-              ApiService.fetchWhitelistTokens(forceFetch: forceFetch),
-          cacheKey: 'cachedWhitelistTokens',
-          updateVariable: (data) => whitelistTokens = data,
-          debugName: "Whitelist")
-    ]);
-
-    // Charger les historiques
-    loadWalletBalanceHistory();
-    loadRentedHistory();
-    loadRoiHistory();
-    loadApyHistory();
-    loadHealthAndLtvHistory();
-    isLoadingMain = false;
   }
 
   Future<void> updateSecondaryInformations(BuildContext context,
       {bool forceFetch = false}) async {
-    var box = Hive.box('realTokens'); // Ouvrir la boîte Hive pour le cache
-
-    // Fonction générique pour fetch + cache
-    Future<void> fetchData({
-      required Future<List<dynamic>> Function() apiCall,
-      required String cacheKey,
-      required void Function(List<Map<String, dynamic>>) updateVariable,
-      required String debugName,
-    }) async {
-      try {
-        var data = await apiCall();
-        if (data.isNotEmpty) {
-          debugPrint("✅ Mise à jour des données $debugName.");
-          box.put(cacheKey, json.encode(data));
-          updateVariable(List<Map<String, dynamic>>.from(data));
-        } else {
-          debugPrint(
-              "⚠️ Pas de nouvelles données $debugName, chargement du cache...");
-          var cachedData = box.get(cacheKey);
-          if (cachedData != null) {
-            updateVariable(
-                List<Map<String, dynamic>>.from(json.decode(cachedData)));
-          }
-        }
-        notifyListeners();
-      } catch (e) {
-        debugPrint("❌ Erreur lors de la mise à jour $debugName : $e");
-      }
+    // Vérifier si déjà en cours d'exécution
+    if (_isUpdatingSecondaryInformations) {
+      debugPrint("$_logWarning updateSecondaryInformations déjà en cours d'exécution, requête ignorée");
+      return;
     }
+    
+    // Vérifier si des adresses de wallet sont disponibles
+    if (evmAddresses.isEmpty) {
+      debugPrint("$_logWarning updateSecondaryInformations : aucune adresse de wallet disponible");
+      return;
+    }
+    
+    // Marquer comme en cours d'exécution
+    _isUpdatingSecondaryInformations = true;
+        
+    final startTime = DateTime.now();
+    var box = Hive.box('realTokens'); // Ouvrir la boîte Hive pour le cache
+    
+    debugPrint("$_logMain Début de la mise à jour des informations secondaires...");
 
-    // Exécution des mises à jour en parallèle
-    await Future.wait([
-      fetchData(
-          apiCall: () =>
-              ApiService.fetchYamWalletsTransactions(forceFetch: forceFetch),
-          cacheKey: 'cachedWalletsTransactions',
-          updateVariable: (data) => yamWalletsTransactionsFetched = data,
-          debugName: "YAM Wallets Transactions"),
-      fetchData(
-          apiCall: () => ApiService.fetchYamMarket(forceFetch: forceFetch),
-          cacheKey: 'cachedYamMarket',
-          updateVariable: (data) => yamMarketFetched = data,
-          debugName: "YAM Market"),
-      fetchData(
-          apiCall: () => ApiService.fetchTokenVolumes(forceFetch: forceFetch),
-          cacheKey: 'yamHistory',
-          updateVariable: (data) {
-            rmmBalances = data;
-            fetchYamHistory();
-          },
-          debugName: "YAM Volumes History"),
-      fetchData(
-      apiCall: () => ApiService.fetchTransactionsHistory(forceFetch: forceFetch),
-      cacheKey: 'transactionsHistory',
-      updateVariable: (data) async {
-        transactionsHistory = data;
-        await processTransactionsHistory(context, transactionsHistory, yamWalletsTransactionsFetched);
-      },
-      debugName: "Transactions History"
+    try {
+      // Fonction générique pour fetch + cache
+      Future<void> fetchData({
+        required Future<List<dynamic>> Function() apiCall,
+        required String cacheKey,
+        required void Function(List<Map<String, dynamic>>) updateVariable,
+        required String debugName,
+      }) async {
+        final fetchStartTime = DateTime.now();
+        try {
+          debugPrint("$_logSub Récupération des données $debugName...");
+          var data = await apiCall();
+          if (data.isNotEmpty) {
+            final fetchDuration = DateTime.now().difference(fetchStartTime);
+            debugPrint("$_logSuccess Données $debugName mises à jour (${fetchDuration.inMilliseconds}ms)");
+            box.put(cacheKey, json.encode(data));
+            updateVariable(List<Map<String, dynamic>>.from(data));
+          } else {
+            debugPrint("$_logWarning Pas de nouvelles données $debugName, chargement du cache");
+            var cachedData = box.get(cacheKey);
+            if (cachedData != null) {
+              updateVariable(
+                  List<Map<String, dynamic>>.from(json.decode(cachedData)));
+            }
+          }
+          notifyListeners();
+        } catch (e) {
+          debugPrint("$_logError Erreur lors de la mise à jour $debugName: $e");
+        }
+      }
+
+      // Exécution des mises à jour en parallèle
+      await Future.wait([
+        fetchData(
+            apiCall: () =>
+                ApiService.fetchYamWalletsTransactions(forceFetch: forceFetch),
+            cacheKey: 'cachedWalletsTransactions',
+            updateVariable: (data) => yamWalletsTransactionsFetched = data,
+            debugName: "YAM Wallets Transactions"),
+        fetchData(
+            apiCall: () => ApiService.fetchYamMarket(forceFetch: forceFetch),
+            cacheKey: 'cachedYamMarket',
+            updateVariable: (data) => yamMarketFetched = data,
+            debugName: "YAM Market"),
+        fetchData(
+            apiCall: () => ApiService.fetchTokenVolumes(forceFetch: forceFetch),
+            cacheKey: 'yamHistory',
+            updateVariable: (data) {
+              rmmBalances = data;
+              fetchYamHistory();
+            },
+            debugName: "YAM Volumes History"),
+        fetchData(
+        apiCall: () => ApiService.fetchTransactionsHistory(forceFetch: forceFetch),
+        cacheKey: 'transactionsHistory',
+        updateVariable: (data) async {
+          transactionsHistory = data;
+          await processTransactionsHistory(context, transactionsHistory, yamWalletsTransactionsFetched);
+        },
+        debugName: "Transactions History"
+        ),
+        fetchData(
+        apiCall: () => ApiService.fetchDetailedRentDataForAllWallets(forceFetch: forceFetch),
+        cacheKey: 'detailedRentData',
+        updateVariable: (data) {
+          detailedRentData = data;
+          // Traiter les données détaillées de loyer immédiatement après les avoir récupérées
+          processDetailedRentData();
+        },
+        debugName: "Detailed rents"
       ),
-      fetchData(
-      apiCall: () => ApiService.fetchDetailedRentDataForAllWallets(forceFetch: forceFetch),
-      cacheKey: 'detailedRentData',
-      updateVariable: (data) {
-        detailedRentData = data;
-        // Traiter les données détaillées de loyer immédiatement après les avoir récupérées
-        processDetailedRentData();
-      },
-      debugName: "Detailed rents"
-    ),
-    ]);
+      ]);
 
-    isLoadingSecondary = false;
+      isLoadingSecondary = false;
+      
+      final totalDuration = DateTime.now().difference(startTime);
+      debugPrint("$_logMain Mise à jour secondaire terminée (${totalDuration.inMilliseconds}ms)");
+    } catch (e) {
+      debugPrint("$_logError Erreur globale dans updateSecondaryInformations: $e");
+    } finally {
+      _isUpdatingSecondaryInformations = false; // Réinitialiser le flag quoi qu'il arrive
+    }
   }
 
   // Nouvelle méthode pour traiter les données détaillées de loyer
   void processDetailedRentData() {
-    debugPrint("🔄 Traitement des données détaillées de loyer...");
+    final startTime = DateTime.now();
+    debugPrint("$_logSub Traitement des données détaillées de loyer...");
     
     // Réinitialiser les structures de données
     cumulativeRentsByToken = {};
@@ -355,7 +457,7 @@ class DataManager extends ChangeNotifier {
     
     // Si aucune donnée détaillée, sortir
     if (detailedRentData.isEmpty) {
-      debugPrint("⚠️ Aucune donnée détaillée de loyer disponible");
+      debugPrint("$_logWarning Aucune donnée détaillée de loyer disponible");
       return;
     }
     
@@ -364,7 +466,7 @@ class DataManager extends ChangeNotifier {
       for (var dateEntry in detailedRentData) {
         // Vérifier les champs obligatoires date et rents
         if (!dateEntry.containsKey('date') || !dateEntry.containsKey('rents')) {
-          debugPrint("⚠️ Format de données incorrect pour l'entrée: $dateEntry");
+          debugPrint("$_logWarning Format de données incorrect pour une entrée");
           continue;
         }
         
@@ -414,11 +516,10 @@ class DataManager extends ChangeNotifier {
         }
       }
       
-      debugPrint("✅ Traitement terminé: ${cumulativeRentsByToken.length} tokens avec loyers cumulés");
-      debugPrint("✅ ${cumulativeRentsByWallet.length} wallets avec données de loyer");
-      debugPrint("✅ Historique de loyer créé avec ${rentHistory.length} entrées de date");
+      final duration = DateTime.now().difference(startTime);
+      debugPrint("$_logSuccess Traitement terminé: ${cumulativeRentsByToken.length} tokens, ${cumulativeRentsByWallet.length} wallets, ${rentHistory.length} entrées (${duration.inMilliseconds}ms)");
     } catch (e) {
-      debugPrint("❌ Erreur lors du traitement des données détaillées de loyer: $e");
+      debugPrint("$_logError Erreur lors du traitement des données détaillées de loyer: $e");
     }
   }
 
@@ -430,7 +531,7 @@ class DataManager extends ChangeNotifier {
     }
     
     // Si la valeur n'est pas précalculée (fallback), on calcule à la demande
-    debugPrint("⚠️ Calcul des loyers à la demande pour le token: $token (non trouvé dans les données précalculées)");
+    debugPrint("$_logWarning Calcul des loyers à la demande pour le token: $token (non trouvé dans les données précalculées)");
     double totalRent = 0.0;
 
     // Parcourir chaque entrée de la liste detailedRentData
@@ -451,12 +552,203 @@ class DataManager extends ChangeNotifier {
     return totalRent;
   }
 
+  /// Méthode pour charger uniquement les données depuis le cache puis lancer les mises à jour normales
+  Future<void> loadFromCacheThenUpdate(BuildContext context) async {
+    // Vérifier si déjà en cours d'exécution
+    if (_isLoadingFromCache) {
+      debugPrint("$_logWarning loadFromCacheThenUpdate déjà en cours d'exécution, requête ignorée");
+      return;
+    }
+
+    // Marquer comme en cours d'exécution
+    _isLoadingFromCache = true;
+    
+    final startTime = DateTime.now();
+    debugPrint("$_logMain Chargement depuis le cache puis mise à jour...");
+    
+    try {
+      var box = Hive.box('realTokens');
+      
+      // Charger les adresses de wallet
+      await loadWalletsAddresses();
+      
+      if (evmAddresses.isEmpty) {
+        debugPrint("$_logWarning Aucune adresse de wallet disponible");
+        _isLoadingFromCache = false; // Réinitialiser le flag
+        return;
+      }
+      
+      // Fonction pour charger uniquement à partir du cache
+      Future<void> loadFromCache({
+        required String cacheKey,
+        required void Function(List<Map<String, dynamic>>) updateVariable,
+        required String debugName,
+      }) async {
+        try {
+          var cachedData = box.get(cacheKey);
+          if (cachedData != null) {
+            debugPrint("$_logTask Chargement des données $debugName depuis le cache...");
+            updateVariable(List<Map<String, dynamic>>.from(json.decode(cachedData)));
+            notifyListeners();
+            debugPrint("$_logSuccess Données $debugName chargées depuis le cache");
+          } else {
+            debugPrint("$_logWarning Pas de données en cache pour $debugName");
+          }
+        } catch (e) {
+          debugPrint("$_logError Erreur lors du chargement du cache pour $debugName: $e");
+        }
+      }
+      
+      // 1. Charger les données principales depuis le cache
+      debugPrint("$_logSub Chargement des données principales depuis le cache...");
+      await Future.wait([
+        loadFromCache(
+          cacheKey: 'cachedTokenData_tokens',
+          updateVariable: (data) => walletTokens = data,
+          debugName: "Tokens"
+        ),
+        loadFromCache(
+          cacheKey: 'cachedRealTokens',
+          updateVariable: (data) => realTokens = data,
+          debugName: "RealTokens"
+        ),
+        loadFromCache(
+          cacheKey: 'rmmBalances',
+          updateVariable: (data) {
+            rmmBalances = data;
+            fetchRmmBalances();
+          },
+          debugName: "RMM Balances"
+        ),
+        loadFromCache(
+          cacheKey: 'tempRentData',
+          updateVariable: (data) => tempRentData = data,
+          debugName: "Loyer temporaire"
+        ),
+        loadFromCache(
+          cacheKey: 'cachedPropertiesForSaleData',
+          updateVariable: (data) => propertiesForSaleFetched = data,
+          debugName: "Propriétés en vente"
+        ),
+        loadFromCache(
+          cacheKey: 'cachedWhitelistTokens',
+          updateVariable: (data) => whitelistTokens = data,
+          debugName: "Whitelist"
+        )
+      ]);
+      
+      // 2. Charger les données secondaires depuis le cache
+      debugPrint("$_logSub Chargement des données secondaires depuis le cache...");
+      await Future.wait([
+        loadFromCache(
+          cacheKey: 'cachedWalletsTransactions',
+          updateVariable: (data) => yamWalletsTransactionsFetched = data,
+          debugName: "YAM Wallets Transactions"
+        ),
+        loadFromCache(
+          cacheKey: 'cachedYamMarket',
+          updateVariable: (data) => yamMarketFetched = data,
+          debugName: "YAM Market"
+        ),
+        loadFromCache(
+          cacheKey: 'yamHistory',
+          updateVariable: (data) {
+            yamHistory = data;
+            fetchYamHistory();
+          },
+          debugName: "YAM Volumes History"
+        ),
+        loadFromCache(
+          cacheKey: 'transactionsHistory',
+          updateVariable: (data) async {
+            transactionsHistory = data;
+            await processTransactionsHistory(context, transactionsHistory, yamWalletsTransactionsFetched);
+          },
+          debugName: "Transactions History"
+        ),
+        loadFromCache(
+          cacheKey: 'detailedRentData',
+          updateVariable: (data) {
+            detailedRentData = data;
+            processDetailedRentData();
+          },
+          debugName: "Detailed rents"
+        )
+      ]);
+      
+      // Charger les historiques
+      debugPrint("$_logSub Chargement des historiques...");
+      loadWalletBalanceHistory();
+      loadRentedHistory();
+      loadRoiHistory();
+      loadApyHistory();
+      loadHealthAndLtvHistory();
+      
+      // Marquer le chargement comme terminé pour l'UI
+      isLoadingMain = false;
+      isLoadingSecondary = false;
+      
+      final cacheDuration = DateTime.now().difference(startTime);
+      debugPrint("$_logMain Chargement depuis le cache terminé (${cacheDuration.inMilliseconds}ms)");
+      
+      // 3. Lancer les mises à jour normales pour obtenir les données les plus récentes
+      // sans bloquer l'UI qui a déjà les données du cache
+      debugPrint("$_logMain Lancement des mises à jour en arrière-plan...");
+      // Appeler la méthode centralisée pour la mise à jour complète
+      await updateAllData(context);
+    } catch (e) {
+      debugPrint("$_logError Erreur globale dans loadFromCacheThenUpdate: $e");
+    } finally {
+      _isLoadingFromCache = false; // Réinitialiser le flag quoi qu'il arrive
+    }
+  }
+  
+  /// Méthode centralisée pour mettre à jour toutes les données
+  /// Cette méthode coordonne toutes les mises à jour et évite la duplication de code
+  Future<void> updateAllData(BuildContext context, {bool forceFetch = false}) async {
+    if (evmAddresses.isEmpty) {
+      debugPrint("$_logWarning updateAllData : aucune adresse de wallet disponible");
+      return;
+    }
+    
+    // Mettre à jour les informations principales et secondaires
+    await updateMainInformations(forceFetch: forceFetch);
+    await updateSecondaryInformations(context, forceFetch: forceFetch);
+    
+    // Mettre à jour les autres données
+    await fetchRentData(forceFetch: forceFetch);
+    await fetchAndCalculateData(forceFetch: forceFetch);
+    fetchPropertyData();
+    await fetchAndStoreAllTokens();
+    await fetchAndStoreYamMarketData();
+    await fetchAndStorePropertiesForSale();
+  }
+  
+  /// Méthode pour forcer une mise à jour complète (rafraîchissement)
+  Future<void> forceRefreshAllData(BuildContext context) async {
+    debugPrint("$_logMain Forçage de la mise à jour de toutes les données...");
+     // Vérifier si des adresses de wallet sont disponibles
+
+      // Charger les adresses de wallet
+      await loadWalletsAddresses();
+
+    if (evmAddresses.isEmpty) {
+      debugPrint("$_logWarning updateMainInformations : aucune adresse de wallet disponible");
+      return;
+    }
+
+    await updateAllData(context, forceFetch: true);
+    debugPrint("$_logSuccess Mise à jour forcée terminée");
+  }
+
   /// Charge l'historique des balances de portefeuille depuis Hive
   Future<void> loadWalletBalanceHistory() async {
+    final startTime = DateTime.now();
+    debugPrint("$_logTask Chargement de l'historique des balances...");
+    
     try {
       var box = Hive.box('balanceHistory');
-      List<dynamic>? balanceHistoryJson = box.get(
-          'balanceHistory_totalWalletValue'); // Récupérer les données sauvegardées
+      List<dynamic>? balanceHistoryJson = box.get('balanceHistory_totalWalletValue');
 
       // Convertir chaque élément JSON en objet BalanceRecord et l'ajouter à walletBalanceHistory
       walletBalanceHistory = balanceHistoryJson != null
@@ -481,106 +773,141 @@ class DataManager extends ChangeNotifier {
       if (balanceHistory.length >= 2) {
         try {
           // Calcul de l'APY déplacé vers calculateApyValues
-          // On appellera cette fonction plutôt que de refaire le calcul ici
-          calculateApyValues();
-          debugPrint("✅ APY calculé à partir de l'historique chargé: $netGlobalApy%");
+          // Nous ne calculons pas l'APY ici, mais attendons que toutes les données soient chargées
+          debugPrint("$_logTask Historique de balance chargé, APY sera calculé quand toutes les données seront disponibles");
         } catch (e) {
-          debugPrint("❌ Erreur lors du calcul initial de l'APY: $e");
+          debugPrint("$_logError Erreur lors du traitement initial de l'historique: $e");
         }
       } else {
-        debugPrint("⚠️ Historique insuffisant pour calculer l'APY: ${balanceHistory.length} enregistrement(s) disponible(s) (minimum requis: 2)");
+        debugPrint("$_logWarning Historique insuffisant pour calculer l'APY: ${balanceHistory.length} enregistrement(s)");
       }
 
-      debugPrint(
-          "✅ Historique de balance du portefeuille chargé: ${walletBalanceHistory.length} entrées");
+      final duration = DateTime.now().difference(startTime);
+      debugPrint("$_logSuccess Historique de balance chargé: ${walletBalanceHistory.length} entrées (${duration.inMilliseconds}ms)");
     } catch (e) {
-      debugPrint("❌ Erreur lors du chargement de l'historique de balance: $e");
+      debugPrint("$_logError Erreur lors du chargement de l'historique de balance: $e");
     }
   }
 
   Future<void> loadRentedHistory() async {
+    final startTime = DateTime.now();
+    debugPrint("$_logTask Chargement de l'historique des locations...");
+    
     try {
-      var box = Hive.box('rentedArchive'); // Ouvrir la boîte Hive
-      List<dynamic>? rentedHistoryJson =
-          box.get('rented_history'); // Récupérer les données sauvegardées
+      var box = Hive.box('rentedArchive');
+      List<dynamic>? rentedHistoryJson = box.get('rented_history');
 
-      rentedHistory = rentedHistoryJson!.map((recordJson) {
+      if (rentedHistoryJson == null) {
+        debugPrint("$_logWarning Aucun historique de location trouvé");
+        return;
+      }
+
+      rentedHistory = rentedHistoryJson.map((recordJson) {
         return RentedRecord.fromJson(Map<String, dynamic>.from(recordJson));
       }).toList();
 
-      notifyListeners(); // Notifier les listeners après la mise à jour
+      notifyListeners();
 
-      debugPrint(
-          '✅ Données de l\'historique du portefeuille chargées avec succès.');
+      final duration = DateTime.now().difference(startTime);
+      debugPrint("$_logSuccess Historique de location chargé: ${rentedHistory.length} entrées (${duration.inMilliseconds}ms)");
     } catch (e) {
-      debugPrint(
-          'Erreur lors du chargement des données de l\'historique du portefeuille : $e');
+      debugPrint("$_logError Erreur lors du chargement de l'historique de location: $e");
     }
   }
 
   Future<void> loadRoiHistory() async {
+    final startTime = DateTime.now();
+    debugPrint("$_logTask Chargement de l'historique ROI...");
+    
     try {
-      var box = Hive.box('roiValueArchive'); // Ouvrir la boîte Hive
-      List<dynamic>? roiHistoryJson =
-          box.get('roi_history'); // Récupérer les données sauvegardées
+      var box = Hive.box('roiValueArchive');
+      List<dynamic>? roiHistoryJson = box.get('roi_history');
 
-      roiHistory = roiHistoryJson!.map((recordJson) {
-        return RoiRecord.fromJson(Map<String, dynamic>.from(recordJson));
-      }).toList();
+      // Vérifier si les données sont nulles
+      if (roiHistoryJson == null) {
+        debugPrint("$_logWarning Aucun historique ROI trouvé, initialisation avec liste vide");
+        roiHistory = [];
+        return;
+      }
+      
+      // Convertir les données JSON en objets ROIRecord
+      try {
+        roiHistory = roiHistoryJson.map((recordJson) {
+          return ROIRecord.fromJson(Map<String, dynamic>.from(recordJson));
+        }).toList();
+      } catch (e) {
+        debugPrint("$_logError Erreur lors de la conversion des enregistrements ROI: $e");
+        roiHistory = [];
+      }
 
-      notifyListeners(); // Notifier les listeners après la mise à jour
+      notifyListeners();
 
-      debugPrint('Données de l\'historique du ROI chargées avec succès.');
+      final duration = DateTime.now().difference(startTime);
+      debugPrint("$_logSuccess Historique ROI chargé: ${roiHistory.length} entrées (${duration.inMilliseconds}ms)");
     } catch (e) {
-      debugPrint(
-          'Erreur lors du chargement des données de l\'historique du ROI : $e');
+      debugPrint("$_logError Erreur lors du chargement de l'historique ROI: $e");
+      roiHistory = [];
     }
   }
 
   Future<void> loadApyHistory() async {
+    final startTime = DateTime.now();
+    debugPrint("$_logTask Chargement de l'historique APY...");
+    
     try {
-      var box = Hive.box('apyValueArchive'); // Ouvrir la boîte Hive
-      List<dynamic>? apyHistoryJson =
-          box.get('apy_history'); // Récupérer les données sauvegardées
+      var box = Hive.box('apyValueArchive');
+      List<dynamic>? apyHistoryJson = box.get('apy_history');
+
+      if (apyHistoryJson == null) {
+        debugPrint("$_logWarning Aucun historique APY trouvé");
+        return;
+      }
 
       // Charger l'historique
-      apyHistory = apyHistoryJson!.map((recordJson) {
-        return ApyRecord.fromJson(Map<String, dynamic>.from(recordJson));
+      apyHistory = apyHistoryJson.map((recordJson) {
+        return APYRecord.fromJson(Map<String, dynamic>.from(recordJson));
       }).toList();
 
-      notifyListeners(); // Notifier les listeners après la mise à jour
+      notifyListeners();
 
-      debugPrint('Données de l\'historique APY chargées avec succès.');
+      final duration = DateTime.now().difference(startTime);
+      debugPrint("$_logSuccess Historique APY chargé: ${apyHistory.length} entrées (${duration.inMilliseconds}ms)");
     } catch (e) {
-      debugPrint(
-          'Erreur lors du chargement des données de l\'historique APY : $e');
+      debugPrint("$_logError Erreur lors du chargement de l'historique APY: $e");
     }
   }
 
   Future<void> loadHealthAndLtvHistory() async {
+    final startTime = DateTime.now();
+    debugPrint("$_logTask Chargement de l'historique Health & LTV...");
+    
     try {
-      var box = Hive.box('HealthAndLtvValueArchive'); // Ouvrir la boîte Hive
-      List<dynamic>? healthAndLtvHistoryJson =
-          box.get('healthAndLtv_history'); // Récupérer les données sauvegardées
+      var box = Hive.box('HealthAndLtvValueArchive');
+      List<dynamic>? healthAndLtvHistoryJson = box.get('healthAndLtv_history');
+
+      if (healthAndLtvHistoryJson == null) {
+        debugPrint("$_logWarning Aucun historique Health & LTV trouvé");
+        return;
+      }
 
       // Charger l'historique
-      healthAndLtvHistory = healthAndLtvHistoryJson!.map((recordJson) {
-        return HealthAndLtvRecord.fromJson(
-            Map<String, dynamic>.from(recordJson));
+      healthAndLtvHistory = healthAndLtvHistoryJson.map((recordJson) {
+        return HealthAndLtvRecord.fromJson(Map<String, dynamic>.from(recordJson));
       }).toList();
 
-      notifyListeners(); // Notifier les listeners après la mise à jour
+      notifyListeners();
 
-      debugPrint('Données de l\'historique healthAndLtv chargées avec succès.');
+      final duration = DateTime.now().difference(startTime);
+      debugPrint("$_logSuccess Historique Health & LTV chargé: ${healthAndLtvHistory.length} entrées (${duration.inMilliseconds}ms)");
     } catch (e) {
-      debugPrint(
-          'Erreur lors du chargement des données de l\'historique healthAndLtv : $e');
+      debugPrint("$_logError Erreur lors du chargement de l'historique Health & LTV: $e");
     }
   }
 
   // Sauvegarde l'historique des balances dans Hive
   Future<void> saveWalletBalanceHistory() async {
-    debugPrint("🔄 Sauvegarde de l'historique des balances du portefeuille (${walletBalanceHistory.length} enregistrements)");
+    final startTime = DateTime.now();
+    debugPrint("$_logTask Sauvegarde de l'historique des balances...");
     
     try {
       var box = Hive.box('walletValueArchive');
@@ -599,31 +926,54 @@ class DataManager extends ChangeNotifier {
       var boxBalance = Hive.box('balanceHistory');
       await boxBalance.put('balanceHistory_totalWalletValue', balanceHistoryJson);
       
-      debugPrint("✅ Sauvegarde terminée - ${walletBalanceHistory.length} enregistrements");
+      final duration = DateTime.now().difference(startTime);
+      debugPrint("$_logSuccess Historique des balances sauvegardé: ${walletBalanceHistory.length} entrées (${duration.inMilliseconds}ms)");
       
-      notifyListeners(); // Notifier les listeners de tout changement
+      notifyListeners();
     } catch (e) {
-      debugPrint("❌ Erreur lors de la sauvegarde de l'historique: $e");
+      debugPrint("$_logError Erreur lors de la sauvegarde de l'historique: $e");
     }
   }
 
   Future<void> saveRentedHistory() async {
-    var box = Hive.box('rentedArchive');
-    List<Map<String, dynamic>> rentedHistoryJson =
-        rentedHistory.map((record) => record.toJson()).toList();
-    await box.put('rented_history', rentedHistoryJson);
-    notifyListeners(); // Notifier les listeners de tout changement
+    final startTime = DateTime.now();
+    debugPrint("$_logTask Sauvegarde de l'historique des locations...");
+    
+    try {
+      var box = Hive.box('rentedArchive');
+      List<Map<String, dynamic>> rentedHistoryJson =
+          rentedHistory.map((record) => record.toJson()).toList();
+      await box.put('rented_history', rentedHistoryJson);
+      
+      final duration = DateTime.now().difference(startTime);
+      debugPrint("$_logSuccess Historique des locations sauvegardé (${duration.inMilliseconds}ms)");
+      
+      notifyListeners();
+    } catch (e) {
+      debugPrint("$_logError Erreur lors de la sauvegarde de l'historique des locations: $e");
+    }
   }
 
   // Méthode pour ajouter des adresses à un userId
   void addAddressesForUserId(String userId, List<String> addresses) {
-    if (userIdToAddresses.containsKey(userId)) {
-      userIdToAddresses[userId]!.addAll(addresses);
-    } else {
-      userIdToAddresses[userId] = addresses;
+    final startTime = DateTime.now();
+    debugPrint("$_logTask Ajout d'adresses pour userId: $userId...");
+    
+    try {
+      if (userIdToAddresses.containsKey(userId)) {
+        userIdToAddresses[userId]!.addAll(addresses);
+      } else {
+        userIdToAddresses[userId] = addresses;
+      }
+      saveUserIdToAddresses();
+      
+      final duration = DateTime.now().difference(startTime);
+      debugPrint("$_logSuccess Adresses ajoutées pour userId: $userId (${duration.inMilliseconds}ms)");
+      
+      notifyListeners();
+    } catch (e) {
+      debugPrint("$_logError Erreur lors de l'ajout d'adresses pour userId: $e");
     }
-    saveUserIdToAddresses(); // Sauvegarder après modification
-    notifyListeners();
   }
 
   // Sauvegarder la Map des userIds et adresses dans SharedPreferences
@@ -724,33 +1074,17 @@ class DataManager extends ChangeNotifier {
               (realToken['historic']['init_price'] as num?)?.toDouble() ??
               0.0;
 
-          // Vérification des transactions pour calculer un prix moyen si customInitPrice est null
-          if (customInitPrice == null && transactionsByToken.containsKey(tokenContractAddress) && transactionsByToken[tokenContractAddress]!.isNotEmpty) {
-            List<Map<String, dynamic>> tokenTransactions = transactionsByToken[tokenContractAddress]!;
-            double totalPrice = 0.0;
-            int transactionCount = 0;
-            
-            for (var transaction in tokenTransactions) {
-              if (transaction['price'] != null && transaction['price'] > 0) {
-                totalPrice += transaction['price'];
-                transactionCount++;
-              }
-            }
-            
-            if (transactionCount > 0) {
-              double averagePrice = totalPrice / transactionCount;
-              initPrice = averagePrice;
-            }
-          }
+
 
           String fullName = realToken['fullName'];
           List<String> parts = fullName.split(',');
-          String country = parts.length == 4 ? parts[3].trim() : 'USA';
+          String country = parts.length == 4 ? parts[3].trim() : "USA"; // Pays par défaut, pas besoin de traduire
           List<String> parts2 = fullName.split(',');
           String regionCode =
-              parts2.length >= 3 ? parts[2].trim().substring(0, 2) : 'unknown';
+              parts2.length >= 3 ? parts[2].trim().substring(0, 2) : S.current.unknown.toLowerCase();
           List<String> parts3 = fullName.split(',');
-          String city = parts3.length >= 2 ? parts[1].trim() : 'Unknown';
+          bool useCityFromFullname = parts3.length >= 2;
+          String city = useCityFromFullname ? parts[1].trim() : S.current.unknownCity;
 
           // Récupérer les loyers cumulés pour ce token
           double totalRentReceived = cumulativeRentsByToken[tokenContractAddress] ?? 0.0;
@@ -851,8 +1185,6 @@ class DataManager extends ChangeNotifier {
 
     // Mettre à jour la liste des tokens
     _allTokens = allTokensList;
-    debugPrint(
-        "Tokens récupérés: ${allTokensList.length}"); // Vérifiez que vous obtenez bien des tokens
 
     // Mise à jour des variables partagées
     totalRealtTokens = tempTotalTokens; //en retire le RWA token dans le calcul
@@ -874,7 +1206,12 @@ class DataManager extends ChangeNotifier {
 
   // Méthode pour récupérer et calculer les données pour le Dashboard et Portfolio
   Future<void> fetchAndCalculateData({bool forceFetch = false}) async {
-    debugPrint("🔄 Début de la récupération des données de tokens...");
+debugPrint("🗃️ Début récupération et calcul des données pour le Dashboard et Portfolio");
+ // Vérifier si des adresses de wallet sont disponibles
+    if (evmAddresses.isEmpty) {
+      debugPrint("$_logWarning updateMainInformations : aucune adresse de wallet disponible");
+      return;
+    }
 
     var box = Hive.box('realTokens');
     initialTotalValue = 0.0;
@@ -884,13 +1221,6 @@ class DataManager extends ChangeNotifier {
     final cachedTokens = box.get('cachedTokenData_tokens');
     if (cachedTokens != null) {
       walletTokens = List<Map<String, dynamic>>.from(json.decode(cachedTokens));
-      debugPrint("✅ Données Tokens en cache utilisées.");
-    }
-
-    if (walletTokens.isEmpty) {
-      debugPrint("⚠️ Aucun token récupéré depuis l'API.");
-    } else {
-      debugPrint("Nombre de tokens récupérés: ${walletTokens.length}");
     }
 
     // Variables temporaires de calcul global
@@ -921,10 +1251,10 @@ class DataManager extends ChangeNotifier {
     // Fonction locale pour parser le fullName
     Map<String, String> parseFullName(String fullName) {
       final parts = fullName.split(',');
-      final country = parts.length == 4 ? parts[3].trim() : 'USA';
+      final country = parts.length == 4 ? parts[3].trim() : "USA"; // Pays par défaut, pas besoin de traduire
       final regionCode =
-          parts.length >= 3 ? parts[2].trim().substring(0, 2) : 'unknown';
-      final city = parts.length >= 2 ? parts[1].trim() : 'Unknown City';
+          parts.length >= 3 ? parts[2].trim().substring(0, 2) : S.current.unknown.toLowerCase();
+      final city = parts.length >= 2 ? parts[1].trim() : S.current.unknownCity;
       return {
         'country': country,
         'regionCode': regionCode,
@@ -945,13 +1275,9 @@ class DataManager extends ChangeNotifier {
       }
     }
 
-    debugPrint("🔍 Traitement des tokens...");
     for (var walletToken in walletTokens) {
       final tokenAddress = walletToken['token'].toLowerCase();
-      // debugPrint("🔍 Traitement du token: ${walletToken['token']} (type: ${walletToken['type']})");
-if (tokenAddress == "0xfc5073816fe9671859ef1e6936efd23bb7814274") {
-    debugPrint("→ Traitement de S 1418 W Marquette : wallet = ${walletToken['wallet']}, amount = ${walletToken['amount']}");
-  }
+
       // Recherche du token correspondant dans realTokens
       final matchingRealToken =
           realTokens.cast<Map<String, dynamic>>().firstWhere(
@@ -963,7 +1289,6 @@ if (tokenAddress == "0xfc5073816fe9671859ef1e6936efd23bb7814274") {
             "⚠️ Aucun RealToken correspondant trouvé pour le token: $tokenAddress");
         continue;
       }
-     // debugPrint("✅ Token trouvé: ${matchingRealToken['shortName']}");
 
       final double tokenPrice = matchingRealToken['tokenPrice'] ?? 0.0;
       final double tokenValue = walletToken['amount'] * tokenPrice;
@@ -1009,23 +1334,32 @@ if (tokenAddress == "0xfc5073816fe9671859ef1e6936efd23bb7814274") {
       double initPrice = customInitPrice ??
           ((matchingRealToken['historic']['init_price'] as num?)?.toDouble() ??
           0.0);
-
+      
       // Vérification des transactions pour calculer un prix moyen si customInitPrice est null
       if (customInitPrice == null && transactionsByToken.containsKey(tokenContractAddress) && transactionsByToken[tokenContractAddress]!.isNotEmpty) {
         List<Map<String, dynamic>> tokenTransactions = transactionsByToken[tokenContractAddress]!;
-        double totalPrice = 0.0;
+        double totalWeightedPrice = 0.0;
+        double totalQuantity = 0.0;
         int transactionCount = 0;
-        
+     
         for (var transaction in tokenTransactions) {
-          if (transaction['price'] != null && transaction['price'] > 0) {
-            totalPrice += transaction['price'];
+          if (transaction['price'] != null && 
+              transaction['price'] > 0 &&
+              transaction['transactionType'] != transactionTypeTransfer &&
+              transaction['amount'] != null &&
+              transaction['amount'] > 0) {
+            
+            double price = transaction['price'];
+            double amount = transaction['amount'];
+            totalWeightedPrice += price * amount;
+            totalQuantity += amount;
             transactionCount++;
           }
         }
         
-        if (transactionCount > 0) {
-          double averagePrice = totalPrice / transactionCount;
-          initPrice = averagePrice;
+        if (transactionCount > 0 && totalQuantity > 0) {
+          double weightedAveragePrice = totalWeightedPrice / totalQuantity;
+          initPrice = weightedAveragePrice;
         }
       }
 
@@ -1182,9 +1516,6 @@ if (tokenAddress == "0xfc5073816fe9671859ef1e6936efd23bb7814274") {
     // Affichage des statistiques par wallet
     walletStats = []; // Réinitialiser la liste des statistiques
     walletTotals.forEach((wallet, totals) {
-      debugPrint(
-          "Wallet: $wallet → Valeur: ${totals['walletValueSum']}, Quantité: ${totals['walletTokensSum']}, Nombre de tokens: ${totals['tokenCount']}");
-      
       // Ajouter les statistiques dans la variable globale
       walletStats.add({
         'address': wallet,
@@ -1229,10 +1560,6 @@ if (tokenAddress == "0xfc5073816fe9671859ef1e6936efd23bb7814274") {
       stat['rmmValue'] = walletRmmValues[address] ?? 0.0;
       stat['rmmTokensSum'] = walletRmmTokensSum[address] ?? 0.0;
     }
-    
-    walletRmmValues.forEach((wallet, value) {
-      debugPrint("Wallet: $wallet → Valeur RMM: $value");
-    });
 
     // -------- Mise à jour des variables globales pour le Dashboard --------
     totalWalletValue = walletValueSum +
@@ -1270,8 +1597,8 @@ if (tokenAddress == "0xfc5073816fe9671859ef1e6936efd23bb7814274") {
     roiGlobalValue = getTotalRentReceived() / initialTotalValue * 100;
     _archiveManager.archiveRoiValue(roiGlobalValue);
 
-    // Calcul de l'APY global avec calculateApyValues au lieu de le faire directement ici
-    calculateApyValues();
+    // Calculer l'APY uniquement si toutes les données nécessaires sont disponibles
+    safeCalculateApyValues();
     
     healthFactor =
         (rmmValue * 0.7) / (totalUsdcBorrowBalance + totalXdaiBorrowBalance);
@@ -1325,7 +1652,6 @@ if (tokenAddress == "0xfc5073816fe9671859ef1e6936efd23bb7814274") {
       if (token.containsKey('update30') &&
           token['update30'] is List &&
           token['update30'].isNotEmpty) {
-        // debugPrint("Processing updates for token: ${token['shortName'] ?? 'Nom inconnu'}");
 
         // Récupérer les informations de base du token
         final String shortName = token['shortName'] ?? 'Nom inconnu';
@@ -1346,9 +1672,7 @@ if (tokenAddress == "0xfc5073816fe9671859ef1e6936efd23bb7814274") {
 
         // Ajouter les mises à jour extraites dans recentUpdates
         recentUpdates.addAll(updatesWithDetails);
-      } else {
-        //debugPrint('Aucune mise à jour pour le token : ${token['shortName'] ?? 'Nom inconnu'}');
-      }
+      } 
     }
 
     // Trier les mises à jour par date
@@ -1426,24 +1750,17 @@ if (tokenAddress == "0xfc5073816fe9671859ef1e6936efd23bb7814274") {
     });
   }
 
+
+
   Future<void> processTransactionsHistory(
     BuildContext context,
     List<Map<String, dynamic>> transactionsHistory,
     List<Map<String, dynamic>> yamTransactions) async {
   
-  // Capturer les valeurs localisées au début de la méthode
-  final String internalTransferText = S.of(context).internal_transfer;
-  final String purchaseText = S.of(context).purchase;
-  final String yamText = S.of(context).yam;
-  
   final SharedPreferences prefs = await SharedPreferences.getInstance();
   final Set<String> evmAddresses = Set.from(prefs.getStringList('evmAddresses') ?? {});
 
   Map<String, List<Map<String, dynamic>>> tempTransactionsByToken = {};
-
-  debugPrint("📌 Début du traitement des transactions...");
-  debugPrint("📊 Nombre de transactions API: ${transactionsHistory.length}");
-  debugPrint("📊 Nombre de transactions YAM: ${yamTransactions.length}");
 
   for (var transaction in transactionsHistory) {
     final String? tokenId = transaction['Token ID']?.toLowerCase();
@@ -1453,7 +1770,6 @@ if (tokenAddress == "0xfc5073816fe9671859ef1e6936efd23bb7814274") {
     final String? transactionId = transaction['Transaction ID']?.toLowerCase();
 
     if (tokenId == null || timestampStr == null || amount == null || transactionId == null) {
-      debugPrint("⚠️ Transaction ignorée (champ manquant): $transaction");
       continue;
     }
 
@@ -1463,7 +1779,6 @@ if (tokenAddress == "0xfc5073816fe9671859ef1e6936efd23bb7814274") {
       try {
         timestampMs = int.parse(timestampStr) * 1000; // Convertir en millisecondes
       } catch (e) {
-        debugPrint("⚠️ Erreur de conversion du timestamp '$timestampStr': $e");
         continue;
       }
 
@@ -1471,13 +1786,12 @@ if (tokenAddress == "0xfc5073816fe9671859ef1e6936efd23bb7814274") {
       try {
         dateTime = DateTime.fromMillisecondsSinceEpoch(timestampMs, isUtc: true);
       } catch (e) {
-        debugPrint("⚠️ Erreur de création de DateTime à partir du timestamp $timestampMs: $e");
         continue;
       }
 
       final bool isInternalTransfer = evmAddresses.contains(sender);
       // Utiliser les textes capturés au lieu de S.of(context)
-      String transactionType = isInternalTransfer ? internalTransferText : purchaseText;
+      String transactionType = isInternalTransfer ? transactionTypeTransfer : transactionTypePurchase;
 
       try {
         final matchingYamTransaction = yamTransactions.firstWhere(
@@ -1497,10 +1811,25 @@ if (tokenAddress == "0xfc5073816fe9671859ef1e6936efd23bb7814274") {
           final double? rawPrice = (matchingYamTransaction['price'] as num?)?.toDouble();
           price = rawPrice ?? 0.0;
           // Utiliser le texte capturé pour YAM
-          transactionType = yamText;
-          debugPrint("✅ Correspondance YAM trouvée ! Prix: $price");
-        } else {
-          debugPrint("❌ Aucune correspondance YAM trouvée.");
+          transactionType = transactionTypeYam;
+        } else {          
+          // Ajouter un prix par défaut pour les transactions d'achat
+          if (transactionType == transactionTypePurchase) {            
+            // Chercher le token dans realTokens pour obtenir un prix initial
+            final matchingRealToken = realTokens.cast<Map<String, dynamic>>().firstWhere(
+              (rt) => rt['uuid'].toLowerCase() == tokenId,
+              orElse: () => <String, dynamic>{},
+            );
+            
+            if (matchingRealToken.isNotEmpty) {
+              // Utiliser tokenPrice au lieu du prix initial
+              price = (matchingRealToken['tokenPrice'] as num?)?.toDouble() ?? 
+                     (matchingRealToken['historic']?['init_price'] as num?)?.toDouble() ?? 
+                     0.0;
+            } else {
+              price = 0.0; // Prix par défaut si aucune information n'est disponible
+            }
+          }
         }
 
         tempTransactionsByToken.putIfAbsent(tokenId, () => []).add({
@@ -1520,7 +1849,6 @@ if (tokenAddress == "0xfc5073816fe9671859ef1e6936efd23bb7814274") {
   }
 
   // ✅ **Ajout des transactions YAM manquantes**
-  debugPrint("📌 Vérification des transactions YAM non trouvées dans transactionsHistory...");
   for (var yamTransaction in yamTransactions) {
     final String? yamId = yamTransaction['transaction_id']?.toLowerCase();
     if (yamId == null || yamId.isEmpty) continue;
@@ -1536,7 +1864,6 @@ if (tokenAddress == "0xfc5073816fe9671859ef1e6936efd23bb7814274") {
       final String? offerTokenAddress = yamTransaction['offer_token_address']?.toLowerCase();
 
       if (yamTimestamp == null || yamPrice == null || yamQuantity == null || offerTokenAddress == null) {
-        debugPrint("⚠️ Transaction YAM ignorée (champ manquant): $yamTransaction");
         continue;
       }
 
@@ -1544,16 +1871,13 @@ if (tokenAddress == "0xfc5073816fe9671859ef1e6936efd23bb7814274") {
       try {
         timestampMs = int.parse(yamTimestamp) * 1000;
       } catch (e) {
-        debugPrint("⚠️ Erreur de conversion du timestamp YAM '$yamTimestamp': $e");
         continue;
       }
-
-      debugPrint("➕ Ajout d'une nouvelle transaction YAM | ID: $yamId, Token: $offerTokenAddress, Amount: $yamQuantity, Price: $yamPrice");
 
       tempTransactionsByToken.putIfAbsent(offerTokenAddress, () => []).add({
         "amount": yamQuantity,
         "dateTime": DateTime.fromMillisecondsSinceEpoch(timestampMs, isUtc: true),
-        "transactionType": yamText,
+        "transactionType": transactionTypeYam,
         "price": yamPrice,
       });
     }
@@ -1606,7 +1930,6 @@ if (tokenAddress == "0xfc5073816fe9671859ef1e6936efd23bb7814274") {
       }
     }
     
-    debugPrint("✅ Données de propriété récupérées: ${tempPropertyData.length} types, $tokenProcessed tokens traités");
     propertyData = tempPropertyData;
     notifyListeners();
   }
@@ -1745,15 +2068,6 @@ if (tokenAddress == "0xfc5073816fe9671859ef1e6936efd23bb7814274") {
       debugPrint('Erreur lors du calcul de l\'APY global: $e');
     }
 
-    // Debug : Afficher les totaux globaux et APY
-    debugPrint(
-        'Totaux globaux: USDC Deposit: $totalUsdcDepositSum, USDC Borrow: $totalUsdcBorrowSum, '
-        'XDAI Deposit: $totalXdaiDepositSum, XDAI Borrow: $totalXdaiBorrowSum, '
-        'Gnosis USDC: $totalGnosisUsdcSum, Gnosis XDAI: $totalGnosisXdaiSum');
-
-    debugPrint('APY Global: USDC Deposit: $usdcDepositApy, USDC Borrow: $usdcBorrowApy, '
-        'XDAI Deposit: $xdaiDepositApy, XDAI Borrow: $xdaiBorrowApy');
-
     notifyListeners(); // Notifier l'interface que les données ont été mises à jour
 
     // Archivage global si une heure s'est écoulée depuis le dernier archivage
@@ -1764,13 +2078,11 @@ if (tokenAddress == "0xfc5073816fe9671859ef1e6936efd23bb7814274") {
         _archiveManager.archiveBalance('xdaiDeposit', totalXdaiDepositSum, timestamp);
         _archiveManager.archiveBalance('xdaiBorrow', totalXdaiBorrowSum, timestamp);
         lastArchiveTime = DateTime.now();
-        debugPrint("✅ Archivage des balances effectué");
       }
     } else {
       final timeUntilNextArchive = Duration(minutes: 5) - DateTime.now().difference(lastArchiveTime!);
       final minutesRemaining = timeUntilNextArchive.inMinutes;
       final secondsRemaining = timeUntilNextArchive.inSeconds % 60;
-      debugPrint("⏳ Prochain archivage des balances dans ${minutesRemaining}m ${secondsRemaining}s");
     }
   } catch (e) {
     debugPrint('Erreur lors de la récupération des balances RMM: $e');
@@ -1783,7 +2095,6 @@ if (tokenAddress == "0xfc5073816fe9671859ef1e6936efd23bb7814274") {
 
     // Vérifier s'il y a au moins deux enregistrements pour calculer l'APY
     if (history.length < 2) {
-      debugPrint("Not enough data to calculate APY.");
       return 0.0; // Retourner 0.0 au lieu de lever une exception
     }
 
@@ -1793,13 +2104,11 @@ if (tokenAddress == "0xfc5073816fe9671859ef1e6936efd23bb7814274") {
 
       // Vérifier si le résultat est NaN
       if (averageAPYForLastPairs.isNaN) {
-        debugPrint("APY calculation resulted in NaN value for $tokenType.");
         return 0.0;
       }
 
       // Si aucune paire valide n'est trouvée, retourner 0
       if (averageAPYForLastPairs == 0) {
-        debugPrint("No valid pairs found for APY calculation.");
         return 0.0;
       }
 
@@ -1849,7 +2158,6 @@ if (tokenAddress == "0xfc5073816fe9671859ef1e6936efd23bb7814274") {
   // Méthode pour définir une valeur initPrice personnalisée
   void setCustomInitPrice(String tokenUuid, double initPrice) {
     customInitPrices[tokenUuid] = initPrice;
-    //debugPrint("token: $tokenUuid et prix: $initPrice");
     saveCustomInitPrices(); // Sauvegarder après modification
     notifyListeners();
   }
@@ -1915,8 +2223,6 @@ if (tokenAddress == "0xfc5073816fe9671859ef1e6936efd23bb7814274") {
     if (cachedData != null) {
       yamMarketFetched =
           List<Map<String, dynamic>>.from(json.decode(cachedData));
-      debugPrint(
-          "✅ Données YamMarket en cache trouvées : ${yamMarketFetched.length} offres chargées.");
     } else {
       debugPrint("⚠️ Aucune donnée YamMarket en cache.");
     }
@@ -1928,10 +2234,8 @@ if (tokenAddress == "0xfc5073816fe9671859ef1e6936efd23bb7814274") {
     List<Map<String, dynamic>> allOffersList = [];
 
     if (yamMarketFetched.isNotEmpty) {
-      //debugPrint("🔄 Début du traitement des ${yamMarketFetched.length} offres...");
 
       for (var offer in yamMarketFetched) {
-        // debugPrint("🔍 Traitement de l'offre ID: ${offer['id_offer']} - Token Sell: ${offer['token_to_sell']} - Token Buy: ${offer['token_to_buy']}");
 
         // Vérifier si le token de l'offre correspond à un token de allTokens
         final matchingToken = allTokens.firstWhere(
@@ -1939,13 +2243,11 @@ if (tokenAddress == "0xfc5073816fe9671859ef1e6936efd23bb7814274") {
                 token['uuid'] == offer['token_to_sell']?.toLowerCase() ||
                 token['uuid'] == offer['token_to_buy']?.toLowerCase(),
             orElse: () {
-          // debugPrint("⚠️ Aucun token correspondant trouvé pour l'offre ${offer['id_offer']}. UUIDs: sell=${offer['token_to_sell']}, buy=${offer['token_to_buy']}");
           return <String, dynamic>{};
         });
 
         // Vérifier si un token a été trouvé
         if (matchingToken.isEmpty) {
-          //debugPrint("🚨 Offre ignorée car aucun token correspondant trouvé.");
           continue;
         }
 
@@ -1983,11 +2285,9 @@ if (tokenAddress == "0xfc5073816fe9671859ef1e6936efd23bb7814274") {
           'buyHolderAddress': offer['buy_holder_address'],
         });
 
-        //debugPrint("✅ Offre ajoutée : ${offer['id_offer']} - Token: ${matchingToken['shortName']} - Montant: $tokenAmount - Valeur: $tokenValue");
       }
 
       yamMarket = allOffersList;
-      //debugPrint("✅ Mise à jour de YamMarket terminée : $_totalOffers offres disponibles.");
 
       notifyListeners();
     } else {
@@ -2043,10 +2343,7 @@ if (tokenAddress == "0xfc5073816fe9671859ef1e6936efd23bb7814274") {
   void calculateApyValues() {
     // Calculer l'APY global avec la méthode centralisée
     netGlobalApy = calculateGlobalApy();
-    
-    // Logger la valeur calculée
-    debugPrint("✅ APY global calculé: $netGlobalApy%");
-    
+
     // Calculer l'APY moyen pondéré par les montants
     double totalDepositAmount = totalUsdcDepositBalance + totalXdaiDepositBalance;
     double totalBorrowAmount = totalUsdcBorrowBalance + totalXdaiBorrowBalance;
@@ -2087,15 +2384,11 @@ if (tokenAddress == "0xfc5073816fe9671859ef1e6936efd23bb7814274") {
     
     // Vérifier si le résultat est NaN
     if (apyAverage.isNaN) {
-      debugPrint("⚠️ L'APY moyen calculé est NaN, retourne 0.0");
       apyAverage = 0.0;
     }
-    
-    debugPrint("✅ APY moyen pondéré calculé: $apyAverage% (dépôts: $weightedDepositApy% × $totalDepositAmount, emprunts: $weightedBorrowApy% × $totalBorrowAmount)");
-    debugPrint("   Intérêts de dépôt: $depositInterest, Intérêts d'emprunt: $borrowInterest, Net: $netInterest");
-    
+ 
     // Archiver l'APY global calculé
-    archiveApyValue(netGlobalApy, apyAverage);
+    _archiveApyValue(netGlobalApy, apyAverage);
 
 
     // Calculer l'APY pour chaque wallet individuel
@@ -2108,20 +2401,6 @@ if (tokenAddress == "0xfc5073816fe9671859ef1e6936efd23bb7814274") {
     }
   }
 
-  // Dans la méthode qui met à jour les données de wallet/portfolio
-  // Par exemple, dans la méthode fetchData ou processData
-  void processData() async {
-    // ... existing code ...
-    
-    // Calculer les statistiques
-    // ... existing code ...
-    
-    // Calculer les valeurs d'APY et ROI
-    calculateApyValues();
-    
-    // Notifier les écouteurs
-    notifyListeners();
-  }
 
   /// Ajuste la réactivité du calcul d'APY
   /// 
@@ -2129,7 +2408,6 @@ if (tokenAddress == "0xfc5073816fe9671859ef1e6936efd23bb7814274") {
   /// [historyDays] : nombre de jours d'historique à prendre en compte (optionnel)
   void adjustApyReactivity(double reactivityLevel, {int? historyDays}) {
     if (reactivityLevel < 0 || reactivityLevel > 1) {
-      debugPrint("⚠️ Niveau de réactivité invalide: $reactivityLevel. Doit être entre 0 et 1.");
       return;
     }
 
@@ -2143,9 +2421,7 @@ if (tokenAddress == "0xfc5073816fe9671859ef1e6936efd23bb7814274") {
     // Plus la réactivité est élevée, moins on a besoin d'historique
     // Plage de 1 à 20 jours avec des valeurs discrètes
     int days = historyDays ?? (20 - (reactivityLevel * 19).round()).clamp(1, 20);
-    
-    debugPrint("🔄 Ajustement de la réactivité APY: alpha=$alpha, jours=$days");
-    
+        
     // Appliquer les nouveaux paramètres à l'ApyManager
     apyManager.setApyCalculationParameters(
       newEmaAlpha: alpha,
@@ -2155,9 +2431,7 @@ if (tokenAddress == "0xfc5073816fe9671859ef1e6936efd23bb7814274") {
     // Recalculer l'APY avec les nouveaux paramètres
     if (balanceHistory.length >= 2) {
       try {
-        // Utiliser calculateApyValues au lieu de recalculer directement ici
-        calculateApyValues();
-        debugPrint("✅ APY recalculé avec les nouveaux paramètres: $netGlobalApy%");
+        safeCalculateApyValues();
       } catch (e) {
         debugPrint("❌ Erreur lors du recalcul de l'APY: $e");
       }
@@ -2169,40 +2443,9 @@ if (tokenAddress == "0xfc5073816fe9671859ef1e6936efd23bb7814274") {
     notifyListeners();
   }
 
-  // Méthode appelée par l'ArchiveManager lorsqu'une nouvelle valeur de portefeuille est archivée
-  void updateBalanceHistory(List<BalanceRecord> newBalanceHistory) {
-    balanceHistory = newBalanceHistory;
-    walletBalanceHistory = newBalanceHistory; // Mettre à jour walletBalanceHistory aussi
-    
-    // Recalculer l'APY après mise à jour de l'historique
-    if (balanceHistory.length >= 2) {
-      try {
-        // Appeler calculateApyValues pour mettre à jour netGlobalApy
-        calculateApyValues();
-        debugPrint("✅ APY recalculé après mise à jour de l'historique: $netGlobalApy%");
-      } catch (e) {
-        debugPrint("❌ Erreur lors du recalcul de l'APY: $e");
-      }
-    } else {
-      debugPrint("⚠️ Historique insuffisant après mise à jour: ${balanceHistory.length} enregistrement(s) disponible(s) (minimum requis: 2)");
-    }
-    
-    // Sauvegarder les modifications dans Hive
-    saveWalletBalanceHistory();
-    
-    notifyListeners();
-  }
 
-  /// Méthode centralisée pour archiver une valeur d'APY
-  /// 
-  /// Cette méthode gère à la fois:
-  /// 1. L'ajout à l'historique en mémoire
-  /// 2. La persistance dans Hive via l'ArchiveManager
-  /// 3. La notification des listeners
-  /// 
-  /// [netApy] : Valeur nette de l'APY à archiver
-  /// [grossApy] : Valeur brute de l'APY à archiver
-  void archiveApyValue(double netApy, double grossApy) {
+  void _archiveApyValue(double netApy, double grossApy) {
+    debugPrint('🔍 _archiveApyValue: netApy: $netApy, grossApy: $grossApy');
     // Vérifier si nous avons moins de 20 éléments dans l'historique
     if (apyHistory.length < 20) {
       // Si moins de 20 éléments, vérifier si 15 minutes se sont écoulées depuis le dernier archivage
@@ -2227,9 +2470,8 @@ if (tokenAddress == "0xfc5073816fe9671859ef1e6936efd23bb7814274") {
     }
 
     // 1. Ajouter à la liste en mémoire
-    apyHistory.add(ApyRecord(
-      netApy: netApy, 
-      grossApy: grossApy, 
+    apyHistory.add(APYRecord(
+      apy: netApy, 
       timestamp: DateTime.now())
     );
     
@@ -2268,17 +2510,8 @@ if (tokenAddress == "0xfc5073816fe9671859ef1e6936efd23bb7814274") {
       if (xdaiDepositApy.isNaN) xdaiDepositApy = 0.0;
       if (xdaiBorrowApy.isNaN) xdaiBorrowApy = 0.0;
 
-      // Le calcul complet de l'APY moyen est maintenant fait dans calculateApyValues()
       // Nous appelons cette méthode pour mettre à jour apyAverage et netGlobalApy
-      calculateApyValues();
-
-      if (kDebugMode) {
-        debugPrint('APY individuels calculés à partir de l\'historique:');
-        debugPrint('USDC Deposit: $usdcDepositApy%');
-        debugPrint('USDC Borrow: $usdcBorrowApy%');
-        debugPrint('XDAI Deposit: $xdaiDepositApy%');
-        debugPrint('XDAI Borrow: $xdaiBorrowApy%');
-      }
+      safeCalculateApyValues();
 
       notifyListeners();
     } catch (e) {
@@ -2351,5 +2584,33 @@ if (tokenAddress == "0xfc5073816fe9671859ef1e6936efd23bb7814274") {
   // Nouvelle méthode pour obtenir les loyers cumulés par wallet
   Map<String, Map<String, double>> getRentsByWallet() {
     return Map<String, Map<String, double>>.from(cumulativeRentsByWallet);
+  }
+  
+  /// Méthode centralisée pour calculer l'APY seulement si toutes les données nécessaires sont disponibles
+  /// Cette méthode devrait être appelée après le chargement des données importantes
+  bool safeCalculateApyValues() {
+    // Vérifier que nous avons suffisamment de données pour calculer l'APY
+    if (balanceHistory.length < 2) {
+      debugPrint("⚠️ Historique insuffisant pour calculer l'APY: ${balanceHistory.length} enregistrement(s) (minimum requis: 2)");
+      return false;
+    }
+    
+    // Vérifier que les données financières essentielles sont disponibles
+    if (totalUsdcDepositBalance == 0.0 && totalXdaiDepositBalance == 0.0 && 
+        totalUsdcBorrowBalance == 0.0 && totalXdaiBorrowBalance == 0.0 && 
+        walletValue == 0.0 && rmmValue == 0.0) {
+      debugPrint("⚠️ Données financières insuffisantes pour calculer l'APY");
+      return false;
+    }
+    
+    try {
+      // Calculer l'APY à partir des données disponibles
+      calculateApyValues();
+      debugPrint("✅ APY calculé avec succès: $netGlobalApy%");
+      return true;
+    } catch (e) {
+      debugPrint("❌ Erreur lors du calcul de l'APY: $e");
+      return false;
+    }
   }
 }

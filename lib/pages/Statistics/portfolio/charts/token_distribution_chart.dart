@@ -19,12 +19,34 @@ class TokenDistributionCard extends StatefulWidget {
 
 class _TokenDistributionCardState extends State<TokenDistributionCard> {
   int? _selectedIndexToken;
-  final ValueNotifier<int?> _selectedIndexNotifierToken =
-      ValueNotifier<int?>(null);
+  final ValueNotifier<int?> _selectedIndexNotifierToken = ValueNotifier<int?>(null);
 
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
+
+    // Vérifier si les données sont valides
+    if (widget.dataManager.propertyData.isEmpty) {
+      return Card(
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        color: Theme.of(context).cardColor,
+        child: Container(
+          padding: const EdgeInsets.all(16.0),
+          child: Center(
+            child: Text(
+              S.of(context).noDataAvailable,
+              style: TextStyle(
+                fontSize: 16 + appState.getTextSizeOffset(),
+                color: Colors.grey.shade600,
+              ),
+            ),
+          ),
+        ),
+      );
+    }
 
     return Card(
       elevation: 0,
@@ -74,20 +96,15 @@ class _TokenDistributionCardState extends State<TokenDistributionCard> {
                     children: [
                       PieChart(
                         PieChartData(
-                          sections: _buildDonutChartData(
-                              widget.dataManager, selectedIndex),
+                          sections: _buildDonutChartData(selectedIndex),
                           centerSpaceRadius: 65,
                           sectionsSpace: 3,
                           borderData: FlBorderData(show: false),
                           pieTouchData: PieTouchData(
-                            touchCallback: (FlTouchEvent event,
-                                PieTouchResponse? response) {
-                              if (response != null &&
-                                  response.touchedSection != null) {
-                                final touchedIndex = response
-                                    .touchedSection!.touchedSectionIndex;
-                                _selectedIndexNotifierToken.value =
-                                    touchedIndex >= 0 ? touchedIndex : null;
+                            touchCallback: (FlTouchEvent event, PieTouchResponse? response) {
+                              if (response != null && response.touchedSection != null) {
+                                final touchedIndex = response.touchedSection!.touchedSectionIndex;
+                                _selectedIndexNotifierToken.value = touchedIndex >= 0 ? touchedIndex : null;
                               } else {
                                 _selectedIndexNotifierToken.value = null;
                               }
@@ -97,7 +114,7 @@ class _TokenDistributionCardState extends State<TokenDistributionCard> {
                         swapAnimationDuration: const Duration(milliseconds: 300),
                         swapAnimationCurve: Curves.easeInOutCubic,
                       ),
-                      _buildCenterTextToken(widget.dataManager, selectedIndex),
+                      _buildCenterTextToken(selectedIndex),
                     ],
                   );
                 },
@@ -106,7 +123,7 @@ class _TokenDistributionCardState extends State<TokenDistributionCard> {
             const SizedBox(height: 20),
             Flexible(
               child: SingleChildScrollView(
-                child: _buildLegend(widget.dataManager),
+                child: _buildLegend(),
               ),
             ),
           ],
@@ -115,12 +132,11 @@ class _TokenDistributionCardState extends State<TokenDistributionCard> {
     );
   }
 
-  List<PieChartSectionData> _buildDonutChartData(
-      DataManager dataManager, int? selectedIndex) {
+  List<PieChartSectionData> _buildDonutChartData(int? selectedIndex) {
     final appState = Provider.of<AppState>(context);
 
     // Vérifier si des données sont disponibles
-    if (dataManager.propertyData.isEmpty) {
+    if (widget.dataManager.propertyData.isEmpty) {
       return [
         PieChartSectionData(
           value: 1,
@@ -131,17 +147,25 @@ class _TokenDistributionCardState extends State<TokenDistributionCard> {
       ];
     }
 
+    print('Nombre de types de propriétés: ${widget.dataManager.propertyData.length}');
+    for (var item in widget.dataManager.propertyData) {
+      print('Type de propriété: ${item['propertyType']}, Count: ${item['count']}');
+    }
+
     // Trier les données par 'count' dans l'ordre décroissant
-    final sortedData = List<Map<String, dynamic>>.from(dataManager.propertyData)
+    final sortedData = List<Map<String, dynamic>>.from(widget.dataManager.propertyData)
       ..sort((a, b) => b['count'].compareTo(a['count']));
+
+    // Calculer le total pour le pourcentage
+    final totalCount = widget.dataManager.propertyData.fold(0.0, (double sum, item) {
+      final count = item['count'] ?? 0.0;
+      return sum + (count is String ? double.tryParse(count) ?? 0.0 : count);
+    });
 
     return sortedData.asMap().entries.map((entry) {
       final index = entry.key;
       final data = entry.value;
-      final double percentage = (data['count'] /
-              dataManager.propertyData
-                  .fold(0.0, (double sum, item) => sum + item['count'])) *
-          100;
+      final double percentage = (data['count'] / totalCount) * 100;
 
       final bool isSelected = selectedIndex == index;
       final opacity = selectedIndex != null && !isSelected ? 0.5 : 1.0;
@@ -151,13 +175,11 @@ class _TokenDistributionCardState extends State<TokenDistributionCard> {
 
       return PieChartSectionData(
         value: data['count'].toDouble(),
-        title: '${percentage.toStringAsFixed(1)}%',
+        title: percentage < 5 ? '' : '${percentage.toStringAsFixed(1)}%',
         color: baseColor.withOpacity(opacity),
         radius: isSelected ? 52 : 45,
         titleStyle: TextStyle(
-          fontSize: isSelected
-              ? 14 + appState.getTextSizeOffset()
-              : 10 + appState.getTextSizeOffset(),
+          fontSize: isSelected ? 14 + appState.getTextSizeOffset() : 10 + appState.getTextSizeOffset(),
           color: Colors.white,
           fontWeight: FontWeight.w600,
           shadows: [
@@ -196,9 +218,9 @@ class _TokenDistributionCardState extends State<TokenDistributionCard> {
     );
   }
 
-  Widget _buildCenterTextToken(DataManager dataManager, int? selectedIndex) {
+  Widget _buildCenterTextToken(int? selectedIndex) {
     // Somme des valeurs de 'count'
-    final totalCount = dataManager.propertyData.fold(0.0, (double sum, item) {
+    final totalCount = widget.dataManager.propertyData.fold(0.0, (double sum, item) {
       final count = item['count'] ?? 0.0; // Utiliser 0.0 si 'count' est null
       return sum + (count is String ? double.tryParse(count) ?? 0.0 : count);
     });
@@ -230,7 +252,7 @@ class _TokenDistributionCardState extends State<TokenDistributionCard> {
     }
 
     // Afficher les détails du segment sélectionné
-    final sortedData = List<Map<String, dynamic>>.from(dataManager.propertyData)
+    final sortedData = List<Map<String, dynamic>>.from(widget.dataManager.propertyData)
       ..sort((a, b) => b['count'].compareTo(a['count']));
 
     if (selectedIndex >= sortedData.length) return Container();
@@ -261,16 +283,16 @@ class _TokenDistributionCardState extends State<TokenDistributionCard> {
     );
   }
 
-  Widget _buildLegend(DataManager dataManager) {
+  Widget _buildLegend() {
     final appState = Provider.of<AppState>(context);
 
     // Trier les données par 'count' dans l'ordre décroissant
-    final sortedData = List<Map<String, dynamic>>.from(dataManager.propertyData)
+    final sortedData = List<Map<String, dynamic>>.from(widget.dataManager.propertyData)
       ..sort((a, b) => b['count'].compareTo(a['count']));
 
     return Wrap(
-      spacing: 12.0,
-      runSpacing: 4.0,
+      spacing: 8.0,
+      runSpacing: 3.0,
       alignment: WrapAlignment.start,
       children: sortedData.asMap().entries.map((entry) {
         final index = entry.key;
@@ -279,21 +301,16 @@ class _TokenDistributionCardState extends State<TokenDistributionCard> {
 
         return InkWell(
           onTap: () {
-            _selectedIndexNotifierToken.value = 
-                (_selectedIndexNotifierToken.value == index) ? null : index;
+            _selectedIndexNotifierToken.value = (_selectedIndexNotifierToken.value == index) ? null : index;
           },
           borderRadius: BorderRadius.circular(8),
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+            padding: const EdgeInsets.symmetric(horizontal: 6.0, vertical: 2.0),
             decoration: BoxDecoration(
-              color: _selectedIndexNotifierToken.value == index
-                  ? color.withOpacity(0.1)
-                  : Colors.transparent,
+              color: _selectedIndexNotifierToken.value == index ? color.withOpacity(0.1) : Colors.transparent,
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
-                color: _selectedIndexNotifierToken.value == index
-                    ? color
-                    : Colors.transparent,
+                color: _selectedIndexNotifierToken.value == index ? color : Colors.transparent,
                 width: 1,
               ),
             ),
@@ -321,12 +338,8 @@ class _TokenDistributionCardState extends State<TokenDistributionCard> {
                     Parameters.getPropertyTypeName(data['propertyType'], context),
                     style: TextStyle(
                       fontSize: 12 + appState.getTextSizeOffset(),
-                      color: _selectedIndexNotifierToken.value == index
-                          ? color
-                          : Theme.of(context).textTheme.bodyMedium?.color,
-                      fontWeight: _selectedIndexNotifierToken.value == index
-                          ? FontWeight.w600
-                          : FontWeight.normal,
+                      color: _selectedIndexNotifierToken.value == index ? color : Theme.of(context).textTheme.bodyMedium?.color,
+                      fontWeight: _selectedIndexNotifierToken.value == index ? FontWeight.w600 : FontWeight.normal,
                     ),
                   ),
                 ),

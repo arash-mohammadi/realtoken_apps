@@ -7,7 +7,7 @@ import 'package:realtokens/app_state.dart';
 class Parameters {
   // Référence statique à l'instance de AppState
   static AppState? _appState;
-  
+
   // Méthode pour initialiser AppState
   static void initAppState(BuildContext context) {
     _appState = Provider.of<AppState>(context, listen: false);
@@ -33,24 +33,24 @@ class Parameters {
   static double get manualAdjustment => _appState?.manualAdjustment ?? 0.0;
   static bool get showYamProjection => _appState?.showYamProjection ?? true;
   static double get initialInvestmentAdjustment => _appState?.initialInvestmentAdjustment ?? 0.0;
-  
+
   // Méthodes pour mettre à jour les paramètres
   static void setShowTotalInvested(bool value) {
     _appState?.updateShowTotalInvested(value);
   }
-  
+
   static void setShowNetTotal(bool value) {
     _appState?.updateShowNetTotal(value);
   }
-  
+
   static void setManualAdjustment(double value) {
     _appState?.updateManualAdjustment(value);
   }
-  
+
   static void setShowYamProjection(bool value) {
     _appState?.updateShowYamProjection(value);
   }
-  
+
   static void setInitialInvestmentAdjustment(double value) {
     _appState?.updateInitialInvestmentAdjustment(value);
   }

@@ -29,6 +29,15 @@ class RmmStatsState extends State<RmmStats> {
 
   bool healthAndLtvIsBarChart = true;
 
+  // Nouvelles variables pour les options de graphique
+  String selectedDepositTimeRange = 'all';
+  int depositTimeOffset = 0;
+  bool isDepositBarChart = false;
+  
+  String selectedBorrowTimeRange = 'all';
+  int borrowTimeOffset = 0;
+  bool isBorrowBarChart = false;
+
   @override
   void initState() {
     super.initState();
@@ -40,6 +49,18 @@ class RmmStatsState extends State<RmmStats> {
     setState(() {
       // Charger la préférence stockée, si elle existe, sinon utiliser true par défaut
       healthAndLtvIsBarChart = prefs.getBool('healthAndLtvIsBarChart') ?? true;
+      
+      // Initialiser les nouvelles options
+      selectedDepositPeriod = prefs.getString('selectedDepositPeriod') ?? S.of(context).month;
+      selectedBorrowPeriod = prefs.getString('selectedBorrowPeriod') ?? S.of(context).month;
+      
+      isDepositBarChart = prefs.getBool('isDepositBarChart') ?? false;
+      selectedDepositTimeRange = prefs.getString('selectedDepositTimeRange') ?? 'all';
+      depositTimeOffset = prefs.getInt('depositTimeOffset') ?? 0;
+      
+      isBorrowBarChart = prefs.getBool('isBorrowBarChart') ?? false;
+      selectedBorrowTimeRange = prefs.getString('selectedBorrowTimeRange') ?? 'all';
+      borrowTimeOffset = prefs.getInt('borrowTimeOffset') ?? 0;
     });
   }
 
@@ -76,8 +97,7 @@ class RmmStatsState extends State<RmmStats> {
             ),
           ),
           SliverPadding(
-            padding:
-                const EdgeInsets.only(top: 8, left: 8, right: 8, bottom: 80),
+            padding: const EdgeInsets.only(top: 8, left: 8, right: 8, bottom: 80),
             sliver: SliverGrid(
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: screenWidth > 700 ? 2 : 1,
@@ -218,7 +238,7 @@ class RmmStatsState extends State<RmmStats> {
       fontSize: 14,
       fontWeight: FontWeight.w500,
     );
-    
+
     final valueStyle = const TextStyle(
       fontSize: 15,
       fontWeight: FontWeight.w600,
@@ -252,10 +272,10 @@ class RmmStatsState extends State<RmmStats> {
               ),
             ],
           ),
-          
+
           // Ligne de séparation
           Divider(height: 0, thickness: 0.5, color: Theme.of(context).dividerColor.withOpacity(0.1)),
-          
+
           // Ligne Deposit
           Row(
             children: [
@@ -292,10 +312,10 @@ class RmmStatsState extends State<RmmStats> {
               ),
             ],
           ),
-          
+
           // Ligne de séparation
           Divider(height: 0, thickness: 0.5, color: Theme.of(context).dividerColor.withOpacity(0.1)),
-          
+
           // Ligne Borrow
           Row(
             children: [
@@ -349,25 +369,9 @@ class RmmStatsState extends State<RmmStats> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                S.of(context).depositBalance,
-                style:
-                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              ChartUtils.buildPeriodSelector(
-                context,
-                selectedPeriod: selectedDepositPeriod,
-                onPeriodChanged: (newPeriod) {
-                  setState(() {
-                    selectedDepositPeriod = newPeriod;
-                  });
-                },
-              ),
-              const SizedBox(height: 10),
               Expanded(
                 child: FutureBuilder<Map<String, List<BalanceRecord>>>(
-                  future: _fetchAndAggregateBalanceHistories(
-                      dataManager, selectedDepositPeriod),
+                  future: _fetchAndAggregateBalanceHistories(dataManager, selectedDepositPeriod),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const CircularProgressIndicator();
@@ -380,6 +384,35 @@ class RmmStatsState extends State<RmmStats> {
                       return DepositChart(
                         allHistories: allHistories,
                         selectedPeriod: selectedDepositPeriod,
+                        onPeriodChanged: (newPeriod) {
+                          setState(() {
+                            selectedDepositPeriod = newPeriod;
+                            prefs.setString('selectedDepositPeriod', newPeriod);
+                          });
+                        },
+                        isBarChart: isDepositBarChart,
+                        onChartTypeChanged: (isBar) {
+                          setState(() {
+                            isDepositBarChart = isBar;
+                            prefs.setBool('isDepositBarChart', isBar);
+                          });
+                        },
+                        selectedTimeRange: selectedDepositTimeRange,
+                        onTimeRangeChanged: (newRange) {
+                          setState(() {
+                            selectedDepositTimeRange = newRange;
+                            depositTimeOffset = 0; // Réinitialiser l'offset lors du changement de plage
+                            prefs.setString('selectedDepositTimeRange', newRange);
+                            prefs.setInt('depositTimeOffset', 0);
+                          });
+                        },
+                        timeOffset: depositTimeOffset,
+                        onTimeOffsetChanged: (newOffset) {
+                          setState(() {
+                            depositTimeOffset = newOffset;
+                            prefs.setInt('depositTimeOffset', newOffset);
+                          });
+                        },
                       );
                     }
                   },
@@ -392,29 +425,22 @@ class RmmStatsState extends State<RmmStats> {
     );
   }
 
-  Future<Map<String, List<BalanceRecord>>> _fetchAndAggregateBalanceHistories(
-      DataManager dataManager, String selectedPeriod) async {
+  Future<Map<String, List<BalanceRecord>>> _fetchAndAggregateBalanceHistories(DataManager dataManager, String selectedPeriod) async {
     Map<String, List<BalanceRecord>> allHistories = {};
 
-    allHistories['usdcDeposit'] =
-        await _archiveManager.getBalanceHistory('usdcDeposit');
-    allHistories['usdcBorrow'] =
-        await _archiveManager.getBalanceHistory('usdcBorrow');
-    allHistories['xdaiDeposit'] =
-        await _archiveManager.getBalanceHistory('xdaiDeposit');
-    allHistories['xdaiBorrow'] =
-        await _archiveManager.getBalanceHistory('xdaiBorrow');
+    allHistories['usdcDeposit'] = await _archiveManager.getBalanceHistory('usdcDeposit');
+    allHistories['usdcBorrow'] = await _archiveManager.getBalanceHistory('usdcBorrow');
+    allHistories['xdaiDeposit'] = await _archiveManager.getBalanceHistory('xdaiDeposit');
+    allHistories['xdaiBorrow'] = await _archiveManager.getBalanceHistory('xdaiBorrow');
 
     for (String tokenType in allHistories.keys) {
-      allHistories[tokenType] =
-          await _aggregateByPeriod(allHistories[tokenType]!, selectedPeriod);
+      allHistories[tokenType] = await _aggregateByPeriod(allHistories[tokenType]!, selectedPeriod);
     }
 
     return allHistories;
   }
 
-  Future<List<BalanceRecord>> _aggregateByPeriod(
-      List<BalanceRecord> records, String period) async {
+  Future<List<BalanceRecord>> _aggregateByPeriod(List<BalanceRecord> records, String period) async {
     Map<DateTime, List<double>> groupedByPeriod = {};
 
     for (var record in records) {
@@ -452,15 +478,12 @@ class RmmStatsState extends State<RmmStats> {
         );
       }
 
-      groupedByPeriod
-          .putIfAbsent(truncatedToPeriod, () => [])
-          .add(record.balance);
+      groupedByPeriod.putIfAbsent(truncatedToPeriod, () => []).add(record.balance);
     }
 
     List<BalanceRecord> averagedRecords = [];
     groupedByPeriod.forEach((timestamp, balances) {
-      double averageBalance =
-          balances.reduce((a, b) => a + b) / balances.length;
+      double averageBalance = balances.reduce((a, b) => a + b) / balances.length;
       averagedRecords.add(BalanceRecord(
         tokenType: records.first.tokenType,
         balance: averageBalance,
@@ -483,25 +506,9 @@ class RmmStatsState extends State<RmmStats> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                S.of(context).borrowBalance,
-                style:
-                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              ChartUtils.buildPeriodSelector(
-                context,
-                selectedPeriod: selectedBorrowPeriod,
-                onPeriodChanged: (newPeriod) {
-                  setState(() {
-                    selectedBorrowPeriod = newPeriod;
-                  });
-                },
-              ),
-              const SizedBox(height: 10),
               Expanded(
                 child: FutureBuilder<Map<String, List<BalanceRecord>>>(
-                  future: _fetchAndAggregateBalanceHistories(
-                      dataManager, selectedBorrowPeriod),
+                  future: _fetchAndAggregateBalanceHistories(dataManager, selectedBorrowPeriod),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const CircularProgressIndicator();
@@ -514,6 +521,35 @@ class RmmStatsState extends State<RmmStats> {
                       return BorrowChart(
                         allHistories: allHistories,
                         selectedPeriod: selectedBorrowPeriod,
+                        onPeriodChanged: (newPeriod) {
+                          setState(() {
+                            selectedBorrowPeriod = newPeriod;
+                            prefs.setString('selectedBorrowPeriod', newPeriod);
+                          });
+                        },
+                        isBarChart: isBorrowBarChart,
+                        onChartTypeChanged: (isBar) {
+                          setState(() {
+                            isBorrowBarChart = isBar;
+                            prefs.setBool('isBorrowBarChart', isBar);
+                          });
+                        },
+                        selectedTimeRange: selectedBorrowTimeRange,
+                        onTimeRangeChanged: (newRange) {
+                          setState(() {
+                            selectedBorrowTimeRange = newRange;
+                            borrowTimeOffset = 0; // Réinitialiser l'offset lors du changement de plage
+                            prefs.setString('selectedBorrowTimeRange', newRange);
+                            prefs.setInt('borrowTimeOffset', 0);
+                          });
+                        },
+                        timeOffset: borrowTimeOffset,
+                        onTimeOffsetChanged: (newOffset) {
+                          setState(() {
+                            borrowTimeOffset = newOffset;
+                            prefs.setInt('borrowTimeOffset', newOffset);
+                          });
+                        },
                       );
                     }
                   },

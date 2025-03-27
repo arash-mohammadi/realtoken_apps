@@ -14,17 +14,13 @@ class TokenDistributionByRegionCard extends StatefulWidget {
   const TokenDistributionByRegionCard({super.key, required this.dataManager});
 
   @override
-  _TokenDistributionByRegionCardState createState() =>
-      _TokenDistributionByRegionCardState();
+  _TokenDistributionByRegionCardState createState() => _TokenDistributionByRegionCardState();
 }
 
-class _TokenDistributionByRegionCardState
-    extends State<TokenDistributionByRegionCard> {
+class _TokenDistributionByRegionCardState extends State<TokenDistributionByRegionCard> {
   int? _selectedIndexRegion;
-  final ValueNotifier<int?> _selectedIndexNotifierRegion =
-      ValueNotifier<int?>(null);
-  List<Map<String, dynamic>> othersDetails =
-      []; // Pour stocker les détails de la section "Autres"
+  final ValueNotifier<int?> _selectedIndexNotifierRegion = ValueNotifier<int?>(null);
+  List<Map<String, dynamic>> othersDetails = []; // Pour stocker les détails de la section "Autres"
 
   @override
   Widget build(BuildContext context) {
@@ -78,31 +74,20 @@ class _TokenDistributionByRegionCardState
                     children: [
                       PieChart(
                         PieChartData(
-                          sections: _buildDonutChartDataByRegion(
-                              widget.dataManager, othersDetails, selectedIndex),
+                          sections: _buildDonutChartDataByRegion(widget.dataManager, othersDetails, selectedIndex),
                           centerSpaceRadius: 65,
                           sectionsSpace: 3,
                           borderData: FlBorderData(show: false),
                           pieTouchData: PieTouchData(
-                            touchCallback: (FlTouchEvent event,
-                                PieTouchResponse? response) {
-                              if (response != null &&
-                                  response.touchedSection != null) {
-                                final touchedIndex = response
-                                    .touchedSection!.touchedSectionIndex;
-                                _selectedIndexNotifierRegion.value =
-                                    touchedIndex >= 0 ? touchedIndex : null;
+                            touchCallback: (FlTouchEvent event, PieTouchResponse? response) {
+                              if (response != null && response.touchedSection != null) {
+                                final touchedIndex = response.touchedSection!.touchedSectionIndex;
+                                _selectedIndexNotifierRegion.value = touchedIndex >= 0 ? touchedIndex : null;
 
                                 if (event is FlTapUpEvent) {
-                                  final section =
-                                      response.touchedSection!.touchedSection;
-                                  if (section!.title
-                                      .contains(S.of(context).others)) {
-                                    showOtherDetailsModal(
-                                        context,
-                                        widget.dataManager,
-                                        othersDetails,
-                                        'region');
+                                  final section = response.touchedSection!.touchedSection;
+                                  if (section!.title.contains(S.of(context).others)) {
+                                    showOtherDetailsModal(context, widget.dataManager, othersDetails, 'region');
                                   }
                                 }
                               } else {
@@ -114,8 +99,7 @@ class _TokenDistributionByRegionCardState
                         swapAnimationDuration: const Duration(milliseconds: 300),
                         swapAnimationCurve: Curves.easeInOutCubic,
                       ),
-                      _buildCenterTextByRegion(
-                          widget.dataManager, selectedIndex, othersDetails),
+                      _buildCenterTextByRegion(widget.dataManager, selectedIndex, othersDetails),
                     ],
                   );
                 },
@@ -133,10 +117,7 @@ class _TokenDistributionByRegionCardState
     );
   }
 
-  List<PieChartSectionData> _buildDonutChartDataByRegion(
-      DataManager dataManager,
-      List<Map<String, dynamic>> othersDetails,
-      int? selectedIndex) {
+  List<PieChartSectionData> _buildDonutChartDataByRegion(DataManager dataManager, List<Map<String, dynamic>> othersDetails, int? selectedIndex) {
     Map<String, int> regionCount = {};
     final appState = Provider.of<AppState>(context);
 
@@ -144,12 +125,9 @@ class _TokenDistributionByRegionCardState
     for (var token in dataManager.portfolio) {
       String fullName = token['fullName'];
       List<String> parts = fullName.split(',');
-      String regionCode = parts.length >= 3
-          ? parts[2].trim().substring(0, 2)
-          : S.of(context).unknown;
+      String regionCode = parts.length >= 3 ? parts[2].trim().substring(0, 2) : S.of(context).unknown;
 
-      String regionName =
-          Parameters.usStateAbbreviations[regionCode] ?? regionCode;
+      String regionName = Parameters.usStateAbbreviations[regionCode] ?? regionCode;
       regionCount[regionName] = (regionCount[regionName] ?? 0) + 1;
     }
 
@@ -157,8 +135,7 @@ class _TokenDistributionByRegionCardState
     int totalCount = regionCount.values.fold(0, (sum, value) => sum + value);
 
     // Trier les régions par 'count' croissant
-    final sortedRegions = regionCount.entries.toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
+    final sortedRegions = regionCount.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
 
     List<PieChartSectionData> sections = [];
     othersDetails.clear();
@@ -185,9 +162,7 @@ class _TokenDistributionByRegionCardState
           color: baseColor.withOpacity(opacity),
           radius: isSelected ? 52 : 45,
           titleStyle: TextStyle(
-            fontSize: isSelected
-                ? 14 + appState.getTextSizeOffset()
-                : 10 + appState.getTextSizeOffset(),
+            fontSize: isSelected ? 14 + appState.getTextSizeOffset() : 10 + appState.getTextSizeOffset(),
             color: Colors.white,
             fontWeight: FontWeight.w600,
             shadows: [
@@ -211,14 +186,11 @@ class _TokenDistributionByRegionCardState
       final bool isOthersSelected = selectedIndex == indexCounter;
       sections.add(PieChartSectionData(
         value: othersValue.toDouble(),
-        title:
-            '${S.of(context).others} ${othersPercentage.toStringAsFixed(1)}%',
+        title: '${S.of(context).others} ${othersPercentage.toStringAsFixed(1)}%',
         color: Colors.grey.shade400.withOpacity(isOthersSelected ? 1.0 : (selectedIndex != null ? 0.5 : 1.0)),
         radius: isOthersSelected ? 52 : 45,
         titleStyle: TextStyle(
-          fontSize: isOthersSelected
-              ? 14 + appState.getTextSizeOffset()
-              : 10 + appState.getTextSizeOffset(),
+          fontSize: isOthersSelected ? 14 + appState.getTextSizeOffset() : 10 + appState.getTextSizeOffset(),
           color: Colors.white,
           fontWeight: FontWeight.w600,
           shadows: [
@@ -259,20 +231,16 @@ class _TokenDistributionByRegionCardState
     );
   }
 
-  Widget _buildCenterTextByRegion(DataManager dataManager, int? selectedIndex,
-      List<Map<String, dynamic>> othersDetails) {
+  Widget _buildCenterTextByRegion(DataManager dataManager, int? selectedIndex, List<Map<String, dynamic>> othersDetails) {
     Map<String, int> regionCount = {};
 
     // Remplir le dictionnaire avec les counts par région
     for (var token in dataManager.portfolio) {
       String fullName = token['fullName'];
       List<String> parts = fullName.split(',');
-      String regionCode = parts.length >= 3
-          ? parts[2].trim().substring(0, 2)
-          : S.of(context).unknown;
+      String regionCode = parts.length >= 3 ? parts[2].trim().substring(0, 2) : S.of(context).unknown;
 
-      String regionName =
-          Parameters.usStateAbbreviations[regionCode] ?? regionCode;
+      String regionName = Parameters.usStateAbbreviations[regionCode] ?? regionCode;
       regionCount[regionName] = (regionCount[regionName] ?? 0) + 1;
     }
 
@@ -306,8 +274,7 @@ class _TokenDistributionByRegionCardState
     }
 
     // Trier les régions par 'count' croissant pour correspondre aux sections
-    final sortedRegions = regionCount.entries.toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
+    final sortedRegions = regionCount.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
 
     // Filtrer les régions dont le pourcentage est < 2%
     List<MapEntry<String, int>> visibleRegions = [];
@@ -362,9 +329,7 @@ class _TokenDistributionByRegionCardState
           ),
           const SizedBox(height: 4),
           Text(
-            othersDetails
-                .fold<int>(0, (sum, item) => sum + (item['count'] as int))
-                .toString(),
+            othersDetails.fold<int>(0, (sum, item) => sum + (item['count'] as int)).toString(),
             style: TextStyle(
               fontSize: 14 + Provider.of<AppState>(context).getTextSizeOffset(),
               color: Colors.grey.shade600,
@@ -376,16 +341,14 @@ class _TokenDistributionByRegionCardState
     }
   }
 
-  Widget _buildLegendByRegion(
-      DataManager dataManager, List<Map<String, dynamic>> othersDetails) {
+  Widget _buildLegendByRegion(DataManager dataManager, List<Map<String, dynamic>> othersDetails) {
     Map<String, int> regionCount = {};
     final appState = Provider.of<AppState>(context);
 
     // Remplir le dictionnaire avec les counts par région
     for (var token in dataManager.portfolio) {
-      String regionCode = token['regionCode'] ?? 'Unknown Region';
-      String regionName =
-          Parameters.usStateAbbreviations[regionCode] ?? regionCode;
+      String regionCode = token['regionCode'] ?? S.of(context).unknownRegion;
+      String regionName = Parameters.usStateAbbreviations[regionCode] ?? regionCode;
       regionCount[regionName] = (regionCount[regionName] ?? 0) + 1;
     }
 
@@ -393,8 +356,7 @@ class _TokenDistributionByRegionCardState
     int totalCount = regionCount.values.fold(0, (sum, value) => sum + value);
 
     // Trier les régions par 'count' croissant
-    final sortedRegions = regionCount.entries.toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
+    final sortedRegions = regionCount.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
 
     List<Widget> legendItems = [];
     int othersValue = 0;
@@ -419,16 +381,12 @@ class _TokenDistributionByRegionCardState
             },
             borderRadius: BorderRadius.circular(8),
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+              padding: const EdgeInsets.symmetric(horizontal: 6.0, vertical: 2.0),
               decoration: BoxDecoration(
-                color: _selectedIndexNotifierRegion.value == indexCounter
-                    ? color.withOpacity(0.1)
-                    : Colors.transparent,
+                color: _selectedIndexNotifierRegion.value == indexCounter ? color.withOpacity(0.1) : Colors.transparent,
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
-                  color: _selectedIndexNotifierRegion.value == indexCounter
-                      ? color
-                      : Colors.transparent,
+                  color: _selectedIndexNotifierRegion.value == indexCounter ? color : Colors.transparent,
                   width: 1,
                 ),
               ),
@@ -455,12 +413,8 @@ class _TokenDistributionByRegionCardState
                     region,
                     style: TextStyle(
                       fontSize: 12 + appState.getTextSizeOffset(),
-                      color: _selectedIndexNotifierRegion.value == indexCounter
-                          ? color
-                          : Theme.of(context).textTheme.bodyMedium?.color,
-                      fontWeight: _selectedIndexNotifierRegion.value == indexCounter
-                          ? FontWeight.w600
-                          : FontWeight.normal,
+                      color: _selectedIndexNotifierRegion.value == indexCounter ? color : Theme.of(context).textTheme.bodyMedium?.color,
+                      fontWeight: _selectedIndexNotifierRegion.value == indexCounter ? FontWeight.w600 : FontWeight.normal,
                     ),
                   ),
                 ],
@@ -481,25 +435,17 @@ class _TokenDistributionByRegionCardState
             _selectedIndexNotifierRegion.value = (_selectedIndexNotifierRegion.value == indexOthers) ? null : indexOthers;
             if (_selectedIndexNotifierRegion.value == indexOthers) {
               // Ouvrir le modal lorsqu'on clique sur "Autres" dans la légende
-              showOtherDetailsModal(
-                  context,
-                  widget.dataManager,
-                  othersDetails,
-                  'region');
+              showOtherDetailsModal(context, widget.dataManager, othersDetails, 'region');
             }
           },
           borderRadius: BorderRadius.circular(8),
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+            padding: const EdgeInsets.symmetric(horizontal: 6.0, vertical: 2.0),
             decoration: BoxDecoration(
-              color: _selectedIndexNotifierRegion.value == indexOthers
-                  ? Colors.grey.withOpacity(0.1)
-                  : Colors.transparent,
+              color: _selectedIndexNotifierRegion.value == indexOthers ? Colors.grey.withOpacity(0.1) : Colors.transparent,
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
-                color: _selectedIndexNotifierRegion.value == indexOthers
-                    ? Colors.grey
-                    : Colors.transparent,
+                color: _selectedIndexNotifierRegion.value == indexOthers ? Colors.grey : Colors.transparent,
                 width: 1,
               ),
             ),
@@ -526,12 +472,8 @@ class _TokenDistributionByRegionCardState
                   S.of(context).others,
                   style: TextStyle(
                     fontSize: 12 + appState.getTextSizeOffset(),
-                    color: _selectedIndexNotifierRegion.value == indexOthers
-                        ? Colors.grey.shade700
-                        : Theme.of(context).textTheme.bodyMedium?.color,
-                    fontWeight: _selectedIndexNotifierRegion.value == indexOthers
-                        ? FontWeight.w600
-                        : FontWeight.normal,
+                    color: _selectedIndexNotifierRegion.value == indexOthers ? Colors.grey.shade700 : Theme.of(context).textTheme.bodyMedium?.color,
+                    fontWeight: _selectedIndexNotifierRegion.value == indexOthers ? FontWeight.w600 : FontWeight.normal,
                   ),
                 ),
               ],
@@ -553,7 +495,6 @@ class _TokenDistributionByRegionCardState
     final hue = ((index * 57) + 193 * (index % 3)) % 360;
     final saturation = (0.7 + (index % 5) * 0.06).clamp(0.4, 0.7);
     final brightness = (0.8 + (index % 3) * 0.2).clamp(0.6, 0.9);
-    return HSVColor.fromAHSV(1.0, hue.toDouble(), saturation, brightness)
-        .toColor();
+    return HSVColor.fromAHSV(1.0, hue.toDouble(), saturation, brightness).toColor();
   }
 }

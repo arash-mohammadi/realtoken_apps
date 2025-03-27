@@ -22,8 +22,7 @@ class PortfolioStats extends StatefulWidget {
 class _PortfolioStats extends State<PortfolioStats> {
   late String _selectedPeriod;
   late String _selectedFilter;
-  bool _rentedIsBarChart =
-      true; // Ajoutez cette variable pour gérer le type de graphique
+  bool _rentedIsBarChart = true; // Ajoutez cette variable pour gérer le type de graphique
 
   @override
   void initState() {
@@ -31,8 +30,16 @@ class _PortfolioStats extends State<PortfolioStats> {
     _selectedFilter = 'Region';
     SchedulerBinding.instance.addPostFrameCallback((_) async {
       try {
-        debugPrint("Fetching rent data and property data...");
-        DataFetchUtils.loadData(context);
+        // Vérifier si les données sont déjà disponibles
+        final dataManager = Provider.of<DataManager>(context, listen: false);
+        
+        if (!dataManager.isLoadingMain && dataManager.evmAddresses.isNotEmpty && 
+            dataManager.portfolio.isNotEmpty && dataManager.rentHistory.isNotEmpty) {
+          debugPrint("📊 Stats: données déjà chargées, skip chargement");
+        } else {
+          debugPrint("📊 Stats: chargement des données nécessaire");
+          await DataFetchUtils.loadDataWithCache(context);
+        }
       } catch (e, stacktrace) {
         debugPrint("Error during initState: $e");
         debugPrint("Stacktrace: $stacktrace");
@@ -79,8 +86,7 @@ class _PortfolioStats extends State<PortfolioStats> {
           slivers: [
             // Grille pour tous les graphiques
             SliverPadding(
-              padding: const EdgeInsets.only(
-                  top: 8.0, bottom: 80.0, left: 8.0, right: 8.0),
+              padding: const EdgeInsets.only(top: 8.0, bottom: 80.0, left: 8.0, right: 8.0),
               sliver: SliverGrid(
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: isWideScreen ? 2 : 1,
@@ -111,17 +117,13 @@ class _PortfolioStats extends State<PortfolioStats> {
                       case 2:
                         return TokenDistributionCard(dataManager: dataManager!);
                       case 3:
-                        return TokenDistributionByCountryCard(
-                            dataManager: dataManager!);
+                        return TokenDistributionByCountryCard(dataManager: dataManager!);
                       case 4:
-                        return TokenDistributionByRegionCard(
-                            dataManager: dataManager!);
+                        return TokenDistributionByRegionCard(dataManager: dataManager!);
                       case 5:
-                        return TokenDistributionByCityCard(
-                            dataManager: dataManager!);
+                        return TokenDistributionByCityCard(dataManager: dataManager!);
                       case 6:
-                        return TokenDistributionByWalletCard(
-                            dataManager: dataManager!);
+                        return TokenDistributionByWalletCard(dataManager: dataManager!);
                       default:
                         return Container();
                     }

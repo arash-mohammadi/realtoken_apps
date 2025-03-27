@@ -22,6 +22,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart'; // 👈 Importation de dote
 import 'managers/archive_manager.dart';
 import 'managers/apy_manager.dart';
 import 'screens/lock_screen.dart';
+import 'utils/data_fetch_utils.dart';
 
 void main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
@@ -36,8 +37,7 @@ void main() async {
 
   try {
     if (Firebase.apps.isEmpty) {
-      await Firebase.initializeApp(
-          options: DefaultFirebaseOptions.currentPlatform);
+      await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
       debugPrint("✅ Firebase initialisé !");
     }
   } catch (e, stacktrace) {
@@ -70,7 +70,7 @@ void main() async {
   final dataManager = DataManager();
   final currencyProvider = CurrencyProvider();
   final appState = AppState();
-  
+
   // Connecter DataManager à AppState
   appState.dataManager = dataManager;
 
@@ -86,9 +86,7 @@ void main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => dataManager),
-        ChangeNotifierProvider(
-            create: (_) =>
-                CurrencyProvider()), // ✅ Assurez-vous que CurrencyProvider est bien ici
+        ChangeNotifierProvider(create: (_) => CurrencyProvider()), // ✅ Assurez-vous que CurrencyProvider est bien ici
         ChangeNotifierProvider(create: (_) => appState),
       ],
       child: MyApp(autoSyncEnabled: autoSyncEnabled),
@@ -124,6 +122,10 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
     _checkAuthentication();
     _checkGoogleDriveConnection();
     _autoSyncEnabled = widget.autoSyncEnabled;
+    
+    // Charger les données initiales de l'application
+    _loadInitialData();
+    
     if (!kIsWeb) {
       initOneSignal();
     } else {
@@ -131,9 +133,21 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
     }
   }
 
+  // Méthode pour charger les données initiales de l'application
+  Future<void> _loadInitialData() async {
+    debugPrint("📱 Chargement initial des données de l'application...");
+    try {
+      // Utiliser loadDataWithCache pour une meilleure réactivité
+      await DataFetchUtils.loadDataWithCache(context);
+      debugPrint("✅ Chargement initial des données terminé");
+    } catch (e) {
+      debugPrint("❌ Erreur lors du chargement initial des données: $e");
+    }
+  }
+
   Future<void> _checkAuthentication() async {
     final biometricEnabled = await _biometricService.isBiometricEnabled();
-    
+
     // Si la biométrie n'est pas activée, on considère l'utilisateur comme authentifié
     if (!biometricEnabled) {
       setState(() {
@@ -141,13 +155,13 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
       });
       return;
     }
-    
+
     // Si l'utilisateur est déjà authentifié, vérifier s'il s'est authentifié récemment (moins de 10 minutes)
     if (_lastAuthTime != null) {
       final now = DateTime.now();
       final difference = now.difference(_lastAuthTime!);
-      
-      // Si moins de 10 minutes ont passé depuis la dernière authentification, 
+
+      // Si moins de 10 minutes ont passé depuis la dernière authentification,
       // ne pas redemander d'authentification
       if (difference.inMinutes < 10) {
         setState(() {
@@ -156,13 +170,13 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
         return;
       }
     }
-    
+
     // Dans les autres cas, l'utilisateur doit s'authentifier
     setState(() {
       _isAuthenticated = false;
     });
   }
-  
+
   void setAuthenticated(bool value) {
     setState(() {
       _isAuthenticated = value;
@@ -190,18 +204,15 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
     OneSignal.initialize("e7059f66-9c12-4d21-a078-edaf1a203dea");
     OneSignal.Notifications.requestPermission(true);
     OneSignal.Notifications.addForegroundWillDisplayListener((event) {
-      debugPrint(
-          'Notification reçue en premier plan : ${event.notification.jsonRepresentation()}');
+      debugPrint('Notification reçue en premier plan : ${event.notification.jsonRepresentation()}');
       event.preventDefault();
       event.notification.display();
     });
     OneSignal.Notifications.addClickListener((event) {
-      debugPrint(
-          'Notification cliquée : ${event.notification.jsonRepresentation()}');
+      debugPrint('Notification cliquée : ${event.notification.jsonRepresentation()}');
     });
     OneSignal.User.pushSubscription.addObserver((state) {
-      debugPrint(
-          'Utilisateur inscrit aux notifications : ${state.current.jsonRepresentation()}');
+      debugPrint('Utilisateur inscrit aux notifications : ${state.current.jsonRepresentation()}');
     });
   }
 
@@ -216,44 +227,42 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
     // Sauvegarder l'état précédent avant de le mettre à jour
     final previousState = _lastLifecycleState;
     _lastLifecycleState = state;
-    
+
     if (state == AppLifecycleState.resumed) {
       // Demander l'authentification UNIQUEMENT si l'application était en arrière-plan (inactive ou paused)
       // et qu'elle revient au premier plan après un certain temps
       if (previousState == AppLifecycleState.paused || previousState == AppLifecycleState.inactive) {
         final now = DateTime.now();
-        final needsAuth = _lastAuthTime == null || 
-                         now.difference(_lastAuthTime!).inMinutes >= 5; // Redemander après 5 minutes
-        
+        final needsAuth = _lastAuthTime == null || now.difference(_lastAuthTime!).inMinutes >= 5; // Redemander après 5 minutes
+
         if (needsAuth) {
           _checkAuthentication();
         }
       }
-      
+
       // Toujours recharger les données
       _reloadData();
     }
   }
 
   void _reloadData() async {
-    debugPrint("🔄 Vérification avant mise à jour des données...");
+    debugPrint("🔄 Mise à jour des données après reprise de l'application...");
     final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
 
-    await _loadAutoSyncPreference(); // 🔥 Charger la valeur de autoSync depuis SharedPreferences
-
-    await Future.wait([
-      dataManager.updateMainInformations(),
-      dataManager.updateSecondaryInformations(context),
-      currencyUtils.loadSelectedCurrency(),
-      dataManager.loadUserIdToAddresses(),
-    ]);
-    await dataManager.fetchAndCalculateData();
+    try {
+      // Utiliser refreshData pour une mise à jour légère mais complète
+      await DataFetchUtils.refreshData(context);
+    } catch (e) {
+      debugPrint("❌ Erreur lors de la mise à jour des données: $e");
+    }
+    
+    await _loadAutoSyncPreference();
 
     if (_autoSyncEnabled) {
-      print("🟢 AutoSync activé: $_autoSyncEnabled");
+      debugPrint("🟢 AutoSync activé: $_autoSyncEnabled");
       _checkAndSyncGoogleDrive();
     } else {
-      print("🔴 AutoSync désactivé: $_autoSyncEnabled");
+      debugPrint("🔴 AutoSync désactivé: $_autoSyncEnabled");
     }
   }
 
@@ -285,7 +294,7 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
       builder: (context, appState, child) {
         // Initialiser Parameters avec AppState
         Parameters.initAppState(context);
-        
+
         return MaterialApp(
           title: 'RealToken mobile app',
           locale: Locale(appState.selectedLanguage),
@@ -299,7 +308,7 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
           theme: getLightTheme(appState.primaryColor),
           darkTheme: getDarkTheme(appState.primaryColor),
           themeMode: appState.isDarkTheme ? ThemeMode.dark : ThemeMode.light,
-          home: _isAuthenticated 
+          home: _isAuthenticated
               ? const MyHomePage()
               : LockScreen(
                   onAuthenticated: () => setAuthenticated(true),

@@ -3,6 +3,7 @@ import 'package:realtokens/managers/data_manager.dart';
 import 'package:realtokens/modals/agenda.dart';
 import 'package:realtokens/utils/currency_utils.dart';
 import 'package:realtokens/utils/ui_utils.dart';
+import 'package:realtokens/generated/l10n.dart';
 
 import 'bottom_bar.dart';
 import 'drawer.dart';
@@ -23,8 +24,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _selectedIndex = 0;
-  final GlobalKey _walletIconKey =
-      GlobalKey(); // Clé pour obtenir la position de l'icône
+  final GlobalKey _walletIconKey = GlobalKey(); // Clé pour obtenir la position de l'icône
 
   List<Map<String, dynamic>> portfolio = [];
 
@@ -70,13 +70,11 @@ class _MyHomePageState extends State<MyHomePage> {
     final dataManager = Provider.of<DataManager>(context, listen: false);
 
     // Récupération de la liste des détails par wallet (issue de fetchRmmBalances)
-    final List<Map<String, dynamic>> walletDetails =
-        dataManager.perWalletBalances ?? [];
+    final List<Map<String, dynamic>> walletDetails = dataManager.perWalletBalances ?? [];
 
     // Affichage dans la console pour debug
     for (var walletInfo in walletDetails) {
-      debugPrint(
-          "Wallet ${walletInfo['address']} → USDC Deposit: ${walletInfo['usdcDeposit']}, USDC Borrow: ${walletInfo['usdcBorrow']}, "
+      debugPrint("Wallet ${walletInfo['address']} → USDC Deposit: ${walletInfo['usdcDeposit']}, USDC Borrow: ${walletInfo['usdcBorrow']}, "
           "XDAI Deposit: ${walletInfo['xdaiDeposit']}, XDAI Borrow: ${walletInfo['xdaiBorrow']}, "
           "Gnosis USDC: ${walletInfo['gnosisUsdc']}, Gnosis XDAI: ${walletInfo['gnosisXdai']}, "
           "Timestamp: ${walletInfo['timestamp']}");
@@ -85,9 +83,7 @@ class _MyHomePageState extends State<MyHomePage> {
     // Fonction locale pour tronquer l'adresse
     String truncateAddress(String address) {
       if (address.length <= 12) return address;
-      return address.substring(0, 6) +
-          "..." +
-          address.substring(address.length - 4);
+      return address.substring(0, 6) + "..." + address.substring(address.length - 4);
     }
 
     final double usdcBalance = dataManager.gnosisUsdcBalance;
@@ -104,9 +100,7 @@ class _MyHomePageState extends State<MyHomePage> {
             bottom: MediaQuery.of(context).viewInsets.bottom,
           ),
           decoration: BoxDecoration(
-            color: Theme.of(context).brightness == Brightness.dark
-                ? Colors.black.withOpacity(0.9)
-                : Colors.white.withOpacity(0.9),
+            color: Theme.of(context).brightness == Brightness.dark ? Colors.black.withOpacity(0.9) : Colors.white.withOpacity(0.9),
             borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
             boxShadow: [
               BoxShadow(
@@ -128,9 +122,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 width: 36,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? Colors.white.withOpacity(0.2)
-                      : Colors.black.withOpacity(0.2),
+                  color: Theme.of(context).brightness == Brightness.dark ? Colors.white.withOpacity(0.2) : Colors.black.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(4),
                 ),
               ),
@@ -146,7 +138,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      "Portefeuille",
+                      S.of(context).wallet,
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 18 + appState.getTextSizeOffset(),
@@ -164,7 +156,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   ],
                 ),
               ),
-              
+
               // Solde total
               Container(
                 margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -181,7 +173,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "Solde Total",
+                      S.of(context).totalBalance,
                       style: TextStyle(
                         fontSize: 14 + appState.getTextSizeOffset(),
                         fontWeight: FontWeight.w500,
@@ -266,14 +258,14 @@ class _MyHomePageState extends State<MyHomePage> {
                   ],
                 ),
               ),
-              
+
               // Détails par wallet
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
                 child: Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
-                    "Détails par Wallet",
+                    S.of(context).walletDetails,
                     style: TextStyle(
                       fontSize: 16 + appState.getTextSizeOffset(),
                       fontWeight: FontWeight.w600,
@@ -282,7 +274,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                 ),
               ),
-              
+
               Expanded(
                 child: ListView.builder(
                   padding: const EdgeInsets.fromLTRB(12, 4, 12, 16),
@@ -300,18 +292,14 @@ class _MyHomePageState extends State<MyHomePage> {
                       currencyUtils.currencySymbol,
                       appState.showAmounts,
                     );
-                    
+
                     return Container(
                       margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
                       decoration: BoxDecoration(
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? Colors.white.withOpacity(0.05)
-                            : Colors.black.withOpacity(0.03),
+                        color: Theme.of(context).brightness == Brightness.dark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.03),
                         borderRadius: BorderRadius.circular(14),
                         border: Border.all(
-                          color: Theme.of(context).brightness == Brightness.dark
-                              ? Colors.white.withOpacity(0.1)
-                              : Colors.black.withOpacity(0.05),
+                          color: Theme.of(context).brightness == Brightness.dark ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.05),
                           width: 1,
                         ),
                       ),
@@ -446,8 +434,7 @@ class _MyHomePageState extends State<MyHomePage> {
     final dataManager = Provider.of<DataManager>(context);
     final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
 
-    final double walletTotal =
-        dataManager.gnosisUsdcBalance + dataManager.gnosisXdaiBalance;
+    final double walletTotal = dataManager.gnosisUsdcBalance + dataManager.gnosisXdaiBalance;
 
     return Scaffold(
       body: Stack(
@@ -464,9 +451,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                 child: Container(
                   height: UIUtils.getAppBarHeight(context),
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? Colors.black.withOpacity(0.3)
-                      : Colors.white.withOpacity(0.3),
+                  color: Theme.of(context).brightness == Brightness.dark ? Colors.black.withOpacity(0.3) : Colors.white.withOpacity(0.3),
                   child: AppBar(
                     forceMaterialTransparency: true,
                     backgroundColor: Colors.transparent,
@@ -474,8 +459,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     actions: [
                       // Icône portefeuille avec un Popup Menu
                       IconButton(
-                        key:
-                            _walletIconKey, // Associe la clé pour obtenir la position
+                        key: _walletIconKey, // Associe la clé pour obtenir la position
                         icon: Icon(
                           Icons.account_balance_wallet,
                           size: 21 + appState.getTextSizeOffset(),
@@ -485,18 +469,23 @@ class _MyHomePageState extends State<MyHomePage> {
                       ),
                       Padding(
                         padding: const EdgeInsets.only(right: 4.0),
-                        child: Center(
-                          child: Text(
-                            currencyUtils.getFormattedAmount(
-                              currencyUtils.convert(walletTotal),
-                              currencyUtils.currencySymbol,
-                              appState
-                                  .showAmounts, // Utilisation de showAmounts
-                            ),
-                            style: TextStyle(
-                              fontSize: 16 + appState.getTextSizeOffset(),
-                              color:
-                                  Theme.of(context).textTheme.bodyMedium?.color,
+                        child: InkWell(
+                          onTap: () => _showWalletPopup(context),
+                          borderRadius: BorderRadius.circular(4),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 2.0),
+                            child: Center(
+                              child: Text(
+                                currencyUtils.getFormattedAmount(
+                                  currencyUtils.convert(walletTotal),
+                                  currencyUtils.currencySymbol,
+                                  appState.showAmounts, // Utilisation de showAmounts
+                                ),
+                                style: TextStyle(
+                                  fontSize: 16 + appState.getTextSizeOffset(),
+                                  color: Theme.of(context).textTheme.bodyMedium?.color,
+                                ),
+                              ),
                             ),
                           ),
                         ),
@@ -511,9 +500,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       ),
                       IconButton(
                         icon: Icon(
-                          appState.showAmounts
-                              ? Icons.visibility
-                              : Icons.visibility_off,
+                          appState.showAmounts ? Icons.visibility : Icons.visibility_off,
                           size: 22 + appState.getTextSizeOffset(),
                           color: Theme.of(context).textTheme.bodyMedium?.color,
                         ),
@@ -534,9 +521,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                 child: Container(
                   height: _getContainerHeight(context),
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? Colors.black.withOpacity(0.3)
-                      : Colors.white.withOpacity(0.3),
+                  color: Theme.of(context).brightness == Brightness.dark ? Colors.black.withOpacity(0.3) : Colors.white.withOpacity(0.3),
                   child: SafeArea(
                     top: false,
                     child: CustomBottomNavigationBar(

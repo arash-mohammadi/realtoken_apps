@@ -25,7 +25,7 @@ class AboutPage extends StatelessWidget {
         title: Text(
           S.of(context).about,
           style: const TextStyle(
-            fontWeight: FontWeight.w600, 
+            fontWeight: FontWeight.w600,
             fontSize: 17,
           ),
         ),
@@ -155,7 +155,7 @@ class AboutPage extends StatelessWidget {
       ),
     );
   }
-  
+
   Widget _buildSectionHeader(BuildContext context, String title, double textSizeOffset) {
     return Padding(
       padding: const EdgeInsets.only(top: 20.0, bottom: 12.0, left: 4.0),
@@ -169,7 +169,7 @@ class AboutPage extends StatelessWidget {
       ),
     );
   }
-  
+
   Widget _buildInfoCard(
     BuildContext context,
     IconData icon,
@@ -253,7 +253,7 @@ class AboutPage extends StatelessWidget {
 
     return card;
   }
-  
+
   Widget _buildThanksCard(
     BuildContext context,
     String title,

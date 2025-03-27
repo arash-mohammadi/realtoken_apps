@@ -28,7 +28,7 @@ void _openMapModal(BuildContext context, dynamic lat, dynamic lng) {
 
   if (latitude == null || longitude == null) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Invalid coordinates for the property')),
+      SnackBar(content: Text(S.of(context).invalidCoordinates)),
     );
     return;
   }
@@ -61,8 +61,7 @@ void _openMapModal(BuildContext context, dynamic lat, dynamic lng) {
                 ),
                 children: [
                   TileLayer(
-                    urlTemplate:
-                        'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                    urlTemplate: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
                     subdomains: ['a', 'b', 'c'],
                   ),
                   MarkerLayer(
@@ -86,8 +85,7 @@ void _openMapModal(BuildContext context, dynamic lat, dynamic lng) {
                 right: 20,
                 child: FloatingActionButton(
                   onPressed: () {
-                    final googleStreetViewUrl =
-                        'https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=$latitude,$longitude';
+                    final googleStreetViewUrl = 'https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=$latitude,$longitude';
                     UrlUtils.launchURL(googleStreetViewUrl);
                   },
                   backgroundColor: Theme.of(context).primaryColor,
@@ -109,14 +107,14 @@ class TokenDetailsWidget extends StatefulWidget {
   final Map<String, dynamic> token;
   final bool convertToSquareMeters;
   final ScrollController scrollController;
-  
+
   const TokenDetailsWidget({
-    Key? key, 
-    required this.token, 
+    Key? key,
+    required this.token,
     required this.convertToSquareMeters,
     required this.scrollController,
   }) : super(key: key);
-  
+
   @override
   _TokenDetailsWidgetState createState() => _TokenDetailsWidgetState();
 }
@@ -126,12 +124,12 @@ class _TokenDetailsWidgetState extends State<TokenDetailsWidget> {
   bool isTabBarSticky = false;
   final headerKey = GlobalKey();
   int _currentCarouselIndex = 0;
-  
+
   @override
   void initState() {
     super.initState();
     widget.scrollController.addListener(_onScroll);
-    
+
     // Calculer la hauteur du header après le premier rendu
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final RenderBox? renderBox = headerKey.currentContext?.findRenderObject() as RenderBox?;
@@ -142,36 +140,36 @@ class _TokenDetailsWidgetState extends State<TokenDetailsWidget> {
       }
     });
   }
-  
+
   @override
   void dispose() {
     widget.scrollController.removeListener(_onScroll);
     super.dispose();
   }
-  
+
   void _onScroll() {
     // Déterminer si on doit rendre la TabBar sticky
     final offset = widget.scrollController.offset;
     final shouldBeSticky = offset > headerHeight - 35;
-    
+
     if (shouldBeSticky != isTabBarSticky) {
       setState(() {
         isTabBarSticky = shouldBeSticky;
       });
     }
   }
-  
+
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context, listen: false);
     final dataManager = Provider.of<DataManager>(context, listen: false);
     final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
-    
+
     return DefaultTabController(
       length: 6,
       child: Container(
         decoration: BoxDecoration(
-          color: Theme.of(context).cardColor,
+          color: Theme.of(context).scaffoldBackgroundColor,
           borderRadius: const BorderRadius.only(
             topLeft: Radius.circular(20),
             topRight: Radius.circular(20),
@@ -208,29 +206,23 @@ class _TokenDetailsWidgetState extends State<TokenDetailsWidget> {
                                   Padding(
                                     padding: const EdgeInsets.fromLTRB(8.0, 0, 8.0, 0),
                                     child: widget.token['imageLink'] != null && widget.token['imageLink'].isNotEmpty
-                                      ? Column(
-                                          children: [
-                                            GestureDetector(
-                                              onTap: () {
-                                                final List<String> imageLinks =
-                                                    widget.token['imageLink'] is String
-                                                        ? [widget.token['imageLink']]
-                                                        : List<String>.from(widget.token['imageLink']);
+                                        ? Column(
+                                            children: [
+                                              GestureDetector(
+                                                onTap: () {
+                                                  final List<String> imageLinks = widget.token['imageLink'] is String ? [widget.token['imageLink']] : List<String>.from(widget.token['imageLink']);
 
-                                                Navigator.of(context).push(
-                                                  MaterialPageRoute(
-                                                    builder: (_) => FullScreenCarousel(
-                                                      imageLinks: imageLinks,
+                                                  Navigator.of(context).push(
+                                                    MaterialPageRoute(
+                                                      builder: (_) => FullScreenCarousel(
+                                                        imageLinks: imageLinks,
+                                                      ),
                                                     ),
-                                                  ),
-                                                );
-                                              },
-                                              child: StatefulBuilder(
-                                                builder: (context, setState) {
-                                                  final List<String> imageLinks = widget.token['imageLink'] is String
-                                                      ? [widget.token['imageLink']]
-                                                      : List<String>.from(widget.token['imageLink']);
-                                                  
+                                                  );
+                                                },
+                                                child: StatefulBuilder(builder: (context, setState) {
+                                                  final List<String> imageLinks = widget.token['imageLink'] is String ? [widget.token['imageLink']] : List<String>.from(widget.token['imageLink']);
+
                                                   return Column(
                                                     children: [
                                                       ClipRRect(
@@ -265,24 +257,18 @@ class _TokenDetailsWidgetState extends State<TokenDetailsWidget> {
                                                                   ClipRRect(
                                                                     borderRadius: BorderRadius.circular(15),
                                                                     child: kIsWeb
-                                                                        ? ShowNetworkImage(
-                                                                            imageSrc: imageUrl,
-                                                                            mobileBoxFit: BoxFit.cover,
-                                                                            mobileWidth: double.infinity)
+                                                                        ? ShowNetworkImage(imageSrc: imageUrl, mobileBoxFit: BoxFit.cover, mobileWidth: double.infinity)
                                                                         : CachedNetworkImage(
                                                                             imageUrl: imageUrl,
                                                                             width: double.infinity,
                                                                             fit: BoxFit.cover,
-                                                                            errorWidget: (context, url, error) =>
-                                                                                const Icon(Icons.error),
+                                                                            errorWidget: (context, url, error) => const Icon(Icons.error),
                                                                           ),
                                                                   ),
-
                                                                   if (kIsWeb)
                                                                     Positioned.fill(
                                                                       child: GestureDetector(
-                                                                        behavior: HitTestBehavior
-                                                                            .translucent,
+                                                                        behavior: HitTestBehavior.translucent,
                                                                         onTap: () {
                                                                           print("✅ Image cliquée sur Web !");
                                                                           Navigator.of(context).push(
@@ -313,9 +299,7 @@ class _TokenDetailsWidgetState extends State<TokenDetailsWidget> {
                                                                 margin: const EdgeInsets.symmetric(horizontal: 4.0),
                                                                 decoration: BoxDecoration(
                                                                   shape: BoxShape.circle,
-                                                                  color: _currentCarouselIndex == entry.key
-                                                                      ? Theme.of(context).primaryColor
-                                                                      : Colors.grey.withOpacity(0.4),
+                                                                  color: _currentCarouselIndex == entry.key ? Theme.of(context).primaryColor : Colors.grey.withOpacity(0.4),
                                                                 ),
                                                               );
                                                             }).toList(),
@@ -323,21 +307,20 @@ class _TokenDetailsWidgetState extends State<TokenDetailsWidget> {
                                                         ),
                                                     ],
                                                   );
-                                                }
+                                                }),
                                               ),
+                                            ],
+                                          )
+                                        : Container(
+                                            height: 200,
+                                            decoration: BoxDecoration(
+                                              color: Colors.grey.withOpacity(0.2),
+                                              borderRadius: BorderRadius.circular(15),
                                             ),
-                                          ],
-                                        )
-                                      : Container(
-                                          height: 200,
-                                          decoration: BoxDecoration(
-                                            color: Colors.grey.withOpacity(0.2),
-                                            borderRadius: BorderRadius.circular(15),
+                                            child: const Center(
+                                              child: Icon(Icons.image_not_supported, size: 50, color: Colors.grey),
+                                            ),
                                           ),
-                                          child: const Center(
-                                            child: Icon(Icons.image_not_supported, size: 50, color: Colors.grey),
-                                          ),
-                                        ),
                                   ),
                                   const SizedBox(height: 6),
                                   // Design condensé pour les informations
@@ -379,7 +362,7 @@ class _TokenDetailsWidgetState extends State<TokenDetailsWidget> {
                                                     Row(
                                                       children: [
                                                         Icon(
-                                                          Icons.location_on_outlined, 
+                                                          Icons.location_on_outlined,
                                                           size: 14 + appState.getTextSizeOffset(),
                                                           color: Colors.grey[600],
                                                         ),
@@ -387,10 +370,8 @@ class _TokenDetailsWidgetState extends State<TokenDetailsWidget> {
                                                         Expanded(
                                                           child: Text(
                                                             [
-                                                              widget.token['city'], 
-                                                              widget.token['regionCode'] != null 
-                                                                ? Parameters.usStateAbbreviations[widget.token['regionCode']] ?? widget.token['regionCode']
-                                                                : null
+                                                              widget.token['city'],
+                                                              widget.token['regionCode'] != null ? Parameters.usStateAbbreviations[widget.token['regionCode']] ?? widget.token['regionCode'] : null
                                                             ].where((e) => e != null).join(', '),
                                                             style: TextStyle(
                                                               fontSize: 12 + appState.getTextSizeOffset(),
@@ -407,16 +388,14 @@ class _TokenDetailsWidgetState extends State<TokenDetailsWidget> {
                                             ),
                                           ],
                                         ),
-                                        
+
                                         // Conteneur pour les informations financières
                                         if (widget.token['amount'] != null || widget.token['totalValue'] != null)
                                           Container(
                                             margin: const EdgeInsets.only(top: 8.0),
                                             padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 10.0),
                                             decoration: BoxDecoration(
-                                              color: Theme.of(context).brightness == Brightness.dark
-                                                  ? Colors.grey[850]
-                                                  : Colors.grey[100],
+                                              color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[850] : Colors.grey[100],
                                               borderRadius: BorderRadius.circular(8),
                                               border: Border.all(
                                                 color: Colors.grey.withOpacity(0.2),
@@ -458,7 +437,7 @@ class _TokenDetailsWidgetState extends State<TokenDetailsWidget> {
                                                       ],
                                                     ),
                                                   ),
-                                                
+
                                                 // Séparateur vertical
                                                 if (widget.token['amount'] != null && widget.token['totalValue'] != null)
                                                   Container(
@@ -467,7 +446,7 @@ class _TokenDetailsWidgetState extends State<TokenDetailsWidget> {
                                                     color: Colors.grey.withOpacity(0.3),
                                                     margin: const EdgeInsets.symmetric(horizontal: 8),
                                                   ),
-                                                
+
                                                 // Valeur totale
                                                 if (widget.token['totalValue'] != null)
                                                   Expanded(
@@ -490,10 +469,7 @@ class _TokenDetailsWidgetState extends State<TokenDetailsWidget> {
                                                               ),
                                                             ),
                                                             Text(
-                                                              currencyUtils.formatCurrency(
-                                                                currencyUtils.convert(widget.token['totalValue']),
-                                                                currencyUtils.currencySymbol
-                                                              ),
+                                                              currencyUtils.formatCurrency(currencyUtils.convert(widget.token['totalValue']), currencyUtils.currencySymbol),
                                                               style: TextStyle(
                                                                 fontSize: 14 + appState.getTextSizeOffset(),
                                                                 fontWeight: FontWeight.bold,
@@ -512,7 +488,7 @@ class _TokenDetailsWidgetState extends State<TokenDetailsWidget> {
                                     ),
                                   ),
                                   const SizedBox(height: 10),
-                                  
+
                                   // TabBar dans le header (version non sticky)
                                   if (!isTabBarSticky)
                                     Padding(
@@ -520,20 +496,18 @@ class _TokenDetailsWidgetState extends State<TokenDetailsWidget> {
                                       child: Container(
                                         height: 35,
                                         decoration: BoxDecoration(
-                                          color: Theme.of(context).brightness == Brightness.dark
-                                              ? Colors.black12
-                                              : Colors.black.withOpacity(0.05),
+                                          color: Theme.of(context).brightness == Brightness.dark ? Colors.black12 : Colors.black.withOpacity(0.05),
                                           borderRadius: BorderRadius.circular(15),
                                         ),
                                         child: _buildTabBar(context, appState),
                                       ),
                                     ),
-                                    
+
                                   const SizedBox(height: 10),
                                 ],
                               ),
                             ),
-                            
+
                             // Contenu des onglets
                             SliverFillRemaining(
                               hasScrollBody: true,
@@ -549,7 +523,7 @@ class _TokenDetailsWidgetState extends State<TokenDetailsWidget> {
                                 ],
                               ),
                             ),
-                            
+
                             // Espace en bas pour éviter que le contenu ne soit caché par les boutons fixes
                             SliverToBoxAdapter(
                               child: SizedBox(height: 60),
@@ -557,7 +531,7 @@ class _TokenDetailsWidgetState extends State<TokenDetailsWidget> {
                           ],
                         ),
                       ),
-                      
+
                       // Boutons d'action fixes en bas
                       Container(
                         decoration: BoxDecoration(
@@ -577,13 +551,11 @@ class _TokenDetailsWidgetState extends State<TokenDetailsWidget> {
                             SizedBox(
                               height: 32,
                               child: ElevatedButton(
-                                onPressed: () =>
-                                    UrlUtils.launchURL(widget.token['marketplaceLink']),
+                                onPressed: () => UrlUtils.launchURL(widget.token['marketplaceLink']),
                                 style: ElevatedButton.styleFrom(
                                   foregroundColor: Colors.white,
                                   backgroundColor: Theme.of(context).primaryColor,
-                                  padding: const EdgeInsets.symmetric(
-                                      vertical: 8, horizontal: 8),
+                                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
                                   textStyle: TextStyle(
                                     fontSize: 13 + appState.getTextSizeOffset(),
                                   ),
@@ -595,15 +567,12 @@ class _TokenDetailsWidgetState extends State<TokenDetailsWidget> {
                             SizedBox(
                               height: 32,
                               child: ElevatedButton(
-                                onPressed: () => _openMapModal(
-                                    context, widget.token['lat'], widget.token['lng']),
+                                onPressed: () => _openMapModal(context, widget.token['lat'], widget.token['lng']),
                                 style: ElevatedButton.styleFrom(
                                   foregroundColor: Colors.white,
                                   backgroundColor: Colors.green,
-                                  padding: const EdgeInsets.symmetric(
-                                      vertical: 8, horizontal: 8),
-                                  textStyle: TextStyle(
-                                      fontSize: 13 + appState.getTextSizeOffset()),
+                                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                                  textStyle: TextStyle(fontSize: 13 + appState.getTextSizeOffset()),
                                 ),
                                 child: Text(S.of(context).viewOnMap),
                               ),
@@ -613,7 +582,7 @@ class _TokenDetailsWidgetState extends State<TokenDetailsWidget> {
                       ),
                     ],
                   ),
-                  
+
                   // TabBar fixe qui apparaît lors du défilement
                   if (isTabBarSticky)
                     Positioned(
@@ -624,9 +593,7 @@ class _TokenDetailsWidgetState extends State<TokenDetailsWidget> {
                         height: 35,
                         margin: const EdgeInsets.symmetric(horizontal: 8.0),
                         decoration: BoxDecoration(
-                          color: Theme.of(context).brightness == Brightness.dark
-                              ? Colors.black.withOpacity(0.8)
-                              : Theme.of(context).cardColor.withOpacity(0.95),
+                          color: Theme.of(context).brightness == Brightness.dark ? Colors.black.withOpacity(0.8) : Theme.of(context).cardColor.withOpacity(0.95),
                           borderRadius: BorderRadius.circular(15),
                           boxShadow: [
                             BoxShadow(
@@ -647,7 +614,7 @@ class _TokenDetailsWidgetState extends State<TokenDetailsWidget> {
       ),
     );
   }
-  
+
   TabBar _buildTabBar(BuildContext context, AppState appState) {
     return TabBar(
       labelColor: Colors.white,
@@ -701,8 +668,7 @@ class _TokenDetailsWidgetState extends State<TokenDetailsWidget> {
   }
 }
 
-Future<void> showTokenDetails(
-    BuildContext context, Map<String, dynamic> token) async {
+Future<void> showTokenDetails(BuildContext context, Map<String, dynamic> token) async {
   final dataManager = Provider.of<DataManager>(context, listen: false);
   final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
   final prefs = await SharedPreferences.getInstance();
@@ -719,10 +685,18 @@ Future<void> showTokenDetails(
         maxChildSize: 0.92,
         expand: false,
         builder: (context, scrollController) {
-          return TokenDetailsWidget(
-            token: token,
-            convertToSquareMeters: convertToSquareMeters,
-            scrollController: scrollController,
+          return Container(
+            decoration: const BoxDecoration(
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(20),
+                topRight: Radius.circular(20),
+              ),
+            ),
+            child: TokenDetailsWidget(
+              token: token,
+              convertToSquareMeters: convertToSquareMeters,
+              scrollController: scrollController,
+            ),
           );
         },
       );

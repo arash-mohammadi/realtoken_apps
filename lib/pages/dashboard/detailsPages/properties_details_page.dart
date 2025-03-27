@@ -35,7 +35,7 @@ class PropertiesDetailsPage extends StatelessWidget {
       body: dataManager.portfolio.isEmpty
           ? Center(
               child: Text(
-                'Aucune donnée disponible.',
+                S.of(context).noDataAvailableDot,
                 style: TextStyle(
                   fontSize: 17 + appState.getTextSizeOffset(),
                   color: isDarkMode ? Colors.white70 : Colors.black54,
@@ -51,19 +51,19 @@ class PropertiesDetailsPage extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildSectionTitle(context, 'Vue d\'ensemble', appState),
+                        _buildSectionTitle(context, S.of(context).overview, appState),
                         const SizedBox(height: 12),
                         _buildOverviewCards(context, dataManager, appState),
                         const SizedBox(height: 24),
-                        _buildSectionTitle(context, 'Taux d\'occupation', appState),
+                        _buildSectionTitle(context, S.of(context).occupancyRate, appState),
                         const SizedBox(height: 12),
                         _buildOccupancyChart(context, dataManager, appState),
                         const SizedBox(height: 24),
-                        _buildSectionTitle(context, 'Distribution des tokens', appState),
+                        _buildSectionTitle(context, S.of(context).tokenDistribution, appState),
                         const SizedBox(height: 12),
                         _buildTokenDistribution(context, dataManager),
                         const SizedBox(height: 24),
-                        _buildSectionTitle(context, 'Portefeuilles', appState),
+                        _buildSectionTitle(context, S.of(context).wallets, appState),
                       ],
                     ),
                   ),
@@ -77,7 +77,7 @@ class PropertiesDetailsPage extends StatelessWidget {
                           padding: const EdgeInsets.all(16.0),
                           child: Center(
                             child: Text(
-                              'Aucun portefeuille disponible.',
+                              S.of(context).noWalletsAvailable,
                               style: TextStyle(
                                 fontSize: 16 + appState.getTextSizeOffset(),
                                 color: isDarkMode ? Colors.white70 : Colors.black54,
@@ -91,9 +91,7 @@ class PropertiesDetailsPage extends StatelessWidget {
                         child: _buildWalletCard(context, walletDetails[index], appState),
                       );
                     },
-                    childCount: _getSortedWalletDetails(dataManager).isEmpty
-                        ? 1
-                        : _getSortedWalletDetails(dataManager).length,
+                    childCount: _getSortedWalletDetails(dataManager).isEmpty ? 1 : _getSortedWalletDetails(dataManager).length,
                   ),
                 ),
                 SliverToBoxAdapter(
@@ -107,7 +105,7 @@ class PropertiesDetailsPage extends StatelessWidget {
   List<Map<String, dynamic>> _getSortedWalletDetails(DataManager dataManager) {
     final List<Map<String, dynamic>> walletDetails = dataManager.walletStats;
     final List<Map<String, dynamic>> perWalletBalances = dataManager.perWalletBalances;
-    
+
     // Associer les informations d'emprunt et de dépôt à chaque wallet
     for (var wallet in walletDetails) {
       final String address = wallet['address'] as String;
@@ -121,26 +119,26 @@ class PropertiesDetailsPage extends StatelessWidget {
       wallet['usdcBorrow'] = matchingBalance['usdcBorrow'] ?? 0.0;
       wallet['xdaiBorrow'] = matchingBalance['xdaiBorrow'] ?? 0.0;
     }
-    
+
     // Trier par valeur totale
     walletDetails.sort((a, b) {
       final double aWalletValue = a['walletValueSum'] as double? ?? 0;
       final double aRmmValue = a['rmmValue'] as double? ?? 0;
       final double aTotalValue = aWalletValue + aRmmValue;
-      
+
       final double bWalletValue = b['walletValueSum'] as double? ?? 0;
       final double bRmmValue = b['rmmValue'] as double? ?? 0;
       final double bTotalValue = bWalletValue + bRmmValue;
-      
+
       return bTotalValue.compareTo(aTotalValue); // Tri décroissant
     });
-    
+
     return walletDetails;
   }
 
   Widget _buildSectionTitle(BuildContext context, String title, AppState appState) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Text(
       title,
       style: TextStyle(
@@ -154,13 +152,13 @@ class PropertiesDetailsPage extends StatelessWidget {
   Widget _buildOverviewCards(BuildContext context, DataManager dataManager, AppState appState) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final cardColor = isDarkMode ? const Color(0xFF2C2C2E) : Colors.white;
-    
+
     return Row(
       children: [
         Expanded(
           child: _buildOverviewCard(
             context,
-            'Propriétés',
+            S.of(context).properties,
             dataManager.portfolio.length.toString(),
             Icons.home_outlined,
             cardColor,
@@ -171,7 +169,7 @@ class PropertiesDetailsPage extends StatelessWidget {
         Expanded(
           child: _buildOverviewCard(
             context,
-            'Tokens',
+            S.of(context).tokens,
             dataManager.totalRealtTokens.toString(),
             Icons.token_outlined,
             cardColor,
@@ -183,15 +181,15 @@ class PropertiesDetailsPage extends StatelessWidget {
   }
 
   Widget _buildOverviewCard(
-    BuildContext context, 
-    String title, 
-    String value, 
-    IconData icon, 
+    BuildContext context,
+    String title,
+    String value,
+    IconData icon,
     Color cardColor,
     AppState appState,
   ) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
       decoration: BoxDecoration(
@@ -239,7 +237,7 @@ class PropertiesDetailsPage extends StatelessWidget {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final cardColor = isDarkMode ? const Color(0xFF2C2C2E) : Colors.white;
     final double rentedPercentage = (dataManager.rentedUnits / dataManager.totalUnits) * 100;
-    
+
     // Déterminer la couleur en fonction du pourcentage
     Color progressColor;
     if (rentedPercentage < 50) {
@@ -249,11 +247,17 @@ class PropertiesDetailsPage extends StatelessWidget {
     } else {
       progressColor = Colors.greenAccent;
     }
-    
+
     // Déterminer le statut
-    String status = rentedPercentage < 50 ? 'Faible' : 
-                    rentedPercentage < 80 ? 'Moyen' : 'Élevé';
-    
+    String status;
+    if (rentedPercentage < 50) {
+      status = S.of(context).occupancyStatusLow;
+    } else if (rentedPercentage < 80) {
+      status = S.of(context).occupancyStatusMedium;
+    } else {
+      status = S.of(context).occupancyStatusHigh;
+    }
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -285,7 +289,7 @@ class PropertiesDetailsPage extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    'Unités louées: ${dataManager.rentedUnits}/${dataManager.totalUnits}',
+                    S.of(context).rentedUnits(dataManager.rentedUnits.toString(), dataManager.totalUnits.toString()),
                     style: TextStyle(
                       fontSize: 14 + appState.getTextSizeOffset(),
                       color: isDarkMode ? Colors.white70 : Colors.black54,
@@ -343,7 +347,7 @@ class PropertiesDetailsPage extends StatelessWidget {
   Widget _buildTokenDistribution(BuildContext context, DataManager dataManager) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final cardColor = isDarkMode ? const Color(0xFF2C2C2E) : Colors.white;
-    
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -370,7 +374,7 @@ class PropertiesDetailsPage extends StatelessWidget {
     final double walletTokensSum = wallet['walletTokensSum'] as double? ?? 0;
     final double rmmTokensSum = wallet['rmmTokensSum'] as double? ?? 0;
     final double totalTokens = walletTokensSum + rmmTokensSum;
-    
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
@@ -448,7 +452,7 @@ class PropertiesDetailsPage extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _buildWalletStat(context, 'Propriétés', tokenCount.toString(), appState),
+                    _buildWalletStat(context, S.of(context).properties, tokenCount.toString(), appState),
                     _buildWalletStat(context, 'Wallet', walletTokensSum.toStringAsFixed(2), appState),
                     _buildWalletStat(context, 'RMM', rmmTokensSum.toStringAsFixed(2), appState),
                   ],
@@ -463,7 +467,7 @@ class PropertiesDetailsPage extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Total tokens',
+                      S.of(context).totalTokensLabel,
                       style: TextStyle(
                         fontSize: 14 + appState.getTextSizeOffset(),
                         color: isDarkMode ? Colors.white70 : Colors.black54,
@@ -489,7 +493,7 @@ class PropertiesDetailsPage extends StatelessWidget {
 
   Widget _buildWalletStat(BuildContext context, String label, String value, AppState appState) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -515,24 +519,24 @@ class PropertiesDetailsPage extends StatelessWidget {
 
   String _truncateWallet(String address) {
     if (address.length <= 12) return address;
-    return address.substring(0, 6) + '...' + address.substring(address.length - 6);
+    return '${address.substring(0, 6)}...${address.substring(address.length - 6)}';
   }
 
   void _copyToClipboard(BuildContext context, String text) {
     Clipboard.setData(ClipboardData(text: text));
-    
+
     // Afficher une notification iOS style
     showCupertinoModalPopup(
       context: context,
       builder: (BuildContext context) => CupertinoActionSheet(
-        title: const Text('Copié !'),
-        message: Text('L\'adresse a été copiée dans le presse-papier.'),
+        title: Text(S.of(context).copied),
+        message: Text(S.of(context).addressCopiedMessage),
         actions: [
           CupertinoActionSheetAction(
             onPressed: () {
               Navigator.pop(context);
             },
-            child: const Text('OK'),
+            child: Text(S.of(context).ok),
           ),
         ],
       ),

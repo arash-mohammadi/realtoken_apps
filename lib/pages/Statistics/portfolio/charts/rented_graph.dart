@@ -28,13 +28,34 @@ class RentedHistoryGraph extends StatelessWidget {
     final appState = Provider.of<AppState>(context);
     final dataManager = Provider.of<DataManager>(context);
 
+    // Vérifier si les données sont valides
+    final List<FlSpot> spots = _buildRentedChartData(context);
+    if (spots.isEmpty) {
+      return Card(
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        color: Theme.of(context).cardColor,
+        child: Container(
+          padding: const EdgeInsets.all(16.0),
+          child: Center(
+            child: Text(
+              S.of(context).noDataAvailable,
+              style: TextStyle(
+                fontSize: 16 + appState.getTextSizeOffset(),
+                color: Colors.grey.shade600,
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
     // Récupérer les données pour les graphiques
-    List<FlSpot> rentedHistoryData =
-        _buildRentedHistoryChartData(context, dataManager, selectedPeriod);
-    List<BarChartGroupData> barChartData =
-        _buildRentedHistoryBarChartData(context, dataManager, selectedPeriod);
-    List<String> dateLabels =
-        _buildDateLabelsForRented(context, dataManager, selectedPeriod);
+    List<FlSpot> rentedHistoryData = _buildRentedHistoryChartData(context, dataManager, selectedPeriod);
+    List<BarChartGroupData> barChartData = _buildRentedHistoryBarChartData(context, dataManager, selectedPeriod);
+    List<String> dateLabels = _buildDateLabelsForRented(context, dataManager, selectedPeriod);
 
     return Card(
       elevation: 0,
@@ -68,7 +89,7 @@ class RentedHistoryGraph extends StatelessWidget {
             Row(
               children: [
                 Text(
-                  '${S.of(context).rentedUnits} (%)', // Titre principal
+                  S.of(context).rented, // Titre principal
                   style: TextStyle(
                     fontSize: 20 + appState.getTextSizeOffset(),
                     fontWeight: FontWeight.bold,
@@ -224,11 +245,9 @@ class RentedHistoryGraph extends StatelessWidget {
                                 sideTitles: SideTitles(
                                   showTitles: true,
                                   getTitlesWidget: (value, meta) {
-                                    if (value.toInt() >= 0 &&
-                                        value.toInt() < dateLabels.length) {
+                                    if (value.toInt() >= 0 && value.toInt() < dateLabels.length) {
                                       return Padding(
-                                        padding:
-                                            const EdgeInsets.only(top: 10.0),
+                                        padding: const EdgeInsets.only(top: 10.0),
                                         child: Transform.rotate(
                                           angle: -0.5,
                                           child: Text(
@@ -307,16 +326,13 @@ class RentedHistoryGraph extends StatelessWidget {
                               },
                             ),
                             titlesData: FlTitlesData(
-                              topTitles: AxisTitles(
-                                  sideTitles: SideTitles(showTitles: false)),
+                              topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
                               leftTitles: AxisTitles(
                                 sideTitles: SideTitles(
                                   showTitles: true,
                                   reservedSize: 45,
                                   getTitlesWidget: (value, meta) {
-                                    final highestValue = rentedHistoryData
-                                        .map((e) => e.y)
-                                        .reduce((a, b) => a > b ? a : b);
+                                    final highestValue = rentedHistoryData.map((e) => e.y).reduce((a, b) => a > b ? a : b);
 
                                     if (value == highestValue) {
                                       return const SizedBox.shrink();
@@ -339,15 +355,11 @@ class RentedHistoryGraph extends StatelessWidget {
                                 sideTitles: SideTitles(
                                   showTitles: true,
                                   getTitlesWidget: (value, meta) {
-                                    List<String> labels =
-                                        _buildDateLabelsForRented(context,
-                                            dataManager, selectedPeriod);
+                                    List<String> labels = _buildDateLabelsForRented(context, dataManager, selectedPeriod);
 
-                                    if (value.toInt() >= 0 &&
-                                        value.toInt() < labels.length) {
+                                    if (value.toInt() >= 0 && value.toInt() < labels.length) {
                                       return Padding(
-                                        padding:
-                                            const EdgeInsets.only(top: 10.0),
+                                        padding: const EdgeInsets.only(top: 10.0),
                                         child: Transform.rotate(
                                           angle: -0.5,
                                           child: Text(
@@ -415,9 +427,8 @@ class RentedHistoryGraph extends StatelessWidget {
                                   return touchedSpots.map((touchedSpot) {
                                     final index = touchedSpot.x.toInt();
                                     final value = touchedSpot.y;
-                                    final String periodLabel = _buildDateLabelsForRented(
-                                        context, dataManager, selectedPeriod)[index];
-                                      
+                                    final String periodLabel = _buildDateLabelsForRented(context, dataManager, selectedPeriod)[index];
+
                                     return LineTooltipItem(
                                       '$periodLabel\n${value.toStringAsFixed(1)}%',
                                       const TextStyle(
@@ -449,8 +460,7 @@ class RentedHistoryGraph extends StatelessWidget {
     );
   }
 
-  List<FlSpot> _buildRentedHistoryChartData(
-      BuildContext context, DataManager dataManager, String selectedPeriod) {
+  List<FlSpot> _buildRentedHistoryChartData(BuildContext context, DataManager dataManager, String selectedPeriod) {
     return ChartUtils.buildHistoryChartData<RentedRecord>(
       context,
       dataManager.rentedHistory,
@@ -460,10 +470,8 @@ class RentedHistoryGraph extends StatelessWidget {
     );
   }
 
-  List<BarChartGroupData> _buildRentedHistoryBarChartData(
-      BuildContext context, DataManager dataManager, String selectedPeriod) {
-    List<FlSpot> rentedHistoryData =
-        _buildRentedHistoryChartData(context, dataManager, selectedPeriod);
+  List<BarChartGroupData> _buildRentedHistoryBarChartData(BuildContext context, DataManager dataManager, String selectedPeriod) {
+    List<FlSpot> rentedHistoryData = _buildRentedHistoryChartData(context, dataManager, selectedPeriod);
     return rentedHistoryData
         .asMap()
         .entries
@@ -488,8 +496,7 @@ class RentedHistoryGraph extends StatelessWidget {
         .toList();
   }
 
-  List<String> _buildDateLabelsForRented(
-      BuildContext context, DataManager dataManager, String selectedPeriod) {
+  List<String> _buildDateLabelsForRented(BuildContext context, DataManager dataManager, String selectedPeriod) {
     List<RentedRecord> rentedHistory = dataManager.rentedHistory;
 
     // Grouper les données en fonction de la période sélectionnée
@@ -501,8 +508,7 @@ class RentedHistoryGraph extends StatelessWidget {
       if (selectedPeriod == S.of(context).day) {
         periodKey = DateFormat('yyyy/MM/dd').format(date); // Grouper par jour
       } else if (selectedPeriod == S.of(context).week) {
-        periodKey =
-            "${date.year}-S${CustomDateUtils.weekNumber(date).toString().padLeft(2, '0')}";
+        periodKey = "${date.year}-S${CustomDateUtils.weekNumber(date).toString().padLeft(2, '0')}";
       } else if (selectedPeriod == S.of(context).month) {
         periodKey = DateFormat('yyyy/MM').format(date);
       } else {
@@ -515,5 +521,61 @@ class RentedHistoryGraph extends StatelessWidget {
     // Trier les clés en ordre chronologique
     List<String> sortedKeys = groupedData.keys.toList()..sort();
     return sortedKeys;
+  }
+
+  List<FlSpot> _buildRentedChartData(BuildContext context) {
+    List<FlSpot> spots = [];
+    int index = 0;
+    final dataManager = Provider.of<DataManager>(context, listen: false);
+
+    for (var token in dataManager.portfolio) {
+  
+      
+      // Vérifier si le token a un revenu mensuel positif
+      if (token['monthlyIncome'] != null) {
+        double monthlyIncome = (token['monthlyIncome'] ?? 0.0).toDouble();
+        
+        // Vérifier si la valeur est valide
+        if (monthlyIncome > 0) {
+          spots.add(FlSpot(index.toDouble(), monthlyIncome));
+          index++;
+        }
+      }
+    }
+
+    return spots;
+  }
+
+  double _calculateMaxY(BuildContext context) {
+    final List<FlSpot> spots = _buildRentedChartData(context);
+    if (spots.isEmpty) return 100;
+
+    final maxY = spots.map((spot) => spot.y).reduce((a, b) => a > b ? a : b);
+    // Augmenter de 10% pour laisser de l'espace
+    return maxY * 1.1;
+  }
+
+  List<BarChartGroupData> _buildBarChartData(BuildContext context) {
+    final List<FlSpot> spots = _buildRentedChartData(context);
+    if (spots.isEmpty) return [];
+
+    return spots.asMap().entries.map((entry) {
+      return BarChartGroupData(
+        x: entry.key,
+        barRods: [
+          BarChartRodData(
+            toY: entry.value.y,
+            color: const Color(0xFF5856D6),
+            width: 8,
+            borderRadius: const BorderRadius.all(Radius.circular(6)),
+            backDrawRodData: BackgroundBarChartRodData(
+              show: true,
+              toY: _calculateMaxY(context),
+              color: Colors.grey.withOpacity(0.1),
+            ),
+          ),
+        ],
+      );
+    }).toList();
   }
 }
