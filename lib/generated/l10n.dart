@@ -1560,10 +1560,10 @@ class S {
     );
   }
 
-  /// `Cumulative Rent Graph`
+  /// `Cumulative Rent`
   String get cumulativeRentGraph {
     return Intl.message(
-      'Cumulative Rent Graph',
+      'Cumulative Rent',
       name: 'cumulativeRentGraph',
       desc: '',
       args: [],

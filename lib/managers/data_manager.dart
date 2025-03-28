@@ -2660,4 +2660,28 @@ debugPrint("🗃️ Début récupération et calcul des données pour le Dashboa
     }
     return value;
   }
+
+  Future<void> saveRoiHistory() async {
+    try {
+      var box = Hive.box('roiValueArchive');
+      List<Map<String, dynamic>> roiHistoryJson = roiHistory.map((record) => record.toJson()).toList();
+      await box.put('roi_history', roiHistoryJson);
+      await box.flush(); // Forcer l'écriture sur le disque
+      debugPrint("✅ Historique ROI sauvegardé avec succès.");
+      notifyListeners();
+    } catch (e) {
+      debugPrint("❌ Erreur lors de la sauvegarde de l'historique ROI : $e");
+    }
+  }
+
+  Future<void> saveApyHistory() async {
+    try {
+      var box = Hive.box('apyHistory');
+      List<Map<String, dynamic>> apyHistoryJson = apyHistory.map((record) => record.toJson()).toList();
+      await box.put('apy_history', apyHistoryJson);
+      notifyListeners();
+    } catch (e) {
+      debugPrint('❌ Erreur lors de la sauvegarde de l\'historique APY : $e');
+    }
+  }
 }

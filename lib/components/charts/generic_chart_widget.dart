@@ -11,6 +11,7 @@ import 'package:realtokens/utils/currency_utils.dart';
 import 'package:realtokens/utils/chart_options_utils.dart';
 import 'package:realtokens/utils/date_utils.dart';
 import 'package:realtokens/models/apy_record.dart';
+import 'package:flutter/services.dart';
 
 /// Widget générique pour les graphiques (Wallet Balance, ROI, APY)
 class GenericChartWidget<T> extends StatelessWidget {
@@ -43,6 +44,11 @@ class GenericChartWidget<T> extends StatelessWidget {
   final Function(bool)? onCumulativeChanged;
   final String? cumulativeLabel;
   final String? nonCumulativeLabel;
+  final String Function(T)? getDisplayValue;
+  final String Function(T)? getDisplayDate;
+  final Function(T, String)? onDateChanged;
+  final Function(T, String)? onValueChanged;
+  final Function(T)? onDelete;
 
   const GenericChartWidget({
     super.key,
@@ -73,6 +79,11 @@ class GenericChartWidget<T> extends StatelessWidget {
     this.onCumulativeChanged,
     this.cumulativeLabel,
     this.nonCumulativeLabel,
+    this.getDisplayValue,
+    this.getDisplayDate,
+    this.onDateChanged,
+    this.onValueChanged,
+    this.onDelete,
   });
 
   @override
@@ -1441,5 +1452,257 @@ class GenericChartWidget<T> extends StatelessWidget {
     }
     
     return lineBarsData;
+  }
+
+  void _showEditModal(BuildContext context, List<T> dataList) {
+    final appState = Provider.of<AppState>(context, listen: false);
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (BuildContext context) {
+        final screenHeight = MediaQuery.of(context).size.height;
+        return Container(
+          height: screenHeight * 0.7,
+          decoration: BoxDecoration(
+            color: Theme.of(context).scaffoldBackgroundColor,
+            borderRadius: const BorderRadius.vertical(
+              top: Radius.circular(20),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 10,
+                offset: const Offset(0, -1),
+              ),
+            ],
+          ),
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Éditer $title',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Expanded(
+                child: dataList.isEmpty
+                    ? Center(
+                        child: Text(
+                          "Aucun historique disponible",
+                          style: TextStyle(
+                            fontSize: 16 + appState.getTextSizeOffset(),
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                      )
+                    : SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: SingleChildScrollView(
+                          child: DataTable(
+                            columnSpacing: 8,
+                            horizontalMargin: 8,
+                            columns: [
+                              DataColumn(
+                                label: SizedBox(
+                                  width: 150,
+                                  child: Text(
+                                    "Date",
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14 + appState.getTextSizeOffset(),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              DataColumn(
+                                label: SizedBox(
+                                  width: 100,
+                                  child: Text(
+                                    "Valeur",
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14 + appState.getTextSizeOffset(),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              DataColumn(
+                                label: SizedBox(
+                                  width: 60,
+                                  child: Text(
+                                    "Actions",
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14 + appState.getTextSizeOffset(),
+                                    ),
+                                    textAlign: TextAlign.right,
+                                  ),
+                                ),
+                              ),
+                            ],
+                            rows: (() {
+                              final sortedEntries = dataList
+                                  .asMap()
+                                  .entries
+                                  .toList()
+                                ..sort((a, b) => getTimestamp(b.value).compareTo(getTimestamp(a.value)));
+                              
+                              return sortedEntries.map((entry) {
+                                final index = entry.key;
+                                final record = entry.value;
+                                TextEditingController valueController = TextEditingController(
+                                  text: getDisplayValue?.call(record) ?? getYValue(record).toStringAsFixed(2),
+                                );
+                                TextEditingController dateController = TextEditingController(
+                                  text: getDisplayDate?.call(record) ?? DateFormat('yyyy-MM-dd HH:mm').format(getTimestamp(record)),
+                                );
+
+                                return DataRow(
+                                  cells: [
+                                    DataCell(
+                                      SizedBox(
+                                        width: 150,
+                                        child: TextField(
+                                          controller: dateController,
+                                          keyboardType: TextInputType.datetime,
+                                          textInputAction: TextInputAction.done,
+                                          style: TextStyle(
+                                            fontSize: 14 + appState.getTextSizeOffset(),
+                                          ),
+                                          decoration: InputDecoration(
+                                            filled: true,
+                                            fillColor: Colors.white,
+                                            border: OutlineInputBorder(
+                                              borderRadius: BorderRadius.circular(8),
+                                              borderSide: BorderSide(
+                                                color: Colors.grey.shade300,
+                                              ),
+                                            ),
+                                            enabledBorder: OutlineInputBorder(
+                                              borderRadius: BorderRadius.circular(8),
+                                              borderSide: BorderSide(
+                                                color: Colors.grey.shade300,
+                                              ),
+                                            ),
+                                            focusedBorder: OutlineInputBorder(
+                                              borderRadius: BorderRadius.circular(8),
+                                              borderSide: BorderSide(
+                                                color: Theme.of(context).primaryColor,
+                                              ),
+                                            ),
+                                            contentPadding: const EdgeInsets.symmetric(
+                                              horizontal: 12,
+                                              vertical: 8,
+                                            ),
+                                          ),
+                                          onSubmitted: (value) {
+                                            if (onDateChanged != null) {
+                                              onDateChanged!(record, value);
+                                            }
+                                          },
+                                        ),
+                                      ),
+                                    ),
+                                    DataCell(
+                                      SizedBox(
+                                        width: 100,
+                                        child: TextField(
+                                          controller: valueController,
+                                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                          textInputAction: TextInputAction.done,
+                                          inputFormatters: [
+                                            FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                                          ],
+                                          style: TextStyle(
+                                            fontSize: 14 + appState.getTextSizeOffset(),
+                                          ),
+                                          decoration: InputDecoration(
+                                            filled: true,
+                                            fillColor: Colors.white,
+                                            border: OutlineInputBorder(
+                                              borderRadius: BorderRadius.circular(8),
+                                              borderSide: BorderSide(
+                                                color: Colors.grey.shade300,
+                                              ),
+                                            ),
+                                            enabledBorder: OutlineInputBorder(
+                                              borderRadius: BorderRadius.circular(8),
+                                              borderSide: BorderSide(
+                                                color: Colors.grey.shade300,
+                                              ),
+                                            ),
+                                            focusedBorder: OutlineInputBorder(
+                                              borderRadius: BorderRadius.circular(8),
+                                              borderSide: BorderSide(
+                                                color: Theme.of(context).primaryColor,
+                                              ),
+                                            ),
+                                            contentPadding: const EdgeInsets.symmetric(
+                                              horizontal: 12,
+                                              vertical: 8,
+                                            ),
+                                          ),
+                                          onSubmitted: (value) {
+                                            if (onValueChanged != null) {
+                                              onValueChanged!(record, value);
+                                            }
+                                          },
+                                        ),
+                                      ),
+                                    ),
+                                    DataCell(
+                                      SizedBox(
+                                        width: 60,
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.end,
+                                          children: [
+                                            IconButton(
+                                              icon: Icon(
+                                                Icons.delete_outline,
+                                                color: Colors.red.shade700,
+                                                size: 20 + appState.getTextSizeOffset(),
+                                              ),
+                                              onPressed: () {
+                                                if (onDelete != null) {
+                                                  onDelete!(record);
+                                                }
+                                              },
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              }).toList();
+                            })(),
+                          ),
+                        ),
+                      ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 } 

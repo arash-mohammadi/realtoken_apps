@@ -144,8 +144,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "crypto": MessageLookupByLibrary.simpleMessage("Cripto"),
         "cryptoDonationAddress": MessageLookupByLibrary.simpleMessage(
             "Endereço para Doações em Cripto"),
-        "cumulativeRentGraph": MessageLookupByLibrary.simpleMessage(
-            "Gráfico de Aluguéis Acumulados"),
+        "cumulativeRentGraph":
+            MessageLookupByLibrary.simpleMessage("Aluguéis Acumulados"),
         "currency": MessageLookupByLibrary.simpleMessage("Moeda"),
         "current_price": MessageLookupByLibrary.simpleMessage("Preço Atual:"),
         "current_yield":

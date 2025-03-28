@@ -308,21 +308,62 @@ class DashboardPageState extends State<DashboardPage> {
                         ),
                       ),
                     ),
-                    PortfolioCard(
-                      showAmounts: appState.showAmounts,
-                      isLoading: shouldShowShimmers,
-                      context: context,
-                    ),
-                    const SizedBox(height: 8),
-                    RmmCard(showAmounts: appState.showAmounts, isLoading: shouldShowShimmers),
-                    const SizedBox(height: 8),
-                    PropertiesCard(showAmounts: appState.showAmounts, isLoading: shouldShowShimmers),
-                    const SizedBox(height: 8),
-                    TokensCard(showAmounts: appState.showAmounts, isLoading: shouldShowShimmers),
-                    const SizedBox(height: 8),
-                    RentsCard(showAmounts: appState.showAmounts, isLoading: shouldShowShimmers),
-                    const SizedBox(height: 8),
-                    NextRondaysCard(showAmounts: appState.showAmounts, isLoading: shouldShowShimmers),
+                    // Affichage adaptatif : 2 colonnes sur grands écrans, 1 colonne sur petits écrans
+                    MediaQuery.of(context).size.width > 700
+                        ? Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Première colonne
+                              Expanded(
+                                child: Column(
+                                  children: [
+                                    PortfolioCard(
+                                      showAmounts: appState.showAmounts,
+                                      isLoading: shouldShowShimmers,
+                                      context: context,
+                                    ),
+                                    const SizedBox(height: 8),
+                                    PropertiesCard(showAmounts: appState.showAmounts, isLoading: shouldShowShimmers),
+                                    const SizedBox(height: 8),
+                                    RentsCard(showAmounts: appState.showAmounts, isLoading: shouldShowShimmers),
+                                  ],
+                                ),
+                              ),
+                              // Espacement entre les colonnes
+                              const SizedBox(width: 8),
+                              // Deuxième colonne
+                              Expanded(
+                                child: Column(
+                                  children: [
+                                    RmmCard(showAmounts: appState.showAmounts, isLoading: shouldShowShimmers),
+                                    const SizedBox(height: 8),
+                                    TokensCard(showAmounts: appState.showAmounts, isLoading: shouldShowShimmers),
+                                    const SizedBox(height: 8),
+                                    NextRondaysCard(showAmounts: appState.showAmounts, isLoading: shouldShowShimmers),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          )
+                        : Column(
+                            children: [
+                              PortfolioCard(
+                                showAmounts: appState.showAmounts,
+                                isLoading: shouldShowShimmers,
+                                context: context,
+                              ),
+                              const SizedBox(height: 8),
+                              RmmCard(showAmounts: appState.showAmounts, isLoading: shouldShowShimmers),
+                              const SizedBox(height: 8),
+                              PropertiesCard(showAmounts: appState.showAmounts, isLoading: shouldShowShimmers),
+                              const SizedBox(height: 8),
+                              TokensCard(showAmounts: appState.showAmounts, isLoading: shouldShowShimmers),
+                              const SizedBox(height: 8),
+                              RentsCard(showAmounts: appState.showAmounts, isLoading: shouldShowShimmers),
+                              const SizedBox(height: 8),
+                              NextRondaysCard(showAmounts: appState.showAmounts, isLoading: shouldShowShimmers),
+                            ],
+                          ),
                     const SizedBox(height: 80),
                   ],
                 ),
