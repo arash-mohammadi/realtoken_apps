@@ -1594,8 +1594,26 @@ debugPrint("🗃️ Début récupération et calcul des données pour le Dashboa
         uniqueWalletTokens.intersection(uniqueRmmTokens).length;
 
     _portfolio = newPortfolio;
-    roiGlobalValue = getTotalRentReceived() / initialTotalValue * 100;
-    _archiveManager.archiveRoiValue(roiGlobalValue);
+    
+    // Calculer le ROI global
+    double totalRent = getTotalRentReceived();
+    if (initialTotalValue > 0.000001) { // Vérifier si initialTotalValue n'est pas trop proche de 0
+      roiGlobalValue = totalRent / initialTotalValue * 100;
+      // Limiter le ROI à une valeur maximale raisonnable (par exemple 3650%)
+      if (roiGlobalValue.isInfinite || roiGlobalValue.isNaN || roiGlobalValue > 3650) {
+        roiGlobalValue = 3650;
+      }
+    } else {
+      roiGlobalValue = 0.0;
+    }
+    
+    // Archiver uniquement si nous avons des données de loyer
+    if (rentData.isNotEmpty && totalRent > 0) {
+      debugPrint("💾 Archivage de la valeur ROI: $roiGlobalValue");
+      _archiveManager.archiveRoiValue(roiGlobalValue);
+    } else {
+      debugPrint("⚠️ Pas d'archivage ROI: liste des loyers vide ou montant total des loyers nul");
+    }
 
     // Calculer l'APY uniquement si toutes les données nécessaires sont disponibles
     safeCalculateApyValues();
@@ -2523,25 +2541,35 @@ debugPrint("🗃️ Début récupération et calcul des données pour le Dashboa
 
   // Méthode centralisée pour calculer l'APY global avec la formule originale
   double calculateGlobalApy() {
-    double result = (((averageAnnualYield * (walletValue + rmmValue)) +
-            (totalUsdcDepositBalance * usdcDepositApy +
-                totalXdaiDepositBalance * xdaiDepositApy) -
-            (totalUsdcBorrowBalance * usdcBorrowApy +
-                totalXdaiBorrowBalance * xdaiBorrowApy)) /
-        (walletValue +
-            rmmValue +
-            totalUsdcDepositBalance +
-            totalXdaiDepositBalance +
-            totalUsdcBorrowBalance +
-            totalXdaiBorrowBalance));
-    
-    // Vérifier si le résultat est NaN
-    if (result.isNaN) {
-      debugPrint("⚠️ L'APY global calculé est NaN, retourne 0.0");
+    try {
+      // Calculer le dénominateur
+      double denominator = walletValue + rmmValue + totalUsdcDepositBalance + totalXdaiDepositBalance + totalUsdcBorrowBalance + totalXdaiBorrowBalance;
+      
+      // Si le dénominateur est très proche de 0, retourner 0
+      if (denominator < 0.000001) {
+        debugPrint("⚠️ Le dénominateur est trop proche de 0 pour calculer l'APY global");
+        return 0.0;
+      }
+
+      // Calculer le numérateur
+      double numerator = (averageAnnualYield * (walletValue + rmmValue)) +
+          (totalUsdcDepositBalance * usdcDepositApy + totalXdaiDepositBalance * xdaiDepositApy) -
+          (totalUsdcBorrowBalance * usdcBorrowApy + totalXdaiBorrowBalance * xdaiBorrowApy);
+
+      // Calculer le résultat
+      double result = numerator / denominator;
+      
+      // Vérifier si le résultat est NaN, infini ou trop grand
+      if (result.isNaN || result.isInfinite || result.abs() > 3650) {
+        debugPrint("⚠️ L'APY global calculé est ${result.isNaN ? "NaN" : result.isInfinite ? "infini" : "trop grand"}, retourne 0.0");
+        return 0.0;
+      }
+      
+      return result;
+    } catch (e) {
+      debugPrint("❌ Erreur lors du calcul de l'APY global: $e");
       return 0.0;
     }
-    
-    return result;
   }
 
   // Nouvelle méthode pour obtenir l'historique des loyers d'un token spécifique
@@ -2612,5 +2640,24 @@ debugPrint("🗃️ Début récupération et calcul des données pour le Dashboa
       debugPrint("❌ Erreur lors du calcul de l'APY: $e");
       return false;
     }
+  }
+
+  dynamic sanitizeValue(dynamic value) {
+    if (value is Map) {
+      return value.map((key, val) => MapEntry(key, sanitizeValue(val)));
+    } else if (value is List) {
+      return value.map(sanitizeValue).toList();
+    } else if (value is num) {
+      // Gérer les valeurs infinies et NaN
+      if (value.isInfinite || value.isNaN) {
+        return 0.0;
+      }
+      // Limiter les valeurs extrêmes
+      if (value.abs() > 1e9) {
+        return value.isNegative ? -1e9 : 1e9;
+      }
+      return value.toDouble();
+    }
+    return value;
   }
 }

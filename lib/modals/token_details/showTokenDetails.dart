@@ -395,7 +395,7 @@ class _TokenDetailsWidgetState extends State<TokenDetailsWidget> {
                                             margin: const EdgeInsets.only(top: 8.0),
                                             padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 10.0),
                                             decoration: BoxDecoration(
-                                              color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[850] : Colors.grey[100],
+                                              color: Theme.of(context).cardColor.withOpacity(0.9),
                                               borderRadius: BorderRadius.circular(8),
                                               border: Border.all(
                                                 color: Colors.grey.withOpacity(0.2),

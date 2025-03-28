@@ -263,51 +263,96 @@ class PortfolioCard extends StatelessWidget {
   }
 
   Widget _buildTotalValue(BuildContext context, String formattedAmount, bool isLoading, ThemeData theme, {bool showNetLabel = false}) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 6.0, right: 6.0, top: 1, bottom: 2),
-      child: Row(
-        children: [
-          isLoading
-              ? ShimmerUtils.originalColorShimmer(
+    final dataManager = Provider.of<DataManager>(context, listen: false);
+    final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
+    
+    // Calculer le montant brut
+    double grossValue = dataManager.walletValue + dataManager.rmmValue + dataManager.rwaHoldingsValue + Parameters.manualAdjustment;
+    String grossFormattedAmount = currencyUtils.getFormattedAmount(currencyUtils.convert(grossValue), currencyUtils.currencySymbol, showAmounts);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 6.0, right: 6.0, top: 1, bottom: 2),
+          child: Row(
+            children: [
+              isLoading
+                  ? ShimmerUtils.originalColorShimmer(
+                      child: Text(
+                        formattedAmount,
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: -0.5,
+                          color: theme.primaryColor,
+                        ),
+                      ),
+                      color: theme.primaryColor,
+                    )
+                  : Text(
+                      formattedAmount,
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: -0.5,
+                        color: theme.primaryColor,
+                      ),
+                    ),
+              if (showNetLabel)
+                Container(
+                  margin: EdgeInsets.only(left: 8),
+                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: theme.primaryColor.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                   child: Text(
-                    formattedAmount,
+                    "net",
                     style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: -0.5,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
                       color: theme.primaryColor,
                     ),
                   ),
-                  color: theme.primaryColor,
-                )
-              : Text(
-                  formattedAmount,
+                ),
+            ],
+          ),
+        ),
+        if (showNetLabel)
+          Padding(
+            padding: const EdgeInsets.only(left: 6.0, right: 6.0, bottom: 2),
+            child: Row(
+              children: [
+                Text(
+                  grossFormattedAmount,
                   style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: -0.5,
-                    color: theme.primaryColor,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: -0.3,
+                    color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
                   ),
                 ),
-          if (showNetLabel)
-            Container(
-              margin: EdgeInsets.only(left: 8),
-              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-              decoration: BoxDecoration(
-                color: theme.primaryColor.withOpacity(0.15),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Text(
-                "net",
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                  color: theme.primaryColor,
+                Container(
+                  margin: EdgeInsets.only(left: 8),
+                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: theme.textTheme.bodyMedium?.color?.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    "brut",
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                      color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
+                    ),
+                  ),
                 ),
-              ),
+              ],
             ),
-        ],
-      ),
+          ),
+      ],
     );
   }
 
@@ -423,8 +468,10 @@ class PortfolioCard extends StatelessWidget {
       displayValue = displayValue < 0 ? 0.0 : displayValue;
     }
 
-    // S'assurer que la valeur est valide
-    displayValue = displayValue.isNaN || displayValue.isInfinite ? 0.0 : displayValue;
+    // S'assurer que la valeur est valide et gérer le cas infini
+    if (displayValue.isNaN || displayValue.isInfinite || displayValue > 3650) {
+      displayValue = 3650.0; // Limiter à 3650% pour l'affichage
+    }
 
     // Pourcentage limité entre 0% et 100% pour l'affichage (mais on peut avoir un ROI > 100%)
     double progress = (displayValue / 100).clamp(0.0, 1.0);
@@ -526,7 +573,7 @@ class PortfolioCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
-              displayValue > 3650 ? "∞" : "${displayValue.toStringAsFixed(1)}%",
+              displayValue >= 3650 ? "∞" : "${displayValue.toStringAsFixed(1)}%",
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.bold,

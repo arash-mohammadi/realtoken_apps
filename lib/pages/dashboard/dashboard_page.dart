@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import 'package:realtokens/managers/data_manager.dart';
 import 'package:realtokens/app_state.dart';
@@ -135,6 +136,23 @@ class DashboardPageState extends State<DashboardPage> {
                             S.of(context).hello,
                             style: TextStyle(fontSize: 28 + appState.getTextSizeOffset(), fontWeight: FontWeight.bold, letterSpacing: -0.5, color: Theme.of(context).textTheme.bodyLarge?.color),
                           ),
+                          if (kIsWeb)
+                            IconButton(
+                              icon: Icon(
+                                Icons.refresh_rounded,
+                                color: Theme.of(context).primaryColor,
+                                size: 24,
+                              ),
+                              onPressed: () async {
+                                setState(() {
+                                  _isPageLoading = true;
+                                });
+                                await DataFetchUtils.refreshData(context);
+                                setState(() {
+                                  _isPageLoading = false;
+                                });
+                              },
+                            ),
                         ],
                       ),
                     ),

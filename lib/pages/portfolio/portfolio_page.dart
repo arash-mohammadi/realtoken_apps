@@ -660,22 +660,83 @@ class PortfolioPageState extends State<PortfolioPage> {
                                           // Espace flexible pour pousser le tri à droite
                                           const Spacer(),
 
-                                          // Bouton de rafraîchissement
-                                          _buildFilterButton(
-                                            icon: Icons.refresh,
-                                            label: S.of(context).refresh,
-                                            onTap: () async {
-                                              final dataManager = Provider.of<DataManager>(context, listen: false);
-                                              setState(() {
-                                                dataManager.isUpdatingData = true;
-                                              });
-                                              await DataFetchUtils.refreshData(context);
-                                              if (mounted) {
-                                                setState(() {
-                                                  dataManager.isUpdatingData = false;
-                                                });
-                                              }
-                                            },
+                                          // Tri
+                                          Container(
+                                            margin: EdgeInsets.zero, // Sans marge
+                                            child: PopupMenuButton<String>(
+                                              tooltip: _getSortLabel(context),
+                                              onSelected: (String value) {
+                                                if (value == 'asc' || value == 'desc') {
+                                                  setState(() {
+                                                    _isAscending = (value == 'asc');
+                                                  });
+                                                  _saveFilterPreferences(); // Sauvegarder après la modification
+                                                } else {
+                                                  _updateSortOption(value);
+                                                }
+                                              },
+                                              offset: const Offset(0, 40),
+                                              elevation: 8,
+                                              color: Theme.of(context).cardColor.withOpacity(0.97),
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius: BorderRadius.circular(16),
+                                              ),
+                                              child: Container(
+                                                padding: const EdgeInsets.all(8),
+                                                decoration: BoxDecoration(
+                                                  color: Theme.of(context).primaryColor.withOpacity(0.1),
+                                                  borderRadius: BorderRadius.circular(12),
+                                                ),
+                                                child: Row(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  children: [
+                                                    Icon(
+                                                      Icons.sort,
+                                                      size: 20,
+                                                      color: Theme.of(context).primaryColor,
+                                                    ),
+                                                    Icon(
+                                                      Icons.arrow_drop_down,
+                                                      size: 20,
+                                                      color: Theme.of(context).primaryColor,
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                              itemBuilder: (context) => [
+                                                CheckedPopupMenuItem(
+                                                  value: S.of(context).sortByName,
+                                                  checked: _sortOption == S.of(context).sortByName,
+                                                  child: Text(S.of(context).sortByName),
+                                                ),
+                                                CheckedPopupMenuItem(
+                                                  value: S.of(context).sortByValue,
+                                                  checked: _sortOption == S.of(context).sortByValue,
+                                                  child: Text(S.of(context).sortByValue),
+                                                ),
+                                                CheckedPopupMenuItem(
+                                                  value: S.of(context).sortByAPY,
+                                                  checked: _sortOption == S.of(context).sortByAPY,
+                                                  child: Text(S.of(context).sortByAPY),
+                                                ),
+                                                CheckedPopupMenuItem(
+                                                  value: S.of(context).sortByInitialLaunchDate,
+                                                  checked: _sortOption == S.of(context).sortByInitialLaunchDate,
+                                                  child: Text(S.of(context).sortByInitialLaunchDate),
+                                                ),
+                                                const PopupMenuDivider(),
+                                                CheckedPopupMenuItem(
+                                                  value: 'asc',
+                                                  checked: _isAscending,
+                                                  child: Text(S.of(context).ascending),
+                                                ),
+                                                CheckedPopupMenuItem(
+                                                  value: 'desc',
+                                                  checked: !_isAscending,
+                                                  child: Text(S.of(context).descending),
+                                                ),
+                                              ],
+                                            ),
                                           ),
                                         ],
                                       ),
@@ -690,7 +751,7 @@ class PortfolioPageState extends State<PortfolioPage> {
                     )
                   ];
                 },
-                body: _isDisplay1 
+ body: _isDisplay1 
                   ? PortfolioDisplay1(
                       portfolio: sortedFilteredPortfolio,
                       isLoading: Provider.of<DataManager>(context).isLoadingMain || Provider.of<DataManager>(context).isUpdatingData,
@@ -698,8 +759,7 @@ class PortfolioPageState extends State<PortfolioPage> {
                   : PortfolioDisplay2(
                       portfolio: sortedFilteredPortfolio,
                       isLoading: Provider.of<DataManager>(context).isLoadingMain || Provider.of<DataManager>(context).isUpdatingData,
-                    ),
-              ),
+                    ),              ),
             );
           },
         ),

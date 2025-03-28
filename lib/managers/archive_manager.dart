@@ -75,13 +75,6 @@ class ArchiveManager {
 
     debugPrint("✅ Archivage terminé - Nouvel enregistrement ajouté, total: ${balanceHistory.length} enregistrements");
 
-    // Mettre à jour le DataManager si disponible
-    if (_dataManager != null) {
-      _dataManager!.updateBalanceHistory(balanceHistory);
-      debugPrint("✅ Historique de balance mis à jour dans DataManager");
-    } else {
-      debugPrint("⚠️ DataManager non initialisé dans ArchiveManager");
-    }
   }
 
   Future<void> archiveRentedValue(double rentedValue) async {

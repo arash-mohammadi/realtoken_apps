@@ -427,8 +427,12 @@ class GoogleDriveService {
     } else if (value is List) {
       return value.map(sanitizeValue).toList();
     } else if (value is num) {
-      // Convertir en double (y compris NaN géré comme 0.0)
-      return value.isNaN ? 0.0 : value.toDouble();
+      // Convertir en double et gérer les cas spéciaux
+      double doubleValue = value.toDouble();
+      if (doubleValue.isNaN || doubleValue.isInfinite) {
+        return 0.0;
+      }
+      return doubleValue;
     }
     return value;
   }
