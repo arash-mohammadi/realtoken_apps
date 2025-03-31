@@ -15,7 +15,8 @@
 ### Changed
 - Optimize code
 - New intelligent algorithm to calculate APY on RMM (with slider réactivity in advanced settings)
-- better readability of graphs (on tooltip to show datas in graph)
+- Better readability of graphs (on tooltip to show datas in graph)
+- Dashboard compatible with 2-column display for large screen
 
 ### Fixed
 - Fix lot of bugs
