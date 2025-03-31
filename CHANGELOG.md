@@ -1,3 +1,25 @@
+## [1.9.0] - 2025-03-29
+
+### Added
+- New Design & improve visual
+- Add deep support for multi-wallets (you can see details by wallets in RMM, portfolio, stats, etc..)
+- Add New API to retreive DATA
+- Add Wallet modal (USDC & Xdai Balance)
+- Add biometrics validation to open app
+- Add options and manual Adjustements for portfolio dashboard (can activate with gear in card corner)
+- Add calculation for average price based on tokens transactions (realT bought, Yam, etc..)
+- Add details pages for Portfolio, RMM, Properties & Rents
+- Add support for Ethereum tokens
+- Add options to edit data Graph (for wallet balance, ROI & APY)
+  
+### Changed
+- Optimize code
+- New intelligent algorithm to calculate APY on RMM (with slider réactivity in advanced settings)
+- better readability of graphs (on tooltip to show datas in graph)
+
+### Fixed
+- Fix lot of bugs
+
 ## [1.8.0] - 2025-02-26
 
 ### Added
