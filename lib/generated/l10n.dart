@@ -180,6 +180,16 @@ class S {
     );
   }
 
+  /// `Russian`
+  String get russian {
+    return Intl.message(
+      'Russian',
+      name: 'russian',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Manage Wallets`
   String get manageEvmAddresses {
     return Intl.message(
@@ -4231,6 +4241,7 @@ class AppLocalizationDelegate extends LocalizationsDelegate<S> {
       Locale.fromSubtags(languageCode: 'fr'),
       Locale.fromSubtags(languageCode: 'it'),
       Locale.fromSubtags(languageCode: 'pt'),
+      Locale.fromSubtags(languageCode: 'ru'),
       Locale.fromSubtags(languageCode: 'zh'),
     ];
   }

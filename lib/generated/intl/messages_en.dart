@@ -464,6 +464,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "roiPerProperties":
             MessageLookupByLibrary.simpleMessage("Property ROI"),
         "roi_label": m8,
+        "russian": MessageLookupByLibrary.simpleMessage("Russian"),
         "rwaHoldings": MessageLookupByLibrary.simpleMessage("RWA Holdings SA"),
         "save": MessageLookupByLibrary.simpleMessage("Save"),
         "scanQRCode": MessageLookupByLibrary.simpleMessage("Scan QR Code"),

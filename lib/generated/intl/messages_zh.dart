@@ -356,6 +356,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "roiHistory": MessageLookupByLibrary.simpleMessage("ROI 历史"),
         "roiPerProperties": MessageLookupByLibrary.simpleMessage("每个物业的 ROI"),
         "roi_label": m8,
+        "russian": MessageLookupByLibrary.simpleMessage("俄语"),
         "rwaHoldings": MessageLookupByLibrary.simpleMessage("RWA Holdings SA"),
         "save": MessageLookupByLibrary.simpleMessage("保存"),
         "scanQRCode": MessageLookupByLibrary.simpleMessage("扫描二维码"),

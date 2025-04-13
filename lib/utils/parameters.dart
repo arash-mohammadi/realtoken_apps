@@ -24,7 +24,7 @@ class Parameters {
   static const Duration apiCacheDuration = Duration(hours: 1);
   static bool convertToSquareMeters = false;
   static String selectedCurrency = 'usd';
-  static List<String> languages = ['en', 'fr', 'es', "zh", "it", "pt"];
+  static List<String> languages = ['en', 'fr', 'es', "zh", "it", "pt", "ru"];
   static List<String> textSizeOptions = ['verySmall', 'small', 'normal', 'big', 'veryBig'];
 
   // Paramètres pour le portfolio - transformés en getters
