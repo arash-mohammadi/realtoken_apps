@@ -402,6 +402,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "roiPerProperties":
             MessageLookupByLibrary.simpleMessage("ROI de la propiedad"),
         "roi_label": m8,
+        "russian": MessageLookupByLibrary.simpleMessage("Ruso"),
         "rwaHoldings": MessageLookupByLibrary.simpleMessage("RWA Holdings SA"),
         "save": MessageLookupByLibrary.simpleMessage("Guardar"),
         "searchHint": MessageLookupByLibrary.simpleMessage("Buscar..."),

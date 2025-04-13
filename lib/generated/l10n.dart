@@ -180,6 +180,16 @@ class S {
     );
   }
 
+  /// `Russian`
+  String get russian {
+    return Intl.message(
+      'Russian',
+      name: 'russian',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Manage Wallets`
   String get manageEvmAddresses {
     return Intl.message(

@@ -97,7 +97,8 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
             ],
           ),
           const SizedBox(height: 12),
-          _buildSectionHeader(context, "Couleur principale", CupertinoIcons.color_filter),
+          _buildSectionHeader(
+              context, "Couleur principale", CupertinoIcons.color_filter),
           _buildSettingsSection(
             context,
             children: [
@@ -116,7 +117,15 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           color: entry.value,
-                          border: _selectedColor == entry.key ? Border.all(color: Theme.of(context).textTheme.bodyLarge?.color ?? Colors.grey, width: 2) : null,
+                          border: _selectedColor == entry.key
+                              ? Border.all(
+                                  color: Theme.of(context)
+                                          .textTheme
+                                          .bodyLarge
+                                          ?.color ??
+                                      Colors.grey,
+                                  width: 2)
+                              : null,
                           boxShadow: [
                             BoxShadow(
                               color: Colors.black.withOpacity(0.1),
@@ -133,7 +142,8 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
             ],
           ),
           const SizedBox(height: 12),
-          _buildSectionHeader(context, "Affichage", CupertinoIcons.textformat_size),
+          _buildSectionHeader(
+              context, "Affichage", CupertinoIcons.textformat_size),
           _buildSettingsSection(
             context,
             children: [
@@ -152,7 +162,8 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
                           color: Colors.grey,
                         ),
                       ),
-                      const Icon(CupertinoIcons.chevron_right, size: 14, color: Colors.grey),
+                      const Icon(CupertinoIcons.chevron_right,
+                          size: 14, color: Colors.grey),
                     ],
                   ),
                   onPressed: () => _showTextSizePicker(context, appState),
@@ -175,7 +186,8 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
                           color: Colors.grey,
                         ),
                       ),
-                      const Icon(CupertinoIcons.chevron_right, size: 14, color: Colors.grey),
+                      const Icon(CupertinoIcons.chevron_right,
+                          size: 14, color: Colors.grey),
                     ],
                   ),
                   onPressed: () => _showLanguagePicker(context, appState),
@@ -204,6 +216,8 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
         return S.of(context).portuguese;
       case 'zh':
         return S.of(context).chinese;
+      case 'ru':
+        return S.of(context).russian;
       default:
         return S.of(context).english;
     }
@@ -221,20 +235,28 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
               height: 40,
               padding: const EdgeInsets.symmetric(horizontal: 16),
               decoration: BoxDecoration(
-                border: Border(bottom: BorderSide(color: Colors.grey.withOpacity(0.3), width: 0.5)),
-                color: isDarkMode(context) ? const Color(0xFF2C2C2E) : Colors.white,
+                border: Border(
+                    bottom: BorderSide(
+                        color: Colors.grey.withOpacity(0.3), width: 0.5)),
+                color: isDarkMode(context)
+                    ? const Color(0xFF2C2C2E)
+                    : Colors.white,
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   CupertinoButton(
                     padding: EdgeInsets.zero,
-                    child: Text("Annuler", style: TextStyle(fontSize: 14 + appState.getTextSizeOffset())),
+                    child: Text("Annuler",
+                        style: TextStyle(
+                            fontSize: 14 + appState.getTextSizeOffset())),
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                   CupertinoButton(
                     padding: EdgeInsets.zero,
-                    child: Text("OK", style: TextStyle(fontSize: 14 + appState.getTextSizeOffset())),
+                    child: Text("OK",
+                        style: TextStyle(
+                            fontSize: 14 + appState.getTextSizeOffset())),
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                 ],
@@ -246,11 +268,14 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
                 onSelectedItemChanged: (index) {
                   appState.updateTextSize(Parameters.textSizeOptions[index]);
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Taille du texte mise à jour: ${Parameters.textSizeOptions[index]}')),
+                    SnackBar(
+                        content: Text(
+                            'Taille du texte mise à jour: ${Parameters.textSizeOptions[index]}')),
                   );
                 },
                 scrollController: FixedExtentScrollController(
-                  initialItem: Parameters.textSizeOptions.indexOf(appState.selectedTextSize),
+                  initialItem: Parameters.textSizeOptions
+                      .indexOf(appState.selectedTextSize),
                 ),
                 children: Parameters.textSizeOptions
                     .map((size) => Center(
@@ -277,20 +302,28 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
               height: 40,
               padding: const EdgeInsets.symmetric(horizontal: 16),
               decoration: BoxDecoration(
-                border: Border(bottom: BorderSide(color: Colors.grey.withOpacity(0.3), width: 0.5)),
-                color: isDarkMode(context) ? const Color(0xFF2C2C2E) : Colors.white,
+                border: Border(
+                    bottom: BorderSide(
+                        color: Colors.grey.withOpacity(0.3), width: 0.5)),
+                color: isDarkMode(context)
+                    ? const Color(0xFF2C2C2E)
+                    : Colors.white,
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   CupertinoButton(
                     padding: EdgeInsets.zero,
-                    child: Text("Annuler", style: TextStyle(fontSize: 14 + appState.getTextSizeOffset())),
+                    child: Text("Annuler",
+                        style: TextStyle(
+                            fontSize: 14 + appState.getTextSizeOffset())),
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                   CupertinoButton(
                     padding: EdgeInsets.zero,
-                    child: Text("OK", style: TextStyle(fontSize: 14 + appState.getTextSizeOffset())),
+                    child: Text("OK",
+                        style: TextStyle(
+                            fontSize: 14 + appState.getTextSizeOffset())),
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                 ],
@@ -303,15 +336,19 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
                   String languageCode = Parameters.languages[index];
                   appState.updateLanguage(languageCode);
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(S.of(context).languageUpdated(_getLanguageName(languageCode, context)))),
+                    SnackBar(
+                        content: Text(S.of(context).languageUpdated(
+                            _getLanguageName(languageCode, context)))),
                   );
                 },
                 scrollController: FixedExtentScrollController(
-                  initialItem: Parameters.languages.indexOf(appState.selectedLanguage),
+                  initialItem:
+                      Parameters.languages.indexOf(appState.selectedLanguage),
                 ),
                 children: Parameters.languages
                     .map((languageCode) => Center(
-                          child: Text(_getLanguageName(languageCode, context), style: TextStyle(fontSize: 15)),
+                          child: Text(_getLanguageName(languageCode, context),
+                              style: TextStyle(fontSize: 15)),
                         ))
                     .toList(),
               ),
@@ -326,7 +363,8 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
     return Theme.of(context).brightness == Brightness.dark;
   }
 
-  Widget _buildSectionHeader(BuildContext context, String title, IconData icon) {
+  Widget _buildSectionHeader(
+      BuildContext context, String title, IconData icon) {
     return Padding(
       padding: const EdgeInsets.only(left: 16, bottom: 6, top: 2),
       child: Row(
@@ -417,7 +455,8 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
         if (!isLast)
           Padding(
             padding: const EdgeInsets.only(left: 12),
-            child: Divider(height: 1, thickness: 0.5, color: Colors.grey.withOpacity(0.3)),
+            child: Divider(
+                height: 1, thickness: 0.5, color: Colors.grey.withOpacity(0.3)),
           ),
       ],
     );
@@ -431,7 +470,9 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
       height: 60,
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: isDark ? Colors.grey.shade800.withOpacity(0.3) : Colors.grey.shade200.withOpacity(0.7),
+        color: isDark
+            ? Colors.grey.shade800.withOpacity(0.3)
+            : Colors.grey.shade200.withOpacity(0.7),
         borderRadius: BorderRadius.circular(30),
         boxShadow: [
           BoxShadow(
@@ -481,7 +522,8 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
                 onTap: () {
                   appState.updateThemeMode('light');
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(S.of(context).themeUpdated('light'))),
+                    SnackBar(
+                        content: Text(S.of(context).themeUpdated('light'))),
                   );
                 },
               ),
@@ -516,8 +558,15 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
     );
   }
 
-  Widget _buildThemeOption({required BuildContext context, required IconData icon, required String label, required bool isSelected, required VoidCallback onTap}) {
-    final textColor = isSelected ? Theme.of(context).primaryColor : Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.6);
+  Widget _buildThemeOption(
+      {required BuildContext context,
+      required IconData icon,
+      required String label,
+      required bool isSelected,
+      required VoidCallback onTap}) {
+    final textColor = isSelected
+        ? Theme.of(context).primaryColor
+        : Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.6);
 
     return GestureDetector(
       onTap: onTap,
