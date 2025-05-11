@@ -1,10 +1,10 @@
-import 'package:realtokens/generated/l10n.dart';
+import 'package:realtoken_asset_tracker/generated/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:hive/hive.dart';
 import 'package:provider/provider.dart';
-import 'package:realtokens/app_state.dart';
-import 'package:realtokens/utils/date_utils.dart'; // Import AppState
+import 'package:realtoken_asset_tracker/app_state.dart';
+import 'package:realtoken_asset_tracker/utils/date_utils.dart'; // Import AppState
 
 class ServiceStatusPage extends StatelessWidget {
   const ServiceStatusPage({super.key});

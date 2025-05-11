@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:realtokens/pages/Statistics/rmm/rmm_stats.dart';
-import 'package:realtokens/pages/Statistics/portfolio/portfolio_stats.dart';
-import 'package:realtokens/pages/Statistics/wallet/wallet_stats.dart';
+import 'package:realtoken_asset_tracker/pages/Statistics/rmm/rmm_stats.dart';
+import 'package:realtoken_asset_tracker/pages/Statistics/portfolio/portfolio_stats.dart';
+import 'package:realtoken_asset_tracker/pages/Statistics/wallet/wallet_stats.dart';
 import 'package:provider/provider.dart';
-import 'package:realtokens/app_state.dart';
-import 'package:realtokens/utils/ui_utils.dart';
-import 'package:realtokens/generated/l10n.dart';
+import 'package:realtoken_asset_tracker/app_state.dart';
+import 'package:realtoken_asset_tracker/utils/ui_utils.dart';
+import 'package:realtoken_asset_tracker/generated/l10n.dart';
 
 class StatsSelectorPage extends StatefulWidget {
   const StatsSelectorPage({super.key});

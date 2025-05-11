@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:realtokens/managers/data_manager.dart';
+import 'package:realtoken_asset_tracker/managers/data_manager.dart';
 
 // Fonction pour récupérer la couleur enregistrée
 Future<Color> getSavedPrimaryColor() async {

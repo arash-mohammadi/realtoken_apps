@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:provider/provider.dart';
-import 'package:realtokens/app_state.dart';
-import 'package:realtokens/generated/l10n.dart';
+import 'package:realtoken_asset_tracker/app_state.dart';
+import 'package:realtoken_asset_tracker/generated/l10n.dart';
 
 class NotificationsSettingsPage extends StatefulWidget {
   const NotificationsSettingsPage({super.key});

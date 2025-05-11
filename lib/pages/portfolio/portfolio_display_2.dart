@@ -1,15 +1,15 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
-import 'package:realtokens/modals/token_details/showTokenDetails.dart';
-import 'package:realtokens/utils/currency_utils.dart';
-import 'package:realtokens/utils/location_utils.dart';
+import 'package:realtoken_asset_tracker/modals/token_details/showTokenDetails.dart';
+import 'package:realtoken_asset_tracker/utils/currency_utils.dart';
+import 'package:realtoken_asset_tracker/utils/location_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:provider/provider.dart'; // Pour accéder à DataManager
-import 'package:realtokens/generated/l10n.dart'; // Import des traductions
-import 'package:realtokens/settings/manage_evm_addresses_page.dart'; // Import de la page de gestion des adresses EVM
-import 'package:realtokens/app_state.dart';
-import 'package:realtokens/utils/shimmer_utils.dart';
+import 'package:realtoken_asset_tracker/generated/l10n.dart'; // Import des traductions
+import 'package:realtoken_asset_tracker/settings/manage_evm_addresses_page.dart'; // Import de la page de gestion des adresses EVM
+import 'package:realtoken_asset_tracker/app_state.dart';
+import 'package:realtoken_asset_tracker/utils/shimmer_utils.dart';
 import 'package:show_network_image/show_network_image.dart'; // Import de AppState
 import 'dart:ui';
 import 'dart:math' as Math;
@@ -648,7 +648,7 @@ class PortfolioDisplay2State extends State<PortfolioDisplay2> {
                                                       widget.isLoading
                                                         ? ShimmerUtils.originalColorShimmer(
                                                             child: Text(
-                                                              currencyUtils.getFormattedAmount(currencyUtils.convert(token['dailyIncome']), currencyUtils.currencySymbol, appState.showAmounts),
+                                                              currencyUtils.getFormattedAmount(currencyUtils.convert(token['dailyIncome'] * 7), currencyUtils.currencySymbol, appState.showAmounts),
                                                               style: TextStyle(
                                                                 fontSize: 13 + appState.getTextSizeOffset(),
                                                                 fontWeight: FontWeight.w600,
@@ -657,7 +657,7 @@ class PortfolioDisplay2State extends State<PortfolioDisplay2> {
                                                             color: Theme.of(context).textTheme.bodyLarge?.color,
                                                           )
                                                         : Text(
-                                                            currencyUtils.getFormattedAmount(currencyUtils.convert(token['dailyIncome']), currencyUtils.currencySymbol, appState.showAmounts),
+                                                            currencyUtils.getFormattedAmount(currencyUtils.convert(token['dailyIncome'] * 7), currencyUtils.currencySymbol, appState.showAmounts),
                                                             style: TextStyle(
                                                               fontSize: 13 + appState.getTextSizeOffset(),
                                                               fontWeight: FontWeight.w600,

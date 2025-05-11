@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:realtokens/utils/parameters.dart';
+import 'package:realtoken_asset_tracker/utils/parameters.dart';
 import 'package:http/http.dart' as http;
 import 'package:hive/hive.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -500,6 +500,8 @@ class ApiService {
 
     // Contrats pour USDC & XDAI sur Gnosis (remplacer les adresses par celles du réseau Gnosis)
     const String gnosisUsdcContract = '0xDDAfbb505ad214D7b80b1f830fcCc89B60fb7A83';
+    const String gnosisRegContract = '0x0AA1e96D2a46Ec6beB2923dE1E61Addf5F5f1dce';
+
 
     List<Map<String, dynamic>> allBalances = [];
 
@@ -511,6 +513,7 @@ class ApiService {
       final xdaiBorrowResponse = await _fetchBalance(xdaiBorrowContract, address, forceFetch: forceFetch);
       // Requêtes pour USDC et XDAI sur Gnosis
       final gnosisUsdcResponse = await _fetchBalance(gnosisUsdcContract, address, forceFetch: forceFetch);
+      final gnosisRegResponse = await _fetchBalance(gnosisRegContract, address, forceFetch: forceFetch);
       final gnosisXdaiResponse = await _fetchNativeBalance(address, forceFetch: forceFetch);
 
       // Vérification que toutes les requêtes ont retourné une valeur
@@ -523,6 +526,7 @@ class ApiService {
         double xdaiDepositBalance = (xdaiDepositResponse / BigInt.from(1e18));
         double xdaiBorrowBalance = (xdaiBorrowResponse / BigInt.from(1e18));
         double gnosisUsdcBalance = (gnosisUsdcResponse / BigInt.from(1e6));
+        double gnosisRegBalance = ((gnosisRegResponse ?? BigInt.zero)) / BigInt.from(1e18);
         double gnosisXdaiBalance = (gnosisXdaiResponse / BigInt.from(1e18));
 
         // Ajout des données dans la liste
@@ -533,6 +537,7 @@ class ApiService {
           'xdaiDepositBalance': xdaiDepositBalance,
           'xdaiBorrowBalance': xdaiBorrowBalance,
           'gnosisUsdcBalance': gnosisUsdcBalance,
+          'gnosisRegBalance': gnosisRegBalance,
           'gnosisXdaiBalance': gnosisXdaiBalance,
           'timestamp': timestamp,
         });

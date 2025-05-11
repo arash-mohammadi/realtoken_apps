@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:realtokens/managers/data_manager.dart';
-import 'package:realtokens/generated/l10n.dart';
-import 'package:realtokens/app_state.dart';
-import 'package:realtokens/utils/currency_utils.dart';
+import 'package:realtoken_asset_tracker/managers/data_manager.dart';
+import 'package:realtoken_asset_tracker/generated/l10n.dart';
+import 'package:realtoken_asset_tracker/app_state.dart';
+import 'package:realtoken_asset_tracker/utils/currency_utils.dart';
 
 Widget buildFinanceTab(BuildContext context, Map<String, dynamic> token, bool convertToSquareMeters) {
   final appState = Provider.of<AppState>(context, listen: false);
@@ -27,7 +27,7 @@ Widget buildFinanceTab(BuildContext context, Map<String, dynamic> token, bool co
   final ValueNotifier<bool> showRentDetailsNotifier = ValueNotifier<bool>(false);
 
   return Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 0.0),
+    padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -174,96 +174,83 @@ Widget buildFinanceTab(BuildContext context, Map<String, dynamic> token, bool co
                 ],
               ),
               clipBehavior: Clip.antiAlias,
-              child: Row(
-                children: totalCosts > 0
-                    ? [
-                        Expanded(
-                          flex: ((token['realtListingFee'] ?? 0) / totalCosts * 100).round(),
-                          child: Container(
-                            height: 10,
-                            decoration: BoxDecoration(
-                              color: Colors.red,
-                              gradient: LinearGradient(
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                                colors: [Colors.red.shade600, Colors.red.shade400],
-                              ),
-                            ),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final totalWidth = constraints.maxWidth;
+                  final List<double> parts = [
+                    (token['realtListingFee'] ?? 0).toDouble(),
+                    (token['initialMaintenanceReserve'] ?? 0).toDouble(),
+                    (token['renovationReserve'] ?? 0).toDouble(),
+                    (token['miscellaneousCosts'] ?? 0).toDouble(),
+                    ((token['totalInvestment'] ?? 0).toDouble() - (token['underlyingAssetPrice'] ?? 0).toDouble() - totalCosts),
+                  ];
+                  final double sum = totalCosts > 0 ? totalCosts : 1;
+                  final List<double> widths = parts.map((v) => v / sum * totalWidth).toList();
+                  return Row(
+                    children: [
+                      Container(
+                        width: widths[0],
+                        height: 10,
+                        decoration: BoxDecoration(
+                          color: Colors.red,
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [Colors.red.shade600, Colors.red.shade400],
                           ),
                         ),
-                        Expanded(
-                          flex: ((token['initialMaintenanceReserve'] ?? 0) / totalCosts * 100).round(),
-                          child: Container(
-                            height: 10,
-                            decoration: BoxDecoration(
-                              color: Colors.orange,
-                              gradient: LinearGradient(
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                                colors: [Colors.orange.shade600, Colors.orange.shade400],
-                              ),
-                            ),
+                      ),
+                      Container(
+                        width: widths[1],
+                        height: 10,
+                        decoration: BoxDecoration(
+                          color: Colors.orange,
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [Colors.orange.shade600, Colors.orange.shade400],
                           ),
                         ),
-                        Expanded(
-                          flex: ((token['renovationReserve'] ?? 0) / totalCosts * 100).round(),
-                          child: Container(
-                            height: 10,
-                            decoration: BoxDecoration(
-                              color: Colors.purple,
-                              gradient: LinearGradient(
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                                colors: [Colors.purple.shade600, Colors.purple.shade400],
-                              ),
-                            ),
+                      ),
+                      Container(
+                        width: widths[2],
+                        height: 10,
+                        decoration: BoxDecoration(
+                          color: Colors.purple,
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [Colors.purple.shade600, Colors.purple.shade400],
                           ),
                         ),
-                        Expanded(
-                          flex: ((token['miscellaneousCosts'] ?? 0) / totalCosts * 100).round(),
-                          child: Container(
-                            height: 10,
-                            decoration: BoxDecoration(
-                              color: Colors.amber,
-                              gradient: LinearGradient(
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                                colors: [Colors.amber.shade600, Colors.amber.shade400],
-                              ),
-                            ),
+                      ),
+                      Container(
+                        width: widths[3],
+                        height: 10,
+                        decoration: BoxDecoration(
+                          color: Colors.amber,
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [Colors.amber.shade600, Colors.amber.shade400],
                           ),
                         ),
-                        Expanded(
-                          flex: (((token['totalInvestment'] ?? 0) - (token['underlyingAssetPrice'] ?? 0) - totalCosts) / totalCosts * 100).round(),
-                          child: Container(
-                            height: 10,
-                            decoration: BoxDecoration(
-                              color: Colors.grey,
-                              gradient: LinearGradient(
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                                colors: [Colors.grey.shade500, Colors.grey.shade400],
-                              ),
-                            ),
+                      ),
+                      Container(
+                        width: widths[4],
+                        height: 10,
+                        decoration: BoxDecoration(
+                          color: Colors.grey,
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [Colors.grey.shade500, Colors.grey.shade400],
                           ),
                         ),
-                      ]
-                    : [
-                        Expanded(
-                          flex: 1,
-                          child: Container(
-                            height: 10,
-                            decoration: BoxDecoration(
-                              color: Colors.grey,
-                              gradient: LinearGradient(
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                                colors: [Colors.grey.shade500, Colors.grey.shade400],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
+                      ),
+                    ],
+                  );
+                },
               ),
             ),
 
@@ -389,93 +376,96 @@ Widget buildFinanceTab(BuildContext context, Map<String, dynamic> token, bool co
                 ],
               ),
               clipBehavior: Clip.antiAlias,
-              child: Row(
-                children: [
-                  Expanded(
-                    flex: totalRentCosts != 0 ? ((token['propertyMaintenanceMonthly'] ?? 0) / totalRentCosts * 100).round() : 0,
-                    child: Container(
-                      height: 10,
-                      decoration: BoxDecoration(
-                        color: Colors.deepOrange,
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [Colors.deepOrange.shade600, Colors.deepOrange.shade400],
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final totalWidth = constraints.maxWidth;
+                  final List<double> parts = [
+                    (token['propertyMaintenanceMonthly'] ?? 0).toDouble(),
+                    (token['propertyManagement'] ?? 0).toDouble(),
+                    (token['realtPlatform'] ?? 0).toDouble(),
+                    (token['insurance'] ?? 0).toDouble(),
+                    (token['propertyTaxes'] ?? 0).toDouble(),
+                    ((token['grossRentMonth'] ?? 0.0) - (token['netRentMonth'] ?? 0.0) - totalRentCosts),
+                  ];
+                  final double sum = totalRentCosts != 0 ? totalRentCosts : 1;
+                  final List<double> widths = parts.map((v) => v / sum * totalWidth).toList();
+                  return Row(
+                    children: [
+                      Container(
+                        width: widths[0],
+                        height: 10,
+                        decoration: BoxDecoration(
+                          color: Colors.deepOrange,
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [Colors.deepOrange.shade600, Colors.deepOrange.shade400],
+                          ),
                         ),
                       ),
-                    ),
-                  ),
-                  Expanded(
-                    flex: totalRentCosts != 0 ? ((token['propertyManagement'] ?? 0) / totalRentCosts * 100).round() : 0,
-                    child: Container(
-                      height: 10,
-                      decoration: BoxDecoration(
-                        color: Colors.amber,
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [Colors.amber.shade600, Colors.amber.shade400],
+                      Container(
+                        width: widths[1],
+                        height: 10,
+                        decoration: BoxDecoration(
+                          color: Colors.amber,
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [Colors.amber.shade600, Colors.amber.shade400],
+                          ),
                         ),
                       ),
-                    ),
-                  ),
-                  Expanded(
-                    flex: totalRentCosts != 0 ? ((token['realtPlatform'] ?? 0) / totalRentCosts * 100).round() : 0,
-                    child: Container(
-                      height: 10,
-                      decoration: BoxDecoration(
-                        color: Colors.orange,
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [Colors.orange.shade600, Colors.orange.shade400],
+                      Container(
+                        width: widths[2],
+                        height: 10,
+                        decoration: BoxDecoration(
+                          color: Colors.orange,
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [Colors.orange.shade600, Colors.orange.shade400],
+                          ),
                         ),
                       ),
-                    ),
-                  ),
-                  Expanded(
-                    flex: totalRentCosts != 0 ? ((token['insurance'] ?? 0) / totalRentCosts * 100).round() : 0,
-                    child: Container(
-                      height: 10,
-                      decoration: BoxDecoration(
-                        color: Colors.purple,
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [Colors.purple.shade600, Colors.purple.shade400],
+                      Container(
+                        width: widths[3],
+                        height: 10,
+                        decoration: BoxDecoration(
+                          color: Colors.purple,
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [Colors.purple.shade600, Colors.purple.shade400],
+                          ),
                         ),
                       ),
-                    ),
-                  ),
-                  Expanded(
-                    flex: totalRentCosts != 0 ? ((token['propertyTaxes'] ?? 0) / totalRentCosts * 100).round() : 0,
-                    child: Container(
-                      height: 10,
-                      decoration: BoxDecoration(
-                        color: Colors.red,
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [Colors.red.shade600, Colors.red.shade400],
+                      Container(
+                        width: widths[4],
+                        height: 10,
+                        decoration: BoxDecoration(
+                          color: Colors.red,
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [Colors.red.shade600, Colors.red.shade400],
+                          ),
                         ),
                       ),
-                    ),
-                  ),
-                  Expanded(
-                    flex: totalRentCosts != 0 ? (((token['grossRentMonth'] ?? 0.0) - (token['netRentMonth'] ?? 0.0) - totalRentCosts) / totalRentCosts * 100).round() : 0,
-                    child: Container(
-                      height: 10,
-                      decoration: BoxDecoration(
-                        color: Colors.grey,
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [Colors.grey.shade500, Colors.grey.shade400],
+                      Container(
+                        width: widths[5],
+                        height: 10,
+                        decoration: BoxDecoration(
+                          color: Colors.grey,
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [Colors.grey.shade500, Colors.grey.shade400],
+                          ),
                         ),
                       ),
-                    ),
-                  ),
-                ],
+                    ],
+                  );
+                },
               ),
             ),
 
@@ -733,8 +723,8 @@ void _showEditPriceBottomModal(BuildContext context, Map<String, dynamic> token,
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   // Bouton pour sauvegarder
-                  Expanded(
-                    child: ElevatedButton.icon(
+                  
+                    ElevatedButton.icon(
                       onPressed: () {
                         final newPrice = double.tryParse(priceController.text);
                         if (newPrice != null) {
@@ -771,11 +761,11 @@ void _showEditPriceBottomModal(BuildContext context, Map<String, dynamic> token,
                         padding: const EdgeInsets.symmetric(vertical: 6),
                       ),
                     ),
-                  ),
+                  
                   const SizedBox(width: 12),
                   // Bouton pour supprimer
-                  Expanded(
-                    child: ElevatedButton.icon(
+                  
+                    ElevatedButton.icon(
                       onPressed: () {
                         dataManager.removeCustomInitPrice(token['uuid']);
                         Navigator.pop(context);
@@ -799,7 +789,7 @@ void _showEditPriceBottomModal(BuildContext context, Map<String, dynamic> token,
                         padding: const EdgeInsets.symmetric(vertical: 6),
                       ),
                     ),
-                  ),
+                  
                 ],
               ),
             ],

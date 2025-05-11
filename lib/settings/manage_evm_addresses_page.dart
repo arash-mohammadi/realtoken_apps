@@ -2,13 +2,13 @@ import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
-import 'package:realtokens/app_state.dart';
-import 'package:realtokens/managers/data_manager.dart';
-import 'package:realtokens/services/api_service.dart';
-import 'package:realtokens/utils/data_fetch_utils.dart';
+import 'package:realtoken_asset_tracker/app_state.dart';
+import 'package:realtoken_asset_tracker/managers/data_manager.dart';
+import 'package:realtoken_asset_tracker/services/api_service.dart';
+import 'package:realtoken_asset_tracker/utils/data_fetch_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/services.dart'; // Pour copier dans le presse-papiers
-import 'package:realtokens/generated/l10n.dart';
+import 'package:realtoken_asset_tracker/generated/l10n.dart';
 
 class ManageEvmAddressesPage extends StatefulWidget {
   const ManageEvmAddressesPage({super.key});

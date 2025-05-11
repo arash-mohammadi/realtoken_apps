@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
-import 'package:realtokens/app_state.dart';
+import 'package:realtoken_asset_tracker/app_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:realtokens/generated/l10n.dart';
+import 'package:realtoken_asset_tracker/generated/l10n.dart';
 
 class AdvancedSettingsPage extends StatefulWidget {
   const AdvancedSettingsPage({super.key});

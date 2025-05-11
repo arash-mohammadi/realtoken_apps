@@ -1,4 +1,4 @@
-import 'package:realtokens/generated/l10n.dart';
+import 'package:realtoken_asset_tracker/generated/l10n.dart';
 
 class LocationUtils {
   static String extractCity(String fullName) {

@@ -3,12 +3,12 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:realtokens/managers/data_manager.dart';
-import 'package:realtokens/app_state.dart';
-import 'package:realtokens/generated/l10n.dart';
+import 'package:realtoken_asset_tracker/managers/data_manager.dart';
+import 'package:realtoken_asset_tracker/app_state.dart';
+import 'package:realtoken_asset_tracker/generated/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:realtokens/utils/url_utils.dart';
+import 'package:realtoken_asset_tracker/utils/url_utils.dart';
 
 class SupportPage extends StatefulWidget {
   const SupportPage({super.key});

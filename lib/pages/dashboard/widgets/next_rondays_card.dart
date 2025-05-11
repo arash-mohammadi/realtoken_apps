@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:realtokens/managers/data_manager.dart';
-import 'package:realtokens/app_state.dart';
-import 'package:realtokens/generated/l10n.dart';
-import 'package:realtokens/utils/currency_utils.dart';
-import 'package:realtokens/utils/ui_utils.dart';
+import 'package:realtoken_asset_tracker/managers/data_manager.dart';
+import 'package:realtoken_asset_tracker/app_state.dart';
+import 'package:realtoken_asset_tracker/generated/l10n.dart';
+import 'package:realtoken_asset_tracker/utils/currency_utils.dart';
+import 'package:realtoken_asset_tracker/utils/ui_utils.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:shimmer/shimmer.dart';
 

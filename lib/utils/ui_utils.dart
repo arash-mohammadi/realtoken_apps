@@ -3,15 +3,15 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:realtokens/managers/data_manager.dart';
-import 'package:realtokens/app_state.dart';
-import 'package:realtokens/generated/l10n.dart';
-import 'package:realtokens/pages/dashboard/detailsPages/properties_details_page.dart';
-import 'package:realtokens/pages/dashboard/detailsPages/rent_details_page.dart';
-import 'package:realtokens/pages/dashboard/detailsPages/rmm_details_page.dart';
-import 'package:realtokens/pages/dashboard/detailsPages/portfolio_details_page.dart';
+import 'package:realtoken_asset_tracker/managers/data_manager.dart';
+import 'package:realtoken_asset_tracker/app_state.dart';
+import 'package:realtoken_asset_tracker/generated/l10n.dart';
+import 'package:realtoken_asset_tracker/pages/dashboard/detailsPages/properties_details_page.dart';
+import 'package:realtoken_asset_tracker/pages/dashboard/detailsPages/rent_details_page.dart';
+import 'package:realtoken_asset_tracker/pages/dashboard/detailsPages/rmm_details_page.dart';
+import 'package:realtoken_asset_tracker/pages/dashboard/detailsPages/portfolio_details_page.dart';
 import 'package:shimmer/shimmer.dart';
-import 'package:realtokens/utils/shimmer_utils.dart';
+import 'package:realtoken_asset_tracker/utils/shimmer_utils.dart';
 
 class UIUtils {
   static double getAppBarHeight(BuildContext context) {

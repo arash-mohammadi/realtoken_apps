@@ -2,9 +2,9 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:realtokens/app_state.dart';
-import 'package:realtokens/generated/l10n.dart';
-import 'package:realtokens/utils/date_utils.dart';
+import 'package:realtoken_asset_tracker/app_state.dart';
+import 'package:realtoken_asset_tracker/generated/l10n.dart';
+import 'package:realtoken_asset_tracker/utils/date_utils.dart';
 
 class ChartUtils {
   // Constante pour le nombre maximum de barres à afficher

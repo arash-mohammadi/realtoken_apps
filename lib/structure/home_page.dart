@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:realtokens/managers/data_manager.dart';
-import 'package:realtokens/modals/agenda.dart';
-import 'package:realtokens/utils/currency_utils.dart';
-import 'package:realtokens/utils/ui_utils.dart';
-import 'package:realtokens/generated/l10n.dart';
+import 'package:realtoken_asset_tracker/managers/data_manager.dart';
+import 'package:realtoken_asset_tracker/modals/agenda.dart';
+import 'package:realtoken_asset_tracker/utils/currency_utils.dart';
+import 'package:realtoken_asset_tracker/utils/ui_utils.dart';
+import 'package:realtoken_asset_tracker/generated/l10n.dart';
 
 import 'bottom_bar.dart';
 import 'drawer.dart';
-import 'package:realtokens/pages/dashboard/dashboard_page.dart';
-import 'package:realtokens/pages/portfolio/portfolio_page.dart';
-import 'package:realtokens/pages/Statistics/stats_selector_page.dart';
-import 'package:realtokens/pages/maps_page.dart';
+import 'package:realtoken_asset_tracker/pages/dashboard/dashboard_page.dart';
+import 'package:realtoken_asset_tracker/pages/portfolio/portfolio_page.dart';
+import 'package:realtoken_asset_tracker/pages/Statistics/stats_selector_page.dart';
+import 'package:realtoken_asset_tracker/pages/maps_page.dart';
 import 'dart:ui';
 import 'package:provider/provider.dart';
-import 'package:realtokens/app_state.dart';
+import 'package:realtoken_asset_tracker/app_state.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key});
@@ -77,6 +77,7 @@ class _MyHomePageState extends State<MyHomePage> {
       debugPrint("Wallet ${walletInfo['address']} → USDC Deposit: ${walletInfo['usdcDeposit']}, USDC Borrow: ${walletInfo['usdcBorrow']}, "
           "XDAI Deposit: ${walletInfo['xdaiDeposit']}, XDAI Borrow: ${walletInfo['xdaiBorrow']}, "
           "Gnosis USDC: ${walletInfo['gnosisUsdc']}, Gnosis XDAI: ${walletInfo['gnosisXdai']}, "
+          "Gnosis REG: ${walletInfo['gnosisReg']}, "
           "Timestamp: ${walletInfo['timestamp']}");
     }
 
@@ -88,7 +89,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
     final double usdcBalance = dataManager.gnosisUsdcBalance;
     final double xdaiBalance = dataManager.gnosisXdaiBalance;
-
+    final double regBalance = dataManager.gnosisRegBalance;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -253,6 +254,38 @@ class _MyHomePageState extends State<MyHomePage> {
                             ),
                           ],
                         ),
+                      // REG
+                        Row(
+                          children: [
+                            Image.asset(
+                              'assets/icons/reg.png',
+                              width: 28 + appState.getTextSizeOffset(),
+                              height: 28 + appState.getTextSizeOffset(),
+                            ),
+                            const SizedBox(width: 8),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "REG",
+                                  style: TextStyle(
+                                    fontSize: 12 + appState.getTextSizeOffset(),
+                                    color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7),
+                                  ),
+                                ),
+                                Text(
+                                  regBalance.toStringAsFixed(2),
+                                  style: TextStyle(
+                                    fontSize: 16 + appState.getTextSizeOffset(),
+                                    fontWeight: FontWeight.bold,
+                                    color: Theme.of(context).textTheme.bodyLarge?.color,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                       
                       ],
                     ),
                   ],
@@ -292,6 +325,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       currencyUtils.currencySymbol,
                       appState.showAmounts,
                     );
+                    final String gnosisReg = walletInfo['gnosisReg'].toStringAsFixed(2);
 
                     return Container(
                       margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
@@ -401,6 +435,36 @@ class _MyHomePageState extends State<MyHomePage> {
                                         ),
                                         Text(
                                           gnosisXdai,
+                                          style: TextStyle(
+                                            fontSize: 14 + appState.getTextSizeOffset(),
+                                            fontWeight: FontWeight.w500,
+                                            color: Theme.of(context).textTheme.bodyLarge?.color,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                                Row(
+                                  children: [
+                                    Image.asset(
+                                      'assets/icons/reg.png',
+                                      width: 20 + appState.getTextSizeOffset(),
+                                      height: 20 + appState.getTextSizeOffset(),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          "REG",
+                                          style: TextStyle(
+                                            fontSize: 10 + appState.getTextSizeOffset(),
+                                            color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7),
+                                          ),
+                                        ),
+                                        Text(
+                                          gnosisReg,
                                           style: TextStyle(
                                             fontSize: 14 + appState.getTextSizeOffset(),
                                             fontWeight: FontWeight.w500,

@@ -4,13 +4,13 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'dart:math';
-import 'package:realtokens/app_state.dart';
-import 'package:realtokens/generated/l10n.dart';
-import 'package:realtokens/utils/chart_utils.dart';
-import 'package:realtokens/utils/currency_utils.dart';
-import 'package:realtokens/utils/chart_options_utils.dart';
-import 'package:realtokens/utils/date_utils.dart';
-import 'package:realtokens/models/apy_record.dart';
+import 'package:realtoken_asset_tracker/app_state.dart';
+import 'package:realtoken_asset_tracker/generated/l10n.dart';
+import 'package:realtoken_asset_tracker/utils/chart_utils.dart';
+import 'package:realtoken_asset_tracker/utils/currency_utils.dart';
+import 'package:realtoken_asset_tracker/utils/chart_options_utils.dart';
+import 'package:realtoken_asset_tracker/utils/date_utils.dart';
+import 'package:realtoken_asset_tracker/models/apy_record.dart';
 import 'package:flutter/services.dart';
 
 /// Widget générique pour les graphiques (Wallet Balance, ROI, APY)

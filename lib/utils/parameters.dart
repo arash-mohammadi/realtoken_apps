@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:realtokens/generated/l10n.dart';
+import 'package:realtoken_asset_tracker/generated/l10n.dart';
 import 'package:provider/provider.dart';
-import 'package:realtokens/app_state.dart';
+import 'package:realtoken_asset_tracker/app_state.dart';
 
 class Parameters {
   // Référence statique à l'instance de AppState

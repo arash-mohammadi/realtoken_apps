@@ -63,8 +63,10 @@ class MessageLookup extends MessageLookupByLibrary {
         "annualYield": MessageLookupByLibrary.simpleMessage("净收益率"),
         "annually": MessageLookupByLibrary.simpleMessage("每年"),
         "appDescription": MessageLookupByLibrary.simpleMessage("社区移动应用"),
-        "appName": MessageLookupByLibrary.simpleMessage("RealToken"),
-        "appTitle": MessageLookupByLibrary.simpleMessage("RealTokens"),
+        "appName":
+            MessageLookupByLibrary.simpleMessage("RealToken Asset Tracker"),
+        "appTitle":
+            MessageLookupByLibrary.simpleMessage("RealToken Asset Tracker"),
         "appearance": MessageLookupByLibrary.simpleMessage("Aparência"),
         "application": MessageLookupByLibrary.simpleMessage("应用"),
         "apy": MessageLookupByLibrary.simpleMessage("年收益率"),

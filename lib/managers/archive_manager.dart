@@ -150,7 +150,7 @@ class ArchiveManager {
       roiHistory.add(newRecord);
 
       List<Map<String, dynamic>> roiHistoryJsonToSave = roiHistory.map((record) => record.toJson()).toList();
-      await box.put('roiValueArchive', roiHistoryJsonToSave);
+      await box.put('roi_history', roiHistoryJsonToSave);
       debugPrint('🗃️ ROI: Nouvel enregistrement ajouté avec succès, total: ${roiHistory.length} enregistrements');
       
       // Afficher quelques enregistrements pour le débogage

@@ -6,17 +6,17 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_marker_cluster/flutter_map_marker_cluster.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
-import 'package:realtokens/modals/token_details/showTokenDetails.dart';
-import 'package:realtokens/utils/currency_utils.dart';
-import 'package:realtokens/utils/ui_utils.dart';
-import 'package:realtokens/utils/url_utils.dart';
+import 'package:realtoken_asset_tracker/modals/token_details/showTokenDetails.dart';
+import 'package:realtoken_asset_tracker/utils/currency_utils.dart';
+import 'package:realtoken_asset_tracker/utils/ui_utils.dart';
+import 'package:realtoken_asset_tracker/utils/url_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:realtokens/managers/data_manager.dart';
+import 'package:realtoken_asset_tracker/managers/data_manager.dart';
 import 'package:show_network_image/show_network_image.dart';
-import 'package:realtokens/app_state.dart';
+import 'package:realtoken_asset_tracker/app_state.dart';
 import 'package:flutter/cupertino.dart';
 import 'dart:math';
-import 'package:realtokens/generated/l10n.dart';
+import 'package:realtoken_asset_tracker/generated/l10n.dart';
 
 class MapsPage extends StatefulWidget {
   const MapsPage({super.key});

@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:provider/provider.dart';
-import 'package:realtokens/managers/data_manager.dart';
-import 'package:realtokens/pages/Statistics/portfolio/charts/rent_distribution_chart.dart';
-import 'package:realtokens/pages/Statistics/portfolio/charts/rented_graph.dart';
-import 'package:realtokens/pages/Statistics/portfolio/charts/token_distribution_by_city_card.dart';
-import 'package:realtokens/pages/Statistics/portfolio/charts/token_distribution_by_country_card.dart';
-import 'package:realtokens/pages/Statistics/portfolio/charts/token_distribution_by_region_card.dart';
-import 'package:realtokens/pages/Statistics/portfolio/charts/token_distribution_by_wallet_card.dart';
-import 'package:realtokens/pages/Statistics/portfolio/charts/token_distribution_chart.dart';
-import 'package:realtokens/utils/data_fetch_utils.dart';
-import 'package:realtokens/generated/l10n.dart';
+import 'package:realtoken_asset_tracker/managers/data_manager.dart';
+import 'package:realtoken_asset_tracker/pages/Statistics/portfolio/charts/rent_distribution_chart.dart';
+import 'package:realtoken_asset_tracker/pages/Statistics/portfolio/charts/rented_graph.dart';
+import 'package:realtoken_asset_tracker/pages/Statistics/portfolio/charts/token_distribution_by_city_card.dart';
+import 'package:realtoken_asset_tracker/pages/Statistics/portfolio/charts/token_distribution_by_country_card.dart';
+import 'package:realtoken_asset_tracker/pages/Statistics/portfolio/charts/token_distribution_by_region_card.dart';
+import 'package:realtoken_asset_tracker/pages/Statistics/portfolio/charts/token_distribution_by_wallet_card.dart';
+import 'package:realtoken_asset_tracker/pages/Statistics/portfolio/charts/token_distribution_chart.dart';
+import 'package:realtoken_asset_tracker/utils/data_fetch_utils.dart';
+import 'package:realtoken_asset_tracker/generated/l10n.dart';
 
 class PortfolioStats extends StatefulWidget {
   const PortfolioStats({super.key});

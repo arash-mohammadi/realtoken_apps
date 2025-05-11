@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
-import 'package:realtokens/managers/data_manager.dart';
-import 'package:realtokens/app_state.dart';
-import 'package:realtokens/settings/manage_evm_addresses_page.dart';
-import 'package:realtokens/utils/currency_utils.dart';
-import 'package:realtokens/utils/data_fetch_utils.dart';
-import 'package:realtokens/utils/ui_utils.dart';
-import 'package:realtokens/utils/shimmer_utils.dart';
-import 'package:realtokens/generated/l10n.dart';
+import 'package:realtoken_asset_tracker/managers/data_manager.dart';
+import 'package:realtoken_asset_tracker/app_state.dart';
+import 'package:realtoken_asset_tracker/settings/manage_evm_addresses_page.dart';
+import 'package:realtoken_asset_tracker/utils/currency_utils.dart';
+import 'package:realtoken_asset_tracker/utils/data_fetch_utils.dart';
+import 'package:realtoken_asset_tracker/utils/ui_utils.dart';
+import 'package:realtoken_asset_tracker/utils/shimmer_utils.dart';
+import 'package:realtoken_asset_tracker/generated/l10n.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:flutter/rendering.dart';
 import 'dart:ui'; // Pour ImageFilter

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:realtokens/managers/data_manager.dart';
+import 'package:realtoken_asset_tracker/managers/data_manager.dart';
 
 /// Classe utilitaire pour faciliter le chargement des données depuis l'interface utilisateur
 /// DataFetchUtils sert uniquement d'interface simplifiée vers DataManager

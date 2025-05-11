@@ -1,6 +1,6 @@
-import 'package:realtokens/managers/data_manager.dart';
-import 'package:realtokens/generated/l10n.dart';
-import 'package:realtokens/utils/currency_utils.dart';
+import 'package:realtoken_asset_tracker/managers/data_manager.dart';
+import 'package:realtoken_asset_tracker/generated/l10n.dart';
+import 'package:realtoken_asset_tracker/utils/currency_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';

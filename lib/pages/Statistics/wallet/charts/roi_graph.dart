@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:realtokens/generated/l10n.dart';
-import 'package:realtokens/managers/data_manager.dart';
-import 'package:realtokens/models/roi_record.dart';
-import 'package:realtokens/components/charts/generic_chart_widget.dart';
+import 'package:realtoken_asset_tracker/generated/l10n.dart';
+import 'package:realtoken_asset_tracker/managers/data_manager.dart';
+import 'package:realtoken_asset_tracker/models/roi_record.dart';
+import 'package:realtoken_asset_tracker/components/charts/generic_chart_widget.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
 

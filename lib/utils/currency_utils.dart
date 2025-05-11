@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:realtokens/services/api_service.dart';
-import 'package:realtokens/utils/parameters.dart';
+import 'package:realtoken_asset_tracker/services/api_service.dart';
+import 'package:realtoken_asset_tracker/utils/parameters.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class CurrencyProvider extends ChangeNotifier {

@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:realtokens/managers/data_manager.dart';
-import 'package:realtokens/generated/l10n.dart';
-import 'package:realtokens/utils/data_fetch_utils.dart';
-import 'package:realtokens/utils/date_utils.dart';
+import 'package:realtoken_asset_tracker/managers/data_manager.dart';
+import 'package:realtoken_asset_tracker/generated/l10n.dart';
+import 'package:realtoken_asset_tracker/utils/data_fetch_utils.dart';
+import 'package:realtoken_asset_tracker/utils/date_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 // Import des fichiers de graphiques

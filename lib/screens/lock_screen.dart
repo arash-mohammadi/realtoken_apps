@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:local_auth/local_auth.dart';
-import 'package:realtokens/services/biometric_service.dart';
-import 'package:realtokens/generated/l10n.dart';
+import 'package:realtoken_asset_tracker/services/biometric_service.dart';
+import 'package:realtoken_asset_tracker/generated/l10n.dart';
 
 class LockScreen extends StatefulWidget {
   final VoidCallback onAuthenticated;

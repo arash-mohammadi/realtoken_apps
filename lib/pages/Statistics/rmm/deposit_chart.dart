@@ -1,12 +1,12 @@
 // deposit_chart.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:realtokens/generated/l10n.dart';
-import 'package:realtokens/models/balance_record.dart';
-import 'package:realtokens/app_state.dart';
-import 'package:realtokens/utils/currency_utils.dart';
-import 'package:realtokens/utils/date_utils.dart';
-import 'package:realtokens/components/charts/generic_chart_widget.dart';
+import 'package:realtoken_asset_tracker/generated/l10n.dart';
+import 'package:realtoken_asset_tracker/models/balance_record.dart';
+import 'package:realtoken_asset_tracker/app_state.dart';
+import 'package:realtoken_asset_tracker/utils/currency_utils.dart';
+import 'package:realtoken_asset_tracker/utils/date_utils.dart';
+import 'package:realtoken_asset_tracker/components/charts/generic_chart_widget.dart';
 
 /// Classe représentant un groupe de dépôts agrégé selon la période.
 class DepositRecord {

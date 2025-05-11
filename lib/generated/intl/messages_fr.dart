@@ -76,8 +76,10 @@ class MessageLookup extends MessageLookupByLibrary {
         "annually": MessageLookupByLibrary.simpleMessage("Annuel"),
         "appDescription":
             MessageLookupByLibrary.simpleMessage("Application mobile"),
-        "appName": MessageLookupByLibrary.simpleMessage("RealToken"),
-        "appTitle": MessageLookupByLibrary.simpleMessage("RealTokens"),
+        "appName":
+            MessageLookupByLibrary.simpleMessage("RealToken Asset Tracker"),
+        "appTitle":
+            MessageLookupByLibrary.simpleMessage("RealToken Asset Tracker"),
         "appearance": MessageLookupByLibrary.simpleMessage("Apparence"),
         "application": MessageLookupByLibrary.simpleMessage("Application"),
         "apy": MessageLookupByLibrary.simpleMessage("Rendement net"),

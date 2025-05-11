@@ -1,26 +1,26 @@
-import 'package:realtokens/pages/changelog_page.dart';
-import 'package:realtokens/pages/links_page.dart';
-import 'package:realtokens/pages/propertiesForSale/propertiesForSell_select.dart';
-import 'package:realtokens/pages/support_page.dart';
-import 'package:realtokens/settings/service_status.dart';
+import 'package:realtoken_asset_tracker/pages/changelog_page.dart';
+import 'package:realtoken_asset_tracker/pages/links_page.dart';
+import 'package:realtoken_asset_tracker/pages/propertiesForSale/propertiesForSell_select.dart';
+import 'package:realtoken_asset_tracker/pages/support_page.dart';
+import 'package:realtoken_asset_tracker/settings/service_status.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
-import 'package:realtokens/settings/settings_page.dart';
-import 'package:realtokens/pages/realtokens_page.dart';
-import 'package:realtokens/about.dart';
-import 'package:realtokens/pages/updates_page.dart';
-import 'package:realtokens/pages/realt_page.dart';
-import 'package:realtokens/generated/l10n.dart';
-import 'package:realtokens/settings/manage_evm_addresses_page.dart';
-import 'package:realtokens/app_state.dart';
+import 'package:realtoken_asset_tracker/settings/settings_page.dart';
+import 'package:realtoken_asset_tracker/pages/realtokens_page.dart';
+import 'package:realtoken_asset_tracker/about.dart';
+import 'package:realtoken_asset_tracker/pages/updates_page.dart';
+import 'package:realtoken_asset_tracker/pages/realt_page.dart';
+import 'package:realtoken_asset_tracker/generated/l10n.dart';
+import 'package:realtoken_asset_tracker/settings/manage_evm_addresses_page.dart';
+import 'package:realtoken_asset_tracker/app_state.dart';
 import 'package:in_app_review/in_app_review.dart';
 import 'package:http/http.dart' as http;
 import 'package:package_info_plus/package_info_plus.dart';
 import 'dart:io';
 import 'dart:convert';
 
-import 'package:realtokens/utils/url_utils.dart';
+import 'package:realtoken_asset_tracker/utils/url_utils.dart';
 
 class CustomDrawer extends StatefulWidget {
   final Function(bool) onThemeChanged;
@@ -170,10 +170,10 @@ class _CustomDrawerState extends State<CustomDrawer> {
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        'RealTokens',
+                                        'RealToken Asset Tracker',
                                         style: TextStyle(
                                           color: Colors.white,
-                                          fontSize: 20 + appState.getTextSizeOffset(),
+                                          fontSize: 18 + appState.getTextSizeOffset(),
                                           fontWeight: FontWeight.w600,
                                         ),
                                       ),
@@ -181,7 +181,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                                         S.of(context).appDescription,
                                         style: TextStyle(
                                           color: Colors.white.withOpacity(0.9),
-                                          fontSize: 15 + appState.getTextSizeOffset(),
+                                          fontSize: 14 + appState.getTextSizeOffset(),
                                         ),
                                       ),
                                     ],

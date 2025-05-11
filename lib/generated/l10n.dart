@@ -880,10 +880,10 @@ class S {
     );
   }
 
-  /// `RealToken`
+  /// `RealToken Asset Tracker`
   String get appName {
     return Intl.message(
-      'RealToken',
+      'RealToken Asset Tracker',
       name: 'appName',
       desc: '',
       args: [],
@@ -2870,10 +2870,10 @@ class S {
     );
   }
 
-  /// `RealTokens`
+  /// `RealToken Asset Tracker`
   String get appTitle {
     return Intl.message(
-      'RealTokens',
+      'RealToken Asset Tracker',
       name: 'appTitle',
       desc: '',
       args: [],

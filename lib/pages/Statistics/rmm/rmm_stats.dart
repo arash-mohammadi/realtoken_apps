@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:realtokens/generated/l10n.dart';
-import 'package:realtokens/managers/archive_manager.dart';
-import 'package:realtokens/managers/data_manager.dart';
-import 'package:realtokens/models/balance_record.dart';
-import 'package:realtokens/pages/Statistics/rmm/borrow_chart.dart';
-import 'package:realtokens/pages/Statistics/rmm/deposit_chart.dart';
-import 'package:realtokens/pages/Statistics/rmm/healthFactorLtv_graph.dart';
-import 'package:realtokens/utils/chart_utils.dart';
+import 'package:realtoken_asset_tracker/generated/l10n.dart';
+import 'package:realtoken_asset_tracker/managers/archive_manager.dart';
+import 'package:realtoken_asset_tracker/managers/data_manager.dart';
+import 'package:realtoken_asset_tracker/models/balance_record.dart';
+import 'package:realtoken_asset_tracker/pages/Statistics/rmm/borrow_chart.dart';
+import 'package:realtoken_asset_tracker/pages/Statistics/rmm/deposit_chart.dart';
+import 'package:realtoken_asset_tracker/pages/Statistics/rmm/healthFactorLtv_graph.dart';
+import 'package:realtoken_asset_tracker/utils/chart_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class RmmStats extends StatefulWidget {

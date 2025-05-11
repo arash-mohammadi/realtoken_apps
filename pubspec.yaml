@@ -1,10 +1,10 @@
-name: realtokens
+name: realtoken_asset_tracker
 description: "A community app for RealT"
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
-version: 1.9.0+48
+version: 1.9.1+49
 
 environment:
   sdk: '>=3.6.0 <4.0.0'
@@ -57,6 +57,7 @@ dependencies:
   intl_translation: ^0.20.1
   local_auth: ^2.1.8
   app_settings: ^5.1.1
+  autoscale_tabbarview: ^1.0.2
 
 dev_dependencies:
   flutter_test:
@@ -80,6 +81,7 @@ flutter:
     - assets/icons/RMM.jpg
     - assets/icons/YAM.jpg
     - assets/icons/usdc.png
+    - assets/icons/reg.png
     - assets/icons/excel.png
     - assets/country/usa.png
     - assets/country/panama.png

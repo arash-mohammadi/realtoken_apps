@@ -5,13 +5,13 @@ import 'dart:ui';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:hive/hive.dart';
 import 'package:provider/provider.dart';
-import 'package:realtokens/app_state.dart';
-import 'package:realtokens/managers/data_manager.dart';
-import 'package:realtokens/generated/l10n.dart';
-import 'package:realtokens/utils/currency_utils.dart';
-import 'package:realtokens/utils/data_fetch_utils.dart';
-import 'package:realtokens/utils/date_utils.dart';
-import 'package:realtokens/utils/url_utils.dart';
+import 'package:realtoken_asset_tracker/app_state.dart';
+import 'package:realtoken_asset_tracker/managers/data_manager.dart';
+import 'package:realtoken_asset_tracker/generated/l10n.dart';
+import 'package:realtoken_asset_tracker/utils/currency_utils.dart';
+import 'package:realtoken_asset_tracker/utils/data_fetch_utils.dart';
+import 'package:realtoken_asset_tracker/utils/date_utils.dart';
+import 'package:realtoken_asset_tracker/utils/url_utils.dart';
 import 'package:show_network_image/show_network_image.dart';
 
 class PropertiesForSaleSecondary extends StatefulWidget {

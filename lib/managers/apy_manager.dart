@@ -1,8 +1,8 @@
 import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:realtokens/models/balance_record.dart';
-import 'package:realtokens/models/apy_record.dart';
+import 'package:realtoken_asset_tracker/models/balance_record.dart';
+import 'package:realtoken_asset_tracker/models/apy_record.dart';
 
 /// Gestionnaire dédié aux calculs et au suivi de l'APY
 /// Centralise toutes les méthodes de calcul d'APY, ROI et autres métriques financières

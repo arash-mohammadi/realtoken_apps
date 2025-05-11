@@ -5,10 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:hive/hive.dart';
 import 'package:provider/provider.dart';
-import 'package:realtokens/app_state.dart';
-import 'package:realtokens/generated/l10n.dart';
-import 'package:realtokens/services/google_drive_service.dart';
-import 'package:realtokens/utils/data_fetch_utils.dart';
+import 'package:realtoken_asset_tracker/app_state.dart';
+import 'package:realtoken_asset_tracker/generated/l10n.dart';
+import 'package:realtoken_asset_tracker/services/google_drive_service.dart';
+import 'package:realtoken_asset_tracker/utils/data_fetch_utils.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:file_picker/file_picker.dart';
 import 'dart:io';
@@ -16,7 +16,7 @@ import 'package:archive/archive_io.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:realtokens/models/balance_record.dart';
+import 'package:realtoken_asset_tracker/models/balance_record.dart';
 
 class SynchronizationSettingsPage extends StatefulWidget {
   const SynchronizationSettingsPage({super.key});

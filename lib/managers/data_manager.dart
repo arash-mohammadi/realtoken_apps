@@ -2,17 +2,17 @@ import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
-import 'package:realtokens/generated/l10n.dart';
-import 'package:realtokens/models/healthandltv_record.dart';
-import 'package:realtokens/models/rented_record.dart';
-import 'package:realtokens/utils/parameters.dart';
+import 'package:realtoken_asset_tracker/generated/l10n.dart';
+import 'package:realtoken_asset_tracker/models/healthandltv_record.dart';
+import 'package:realtoken_asset_tracker/models/rented_record.dart';
+import 'package:realtoken_asset_tracker/utils/parameters.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/api_service.dart';
 import '../models/balance_record.dart';
 import '../models/roi_record.dart';
 import '../models/apy_record.dart';
 import 'archive_manager.dart';
-import 'package:realtokens/managers/apy_manager.dart';
+import 'package:realtoken_asset_tracker/managers/apy_manager.dart';
 import 'package:flutter/foundation.dart';
 
 class DataManager extends ChangeNotifier {
@@ -131,6 +131,7 @@ class DataManager extends ChangeNotifier {
   double totalXdaiBorrowBalance = 0;
   double gnosisUsdcBalance = 0;
   double gnosisXdaiBalance = 0;
+  double gnosisRegBalance = 0;
   int totalRealtTokens = 0;
   double totalRealtInvestment = 0.0;
   double netRealtRentYear = 0.0;
@@ -2028,7 +2029,7 @@ debugPrint("🗃️ Début récupération et calcul des données pour le Dashboa
     double totalXdaiBorrowSum = 0;
     double totalGnosisUsdcSum = 0;
     double totalGnosisXdaiSum = 0;
-
+    double totalGnosisRegSum = 0;
     // Liste pour stocker les données par wallet
     List<Map<String, dynamic>> walletDetails = [];
 
@@ -2042,6 +2043,7 @@ debugPrint("🗃️ Début récupération et calcul des données pour le Dashboa
       double xdaiBorrow = balance['xdaiBorrowBalance'];
       double gnosisUsdc = balance['gnosisUsdcBalance'];
       double gnosisXdai = balance['gnosisXdaiBalance'];
+      double gnosisReg = balance['gnosisRegBalance'];
       timestamp = balance['timestamp']; // Dernier timestamp mis à jour
 
       // Mise à jour des totaux globaux
@@ -2051,7 +2053,7 @@ debugPrint("🗃️ Début récupération et calcul des données pour le Dashboa
       totalXdaiBorrowSum += xdaiBorrow;
       totalGnosisUsdcSum += gnosisUsdc;
       totalGnosisXdaiSum += gnosisXdai;
-
+      totalGnosisRegSum += gnosisReg;
       // Stocker les données propres au wallet
       walletDetails.add({
         'address': balance['address'],
@@ -2060,6 +2062,7 @@ debugPrint("🗃️ Début récupération et calcul des données pour le Dashboa
         'xdaiDeposit': xdaiDeposit,
         'xdaiBorrow': xdaiBorrow,
         'gnosisUsdc': gnosisUsdc,
+        'gnosisReg': gnosisReg,
         'gnosisXdai': gnosisXdai,
         'timestamp': timestamp,
       });
@@ -2071,6 +2074,7 @@ debugPrint("🗃️ Début récupération et calcul des données pour le Dashboa
     totalXdaiDepositBalance = totalXdaiDepositSum;
     totalXdaiBorrowBalance = totalXdaiBorrowSum;
     gnosisUsdcBalance = totalGnosisUsdcSum;
+    gnosisRegBalance = totalGnosisRegSum;
     gnosisXdaiBalance = totalGnosisXdaiSum;
 
     // Stocker les détails par wallet
