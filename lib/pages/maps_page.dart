@@ -213,7 +213,7 @@ class MapsPageState extends State<MapsPage> {
                   tileProvider: kIsWeb
                       ? NetworkTileProvider() // Utilisé uniquement pour le web
                       : FMTCStore('mapStore').getTileProvider(), // Utilisé pour iOS, Android, etc.
-                  userAgentPackageName: 'com.byackee.realt_apps',
+                  userAgentPackageName: 'com.byackee.realtoken_asset_tracker',
                   retinaMode: true,
                 ),
                 MarkerClusterLayerWidget(

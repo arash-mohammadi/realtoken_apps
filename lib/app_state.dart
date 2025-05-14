@@ -70,8 +70,17 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   bool _showYamProjection = true;
   double _initialInvestmentAdjustment = 0.0;
 
+  // --- Gestion du compteur d'ouvertures de l'app pour la popup dons ---
+  int _appOpenCount = 0;
+  int get appOpenCount => _appOpenCount;
+
+  /// Retourne true si la popup dons doit être affichée (après 10 ouvertures)
+  bool get shouldShowDonationPopup => _appOpenCount >= 10;
+
   AppState() {
     _loadSettings();
+    loadAppOpenCount(); // Charger le compteur d'ouvertures
+    incrementAppOpenCount(); // Incrémenter à chaque lancement
     WidgetsBinding.instance.addObserver(this); // Add observer to listen to system changes
   }
 
@@ -248,5 +257,16 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setDouble('initialInvestmentAdjustment', value);
     notifyListeners();
+  }
+
+  Future<void> loadAppOpenCount() async {
+    final prefs = await SharedPreferences.getInstance();
+    _appOpenCount = prefs.getInt('appOpenCount') ?? 0;
+  }
+
+  Future<void> incrementAppOpenCount() async {
+    final prefs = await SharedPreferences.getInstance();
+    _appOpenCount = (prefs.getInt('appOpenCount') ?? 0) + 1;
+    await prefs.setInt('appOpenCount', _appOpenCount);
   }
 }

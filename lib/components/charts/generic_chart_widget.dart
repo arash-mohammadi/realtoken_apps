@@ -916,6 +916,7 @@ class GenericChartWidget<T> extends StatelessWidget {
         getYValueAdapter,
         getTimestamp,
         applyStep: isBarChart, // N'appliquer le step que pour les graphiques à barres
+        aggregate: title.toLowerCase().contains('loyer') ? "sum" : "average",
       );
       
       // Filtrer les spots pour éliminer tout point avec NaN ou Infinity

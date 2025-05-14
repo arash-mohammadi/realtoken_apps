@@ -457,7 +457,20 @@
   "copied": "Copied!",
   "addressCopiedMessage": "The address has been copied to the clipboard.",
   "noWalletsAvailable": "No wallets available.",
-  "unitesLouees": "Rented units: {rented}/{total}"
+  "unitesLouees": "Rented units: {rented}/{total}",
+  "cryptoDonation": "Or donate in crypto:",
+  "everyContributionCounts": "Every contribution counts 🙏",
+  "donationTotal": "Total donations",
+  "toolsTitle": "Tools",
+  "exportRentsTitle": "Export rents",
+  "exportRentsDescription": "You can export your rent history as a CSV file for use in a spreadsheet or for your declarations.",
+  "exportRentsCsv": "Export rents as CSV",
+  "exportAllTransactionsTitle": "Export all transactions",
+  "exportAllTransactionsDescription": "You can export all your transactions (purchases, transfers, rents) as a CSV file for analysis or archiving.",
+  "exportAllTransactionsCsv": "Export all transactions as CSV",
+  "noTransactionOrRentToExport": "No transaction or rent to export.",
+  "noRentDataAvailable": "No rent data available.",
+  "noRentDataToShare": "No rent data to share."
 }
 
 

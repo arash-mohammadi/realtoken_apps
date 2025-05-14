@@ -21,6 +21,7 @@ import 'dart:io';
 import 'dart:convert';
 
 import 'package:realtoken_asset_tracker/utils/url_utils.dart';
+import 'package:realtoken_asset_tracker/pages/tools_page.dart';
 
 class CustomDrawer extends StatefulWidget {
   final Function(bool) onThemeChanged;
@@ -360,6 +361,23 @@ class _CustomDrawerState extends State<CustomDrawer> {
                                           context,
                                           MaterialPageRoute(
                                             builder: (context) => const LinksPage(),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                    _buildDivider(),
+                                    _buildMenuTile(
+                                      context,
+                                      icon: CupertinoIcons.wrench_fill,
+                                      title: S.of(context).toolsTitle,
+                                      appState: appState,
+                                      iconColor: Colors.deepPurple,
+                                      onTap: () {
+                                        Navigator.pop(context);
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => const ToolsPage(),
                                           ),
                                         );
                                       },

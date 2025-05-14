@@ -124,6 +124,19 @@ class UIUtils {
     Widget? headerRightWidget, // Widget pour l'icône dans l'en-tête (ex: paramètres)
   }) {
     final appState = Provider.of<AppState>(context);
+    // Début de la logique responsive pour le graphique
+    final screenWidth = MediaQuery.of(context).size.width;
+    double graphMaxWidth = 120;
+    double graphMinWidth = 50;
+    bool showGraph = true;
+
+    if (screenWidth < 320) {
+      showGraph = false; // Trop petit, on masque le graphique
+    } else if (screenWidth < 400) {
+      graphMaxWidth = 80;
+      graphMinWidth = 30;
+    }
+    // Fin de la logique responsive pour le graphique
     return Card(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
@@ -199,10 +212,19 @@ class UIUtils {
                   ),
                 ),
                 // Graphique si présent
-                if (hasGraph && rightWidget != null)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 2.0, left: 8.0),
-                    child: rightWidget,
+                if (hasGraph && rightWidget != null && showGraph)
+                  Align(
+                    alignment: Alignment.topRight,
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 2.0, left: 8.0),
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          maxWidth: graphMaxWidth,
+                          minWidth: graphMinWidth,
+                        ),
+                        child: rightWidget,
+                      ),
+                    ),
                   ),
               ],
             ),

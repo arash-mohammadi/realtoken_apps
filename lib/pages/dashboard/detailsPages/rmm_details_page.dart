@@ -213,7 +213,10 @@ class _WalletDetailCard extends StatelessWidget {
                             context,
                             appState,
                             valueColor: Colors.green.shade700,
-                          ),
+                            ),
+                          const SizedBox(height: 8),
+                    
+                            
                         ],
                         context,
                         appState,

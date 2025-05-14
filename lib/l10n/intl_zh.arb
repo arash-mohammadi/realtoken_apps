@@ -403,6 +403,19 @@
   "deposits": "存款",
   "loans": "借款",
   "rmmValue": "RMM 价值",
-  "walletsWithoutRmmUsage": "未使用 RMM 的钱包"
+  "walletsWithoutRmmUsage": "未使用 RMM 的钱包",
+  "cryptoDonation": "或使用加密货币捐赠：",
+  "everyContributionCounts": "每一份贡献都很重要 🙏",
+  "donationTotal": "捐赠总额",
+  "toolsTitle": "工具",
+  "exportRentsTitle": "导出租金",
+  "exportRentsDescription": "您可以将您的租金历史导出为CSV文件，以便在电子表格中使用或用于申报。",
+  "exportRentsCsv": "导出租金为CSV",
+  "exportAllTransactionsTitle": "导出所有交易",
+  "exportAllTransactionsDescription": "您可以将所有交易（购买、转账、租金）导出为CSV文件以供分析或存档。",
+  "exportAllTransactionsCsv": "导出所有交易为CSV",
+  "noTransactionOrRentToExport": "没有可导出的交易或租金。",
+  "noRentDataAvailable": "没有可用的租金数据。",
+  "noRentDataToShare": "没有可分享的租金数据。"
 }
   

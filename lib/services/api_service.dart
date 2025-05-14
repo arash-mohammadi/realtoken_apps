@@ -500,8 +500,8 @@ class ApiService {
 
     // Contrats pour USDC & XDAI sur Gnosis (remplacer les adresses par celles du réseau Gnosis)
     const String gnosisUsdcContract = '0xDDAfbb505ad214D7b80b1f830fcCc89B60fb7A83';
-    const String gnosisRegContract = '0x0AA1e96D2a46Ec6beB2923dE1E61Addf5F5f1dce';
-
+    const String gnosisRegContract = '0x0aa1e96d2a46ec6beb2923de1e61addf5f5f1dce';
+    const String gnosisVaultRegContract = '0xe1877d33471e37fe0f62d20e60c469eff83fb4a0';
 
     List<Map<String, dynamic>> allBalances = [];
 
@@ -514,6 +514,8 @@ class ApiService {
       // Requêtes pour USDC et XDAI sur Gnosis
       final gnosisUsdcResponse = await _fetchBalance(gnosisUsdcContract, address, forceFetch: forceFetch);
       final gnosisRegResponse = await _fetchBalance(gnosisRegContract, address, forceFetch: forceFetch);
+      final gnosisVaultRegResponse = await _fetchVaultBalance(gnosisVaultRegContract, address, forceFetch: forceFetch);
+
       final gnosisXdaiResponse = await _fetchNativeBalance(address, forceFetch: forceFetch);
 
       // Vérification que toutes les requêtes ont retourné une valeur
@@ -527,6 +529,7 @@ class ApiService {
         double xdaiBorrowBalance = (xdaiBorrowResponse / BigInt.from(1e18));
         double gnosisUsdcBalance = (gnosisUsdcResponse / BigInt.from(1e6));
         double gnosisRegBalance = ((gnosisRegResponse ?? BigInt.zero)) / BigInt.from(1e18);
+        double gnosisVaultRegBalance = ((gnosisVaultRegResponse ?? BigInt.zero)) / BigInt.from(1e18);
         double gnosisXdaiBalance = (gnosisXdaiResponse / BigInt.from(1e18));
 
         // Ajout des données dans la liste
@@ -538,6 +541,7 @@ class ApiService {
           'xdaiBorrowBalance': xdaiBorrowBalance,
           'gnosisUsdcBalance': gnosisUsdcBalance,
           'gnosisRegBalance': gnosisRegBalance,
+          'gnosisVaultRegBalance': gnosisVaultRegBalance,
           'gnosisXdaiBalance': gnosisXdaiBalance,
           'timestamp': timestamp,
         });
@@ -594,16 +598,17 @@ class ApiService {
         final balance = BigInt.parse(result.substring(2), radix: 16);
 
         // Sauvegarder le résultat dans le cache
+        debugPrint("🚀 apiService: RPC gnosis -> $contract balance récupérée: $balance");
         await box.put(cacheKey, balance.toString());
         await box.put('lastFetchTime_$cacheKey', now.toIso8601String());
         box.put('lastExecutionTime_Balances', now.toIso8601String());
 
         return balance;
       } else {
-        // debugPrint("apiService: RPC gnosis -> Invalid response for contract $contract: $result");
+         debugPrint("apiService: RPC gnosis -> Invalid response for contract $contract: $result");
       }
     } else {
-      // debugPrint('apiService: RPC gnosis -> Failed to fetch balance for contract $contract. Status code: ${response.statusCode}');
+       debugPrint('apiService: RPC gnosis -> Failed to fetch balance for contract $contract. Status code: ${response.statusCode}');
     }
 
     return null;
@@ -653,6 +658,70 @@ class ApiService {
     }
     return null;
   }
+
+static Future<BigInt?> _fetchVaultBalance(String contract, String address, {bool forceFetch = false}) async {
+  final String cacheKey = 'cachedVaultBalance_${contract}_$address';
+  final box = await Hive.openBox('balanceCache');
+  final now = DateTime.now();
+
+  final String? lastFetchTime = box.get('lastFetchTime_$cacheKey');
+
+  if (!forceFetch && lastFetchTime != null) {
+    final DateTime lastFetch = DateTime.parse(lastFetchTime);
+    if (now.difference(lastFetch) < Parameters.apiCacheDuration) {
+      final cachedData = box.get(cacheKey);
+      if (cachedData != null) {
+        debugPrint("🛑 apiService: fetchVaultBalance -> Requête annulée, cache valide");
+        return BigInt.tryParse(cachedData);
+      }
+    }
+  }
+
+  // Construire la data : 0xf262a083 + adresse paddée (sans '0x', alignée sur 32 bytes)
+  final String functionSelector = 'f262a083';
+  final String paddedAddress = address.toLowerCase().replaceFirst('0x', '').padLeft(64, '0');
+  final String data = '0x$functionSelector$paddedAddress';
+
+  final response = await http.post(
+    Uri.parse('https://rpc.gnosischain.com'),
+    headers: {'Content-Type': 'application/json'},
+    body: json.encode({
+      "jsonrpc": "2.0",
+      "method": "eth_call",
+      "params": [
+        {"to": contract, "data": data},
+        "latest"
+      ],
+      "id": 1
+    }),
+  );
+
+  if (response.statusCode == 200) {
+    final responseBody = json.decode(response.body);
+    final result = responseBody['result'];
+
+    debugPrint("🚀 apiService: fetchVaultBalance -> Requête lancée");
+
+    if (result != null && result != "0x" && result.length >= 66) {
+      // On suppose que le solde est dans le 1er mot (64 caractères hex après le "0x")
+      final String balanceHex = result.substring(2, 66);
+      final balance = BigInt.parse(balanceHex, radix: 16);
+
+      debugPrint("✅ apiService: fetchVaultBalance -> Balance récupérée: $balance");
+      await box.put(cacheKey, balance.toString());
+      await box.put('lastFetchTime_$cacheKey', now.toIso8601String());
+      box.put('lastExecutionTime_Balances', now.toIso8601String());
+
+      return balance;
+    } else {
+      debugPrint("⚠️ apiService: fetchVaultBalance -> Résultat invalide pour $contract: $result");
+    }
+  } else {
+    debugPrint('❌ apiService: fetchVaultBalance -> Échec HTTP. Code: ${response.statusCode}');
+  }
+
+  return null;
+}
 
   // Nouvelle méthode pour récupérer les détails des loyers
   static Future<List<Map<String, dynamic>>> fetchDetailedRentDataForAllWallets({bool forceFetch = false}) async {
@@ -985,6 +1054,54 @@ class ApiService {
       return allYamTransactions;
     } catch (e) {
       throw Exception('❌ Échec récupération des transactions YAM: $e');
+    }
+  }
+
+  static Future<List<Map<String, dynamic>>> fetchRmmBalancesForAddress(String address, {bool forceFetch = false}) async {
+    // Contrats pour USDC & XDAI (dépôt et emprunt)
+    const String usdcDepositContract = '0xed56f76e9cbc6a64b821e9c016eafbd3db5436d1';
+    const String usdcBorrowContract = '0x69c731ae5f5356a779f44c355abb685d84e5e9e6';
+    const String xdaiDepositContract = '0x0ca4f5554dd9da6217d62d8df2816c82bba4157b';
+    const String xdaiBorrowContract = '0x9908801df7902675c3fedd6fea0294d18d5d5d34';
+    const String gnosisUsdcContract = '0xDDAfbb505ad214D7b80b1f830fcCc89B60fb7A83';
+    const String gnosisRegContract = '0x0aa1e96d2a46ec6beb2923de1e61addf5f5f1dce';
+    const String gnosisVaultRegContract = '0xe1877d33471e37fe0f62d20e60c469eff83fb4a0';
+
+    final usdcDepositResponse = await _fetchBalance(usdcDepositContract, address, forceFetch: forceFetch);
+    final usdcBorrowResponse = await _fetchBalance(usdcBorrowContract, address, forceFetch: forceFetch);
+    final xdaiDepositResponse = await _fetchBalance(xdaiDepositContract, address, forceFetch: forceFetch);
+    final xdaiBorrowResponse = await _fetchBalance(xdaiBorrowContract, address, forceFetch: forceFetch);
+    final gnosisUsdcResponse = await _fetchBalance(gnosisUsdcContract, address, forceFetch: forceFetch);
+    final gnosisRegResponse = await _fetchBalance(gnosisRegContract, address, forceFetch: forceFetch);
+    final gnosisVaultRegResponse = await _fetchVaultBalance(gnosisVaultRegContract, address, forceFetch: forceFetch);
+    final gnosisXdaiResponse = await _fetchNativeBalance(address, forceFetch: forceFetch);
+
+    if (usdcDepositResponse != null && usdcBorrowResponse != null && xdaiDepositResponse != null && xdaiBorrowResponse != null && gnosisUsdcResponse != null && gnosisXdaiResponse != null) {
+      final timestamp = DateTime.now().toIso8601String();
+      double usdcDepositBalance = (usdcDepositResponse / BigInt.from(1e6));
+      double usdcBorrowBalance = (usdcBorrowResponse / BigInt.from(1e6));
+      double xdaiDepositBalance = (xdaiDepositResponse / BigInt.from(1e18));
+      double xdaiBorrowBalance = (xdaiBorrowResponse / BigInt.from(1e18));
+      double gnosisUsdcBalance = (gnosisUsdcResponse / BigInt.from(1e6));
+      double gnosisRegBalance = ((gnosisRegResponse ?? BigInt.zero)) / BigInt.from(1e18);
+      double gnosisVaultRegBalance = ((gnosisVaultRegResponse ?? BigInt.zero)) / BigInt.from(1e18);
+      double gnosisXdaiBalance = (gnosisXdaiResponse / BigInt.from(1e18));
+      return [
+        {
+          'address': address,
+          'usdcDepositBalance': usdcDepositBalance,
+          'usdcBorrowBalance': usdcBorrowBalance,
+          'xdaiDepositBalance': xdaiDepositBalance,
+          'xdaiBorrowBalance': xdaiBorrowBalance,
+          'gnosisUsdcBalance': gnosisUsdcBalance,
+          'gnosisRegBalance': gnosisRegBalance,
+          'gnosisVaultRegBalance': gnosisVaultRegBalance,
+          'gnosisXdaiBalance': gnosisXdaiBalance,
+          'timestamp': timestamp,
+        }
+      ];
+    } else {
+      return [];
     }
   }
 }

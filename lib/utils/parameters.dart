@@ -21,7 +21,7 @@ class Parameters {
   static const List<String> stables = ["0xe91d153e0b41518a2ce8dd3d7944fa863463a97d", "0xddafbb505ad214d7b80b1f830fccc89b60fb7a83", "0x7349c9eaa538e118725a6130e0f8341509b9f8a0"];
   static String rwaTokenAddress = '0x0675e8f4a52ea6c845cb6427af03616a2af42170';
   // 📌 Autres paramètres inchangés
-  static const Duration apiCacheDuration = Duration(hours: 1);
+  static const Duration apiCacheDuration = Duration(minutes: 1);
   static bool convertToSquareMeters = false;
   static String selectedCurrency = 'usd';
   static List<String> languages = ['en', 'fr', 'es', "zh", "it", "pt", "ru"];

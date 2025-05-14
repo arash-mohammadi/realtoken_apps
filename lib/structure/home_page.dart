@@ -4,6 +4,7 @@ import 'package:realtoken_asset_tracker/modals/agenda.dart';
 import 'package:realtoken_asset_tracker/utils/currency_utils.dart';
 import 'package:realtoken_asset_tracker/utils/ui_utils.dart';
 import 'package:realtoken_asset_tracker/generated/l10n.dart';
+import 'dart:math';
 
 import 'bottom_bar.dart';
 import 'drawer.dart';
@@ -14,6 +15,8 @@ import 'package:realtoken_asset_tracker/pages/maps_page.dart';
 import 'dart:ui';
 import 'package:provider/provider.dart';
 import 'package:realtoken_asset_tracker/app_state.dart';
+import 'package:realtoken_asset_tracker/components/donation_card_widget.dart';
+import 'package:realtoken_asset_tracker/services/api_service.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key});
@@ -27,6 +30,31 @@ class _MyHomePageState extends State<MyHomePage> {
   final GlobalKey _walletIconKey = GlobalKey(); // Clé pour obtenir la position de l'icône
 
   List<Map<String, dynamic>> portfolio = [];
+
+  bool _donationPopupShown = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final random = Random();
+    final delaySeconds = 5 + random.nextInt(26); // 5 à 30 inclus
+    Future.delayed(Duration(seconds: delaySeconds), _showDonationPopupIfNeeded);
+  }
+
+  void _showDonationPopupIfNeeded() async {
+    if (_donationPopupShown) return;
+    if (!mounted) return;
+    final appState = Provider.of<AppState>(context, listen: false);
+    if (!appState.shouldShowDonationPopup) return;
+    _donationPopupShown = true;
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return _DonationPopupAsyncLoader();
+      },
+    );
+  }
 
   double _getContainerHeight(BuildContext context) {
     double bottomPadding = MediaQuery.of(context).viewPadding.bottom;
@@ -72,12 +100,15 @@ class _MyHomePageState extends State<MyHomePage> {
     // Récupération de la liste des détails par wallet (issue de fetchRmmBalances)
     final List<Map<String, dynamic>> walletDetails = dataManager.perWalletBalances ?? [];
 
+    // Vérifie s'il y a au moins un wallet avec du staking
+    final bool hasStaking = walletDetails.any((wallet) => (wallet['gnosisVaultReg'] ?? 0) > 0);
+
     // Affichage dans la console pour debug
     for (var walletInfo in walletDetails) {
       debugPrint("Wallet ${walletInfo['address']} → USDC Deposit: ${walletInfo['usdcDeposit']}, USDC Borrow: ${walletInfo['usdcBorrow']}, "
           "XDAI Deposit: ${walletInfo['xdaiDeposit']}, XDAI Borrow: ${walletInfo['xdaiBorrow']}, "
           "Gnosis USDC: ${walletInfo['gnosisUsdc']}, Gnosis XDAI: ${walletInfo['gnosisXdai']}, "
-          "Gnosis REG: ${walletInfo['gnosisReg']}, "
+          "Gnosis REG: ${walletInfo['gnosisReg'] + walletInfo['gnosisVaultReg']}, "
           "Timestamp: ${walletInfo['timestamp']}");
     }
 
@@ -90,6 +121,8 @@ class _MyHomePageState extends State<MyHomePage> {
     final double usdcBalance = dataManager.gnosisUsdcBalance;
     final double xdaiBalance = dataManager.gnosisXdaiBalance;
     final double regBalance = dataManager.gnosisRegBalance;
+    final double regVaultBalance = dataManager.gnosisVaultRegBalance;
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -112,7 +145,7 @@ class _MyHomePageState extends State<MyHomePage> {
             ],
           ),
           constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height * 0.6,
+            maxHeight: MediaQuery.of(context).size.height * 0.8,
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -273,13 +306,26 @@ class _MyHomePageState extends State<MyHomePage> {
                                     color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7),
                                   ),
                                 ),
-                                Text(
-                                  regBalance.toStringAsFixed(2),
-                                  style: TextStyle(
-                                    fontSize: 16 + appState.getTextSizeOffset(),
-                                    fontWeight: FontWeight.bold,
-                                    color: Theme.of(context).textTheme.bodyLarge?.color,
-                                  ),
+                                Row(
+                                  children: [
+                                    Text(
+                                      (regBalance + regVaultBalance).toStringAsFixed(2),
+                                      style: TextStyle(
+                                        fontSize: 16 + appState.getTextSizeOffset(),
+                                        fontWeight: FontWeight.bold,
+                                        color: Theme.of(context).textTheme.bodyLarge?.color,
+                                      ),
+                                    ),
+                                    if (hasStaking)
+                                      Padding(
+                                        padding: const EdgeInsets.only(left: 4.0),
+                                        child: Icon(
+                                          Icons.savings,
+                                          size: 16 + appState.getTextSizeOffset(),
+                                          color: Theme.of(context).primaryColor,
+                                        ),
+                                      ),
+                                  ],
                                 ),
                               ],
                             ),
@@ -325,7 +371,9 @@ class _MyHomePageState extends State<MyHomePage> {
                       currencyUtils.currencySymbol,
                       appState.showAmounts,
                     );
-                    final String gnosisReg = walletInfo['gnosisReg'].toStringAsFixed(2);
+                    final double gnosisReg = walletInfo['gnosisReg'];
+                    final double gnosisVaultReg = walletInfo['gnosisVaultReg'];
+                    final String gnosisRegTotal = (gnosisReg + gnosisVaultReg).toStringAsFixed(2);
 
                     return Container(
                       margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
@@ -463,13 +511,26 @@ class _MyHomePageState extends State<MyHomePage> {
                                             color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7),
                                           ),
                                         ),
-                                        Text(
-                                          gnosisReg,
-                                          style: TextStyle(
-                                            fontSize: 14 + appState.getTextSizeOffset(),
-                                            fontWeight: FontWeight.w500,
-                                            color: Theme.of(context).textTheme.bodyLarge?.color,
-                                          ),
+                                        Row(
+                                          children: [
+                                            Text(
+                                              gnosisRegTotal,
+                                              style: TextStyle(
+                                                fontSize: 14 + appState.getTextSizeOffset(),
+                                                fontWeight: FontWeight.w500,
+                                                color: Theme.of(context).textTheme.bodyLarge?.color,
+                                              ),
+                                            ),
+                                            if (gnosisVaultReg > 0)
+                                              Padding(
+                                                padding: const EdgeInsets.only(left: 4.0),
+                                                child: Icon(
+                                                  Icons.savings,
+                                                  size: 14 + appState.getTextSizeOffset(),
+                                                  color: Theme.of(context).primaryColor,
+                                                ),
+                                              ),
+                                          ],
                                         ),
                                       ],
                                     ),
@@ -603,6 +664,87 @@ class _MyHomePageState extends State<MyHomePage> {
         onThemeChanged: (value) {
           appState.updateTheme(value);
         },
+      ),
+    );
+  }
+}
+
+// Widget interne pour gérer le chargement asynchrone du montant du wallet
+class _DonationPopupAsyncLoader extends StatefulWidget {
+  @override
+  State<_DonationPopupAsyncLoader> createState() => _DonationPopupAsyncLoaderState();
+}
+
+class _DonationPopupAsyncLoaderState extends State<_DonationPopupAsyncLoader> {
+  String? montant;
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchWalletAmount();
+  }
+
+  Future<void> _fetchWalletAmount() async {
+    const walletAddress = '0x2cb49d04890a98eb89f4f43af96ad01b98b64165';
+    try {
+      // Appel direct à ApiService.fetchRmmBalances pour une seule adresse
+      final balances = await ApiService.fetchRmmBalancesForAddress(walletAddress);
+      if (balances.isNotEmpty) {
+        final wallet = balances.first;
+        print('DEBUG WALLET DON: ' + wallet.toString());
+        final double gnosisUsdc = wallet['gnosisUsdcBalance'] ?? 0.0;
+        final double gnosisXdai = wallet['gnosisXdaiBalance'] ?? 0.0;
+        final double usdcDeposit = wallet['usdcDepositBalance'] ?? 0.0;
+        final double xdaiDeposit = wallet['xdaiDepositBalance'] ?? 0.0;
+        final double total = gnosisUsdc + gnosisXdai + usdcDeposit + xdaiDeposit;
+        setState(() {
+          montant = total.toStringAsFixed(2);
+          isLoading = false;
+        });
+      } else {
+        setState(() {
+          montant = '0.00';
+          isLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        montant = 'Erreur';
+        isLoading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: IntrinsicHeight(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 420),
+          child: Stack(
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(top: 8.0, right: 8.0),
+                child: DonationCardWidget(
+                  montantWallet: montant,
+                  isLoading: isLoading,
+                ),
+              ),
+              Positioned(
+                top: 0,
+                right: 0,
+                child: IconButton(
+                  icon: const Icon(Icons.close_rounded, size: 28),
+                  onPressed: () => Navigator.of(context).pop(),
+                  tooltip: 'Fermer',
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

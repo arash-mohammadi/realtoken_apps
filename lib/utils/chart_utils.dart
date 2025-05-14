@@ -107,7 +107,7 @@ class ChartUtils {
     String selectedPeriod, 
     double Function(T) getValue, 
     DateTime Function(T) getTimestamp,
-    {bool applyStep = true} // Paramètre optionnel pour contrôler l'application du step
+    {bool applyStep = true, String aggregate = "average"} // Ajout du paramètre aggregate
   ) {
     Map<String, List<double>> groupedData = {};
 
@@ -125,6 +125,9 @@ class ChartUtils {
         periodKey = date.year.toString();
       }
 
+      // LOG DEBUG
+      debugPrint('[CHART-DEBUG] date=$date, periodKey=$periodKey, valeur=${getValue(record)}');
+
       groupedData.putIfAbsent(periodKey, () => []).add(getValue(record));
     }
 
@@ -134,8 +137,13 @@ class ChartUtils {
     for (int i = 0; i < sortedKeys.length; i++) {
       String periodKey = sortedKeys[i];
       List<double> values = groupedData[periodKey]!;
-      double averageValue = values.reduce((a, b) => a + b) / values.length;
-      spots.add(FlSpot(i.toDouble(), averageValue));
+      double yValue;
+      if (aggregate == "sum") {
+        yValue = values.reduce((a, b) => a + b);
+      } else {
+        yValue = values.reduce((a, b) => a + b) / values.length;
+      }
+      spots.add(FlSpot(i.toDouble(), yValue));
     }
 
     // Appliquer le step pour limiter le nombre de barres si applyStep est true

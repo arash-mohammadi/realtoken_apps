@@ -120,6 +120,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "creation_date":
             MessageLookupByLibrary.simpleMessage("Fecha de creación"),
         "crypto": MessageLookupByLibrary.simpleMessage("Crypto"),
+        "cryptoDonation": MessageLookupByLibrary.simpleMessage(
+            "O haz una donación en cripto:"),
         "cryptoDonationAddress": MessageLookupByLibrary.simpleMessage(
             "Dirección de donación de criptomonedas"),
         "cumulativeRentGraph": MessageLookupByLibrary.simpleMessage(
@@ -149,6 +151,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "donate": MessageLookupByLibrary.simpleMessage("Donar"),
         "donationMessage": MessageLookupByLibrary.simpleMessage(
             "Si te gusta esta aplicación y quieres apoyar su desarrollo, puedes donar."),
+        "donationTotal":
+            MessageLookupByLibrary.simpleMessage("Total de donaciones"),
         "duplex": MessageLookupByLibrary.simpleMessage("Dúplex"),
         "duplicate": MessageLookupByLibrary.simpleMessage(
             "Propiedades presentes en varias carteras/RMM"),
@@ -163,12 +167,26 @@ class MessageLookup extends MessageLookupByLibrary {
         "error_occurred": m4,
         "ethereumContract":
             MessageLookupByLibrary.simpleMessage("Contrato de Ethereum"),
+        "everyContributionCounts":
+            MessageLookupByLibrary.simpleMessage("Cada contribución cuenta 🙏"),
         "expectedYield":
             MessageLookupByLibrary.simpleMessage("Rendimiento esperado"),
+        "exportAllTransactionsCsv": MessageLookupByLibrary.simpleMessage(
+            "Exportar todas las transacciones en CSV"),
+        "exportAllTransactionsDescription": MessageLookupByLibrary.simpleMessage(
+            "Puede exportar todas sus transacciones (compras, transferencias, alquileres) en formato CSV para análisis o archivo."),
+        "exportAllTransactionsTitle": MessageLookupByLibrary.simpleMessage(
+            "Exportar todas las transacciones"),
         "exportButton": MessageLookupByLibrary.simpleMessage("Exportar"),
         "exportData": MessageLookupByLibrary.simpleMessage("Exportar datos"),
         "exportFailed":
             MessageLookupByLibrary.simpleMessage("Error al exportar los datos"),
+        "exportRentsCsv":
+            MessageLookupByLibrary.simpleMessage("Exportar alquileres en CSV"),
+        "exportRentsDescription": MessageLookupByLibrary.simpleMessage(
+            "Puede exportar el historial de sus alquileres en formato CSV para usarlo en una hoja de cálculo o para sus declaraciones."),
+        "exportRentsTitle":
+            MessageLookupByLibrary.simpleMessage("Exportar alquileres"),
         "exportSuccess":
             MessageLookupByLibrary.simpleMessage("Datos exportados con éxito"),
         "feedback": MessageLookupByLibrary.simpleMessage("Comentarios"),
@@ -283,12 +301,18 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("No hay propiedades en venta"),
         "noRecentUpdates": MessageLookupByLibrary.simpleMessage(
             "No hay cambios recientes disponibles."),
+        "noRentDataAvailable": MessageLookupByLibrary.simpleMessage(
+            "No hay datos de alquiler disponibles."),
+        "noRentDataToShare": MessageLookupByLibrary.simpleMessage(
+            "No hay datos de alquiler para compartir."),
         "noRentReceived":
             MessageLookupByLibrary.simpleMessage("No se ha recibido alquiler"),
         "noScheduledRonday":
             MessageLookupByLibrary.simpleMessage("No hay RONday programado"),
         "noTokensFound":
             MessageLookupByLibrary.simpleMessage("No se encontraron tokens"),
+        "noTransactionOrRentToExport": MessageLookupByLibrary.simpleMessage(
+            "No hay transacción o alquiler para exportar."),
         "noTransactionsAvailable": MessageLookupByLibrary.simpleMessage(
             "No hay transacciones disponibles"),
         "noYieldEvolution": MessageLookupByLibrary.simpleMessage(
@@ -491,6 +515,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Cantidad de tokens"),
         "token_value": MessageLookupByLibrary.simpleMessage("Valor del token"),
         "tokens": MessageLookupByLibrary.simpleMessage("Tokens"),
+        "toolsTitle": MessageLookupByLibrary.simpleMessage("Herramientas"),
         "total": MessageLookupByLibrary.simpleMessage("Total"),
         "totalBalance": MessageLookupByLibrary.simpleMessage("Saldo Total"),
         "totalExpenses": MessageLookupByLibrary.simpleMessage("Gastos Totales"),

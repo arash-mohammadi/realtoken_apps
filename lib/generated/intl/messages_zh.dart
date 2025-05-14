@@ -128,6 +128,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "country": MessageLookupByLibrary.simpleMessage("国家"),
         "creation_date": MessageLookupByLibrary.simpleMessage("创建日期"),
         "crypto": MessageLookupByLibrary.simpleMessage("加密货币"),
+        "cryptoDonation": MessageLookupByLibrary.simpleMessage("或使用加密货币捐赠："),
         "cryptoDonationAddress":
             MessageLookupByLibrary.simpleMessage("加密货币捐赠地址"),
         "cumulativeRentGraph": MessageLookupByLibrary.simpleMessage("累积租金图表"),
@@ -160,6 +161,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "donate": MessageLookupByLibrary.simpleMessage("捐赠"),
         "donationMessage":
             MessageLookupByLibrary.simpleMessage("如果您喜欢此应用并希望支持其开发，您可以捐款。"),
+        "donationTotal": MessageLookupByLibrary.simpleMessage("捐赠总额"),
         "duplex": MessageLookupByLibrary.simpleMessage("复式住宅"),
         "duplicate": MessageLookupByLibrary.simpleMessage("存在于多个钱包/RMM中的物业"),
         "duplicate_title": MessageLookupByLibrary.simpleMessage("重复的物业"),
@@ -172,10 +174,23 @@ class MessageLookup extends MessageLookupByLibrary {
         "errorDuringTest": m3,
         "error_occurred": m4,
         "ethereumContract": MessageLookupByLibrary.simpleMessage("以太坊合约"),
+        "everyContributionCounts":
+            MessageLookupByLibrary.simpleMessage("每一份贡献都很重要 🙏"),
         "expectedYield": MessageLookupByLibrary.simpleMessage("预期收益"),
+        "exportAllTransactionsCsv":
+            MessageLookupByLibrary.simpleMessage("导出所有交易为CSV"),
+        "exportAllTransactionsDescription":
+            MessageLookupByLibrary.simpleMessage(
+                "您可以将所有交易（购买、转账、租金）导出为CSV文件以供分析或存档。"),
+        "exportAllTransactionsTitle":
+            MessageLookupByLibrary.simpleMessage("导出所有交易"),
         "exportButton": MessageLookupByLibrary.simpleMessage("导出"),
         "exportData": MessageLookupByLibrary.simpleMessage("导出数据"),
         "exportFailed": MessageLookupByLibrary.simpleMessage("数据导出失败"),
+        "exportRentsCsv": MessageLookupByLibrary.simpleMessage("导出租金为CSV"),
+        "exportRentsDescription": MessageLookupByLibrary.simpleMessage(
+            "您可以将您的租金历史导出为CSV文件，以便在电子表格中使用或用于申报。"),
+        "exportRentsTitle": MessageLookupByLibrary.simpleMessage("导出租金"),
         "exportSuccess": MessageLookupByLibrary.simpleMessage("数据已成功导出"),
         "feedback": MessageLookupByLibrary.simpleMessage("反馈"),
         "filterNotInWallet": MessageLookupByLibrary.simpleMessage("不在钱包中"),
@@ -267,6 +282,10 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("没有价格演变。最新价格为："),
         "noPropertiesForSale": MessageLookupByLibrary.simpleMessage("没有待售房产"),
         "noRecentUpdates": MessageLookupByLibrary.simpleMessage("没有可用的最新更改。"),
+        "noRentDataAvailable":
+            MessageLookupByLibrary.simpleMessage("没有可用的租金数据。"),
+        "noRentDataToShare":
+            MessageLookupByLibrary.simpleMessage("没有可分享的租金数据。"),
         "noRentReceived": MessageLookupByLibrary.simpleMessage("未收到租金"),
         "noScheduledRonday":
             MessageLookupByLibrary.simpleMessage("没有已安排的RONday"),
@@ -274,6 +293,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "noTokensFound": MessageLookupByLibrary.simpleMessage("未找到代币"),
         "noTokensWithValidCoordinates":
             MessageLookupByLibrary.simpleMessage("地图上没有找到具有有效坐标的代币"),
+        "noTransactionOrRentToExport":
+            MessageLookupByLibrary.simpleMessage("没有可导出的交易或租金。"),
         "noYieldEvolution":
             MessageLookupByLibrary.simpleMessage("没有收益演变。最新收益为："),
         "no_market_offers_available":
@@ -437,6 +458,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "token_amount": MessageLookupByLibrary.simpleMessage("代币数量"),
         "token_value": MessageLookupByLibrary.simpleMessage("代币价值"),
         "tokens": MessageLookupByLibrary.simpleMessage("代币"),
+        "toolsTitle": MessageLookupByLibrary.simpleMessage("工具"),
         "total": MessageLookupByLibrary.simpleMessage("总计"),
         "totalBalance": MessageLookupByLibrary.simpleMessage("总余额"),
         "totalExpenses": MessageLookupByLibrary.simpleMessage("总支出"),

@@ -367,5 +367,18 @@
   "deposits": "Depósitos",
   "loans": "Préstamos",
   "rmmValue": "Valor RMM",
-  "walletsWithoutRmmUsage": "Billeteras sin uso RMM"
+  "walletsWithoutRmmUsage": "Billeteras sin uso RMM",
+  "cryptoDonation": "O haz una donación en cripto:",
+  "everyContributionCounts": "Cada contribución cuenta 🙏",
+  "donationTotal": "Total de donaciones",
+  "toolsTitle": "Herramientas",
+  "exportRentsTitle": "Exportar alquileres",
+  "exportRentsDescription": "Puede exportar el historial de sus alquileres en formato CSV para usarlo en una hoja de cálculo o para sus declaraciones.",
+  "exportRentsCsv": "Exportar alquileres en CSV",
+  "exportAllTransactionsTitle": "Exportar todas las transacciones",
+  "exportAllTransactionsDescription": "Puede exportar todas sus transacciones (compras, transferencias, alquileres) en formato CSV para análisis o archivo.",
+  "exportAllTransactionsCsv": "Exportar todas las transacciones en CSV",
+  "noTransactionOrRentToExport": "No hay transacción o alquiler para exportar.",
+  "noRentDataAvailable": "No hay datos de alquiler disponibles.",
+  "noRentDataToShare": "No hay datos de alquiler para compartir."
 }

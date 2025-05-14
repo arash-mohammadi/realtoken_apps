@@ -19,6 +19,12 @@ class PortfolioPage extends StatefulWidget {
 }
 
 class PortfolioPageState extends State<PortfolioPage> {
+  // Identifiants internes pour les statuts de location
+  static const String rentalStatusAll = "all";
+  static const String rentalStatusRented = "rented";
+  static const String rentalStatusPartially = "partially";
+  static const String rentalStatusNotRented = "not_rented";
+
   bool _isDisplay1 = true;
   String _searchQuery = '';
   String _sortOption = 'sort by recently added';
@@ -26,7 +32,7 @@ class PortfolioPageState extends State<PortfolioPage> {
   String? _selectedCity;
   String? _selectedRegion;
   String? _selectedCountry;
-  String _rentalStatusFilter = 'All'; // Nouveau filtre pour le statut de location
+  String _rentalStatusFilter = rentalStatusAll; // Utilise l'identifiant interne
   Set<String> _selectedWallets = {};
   Set<String> _selectedTokenTypes = {"wallet", "RMM"};
 
@@ -91,11 +97,12 @@ class PortfolioPageState extends State<PortfolioPage> {
         // Vérifie que le widget est toujours monté
         setState(() {
           _sortOption = prefs.getString('sortOption') ?? S.of(context).sortByInitialLaunchDate;
-          _isAscending = prefs.getBool('isAscending') ?? false; // Charger l'état de tri
+          _isAscending = prefs.getBool('isAscending') ?? false;
           _selectedCity = prefs.getString('selectedCity')?.isEmpty ?? true ? null : prefs.getString('selectedCity');
           _selectedRegion = prefs.getString('selectedRegion')?.isEmpty ?? true ? null : prefs.getString('selectedRegion');
           _selectedCountry = prefs.getString('selectedCountry')?.isEmpty ?? true ? null : prefs.getString('selectedCountry');
-          _rentalStatusFilter = prefs.getString('rentalStatusFilter') ?? 'All';
+          // On récupère l'identifiant interne, par défaut "all"
+          _rentalStatusFilter = prefs.getString('rentalStatusFilter') ?? rentalStatusAll;
         });
       }
     });
@@ -106,9 +113,10 @@ class PortfolioPageState extends State<PortfolioPage> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setString('sortOption', _sortOption);
     await prefs.setBool('isAscending', _isAscending);
-    await prefs.setString('selectedCity', _selectedCity ?? ''); // Sauvegarder la ville sélectionnée
-    await prefs.setString('selectedRegion', _selectedRegion ?? ''); // Sauvegarder la région sélectionnée
-    await prefs.setString('selectedCountry', _selectedCountry ?? ''); // Sauvegarder le pays sélectionné
+    await prefs.setString('selectedCity', _selectedCity ?? '');
+    await prefs.setString('selectedRegion', _selectedRegion ?? '');
+    await prefs.setString('selectedCountry', _selectedCountry ?? '');
+    // On sauvegarde l'identifiant interne
     await prefs.setString('rentalStatusFilter', _rentalStatusFilter);
   }
 
@@ -219,7 +227,7 @@ class PortfolioPageState extends State<PortfolioPage> {
             // Filtre par pays
             (_selectedCountry == null || (token['country'] != null && token['country'] == _selectedCountry)) &&
             // Filtre par statut de location
-            (_rentalStatusFilter == S.of(context).rentalStatusAll || _filterByRentalStatus(token)))
+            (_rentalStatusFilter == rentalStatusAll || _filterByRentalStatus(token)))
         .toList();
 
     // Filtre par wallet (si au moins un wallet est sélectionné)
@@ -284,11 +292,11 @@ class PortfolioPageState extends State<PortfolioPage> {
     int rentedUnits = token['rentedUnits'] ?? 0;
     int totalUnits = token['totalUnits'] ?? 1;
 
-    if (_rentalStatusFilter == S.of(context).rentalStatusRented) {
+    if (_rentalStatusFilter == rentalStatusRented) {
       return rentedUnits == totalUnits;
-    } else if (_rentalStatusFilter == S.of(context).rentalStatusPartiallyRented) {
+    } else if (_rentalStatusFilter == rentalStatusPartially) {
       return rentedUnits > 0 && rentedUnits < totalUnits;
-    } else if (_rentalStatusFilter == S.of(context).rentalStatusNotRented) {
+    } else if (_rentalStatusFilter == rentalStatusNotRented) {
       return rentedUnits == 0;
     }
     return true;
@@ -495,31 +503,20 @@ class PortfolioPageState extends State<PortfolioPage> {
                                             items: [
                                               // Section Statut de location
                                               PopupMenuItem(
-                                                value: "rental_header",
-                                                enabled: false,
+                                                value: rentalStatusAll,
                                                 child: Row(
                                                   children: [
-                                                    const Icon(Icons.home_work, size: 20),
+                                                    const Icon(Icons.home_work_outlined, size: 20),
                                                     const SizedBox(width: 8.0),
                                                     Text(
-                                                      S.of(context).rentalStatusTitle,
+                                                      S.of(context).rentalStatusAll,
                                                       style: TextStyle(fontWeight: FontWeight.bold),
                                                     ),
                                                   ],
                                                 ),
                                               ),
                                               PopupMenuItem(
-                                                value: "rental_all",
-                                                child: Row(
-                                                  children: [
-                                                    const Icon(Icons.home_work_outlined, size: 20),
-                                                    const SizedBox(width: 8.0),
-                                                    Text(S.of(context).rentalStatusAll),
-                                                  ],
-                                                ),
-                                              ),
-                                              PopupMenuItem(
-                                                value: "rental_rented",
+                                                value: rentalStatusRented,
                                                 child: Row(
                                                   children: [
                                                     const Icon(Icons.check_circle, size: 20, color: Colors.green),
@@ -529,7 +526,7 @@ class PortfolioPageState extends State<PortfolioPage> {
                                                 ),
                                               ),
                                               PopupMenuItem(
-                                                value: "rental_partially",
+                                                value: rentalStatusPartially,
                                                 child: Row(
                                                   children: [
                                                     const Icon(Icons.adjust, size: 20, color: Colors.orange),
@@ -539,7 +536,7 @@ class PortfolioPageState extends State<PortfolioPage> {
                                                 ),
                                               ),
                                               PopupMenuItem(
-                                                value: "rental_not",
+                                                value: rentalStatusNotRented,
                                                 child: Row(
                                                   children: [
                                                     const Icon(Icons.cancel, size: 20, color: Colors.red),
@@ -625,21 +622,8 @@ class PortfolioPageState extends State<PortfolioPage> {
                                               ),
                                             ],
                                             onSelected: (String value) {
-                                              if (value.startsWith("rental_")) {
-                                                switch (value) {
-                                                  case "rental_all":
-                                                    _updateRentalStatusFilter(S.of(context).rentalStatusAll);
-                                                    break;
-                                                  case "rental_rented":
-                                                    _updateRentalStatusFilter(S.of(context).rentalStatusRented);
-                                                    break;
-                                                  case "rental_partially":
-                                                    _updateRentalStatusFilter(S.of(context).rentalStatusPartiallyRented);
-                                                    break;
-                                                  case "rental_not":
-                                                    _updateRentalStatusFilter(S.of(context).rentalStatusNotRented);
-                                                    break;
-                                                }
+                                              if (value == rentalStatusAll || value == rentalStatusRented || value == rentalStatusPartially || value == rentalStatusNotRented) {
+                                                _updateRentalStatusFilter(value);
                                                 _saveFilterPreferences();
                                               }
                                             },
@@ -861,37 +845,31 @@ class PortfolioPageState extends State<PortfolioPage> {
 
   // Helper pour obtenir le label du statut de location
   String _getRentalStatusLabel(BuildContext context) {
-    if (_rentalStatusFilter == S.of(context).rentalStatusAll) {
-      return "Status";
-    } else if (_rentalStatusFilter == S.of(context).rentalStatusRented) {
-      return "Rented";
-    } else if (_rentalStatusFilter == S.of(context).rentalStatusPartiallyRented) {
-      return "Partially";
-    } else {
-      return "Not Rented";
+    switch (_rentalStatusFilter) {
+      case rentalStatusRented:
+        return S.of(context).rentalStatusRented;
+      case rentalStatusPartially:
+        return S.of(context).rentalStatusPartiallyRented;
+      case rentalStatusNotRented:
+        return S.of(context).rentalStatusNotRented;
+      default:
+        return S.of(context).rentalStatusAll;
     }
   }
 
   // Helper pour obtenir le label des filtres combinés
   String _getCombinedFilterLabel() {
-    // Par défaut, afficher "Filtres"
     String baseLabel = "Filtres";
-
-    // Ajouter des indications si des filtres sont actifs
     List<String> activeFilters = [];
-
-    // Vérifier le statut de location
-    if (_rentalStatusFilter != S.of(context).rentalStatusAll) {
-      if (_rentalStatusFilter == S.of(context).rentalStatusRented) {
+    if (_rentalStatusFilter != rentalStatusAll) {
+      if (_rentalStatusFilter == rentalStatusRented) {
         activeFilters.add("R");
-      } else if (_rentalStatusFilter == S.of(context).rentalStatusPartiallyRented) {
+      } else if (_rentalStatusFilter == rentalStatusPartially) {
         activeFilters.add("P");
       } else {
         activeFilters.add("NR");
       }
     }
-
-    // Vérifier les types de token
     if (!(_selectedTokenTypes.contains("wallet") && _selectedTokenTypes.contains("RMM"))) {
       if (_selectedTokenTypes.contains("wallet") && !_selectedTokenTypes.contains("RMM")) {
         activeFilters.add("W");
@@ -899,12 +877,9 @@ class PortfolioPageState extends State<PortfolioPage> {
         activeFilters.add("RMM");
       }
     }
-
-    // Si des filtres sont actifs, les ajouter au label
     if (activeFilters.isNotEmpty) {
       return "${activeFilters.join('+')}";
     }
-
     return baseLabel;
   }
 

@@ -444,5 +444,18 @@
   "addressCopiedMessage": "L'adresse a été copiée dans le presse-papier.",
   "ok": "OK",
   "noWalletsAvailable": "Aucun portefeuille disponible.",
-  "rentedUnits": "Unités louées: {rented}/{total}"
+  "rentedUnits": "Unités louées: {rented}/{total}",
+  "cryptoDonation": "Ou faites un don en crypto :",
+  "everyContributionCounts": "Chaque contribution compte 🙏",
+  "donationTotal": "Total des dons",
+  "toolsTitle": "Outils",
+  "exportRentsTitle": "Exporter les loyers",
+  "exportRentsDescription": "Vous pouvez exporter l'historique de vos loyers au format CSV pour l'utiliser dans un tableur ou pour vos déclarations.",
+  "exportRentsCsv": "Exporter les loyers en CSV",
+  "exportAllTransactionsTitle": "Exporter toutes les transactions",
+  "exportAllTransactionsDescription": "Vous pouvez exporter toutes vos transactions (achats, transferts, loyers) au format CSV pour analyse ou archivage.",
+  "exportAllTransactionsCsv": "Exporter toutes les transactions en CSV",
+  "noTransactionOrRentToExport": "Aucune transaction ou loyer à exporter.",
+  "noRentDataAvailable": "Aucune donnée de loyer disponible.",
+  "noRentDataToShare": "Aucune donnée de loyer à partager."
 }

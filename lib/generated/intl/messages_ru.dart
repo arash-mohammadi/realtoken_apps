@@ -152,6 +152,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "country": MessageLookupByLibrary.simpleMessage("Страна"),
         "creation_date": MessageLookupByLibrary.simpleMessage("Дата создания"),
         "crypto": MessageLookupByLibrary.simpleMessage("Криптовалюта"),
+        "cryptoDonation": MessageLookupByLibrary.simpleMessage(
+            "Или сделайте пожертвование в криптовалюте:"),
         "cryptoDonationAddress": MessageLookupByLibrary.simpleMessage(
             "Адрес для криптопожертвований"),
         "cumulativeRentGraph":
@@ -188,6 +190,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "donate": MessageLookupByLibrary.simpleMessage("Пожертвовать"),
         "donationMessage": MessageLookupByLibrary.simpleMessage(
             "Если вам нравится это приложение, вы можете поддержать его развитие."),
+        "donationTotal":
+            MessageLookupByLibrary.simpleMessage("Всего пожертвований"),
         "duplex": MessageLookupByLibrary.simpleMessage("Дуплекс"),
         "duplicate": MessageLookupByLibrary.simpleMessage(
             "Объекты в нескольких кошельках/RMM"),
@@ -205,11 +209,25 @@ class MessageLookup extends MessageLookupByLibrary {
         "error_occurred": m4,
         "ethereumContract":
             MessageLookupByLibrary.simpleMessage("Контракт Ethereum"),
+        "everyContributionCounts":
+            MessageLookupByLibrary.simpleMessage("Каждый вклад важен 🙏"),
         "expectedYield":
             MessageLookupByLibrary.simpleMessage("Ожидаемая доходность"),
+        "exportAllTransactionsCsv": MessageLookupByLibrary.simpleMessage(
+            "Экспорт всех транзакций в CSV"),
+        "exportAllTransactionsDescription": MessageLookupByLibrary.simpleMessage(
+            "Вы можете экспортировать все свои транзакции (покупки, переводы, аренда) в формате CSV для анализа или архивации."),
+        "exportAllTransactionsTitle":
+            MessageLookupByLibrary.simpleMessage("Экспорт всех транзакций"),
         "exportButton": MessageLookupByLibrary.simpleMessage("Экспорт"),
         "exportData": MessageLookupByLibrary.simpleMessage("Экспорт данных"),
         "exportFailed": MessageLookupByLibrary.simpleMessage("Ошибка экспорта"),
+        "exportRentsCsv": MessageLookupByLibrary.simpleMessage(
+            "Экспорт арендных платежей в CSV"),
+        "exportRentsDescription": MessageLookupByLibrary.simpleMessage(
+            "Вы можете экспортировать историю своих арендных платежей в формате CSV для использования в таблице или для отчетности."),
+        "exportRentsTitle":
+            MessageLookupByLibrary.simpleMessage("Экспорт арендных платежей"),
         "exportSuccess":
             MessageLookupByLibrary.simpleMessage("Данные экспортированы"),
         "feedback": MessageLookupByLibrary.simpleMessage("Обратная связь"),
@@ -342,6 +360,10 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Нет объектов на продажу"),
         "noRecentUpdates":
             MessageLookupByLibrary.simpleMessage("Нет последних изменений."),
+        "noRentDataAvailable": MessageLookupByLibrary.simpleMessage(
+            "Нет доступных данных по аренде."),
+        "noRentDataToShare": MessageLookupByLibrary.simpleMessage(
+            "Нет данных по аренде для обмена."),
         "noRentReceived": MessageLookupByLibrary.simpleMessage(
             "Арендные платежи не получены"),
         "noScheduledRonday":
@@ -353,6 +375,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Токены не найдены"),
         "noTokensWithValidCoordinates":
             MessageLookupByLibrary.simpleMessage("Нет токенов с координатами"),
+        "noTransactionOrRentToExport": MessageLookupByLibrary.simpleMessage(
+            "Нет транзакций или арендных платежей для экспорта."),
         "noTransactionsAvailable":
             MessageLookupByLibrary.simpleMessage("Нет транзакций"),
         "noWalletsAvailable":
@@ -588,6 +612,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Количество токенов"),
         "token_value": MessageLookupByLibrary.simpleMessage("Стоимость токена"),
         "tokens": MessageLookupByLibrary.simpleMessage("Токены"),
+        "toolsTitle": MessageLookupByLibrary.simpleMessage("Инструменты"),
         "total": MessageLookupByLibrary.simpleMessage("Итого"),
         "totalBalance": MessageLookupByLibrary.simpleMessage("Общий баланс"),
         "totalExpenses": MessageLookupByLibrary.simpleMessage("Всего расходов"),

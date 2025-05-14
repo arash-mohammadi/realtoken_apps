@@ -4229,6 +4229,136 @@ class S {
       args: [rented, total],
     );
   }
+
+  /// `Or donate in crypto:`
+  String get cryptoDonation {
+    return Intl.message(
+      'Or donate in crypto:',
+      name: 'cryptoDonation',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Every contribution counts 🙏`
+  String get everyContributionCounts {
+    return Intl.message(
+      'Every contribution counts 🙏',
+      name: 'everyContributionCounts',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Total donations`
+  String get donationTotal {
+    return Intl.message(
+      'Total donations',
+      name: 'donationTotal',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Tools`
+  String get toolsTitle {
+    return Intl.message(
+      'Tools',
+      name: 'toolsTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Export rents`
+  String get exportRentsTitle {
+    return Intl.message(
+      'Export rents',
+      name: 'exportRentsTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `You can export your rent history as a CSV file for use in a spreadsheet or for your declarations.`
+  String get exportRentsDescription {
+    return Intl.message(
+      'You can export your rent history as a CSV file for use in a spreadsheet or for your declarations.',
+      name: 'exportRentsDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Export rents as CSV`
+  String get exportRentsCsv {
+    return Intl.message(
+      'Export rents as CSV',
+      name: 'exportRentsCsv',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Export all transactions`
+  String get exportAllTransactionsTitle {
+    return Intl.message(
+      'Export all transactions',
+      name: 'exportAllTransactionsTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `You can export all your transactions (purchases, transfers, rents) as a CSV file for analysis or archiving.`
+  String get exportAllTransactionsDescription {
+    return Intl.message(
+      'You can export all your transactions (purchases, transfers, rents) as a CSV file for analysis or archiving.',
+      name: 'exportAllTransactionsDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Export all transactions as CSV`
+  String get exportAllTransactionsCsv {
+    return Intl.message(
+      'Export all transactions as CSV',
+      name: 'exportAllTransactionsCsv',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No transaction or rent to export.`
+  String get noTransactionOrRentToExport {
+    return Intl.message(
+      'No transaction or rent to export.',
+      name: 'noTransactionOrRentToExport',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No rent data available.`
+  String get noRentDataAvailable {
+    return Intl.message(
+      'No rent data available.',
+      name: 'noRentDataAvailable',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No rent data to share.`
+  String get noRentDataToShare {
+    return Intl.message(
+      'No rent data to share.',
+      name: 'noRentDataToShare',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

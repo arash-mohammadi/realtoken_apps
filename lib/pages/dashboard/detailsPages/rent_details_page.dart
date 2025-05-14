@@ -25,6 +25,13 @@ class _DashboardRentsDetailsPageState extends State<DashboardRentsDetailsPage> w
   late AnimationController _animationController;
   late Animation<double> _animation;
 
+  // Ajout des variables d'état pour les filtres du graphique
+  late String _selectedRentPeriod;
+  String _selectedRentTimeRange = 'all';
+  int _rentTimeOffset = 0;
+  bool rentIsBarChart = false;
+  bool showCumulativeRent = false;
+
   @override
   void initState() {
     super.initState();
@@ -37,6 +44,9 @@ class _DashboardRentsDetailsPageState extends State<DashboardRentsDetailsPage> w
     );
 
     _animation = Tween<double>(begin: 1.0, end: 0.0).animate(CurvedAnimation(parent: _animationController, curve: Curves.easeInOut));
+
+    // Initialiser la période par défaut
+    _selectedRentPeriod = 'Mois'; // ou S.of(context).month si besoin de la traduction
   }
 
   void _onScroll() {
@@ -156,18 +166,39 @@ class _DashboardRentsDetailsPageState extends State<DashboardRentsDetailsPage> w
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                       child: RentGraph(
-                        groupedData: _groupByMonth(dataManager.rentData),
+                        groupedData: [],
                         dataManager: dataManager,
-                        showCumulativeRent: false,
-                        selectedPeriod: S.of(context).month,
-                        onPeriodChanged: (period) {},
-                        onCumulativeRentChanged: (value) {},
-                        selectedTimeRange: 'all',
-                        onTimeRangeChanged: (newRange) {},
-                        timeOffset: 0,
-                        onTimeOffsetChanged: (newOffset) {},
-                        rentIsBarChart: false,
-                        onChartTypeChanged: (isBarChart) {},
+                        showCumulativeRent: showCumulativeRent,
+                        selectedPeriod: _selectedRentPeriod,
+                        onPeriodChanged: (period) {
+                          setState(() {
+                            _selectedRentPeriod = period;
+                          });
+                        },
+                        onCumulativeRentChanged: (value) {
+                          setState(() {
+                            showCumulativeRent = value;
+                          });
+                        },
+                        selectedTimeRange: _selectedRentTimeRange,
+                        onTimeRangeChanged: (newRange) {
+                          setState(() {
+                            _selectedRentTimeRange = newRange;
+                            _rentTimeOffset = 0;
+                          });
+                        },
+                        timeOffset: _rentTimeOffset,
+                        onTimeOffsetChanged: (newOffset) {
+                          setState(() {
+                            _rentTimeOffset = newOffset;
+                          });
+                        },
+                        rentIsBarChart: rentIsBarChart,
+                        onChartTypeChanged: (isBarChart) {
+                          setState(() {
+                            rentIsBarChart = isBarChart;
+                          });
+                        },
                       ),
                     ),
                   ),

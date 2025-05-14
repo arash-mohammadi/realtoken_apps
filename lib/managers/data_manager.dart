@@ -132,6 +132,7 @@ class DataManager extends ChangeNotifier {
   double gnosisUsdcBalance = 0;
   double gnosisXdaiBalance = 0;
   double gnosisRegBalance = 0;
+  double gnosisVaultRegBalance = 0;
   int totalRealtTokens = 0;
   double totalRealtInvestment = 0.0;
   double netRealtRentYear = 0.0;
@@ -1068,8 +1069,7 @@ class DataManager extends ChangeNotifier {
             realToken['totalTokens'] > 0 &&
             realToken['fullName'] != null &&
             !realToken['fullName'].startsWith('OLD-') &&
-            realToken['uuid'].toLowerCase() !=
-                Parameters.rwaTokenAddress.toLowerCase()) {
+            realToken['uuid'].toLowerCase() !=  Parameters.rwaTokenAddress.toLowerCase()) {
           double? customInitPrice = customInitPrices[tokenContractAddress];
           double initPrice = customInitPrice ??
               (realToken['historic']['init_price'] as num?)?.toDouble() ??
@@ -2030,6 +2030,7 @@ debugPrint("🗃️ Début récupération et calcul des données pour le Dashboa
     double totalGnosisUsdcSum = 0;
     double totalGnosisXdaiSum = 0;
     double totalGnosisRegSum = 0;
+    double totalGnosisVaultRegSum = 0;
     // Liste pour stocker les données par wallet
     List<Map<String, dynamic>> walletDetails = [];
 
@@ -2044,6 +2045,7 @@ debugPrint("🗃️ Début récupération et calcul des données pour le Dashboa
       double gnosisUsdc = balance['gnosisUsdcBalance'];
       double gnosisXdai = balance['gnosisXdaiBalance'];
       double gnosisReg = balance['gnosisRegBalance'];
+      double gnosisVaultReg = balance['gnosisVaultRegBalance'];
       timestamp = balance['timestamp']; // Dernier timestamp mis à jour
 
       // Mise à jour des totaux globaux
@@ -2054,6 +2056,7 @@ debugPrint("🗃️ Début récupération et calcul des données pour le Dashboa
       totalGnosisUsdcSum += gnosisUsdc;
       totalGnosisXdaiSum += gnosisXdai;
       totalGnosisRegSum += gnosisReg;
+      totalGnosisVaultRegSum += gnosisVaultReg;
       // Stocker les données propres au wallet
       walletDetails.add({
         'address': balance['address'],
@@ -2063,6 +2066,7 @@ debugPrint("🗃️ Début récupération et calcul des données pour le Dashboa
         'xdaiBorrow': xdaiBorrow,
         'gnosisUsdc': gnosisUsdc,
         'gnosisReg': gnosisReg,
+        'gnosisVaultReg': gnosisVaultReg,
         'gnosisXdai': gnosisXdai,
         'timestamp': timestamp,
       });
@@ -2076,7 +2080,7 @@ debugPrint("🗃️ Début récupération et calcul des données pour le Dashboa
     gnosisUsdcBalance = totalGnosisUsdcSum;
     gnosisRegBalance = totalGnosisRegSum;
     gnosisXdaiBalance = totalGnosisXdaiSum;
-
+    gnosisVaultRegBalance = totalGnosisVaultRegSum;
     // Stocker les détails par wallet
     perWalletBalances = walletDetails;
 
