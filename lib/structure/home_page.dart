@@ -37,8 +37,12 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     super.initState();
     final random = Random();
-    final delaySeconds = 5 + random.nextInt(26); // 5 à 30 inclus
-    Future.delayed(Duration(seconds: delaySeconds), _showDonationPopupIfNeeded);
+
+    // Ajout de la condition de probabilité
+    if (random.nextInt(3) == 0) { // Génère 0, 1, ou 2. La condition est vraie pour 0 (1/3 des cas)
+      final delaySeconds = 5 + random.nextInt(26); // 5 à 30 inclus
+      Future.delayed(Duration(seconds: delaySeconds), _showDonationPopupIfNeeded);
+    }
   }
 
   void _showDonationPopupIfNeeded() async {

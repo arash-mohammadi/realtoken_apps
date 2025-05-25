@@ -317,8 +317,8 @@ class _TokenDetailsWidgetState extends State<TokenDetailsWidget> with SingleTick
                               margin: const EdgeInsets.only(right: 6.0),
                               child: Image.asset(
                                 'assets/country/${widget.token['country'].toLowerCase()}.png',
-                                width: 22 + appState.getTextSizeOffset(),
-                                height: 22 + appState.getTextSizeOffset(),
+                                width: 28 + appState.getTextSizeOffset(),
+                                height: 28 + appState.getTextSizeOffset(),
                                 errorBuilder: (context, error, stackTrace) {
                                   return const Icon(Icons.flag, size: 20);
                                 },
@@ -506,7 +506,7 @@ class _TokenDetailsWidgetState extends State<TokenDetailsWidget> with SingleTick
             ),
           ),
           // Contenu de l'onglet sélectionné
-          SliverToBoxAdapter(
+          SliverFillRemaining(
             child: _buildTabContent(context, _tabController.index),
           ),
           // Padding bas pour permettre le scroll complet

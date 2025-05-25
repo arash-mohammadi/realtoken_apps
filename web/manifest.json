@@ -1,11 +1,11 @@
 {
-    "name": "realtoken_apps",
-    "short_name": "realtoken_apps",
+    "name": "RealToken Asset Tracker",
+    "short_name": "realtoken_asset_tracker",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "RealToken Asset Tracker",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
