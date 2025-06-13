@@ -8,6 +8,7 @@ import 'package:realtoken_asset_tracker/models/rented_record.dart';
 import 'package:realtoken_asset_tracker/utils/parameters.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/api_service.dart';
+import '../services/cache_service.dart';
 import '../models/balance_record.dart';
 import '../models/roi_record.dart';
 import '../models/apy_record.dart';
@@ -41,6 +42,7 @@ class DataManager extends ChangeNotifier {
   // Variables finales pour les managers
   final ArchiveManager _archiveManager;
   final ApyManager apyManager;
+  final CacheService _cacheService = CacheService();
 
   // Flags pour suivre l'état d'exécution des fonctions de chargement de données
   bool _isLoadingFromCache = false;
@@ -53,11 +55,22 @@ class DataManager extends ChangeNotifier {
     required ApyManager apyManager,
   }) : _archiveManager = archiveManager,
        apyManager = apyManager {
+    _initializeServices(); // Initialiser les services
     loadCustomInitPrices(); // Charger les prix personnalisés lors de l'initialisation
     _loadApyReactivityPreference(); // Charger la préférence de réactivité APY
     
     // Initialiser l'ArchiveManager avec une référence à cette instance
     _archiveManager.setDataManager(this);
+  }
+
+  /// Initialise les services nécessaires
+  Future<void> _initializeServices() async {
+    try {
+      await _cacheService.initialize();
+      debugPrint("✅ CacheService initialisé");
+    } catch (e) {
+      debugPrint("❌ Erreur initialisation CacheService: $e");
+    }
   }
 
   /// Charge la préférence de réactivité APY depuis SharedPreferences
@@ -554,7 +567,7 @@ class DataManager extends ChangeNotifier {
     return totalRent;
   }
 
-  /// Méthode pour charger uniquement les données depuis le cache puis lancer les mises à jour normales
+  /// Méthode optimisée pour charger le cache en premier puis mettre à jour en arrière-plan
   Future<void> loadFromCacheThenUpdate(BuildContext context) async {
     // Vérifier si déjà en cours d'exécution
     if (_isLoadingFromCache) {
@@ -566,7 +579,7 @@ class DataManager extends ChangeNotifier {
     _isLoadingFromCache = true;
     
     final startTime = DateTime.now();
-    debugPrint("$_logMain Chargement depuis le cache puis mise à jour...");
+    debugPrint("$_logMain Chargement optimisé cache-first...");
     
     try {
       var box = Hive.box('realTokens');
@@ -576,133 +589,214 @@ class DataManager extends ChangeNotifier {
       
       if (evmAddresses.isEmpty) {
         debugPrint("$_logWarning Aucune adresse de wallet disponible");
-        _isLoadingFromCache = false; // Réinitialiser le flag
+        _isLoadingFromCache = false;
         return;
       }
       
-      // Fonction pour charger uniquement à partir du cache
-      Future<void> loadFromCache({
+      // Fonction générique de chargement depuis le cache avec gestion d'erreur
+      Future<void> loadFromCacheWithFallback({
         required String cacheKey,
         required void Function(List<Map<String, dynamic>>) updateVariable,
         required String debugName,
+        String? alternativeCacheKey,
       }) async {
         try {
+          // Essayer avec la clé principale
           var cachedData = box.get(cacheKey);
+          
+          // Si pas de données, essayer avec la clé alternative
+          if (cachedData == null && alternativeCacheKey != null) {
+            cachedData = box.get(alternativeCacheKey);
+          }
+          
           if (cachedData != null) {
-            debugPrint("$_logTask Chargement des données $debugName depuis le cache...");
-            updateVariable(List<Map<String, dynamic>>.from(json.decode(cachedData)));
-            notifyListeners();
-            debugPrint("$_logSuccess Données $debugName chargées depuis le cache");
+            try {
+              final decodedData = List<Map<String, dynamic>>.from(json.decode(cachedData));
+              updateVariable(decodedData);
+              debugPrint("$_logSuccess Cache $debugName chargé: ${decodedData.length} éléments");
+            } catch (e) {
+              debugPrint("$_logError Erreur décodage cache $debugName: $e");
+            }
           } else {
-            debugPrint("$_logWarning Pas de données en cache pour $debugName");
+            debugPrint("$_logWarning Pas de cache disponible pour $debugName");
           }
         } catch (e) {
-          debugPrint("$_logError Erreur lors du chargement du cache pour $debugName: $e");
+          debugPrint("$_logError Erreur chargement cache $debugName: $e");
         }
       }
       
-      // 1. Charger les données principales depuis le cache
-      debugPrint("$_logSub Chargement des données principales depuis le cache...");
+      // 1. Chargement prioritaire en parallèle des données principales
+      debugPrint("$_logSub Chargement prioritaire du cache principal...");
       await Future.wait([
-        loadFromCache(
-          cacheKey: 'cachedTokenData_tokens',
+        loadFromCacheWithFallback(
+          cacheKey: 'cachedData_wallet_tokens',
+          alternativeCacheKey: 'cachedTokenData_tokens',
           updateVariable: (data) => walletTokens = data,
           debugName: "Tokens"
         ),
-        loadFromCache(
+        loadFromCacheWithFallback(
           cacheKey: 'cachedRealTokens',
           updateVariable: (data) => realTokens = data,
           debugName: "RealTokens"
         ),
-        loadFromCache(
+        loadFromCacheWithFallback(
           cacheKey: 'rmmBalances',
           updateVariable: (data) {
             rmmBalances = data;
-            fetchRmmBalances();
+            if (data.isNotEmpty) fetchRmmBalances();
           },
           debugName: "RMM Balances"
         ),
-        loadFromCache(
-          cacheKey: 'tempRentData',
+      ]);
+
+      // Calculer les données essentielles immédiatement après le chargement du cache principal
+      if (realTokens.isNotEmpty && walletTokens.isNotEmpty) {
+        await fetchAndCalculateData();
+        await fetchAndStoreAllTokens();
+        fetchPropertyData();
+      }
+
+      // 2. Chargement en parallèle des données secondaires
+      debugPrint("$_logSub Chargement du cache secondaire...");
+      await Future.wait([
+        loadFromCacheWithFallback(
+          cacheKey: 'cachedData_tempRentData',
+          alternativeCacheKey: 'tempRentData',
           updateVariable: (data) => tempRentData = data,
           debugName: "Loyer temporaire"
         ),
-        loadFromCache(
-          cacheKey: 'cachedPropertiesForSaleData',
+        loadFromCacheWithFallback(
+          cacheKey: 'cachedData_cachedPropertiesForSaleData',
+          alternativeCacheKey: 'cachedPropertiesForSaleData',
           updateVariable: (data) => propertiesForSaleFetched = data,
           debugName: "Propriétés en vente"
         ),
-        loadFromCache(
-          cacheKey: 'cachedWhitelistTokens',
+        loadFromCacheWithFallback(
+          cacheKey: 'cachedData_cachedWhitelistTokens',
+          alternativeCacheKey: 'cachedWhitelistTokens',
           updateVariable: (data) => whitelistTokens = data,
           debugName: "Whitelist"
-        )
-      ]);
-      
-      // 2. Charger les données secondaires depuis le cache
-      debugPrint("$_logSub Chargement des données secondaires depuis le cache...");
-      await Future.wait([
-        loadFromCache(
-          cacheKey: 'cachedWalletsTransactions',
+        ),
+        loadFromCacheWithFallback(
+          cacheKey: 'cachedData_cachedWalletsTransactions',
+          alternativeCacheKey: 'cachedWalletsTransactions',
           updateVariable: (data) => yamWalletsTransactionsFetched = data,
           debugName: "YAM Wallets Transactions"
         ),
-        loadFromCache(
-          cacheKey: 'cachedYamMarket',
+        loadFromCacheWithFallback(
+          cacheKey: 'cachedData_cachedYamMarket',
+          alternativeCacheKey: 'cachedYamMarket',
           updateVariable: (data) => yamMarketFetched = data,
           debugName: "YAM Market"
         ),
-        loadFromCache(
-          cacheKey: 'yamHistory',
+        loadFromCacheWithFallback(
+          cacheKey: 'cachedData_yamHistory',
+          alternativeCacheKey: 'yamHistory',
           updateVariable: (data) {
             yamHistory = data;
-            fetchYamHistory();
+            if (data.isNotEmpty) fetchYamHistory();
           },
           debugName: "YAM Volumes History"
         ),
-        loadFromCache(
-          cacheKey: 'transactionsHistory',
+        loadFromCacheWithFallback(
+          cacheKey: 'cachedData_transactionsHistory',
+          alternativeCacheKey: 'transactionsHistory',
           updateVariable: (data) async {
             transactionsHistory = data;
-            await processTransactionsHistory(context, transactionsHistory, yamWalletsTransactionsFetched);
+            if (data.isNotEmpty && yamWalletsTransactionsFetched.isNotEmpty) {
+              await processTransactionsHistory(context, transactionsHistory, yamWalletsTransactionsFetched);
+            }
           },
           debugName: "Transactions History"
         ),
-        loadFromCache(
-          cacheKey: 'detailedRentData',
+        loadFromCacheWithFallback(
+          cacheKey: 'cachedData_detailedRentData',
+          alternativeCacheKey: 'detailedRentData',
           updateVariable: (data) {
             detailedRentData = data;
-            processDetailedRentData();
+            if (data.isNotEmpty) processDetailedRentData();
           },
           debugName: "Detailed rents"
         )
       ]);
       
-      // Charger les historiques
+      // 3. Charger les historiques persistants
       debugPrint("$_logSub Chargement des historiques...");
-      loadWalletBalanceHistory();
-      loadRentedHistory();
-      loadRoiHistory();
-      loadApyHistory();
-      loadHealthAndLtvHistory();
+      await Future.wait([
+        loadWalletBalanceHistory(),
+        loadRentedHistory(),
+        loadRoiHistory(),
+        loadApyHistory(),
+        loadHealthAndLtvHistory(),
+      ]);
       
-      // Marquer le chargement comme terminé pour l'UI
+      // Traitement final des données secondaires
+      if (propertiesForSaleFetched.isNotEmpty) {
+        await fetchAndStorePropertiesForSale();
+      }
+      if (yamMarketFetched.isNotEmpty) {
+        await fetchAndStoreYamMarketData();
+      }
+      
+      // Marquer le chargement initial comme terminé
       isLoadingMain = false;
       isLoadingSecondary = false;
+      isLoading = false;
+      isLoadingTransactions = false;
       
       final cacheDuration = DateTime.now().difference(startTime);
-      debugPrint("$_logMain Chargement depuis le cache terminé (${cacheDuration.inMilliseconds}ms)");
+      debugPrint("$_logMain Cache chargé et données calculées (${cacheDuration.inMilliseconds}ms)");
       
-      // 3. Lancer les mises à jour normales pour obtenir les données les plus récentes
-      // sans bloquer l'UI qui a déjà les données du cache
-      debugPrint("$_logMain Lancement des mises à jour en arrière-plan...");
-      // Appeler la méthode centralisée pour la mise à jour complète
-      await updateAllData(context);
+      // Notifier que les données du cache sont prêtes
+      notifyListeners();
+      
+      // 4. Lancer les mises à jour API en arrière-plan (sans bloquer l'UI)
+      debugPrint("$_logMain Démarrage des mises à jour en arrière-plan...");
+      _startBackgroundUpdate(context);
+      
     } catch (e) {
       debugPrint("$_logError Erreur globale dans loadFromCacheThenUpdate: $e");
+      // En cas d'erreur, s'assurer que l'UI n'est pas bloquée
+      isLoadingMain = false;
+      isLoadingSecondary = false;
+      isLoading = false;
+      notifyListeners();
     } finally {
-      _isLoadingFromCache = false; // Réinitialiser le flag quoi qu'il arrive
+      _isLoadingFromCache = false;
     }
+  }
+
+  /// Lance les mises à jour API en arrière-plan sans bloquer l'UI
+  void _startBackgroundUpdate(BuildContext context) {
+    Future.microtask(() async {
+      try {
+        // Activer les indicateurs de mise à jour en arrière-plan
+        isUpdatingData = true;
+        notifyListeners();
+        
+        // Lancer les mises à jour en parallèle
+        await Future.wait([
+          updateMainInformations(forceFetch: false),
+          updateSecondaryInformations(context, forceFetch: false),
+        ]);
+        
+        // Recalculer les données avec les nouvelles informations
+        if (realTokens.isNotEmpty && walletTokens.isNotEmpty) {
+          await fetchAndCalculateData();
+          await fetchAndStoreAllTokens();
+          await fetchAndStorePropertiesForSale();
+          await fetchAndStoreYamMarketData();
+        }
+        
+        debugPrint("$_logSuccess Mise à jour en arrière-plan terminée");
+      } catch (e) {
+        debugPrint("$_logError Erreur lors de la mise à jour en arrière-plan: $e");
+      } finally {
+        // Désactiver les indicateurs de mise à jour
+        isUpdatingData = false;
+        notifyListeners();
+      }
+    });
   }
   
   /// Méthode centralisée pour mettre à jour toutes les données
