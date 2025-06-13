@@ -377,7 +377,7 @@ class RealtPageState extends State<SupportPage> {
   }
 
   void _showIOSCryptoAddressDialog(BuildContext context, double textSizeOffset) {
-    const cryptoAddress = '0x2cb49d04890a98eb89f4f43af96ad01b98b64165';
+    const cryptoAddress = '0xdc30b07aebaef3f15544a3801c6cb0f35f0118fc';
 
     showCupertinoModalPopup(
       context: context,

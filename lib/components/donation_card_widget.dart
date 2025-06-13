@@ -28,7 +28,7 @@ class DonationCardWidget extends StatelessWidget {
             style: TextStyle(
               fontSize: 24 + appState.getTextSizeOffset(),
               fontWeight: FontWeight.bold,
-              color: Colors.black87,
+              color: Theme.of(context).textTheme.headlineSmall?.color,
             ),
             textAlign: TextAlign.center,
           ),
@@ -51,7 +51,10 @@ class DonationCardWidget extends StatelessWidget {
               children: [
                 Text(
                   S.of(context).donationTotal,
-                  style: TextStyle(fontSize: 15 + appState.getTextSizeOffset(), color: Colors.grey[700]),
+                  style: TextStyle(
+                    fontSize: 15 + appState.getTextSizeOffset(), 
+                    color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.8)
+                  ),
                 ),
                 SizedBox(height: 4 + appState.getTextSizeOffset()),
                 Row(
@@ -87,12 +90,15 @@ class DonationCardWidget extends StatelessWidget {
           // Message d'intro
           Text(
             S.of(context).donationMessage,
-            style: TextStyle(fontSize: 14 + appState.getTextSizeOffset(), color: Colors.black87),
+            style: TextStyle(
+              fontSize: 14 + appState.getTextSizeOffset(), 
+              color: Theme.of(context).textTheme.bodyLarge?.color
+            ),
             textAlign: TextAlign.center,
           ),
           SizedBox(height: 8 + appState.getTextSizeOffset()),
           Divider(
-            color: Colors.grey[300],
+            color: Theme.of(context).dividerColor,
             thickness: 1,
           ),
           SizedBox(height: 8 + appState.getTextSizeOffset()),
@@ -142,13 +148,18 @@ class DonationCardWidget extends StatelessWidget {
             children: [
               Text(
                 S.of(context).cryptoDonation,
-                style: TextStyle(fontSize: 13, color: Colors.black54),
+                style: TextStyle(
+                  fontSize: 13, 
+                  color: Theme.of(context).textTheme.bodySmall?.color
+                ),
               ),
               SizedBox(height: 4 + appState.getTextSizeOffset()),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF4F4F4),
+                  color: Theme.of(context).brightness == Brightness.dark 
+                      ? Colors.grey[800] 
+                      : const Color(0xFFF4F4F4),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Row(
@@ -156,19 +167,23 @@ class DonationCardWidget extends StatelessWidget {
                   children: [
                     Expanded(
                       child: SelectableText(
-                        '0x2cb49d04890a98eb89f4f43af96ad01b98b64165',
+                        '0xdc30b07aebaef3f15544a3801c6cb0f35f0118fc',
                         style: TextStyle(
                           fontSize: 12 + appState.getTextSizeOffset(),
                           fontFamily: 'Menlo',
-                          color: Colors.black87,
+                          color: Theme.of(context).textTheme.bodyLarge?.color,
                         ),
                       ),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.copy_rounded, size: 20, color: Colors.grey),
+                      icon: Icon(
+                        Icons.copy_rounded, 
+                        size: 20, 
+                        color: Theme.of(context).iconTheme.color?.withOpacity(0.7)
+                      ),
                       tooltip: S.of(context).copy,
                       onPressed: () async {
-                        await Clipboard.setData(const ClipboardData(text: '0x2cb49d04890a98eb89f4f43af96ad01b98b64165'));
+                        await Clipboard.setData(const ClipboardData(text: '0xdc30b07aebaef3f15544a3801c6cb0f35f0118fc'));
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text(S.of(context).addressCopied),
@@ -186,7 +201,10 @@ class DonationCardWidget extends StatelessWidget {
           // Message de remerciement
           Text(
             S.of(context).everyContributionCounts,
-            style: TextStyle(fontSize: 12, color: Colors.grey),
+            style: TextStyle(
+              fontSize: 12, 
+              color: Theme.of(context).textTheme.bodySmall?.color?.withOpacity(0.7)
+            ),
             textAlign: TextAlign.center,
           ),
         ],

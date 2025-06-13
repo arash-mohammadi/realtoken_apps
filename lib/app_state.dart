@@ -72,14 +72,24 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
 
   // --- Gestion du compteur d'ouvertures de l'app pour la popup dons ---
   int _appOpenCount = 0;
+  int _lastDonationPopupTimestamp = 0; // Timestamp de la dernière fois que la popup a été affichée
   int get appOpenCount => _appOpenCount;
 
-  /// Retourne true si la popup dons doit être affichée (après 10 ouvertures)
-  bool get shouldShowDonationPopup => _appOpenCount >= 10;
+  /// Retourne true si la popup dons doit être affichée (après 10 ouvertures ET au moins 1h depuis la dernière)
+  bool get shouldShowDonationPopup {
+    if (_appOpenCount < 10) return false;
+    
+    final currentTimestamp = DateTime.now().millisecondsSinceEpoch;
+    final oneHourInMillis = 60 * 60 * 1000; // 1 heure en millisecondes
+    
+    // Vérifier si au moins 1 heure s'est écoulée depuis la dernière popup
+    return (currentTimestamp - _lastDonationPopupTimestamp) >= oneHourInMillis;
+  }
 
-  AppState() {
+      AppState() {
     _loadSettings();
     loadAppOpenCount(); // Charger le compteur d'ouvertures
+    loadLastDonationPopupTimestamp(); // Charger le timestamp de la dernière popup
     incrementAppOpenCount(); // Incrémenter à chaque lancement
     WidgetsBinding.instance.addObserver(this); // Add observer to listen to system changes
   }
@@ -268,5 +278,16 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     final prefs = await SharedPreferences.getInstance();
     _appOpenCount = (prefs.getInt('appOpenCount') ?? 0) + 1;
     await prefs.setInt('appOpenCount', _appOpenCount);
+  }
+
+  Future<void> loadLastDonationPopupTimestamp() async {
+    final prefs = await SharedPreferences.getInstance();
+    _lastDonationPopupTimestamp = prefs.getInt('lastDonationPopupTimestamp') ?? 0;
+  }
+
+  Future<void> updateLastDonationPopupTimestamp() async {
+    final prefs = await SharedPreferences.getInstance();
+    _lastDonationPopupTimestamp = DateTime.now().millisecondsSinceEpoch;
+    await prefs.setInt('lastDonationPopupTimestamp', _lastDonationPopupTimestamp);
   }
 }

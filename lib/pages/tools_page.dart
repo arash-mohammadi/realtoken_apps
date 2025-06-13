@@ -30,11 +30,12 @@ class ToolsPage extends StatelessWidget {
         elevation: 0,
         surfaceTintColor: Colors.transparent,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
             Text(
               S.of(context).exportRentsTitle,
               style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
@@ -147,7 +148,8 @@ class ToolsPage extends StatelessWidget {
                 style: theme.textTheme.bodyLarge?.copyWith(color: theme.colorScheme.error),
                 textAlign: TextAlign.center,
               ),
-          ],
+            ],
+          ),
         ),
       ),
     );

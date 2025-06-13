@@ -51,6 +51,10 @@ class _MyHomePageState extends State<MyHomePage> {
     final appState = Provider.of<AppState>(context, listen: false);
     if (!appState.shouldShowDonationPopup) return;
     _donationPopupShown = true;
+    
+    // Mettre à jour le timestamp de la dernière popup affichée
+    await appState.updateLastDonationPopupTimestamp();
+    
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -690,7 +694,7 @@ class _DonationPopupAsyncLoaderState extends State<_DonationPopupAsyncLoader> {
   }
 
   Future<void> _fetchWalletAmount() async {
-    const walletAddress = '0x2cb49d04890a98eb89f4f43af96ad01b98b64165';
+    const walletAddress = '0xdc30b07aebaef3f15544a3801c6cb0f35f0118fc';
     try {
       // Appel direct à ApiService.fetchRmmBalances pour une seule adresse
       final balances = await ApiService.fetchRmmBalancesForAddress(walletAddress);
@@ -741,7 +745,11 @@ class _DonationPopupAsyncLoaderState extends State<_DonationPopupAsyncLoader> {
                 top: 0,
                 right: 0,
                 child: IconButton(
-                  icon: const Icon(Icons.close_rounded, size: 28),
+                  icon: Icon(
+                    Icons.close_rounded, 
+                    size: 28,
+                    color: Theme.of(context).iconTheme.color,
+                  ),
                   onPressed: () => Navigator.of(context).pop(),
                   tooltip: 'Fermer',
                 ),
