@@ -379,6 +379,8 @@ class MessageLookup extends MessageLookupByLibrary {
             "Нет транзакций или арендных платежей для экспорта."),
         "noTransactionsAvailable":
             MessageLookupByLibrary.simpleMessage("Нет транзакций"),
+        "noWalletMessage": MessageLookupByLibrary.simpleMessage(
+            "Чтобы использовать приложение, вы должны сначала добавить хотя бы один адрес кошелька Ethereum."),
         "noWalletsAvailable":
             MessageLookupByLibrary.simpleMessage("Нет доступных кошельков"),
         "noYieldEvolution": MessageLookupByLibrary.simpleMessage(

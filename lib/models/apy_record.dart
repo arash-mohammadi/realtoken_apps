@@ -27,24 +27,37 @@ class APYRecord {
   }
 
   factory APYRecord.fromJson(Map<String, dynamic> json) {
+    // Fonction helper pour convertir de manière sécurisée
+    double safeToDouble(dynamic value) {
+      if (value == null) return 0.0;
+      if (value is double) return value;
+      if (value is int) return value.toDouble();
+      if (value is String) {
+        return double.tryParse(value) ?? 0.0;
+      }
+      return 0.0;
+    }
+
     // Vérifier si on est dans l'ancien format ou le nouveau
     if (json.containsKey('netApy') && json.containsKey('grossApy')) {
       // Ancien format
       return APYRecord(
         timestamp: json['timestamp'] is int 
             ? DateTime.fromMillisecondsSinceEpoch(json['timestamp']) 
-            : DateTime.parse(json['timestamp']),
-        apy: (json['netApy'] ?? 0.0).toDouble(), // Utiliser netApy comme apy principal
-        netApy: (json['netApy'] ?? 0.0).toDouble(),
-        grossApy: (json['grossApy'] ?? 0.0).toDouble(),
+            : DateTime.parse(json['timestamp'].toString()),
+        apy: safeToDouble(json['netApy']), // Utiliser netApy comme apy principal
+        netApy: safeToDouble(json['netApy']),
+        grossApy: safeToDouble(json['grossApy']),
       );
     } else {
       // Nouveau format
       return APYRecord(
         timestamp: json['timestamp'] is int 
             ? DateTime.fromMillisecondsSinceEpoch(json['timestamp']) 
-            : DateTime.parse(json['timestamp']),
-        apy: (json['apy'] ?? 0.0).toDouble(),
+            : DateTime.parse(json['timestamp'].toString()),
+        apy: safeToDouble(json['apy']),
+        netApy: safeToDouble(json['netApy']),
+        grossApy: safeToDouble(json['grossApy']),
       );
     }
   }

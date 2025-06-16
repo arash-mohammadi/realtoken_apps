@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:realtoken_asset_tracker/app_state.dart';
 import 'package:realtoken_asset_tracker/generated/l10n.dart';
 import 'package:realtoken_asset_tracker/managers/data_manager.dart';
+import 'package:realtoken_asset_tracker/utils/widget_factory.dart';
 import 'package:realtoken_asset_tracker/pages/dashboard/detailsPages/rmm_details_page.dart';
 import 'package:realtoken_asset_tracker/utils/currency_utils.dart';
 import 'package:realtoken_asset_tracker/utils/ui_utils.dart';
@@ -17,9 +18,9 @@ class RmmCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dataManager = Provider.of<DataManager>(context);
+    final dataManager = Provider.of<DataManager>(context, listen: false);
     final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
-    final appState = Provider.of<AppState>(context);
+    final appState = Provider.of<AppState>(context, listen: false);
     final theme = Theme.of(context);
 
     // Récupérer la liste des wallets depuis perWalletBalances
@@ -106,7 +107,7 @@ class RmmCard extends StatelessWidget {
         const SizedBox(height: 4),
 
         // Section Dépôts avec titre
-        _buildSectionHeader(context, S.of(context).depositBalance),
+                  WidgetFactory.buildSectionHeader(context, S.of(context).depositBalance),
 
         _buildBalanceRowWithIcon(
           context,
@@ -131,7 +132,7 @@ class RmmCard extends StatelessWidget {
         const SizedBox(height: 6),
 
         // Section Emprunts avec titre
-        _buildSectionHeader(context, S.of(context).borrowBalance),
+                  WidgetFactory.buildSectionHeader(context, S.of(context).borrowBalance),
 
         _buildBalanceRowWithIcon(
           context,
@@ -663,36 +664,7 @@ class RmmCard extends StatelessWidget {
     );
   }
 
-  // Widget pour créer un en-tête de section
-  Widget _buildSectionHeader(BuildContext context, String title) {
-    final theme = Theme.of(context);
 
-    return Padding(
-      padding: const EdgeInsets.only(top: 2.0, bottom: 2.0),
-      child: Row(
-        children: [
-          Container(
-            height: 16,
-            width: 4,
-            decoration: BoxDecoration(
-              color: theme.primaryColor,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              letterSpacing: -0.3,
-              color: theme.textTheme.titleMedium?.color,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   // Déterminer le statut de temps avant liquidation
   String _calculateTimeBeforeLiquidationStatus(

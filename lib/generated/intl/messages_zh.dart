@@ -295,6 +295,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("地图上没有找到具有有效坐标的代币"),
         "noTransactionOrRentToExport":
             MessageLookupByLibrary.simpleMessage("没有可导出的交易或租金。"),
+        "noWalletMessage": MessageLookupByLibrary.simpleMessage(
+            "要使用该应用程序，您必须首先添加至少一个以太坊钱包地址。"),
         "noYieldEvolution":
             MessageLookupByLibrary.simpleMessage("没有收益演变。最新收益为："),
         "no_market_offers_available":

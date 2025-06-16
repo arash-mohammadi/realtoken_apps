@@ -7,6 +7,7 @@ import 'package:realtoken_asset_tracker/utils/currency_utils.dart';
 import 'package:realtoken_asset_tracker/generated/l10n.dart';
 import 'package:realtoken_asset_tracker/utils/ui_utils.dart';
 import 'package:realtoken_asset_tracker/utils/parameters.dart';
+import 'package:realtoken_asset_tracker/utils/widget_factory.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:realtoken_asset_tracker/settings/personalization_settings_page.dart';
 import 'package:realtoken_asset_tracker/pages/dashboard/detailsPages/portfolio_details_page.dart';
@@ -26,7 +27,7 @@ class PortfolioCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dataManager = Provider.of<DataManager>(context);
+    final dataManager = Provider.of<DataManager>(context, listen: false);
     final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
     final theme = Theme.of(context);
 
@@ -90,7 +91,7 @@ class PortfolioCard extends StatelessWidget {
             : const SizedBox.shrink(),
         [
           // Section des totaux - mise en évidence avec un style particulier
-          _buildSectionTitle(context, S.of(context).totalPortfolio, theme),
+          WidgetFactory.buildSectionHeader(context, S.of(context).totalPortfolio),
           _buildTotalValue(context, currencyUtils.getFormattedAmount(currencyUtils.convert(totalPortfolioValue), currencyUtils.currencySymbol, showAmounts), isLoading, theme,
               showNetLabel: Parameters.showNetTotal),
 
@@ -106,7 +107,7 @@ class PortfolioCard extends StatelessWidget {
           const SizedBox(height: 3), // Réduit de 6 à 3
 
           // Section des actifs - avec titre de section
-          _buildSectionTitle(context, S.of(context).assets, theme),
+          WidgetFactory.buildSectionHeader(context, S.of(context).assets),
           _buildIndentedBalance(S.of(context).wallet, currencyUtils.convert(dataManager.walletValue), currencyUtils.currencySymbol, true, context, isLoading),
           _buildIndentedBalance(S.of(context).rmm, currencyUtils.convert(dataManager.rmmValue), currencyUtils.currencySymbol, true, context, isLoading),
           _buildIndentedBalance(S.of(context).rwaHoldings, currencyUtils.convert(dataManager.rwaHoldingsValue), currencyUtils.currencySymbol, true, context, isLoading),
@@ -114,7 +115,7 @@ class PortfolioCard extends StatelessWidget {
           if (Parameters.showNetTotal) ...[
             const SizedBox(height: 3), // Réduit de 6 à 3
             // Section des dépôts et emprunts - avec titre de section
-            _buildSectionTitle(context, S.of(context).depositsAndLoans, theme),
+            WidgetFactory.buildSectionHeader(context, S.of(context).depositsAndLoans),
             _buildIndentedBalance(
                 S.of(context).depositBalance, currencyUtils.convert(dataManager.totalUsdcDepositBalance + dataManager.totalXdaiDepositBalance), currencyUtils.currencySymbol, true, context, isLoading),
             _buildIndentedBalance(
@@ -124,7 +125,7 @@ class PortfolioCard extends StatelessWidget {
           // Affichage de l'ajustement manuel si différent de zéro
           if (Parameters.manualAdjustment != 0) ...[
             const SizedBox(height: 3), // Réduit de 6 à 3
-            _buildSectionTitle(context, S.of(context).adjustments, theme),
+            WidgetFactory.buildSectionHeader(context, S.of(context).adjustments),
             _buildIndentedBalance(
                 S.of(context).manualAdjustment, currencyUtils.convert(Parameters.manualAdjustment), currencyUtils.currencySymbol, Parameters.manualAdjustment > 0, context, isLoading),
           ],
@@ -234,33 +235,7 @@ class PortfolioCard extends StatelessWidget {
     );
   }
 
-  Widget _buildSectionTitle(BuildContext context, String title, ThemeData theme) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 3.0, bottom: 2.0),
-      child: Row(
-        children: [
-          Container(
-            height: 16,
-            width: 4,
-            decoration: BoxDecoration(
-              color: theme.primaryColor,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              letterSpacing: -0.3,
-              color: theme.textTheme.titleMedium?.color,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+
 
   Widget _buildTotalValue(BuildContext context, String formattedAmount, bool isLoading, ThemeData theme, {bool showNetLabel = false}) {
     final dataManager = Provider.of<DataManager>(context, listen: false);
@@ -398,7 +373,7 @@ class PortfolioCard extends StatelessWidget {
   }
 
   Widget _buildIndentedBalance(String label, double value, String symbol, bool isPositive, BuildContext context, bool isLoading) {
-    final appState = Provider.of<AppState>(context);
+    final appState = Provider.of<AppState>(context, listen: false);
     final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
     final theme = Theme.of(context);
 

@@ -23,6 +23,9 @@ import 'managers/archive_manager.dart';
 import 'managers/apy_manager.dart';
 import 'screens/lock_screen.dart';
 import 'utils/data_fetch_utils.dart';
+import 'utils/preference_keys.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 
 void main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
@@ -202,7 +205,10 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
     OneSignal.Debug.setAlertLevel(OSLogLevel.none);
     OneSignal.consentRequired(_requireConsent);
     OneSignal.initialize("e7059f66-9c12-4d21-a078-edaf1a203dea");
-    OneSignal.Notifications.requestPermission(true);
+    
+    // Vérifier si l'utilisateur a déjà refusé les notifications
+    _checkAndRequestNotificationPermission();
+    
     OneSignal.Notifications.addForegroundWillDisplayListener((event) {
       debugPrint('Notification reçue en premier plan : ${event.notification.jsonRepresentation()}');
       event.preventDefault();
@@ -214,6 +220,36 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
     OneSignal.User.pushSubscription.addObserver((state) {
       debugPrint('Utilisateur inscrit aux notifications : ${state.current.jsonRepresentation()}');
     });
+  }
+
+  Future<void> _checkAndRequestNotificationPermission() async {
+    final prefs = await SharedPreferences.getInstance();
+    final hasRefusedNotifications = prefs.getBool(PreferenceKeys.hasRefusedNotifications) ?? false;
+    final hasAskedNotifications = prefs.getBool(PreferenceKeys.hasAskedNotifications) ?? false;
+
+    // Si l'utilisateur a déjà refusé, ne pas redemander
+    if (hasRefusedNotifications) {
+      debugPrint("🚫 L'utilisateur a déjà refusé les notifications, pas de nouvelle demande");
+      return;
+    }
+
+    // Si on n'a jamais demandé, ou si l'utilisateur n'a pas explicitement refusé, demander
+    if (!hasAskedNotifications) {
+      debugPrint("📱 Première demande d'autorisation de notifications");
+      await prefs.setBool(PreferenceKeys.hasAskedNotifications, true);
+      
+      final hasPermission = await OneSignal.Notifications.requestPermission(true);
+      
+      // Si la permission a été refusée, sauvegarder cette information
+      if (!hasPermission) {
+        await prefs.setBool(PreferenceKeys.hasRefusedNotifications, true);
+        debugPrint("🚫 Permissions de notifications refusées par l'utilisateur");
+      } else {
+        debugPrint("✅ Permissions de notifications accordées");
+        // Réinitialiser le flag de refus au cas où l'utilisateur accepterait après avoir refusé
+        await prefs.setBool(PreferenceKeys.hasRefusedNotifications, false);
+      }
+    }
   }
 
   @override

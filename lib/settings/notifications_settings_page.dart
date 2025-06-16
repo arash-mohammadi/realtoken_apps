@@ -4,6 +4,8 @@ import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:realtoken_asset_tracker/app_state.dart';
 import 'package:realtoken_asset_tracker/generated/l10n.dart';
+import 'package:realtoken_asset_tracker/utils/preference_keys.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class NotificationsSettingsPage extends StatefulWidget {
   const NotificationsSettingsPage({super.key});
@@ -14,6 +16,7 @@ class NotificationsSettingsPage extends StatefulWidget {
 
 class _NotificationsSettingsPageState extends State<NotificationsSettingsPage> {
   bool _notificationsEnabled = true;
+  bool _hasRefusedNotifications = false;
 
   @override
   void initState() {
@@ -22,9 +25,13 @@ class _NotificationsSettingsPageState extends State<NotificationsSettingsPage> {
   }
 
   Future<void> _loadNotificationStatus() async {
+    final prefs = await SharedPreferences.getInstance();
     bool isSubscribed = OneSignal.User.pushSubscription.optedIn ?? false;
+    bool hasRefused = prefs.getBool(PreferenceKeys.hasRefusedNotifications) ?? false;
+    
     setState(() {
       _notificationsEnabled = isSubscribed;
+      _hasRefusedNotifications = hasRefused;
     });
   }
 
@@ -35,8 +42,41 @@ class _NotificationsSettingsPageState extends State<NotificationsSettingsPage> {
 
     if (value) {
       OneSignal.User.pushSubscription.optIn();
+      // Réinitialiser le flag de refus si l'utilisateur active les notifications
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(PreferenceKeys.hasRefusedNotifications, false);
+      setState(() {
+        _hasRefusedNotifications = false;
+      });
     } else {
       OneSignal.User.pushSubscription.optOut();
+    }
+  }
+
+  Future<void> _resetNotificationChoice() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(PreferenceKeys.hasRefusedNotifications, false);
+    await prefs.setBool(PreferenceKeys.hasAskedNotifications, false);
+    
+    setState(() {
+      _hasRefusedNotifications = false;
+    });
+
+    // Redemander la permission
+    final hasPermission = await OneSignal.Notifications.requestPermission(true);
+    await prefs.setBool(PreferenceKeys.hasAskedNotifications, true);
+    
+    if (hasPermission) {
+      setState(() {
+        _notificationsEnabled = true;
+      });
+      debugPrint("✅ Permissions de notifications accordées après réinitialisation");
+    } else {
+      await prefs.setBool(PreferenceKeys.hasRefusedNotifications, true);
+      setState(() {
+        _hasRefusedNotifications = true;
+      });
+      debugPrint("🚫 Permissions de notifications refusées après réinitialisation");
     }
   }
 
@@ -69,10 +109,23 @@ class _NotificationsSettingsPageState extends State<NotificationsSettingsPage> {
                 value: _notificationsEnabled,
                 onChanged: _toggleNotificationStatus,
                 isFirst: true,
-                isLast: true,
+                isLast: !_hasRefusedNotifications,
               ),
+              if (_hasRefusedNotifications)
+                _buildActionItem(
+                  context,
+                  title: 'Redemander l\'autorisation',
+                  subtitle: 'Vous avez refusé les notifications au démarrage',
+                  icon: CupertinoIcons.refresh,
+                  onTap: _resetNotificationChoice,
+                  isLast: true,
+                ),
             ],
           ),
+          if (_hasRefusedNotifications) ...[
+            const SizedBox(height: 12),
+            _buildInfoCard(context),
+          ],
         ],
       ),
     );
@@ -184,6 +237,109 @@ class _NotificationsSettingsPageState extends State<NotificationsSettingsPage> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildInfoCard(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.orange.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.orange.withOpacity(0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(CupertinoIcons.info_circle, color: Colors.orange, size: 20),
+              const SizedBox(width: 8),
+              Text(
+                'Notifications désactivées',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.orange,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Vous avez refusé les notifications lors du premier démarrage. Utilisez le bouton ci-dessus pour redemander l\'autorisation si vous changez d\'avis.',
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey.shade700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionItem(
+    BuildContext context, {
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required VoidCallback onTap,
+    bool isLast = false,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            border: Border(
+              bottom: BorderSide(
+                color: !isLast ? Colors.grey.withOpacity(0.2) : Colors.transparent,
+                width: 0.5,
+              ),
+            ),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                icon,
+                size: 24,
+                color: Theme.of(context).primaryColor,
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                CupertinoIcons.chevron_right,
+                size: 16,
+                color: Colors.grey.shade400,
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

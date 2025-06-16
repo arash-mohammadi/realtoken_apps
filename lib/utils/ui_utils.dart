@@ -12,6 +12,7 @@ import 'package:realtoken_asset_tracker/pages/dashboard/detailsPages/rmm_details
 import 'package:realtoken_asset_tracker/pages/dashboard/detailsPages/portfolio_details_page.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:realtoken_asset_tracker/utils/shimmer_utils.dart';
+import 'package:realtoken_asset_tracker/utils/widget_factory.dart';
 
 class UIUtils {
   static double getAppBarHeight(BuildContext context) {
@@ -334,50 +335,12 @@ class UIUtils {
   }
 
   static Widget buildTextWithShimmer(String? value, String text, bool isLoading, BuildContext context) {
-    final appState = Provider.of<AppState>(context);
-    final theme = Theme.of(context);
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          Text(
-            text,
-            style: TextStyle(
-              fontSize: 14 + appState.getTextSizeOffset(),
-              color: Theme.of(context).brightness == Brightness.light ? Colors.black54 : Colors.white70,
-              letterSpacing: -0.2,
-              height: 1.1,
-            ),
-          ),
-          SizedBox(width: 12),
-          isLoading
-              ? ShimmerUtils.originalColorShimmer(
-                  child: Text(
-                    value ?? '',
-                    style: TextStyle(
-                      fontSize: 15 + appState.getTextSizeOffset(),
-                      fontWeight: FontWeight.w600,
-                      color: theme.textTheme.bodyLarge?.color,
-                      letterSpacing: -0.3,
-                      height: 1.1,
-                    ),
-                  ),
-                  color: theme.textTheme.bodyLarge?.color,
-                )
-              : Text(
-                  value ?? '',
-                  style: TextStyle(
-                    fontSize: 15 + appState.getTextSizeOffset(),
-                    fontWeight: FontWeight.w600,
-                    color: Theme.of(context).textTheme.bodyLarge?.color,
-                    letterSpacing: -0.3,
-                    height: 1.1,
-                  ),
-                ),
-        ],
-      ),
+    // Utiliser le WidgetFactory optimisé
+    return WidgetFactory.buildOptimizedTextWithShimmer(
+      context: context,
+      value: value,
+      label: text,
+      isLoading: isLoading,
     );
   }
 }

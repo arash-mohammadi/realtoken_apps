@@ -141,6 +141,7 @@
   "dashboard": "Tableau de bord",
   "statistics": "Statistiques",
   "noDataAvailable": "Aucune donnée disponible",
+  "noWalletMessage": "Pour utiliser l'application, vous devez d'abord ajouter au moins une adresse de wallet Ethereum.",
   "manageAddresses": "Ajouter un portefeuille",
   "maps": "Cartes",
   "depositBalance": "Dépôts",

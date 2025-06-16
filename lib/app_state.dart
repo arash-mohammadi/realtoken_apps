@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:realtoken_asset_tracker/managers/data_manager.dart';
+import 'package:realtoken_asset_tracker/utils/preference_keys.dart';
 
 // Fonction pour récupérer la couleur enregistrée
 Future<Color> getSavedPrimaryColor() async {
   final prefs = await SharedPreferences.getInstance();
-  String colorName = prefs.getString('primaryColor') ?? 'blue';
+  String colorName = prefs.getString(PreferenceKeys.primaryColor) ?? 'blue';
   return _getColorFromName(colorName);
 }
 
 // Fonction pour enregistrer la couleur choisie
 Future<void> savePrimaryColor(String colorName) async {
   final prefs = await SharedPreferences.getInstance();
-  await prefs.setString('primaryColor', colorName);
+  await prefs.setString(PreferenceKeys.primaryColor, colorName);
 }
 
 // Fonction pour convertir le nom de la couleur en objet Color
@@ -75,6 +76,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   int _lastDonationPopupTimestamp = 0; // Timestamp de la dernière fois que la popup a été affichée
   int get appOpenCount => _appOpenCount;
 
+  // Optimisation: Éviter les notifyListeners multiples
+  bool _batchUpdateInProgress = false;
+
   /// Retourne true si la popup dons doit être affichée (après 10 ouvertures ET au moins 1h depuis la dernière)
   bool get shouldShowDonationPopup {
     if (_appOpenCount < 10) return false;
@@ -86,7 +90,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     return (currentTimestamp - _lastDonationPopupTimestamp) >= oneHourInMillis;
   }
 
-      AppState() {
+  AppState() {
     _loadSettings();
     loadAppOpenCount(); // Charger le compteur d'ouvertures
     loadLastDonationPopupTimestamp(); // Charger le timestamp de la dernière popup
@@ -113,36 +117,42 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   // Load settings from SharedPreferences
   Future<void> _loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
-    isDarkTheme = prefs.getBool('isDarkTheme') ?? false;
-    themeMode = prefs.getString('themeMode') ?? 'auto'; // Load theme mode
-    selectedTextSize = prefs.getString('textSize') ?? 'normal';
-    selectedLanguage = prefs.getString('language') ?? 'en';
-    evmAddresses = prefs.getStringList('evmAddresses'); // Load EVM addresses
+    
+    // Regrouper toutes les mises à jour pour éviter les notifications multiples
+    batchUpdate(() {
+      isDarkTheme = prefs.getBool('isDarkTheme') ?? false;
+      themeMode = prefs.getString('themeMode') ?? 'auto'; // Load theme mode
+      selectedTextSize = prefs.getString('textSize') ?? 'normal';
+      selectedLanguage = prefs.getString('language') ?? 'en';
+      evmAddresses = prefs.getStringList('evmAddresses'); // Load EVM addresses
+      _showAmounts = prefs.getBool('showAmounts') ?? true; // Charge la préférence du montant affiché
+
+      // Charger les paramètres du portfolio
+      _showTotalInvested = prefs.getBool('showTotalInvested') ?? false;
+      _showNetTotal = prefs.getBool('showNetTotal') ?? true;
+      _manualAdjustment = prefs.getDouble('manualAdjustment') ?? 0.0;
+      _showYamProjection = prefs.getBool('showYamProjection') ?? true;
+      _initialInvestmentAdjustment = prefs.getDouble('initialInvestmentAdjustment') ?? 0.0;
+      
+      _applyTheme(); // Apply the theme based on the loaded themeMode
+    });
+    
+    // Charger la couleur primaire séparément car elle est asynchrone
     _primaryColor = await getSavedPrimaryColor(); // Load primary color
-    _showAmounts = prefs.getBool('showAmounts') ?? true; // Charge la préférence du montant affiché
-
-    // Charger les paramètres du portfolio
-    _showTotalInvested = prefs.getBool('showTotalInvested') ?? false;
-    _showNetTotal = prefs.getBool('showNetTotal') ?? true;
-    _manualAdjustment = prefs.getDouble('manualAdjustment') ?? 0.0;
-    _showYamProjection = prefs.getBool('showYamProjection') ?? true;
-    _initialInvestmentAdjustment = prefs.getDouble('initialInvestmentAdjustment') ?? 0.0;
-
-    _applyTheme(); // Apply the theme based on the loaded themeMode
-    notifyListeners(); // Notify listeners to rebuild widgets
+    _notifyListenersIfNeeded();
   }
 
   void updatePrimaryColor(String colorName) async {
     await savePrimaryColor(colorName);
     _primaryColor = _getColorFromName(colorName);
-    notifyListeners(); // 🔥 Met à jour immédiatement l'UI avec la nouvelle couleur
+    _notifyListenersIfNeeded(); // 🔥 Met à jour immédiatement l'UI avec la nouvelle couleur
   }
 
   void toggleShowAmounts() async {
     _showAmounts = !_showAmounts;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('showAmounts', _showAmounts); // Sauvegarde la préférence utilisateur
-    notifyListeners(); // Notifie les widgets dépendants
+    _notifyListenersIfNeeded(); // Notifie les widgets dépendants
   }
 
   // Update theme mode and save to SharedPreferences
@@ -152,7 +162,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     await prefs.setString('themeMode', mode);
 
     _applyTheme(); // Apply the theme immediately after updating the mode
-    notifyListeners(); // Notify listeners about the theme mode change
+    _notifyListenersIfNeeded(); // Notify listeners about the theme mode change
   }
 
   // Apply theme based on themeMode
@@ -164,7 +174,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     } else {
       isDarkTheme = themeMode == 'dark';
     }
-    notifyListeners();
+    _notifyListenersIfNeeded();
   }
 
   // Overriding the didChangePlatformBrightness method to detect theme changes dynamically
@@ -173,7 +183,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     if (themeMode == 'auto') {
       final brightness = WidgetsBinding.instance.window.platformBrightness;
       isDarkTheme = brightness == Brightness.dark;
-      notifyListeners(); // Notify listeners to rebuild UI when system theme changes
+      _notifyListenersIfNeeded(); // Notify listeners to rebuild UI when system theme changes
     }
   }
 
@@ -184,7 +194,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('isDarkTheme', value);
     await prefs.setString('themeMode', themeMode); // Save theme mode
-    notifyListeners(); // Notify listeners about the theme change
+    _notifyListenersIfNeeded(); // Notify listeners about the theme change
   }
 
   // Update language and save to SharedPreferences
@@ -192,7 +202,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     selectedLanguage = languageCode;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('language', languageCode);
-    notifyListeners(); // Notify listeners about the language change
+    _notifyListenersIfNeeded(); // Notify listeners about the language change
   }
 
   // Update text size and save to SharedPreferences
@@ -200,7 +210,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     selectedTextSize = textSize;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('textSize', textSize);
-    notifyListeners(); // Notify listeners about the text size change
+    _notifyListenersIfNeeded(); // Notify listeners about the text size change
   }
 
   // Get text size offset based on selected size
@@ -238,35 +248,35 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     _showTotalInvested = value;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('showTotalInvested', value);
-    notifyListeners();
+    _notifyListenersIfNeeded();
   }
 
   void updateShowNetTotal(bool value) async {
     _showNetTotal = value;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('showNetTotal', value);
-    notifyListeners();
+    _notifyListenersIfNeeded();
   }
 
   void updateManualAdjustment(double value) async {
     _manualAdjustment = value;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setDouble('manualAdjustment', value);
-    notifyListeners();
+    _notifyListenersIfNeeded();
   }
 
   void updateShowYamProjection(bool value) async {
     _showYamProjection = value;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('showYamProjection', value);
-    notifyListeners();
+    _notifyListenersIfNeeded();
   }
 
   void updateInitialInvestmentAdjustment(double value) async {
     _initialInvestmentAdjustment = value;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setDouble('initialInvestmentAdjustment', value);
-    notifyListeners();
+    _notifyListenersIfNeeded();
   }
 
   Future<void> loadAppOpenCount() async {
@@ -289,5 +299,19 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     final prefs = await SharedPreferences.getInstance();
     _lastDonationPopupTimestamp = DateTime.now().millisecondsSinceEpoch;
     await prefs.setInt('lastDonationPopupTimestamp', _lastDonationPopupTimestamp);
+  }
+
+  // Méthode pour regrouper les mises à jour
+  void batchUpdate(Function() updates) {
+    _batchUpdateInProgress = true;
+    updates();
+    _batchUpdateInProgress = false;
+    notifyListeners();
+  }
+
+  void _notifyListenersIfNeeded() {
+    if (!_batchUpdateInProgress) {
+      notifyListeners();
+    }
   }
 }

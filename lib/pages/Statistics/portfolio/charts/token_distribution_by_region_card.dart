@@ -5,6 +5,7 @@ import 'package:realtoken_asset_tracker/managers/data_manager.dart';
 import 'package:realtoken_asset_tracker/app_state.dart';
 import 'package:realtoken_asset_tracker/generated/l10n.dart';
 import 'package:realtoken_asset_tracker/utils/parameters.dart';
+import 'package:realtoken_asset_tracker/utils/location_utils.dart';
 import 'package:realtoken_asset_tracker/modals/modal_others_pie.dart'; // Assurez-vous que ce fichier existe
 import 'package:realtoken_asset_tracker/pages/Statistics/portfolio/common_functions.dart';
 
@@ -121,12 +122,9 @@ class _TokenDistributionByRegionCardState extends State<TokenDistributionByRegio
     Map<String, int> regionCount = {};
     final appState = Provider.of<AppState>(context);
 
-    // Remplir le dictionnaire avec les counts par région
+    // Remplir le dictionnaire avec les counts par région (utilise LocationUtils)
     for (var token in dataManager.portfolio) {
-      String fullName = token['fullName'];
-      List<String> parts = fullName.split(',');
-      String regionCode = parts.length >= 3 ? parts[2].trim().substring(0, 2) : S.of(context).unknown;
-
+      String regionCode = token['regionCode'] ?? LocationUtils.extractRegion(token['fullName'] ?? '');
       String regionName = Parameters.usStateAbbreviations[regionCode] ?? regionCode;
       regionCount[regionName] = (regionCount[regionName] ?? 0) + 1;
     }
@@ -234,12 +232,9 @@ class _TokenDistributionByRegionCardState extends State<TokenDistributionByRegio
   Widget _buildCenterTextByRegion(DataManager dataManager, int? selectedIndex, List<Map<String, dynamic>> othersDetails) {
     Map<String, int> regionCount = {};
 
-    // Remplir le dictionnaire avec les counts par région
+    // Remplir le dictionnaire avec les counts par région (utilise LocationUtils)
     for (var token in dataManager.portfolio) {
-      String fullName = token['fullName'];
-      List<String> parts = fullName.split(',');
-      String regionCode = parts.length >= 3 ? parts[2].trim().substring(0, 2) : S.of(context).unknown;
-
+      String regionCode = token['regionCode'] ?? LocationUtils.extractRegion(token['fullName'] ?? '');
       String regionName = Parameters.usStateAbbreviations[regionCode] ?? regionCode;
       regionCount[regionName] = (regionCount[regionName] ?? 0) + 1;
     }

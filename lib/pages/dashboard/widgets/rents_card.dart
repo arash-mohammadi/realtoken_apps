@@ -98,23 +98,30 @@ class RentsCard extends StatelessWidget {
       hasGraph: true,
       rightWidget: _buildMiniGraphForRendement(_getLast12WeeksRent(dataManager), context, dataManager),
       headerRightWidget: Container(
-        height: 24,
-        child: IconButton(
-          icon: Icon(
-            Icons.arrow_forward,
-            size: 20,
-            color: Colors.grey,
-          ),
-          padding: EdgeInsets.zero,
-          constraints: BoxConstraints(),
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const DashboardRentsDetailsPage(),
+        height: 36,
+        width: 36,
+        child: Material(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(18),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(18),
+            child: Container(
+              padding: EdgeInsets.all(6),
+              child: Icon(
+                Icons.arrow_forward_ios_rounded,
+                size: 16,
+                color: Theme.of(context).brightness == Brightness.light ? Colors.black54 : Colors.white70,
               ),
-            );
-          },
+            ),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const DashboardRentsDetailsPage(),
+                ),
+              );
+            },
+          ),
         ),
       ),
     );

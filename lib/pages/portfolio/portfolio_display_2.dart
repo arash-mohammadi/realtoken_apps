@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:realtoken_asset_tracker/modals/token_details/showTokenDetails.dart';
 import 'package:realtoken_asset_tracker/utils/currency_utils.dart';
@@ -11,8 +12,10 @@ import 'package:realtoken_asset_tracker/settings/manage_evm_addresses_page.dart'
 import 'package:realtoken_asset_tracker/app_state.dart';
 import 'package:realtoken_asset_tracker/utils/shimmer_utils.dart';
 import 'package:show_network_image/show_network_image.dart'; // Import de AppState
+import 'package:realtoken_asset_tracker/utils/widget_factory.dart';
 import 'dart:ui';
 import 'dart:math' as Math;
+import 'dart:io';
 
 class PortfolioDisplay2 extends StatefulWidget {
   final List<Map<String, dynamic>> portfolio;
@@ -29,6 +32,58 @@ class PortfolioDisplay2 extends StatefulWidget {
 }
 
 class PortfolioDisplay2State extends State<PortfolioDisplay2> {
+  /// Widget pour afficher une image avec gestion automatique de l'orientation
+  Widget _buildImageWithOrientation(String imageUrl, {BoxFit fit = BoxFit.cover}) {
+    if (kIsWeb) {
+      return ShowNetworkImage(
+        imageSrc: imageUrl,
+        mobileBoxFit: fit,
+      );
+    }
+    
+    // Pour Android, utiliser Image.network avec filterQuality pour une meilleure gestion
+    if (Platform.isAndroid) {
+      return Image.network(
+        imageUrl,
+        fit: fit,
+        filterQuality: FilterQuality.medium,
+        isAntiAlias: true,
+        // Forcer le décodage avec orientation correcte
+        frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+          if (wasSynchronouslyLoaded) return child;
+          return AnimatedOpacity(
+            opacity: frame == null ? 0 : 1,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+            child: child,
+          );
+        },
+        errorBuilder: (context, error, stackTrace) => const Icon(Icons.error),
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return Center(
+            child: CircularProgressIndicator(
+              value: loadingProgress.expectedTotalBytes != null
+                  ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                  : null,
+            ),
+          );
+        },
+      );
+    }
+    
+    // Pour iOS et autres plateformes, utiliser CachedNetworkImage
+    return CachedNetworkImage(
+      imageUrl: imageUrl,
+      fit: fit,
+      filterQuality: FilterQuality.medium,
+      errorWidget: (context, url, error) => const Icon(Icons.error),
+      placeholder: (context, url) => const Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+  }
+
   Widget _buildGaugeForRent(double rentValue, BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
@@ -252,16 +307,10 @@ class PortfolioDisplay2State extends State<PortfolioDisplay2> {
                                           ),
                                           child: ColorFiltered(
                                             colorFilter: isFutureRentStart ? const ColorFilter.mode(Colors.black45, BlendMode.darken) : const ColorFilter.mode(Colors.transparent, BlendMode.multiply),
-                                            child: kIsWeb
-                                                ? ShowNetworkImage(
-                                                    imageSrc: token['imageLink'][0],
-                                                    mobileBoxFit: BoxFit.cover,
-                                                  )
-                                                : CachedNetworkImage(
-                                                    imageUrl: token['imageLink'][0],
-                                                    fit: BoxFit.cover,
-                                                    errorWidget: (context, url, error) => const Icon(Icons.error),
-                                                  ),
+                                            child: _buildImageWithOrientation(
+                                              token['imageLink'][0],
+                                              fit: BoxFit.cover,
+                                            ),
                                           ),
                                         ),
                                       ),
@@ -281,23 +330,10 @@ class PortfolioDisplay2State extends State<PortfolioDisplay2> {
                                           child: Center(
                                             child: ClipRRect(
                                               borderRadius: BorderRadius.circular(10),
-                                              child: BackdropFilter(
-                                                filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
-                                                child: Container(
-                                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                                  decoration: BoxDecoration(
-                                                    color: Colors.black38,
-                                                    borderRadius: BorderRadius.circular(10),
-                                                  ),
-                                                  child: Text(
-                                                    S.of(context).rentStartFuture,
-                                                    style: TextStyle(
-                                                      color: Colors.white,
-                                                      fontWeight: FontWeight.w600,
-                                                      fontSize: 12 + appState.getTextSizeOffset(),
-                                                    ),
-                                                  ),
-                                                ),
+                                              child: WidgetFactory.buildImageOverlay(
+                                                context: context,
+                                                text: S.of(context).rentStartFuture,
+                                                fontSize: 12,
                                               ),
                                             ),
                                           ),
@@ -311,49 +347,18 @@ class PortfolioDisplay2State extends State<PortfolioDisplay2> {
                                           child: Row(
                                             children: [
                                               if (isWallet)
-                                                ClipRRect(
-                                                  borderRadius: BorderRadius.circular(8),
-                                                  child: BackdropFilter(
-                                                    filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
-                                                    child: Container(
-                                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                                      decoration: BoxDecoration(
-                                                        color: Colors.black.withOpacity(0.3),
-                                                        borderRadius: BorderRadius.circular(8),
-                                                      ),
-                                                      child: Text(
-                                                        S.of(context).wallet,
-                                                        style: TextStyle(
-                                                          color: Colors.white,
-                                                          fontWeight: FontWeight.w600,
-                                                          fontSize: 10 + appState.getTextSizeOffset(),
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ),
+                                                WidgetFactory.buildImageIndicator(
+                                                  context: context,
+                                                  text: S.of(context).wallet,
+                                                  fontSize: 10,
                                                 ),
                                               const SizedBox(width: 6),
                                               if (isRMM)
-                                                ClipRRect(
-                                                  borderRadius: BorderRadius.circular(8),
-                                                  child: BackdropFilter(
-                                                    filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
-                                                    child: Container(
-                                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                                      decoration: BoxDecoration(
-                                                        color: const Color.fromARGB(150, 165, 100, 21),
-                                                        borderRadius: BorderRadius.circular(8),
-                                                      ),
-                                                      child: Text(
-                                                        'RMM',
-                                                        style: TextStyle(
-                                                          color: Colors.white,
-                                                          fontWeight: FontWeight.w600,
-                                                          fontSize: 10 + appState.getTextSizeOffset(),
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ),
+                                                WidgetFactory.buildImageIndicator(
+                                                  context: context,
+                                                  text: 'RMM',
+                                                  backgroundColor: const Color.fromARGB(150, 165, 100, 21),
+                                                  fontSize: 10,
                                                 ),
                                             ],
                                           ),

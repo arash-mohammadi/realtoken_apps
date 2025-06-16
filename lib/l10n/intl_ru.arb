@@ -139,6 +139,7 @@
   "dashboard": "Панель управления",
   "statistics": "Статистика",
   "noDataAvailable": "Нет данных, добавьте новый кошелек",
+  "noWalletMessage": "Чтобы использовать приложение, вы должны сначала добавить хотя бы один адрес кошелька Ethereum.",
   "manageAddresses": "Добавить кошелек",
   "depositBalance": "Депозиты",
   "borrowBalance": "Заимствования",

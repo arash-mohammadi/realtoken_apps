@@ -12,6 +12,13 @@ import 'package:realtoken_asset_tracker/generated/l10n.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:flutter/rendering.dart';
 import 'dart:ui'; // Pour ImageFilter
+import 'package:file_picker/file_picker.dart';
+import 'package:archive/archive_io.dart';
+import 'package:hive/hive.dart';
+import 'dart:convert';
+import 'dart:io';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:realtoken_asset_tracker/models/balance_record.dart';
 
 import 'widgets/portfolio_card.dart';
 import 'widgets/rmm_card.dart';
@@ -39,10 +46,20 @@ class DashboardPageState extends State<DashboardPage> {
       
       // Si les données principales sont déjà chargées (depuis main.dart)
       if (!dataManager.isLoadingMain && dataManager.evmAddresses.isNotEmpty && dataManager.portfolio.isNotEmpty) {
-        debugPrint("📊 Dashboard: données déjà chargées, skip chargement");
+        debugPrint("📊 Dashboard: données principales déjà chargées");
+        // Vérifier si les données de loyer sont aussi chargées
+        if (dataManager.rentData.isNotEmpty) {
+          debugPrint("📊 Dashboard: données de loyer aussi chargées, skip chargement");
+          setState(() {
+            _isPageLoading = false;
+          });
+        } else {
+          debugPrint("📊 Dashboard: données de loyer manquantes, chargement nécessaire");
+          await DataFetchUtils.loadDataWithCache(context);
         setState(() {
           _isPageLoading = false;
         });
+        }
       } 
       // Sinon, charger les données avec cache
       else {
@@ -51,6 +68,199 @@ class DashboardPageState extends State<DashboardPage> {
         setState(() {
           _isPageLoading = false;
         });
+      }
+
+      // Vérifier s'il n'y a pas de wallet après le chargement
+      if (dataManager.evmAddresses.isEmpty) {
+        _showNoWalletPopup();
+      }
+    });
+  }
+
+  Future<void> _importZippedHiveData() async {
+    try {
+      // Utiliser file_picker pour permettre à l'utilisateur de sélectionner un fichier ZIP
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['zip'], // Limiter à l'importation de fichiers ZIP
+      );
+
+      if (result != null) {
+        // Obtenir le fichier sélectionné
+        List<int> bytes;
+        if (kIsWeb) {
+          bytes = result.files.single.bytes!;
+        } else {
+          File zipFile = File(result.files.single.path!);
+          bytes = await zipFile.readAsBytes();
+        }
+
+        // Lire le fichier ZIP et le décompresser
+        Archive archive = ZipDecoder().decodeBytes(bytes);
+
+        // Parcourir les fichiers dans l'archive ZIP
+        for (ArchiveFile file in archive) {
+          List<int> jsonBytes = file.content as List<int>;
+          String jsonContent = utf8.decode(jsonBytes);
+
+          if (file.name == 'balanceHistoryBackup.json') {
+            // Décoder et insérer les données dans la boîte 'balanceHistory'
+            Map<String, dynamic> balanceHistoryData = jsonDecode(jsonContent);
+            var balanceHistoryBox = await Hive.openBox('balanceHistory');
+            await balanceHistoryBox.putAll(balanceHistoryData);
+          } else if (file.name == 'preferencesBackup.json') {
+            // Décoder et insérer les préférences dans SharedPreferences
+            Map<String, dynamic> preferencesData = jsonDecode(jsonContent);
+            final prefs = await SharedPreferences.getInstance();
+
+            // Restaurer les préférences sauvegardées
+            List<String> ethAddresses = List<String>.from(preferencesData['ethAddresses'] ?? []);
+            String? userIdToAddresses = preferencesData['userIdToAddresses'];
+            String? selectedCurrency = preferencesData['selectedCurrency'];
+            bool convertToSquareMeters = preferencesData['convertToSquareMeters'] ?? false;
+
+            // Sauvegarder les préférences restaurées
+            await prefs.setStringList('evmAddresses', ethAddresses);
+            if (userIdToAddresses != null) await prefs.setString('userIdToAddresses', userIdToAddresses);
+            if (selectedCurrency != null) await prefs.setString('selectedCurrency', selectedCurrency);
+            await prefs.setBool('convertToSquareMeters', convertToSquareMeters);
+          }
+        }
+        
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(S.of(context).importSuccess)),
+          );
+          
+          // Rafraîchir les données après l'import
+          await DataFetchUtils.refreshData(context);
+          
+          // Recharger la page pour refléter les changements
+          setState(() {
+            _isPageLoading = false;
+          });
+        }
+      } else {
+        debugPrint('Importation annulée par l\'utilisateur.');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(S.of(context).importFailed)),
+        );
+      }
+      debugPrint('Erreur lors de l\'importation des données : $e');
+    }
+  }
+
+  void _showNoWalletPopup() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              title: Row(
+                children: [
+                  Icon(
+                    Icons.account_balance_wallet_outlined,
+                    color: Theme.of(context).primaryColor,
+                    size: 24,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      S.of(context).noDataAvailable,
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+                             content: Text(
+                 S.of(context).noWalletMessage,
+                 style: TextStyle(
+                   fontSize: 16,
+                 ),
+               ),
+              actions: [
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Première ligne : boutons Ajouter et Import côte à côte
+                    Row(
+                      children: [
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: () async {
+                              Navigator.of(context).pop();
+                              await _importZippedHiveData();
+                            },
+                            icon: Icon(
+                              Icons.upload_file,
+                              size: 18,
+                            ),
+                            label: Text(S.of(context).importButton),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.orange,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => const ManageEvmAddressesPage(),
+                                ),
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Theme.of(context).primaryColor,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            child: Text(S.of(context).manageAddresses),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    // Deuxième ligne : bouton Plus tard centré
+                    SizedBox(
+                      width: double.infinity,
+                      child: TextButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        child: Text(
+                          'Plus tard',
+                          style: TextStyle(
+                            color: Theme.of(context).textTheme.bodyMedium?.color,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            );
+          },
+        );
       }
     });
   }
@@ -87,6 +297,103 @@ class DashboardPageState extends State<DashboardPage> {
     }
   }
 
+  /// Vérifie si tous les wallets ont été traités avec succès cette semaine pour les données de loyer basiques
+  Future<bool> _checkRentWalletsStatus() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final List<String> wallets = prefs.getStringList('evmAddresses') ?? [];
+      
+      if (wallets.isEmpty) return true; // Pas de wallets = pas de problème
+      
+      final box = Hive.box('realTokens');
+      final DateTime now = DateTime.now();
+      
+      // Calculer le début de la semaine actuelle (lundi)
+      final DateTime startOfCurrentWeek = now.subtract(Duration(days: now.weekday - 1));
+      final DateTime startOfCurrentWeekMidnight = DateTime(startOfCurrentWeek.year, startOfCurrentWeek.month, startOfCurrentWeek.day);
+      
+      debugPrint('🔍 DEBUG ALERTE - Début de semaine: $startOfCurrentWeekMidnight');
+      debugPrint('🔍 DEBUG ALERTE - Maintenant: $now');
+      debugPrint('🔍 DEBUG ALERTE - ${wallets.length} wallets à vérifier: ${wallets.join(", ")}');
+      
+      // Vérifier le statut de chaque wallet pour les données basiques uniquement
+      for (String wallet in wallets) {
+        final lastSuccessTime = box.get('lastRentSuccess_$wallet');
+        if (lastSuccessTime != null) {
+          final DateTime lastSuccess = DateTime.parse(lastSuccessTime);
+          final bool isAfterWeekStart = lastSuccess.isAfter(startOfCurrentWeekMidnight);
+          debugPrint('🔍 DEBUG ALERTE - Wallet $wallet basique: $lastSuccess (après début semaine: $isAfterWeekStart)');
+          if (!isAfterWeekStart) {
+            debugPrint('🚨 DEBUG ALERTE - ALERTE: Wallet $wallet pas traité cette semaine (basique)');
+            return false; // Ce wallet n'a pas été traité cette semaine
+          }
+        } else {
+          debugPrint('🚨 DEBUG ALERTE - ALERTE: Wallet $wallet sans timestamp de succès (basique)');
+          return false; // Aucun timestamp de succès pour ce wallet
+        }
+      }
+      
+      debugPrint('✅ DEBUG ALERTE - Tous les wallets OK, pas d\'alerte');
+      return true; // Tous les wallets ont été traités avec succès
+    } catch (e) {
+      debugPrint('❌ Erreur vérification statut wallets: $e');
+      return false; // En cas d'erreur, considérer qu'il y a un problème
+    }
+  }
+
+  /// Construit l'icône d'alerte pour les problèmes de wallets
+  Widget _buildWalletAlertIcon() {
+    return FutureBuilder<bool>(
+      future: _checkRentWalletsStatus(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const SizedBox.shrink(); // Pas d'icône pendant le chargement
+        }
+        
+        final bool allWalletsOk = snapshot.data ?? true;
+        
+        if (allWalletsOk) {
+          return const SizedBox.shrink(); // Pas d'icône si tout va bien
+        }
+        
+        // Afficher l'icône d'alerte
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: Colors.orange.withOpacity(0.9),
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.orange.withOpacity(0.3),
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.warning_rounded,
+                color: Colors.white,
+                size: 16,
+              ),
+              const SizedBox(width: 4),
+              Text(
+                'Problème sync',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final dataManager = Provider.of<DataManager>(context);
@@ -95,7 +402,7 @@ class DashboardPageState extends State<DashboardPage> {
     final appState = Provider.of<AppState>(context);
 
     final lastRentReceived = _getLastRentReceived(dataManager);
-    final totalRentReceived = currencyUtils.getFormattedAmount(currencyUtils.convert(dataManager.getTotalRentReceived()), currencyUtils.currencySymbol, appState.showAmounts);
+    final totalRentReceived = _getTotalRentReceived(dataManager, currencyUtils, appState);
     final timeElapsed = _getTimeElapsedSinceFirstRent(dataManager);
     
     // Vérifier si des données sont en cours de mise à jour pour les shimmers
@@ -153,11 +460,10 @@ class DashboardPageState extends State<DashboardPage> {
                                 });
                               },
                             ),
-                        ],
-                      ),
-                    ),
-                    if (!_isPageLoading && (dataManager.evmAddresses.isEmpty)) _buildNoWalletCard(context),
-                    const SizedBox(height: 8),
+                                            ],
+                  ),
+                ),
+                const SizedBox(height: 8),
                     Container(
                       margin: EdgeInsets.only(bottom: 12.0),
                       decoration: BoxDecoration(
@@ -189,7 +495,6 @@ class DashboardPageState extends State<DashboardPage> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                             
                                 Container(
                                   padding: const EdgeInsets.all(12),
                                   decoration: BoxDecoration(
@@ -274,7 +579,9 @@ class DashboardPageState extends State<DashboardPage> {
                                    Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    const Spacer(),
+                                    // Icône d'alerte à gauche
+                                    _buildWalletAlertIcon(),
+                                    // Informations calendrier à droite
                                     Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                                       decoration: BoxDecoration(
@@ -432,6 +739,11 @@ class DashboardPageState extends State<DashboardPage> {
     final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
     final appState = Provider.of<AppState>(context);
 
+    // Si les données sont en cours de chargement, retourner un placeholder
+    if (dataManager.isLoadingMain || _isPageLoading) {
+      return "---";
+    }
+
     if (rentData.isEmpty) {
       return S.of(context).noRentReceived;
     }
@@ -441,5 +753,16 @@ class DashboardPageState extends State<DashboardPage> {
 
     // Utiliser _getFormattedAmount pour masquer ou afficher la valeur
     return currencyUtils.getFormattedAmount(currencyUtils.convert(lastRent), currencyUtils.currencySymbol, appState.showAmounts);
+  }
+
+  // Récupère le total des loyers reçus avec gestion du chargement
+  String _getTotalRentReceived(DataManager dataManager, CurrencyProvider currencyUtils, AppState appState) {
+    // Si les données sont en cours de chargement, retourner un placeholder
+    if (dataManager.isLoadingMain || _isPageLoading) {
+      return "---";
+    }
+
+    final totalRent = dataManager.getTotalRentReceived();
+    return currencyUtils.getFormattedAmount(currencyUtils.convert(totalRent), currencyUtils.currencySymbol, appState.showAmounts);
   }
 }

@@ -10,6 +10,8 @@ import 'portfolio_display_1.dart';
 import 'portfolio_display_2.dart';
 import 'package:realtoken_asset_tracker/generated/l10n.dart'; // Import pour les traductions
 import 'package:realtoken_asset_tracker/utils/parameters.dart';
+import 'package:realtoken_asset_tracker/utils/location_utils.dart';
+import 'package:realtoken_asset_tracker/components/filter_widgets.dart';
 
 class PortfolioPage extends StatefulWidget {
   const PortfolioPage({super.key});
@@ -302,32 +304,10 @@ class PortfolioPageState extends State<PortfolioPage> {
     return true;
   }
 
-  // Méthode pour obtenir la liste unique des villes à partir des noms complets (fullName)
-  List<String> _getUniqueCities(List<Map<String, dynamic>> portfolio) {
-    final cities = portfolio
-        .map((token) {
-          List<String> parts = token['fullName'].split(',');
-          return parts.length >= 2 ? parts[1].trim() : S.of(context).unknownCity;
-        })
-        .toSet()
-        .toList();
-    cities.sort();
-    return cities;
-  }
-
-  // Méthode pour obtenir la liste unique des régions
-  List<String> _getUniqueRegions(List<Map<String, dynamic>> portfolio) {
-    final regions = portfolio.map((token) => token['regionCode'] ?? "Unknown Region").where((region) => region != null).toSet().cast<String>().toList();
-    regions.sort();
-    return regions;
-  }
-
-  // Méthode pour obtenir la liste unique des pays
-  List<String> _getUniqueCountries(List<Map<String, dynamic>> portfolio) {
-    final countries = portfolio.map((token) => token['country'] ?? "Unknown Country").where((country) => country != null).toSet().cast<String>().toList();
-    countries.sort();
-    return countries;
-  }
+  // Méthodes factorisées utilisant FilterWidgets
+  List<String> _getUniqueCities(List<Map<String, dynamic>> portfolio) => FilterWidgets.getUniqueCities(portfolio);
+  List<String> _getUniqueRegions(List<Map<String, dynamic>> portfolio) => FilterWidgets.getUniqueRegions(portfolio);
+  List<String> _getUniqueCountries(List<Map<String, dynamic>> portfolio) => FilterWidgets.getUniqueCountries(portfolio);
 
   @override
   Widget build(BuildContext context) {
@@ -445,7 +425,7 @@ class PortfolioPageState extends State<PortfolioPage> {
                                           _buildFilterPopupMenu(
                                             context: context,
                                             icon: Icons.map,
-                                            label: _selectedRegion != null ? (Parameters.usStateAbbreviations[_selectedRegion!] ?? _selectedRegion!) : S.of(context).regionFilterLabel,
+                                            label: "",
                                             items: [
                                               PopupMenuItem(
                                                 value: "all_regions",
@@ -465,7 +445,7 @@ class PortfolioPageState extends State<PortfolioPage> {
                                           _buildFilterPopupMenu(
                                             context: context,
                                             icon: Icons.flag,
-                                            label: _selectedCountry ?? S.of(context).country,
+                                            label: "",
                                             items: [
                                               PopupMenuItem(
                                                 value: "all_countries",
@@ -499,7 +479,7 @@ class PortfolioPageState extends State<PortfolioPage> {
                                           _buildFilterPopupMenu(
                                             context: context,
                                             icon: Icons.filter_alt,
-                                            label: _getCombinedFilterLabel(),
+                                            label: "",
                                             items: [
                                               // Section Statut de location
                                               PopupMenuItem(
@@ -644,11 +624,11 @@ class PortfolioPageState extends State<PortfolioPage> {
                                           // Espace flexible pour pousser le tri à droite
                                           const Spacer(),
 
-                                          // Tri
+                                          //Tri
                                           Container(
                                             margin: EdgeInsets.zero, // Sans marge
                                             child: PopupMenuButton<String>(
-                                              tooltip: _getSortLabel(context),
+                                              tooltip: "",
                                               onSelected: (String value) {
                                                 if (value == 'asc' || value == 'desc') {
                                                   setState(() {
@@ -752,83 +732,31 @@ class PortfolioPageState extends State<PortfolioPage> {
   }
 
   // Helper pour construire un bouton de filtre simple
+  // Méthodes factorisées utilisant FilterWidgets
   Widget _buildFilterButton({
     required IconData icon,
-    required String label, // Conservé pour tooltip
+    required String label,
     required VoidCallback onTap,
-  }) {
-    return Container(
-      margin: EdgeInsets.zero,
-      child: Material(
-        color: Colors.transparent,
-        child: Tooltip(
-          message: label,
-          child: InkWell(
-            onTap: onTap,
-            borderRadius: BorderRadius.circular(12),
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Theme.of(context).primaryColor.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                icon,
-                size: 20,
-                color: Theme.of(context).primaryColor,
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+  }) => FilterWidgets.buildFilterButton(
+    context: context,
+    icon: icon,
+    label: label,
+    onTap: onTap,
+  );
 
-  // Helper pour les boutons popup de filtre
   Widget _buildFilterPopupMenu({
     required BuildContext context,
     required IconData icon,
-    required String label, // Conservé pour tooltip
+    required String label,
     required List<PopupMenuEntry<String>> items,
     required Function(String) onSelected,
-  }) {
-    return Container(
-      margin: const EdgeInsets.only(right: 8),
-      child: PopupMenuButton<String>(
-        tooltip: label,
-        onSelected: onSelected,
-        offset: const Offset(0, 40),
-        elevation: 8,
-        color: Theme.of(context).cardColor.withOpacity(0.97),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: Theme.of(context).primaryColor.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                icon,
-                size: 20,
-                color: Theme.of(context).primaryColor,
-              ),
-              Icon(
-                Icons.arrow_drop_down,
-                size: 20,
-                color: Theme.of(context).primaryColor,
-              ),
-            ],
-          ),
-        ),
-        itemBuilder: (context) => items,
-      ),
-    );
-  }
+  }) => FilterWidgets.buildFilterPopupMenu(
+    context: context,
+    icon: icon,
+    label: label,
+    items: items,
+    onSelected: onSelected,
+  );
 
   // Helper pour obtenir le label du tri actuel
   String _getSortLabel(BuildContext context) {
@@ -893,7 +821,7 @@ class PortfolioPageState extends State<PortfolioPage> {
     return Container(
       margin: const EdgeInsets.only(right: 8),
       child: PopupMenuButton<String>(
-        tooltip: "Wallets",
+        tooltip: "",
         onSelected: (String value) {
           if (value == "apply_wallets") {
             // Gérer la sélection directe (au cas où StatefulBuilder ne fonctionne pas comme prévu)

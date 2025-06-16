@@ -139,6 +139,7 @@
   "dashboard": "Dashboard",
   "statistics": "Statistics",
   "noDataAvailable": "No data available, please add a new wallet",
+  "noWalletMessage": "To use the application, you must first add at least one Ethereum wallet address.",
   "manageAddresses": "Add wallet",
   "depositBalance": "Deposits",
   "borrowBalance": "Borrows",

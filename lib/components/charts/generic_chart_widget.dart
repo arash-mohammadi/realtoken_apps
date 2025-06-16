@@ -10,6 +10,8 @@ import 'package:realtoken_asset_tracker/utils/chart_utils.dart';
 import 'package:realtoken_asset_tracker/utils/currency_utils.dart';
 import 'package:realtoken_asset_tracker/utils/chart_options_utils.dart';
 import 'package:realtoken_asset_tracker/utils/date_utils.dart';
+import 'package:realtoken_asset_tracker/utils/widget_factory.dart';
+import 'package:realtoken_asset_tracker/components/charts/chart_builders.dart';
 import 'package:realtoken_asset_tracker/models/apy_record.dart';
 import 'package:flutter/services.dart';
 
@@ -88,30 +90,12 @@ class GenericChartWidget<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final appState = Provider.of<AppState>(context);
+    final appState = Provider.of<AppState>(context, listen: false);
     final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
 
     // Vérifier si les données sont valides
     if (dataList.isEmpty) {
-      return Card(
-        elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        color: Theme.of(context).cardColor,
-        child: Container(
-          padding: const EdgeInsets.all(16.0),
-          child: Center(
-            child: Text(
-              S.of(context).noDataAvailable,
-              style: TextStyle(
-                fontSize: 16 + appState.getTextSizeOffset(),
-                color: Colors.grey.shade600,
-              ),
-            ),
-          ),
-        ),
-      );
+      return ChartBuilders.buildEmptyCard(context, appState, S.of(context).noDataAvailable);
     }
 
     return Card(
@@ -173,447 +157,75 @@ class GenericChartWidget<T> extends StatelessWidget {
               child: isBarChart
                   ? BarChart(
                       BarChartData(
-                        gridData: FlGridData(
-                          show: true,
-                          drawVerticalLine: false,
-                          getDrawingHorizontalLine: (value) {
-                            return FlLine(
-                              color: Colors.grey.withOpacity(0.15),
-                              strokeWidth: 1,
-                            );
-                          },
-                        ),
-                        titlesData: FlTitlesData(
-                          leftTitles: AxisTitles(
-                            sideTitles: SideTitles(showTitles: false),
-                          ),
-                          bottomTitles: AxisTitles(
-                            sideTitles: SideTitles(
-                              showTitles: true,
-                              getTitlesWidget: (value, meta) {
-                                List<String> labels = _buildDateLabels(context);
-                                if (value.toInt() >= 0 && value.toInt() < labels.length) {
-                                  return Padding(
-                                    padding: const EdgeInsets.only(top: 10.0),
-                                    child: Transform.rotate(
-                                      angle: -0.5,
-                                      child: Text(
-                                        labels[value.toInt()],
-                                        style: TextStyle(
-                                          fontSize: 10 + appState.getTextSizeOffset(),
-                                          color: Colors.grey.shade600,
-                                        ),
-                                      ),
-                                    ),
-                                  );
-                                } else {
-                                  return const SizedBox.shrink();
-                                }
-                              },
-                            ),
-                          ),
-                          topTitles: AxisTitles(
-                            sideTitles: SideTitles(showTitles: false),
-                          ),
-                          rightTitles: AxisTitles(
-                            sideTitles: SideTitles(
-                              showTitles: true,
-                              reservedSize: 40,
-                              getTitlesWidget: (value, meta) {
-                                // Formater la valeur en fonction du type
-                                String formattedValue;
-                                if (valuePrefix == currencyUtils.currencySymbol) {
-                                  formattedValue = currencyUtils.formatCompactCurrency(
-                                    value,
-                                    currencyUtils.currencySymbol,
-                                  );
-                                } else {
-                                  formattedValue = '$valuePrefix${value.toStringAsFixed(1)}$valueSuffix';
-                                }
-
-                                return Padding(
-                                  padding: const EdgeInsets.only(left: 8.0),
-                                  child: Text(
-                                    formattedValue,
-                                    style: TextStyle(
-                                      fontSize: 10 + appState.getTextSizeOffset(),
-                                      color: Colors.grey.shade600,
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
+                        gridData: ChartBuilders.buildStandardGridData(),
+                        titlesData: ChartBuilders.buildBarChartTitles(
+                          context: context,
+                          appState: appState,
+                          currencyUtils: currencyUtils,
+                          labels: _buildDateLabels(context),
+                          valuePrefix: valuePrefix,
+                          valueSuffix: valueSuffix,
+                          maxY: maxY,
                         ),
                         borderData: FlBorderData(show: false),
-                        maxY: maxY ?? _calculateMaxY(context),
-                        barGroups: _buildBarChartData(context),
+                        barGroups: _buildBarGroups(context),
                         barTouchData: BarTouchData(
                           touchTooltipData: BarTouchTooltipData(
                             getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                              final List<String> labels = _buildDateLabels(context);
-
-                              if (groupIndex >= 0 && groupIndex < labels.length) {
-                                // Cas spécial pour les APY empilés
-                                if (isStacked && dataList.isNotEmpty && dataList.first is APYRecord) {
-                                  final periodKey = labels[groupIndex];
-                                  final stackData = _getStackedValuesForPeriod(context, periodKey);
-                                  
-                                  if (stackData != null) {
-                                    final netValue = stackData.$1;
-                                    final grossValue = stackData.$2;
-                                    
-                                    return BarTooltipItem(
-                                      '$periodKey\n${S.of(context).net}: $valuePrefix${netValue.toStringAsFixed(2)}$valueSuffix\n${S.of(context).brute}: $valuePrefix${grossValue.toStringAsFixed(2)}$valueSuffix',
-                                      const TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 12,
-                                      ),
-                                    );
-                                  }
-                                }
-                                
-                                // Format standard pour les autres types
-                                String valueText;
-                                if (valuePrefix == currencyUtils.currencySymbol) {
-                                  valueText = currencyUtils.formatCompactCurrency(
-                                    rod.toY,
-                                    currencyUtils.currencySymbol,
-                                  );
-                                } else {
-                                  valueText = '$valuePrefix${rod.toY.toStringAsFixed(2)}$valueSuffix';
-                                }
-
-                                return BarTooltipItem(
-                                  '${labels[groupIndex]}\n$valueText',
-                                  const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 12,
-                                  ),
-                                );
-                              }
-                              return null;
+                              final periodKey = _buildDateLabels(context)[group.x.toInt()];
+                              return ChartBuilders.buildBarTooltip(
+                                context: context,
+                                periodKey: periodKey,
+                                value: rod.toY,
+                                valuePrefix: valuePrefix,
+                                valueSuffix: valueSuffix,
+                                currencyUtils: currencyUtils,
+                              );
                             },
-                            fitInsideHorizontally: true,
-                            fitInsideVertically: true,
-                            tooltipRoundedRadius: 12,
-                            tooltipPadding: const EdgeInsets.all(12),
                           ),
                         ),
                       ),
                     )
                   : LineChart(
                       LineChartData(
-                        minY: 1, // Valeur minimale pour éviter l'erreur fl_chart
-                        maxY: maxY ?? max(_calculateMaxY(context), 10.0), // S'assurer que maxY est toujours >= 10
-                        gridData: FlGridData(
-                          show: true,
-                          drawVerticalLine: false,
-                          getDrawingHorizontalLine: (value) {
-                            return FlLine(
-                              color: Colors.grey.withOpacity(0.15),
-                              strokeWidth: 1,
-                            );
-                          },
-                        ),
-                        titlesData: FlTitlesData(
-                          leftTitles: AxisTitles(
-                            sideTitles: SideTitles(showTitles: false),
-                          ),
-                          bottomTitles: AxisTitles(
-                            sideTitles: SideTitles(
-                              showTitles: true,
-                              getTitlesWidget: (value, meta) {
-                                List<String> labels = _buildDateLabels(context);
-                                if (value.toInt() >= 0 && value.toInt() < labels.length) {
-                                  return Padding(
-                                    padding: const EdgeInsets.only(top: 10.0),
-                                    child: Transform.rotate(
-                                      angle: -0.5,
-                                      child: Text(
-                                        labels[value.toInt()],
-                                        style: TextStyle(
-                                          fontSize: 10 + appState.getTextSizeOffset(),
-                                          color: Colors.grey.shade600,
-                                        ),
-                                      ),
-                                    ),
-                                  );
-                                } else {
-                                  return const SizedBox.shrink();
-                                }
-                              },
-                            ),
-                          ),
-                          topTitles: AxisTitles(
-                            sideTitles: SideTitles(showTitles: false),
-                          ),
-                          rightTitles: AxisTitles(
-                            sideTitles: SideTitles(
-                              showTitles: true,
-                              reservedSize: 40,
-                              getTitlesWidget: (value, meta) {
-                                // Formater la valeur en fonction du type
-                                String formattedValue;
-                                if (valuePrefix == currencyUtils.currencySymbol) {
-                                  formattedValue = currencyUtils.formatCompactCurrency(
-                                    value,
-                                    currencyUtils.currencySymbol,
-                                  );
-                                } else {
-                                  formattedValue = '$valuePrefix${value.toStringAsFixed(1)}$valueSuffix';
-                                }
-
-                                return Padding(
-                                  padding: const EdgeInsets.only(left: 8.0),
-                                  child: Text(
-                                    formattedValue,
-                                    style: TextStyle(
-                                      fontSize: 10 + appState.getTextSizeOffset(),
-                                      color: Colors.grey.shade600,
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
+                        gridData: ChartBuilders.buildStandardGridData(),
+                        titlesData: ChartBuilders.buildLineChartTitles(
+                          context: context,
+                          appState: appState,
+                          currencyUtils: currencyUtils,
+                          labels: _buildDateLabels(context),
+                          valuePrefix: valuePrefix,
+                          valueSuffix: valueSuffix,
                         ),
                         borderData: FlBorderData(show: false),
                         lineBarsData: isStacked && getStackValues != null && stackColors != null 
                           ? _buildStackedLineChartData(context) 
-                          : [
-                            LineChartBarData(
+                          : [ChartBuilders.buildStandardLine(
                               spots: _buildChartData(context),
-                              isCurved: true,
-                              curveSmoothness: 0.3,
-                              barWidth: 3,
                               color: chartColor,
-                              dotData: FlDotData(
-                                show: true,
-                                getDotPainter: (spot, percent, barData, index) {
-                                  return FlDotCirclePainter(
-                                    radius: 3,
-                                    color: Colors.white,
-                                    strokeWidth: 2,
-                                    strokeColor: chartColor,
-                                  );
-                                },
-                                checkToShowDot: (spot, barData) {
-                                  // Montrer points aux extrémités et points intermédiaires
-                                  final isFirst = spot.x == 0;
-                                  final isLast = spot.x == barData.spots.length - 1;
-                                  
-                                  // Calcul du pas adaptatif pour l'affichage des points
-                                  final int dataLength = barData.spots.length;
-                                  int step = 1;
-                                  
-                                  // Si trop de points, n'afficher qu'un sous-ensemble
-                                  if (dataLength > ChartUtils.maxBarsToDisplay) {
-                                    step = (dataLength / ChartUtils.maxBarsToDisplay).ceil();
-                                  } else if (dataLength > 10) {
-                                    step = 2; // Afficher un point sur deux si entre 10 et 20 points
-                                  }
-                                  
-                                  final isInteresting = spot.x % step == 0;
-                                  return isFirst || isLast || isInteresting;
-                                },
-                              ),
-                              belowBarData: BarAreaData(
-                                show: true,
-                                gradient: LinearGradient(
-                                  colors: [
-                                    chartColor.withOpacity(0.3),
-                                    chartColor.withOpacity(0.05),
-                                  ],
-                                  begin: Alignment.topCenter,
-                                  end: Alignment.bottomCenter,
-                                ),
-                              ),
-                            ),
-                          ],
+                            )],
                         lineTouchData: LineTouchData(
                           touchTooltipData: LineTouchTooltipData(
-                            getTooltipItems: (List<LineBarSpot> touchedSpots) {
-                              // Si on est en mode empilé, on affiche les valeurs de chaque série
-                              if (isStacked && getStackValues != null && stackLabels != null) {
-                                if (touchedSpots.isEmpty) return [];
-                                
-                                final int index = touchedSpots.first.x.toInt();
-                                
-                                // Obtenir le label de période à partir des étiquettes construites
-                                List<String> dateLabels = _buildDateLabels(context);
-                                if (index < 0 || index >= dateLabels.length) return [];
-                                
-                                final periodLabel = dateLabels[index];
-                                
-                                // Pour les graphiques linéaires empilés avec données regroupées
-                                if (!isBarChart) {
-                                  // Récupérer les valeurs correspondant à cette période depuis nos groupes
-                                  Map<String, List<T>> groupedData = {};
-                                  final filteredData = _filterDataByTimeRange(context, dataList);
-                                  
-                                  for (var record in filteredData) {
-                                    DateTime date = getTimestamp(record);
-                                    String key;
-                                    
-                                    if (selectedPeriod == S.of(context).day) {
-                                      key = DateFormat('yyyy/MM/dd').format(date);
-                                    } else if (selectedPeriod == S.of(context).week) {
-                                      key = "${date.year}-S${CustomDateUtils.weekNumber(date).toString().padLeft(2, '0')}";
-                                    } else if (selectedPeriod == S.of(context).month) {
-                                      key = DateFormat('yyyy/MM').format(date);
-                                    } else {
-                                      key = date.year.toString();
-                                    }
-                                    
-                                    groupedData.putIfAbsent(key, () => []).add(record);
-                                  }
-                                  
-                                  // Trier les clés pour correspondre à l'ordre des étiquettes
-                                  List<String> sortedKeys = groupedData.keys.toList()..sort();
-                                  
-                                  if (index < sortedKeys.length) {
-                                    String periodKey = sortedKeys[index];
-                                    List<T>? records = groupedData[periodKey];
-                                    
-                                    if (records != null && records.isNotEmpty) {
-                                      // Calculer les moyennes des valeurs pour cette période
-                                      int stackCount = stackLabels!.length;
-                                      List<double> stackAverages = List.filled(stackCount, 0.0);
-                                      
-                                      for (var record in records) {
-                                        final values = getStackValues!(record);
-                                        for (int i = 0; i < stackCount && i < values.length; i++) {
-                                          stackAverages[i] += values[i];
-                                        }
-                                      }
-                                      
-                                      for (int i = 0; i < stackCount; i++) {
-                                        stackAverages[i] /= records.length;
-                                      }
-                                      
-                                      // Construire le texte du tooltip
-                                      String tooltipText = periodLabel;
-                                      
-                                      for (int i = 0; i < stackLabels!.length && i < stackAverages.length; i++) {
-                                        String valueText;
-                                        if (valuePrefix == currencyUtils.currencySymbol) {
-                                          valueText = currencyUtils.formatCompactCurrency(
-                                            stackAverages[i],
-                                            currencyUtils.currencySymbol,
-                                          );
-                                        } else {
-                                          valueText = '$valuePrefix${stackAverages[i].toStringAsFixed(2)}$valueSuffix';
-                                        }
-                                        tooltipText += '\n${stackLabels![i]}: $valueText';
-                                      }
-                                      
-                                      return touchedSpots.map((spot) {
-                                        return LineTooltipItem(
-                                          tooltipText,
-                                          const TextStyle(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.w600,
-                                            fontSize: 12,
-                                          ),
-                                        );
-                                      }).toList();
-                                    }
-                                  }
-                                }
-                                
-                                // Trouver l'enregistrement correspondant (pour les graphiques non linéaires ou cas de repli)
-                                final filteredData = _filterDataByTimeRange(context, dataList);
-                                if (index < 0 || index >= filteredData.length) return [];
-                                
-                                final record = filteredData[index];
-                                final stackValues = getStackValues!(record);
-                                
-                                String tooltipText = periodLabel;
-                                for (int i = 0; i < stackLabels!.length && i < stackValues.length; i++) {
-                                  String valueText;
-                                  if (valuePrefix == currencyUtils.currencySymbol) {
-                                    valueText = currencyUtils.formatCompactCurrency(
-                                      stackValues[i],
-                                      currencyUtils.currencySymbol,
-                                    );
-                                  } else {
-                                    valueText = '$valuePrefix${stackValues[i].toStringAsFixed(2)}$valueSuffix';
-                                  }
-                                  tooltipText += '\n${stackLabels![i]}: $valueText';
-                                }
-                                
-                                return touchedSpots.map((spot) {
-                                  return LineTooltipItem(
-                                    tooltipText,
-                                    const TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 12,
-                                    ),
-                                  );
-                                }).toList();
-                              }
-                              
-                              // Format standard pour le mode non-empilé
-                              return touchedSpots.map((touchedSpot) {
-                                final index = touchedSpot.x.toInt();
-                                final value = touchedSpot.y;
-                                final periodLabel = _buildDateLabels(context)[index];
-
-                                // Formater la valeur en fonction du type
-                                String valueText;
-                                if (valuePrefix == currencyUtils.currencySymbol) {
-                                  valueText = currencyUtils.formatCompactCurrency(
-                                    value,
-                                    currencyUtils.currencySymbol,
-                                  );
-                                } else {
-                                  valueText = '$valuePrefix${value.toStringAsFixed(2)}$valueSuffix';
-                                }
-
-                                return LineTooltipItem(
-                                  '$periodLabel\n$valueText',
-                                  const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 12,
-                                  ),
+                            getTooltipItems: (touchedSpots) {
+                              return touchedSpots.map((spot) {
+                                final periodLabel = _buildDateLabels(context)[spot.x.toInt()];
+                                return ChartBuilders.buildLineTooltip(
+                                  periodLabel: periodLabel,
+                                  value: spot.y,
+                                  valuePrefix: valuePrefix,
+                                  valueSuffix: valueSuffix,
+                                  currencyUtils: currencyUtils,
                                 );
                               }).toList();
                             },
-                            fitInsideHorizontally: true,
-                            fitInsideVertically: true,
-                            tooltipMargin: 8,
-                            tooltipHorizontalOffset: 0,
-                            tooltipRoundedRadius: 12,
-                            tooltipPadding: const EdgeInsets.all(12),
                           ),
-                          handleBuiltInTouches: true,
-                          touchSpotThreshold: 25,
                         ),
                       ),
                     ),
             ),
-            
-            // Ajouter la légende si stackLabels est fourni
+            // Légende pour les graphiques empilés
             if (isStacked && stackLabels != null && stackColors != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 8.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: List.generate(stackLabels!.length * 2 - 1, (index) {
-                    if (index % 2 == 1) {
-                      return const SizedBox(width: 24); // Espace entre les éléments
-                    }
-                    
-                    int itemIndex = index ~/ 2;
-                    return _buildLegendItem(stackLabels![itemIndex], stackColors![itemIndex]);
-                  }),
-                ),
-              ),
+              _buildStackedLegend(),
           ],
         ),
       ),
@@ -629,7 +241,7 @@ class GenericChartWidget<T> extends StatelessWidget {
     return max(maxY * 1.1, 10.0);
   }
 
-  List<BarChartGroupData> _buildBarChartData(BuildContext context) {
+  List<BarChartGroupData> _buildBarGroups(BuildContext context) {
     // Cas spécial pour les données empilées avec getStackValues
     if (isStacked && getStackValues != null && stackColors != null) {
       return _buildCustomStackedBarChartData(context);
@@ -1280,6 +892,24 @@ class GenericChartWidget<T> extends StatelessWidget {
   }
 
   // Nouvelle méthode pour construire un élément de légende
+  Widget _buildStackedLegend() {
+    return Padding(
+      padding: const EdgeInsets.only(top: 8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: List.generate(stackLabels!.length * 2 - 1, (index) {
+          if (index % 2 == 1) {
+            return const SizedBox(width: 24); // Espace entre les éléments
+          }
+          
+          int itemIndex = index ~/ 2;
+          return _buildLegendItem(stackLabels![itemIndex], stackColors![itemIndex]);
+        }),
+      ),
+    );
+  }
+
+  // Nouvelle méthode pour construire un élément de légende
   Widget _buildLegendItem(String label, Color color) {
     return Row(
       children: [
@@ -1589,32 +1219,7 @@ class GenericChartWidget<T> extends StatelessWidget {
                                           style: TextStyle(
                                             fontSize: 14 + appState.getTextSizeOffset(),
                                           ),
-                                          decoration: InputDecoration(
-                                            filled: true,
-                                            fillColor: Colors.white,
-                                            border: OutlineInputBorder(
-                                              borderRadius: BorderRadius.circular(8),
-                                              borderSide: BorderSide(
-                                                color: Colors.grey.shade300,
-                                              ),
-                                            ),
-                                            enabledBorder: OutlineInputBorder(
-                                              borderRadius: BorderRadius.circular(8),
-                                              borderSide: BorderSide(
-                                                color: Colors.grey.shade300,
-                                              ),
-                                            ),
-                                            focusedBorder: OutlineInputBorder(
-                                              borderRadius: BorderRadius.circular(8),
-                                              borderSide: BorderSide(
-                                                color: Theme.of(context).primaryColor,
-                                              ),
-                                            ),
-                                            contentPadding: const EdgeInsets.symmetric(
-                                              horizontal: 12,
-                                              vertical: 8,
-                                            ),
-                                          ),
+                                          decoration: WidgetFactory.buildStandardInputDecoration(context),
                                           onSubmitted: (value) {
                                             if (onDateChanged != null) {
                                               onDateChanged!(record, value);
@@ -1636,32 +1241,7 @@ class GenericChartWidget<T> extends StatelessWidget {
                                           style: TextStyle(
                                             fontSize: 14 + appState.getTextSizeOffset(),
                                           ),
-                                          decoration: InputDecoration(
-                                            filled: true,
-                                            fillColor: Colors.white,
-                                            border: OutlineInputBorder(
-                                              borderRadius: BorderRadius.circular(8),
-                                              borderSide: BorderSide(
-                                                color: Colors.grey.shade300,
-                                              ),
-                                            ),
-                                            enabledBorder: OutlineInputBorder(
-                                              borderRadius: BorderRadius.circular(8),
-                                              borderSide: BorderSide(
-                                                color: Colors.grey.shade300,
-                                              ),
-                                            ),
-                                            focusedBorder: OutlineInputBorder(
-                                              borderRadius: BorderRadius.circular(8),
-                                              borderSide: BorderSide(
-                                                color: Theme.of(context).primaryColor,
-                                              ),
-                                            ),
-                                            contentPadding: const EdgeInsets.symmetric(
-                                              horizontal: 12,
-                                              vertical: 8,
-                                            ),
-                                          ),
+                                          decoration: WidgetFactory.buildStandardInputDecoration(context),
                                           onSubmitted: (value) {
                                             if (onValueChanged != null) {
                                               onValueChanged!(record, value);

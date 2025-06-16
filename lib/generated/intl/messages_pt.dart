@@ -361,6 +361,8 @@ class MessageLookup extends MessageLookupByLibrary {
             "Nenhuma transação ou aluguel para exportar."),
         "noTransactionsAvailable": MessageLookupByLibrary.simpleMessage(
             "Nenhuma transação disponível"),
+        "noWalletMessage": MessageLookupByLibrary.simpleMessage(
+            "Para usar a aplicação, você deve primeiro adicionar pelo menos um endereço de wallet Ethereum."),
         "noYieldEvolution": MessageLookupByLibrary.simpleMessage(
             "Sem evolução de rendimento. O último rendimento é:"),
         "no_market_offers_available": MessageLookupByLibrary.simpleMessage(

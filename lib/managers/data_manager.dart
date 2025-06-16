@@ -6,6 +6,7 @@ import 'package:realtoken_asset_tracker/generated/l10n.dart';
 import 'package:realtoken_asset_tracker/models/healthandltv_record.dart';
 import 'package:realtoken_asset_tracker/models/rented_record.dart';
 import 'package:realtoken_asset_tracker/utils/parameters.dart';
+import 'package:realtoken_asset_tracker/utils/location_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/api_service.dart';
 import '../services/cache_service.dart';
@@ -660,6 +661,11 @@ class DataManager extends ChangeNotifier {
       debugPrint("$_logSub Chargement du cache secondaire...");
       await Future.wait([
         loadFromCacheWithFallback(
+          cacheKey: 'cachedRentData',
+          updateVariable: (data) => rentData = data,
+          debugName: "Données de loyer"
+        ),
+        loadFromCacheWithFallback(
           cacheKey: 'cachedData_tempRentData',
           alternativeCacheKey: 'tempRentData',
           updateVariable: (data) => tempRentData = data,
@@ -951,6 +957,7 @@ class DataManager extends ChangeNotifier {
     debugPrint("$_logTask Chargement de l'historique APY...");
     
     try {
+      // Utiliser la boîte correcte qui est ouverte dans main.dart
       var box = Hive.box('apyValueArchive');
       List<dynamic>? apyHistoryJson = box.get('apy_history');
 
@@ -959,10 +966,79 @@ class DataManager extends ChangeNotifier {
         return;
       }
 
-      // Charger l'historique
-      apyHistory = apyHistoryJson.map((recordJson) {
-        return APYRecord.fromJson(Map<String, dynamic>.from(recordJson));
-      }).toList();
+      // Charger l'historique avec gestion d'erreur robuste
+      apyHistory = [];
+      for (var recordJson in apyHistoryJson) {
+        try {
+          // S'assurer que recordJson est bien un Map
+          Map<String, dynamic> recordMap;
+          if (recordJson is Map<String, dynamic>) {
+            recordMap = recordJson;
+          } else if (recordJson is Map) {
+            recordMap = Map<String, dynamic>.from(recordJson);
+          } else {
+            debugPrint("$_logWarning Format de données APY invalide ignoré: $recordJson");
+            continue;
+          }
+          
+          // Gestion spéciale du timestamp
+          if (recordMap.containsKey('timestamp')) {
+            var timestampValue = recordMap['timestamp'];
+            DateTime parsedTimestamp;
+            
+            try {
+              if (timestampValue is int) {
+                // Timestamp en millisecondes
+                parsedTimestamp = DateTime.fromMillisecondsSinceEpoch(timestampValue);
+              } else if (timestampValue is double) {
+                // Timestamp en millisecondes (format double)
+                parsedTimestamp = DateTime.fromMillisecondsSinceEpoch(timestampValue.toInt());
+              } else if (timestampValue is String) {
+                // Essayer de parser comme timestamp en millisecondes d'abord
+                try {
+                  int timestampMs = int.parse(timestampValue);
+                  parsedTimestamp = DateTime.fromMillisecondsSinceEpoch(timestampMs);
+                } catch (e) {
+                  // Si ça échoue, essayer de parser comme date ISO
+                  parsedTimestamp = DateTime.parse(timestampValue);
+                }
+              } else {
+                debugPrint("$_logWarning Type de timestamp non supporté: ${timestampValue.runtimeType}");
+                continue;
+              }
+              
+              // Remplacer le timestamp dans recordMap avec le DateTime parsé
+              recordMap['timestamp'] = parsedTimestamp.toIso8601String();
+            } catch (e) {
+              debugPrint("$_logWarning Erreur lors du parsing du timestamp: $timestampValue, erreur: $e");
+              continue;
+            }
+          }
+          
+          // Validation et conversion sécurisée des types pour les valeurs APY
+          if (recordMap.containsKey('apy') || recordMap.containsKey('netApy')) {
+            
+            // Convertir les valeurs String en double si nécessaire
+            if (recordMap['apy'] is String) {
+              recordMap['apy'] = double.tryParse(recordMap['apy']) ?? 0.0;
+            }
+            if (recordMap['netApy'] is String) {
+              recordMap['netApy'] = double.tryParse(recordMap['netApy']) ?? 0.0;
+            }
+            if (recordMap['grossApy'] is String) {
+              recordMap['grossApy'] = double.tryParse(recordMap['grossApy']) ?? 0.0;
+            }
+            
+            apyHistory.add(APYRecord.fromJson(recordMap));
+          } else {
+            debugPrint("$_logWarning Données APY incomplètes ignorées: $recordMap");
+          }
+        } catch (e) {
+          debugPrint("$_logWarning Erreur lors du traitement d'un enregistrement APY: $e");
+          debugPrint("$_logWarning Données problématiques: $recordJson");
+          continue;
+        }
+      }
 
       notifyListeners();
 
@@ -970,6 +1046,8 @@ class DataManager extends ChangeNotifier {
       debugPrint("$_logSuccess Historique APY chargé: ${apyHistory.length} entrées (${duration.inMilliseconds}ms)");
     } catch (e) {
       debugPrint("$_logError Erreur lors du chargement de l'historique APY: $e");
+      // Initialiser avec une liste vide en cas d'erreur
+      apyHistory = [];
     }
   }
 
@@ -1172,14 +1250,9 @@ class DataManager extends ChangeNotifier {
 
 
           String fullName = realToken['fullName'];
-          List<String> parts = fullName.split(',');
-          String country = parts.length == 4 ? parts[3].trim() : "USA"; // Pays par défaut, pas besoin de traduire
-          List<String> parts2 = fullName.split(',');
-          String regionCode =
-              parts2.length >= 3 ? parts[2].trim().substring(0, 2) : S.current.unknown.toLowerCase();
-          List<String> parts3 = fullName.split(',');
-          bool useCityFromFullname = parts3.length >= 2;
-          String city = useCityFromFullname ? parts[1].trim() : S.current.unknownCity;
+          String country = LocationUtils.extractCountry(fullName);
+          String regionCode = LocationUtils.extractRegion(fullName);
+          String city = LocationUtils.extractCity(fullName);
 
           // Récupérer les loyers cumulés pour ce token
           double totalRentReceived = cumulativeRentsByToken[tokenContractAddress] ?? 0.0;
@@ -1343,17 +1416,12 @@ debugPrint("🗃️ Début récupération et calcul des données pour le Dashboa
     Set<String> uniqueRentedUnitAddresses = {};
     Set<String> uniqueTotalUnitAddresses = {};
 
-    // Fonction locale pour parser le fullName
+    // Fonction locale pour parser le fullName (utilise LocationUtils)
     Map<String, String> parseFullName(String fullName) {
-      final parts = fullName.split(',');
-      final country = parts.length == 4 ? parts[3].trim() : "USA"; // Pays par défaut, pas besoin de traduire
-      final regionCode =
-          parts.length >= 3 ? parts[2].trim().substring(0, 2) : S.current.unknown.toLowerCase();
-      final city = parts.length >= 2 ? parts[1].trim() : S.current.unknownCity;
       return {
-        'country': country,
-        'regionCode': regionCode,
-        'city': city,
+        'country': LocationUtils.extractCountry(fullName),
+        'regionCode': LocationUtils.extractRegion(fullName),
+        'city': LocationUtils.extractCity(fullName),
       };
     }
 
@@ -1370,16 +1438,23 @@ debugPrint("🗃️ Début récupération et calcul des données pour le Dashboa
       }
     }
 
+    // Créer des index Maps pour optimiser les recherches O(1) au lieu de O(n)
+    Map<String, Map<String, dynamic>> realTokensIndex = {};
+    for (var realToken in realTokens.cast<Map<String, dynamic>>()) {
+      realTokensIndex[realToken['uuid'].toLowerCase()] = realToken;
+    }
+    
+    Map<String, Map<String, dynamic>> yamHistoryIndex = {};
+    for (var yam in yamHistory) {
+      yamHistoryIndex[yam['id'].toLowerCase()] = yam;
+    }
+
     for (var walletToken in walletTokens) {
       final tokenAddress = walletToken['token'].toLowerCase();
 
-      // Recherche du token correspondant dans realTokens
-      final matchingRealToken =
-          realTokens.cast<Map<String, dynamic>>().firstWhere(
-                (realToken) => realToken['uuid'].toLowerCase() == tokenAddress,
-                orElse: () => <String, dynamic>{},
-              );
-      if (matchingRealToken.isEmpty) {
+      // Recherche optimisée O(1) au lieu de O(n)
+      final matchingRealToken = realTokensIndex[tokenAddress];
+      if (matchingRealToken == null) {
         debugPrint(
             "⚠️ Aucun RealToken correspondant trouvé pour le token: $tokenAddress");
         continue;
@@ -1461,11 +1536,8 @@ debugPrint("🗃️ Début récupération et calcul des données pour le Dashboa
       // Parsing du fullName pour obtenir country, regionCode et city
       final nameDetails = parseFullName(matchingRealToken['fullName']);
 
-      // Récupération des données Yam
-      final yamData = yamHistory.firstWhere(
-        (yam) => yam['id'].toLowerCase() == tokenContractAddress,
-        orElse: () => <String, dynamic>{},
-      );
+      // Récupération des données Yam avec index optimisé
+      final yamData = yamHistoryIndex[tokenContractAddress] ?? <String, dynamic>{};
       final double yamTotalVolume = yamData['totalVolume'] ?? 1.0;
       final double yamAverageValue =
           (yamData['averageValue'] != null && yamData['averageValue'] != 0)
@@ -2778,12 +2850,55 @@ debugPrint("🗃️ Début récupération et calcul des données pour le Dashboa
 
   Future<void> saveApyHistory() async {
     try {
-      var box = Hive.box('apyHistory');
+      var box = Hive.box('apyValueArchive');
       List<Map<String, dynamic>> apyHistoryJson = apyHistory.map((record) => record.toJson()).toList();
       await box.put('apy_history', apyHistoryJson);
       notifyListeners();
     } catch (e) {
       debugPrint('❌ Erreur lors de la sauvegarde de l\'historique APY : $e');
+    }
+  }
+
+  /// Diagnostique l'état du cache des wallets pour identifier les problèmes de données
+  Future<Map<String, dynamic>> diagnoseCacheStatus() async {
+    try {
+      debugPrint("$_logTask Lancement du diagnostic du cache pour ${evmAddresses.length} wallets");
+      
+      final diagnostics = await ApiService.diagnoseCacheStatus(evmAddresses);
+      
+      // Log des résultats principaux
+      final globalCache = diagnostics['globalCacheStatus'];
+      debugPrint("$_logDetail Cache global rent: ${globalCache['cachedRentData']}");
+      debugPrint("$_logDetail Cache global detailed: ${globalCache['cachedDetailedRentDataAll']}");
+      debugPrint("$_logDetail Dernière erreur 429 rent: ${globalCache['lastRent429Time']}");
+      debugPrint("$_logDetail Dernière erreur 429 detailed: ${globalCache['lastDetailedRent429Time']}");
+      
+      final walletDiagnostics = diagnostics['walletDiagnostics'] as Map<String, dynamic>;
+      int walletsWithRentCache = 0;
+      int walletsWithDetailedCache = 0;
+      
+      for (String wallet in evmAddresses) {
+        final walletInfo = walletDiagnostics[wallet];
+        if (walletInfo != null && walletInfo['rentCacheExists'] == true) {
+          walletsWithRentCache++;
+        }
+        if (walletInfo != null && walletInfo['detailedCacheExists'] == true) {
+          walletsWithDetailedCache++;
+        }
+      }
+      
+      debugPrint("$_logDetail Wallets avec cache rent: $walletsWithRentCache/${evmAddresses.length}");
+      debugPrint("$_logDetail Wallets avec cache detailed: $walletsWithDetailedCache/${evmAddresses.length}");
+      
+      debugPrint("$_logSuccess Diagnostic du cache terminé");
+      return diagnostics;
+      
+    } catch (e) {
+      debugPrint("$_logError Erreur lors du diagnostic du cache: $e");
+      return {
+        'error': 'Erreur lors du diagnostic: $e',
+        'timestamp': DateTime.now().toIso8601String(),
+      };
     }
   }
 }

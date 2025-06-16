@@ -138,6 +138,7 @@
   "dashboard": "Panel de control",
   "statistics": "Estadísticas",
   "noDataAvailable": "No hay datos disponibles, por favor añade un nuevo monedero",
+  "noWalletMessage": "Para usar la aplicación, primero debes agregar al menos una dirección de wallet de Ethereum.",
   "manageAddresses": "Añadir monedero",
   "maps": "Mapas",
   "depositBalance": "Depósitos",

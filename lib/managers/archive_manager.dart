@@ -168,47 +168,74 @@ class ArchiveManager {
 
   Future<void> archiveApyValue(double netApyValue, double grossApyValue) async {
     try {
+      // Utiliser la boîte correcte qui est ouverte dans main.dart
       var box = Hive.box('apyValueArchive');
 
       List<dynamic>? apyHistoryJson = box.get('apy_history');
-      List<APYRecord> apyHistory = apyHistoryJson != null ? apyHistoryJson.map((recordJson) => APYRecord.fromJson(Map<String, dynamic>.from(recordJson))).toList() : [];
+      List<APYRecord> apyHistory = [];
+      
+      // Chargement robuste des données existantes
+      if (apyHistoryJson != null) {
+        for (var recordJson in apyHistoryJson) {
+          try {
+            // S'assurer que recordJson est bien un Map
+            Map<String, dynamic> recordMap;
+            if (recordJson is Map<String, dynamic>) {
+              recordMap = recordJson;
+            } else if (recordJson is Map) {
+              recordMap = Map<String, dynamic>.from(recordJson);
+            } else {
+              debugPrint("⚠️ Enregistrement APY ignoré (format invalide): $recordJson");
+              continue;
+            }
 
-      if (apyHistory.isNotEmpty) {
-        APYRecord lastRecord = apyHistory.last;
-        DateTime lastTimestamp = lastRecord.timestamp;
-        Duration timeSinceLastRecord = DateTime.now().difference(lastTimestamp);
-
-        // Vérifier si nous avons moins de 20 éléments dans l'historique
-        if (apyHistory.length < 20) {
-          // Si moins de 20 éléments, vérifier si 15 minutes se sont écoulées
-          if (timeSinceLastRecord.inMinutes < 15) {
-            debugPrint('⏳ Archivage APY ignoré: moins de 15 minutes depuis le dernier enregistrement (${timeSinceLastRecord.inMinutes}m)');
-            return;
-          }
-        } else {
-          // Si 20 éléments ou plus, vérifier si 1 heure s'est écoulée
-          if (timeSinceLastRecord.inHours < 1) {
-            debugPrint('⏳ Archivage APY ignoré: moins d\'une heure depuis le dernier enregistrement (${timeSinceLastRecord.inMinutes}m)');
-            return;
+            // Créer l'APYRecord avec gestion d'erreur
+            final apyRecord = APYRecord.fromJson(recordMap);
+            apyHistory.add(apyRecord);
+          } catch (e) {
+            debugPrint("⚠️ Erreur lors du décodage d'un enregistrement APY: $e");
+            debugPrint("📄 Données problématiques: $recordJson");
+            continue; // Ignorer cet enregistrement et continuer
           }
         }
       }
 
-      // Créer l'enregistrement avec à la fois apy, netApy et grossApy
-      APYRecord newRecord = APYRecord(
-        apy: double.parse(netApyValue.toStringAsFixed(3)), // Utiliser netApy comme valeur principale
-        netApy: double.parse(netApyValue.toStringAsFixed(3)),
-        grossApy: double.parse(grossApyValue.toStringAsFixed(3)),
-        timestamp: DateTime.now(),
+      // Créer le nouvel enregistrement avec timestamp actuel
+      final now = DateTime.now();
+      final newRecord = APYRecord.fromLegacy(
+        timestamp: now,
+        netApy: netApyValue,
+        grossApy: grossApyValue,
       );
+
+      // Ajouter le nouvel enregistrement
       apyHistory.add(newRecord);
 
-      List<Map<String, dynamic>> apyHistoryJsonToSave = apyHistory.map((record) => record.toJson()).toList();
-      await box.put('apy_history', apyHistoryJsonToSave);
+      // Trier par timestamp pour maintenir l'ordre chronologique
+      apyHistory.sort((a, b) => a.timestamp.compareTo(b.timestamp));
 
-      debugPrint('✅ APY archivé: Net=${newRecord.netApy}%, Brut=${newRecord.grossApy}%');
+      // Convertir en JSON avec gestion sécurisée
+      final apyHistoryJsonList = apyHistory.map((record) {
+        try {
+          return record.toJson();
+        } catch (e) {
+          debugPrint("⚠️ Erreur lors de la conversion JSON d'un enregistrement APY: $e");
+          return null;
+        }
+      }).where((json) => json != null).toList();
+
+      // Sauvegarder dans la boîte Hive
+      await box.put('apy_history', apyHistoryJsonList);
+
+      // Marquer la dernière mise à jour
+      await box.put('lastApyArchiveTime', now.toIso8601String());
+
+      debugPrint("✅ Valeur APY archivée avec succès: Net $netApyValue%, Gross $grossApyValue%");
+      debugPrint("📊 Total des enregistrements APY: ${apyHistoryJsonList.length}");
+      
     } catch (e) {
-      debugPrint('❌ Erreur lors de l\'archivage des valeurs APY : $e');
+      debugPrint("❌ Erreur lors de l'archivage des valeurs APY : $e");
+      throw e; // Relancer l'erreur pour que le code appelant puisse la gérer
     }
   }
 
@@ -233,10 +260,19 @@ class ArchiveManager {
         }
       }
 
+      // Conversion sécurisée de la date
+      DateTime parsedTimestamp;
+      try {
+        parsedTimestamp = DateTime.parse(timestamp);
+      } catch (e) {
+        debugPrint("⚠️ Format de timestamp invalide '$timestamp', utilisation de l'heure actuelle: $e");
+        parsedTimestamp = DateTime.now();
+      }
+
       BalanceRecord newRecord = BalanceRecord(
         tokenType: tokenType,
         balance: double.parse(balance.toStringAsFixed(3)),
-        timestamp: DateTime.parse(timestamp),
+        timestamp: parsedTimestamp,
       );
 
       balanceHistory.add(newRecord);
@@ -244,9 +280,10 @@ class ArchiveManager {
       List<Map<String, dynamic>> balanceHistoryJsonToSave = balanceHistory.map((record) => record.toJson()).toList();
       await box.put('balanceHistory_$tokenType', balanceHistoryJsonToSave);
 
-      debugPrint("📊 Archivage de la balance - Token: $tokenType, Balance: ${balance.toStringAsFixed(3)}");
+      debugPrint("📊 Archivage de la balance - Token: $tokenType, Balance: ${balance.toStringAsFixed(3)}, Timestamp: ${parsedTimestamp.toIso8601String()}");
     } catch (e) {
-      debugPrint('Erreur lors de l\'archivage de la balance pour $tokenType : $e');
+      debugPrint('❌ Erreur lors de l\'archivage de la balance pour $tokenType : $e');
+      debugPrint('Stack trace: ${StackTrace.current}');
     }
   }
 

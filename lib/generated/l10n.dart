@@ -1440,6 +1440,16 @@ class S {
     );
   }
 
+  /// `To use the application, you must first add at least one Ethereum wallet address.`
+  String get noWalletMessage {
+    return Intl.message(
+      'To use the application, you must first add at least one Ethereum wallet address.',
+      name: 'noWalletMessage',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Add wallet`
   String get manageAddresses {
     return Intl.message(
