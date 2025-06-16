@@ -172,7 +172,7 @@ class UIUtils {
                           size: 20 + appState.getTextSizeOffset(),
                         ),
                       ),
-                      const SizedBox(width: 10),
+                      const SizedBox(width: 6),
                       Text(
                         title,
                         style: TextStyle(
@@ -251,6 +251,12 @@ class UIUtils {
       return Color(0xFF5856D6); // Violet iOS
     } else if (translatedTitle == S.of(context).nextRondays) {
       return Color(0xFFFF2D55); // Rose iOS
+    } else if (translatedTitle == 'Estate') {
+      return Colors.teal.shade600; // Bleu-vert pour Real Estate
+    } else if (translatedTitle == 'Loan') {
+      return Colors.indigo.shade600; // Indigo pour Loan Income
+    } else if (translatedTitle == 'Factoring') {
+      return Colors.deepPurple.shade600; // Violet pour Factoring
     } else {
       return Color(0xFF007AFF); // Bleu iOS par défaut
     }

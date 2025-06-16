@@ -23,6 +23,9 @@ import 'package:realtoken_asset_tracker/models/balance_record.dart';
 import 'widgets/portfolio_card.dart';
 import 'widgets/rmm_card.dart';
 import 'widgets/properties_card.dart';
+import 'widgets/real_estate_card.dart';
+import 'widgets/loan_income_card.dart';
+import 'widgets/factoring_card.dart';
 import 'widgets/tokens_card.dart';
 import 'widgets/rents_card.dart';
 import 'widgets/next_rondays_card.dart';
@@ -630,7 +633,24 @@ class DashboardPageState extends State<DashboardPage> {
                                       context: context,
                                     ),
                                     const SizedBox(height: 8),
-                                    PropertiesCard(showAmounts: appState.showAmounts, isLoading: shouldShowShimmers),
+                                    TokensCard(showAmounts: appState.showAmounts, isLoading: shouldShowShimmers),
+                                    const SizedBox(height: 8),
+                                    // Cartes par type de produit en ligne
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: RealEstateCard(showAmounts: appState.showAmounts, isLoading: shouldShowShimmers),
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Expanded(
+                                          child: LoanIncomeCard(showAmounts: appState.showAmounts, isLoading: shouldShowShimmers),
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Expanded(
+                                          child: FactoringCard(showAmounts: appState.showAmounts, isLoading: shouldShowShimmers),
+                                        ),
+                                      ],
+                                    ),
                                     const SizedBox(height: 8),
                                     RentsCard(showAmounts: appState.showAmounts, isLoading: shouldShowShimmers),
                                   ],
@@ -643,8 +663,6 @@ class DashboardPageState extends State<DashboardPage> {
                                 child: Column(
                                   children: [
                                     RmmCard(showAmounts: appState.showAmounts, isLoading: shouldShowShimmers),
-                                    const SizedBox(height: 8),
-                                    TokensCard(showAmounts: appState.showAmounts, isLoading: shouldShowShimmers),
                                     const SizedBox(height: 8),
                                     NextRondaysCard(showAmounts: appState.showAmounts, isLoading: shouldShowShimmers),
                                   ],
@@ -662,9 +680,24 @@ class DashboardPageState extends State<DashboardPage> {
                               const SizedBox(height: 8),
                               RmmCard(showAmounts: appState.showAmounts, isLoading: shouldShowShimmers),
                               const SizedBox(height: 8),
-                              PropertiesCard(showAmounts: appState.showAmounts, isLoading: shouldShowShimmers),
-                              const SizedBox(height: 8),
                               TokensCard(showAmounts: appState.showAmounts, isLoading: shouldShowShimmers),
+                              const SizedBox(height: 8),
+                              // Cartes par type de produit en ligne sur tous les écrans
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: RealEstateCard(showAmounts: appState.showAmounts, isLoading: shouldShowShimmers),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Expanded(
+                                    child: LoanIncomeCard(showAmounts: appState.showAmounts, isLoading: shouldShowShimmers),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Expanded(
+                                    child: FactoringCard(showAmounts: appState.showAmounts, isLoading: shouldShowShimmers),
+                                  ),
+                                ],
+                              ),
                               const SizedBox(height: 8),
                               RentsCard(showAmounts: appState.showAmounts, isLoading: shouldShowShimmers),
                               const SizedBox(height: 8),
