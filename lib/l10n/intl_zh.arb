@@ -436,6 +436,16 @@
   "transactionAnalysis": "交易分析",
   "transactionCount": "交易数量",
   "transactionVolume": "交易量",
-  "tokenCountEvolution": "代币数量演变"
+  "tokenCountEvolution": "代币数量演变",
+  "performanceByRegion": "按地区表现",
+  "sortByROI": "按ROI排序",
+  "sortByCount": "按数量排序",
+  "averageROI": "平均ROI",
+
+  "rentalStatusDistribution": "租赁状态分布",
+  "totalProperties": "总物业",
+  "fullyRented": "完全出租",
+  "partiallyRented": "部分出租",
+  "notRented": "未出租"
 }
   

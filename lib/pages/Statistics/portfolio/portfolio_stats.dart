@@ -12,6 +12,8 @@ import 'package:realtoken_asset_tracker/pages/Statistics/portfolio/charts/token_
 import 'package:realtoken_asset_tracker/pages/Statistics/portfolio/charts/token_distribution_chart.dart';
 import 'package:realtoken_asset_tracker/pages/Statistics/portfolio/charts/roi_by_token_chart.dart';
 import 'package:realtoken_asset_tracker/pages/Statistics/portfolio/charts/token_count_evolution_chart.dart';
+import 'package:realtoken_asset_tracker/pages/Statistics/portfolio/charts/performance_by_region_chart.dart';
+import 'package:realtoken_asset_tracker/pages/Statistics/portfolio/charts/rental_status_distribution_chart.dart';
 import 'package:realtoken_asset_tracker/utils/data_fetch_utils.dart';
 import 'package:realtoken_asset_tracker/generated/l10n.dart';
 
@@ -100,7 +102,7 @@ class _PortfolioStats extends State<PortfolioStats> {
                       
                       return _buildChartWidget(context, index, dataManager);
                     },
-                    childCount: 10,
+                    childCount: 12,
                   ),
                 ),
               ),
@@ -177,6 +179,16 @@ class _PortfolioStats extends State<PortfolioStats> {
         case 9:
           return TokenCountEvolutionChart(
             key: const ValueKey('token_count_evolution_chart'),
+            dataManager: dataManager,
+          );
+        case 10:
+          return PerformanceByRegionChart(
+            key: const ValueKey('performance_by_region_chart'),
+            dataManager: dataManager,
+          );
+        case 11:
+          return RentalStatusDistributionChart(
+            key: const ValueKey('rental_status_distribution_chart'),
             dataManager: dataManager,
           );
         default:

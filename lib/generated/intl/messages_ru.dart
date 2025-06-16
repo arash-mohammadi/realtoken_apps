@@ -92,6 +92,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "author": MessageLookupByLibrary.simpleMessage("Автор"),
         "autoSync": MessageLookupByLibrary.simpleMessage("Автосинхронизация"),
         "averageApy": MessageLookupByLibrary.simpleMessage("средний APY"),
+        "averageROI": MessageLookupByLibrary.simpleMessage("Средний ROI"),
         "balance": MessageLookupByLibrary.simpleMessage("Баланс"),
         "barChart":
             MessageLookupByLibrary.simpleMessage("Столбчатая диаграмма"),
@@ -240,6 +241,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Параметры фильтра"),
         "finances": MessageLookupByLibrary.simpleMessage("Финансы"),
         "french": MessageLookupByLibrary.simpleMessage("Французский"),
+        "fullyRented": MessageLookupByLibrary.simpleMessage("Полностью сдано"),
         "futureRents": MessageLookupByLibrary.simpleMessage("Будущие платежи"),
         "gnosisContract":
             MessageLookupByLibrary.simpleMessage("Контракт Gnosis"),
@@ -393,6 +395,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "no_market_offers_available":
             MessageLookupByLibrary.simpleMessage("Нет рыночных предложений"),
         "notConnected": MessageLookupByLibrary.simpleMessage("Не подключено"),
+        "notRented": MessageLookupByLibrary.simpleMessage("Не сдано"),
         "notSpecified": MessageLookupByLibrary.simpleMessage("Не указано"),
         "not_whitelisted_warning":
             MessageLookupByLibrary.simpleMessage("Токен не в белом списке"),
@@ -415,7 +418,11 @@ class MessageLookup extends MessageLookupByLibrary {
         "othersTitle":
             MessageLookupByLibrary.simpleMessage("Детали раздела «Другое»"),
         "overview": MessageLookupByLibrary.simpleMessage("Обзор"),
+        "partiallyRented":
+            MessageLookupByLibrary.simpleMessage("Частично сдано"),
         "paypal": MessageLookupByLibrary.simpleMessage("PayPal"),
+        "performanceByRegion": MessageLookupByLibrary.simpleMessage(
+            "Производительность по регионам"),
         "period": MessageLookupByLibrary.simpleMessage("Период"),
         "personalization":
             MessageLookupByLibrary.simpleMessage("Персонализация"),
@@ -491,6 +498,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Аренда не начата"),
         "rentalStatus": MessageLookupByLibrary.simpleMessage("Статус аренды"),
         "rentalStatusAll": MessageLookupByLibrary.simpleMessage("Все"),
+        "rentalStatusDistribution": MessageLookupByLibrary.simpleMessage(
+            "Распределение по статусу аренды"),
         "rentalStatusNotRented":
             MessageLookupByLibrary.simpleMessage("Не арендовано"),
         "rentalStatusPartiallyRented":
@@ -564,10 +573,13 @@ class MessageLookup extends MessageLookupByLibrary {
             "Данные могут быть устаревшими"),
         "sortBy": MessageLookupByLibrary.simpleMessage("Сортировать по"),
         "sortByAPY": MessageLookupByLibrary.simpleMessage("Сортировать по APY"),
+        "sortByCount":
+            MessageLookupByLibrary.simpleMessage("Сортировать по количеству"),
         "sortByInitialLaunchDate": MessageLookupByLibrary.simpleMessage(
             "Сортировать по дате добавления"),
         "sortByName":
             MessageLookupByLibrary.simpleMessage("Сортировать по имени"),
+        "sortByROI": MessageLookupByLibrary.simpleMessage("Сортировать по ROI"),
         "sortByValue":
             MessageLookupByLibrary.simpleMessage("Сортировать по стоимости"),
         "sort_date": MessageLookupByLibrary.simpleMessage("Дата"),
@@ -644,6 +656,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Общие инвестиции"),
         "totalPortfolio":
             MessageLookupByLibrary.simpleMessage("Общий портфель"),
+        "totalProperties":
+            MessageLookupByLibrary.simpleMessage("Всего недвижимости"),
         "totalRent":
             MessageLookupByLibrary.simpleMessage("Общая арендная плата"),
         "totalRentReceived":

@@ -481,5 +481,15 @@
   "transactionAnalysis": "Анализ транзакций",
   "transactionCount": "Количество транзакций",
   "transactionVolume": "Объем транзакций",
-  "tokenCountEvolution": "Эволюция количества токенов"
+  "tokenCountEvolution": "Эволюция количества токенов",
+  "performanceByRegion": "Производительность по регионам",
+  "sortByROI": "Сортировать по ROI",
+  "sortByCount": "Сортировать по количеству",
+  "averageROI": "Средний ROI",
+
+  "rentalStatusDistribution": "Распределение по статусу аренды",
+  "totalProperties": "Всего недвижимости",
+  "fullyRented": "Полностью сдано",
+  "partiallyRented": "Частично сдано",
+  "notRented": "Не сдано"
 }

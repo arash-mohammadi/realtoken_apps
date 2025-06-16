@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:provider/provider.dart';
 import 'package:realtoken_asset_tracker/managers/data_manager.dart';
-import 'package:realtoken_asset_tracker/components/section_card_widget.dart';
-import 'package:realtoken_asset_tracker/utils/style_constants.dart';
+import 'package:realtoken_asset_tracker/app_state.dart';
 import 'package:realtoken_asset_tracker/generated/l10n.dart';
 
 class RentDistributionByProductTypeChart extends StatefulWidget {
@@ -18,6 +18,70 @@ class RentDistributionByProductTypeChart extends StatefulWidget {
 }
 
 class _RentDistributionByProductTypeChartState extends State<RentDistributionByProductTypeChart> {
+  final ValueNotifier<int?> _selectedIndexNotifier = ValueNotifier<int?>(null);
+
+  @override
+  Widget build(BuildContext context) {
+    final appState = Provider.of<AppState>(context);
+
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      color: Theme.of(context).cardColor,
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 2),
+            ),
+          ],
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Theme.of(context).cardColor,
+              Theme.of(context).cardColor.withOpacity(0.8),
+            ],
+          ),
+        ),
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              S.of(context).rentDistributionByProductType,
+              style: TextStyle(
+                fontSize: 20 + appState.getTextSizeOffset(),
+                fontWeight: FontWeight.bold,
+                letterSpacing: -0.5,
+              ),
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              height: 200,
+              child: ValueListenableBuilder<int?>(
+                valueListenable: _selectedIndexNotifier,
+                builder: (context, selectedIndex, child) {
+                  return _buildRentDistributionChart(selectedIndex);
+                },
+              ),
+            ),
+            const SizedBox(height: 16),
+            Flexible(
+              child: SingleChildScrollView(
+                child: _buildInteractiveLegend(),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   Map<String, double> _calculateRentByProductType() {
     Map<String, double> rentByProductType = {};
@@ -62,169 +126,147 @@ class _RentDistributionByProductTypeChartState extends State<RentDistributionByP
     ];
   }
 
-  List<PieChartSectionData> _createSections(Map<String, double> data) {
-    final List<Color> colors = _getColors();
-    final double total = data.values.fold(0.0, (sum, value) => sum + value);
+  Widget _buildRentDistributionChart(int? selectedIndex) {
+    final Map<String, double> rentByProductType = _calculateRentByProductType();
     
-    if (total == 0) return [];
-    
-    List<MapEntry<String, double>> sortedData = data.entries.toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
-    
-    return sortedData.asMap().entries.map((entry) {
-      final int index = entry.key;
-      final String productType = entry.value.key;
-      final double value = entry.value.value;
-      final double percentage = (value / total) * 100;
-      
-      return PieChartSectionData(
-        color: colors[index % colors.length],
-        value: percentage,
-        title: percentage > 5 ? '${percentage.toStringAsFixed(1)}%' : '',
-        radius: 60,
-        titleStyle: const TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.bold,
-          color: Colors.white,
-        ),
-      );
-    }).toList();
-  }
-
-  Widget _buildLegend(BuildContext context, Map<String, double> data) {
-    final List<Color> colors = _getColors();
-    final double total = data.values.fold(0.0, (sum, value) => sum + value);
-    
-    if (total == 0) {
+    if (rentByProductType.isEmpty) {
       return Center(
         child: Text(
           S.of(context).noDataAvailable,
-          style: const TextStyle(fontSize: 14, color: Colors.grey),
+          style: TextStyle(
+            fontSize: 16 + Provider.of<AppState>(context).getTextSizeOffset(),
+            color: Colors.grey.shade600,
+          ),
         ),
       );
     }
+
+    final List<Color> colors = _getColors();
+    final double total = rentByProductType.values.fold(0.0, (sum, value) => sum + value);
     
-    List<MapEntry<String, double>> sortedData = data.entries.toList()
+    List<MapEntry<String, double>> sortedData = rentByProductType.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
-    
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: sortedData.asMap().entries.map((entry) {
-        final int index = entry.key;
-        final String productType = entry.value.key;
-        final double value = entry.value.value;
-        final double percentage = (value / total) * 100;
-        
-        return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 2.0),
-          child: Row(
-            children: [
-              Container(
-                width: 12,
-                height: 12,
-                decoration: BoxDecoration(
-                  color: colors[index % colors.length],
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  _getLocalizedProductTypeName(context, productType),
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Theme.of(context).colorScheme.onSurface,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              Text(
-                '${percentage.toStringAsFixed(1)}%',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
-              ),
-            ],
-          ),
-        );
-      }).toList(),
+
+    return PieChart(
+      PieChartData(
+        sections: sortedData.asMap().entries.map((entry) {
+          final int index = entry.key;
+          final double value = entry.value.value;
+          final double percentage = (value / total) * 100;
+          final bool isSelected = selectedIndex == index;
+          
+          return PieChartSectionData(
+            color: colors[index % colors.length],
+            value: percentage,
+            title: percentage > 5 ? '${percentage.toStringAsFixed(1)}%' : '',
+            radius: isSelected ? 70 : 60,
+            titleStyle: TextStyle(
+              fontSize: isSelected ? 14 : 12,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          );
+        }).toList(),
+        centerSpaceRadius: 40,
+        sectionsSpace: 2,
+        borderData: FlBorderData(show: false),
+        pieTouchData: PieTouchData(
+          touchCallback: (FlTouchEvent event, PieTouchResponse? response) {
+            if (response != null && response.touchedSection != null) {
+              final touchedIndex = response.touchedSection!.touchedSectionIndex;
+              _selectedIndexNotifier.value = touchedIndex >= 0 ? touchedIndex : null;
+            } else {
+              _selectedIndexNotifier.value = null;
+            }
+          },
+        ),
+      ),
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    // Vérification de sécurité pour éviter les erreurs de renderObject
-    if (!mounted) {
-      return Container();
+  Widget _buildInteractiveLegend() {
+    final Map<String, double> rentByProductType = _calculateRentByProductType();
+    final appState = Provider.of<AppState>(context);
+    
+    if (rentByProductType.isEmpty) {
+      return const SizedBox.shrink();
     }
 
-    try {
-      final rentByProductType = _calculateRentByProductType();
+    final List<Color> colors = _getColors();
+    final double total = rentByProductType.values.fold(0.0, (sum, value) => sum + value);
+    
+    List<MapEntry<String, double>> sortedData = rentByProductType.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
 
-      return SectionCardWidget(
-        title: S.of(context).rentDistributionByProductType,
-        contentPadding: const EdgeInsets.all(12.0),
+    return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (rentByProductType.isEmpty)
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Text(
-                  S.of(context).noDataAvailable,
-                  style: const TextStyle(fontSize: 14, color: Colors.grey),
-                ),
-              ),
-            )
-          else
-            SizedBox(
-              height: 300,
-              child: Row(
-                children: [
-                  // Graphique en donut
-                  Expanded(
-                    flex: 3,
-                    child: AspectRatio(
-                      aspectRatio: 1,
-                      child: PieChart(
-                        PieChartData(
-                          sections: _createSections(rentByProductType),
-                          centerSpaceRadius: 40,
-                          sectionsSpace: 2,
-                          borderData: FlBorderData(show: false),
+                     ...sortedData.asMap().entries.map((entry) {
+             final int index = entry.key;
+             final String productType = entry.value.key;
+             final double percentage = (entry.value.value / total) * 100;
+            
+            return ValueListenableBuilder<int?>(
+              valueListenable: _selectedIndexNotifier,
+              builder: (context, selectedIndex, child) {
+                final bool isSelected = selectedIndex == index;
+                
+                return GestureDetector(
+                  onTap: () {
+                    _selectedIndexNotifier.value = isSelected ? null : index;
+                  },
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(vertical: 1),
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: isSelected 
+                          ? Theme.of(context).primaryColor.withOpacity(0.1)
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 16,
+                          height: 16,
+                          decoration: BoxDecoration(
+                            color: colors[index % colors.length],
+                            borderRadius: BorderRadius.circular(4),
+                            border: isSelected 
+                                ? Border.all(color: Theme.of(context).primaryColor, width: 2)
+                                : null,
+                          ),
                         ),
-                      ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            _getLocalizedProductTypeName(context, productType),
+                            style: TextStyle(
+                              fontSize: 13 + appState.getTextSizeOffset(),
+                              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                              color: Theme.of(context).textTheme.bodyLarge?.color,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        Text(
+                          '${percentage.toStringAsFixed(1)}%',
+                          style: TextStyle(
+                            fontSize: 13 + appState.getTextSizeOffset(),
+                            fontWeight: FontWeight.w600,
+                            color: isSelected 
+                                ? Theme.of(context).primaryColor
+                                : Theme.of(context).textTheme.bodyLarge?.color,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(width: 16),
-                  // Légende
-                  Expanded(
-                    flex: 2,
-                    child: _buildLegend(context, rentByProductType),
-                  ),
-                ],
-              ),
-            ),
+                );
+              },
+            );
+          }).toList(),
         ],
       );
-    } catch (e) {
-      debugPrint("Error building RentDistributionByProductTypeChart: $e");
-      return SectionCardWidget(
-        title: "Répartition des loyers par type",
-        contentPadding: const EdgeInsets.all(12.0),
-        children: [
-          const Center(
-            child: Padding(
-              padding: EdgeInsets.all(20.0),
-              child: Text(
-                "Erreur de chargement du graphique",
-                style: TextStyle(fontSize: 14, color: Colors.grey),
-              ),
-            ),
-          ),
-        ],
-      );
-    }
   }
 } 

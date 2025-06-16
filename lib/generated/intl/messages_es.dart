@@ -76,6 +76,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "author": MessageLookupByLibrary.simpleMessage("Autor"),
         "averageApy":
             MessageLookupByLibrary.simpleMessage("APY promedio global"),
+        "averageROI": MessageLookupByLibrary.simpleMessage("ROI Promedio"),
         "balance": MessageLookupByLibrary.simpleMessage("Saldo"),
         "barChart": MessageLookupByLibrary.simpleMessage("Gráfico de barras"),
         "bedroomBath": MessageLookupByLibrary.simpleMessage("Dormitorio/Baño"),
@@ -199,6 +200,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Opciones de Filtro"),
         "finances": MessageLookupByLibrary.simpleMessage("Finanzas"),
         "french": MessageLookupByLibrary.simpleMessage("Francais"),
+        "fullyRented":
+            MessageLookupByLibrary.simpleMessage("Completamente Alquilado"),
         "futureRents":
             MessageLookupByLibrary.simpleMessage("Alquileres futuros"),
         "gnosisContract":
@@ -327,6 +330,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "no_market_offers_available": MessageLookupByLibrary.simpleMessage(
             "No hay ofertas de mercado disponibles"),
         "notConnected": MessageLookupByLibrary.simpleMessage("No conectado"),
+        "notRented": MessageLookupByLibrary.simpleMessage("No Alquilado"),
         "notSpecified": MessageLookupByLibrary.simpleMessage("No especificado"),
         "not_whitelisted_warning": MessageLookupByLibrary.simpleMessage(
             "Token no autorizado, oferta desactivada"),
@@ -342,7 +346,11 @@ class MessageLookup extends MessageLookupByLibrary {
         "others": MessageLookupByLibrary.simpleMessage("Otros"),
         "othersTitle": MessageLookupByLibrary.simpleMessage(
             "Detalles de la sección Otros"),
+        "partiallyRented":
+            MessageLookupByLibrary.simpleMessage("Parcialmente Alquilado"),
         "paypal": MessageLookupByLibrary.simpleMessage("PayPal"),
+        "performanceByRegion":
+            MessageLookupByLibrary.simpleMessage("Rendimiento por Región"),
         "period": MessageLookupByLibrary.simpleMessage("Período"),
         "personalization":
             MessageLookupByLibrary.simpleMessage("Personalización"),
@@ -418,6 +426,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "rentalStatus":
             MessageLookupByLibrary.simpleMessage("Estado del alquiler"),
         "rentalStatusAll": MessageLookupByLibrary.simpleMessage("Todos"),
+        "rentalStatusDistribution": MessageLookupByLibrary.simpleMessage(
+            "Distribución por Estado de Alquiler"),
         "rentalStatusNotRented":
             MessageLookupByLibrary.simpleMessage("No alquilado"),
         "rentalStatusPartiallyRented":
@@ -480,10 +490,13 @@ class MessageLookup extends MessageLookupByLibrary {
         "sortBy": MessageLookupByLibrary.simpleMessage("Ordenar Por"),
         "sortByAPY":
             MessageLookupByLibrary.simpleMessage("Ordenar por rendimiento"),
+        "sortByCount":
+            MessageLookupByLibrary.simpleMessage("Ordenar por Cantidad"),
         "sortByInitialLaunchDate": MessageLookupByLibrary.simpleMessage(
             "Ordenar por agregado recientemente"),
         "sortByName":
             MessageLookupByLibrary.simpleMessage("Ordenar por nombre"),
+        "sortByROI": MessageLookupByLibrary.simpleMessage("Ordenar por ROI"),
         "sortByValue":
             MessageLookupByLibrary.simpleMessage("Ordenar por valor"),
         "sort_date": MessageLookupByLibrary.simpleMessage("Fecha"),
@@ -547,6 +560,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Inversión total"),
         "totalPortfolio":
             MessageLookupByLibrary.simpleMessage("Portafolio total"),
+        "totalProperties":
+            MessageLookupByLibrary.simpleMessage("Total Propiedades"),
         "totalRent": MessageLookupByLibrary.simpleMessage("Alquiler Total"),
         "totalRentReceived":
             MessageLookupByLibrary.simpleMessage("Total de ingresos"),

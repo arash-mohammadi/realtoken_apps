@@ -126,7 +126,7 @@ class ChartUtils {
       }
 
       // LOG DEBUG
-      debugPrint('[CHART-DEBUG] date=$date, periodKey=$periodKey, valeur=${getValue(record)}');
+      // debugPrint('[CHART-DEBUG] date=$date, periodKey=$periodKey, valeur=${getValue(record)}');
 
       groupedData.putIfAbsent(periodKey, () => []).add(getValue(record));
     }

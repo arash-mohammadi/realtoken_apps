@@ -6,6 +6,7 @@ import 'package:realtoken_asset_tracker/pages/Statistics/portfolio/charts/rent_d
 import 'package:realtoken_asset_tracker/pages/Statistics/portfolio/charts/rent_distribution_by_product_type_chart.dart';
 import 'package:realtoken_asset_tracker/pages/Statistics/portfolio/charts/rented_graph.dart';
 import 'package:realtoken_asset_tracker/pages/Statistics/wallet/charts/rent_graph.dart';
+
 import 'package:realtoken_asset_tracker/utils/data_fetch_utils.dart';
 import 'package:realtoken_asset_tracker/generated/l10n.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -132,37 +133,6 @@ class _RentsStatsState extends State<RentsStats> {
     try {
       switch (index) {
         case 0:
-          return RentedHistoryGraph(
-            key: const ValueKey('rented_history_graph'),
-            selectedPeriod: _selectedPeriod,
-            onPeriodChanged: (period) {
-              if (mounted) {
-                setState(() {
-                  _selectedPeriod = period;
-                });
-              }
-            },
-            rentedIsBarChart: _rentedIsBarChart,
-            onChartTypeChanged: (isBarChart) {
-              if (mounted) {
-                setState(() {
-                  _rentedIsBarChart = isBarChart;
-                  prefs.setBool('rentedIsBarChart', isBarChart);
-                });
-              }
-            },
-          );
-        case 1:
-          return RentDistributionChart(
-            key: const ValueKey('rent_distribution_chart'),
-            dataManager: dataManager,
-          );
-        case 2:
-          return RentDistributionByProductTypeChart(
-            key: const ValueKey('rent_distribution_by_product_type_chart'),
-            dataManager: dataManager,
-          );
-        case 3:
           return RentGraph(
             key: const ValueKey('rent_graph'),
             groupedData: [],
@@ -205,7 +175,37 @@ class _RentsStatsState extends State<RentsStats> {
               });
             },
           );
-
+        case 1:
+          return RentedHistoryGraph(
+            key: const ValueKey('rented_history_graph'),
+            selectedPeriod: _selectedPeriod,
+            onPeriodChanged: (period) {
+              if (mounted) {
+                setState(() {
+                  _selectedPeriod = period;
+                });
+              }
+            },
+            rentedIsBarChart: _rentedIsBarChart,
+            onChartTypeChanged: (isBarChart) {
+              if (mounted) {
+                setState(() {
+                  _rentedIsBarChart = isBarChart;
+                  prefs.setBool('rentedIsBarChart', isBarChart);
+                });
+              }
+            },
+          );
+        case 2:
+          return RentDistributionChart(
+            key: const ValueKey('rent_distribution_chart'),
+            dataManager: dataManager,
+          );
+        case 3:
+          return RentDistributionByProductTypeChart(
+            key: const ValueKey('rent_distribution_by_product_type_chart'),
+            dataManager: dataManager,
+          );
         default:
           return const SizedBox.shrink();
       }

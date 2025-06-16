@@ -2190,6 +2190,96 @@ class S {
     );
   }
 
+  /// `Performance by Region`
+  String get performanceByRegion {
+    return Intl.message(
+      'Performance by Region',
+      name: 'performanceByRegion',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Sort by ROI`
+  String get sortByROI {
+    return Intl.message(
+      'Sort by ROI',
+      name: 'sortByROI',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Sort by Count`
+  String get sortByCount {
+    return Intl.message(
+      'Sort by Count',
+      name: 'sortByCount',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Average ROI`
+  String get averageROI {
+    return Intl.message(
+      'Average ROI',
+      name: 'averageROI',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Rental Status Distribution`
+  String get rentalStatusDistribution {
+    return Intl.message(
+      'Rental Status Distribution',
+      name: 'rentalStatusDistribution',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Total Properties`
+  String get totalProperties {
+    return Intl.message(
+      'Total Properties',
+      name: 'totalProperties',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Fully Rented`
+  String get fullyRented {
+    return Intl.message(
+      'Fully Rented',
+      name: 'fullyRented',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Partially Rented`
+  String get partiallyRented {
+    return Intl.message(
+      'Partially Rented',
+      name: 'partiallyRented',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Not Rented`
+  String get notRented {
+    return Intl.message(
+      'Not Rented',
+      name: 'notRented',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Realt Listing Fee`
   String get realtListingFee {
     return Intl.message(

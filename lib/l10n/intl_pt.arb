@@ -437,6 +437,16 @@
   "transactionAnalysis": "Análise de Transações",
   "transactionCount": "Número de Transações",
   "transactionVolume": "Volume de Transações",
-  "tokenCountEvolution": "Evolução do Número de Tokens"
+  "tokenCountEvolution": "Evolução do Número de Tokens",
+  "performanceByRegion": "Performance por Região",
+  "sortByROI": "Ordenar por ROI",
+  "sortByCount": "Ordenar por Quantidade",
+  "averageROI": "ROI Médio",
+
+  "rentalStatusDistribution": "Distribuição por Status de Aluguel",
+  "totalProperties": "Total de Propriedades",
+  "fullyRented": "Totalmente Alugado",
+  "partiallyRented": "Parcialmente Alugado",
+  "notRented": "Não Alugado"
 }
   

@@ -80,6 +80,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "author": MessageLookupByLibrary.simpleMessage("作者"),
         "autoSync": MessageLookupByLibrary.simpleMessage("自动同步"),
         "averageApy": MessageLookupByLibrary.simpleMessage("平均年收益率"),
+        "averageROI": MessageLookupByLibrary.simpleMessage("平均ROI"),
         "balance": MessageLookupByLibrary.simpleMessage("余额"),
         "barChart": MessageLookupByLibrary.simpleMessage("柱状图"),
         "bedroomBath": MessageLookupByLibrary.simpleMessage("卧室/浴室"),
@@ -199,6 +200,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "filterOptions": MessageLookupByLibrary.simpleMessage("筛选选项"),
         "finances": MessageLookupByLibrary.simpleMessage("财务"),
         "french": MessageLookupByLibrary.simpleMessage("Francais"),
+        "fullyRented": MessageLookupByLibrary.simpleMessage("完全出租"),
         "futureRents": MessageLookupByLibrary.simpleMessage("未来租金"),
         "gnosisContract": MessageLookupByLibrary.simpleMessage("Gnosis 合约"),
         "googleDriveConnection":
@@ -305,6 +307,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "no_market_offers_available":
             MessageLookupByLibrary.simpleMessage("没有可用的市场报价"),
         "notConnected": MessageLookupByLibrary.simpleMessage("未连接"),
+        "notRented": MessageLookupByLibrary.simpleMessage("未出租"),
         "notSpecified": MessageLookupByLibrary.simpleMessage("未指定"),
         "not_whitelisted_warning":
             MessageLookupByLibrary.simpleMessage("Token 未列入白名单，报价已禁用"),
@@ -317,7 +320,9 @@ class MessageLookup extends MessageLookupByLibrary {
         "other": MessageLookupByLibrary.simpleMessage("其他"),
         "others": MessageLookupByLibrary.simpleMessage("其他"),
         "othersTitle": MessageLookupByLibrary.simpleMessage("其他部分的详细信息"),
+        "partiallyRented": MessageLookupByLibrary.simpleMessage("部分出租"),
         "paypal": MessageLookupByLibrary.simpleMessage("PayPal"),
+        "performanceByRegion": MessageLookupByLibrary.simpleMessage("按地区表现"),
         "period": MessageLookupByLibrary.simpleMessage("时间段"),
         "personalization": MessageLookupByLibrary.simpleMessage("个性化"),
         "portfolio": MessageLookupByLibrary.simpleMessage("投资组合"),
@@ -370,6 +375,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "rentStartFuture": MessageLookupByLibrary.simpleMessage("租赁尚未开始"),
         "rentalStatus": MessageLookupByLibrary.simpleMessage("租赁状态"),
         "rentalStatusAll": MessageLookupByLibrary.simpleMessage("全部"),
+        "rentalStatusDistribution":
+            MessageLookupByLibrary.simpleMessage("租赁状态分布"),
         "rentalStatusNotRented": MessageLookupByLibrary.simpleMessage("未租出"),
         "rentalStatusPartiallyRented":
             MessageLookupByLibrary.simpleMessage("部分租出"),
@@ -421,9 +428,11 @@ class MessageLookup extends MessageLookupByLibrary {
         "somethingWrong": MessageLookupByLibrary.simpleMessage("数据可能未更新"),
         "sortBy": MessageLookupByLibrary.simpleMessage("排序方式"),
         "sortByAPY": MessageLookupByLibrary.simpleMessage("按年收益率排序"),
+        "sortByCount": MessageLookupByLibrary.simpleMessage("按数量排序"),
         "sortByInitialLaunchDate":
             MessageLookupByLibrary.simpleMessage("按最近添加排序"),
         "sortByName": MessageLookupByLibrary.simpleMessage("按名称排序"),
+        "sortByROI": MessageLookupByLibrary.simpleMessage("按ROI排序"),
         "sortByValue": MessageLookupByLibrary.simpleMessage("按价值排序"),
         "sort_date": MessageLookupByLibrary.simpleMessage("日期"),
         "sort_delta": MessageLookupByLibrary.simpleMessage("Delta"),
@@ -484,6 +493,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "totalExpenses": MessageLookupByLibrary.simpleMessage("总支出"),
         "totalInvestment": MessageLookupByLibrary.simpleMessage("总投资"),
         "totalPortfolio": MessageLookupByLibrary.simpleMessage("总投资组合"),
+        "totalProperties": MessageLookupByLibrary.simpleMessage("总物业"),
         "totalRent": MessageLookupByLibrary.simpleMessage("总租金"),
         "totalRentReceived": MessageLookupByLibrary.simpleMessage("总收入"),
         "totalTokens": MessageLookupByLibrary.simpleMessage("代币总数"),
