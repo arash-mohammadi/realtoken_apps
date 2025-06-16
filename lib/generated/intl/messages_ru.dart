@@ -236,6 +236,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "feedback": MessageLookupByLibrary.simpleMessage("Обратная связь"),
         "filterNotInWallet":
             MessageLookupByLibrary.simpleMessage("Нет в кошельке"),
+        "filterOptions":
+            MessageLookupByLibrary.simpleMessage("Параметры фильтра"),
         "finances": MessageLookupByLibrary.simpleMessage("Финансы"),
         "french": MessageLookupByLibrary.simpleMessage("Французский"),
         "futureRents": MessageLookupByLibrary.simpleMessage("Будущие платежи"),
@@ -516,6 +518,7 @@ class MessageLookup extends MessageLookupByLibrary {
             "Платформа для кредитования под залог токенов недвижимости."),
         "roiAlertInfo": MessageLookupByLibrary.simpleMessage(
             "Функция ROI в бета-режиме. Расчет основан на доходах и начальной стоимости токена."),
+        "roiByToken": MessageLookupByLibrary.simpleMessage("ROI по токенам"),
         "roiHistory": MessageLookupByLibrary.simpleMessage("История ROI"),
         "roiPerProperties": MessageLookupByLibrary.simpleMessage("ROI объекта"),
         "roi_label": m8,
@@ -544,12 +547,14 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsCategory": MessageLookupByLibrary.simpleMessage("Настройки"),
         "settingsTitle": MessageLookupByLibrary.simpleMessage("Настройки"),
         "sfrPortfolio": MessageLookupByLibrary.simpleMessage("Портфель SFR"),
+        "showAll": MessageLookupByLibrary.simpleMessage("Показать все"),
         "showNetTotal":
             MessageLookupByLibrary.simpleMessage("Показать чистый итог"),
         "showNetTotalDescription": MessageLookupByLibrary.simpleMessage(
             "Учитывать депозиты/займы в расчетах"),
         "showOnlyWhitelisted":
             MessageLookupByLibrary.simpleMessage("Только белый список"),
+        "showTop10": MessageLookupByLibrary.simpleMessage("Показать топ 10"),
         "showTotalInvested":
             MessageLookupByLibrary.simpleMessage("Показать общие инвестиции"),
         "showYamProjection":
@@ -557,6 +562,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "singleFamily": MessageLookupByLibrary.simpleMessage("Отдельный дом"),
         "somethingWrong": MessageLookupByLibrary.simpleMessage(
             "Данные могут быть устаревшими"),
+        "sortBy": MessageLookupByLibrary.simpleMessage("Сортировать по"),
         "sortByAPY": MessageLookupByLibrary.simpleMessage("Сортировать по APY"),
         "sortByInitialLaunchDate": MessageLookupByLibrary.simpleMessage(
             "Сортировать по дате добавления"),
@@ -605,6 +611,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("до ликвидации"),
         "timestamp": MessageLookupByLibrary.simpleMessage("Время"),
         "tokenAddress": MessageLookupByLibrary.simpleMessage("Адрес токена"),
+        "tokenCountEvolution":
+            MessageLookupByLibrary.simpleMessage("Эволюция количества токенов"),
         "tokenDistribution":
             MessageLookupByLibrary.simpleMessage("Распределение токенов"),
         "tokenDistributionByCity": MessageLookupByLibrary.simpleMessage(
@@ -636,6 +644,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Общие инвестиции"),
         "totalPortfolio":
             MessageLookupByLibrary.simpleMessage("Общий портфель"),
+        "totalRent":
+            MessageLookupByLibrary.simpleMessage("Общая арендная плата"),
         "totalRentReceived":
             MessageLookupByLibrary.simpleMessage("Общий доход"),
         "totalTokens": MessageLookupByLibrary.simpleMessage("Всего токенов"),
@@ -643,10 +653,16 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Всего токенов"),
         "totalUnits": MessageLookupByLibrary.simpleMessage("Всего единиц"),
         "totalValue": MessageLookupByLibrary.simpleMessage("Общая стоимость"),
+        "transactionAnalysis":
+            MessageLookupByLibrary.simpleMessage("Анализ транзакций"),
+        "transactionCount":
+            MessageLookupByLibrary.simpleMessage("Количество транзакций"),
         "transactionHistory":
             MessageLookupByLibrary.simpleMessage("История транзакций"),
         "transactionType":
             MessageLookupByLibrary.simpleMessage("Тип транзакции"),
+        "transactionVolume":
+            MessageLookupByLibrary.simpleMessage("Объем транзакций"),
         "underlyingAssetPrice":
             MessageLookupByLibrary.simpleMessage("Цена актива"),
         "unitesLouees": m10,

@@ -429,6 +429,16 @@
   "productTypeLoanIncome": "Reddito da Prestito",
   "productTypeOther": "Altro",
   "rentDistributionByProductType": "Distribuzione Affitti per Tipo di Prodotto",
-  "tokenDistributionByProductType": "Distribuzione Token per Tipo di Prodotto"
+  "tokenDistributionByProductType": "Distribuzione Token per Tipo di Prodotto",
+  "roiByToken": "ROI per Token",
+  "filterOptions": "Opzioni di Filtro",
+  "showTop10": "Mostra Top 10",
+  "showAll": "Mostra Tutto",
+  "sortBy": "Ordina Per",
+  "totalRent": "Affitto Totale",
+  "transactionAnalysis": "Analisi delle Transazioni",
+  "transactionCount": "Numero di Transazioni",
+  "transactionVolume": "Volume delle Transazioni",
+  "tokenCountEvolution": "Evoluzione del Numero di Token"
 }
   

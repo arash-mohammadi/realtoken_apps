@@ -195,6 +195,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "feedback": MessageLookupByLibrary.simpleMessage("Comentarios"),
         "filterNotInWallet":
             MessageLookupByLibrary.simpleMessage("No en la cartera"),
+        "filterOptions":
+            MessageLookupByLibrary.simpleMessage("Opciones de Filtro"),
         "finances": MessageLookupByLibrary.simpleMessage("Finanzas"),
         "french": MessageLookupByLibrary.simpleMessage("Francais"),
         "futureRents":
@@ -438,6 +440,7 @@ class MessageLookup extends MessageLookupByLibrary {
             "Plataforma para prestar y pedir prestado utilizando tokens inmobiliarios."),
         "roiAlertInfo": MessageLookupByLibrary.simpleMessage(
             "Esta función de ROI está en beta y actualmente se calcula en función de los ingresos recibidos de la propiedad y el valor inicial del token."),
+        "roiByToken": MessageLookupByLibrary.simpleMessage("ROI por Token"),
         "roiHistory": MessageLookupByLibrary.simpleMessage("Historial ROI"),
         "roiPerProperties":
             MessageLookupByLibrary.simpleMessage("ROI de la propiedad"),
@@ -466,12 +469,15 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Configuración"),
         "settingsTitle": MessageLookupByLibrary.simpleMessage("Configuración"),
         "sfrPortfolio": MessageLookupByLibrary.simpleMessage("Cartera SFR"),
+        "showAll": MessageLookupByLibrary.simpleMessage("Mostrar Todo"),
         "showOnlyWhitelisted": MessageLookupByLibrary.simpleMessage(
             "Mostrar solo los autorizados"),
+        "showTop10": MessageLookupByLibrary.simpleMessage("Mostrar Top 10"),
         "singleFamily":
             MessageLookupByLibrary.simpleMessage("Casa unifamiliar"),
         "somethingWrong": MessageLookupByLibrary.simpleMessage(
             "Es posible que los datos no estén actualizados"),
+        "sortBy": MessageLookupByLibrary.simpleMessage("Ordenar Por"),
         "sortByAPY":
             MessageLookupByLibrary.simpleMessage("Ordenar por rendimiento"),
         "sortByInitialLaunchDate": MessageLookupByLibrary.simpleMessage(
@@ -509,6 +515,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "timestamp": MessageLookupByLibrary.simpleMessage("Marca temporal"),
         "tokenAddress":
             MessageLookupByLibrary.simpleMessage("Dirección del token"),
+        "tokenCountEvolution": MessageLookupByLibrary.simpleMessage(
+            "Evolución del Número de Tokens"),
         "tokenDistribution": MessageLookupByLibrary.simpleMessage(
             "Distribución de tokens por tipo de propiedad"),
         "tokenDistributionByCity": MessageLookupByLibrary.simpleMessage(
@@ -539,15 +547,22 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Inversión total"),
         "totalPortfolio":
             MessageLookupByLibrary.simpleMessage("Portafolio total"),
+        "totalRent": MessageLookupByLibrary.simpleMessage("Alquiler Total"),
         "totalRentReceived":
             MessageLookupByLibrary.simpleMessage("Total de ingresos"),
         "totalTokens": MessageLookupByLibrary.simpleMessage("Total de tokens"),
         "totalUnits": MessageLookupByLibrary.simpleMessage("Unidades totales"),
         "totalValue": MessageLookupByLibrary.simpleMessage("Valor total"),
+        "transactionAnalysis":
+            MessageLookupByLibrary.simpleMessage("Análisis de Transacciones"),
+        "transactionCount":
+            MessageLookupByLibrary.simpleMessage("Número de Transacciones"),
         "transactionHistory":
             MessageLookupByLibrary.simpleMessage("Historial de transacciones"),
         "transactionType":
             MessageLookupByLibrary.simpleMessage("Tipo de transacción"),
+        "transactionVolume":
+            MessageLookupByLibrary.simpleMessage("Volumen de Transacciones"),
         "underlyingAssetPrice": MessageLookupByLibrary.simpleMessage(
             "Precio del activo subyacente"),
         "units": MessageLookupByLibrary.simpleMessage("unidades"),

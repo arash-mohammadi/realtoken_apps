@@ -10,6 +10,8 @@ import 'package:realtoken_asset_tracker/pages/Statistics/portfolio/charts/token_
 import 'package:realtoken_asset_tracker/pages/Statistics/portfolio/charts/token_distribution_by_region_card.dart';
 import 'package:realtoken_asset_tracker/pages/Statistics/portfolio/charts/token_distribution_by_wallet_card.dart';
 import 'package:realtoken_asset_tracker/pages/Statistics/portfolio/charts/token_distribution_chart.dart';
+import 'package:realtoken_asset_tracker/pages/Statistics/portfolio/charts/roi_by_token_chart.dart';
+import 'package:realtoken_asset_tracker/pages/Statistics/portfolio/charts/token_count_evolution_chart.dart';
 import 'package:realtoken_asset_tracker/utils/data_fetch_utils.dart';
 import 'package:realtoken_asset_tracker/generated/l10n.dart';
 
@@ -98,7 +100,7 @@ class _PortfolioStats extends State<PortfolioStats> {
                       
                       return _buildChartWidget(context, index, dataManager);
                     },
-                    childCount: 8,
+                    childCount: 10,
                   ),
                 ),
               ),
@@ -165,6 +167,16 @@ class _PortfolioStats extends State<PortfolioStats> {
         case 7:
           return TokenDistributionByWalletCard(
             key: const ValueKey('token_distribution_by_wallet_card'),
+            dataManager: dataManager,
+          );
+        case 8:
+          return RoiByTokenChart(
+            key: const ValueKey('roi_by_token_chart'),
+            dataManager: dataManager,
+          );
+        case 9:
+          return TokenCountEvolutionChart(
+            key: const ValueKey('token_count_evolution_chart'),
             dataManager: dataManager,
           );
         default:

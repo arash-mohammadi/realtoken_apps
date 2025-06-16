@@ -471,5 +471,15 @@
   "productTypeLoanIncome": "Доход от займа",
   "productTypeOther": "Другое",
   "rentDistributionByProductType": "Распределение арендной платы по типу продукта",
-  "tokenDistributionByProductType": "Распределение токенов по типу продукта"
+  "tokenDistributionByProductType": "Распределение токенов по типу продукта",
+  "roiByToken": "ROI по токенам",
+  "filterOptions": "Параметры фильтра",
+  "showTop10": "Показать топ 10",
+  "showAll": "Показать все",
+  "sortBy": "Сортировать по",
+  "totalRent": "Общая арендная плата",
+  "transactionAnalysis": "Анализ транзакций",
+  "transactionCount": "Количество транзакций",
+  "transactionVolume": "Объем транзакций",
+  "tokenCountEvolution": "Эволюция количества токенов"
 }

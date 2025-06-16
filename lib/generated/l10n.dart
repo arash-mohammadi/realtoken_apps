@@ -2090,6 +2090,106 @@ class S {
     );
   }
 
+  /// `ROI by Token`
+  String get roiByToken {
+    return Intl.message(
+      'ROI by Token',
+      name: 'roiByToken',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Filter Options`
+  String get filterOptions {
+    return Intl.message(
+      'Filter Options',
+      name: 'filterOptions',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Show Top 10`
+  String get showTop10 {
+    return Intl.message(
+      'Show Top 10',
+      name: 'showTop10',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Show All`
+  String get showAll {
+    return Intl.message(
+      'Show All',
+      name: 'showAll',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Sort By`
+  String get sortBy {
+    return Intl.message(
+      'Sort By',
+      name: 'sortBy',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Total Rent`
+  String get totalRent {
+    return Intl.message(
+      'Total Rent',
+      name: 'totalRent',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Transaction Analysis`
+  String get transactionAnalysis {
+    return Intl.message(
+      'Transaction Analysis',
+      name: 'transactionAnalysis',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Transaction Count`
+  String get transactionCount {
+    return Intl.message(
+      'Transaction Count',
+      name: 'transactionCount',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Transaction Volume`
+  String get transactionVolume {
+    return Intl.message(
+      'Transaction Volume',
+      name: 'transactionVolume',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Token Count Evolution`
+  String get tokenCountEvolution {
+    return Intl.message(
+      'Token Count Evolution',
+      name: 'tokenCountEvolution',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Realt Listing Fee`
   String get realtListingFee {
     return Intl.message(

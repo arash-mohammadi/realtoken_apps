@@ -246,6 +246,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Retour d\'expérience"),
         "filterNotInWallet":
             MessageLookupByLibrary.simpleMessage("Non présents dans le wallet"),
+        "filterOptions":
+            MessageLookupByLibrary.simpleMessage("Options de filtrage"),
         "finances": MessageLookupByLibrary.simpleMessage("Finances"),
         "french": MessageLookupByLibrary.simpleMessage("Francais"),
         "futureRents": MessageLookupByLibrary.simpleMessage("Loyers futurs"),
@@ -523,6 +525,7 @@ class MessageLookup extends MessageLookupByLibrary {
             "Plateforme pour prêter et emprunter en utilisant des tokens immobiliers."),
         "roiAlertInfo": MessageLookupByLibrary.simpleMessage(
             "Cette fonction ROI est en beta, elle est pour le moment calculée en fonction des revenus reçus de la propriété et la valeur initiale du token."),
+        "roiByToken": MessageLookupByLibrary.simpleMessage("ROI par token"),
         "roiHistory": MessageLookupByLibrary.simpleMessage("Historique ROI"),
         "roiPerProperties":
             MessageLookupByLibrary.simpleMessage("ROI de la propriété"),
@@ -555,12 +558,14 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsTitle": MessageLookupByLibrary.simpleMessage("Paramètres"),
         "sfrPortfolio":
             MessageLookupByLibrary.simpleMessage("Portefeuille SFR"),
+        "showAll": MessageLookupByLibrary.simpleMessage("Afficher tout"),
         "showNetTotal":
             MessageLookupByLibrary.simpleMessage("Afficher le total net"),
         "showNetTotalDescription": MessageLookupByLibrary.simpleMessage(
             "Inclure les dépôts et emprunts dans le calcul du portefeuille total"),
         "showOnlyWhitelisted": MessageLookupByLibrary.simpleMessage(
             "Afficher seulement les whitelistés"),
+        "showTop10": MessageLookupByLibrary.simpleMessage("Afficher le top 10"),
         "showTotalInvested": MessageLookupByLibrary.simpleMessage(
             "Afficher l\'investissement total"),
         "showYamProjection":
@@ -569,6 +574,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Maison individuelle"),
         "somethingWrong": MessageLookupByLibrary.simpleMessage(
             "Il se pourrait que les données ne soient pas à jour"),
+        "sortBy": MessageLookupByLibrary.simpleMessage("Trier par"),
         "sortByAPY": MessageLookupByLibrary.simpleMessage("Tri par rendement"),
         "sortByInitialLaunchDate":
             MessageLookupByLibrary.simpleMessage("Tri par ajout récent"),
@@ -618,6 +624,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "timestamp": MessageLookupByLibrary.simpleMessage("Horodatage"),
         "tokenAddress":
             MessageLookupByLibrary.simpleMessage("Adresse du jeton"),
+        "tokenCountEvolution": MessageLookupByLibrary.simpleMessage(
+            "Évolution du nombre de tokens"),
         "tokenDistribution":
             MessageLookupByLibrary.simpleMessage("Distribution des tokens"),
         "tokenDistributionByCity": MessageLookupByLibrary.simpleMessage(
@@ -650,6 +658,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Investissement total"),
         "totalPortfolio":
             MessageLookupByLibrary.simpleMessage("Portefeuille total"),
+        "totalRent": MessageLookupByLibrary.simpleMessage("Loyer total"),
         "totalRentReceived":
             MessageLookupByLibrary.simpleMessage("Total des revenus"),
         "totalTokens": MessageLookupByLibrary.simpleMessage("Jetons totaux"),
@@ -658,10 +667,16 @@ class MessageLookup extends MessageLookupByLibrary {
         "totalUnits":
             MessageLookupByLibrary.simpleMessage("Nombre total d\'unités"),
         "totalValue": MessageLookupByLibrary.simpleMessage("Valeur Totale"),
+        "transactionAnalysis":
+            MessageLookupByLibrary.simpleMessage("Analyse des transactions"),
+        "transactionCount":
+            MessageLookupByLibrary.simpleMessage("Nombre de transactions"),
         "transactionHistory":
             MessageLookupByLibrary.simpleMessage("Historique des transactions"),
         "transactionType":
             MessageLookupByLibrary.simpleMessage("Type de transaction"),
+        "transactionVolume":
+            MessageLookupByLibrary.simpleMessage("Volume des transactions"),
         "underlyingAssetPrice": MessageLookupByLibrary.simpleMessage(
             "Prix de l\'actif sous-jacent"),
         "units": MessageLookupByLibrary.simpleMessage("logements"),

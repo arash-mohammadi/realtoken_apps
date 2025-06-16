@@ -427,6 +427,16 @@
   "productTypeLoanIncome": "Renda de Empréstimo",
   "productTypeOther": "Outro",
   "rentDistributionByProductType": "Distribuição de Aluguéis por Tipo de Produto",
-  "tokenDistributionByProductType": "Distribuição de Tokens por Tipo de Produto"
+  "tokenDistributionByProductType": "Distribuição de Tokens por Tipo de Produto",
+  "roiByToken": "ROI por Token",
+  "filterOptions": "Opções de Filtro",
+  "showTop10": "Mostrar Top 10",
+  "showAll": "Mostrar Tudo",
+  "sortBy": "Ordenar Por",
+  "totalRent": "Aluguel Total",
+  "transactionAnalysis": "Análise de Transações",
+  "transactionCount": "Número de Transações",
+  "transactionVolume": "Volume de Transações",
+  "tokenCountEvolution": "Evolução do Número de Tokens"
 }
   

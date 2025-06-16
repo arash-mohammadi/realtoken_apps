@@ -426,6 +426,16 @@
   "productTypeLoanIncome": "贷款收入",
   "productTypeOther": "其他",
   "rentDistributionByProductType": "按产品类型分配租金",
-  "tokenDistributionByProductType": "按产品类型分配代币"
+  "tokenDistributionByProductType": "按产品类型分配代币",
+  "roiByToken": "按代币ROI",
+  "filterOptions": "筛选选项",
+  "showTop10": "显示前10名",
+  "showAll": "显示全部",
+  "sortBy": "排序方式",
+  "totalRent": "总租金",
+  "transactionAnalysis": "交易分析",
+  "transactionCount": "交易数量",
+  "transactionVolume": "交易量",
+  "tokenCountEvolution": "代币数量演变"
 }
   

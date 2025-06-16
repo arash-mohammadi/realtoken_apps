@@ -12,6 +12,7 @@ import 'charts/rent_distribution_by_wallet_chart.dart';
 import 'charts/token_distribution_by_product_type_chart.dart';
 import 'charts/roi_graph.dart';
 import 'charts/apy_graph.dart';
+import 'charts/transaction_analysis_chart.dart';
 import 'package:realtoken_asset_tracker/pages/Statistics/portfolio/charts/token_distribution_by_wallet_card.dart';
 
 class WalletStats extends StatefulWidget {
@@ -229,11 +230,16 @@ class _WalletStats extends State<WalletStats> {
                           });
                         },
                       );
+                    case 6:
+                      return TransactionAnalysisChart(
+                        key: const ValueKey('transaction_analysis_chart'),
+                        dataManager: dataManager,
+                      );
                     default:
                       return Container();
                   }
                 },
-                childCount: 6,
+                                    childCount: 7,
               ),
             ),
           ),
