@@ -417,6 +417,11 @@
   "exportAllTransactionsCsv": "导出所有交易为CSV",
   "noTransactionOrRentToExport": "没有可导出的交易或租金。",
   "noRentDataAvailable": "没有可用的租金数据。",
-  "noRentDataToShare": "没有可分享的租金数据。"
+  "noRentDataToShare": "没有可分享的租金数据。",
+  "productTypeRealEstateRental": "房地产租赁",
+  "productTypeFactoringProfitshare": "保理利润分享",
+  "productTypeLoanIncome": "贷款收入",
+  "productTypeOther": "其他",
+  "rentDistributionByProductType": "按产品类型分配租金"
 }
   

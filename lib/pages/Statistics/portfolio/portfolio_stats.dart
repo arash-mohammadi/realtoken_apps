@@ -3,6 +3,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:provider/provider.dart';
 import 'package:realtoken_asset_tracker/managers/data_manager.dart';
 import 'package:realtoken_asset_tracker/pages/Statistics/portfolio/charts/rent_distribution_chart.dart';
+import 'package:realtoken_asset_tracker/pages/Statistics/portfolio/charts/rent_distribution_by_product_type_chart.dart';
 import 'package:realtoken_asset_tracker/pages/Statistics/portfolio/charts/rented_graph.dart';
 import 'package:realtoken_asset_tracker/pages/Statistics/portfolio/charts/token_distribution_by_city_card.dart';
 import 'package:realtoken_asset_tracker/pages/Statistics/portfolio/charts/token_distribution_by_country_card.dart';
@@ -55,86 +56,128 @@ class _PortfolioStats extends State<PortfolioStats> {
 
   @override
   Widget build(BuildContext context) {
-    DataManager? dataManager;
-    try {
-      dataManager = Provider.of<DataManager>(context);
-    } catch (e, stacktrace) {
-      debugPrint("Error accessing DataManager: $e");
-      debugPrint("Stacktrace: $stacktrace");
-      return Center(child: Text("Error loading data"));
-    }
+    return Consumer<DataManager>(
+      builder: (context, dataManager, child) {
+        if (dataManager == null) {
+          return const Scaffold(
+            body: Center(child: Text("Error loading data")),
+          );
+        }
 
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isWideScreen = screenWidth > 700;
-    final double fixedCardHeight = 380;
+        final screenWidth = MediaQuery.of(context).size.width;
+        final isWideScreen = screenWidth > 700;
+        final double fixedCardHeight = 380;
 
-    return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Theme.of(context).scaffoldBackgroundColor,
-              Theme.of(context).scaffoldBackgroundColor.withOpacity(0.9),
-            ],
+        return Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Theme.of(context).scaffoldBackgroundColor,
+                Theme.of(context).scaffoldBackgroundColor.withOpacity(0.9),
+              ],
+            ),
           ),
-        ),
-        child: CustomScrollView(
-          physics: const BouncingScrollPhysics(),
-          slivers: [
-            // Grille pour tous les graphiques
-            SliverPadding(
-              padding: const EdgeInsets.only(top: 8.0, bottom: 80.0, left: 8.0, right: 8.0),
-              sliver: SliverGrid(
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: isWideScreen ? 2 : 1,
-                  mainAxisSpacing: 8.0,
-                  crossAxisSpacing: 8.0,
-                  mainAxisExtent: fixedCardHeight,
-                ),
-                delegate: SliverChildBuilderDelegate(
-                  (BuildContext context, int index) {
-                    switch (index) {
-                      case 0:
-                        return RentedHistoryGraph(
-                          selectedPeriod: _selectedPeriod,
-                          onPeriodChanged: (period) {
-                            setState(() {
-                              _selectedPeriod = period;
-                            });
-                          },
-                          rentedIsBarChart: _rentedIsBarChart,
-                          onChartTypeChanged: (isBarChart) {
-                            setState(() {
-                              _rentedIsBarChart = isBarChart;
-                            });
-                          },
-                        );
-                      case 1:
-                        return RentDistributionChart(dataManager: dataManager!);
-                      case 2:
-                        return TokenDistributionCard(dataManager: dataManager!);
-                      case 3:
-                        return TokenDistributionByCountryCard(dataManager: dataManager!);
-                      case 4:
-                        return TokenDistributionByRegionCard(dataManager: dataManager!);
-                      case 5:
-                        return TokenDistributionByCityCard(dataManager: dataManager!);
-                      case 6:
-                        return TokenDistributionByWalletCard(dataManager: dataManager!);
-                      default:
-                        return Container();
-                    }
-                  },
-                  childCount: 7,
+          child: CustomScrollView(
+            physics: const BouncingScrollPhysics(),
+            slivers: [
+              SliverPadding(
+                padding: const EdgeInsets.only(top: 8.0, bottom: 80.0, left: 8.0, right: 8.0),
+                sliver: SliverGrid(
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: isWideScreen ? 2 : 1,
+                    mainAxisSpacing: 8.0,
+                    crossAxisSpacing: 8.0,
+                    mainAxisExtent: fixedCardHeight,
+                  ),
+                  delegate: SliverChildBuilderDelegate(
+                    (BuildContext context, int index) {
+                      // Vérification de sécurité pour éviter les erreurs de renderObject
+                      if (!mounted) return const SizedBox.shrink();
+                      
+                      return _buildChartWidget(context, index, dataManager);
+                    },
+                    childCount: 8,
+                  ),
                 ),
               ),
-            ),
-          ],
-        ),
-      ),
+            ],
+          ),
+        );
+      },
     );
+  }
+
+  Widget _buildChartWidget(BuildContext context, int index, DataManager dataManager) {
+    try {
+      switch (index) {
+        case 0:
+          return RentedHistoryGraph(
+            key: const ValueKey('rented_history_graph'),
+            selectedPeriod: _selectedPeriod,
+            onPeriodChanged: (period) {
+              if (mounted) {
+                setState(() {
+                  _selectedPeriod = period;
+                });
+              }
+            },
+            rentedIsBarChart: _rentedIsBarChart,
+            onChartTypeChanged: (isBarChart) {
+              if (mounted) {
+                setState(() {
+                  _rentedIsBarChart = isBarChart;
+                });
+              }
+            },
+          );
+        case 1:
+          return RentDistributionChart(
+            key: const ValueKey('rent_distribution_chart'),
+            dataManager: dataManager,
+          );
+        case 2:
+          return RentDistributionByProductTypeChart(
+            key: const ValueKey('rent_distribution_by_product_type_chart'),
+            dataManager: dataManager,
+          );
+        case 3:
+          return TokenDistributionCard(
+            key: const ValueKey('token_distribution_card'),
+            dataManager: dataManager,
+          );
+        case 4:
+          return TokenDistributionByCountryCard(
+            key: const ValueKey('token_distribution_by_country_card'),
+            dataManager: dataManager,
+          );
+        case 5:
+          return TokenDistributionByRegionCard(
+            key: const ValueKey('token_distribution_by_region_card'),
+            dataManager: dataManager,
+          );
+        case 6:
+          return TokenDistributionByCityCard(
+            key: const ValueKey('token_distribution_by_city_card'),
+            dataManager: dataManager,
+          );
+        case 7:
+          return TokenDistributionByWalletCard(
+            key: const ValueKey('token_distribution_by_wallet_card'),
+            dataManager: dataManager,
+          );
+        default:
+          return const SizedBox.shrink();
+      }
+    } catch (e) {
+      debugPrint("Error building chart widget at index $index: $e");
+      return Container(
+        height: 380,
+        child: const Center(
+          child: Text("Erreur de chargement du graphique"),
+        ),
+      );
+    }
   }
 }

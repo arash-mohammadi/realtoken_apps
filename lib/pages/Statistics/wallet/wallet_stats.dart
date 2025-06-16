@@ -114,9 +114,7 @@ class _WalletStats extends State<WalletStats> {
     final isWideScreen = screenWidth > 700;
     final double fixedCardHeight = 380;
 
-    return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: CustomScrollView(
+    return CustomScrollView(
         slivers: [
           SliverPadding(
             padding: const EdgeInsets.only(top: 8.0, bottom: 80.0, left: 8.0, right: 8.0),
@@ -285,8 +283,7 @@ class _WalletStats extends State<WalletStats> {
             ),
           ),
         ],
-      ),
-    );
+      );
   }
 
   // Méthodes pour sauvegarder les différentes préférences

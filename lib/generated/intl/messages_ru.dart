@@ -426,6 +426,13 @@ class MessageLookup extends MessageLookupByLibrary {
         "priceEvolution": MessageLookupByLibrary.simpleMessage("Динамика цены"),
         "priceEvolutionPercentage":
             MessageLookupByLibrary.simpleMessage("Изменение цены:"),
+        "productTypeFactoringProfitshare": MessageLookupByLibrary.simpleMessage(
+            "Долевое участие в факторинге"),
+        "productTypeLoanIncome":
+            MessageLookupByLibrary.simpleMessage("Доход от займа"),
+        "productTypeOther": MessageLookupByLibrary.simpleMessage("Другое"),
+        "productTypeRealEstateRental":
+            MessageLookupByLibrary.simpleMessage("Аренда недвижимости"),
         "projection": MessageLookupByLibrary.simpleMessage("прогноз"),
         "properties": MessageLookupByLibrary.simpleMessage("Недвижимость"),
         "propertiesForSale":
@@ -468,6 +475,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Резерв на ремонт"),
         "rentDistribution":
             MessageLookupByLibrary.simpleMessage("Распределение аренды"),
+        "rentDistributionByProductType": MessageLookupByLibrary.simpleMessage(
+            "Распределение арендной платы по типу продукта"),
         "rentDistributionByWallet": MessageLookupByLibrary.simpleMessage(
             "Распределение аренды по кошелькам"),
         "rentGraph":

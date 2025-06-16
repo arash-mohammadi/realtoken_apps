@@ -58,30 +58,10 @@ class FilterWidgets {
           color: Theme.of(context).primaryColor.withOpacity(0.1),
           borderRadius: BorderRadius.circular(12),
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              size: 20,
-              color: Theme.of(context).primaryColor,
-            ),
-            const SizedBox(width: 4),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 12,
-                color: Theme.of(context).primaryColor,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            const SizedBox(width: 4),
-            Icon(
-              Icons.arrow_drop_down,
-              size: 16,
-              color: Theme.of(context).primaryColor,
-            ),
-          ],
+        child: Icon(
+          icon,
+          size: 20,
+          color: Theme.of(context).primaryColor,
         ),
       ),
     );

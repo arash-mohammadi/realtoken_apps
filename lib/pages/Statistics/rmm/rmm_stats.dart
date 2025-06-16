@@ -86,9 +86,7 @@ class RmmStatsState extends State<RmmStats> {
     final screenWidth = MediaQuery.of(context).size.width;
     const double fixedCardHeight = 380;
 
-    return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: CustomScrollView(
+    return CustomScrollView(
         slivers: [
           SliverToBoxAdapter(
             child: Padding(
@@ -122,8 +120,7 @@ class RmmStatsState extends State<RmmStats> {
             ),
           ),
         ],
-      ),
-    );
+      );
   }
 
   Widget _buildHealthAndLtvHistoryCard(DataManager dataManager) {

@@ -418,6 +418,11 @@
   "exportAllTransactionsCsv": "Exportar todas as transações em CSV",
   "noTransactionOrRentToExport": "Nenhuma transação ou aluguel para exportar.",
   "noRentDataAvailable": "Nenhum dado de aluguel disponível.",
-  "noRentDataToShare": "Nenhum dado de aluguel para compartilhar."
+  "noRentDataToShare": "Nenhum dado de aluguel para compartilhar.",
+  "productTypeRealEstateRental": "Aluguel Imobiliário",
+  "productTypeFactoringProfitshare": "Participação em Lucros de Factoring",
+  "productTypeLoanIncome": "Renda de Empréstimo",
+  "productTypeOther": "Outro",
+  "rentDistributionByProductType": "Distribuição de Aluguéis por Tipo de Produto"
 }
   

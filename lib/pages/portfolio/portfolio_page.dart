@@ -37,6 +37,7 @@ class PortfolioPageState extends State<PortfolioPage> {
   String _rentalStatusFilter = rentalStatusAll; // Utilise l'identifiant interne
   Set<String> _selectedWallets = {};
   Set<String> _selectedTokenTypes = {"wallet", "RMM"};
+  Set<String> _selectedProductTypes = {}; // Nouveau filtre pour productType
 
   @override
   void initState() {
@@ -105,6 +106,9 @@ class PortfolioPageState extends State<PortfolioPage> {
           _selectedCountry = prefs.getString('selectedCountry')?.isEmpty ?? true ? null : prefs.getString('selectedCountry');
           // On récupère l'identifiant interne, par défaut "all"
           _rentalStatusFilter = prefs.getString('rentalStatusFilter') ?? rentalStatusAll;
+          // Charger les productTypes sélectionnés
+          List<String>? savedProductTypes = prefs.getStringList('selectedProductTypes');
+          _selectedProductTypes = savedProductTypes?.toSet() ?? {};
         });
       }
     });
@@ -120,6 +124,8 @@ class PortfolioPageState extends State<PortfolioPage> {
     await prefs.setString('selectedCountry', _selectedCountry ?? '');
     // On sauvegarde l'identifiant interne
     await prefs.setString('rentalStatusFilter', _rentalStatusFilter);
+    // Sauvegarder les productTypes sélectionnés
+    await prefs.setStringList('selectedProductTypes', _selectedProductTypes.toList());
   }
 
   // Méthodes de gestion des filtres et tri
@@ -271,6 +277,14 @@ class PortfolioPageState extends State<PortfolioPage> {
       }).toList();
     }
 
+    // Filtre par productType si des types de produits sont sélectionnés
+    if (_selectedProductTypes.isNotEmpty) {
+      filteredPortfolio = filteredPortfolio.where((token) {
+        String productType = token['productType'] ?? 'other';
+        return _selectedProductTypes.contains(productType);
+      }).toList();
+    }
+
     // Tri en fonction des options sélectionnées
     if (_sortOption == S.of(context).sortByName) {
       filteredPortfolio.sort((a, b) => _isAscending ? a['shortName'].compareTo(b['shortName']) : b['shortName'].compareTo(a['shortName']));
@@ -308,6 +322,32 @@ class PortfolioPageState extends State<PortfolioPage> {
   List<String> _getUniqueCities(List<Map<String, dynamic>> portfolio) => FilterWidgets.getUniqueCities(portfolio);
   List<String> _getUniqueRegions(List<Map<String, dynamic>> portfolio) => FilterWidgets.getUniqueRegions(portfolio);
   List<String> _getUniqueCountries(List<Map<String, dynamic>> portfolio) => FilterWidgets.getUniqueCountries(portfolio);
+  
+  // Méthode pour obtenir les types de produits uniques
+  List<String> _getUniqueProductTypes(List<Map<String, dynamic>> portfolio) {
+    Set<String> productTypes = {};
+    for (var token in portfolio) {
+      String productType = token['productType'] ?? 'other';
+      if (productType.isNotEmpty) {
+        productTypes.add(productType);
+      }
+    }
+    return productTypes.toList()..sort();
+  }
+
+  // Méthode pour obtenir l'icône appropriée pour chaque type de produit
+  IconData _getProductTypeIcon(String productType) {
+    switch (productType.toLowerCase()) {
+      case 'real_estate_rental':
+        return Icons.home;
+      case 'factoring_profitshare':
+        return Icons.business_center;
+      case 'loan_income':
+        return Icons.account_balance;
+      default:
+        return Icons.category;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -441,6 +481,8 @@ class PortfolioPageState extends State<PortfolioPage> {
                                             },
                                           ),
 
+                                          const SizedBox(width: 8),
+
                                           // Filtre par Pays
                                           _buildFilterPopupMenu(
                                             context: context,
@@ -474,6 +516,23 @@ class PortfolioPageState extends State<PortfolioPage> {
                                               _updateCountryFilter(value == "all_countries" ? null : value);
                                             },
                                           ),
+
+                                          const SizedBox(width: 8),
+
+                                          // Filtre par ProductType
+                                          _buildProductTypeFilterMenu(
+                                            context: context,
+                                            icon: Icons.category,
+                                            selectedProductTypes: _selectedProductTypes,
+                                            onProductTypesChanged: (newSelectedProductTypes) {
+                                              setState(() {
+                                                _selectedProductTypes = newSelectedProductTypes;
+                                              });
+                                              _saveFilterPreferences();
+                                            },
+                                          ),
+
+                                          const SizedBox(width: 8),
 
                                           // Filtres combinés: Statut de location et Type de token
                                           _buildFilterPopupMenu(
@@ -609,6 +668,8 @@ class PortfolioPageState extends State<PortfolioPage> {
                                             },
                                           ),
 
+                                          const SizedBox(width: 8),
+
                                           // Filtres Wallet
                                           _buildWalletFilterMenu(
                                             context: context,
@@ -651,20 +712,10 @@ class PortfolioPageState extends State<PortfolioPage> {
                                                   color: Theme.of(context).primaryColor.withOpacity(0.1),
                                                   borderRadius: BorderRadius.circular(12),
                                                 ),
-                                                child: Row(
-                                                  mainAxisSize: MainAxisSize.min,
-                                                  children: [
-                                                    Icon(
-                                                      Icons.sort,
-                                                      size: 20,
-                                                      color: Theme.of(context).primaryColor,
-                                                    ),
-                                                    Icon(
-                                                      Icons.arrow_drop_down,
-                                                      size: 20,
-                                                      color: Theme.of(context).primaryColor,
-                                                    ),
-                                                  ],
+                                                child: Icon(
+                                                  Icons.sort,
+                                                  size: 20,
+                                                  color: Theme.of(context).primaryColor,
                                                 ),
                                               ),
                                               itemBuilder: (context) => [
@@ -840,20 +891,10 @@ class PortfolioPageState extends State<PortfolioPage> {
             color: Theme.of(context).primaryColor.withOpacity(0.1),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                icon,
-                size: 20,
-                color: Theme.of(context).primaryColor,
-              ),
-              Icon(
-                Icons.arrow_drop_down,
-                size: 20,
-                color: Theme.of(context).primaryColor,
-              ),
-            ],
+          child: Icon(
+            icon,
+            size: 20,
+            color: Theme.of(context).primaryColor,
           ),
         ),
         itemBuilder: (context) => [
@@ -923,5 +964,126 @@ class PortfolioPageState extends State<PortfolioPage> {
         ],
       ),
     );
+  }
+
+  // Filtre ProductType
+  Widget _buildProductTypeFilterMenu({
+    required BuildContext context,
+    required IconData icon,
+    required Set<String> selectedProductTypes,
+    required Function(Set<String>) onProductTypesChanged,
+  }) {
+    return PopupMenuButton<String>(
+        tooltip: "",
+        onSelected: (String value) {
+          // La logique de sélection est gérée dans StatefulBuilder
+        },
+        offset: const Offset(0, 40),
+        elevation: 8,
+        color: Theme.of(context).cardColor.withOpacity(0.97),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Theme.of(context).primaryColor.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(
+            icon,
+            size: 20,
+            color: Theme.of(context).primaryColor,
+          ),
+        ),
+        itemBuilder: (context) {
+          final uniqueProductTypes = _getUniqueProductTypes(Provider.of<DataManager>(context, listen: false).portfolio);
+          
+          return [
+            PopupMenuItem(
+              value: "product_type_header",
+              enabled: false,
+              child: Row(
+                children: const [
+                  Icon(Icons.category, size: 20),
+                  SizedBox(width: 8.0),
+                  Text(
+                    "Types de produit",
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+            ),
+            const PopupMenuDivider(),
+            ...uniqueProductTypes.map((productType) => PopupMenuItem(
+                  value: productType,
+                  child: StatefulBuilder(
+                    builder: (context, setStateLocal) {
+                      return InkWell(
+                        onTap: () {
+                          setState(() {
+                            if (selectedProductTypes.contains(productType)) {
+                              selectedProductTypes.remove(productType);
+                            } else {
+                              selectedProductTypes.add(productType);
+                            }
+                          });
+                          setStateLocal(() {});
+                          onProductTypesChanged(selectedProductTypes);
+                        },
+                        child: Row(
+                          children: [
+                            selectedProductTypes.contains(productType) 
+                              ? const Icon(Icons.check, size: 20) 
+                              : const SizedBox(width: 20),
+                            const SizedBox(width: 8.0),
+                            Icon(_getProductTypeIcon(productType), size: 20),
+                            const SizedBox(width: 8.0),
+                            Flexible(
+                              child: Text(_getLocalizedProductTypeName(context, productType)),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                )),
+            // Bouton pour fermer/appliquer
+            const PopupMenuDivider(),
+            PopupMenuItem(
+              value: "apply_product_types",
+              child: Center(
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Theme.of(context).primaryColor,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: Text("Appliquer"),
+                ),
+              ),
+            ),
+          ];
+        },
+      );
+  }
+
+  // Méthode pour obtenir le nom localisé du type de produit
+  String _getLocalizedProductTypeName(BuildContext context, String productType) {
+    switch (productType.toLowerCase()) {
+      case 'real_estate_rental':
+        return S.of(context).productTypeRealEstateRental;
+      case 'factoring_profitshare':
+        return S.of(context).productTypeFactoringProfitshare;
+      case 'loan_income':
+        return S.of(context).productTypeLoanIncome;
+      default:
+        return S.of(context).productTypeOther;
+    }
   }
 }

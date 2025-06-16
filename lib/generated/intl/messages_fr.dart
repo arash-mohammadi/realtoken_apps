@@ -433,6 +433,13 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Évolution du prix"),
         "priceEvolutionPercentage":
             MessageLookupByLibrary.simpleMessage("Évolution du prix :"),
+        "productTypeFactoringProfitshare": MessageLookupByLibrary.simpleMessage(
+            "Partage de profits de factoring"),
+        "productTypeLoanIncome":
+            MessageLookupByLibrary.simpleMessage("Revenus de prêt"),
+        "productTypeOther": MessageLookupByLibrary.simpleMessage("Autre"),
+        "productTypeRealEstateRental":
+            MessageLookupByLibrary.simpleMessage("Location immobilière"),
         "projection": MessageLookupByLibrary.simpleMessage("projection"),
         "properties": MessageLookupByLibrary.simpleMessage("Propriétés"),
         "propertiesForSale":
@@ -474,6 +481,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Réserve pour Rénovation"),
         "rentDistribution":
             MessageLookupByLibrary.simpleMessage("Répartition des loyers"),
+        "rentDistributionByProductType": MessageLookupByLibrary.simpleMessage(
+            "Répartition des loyers par type de produit"),
         "rentDistributionByWallet": MessageLookupByLibrary.simpleMessage(
             "Répartition des loyers par portefeuille"),
         "rentGraph":

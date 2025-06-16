@@ -325,6 +325,12 @@ class MessageLookup extends MessageLookupByLibrary {
         "priceEvolution": MessageLookupByLibrary.simpleMessage("价格演变"),
         "priceEvolutionPercentage":
             MessageLookupByLibrary.simpleMessage("价格演变："),
+        "productTypeFactoringProfitshare":
+            MessageLookupByLibrary.simpleMessage("保理利润分享"),
+        "productTypeLoanIncome": MessageLookupByLibrary.simpleMessage("贷款收入"),
+        "productTypeOther": MessageLookupByLibrary.simpleMessage("其他"),
+        "productTypeRealEstateRental":
+            MessageLookupByLibrary.simpleMessage("房地产租赁"),
         "projection": MessageLookupByLibrary.simpleMessage("预测"),
         "properties": MessageLookupByLibrary.simpleMessage("物业"),
         "propertiesForSale": MessageLookupByLibrary.simpleMessage("待售房产"),
@@ -352,6 +358,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "regionFilterLabel": MessageLookupByLibrary.simpleMessage("地区"),
         "renovationReserve": MessageLookupByLibrary.simpleMessage("装修储备金"),
         "rentDistribution": MessageLookupByLibrary.simpleMessage("租金分配"),
+        "rentDistributionByProductType":
+            MessageLookupByLibrary.simpleMessage("按产品类型分配租金"),
         "rentDistributionByWallet":
             MessageLookupByLibrary.simpleMessage("按钱包的租金分配"),
         "rentGraph": MessageLookupByLibrary.simpleMessage("租金收取图表"),

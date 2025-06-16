@@ -415,6 +415,13 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Price evolution"),
         "priceEvolutionPercentage":
             MessageLookupByLibrary.simpleMessage("Price evolution:"),
+        "productTypeFactoringProfitshare":
+            MessageLookupByLibrary.simpleMessage("Factoring Profit Share"),
+        "productTypeLoanIncome":
+            MessageLookupByLibrary.simpleMessage("Loan Income"),
+        "productTypeOther": MessageLookupByLibrary.simpleMessage("Other"),
+        "productTypeRealEstateRental":
+            MessageLookupByLibrary.simpleMessage("Real Estate Rental"),
         "projection": MessageLookupByLibrary.simpleMessage("projection"),
         "properties": MessageLookupByLibrary.simpleMessage("Properties"),
         "propertiesForSale":
@@ -453,6 +460,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Renovation Reserve"),
         "rentDistribution":
             MessageLookupByLibrary.simpleMessage("Rent Distribution"),
+        "rentDistributionByProductType": MessageLookupByLibrary.simpleMessage(
+            "Rent Distribution by Product Type"),
         "rentDistributionByWallet":
             MessageLookupByLibrary.simpleMessage("Rent distribution by wallet"),
         "rentGraph":

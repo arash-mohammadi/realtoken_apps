@@ -28,11 +28,18 @@ class StatsSelectorPageState extends State<StatsSelectorPage> with TickerProvide
   // Contrôleurs d'animation pour chaque sélecteur
   final Map<String, AnimationController> _animationControllers = {};
   final Map<String, Animation<double>> _scaleAnimations = {};
+  
+  // Contrôleurs pour l'animation du sélecteur
+  late AnimationController _selectorAnimationController;
+  late Animation<double> _selectorAnimation;
+  bool _isSelectorVisible = true;
+  double _lastScrollOffset = 0;
 
   @override
   void initState() {
     super.initState();
     _initAnimations();
+    _initSelectorAnimation();
   }
 
   void _initAnimations() {
@@ -56,12 +63,29 @@ class StatsSelectorPageState extends State<StatsSelectorPage> with TickerProvide
     }
   }
 
+  void _initSelectorAnimation() {
+    _selectorAnimationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+      value: 1.0,
+    );
+    
+    _selectorAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _selectorAnimationController,
+      curve: Curves.easeInOut,
+    ));
+  }
+
   @override
   void dispose() {
     // Nettoyer les contrôleurs d'animation
     for (var controller in _animationControllers.values) {
       controller.dispose();
     }
+    _selectorAnimationController.dispose();
     super.dispose();
   }
 
@@ -78,6 +102,26 @@ class StatsSelectorPageState extends State<StatsSelectorPage> with TickerProvide
     if (_animationControllers[newValue] != null) {
       _animationControllers[newValue]!.forward();
     }
+  }
+
+  void _handleScroll(double offset) {
+    const double threshold = 50.0; // Seuil de déclenchement
+    
+    if (offset > _lastScrollOffset + threshold && _isSelectorVisible) {
+      // Scroll vers le bas - masquer le sélecteur
+      setState(() {
+        _isSelectorVisible = false;
+      });
+      _selectorAnimationController.reverse();
+    } else if (offset < _lastScrollOffset - threshold && !_isSelectorVisible) {
+      // Scroll vers le haut - afficher le sélecteur
+      setState(() {
+        _isSelectorVisible = true;
+      });
+      _selectorAnimationController.forward();
+    }
+    
+    _lastScrollOffset = offset;
   }
 
   @override
@@ -97,29 +141,39 @@ class StatsSelectorPageState extends State<StatsSelectorPage> with TickerProvide
           child: NestedScrollView(
             headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
               return <Widget>[
-                SliverAppBar(
-                  floating: true,
-                  snap: true,
-                  expandedHeight: UIUtils.getSliverAppBarHeight(context) + 10,
-                  flexibleSpace: FlexibleSpaceBar(
-                    background: Container(
-                      color: Theme.of(context).scaffoldBackgroundColor,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-                            child: _buildStatsSelector(),
+                AnimatedBuilder(
+                  animation: _selectorAnimation,
+                  builder: (context, child) {
+                    return SliverAppBar(
+                      floating: true,
+                      snap: true,
+                      expandedHeight: (UIUtils.getSliverAppBarHeight(context) + 10) * _selectorAnimation.value,
+                      collapsedHeight: _selectorAnimation.value == 0 ? 0 : null,
+                      toolbarHeight: _selectorAnimation.value == 0 ? 0 : kToolbarHeight,
+                      flexibleSpace: _selectorAnimation.value > 0 ? FlexibleSpaceBar(
+                        background: Container(
+                          color: Theme.of(context).scaffoldBackgroundColor,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              Opacity(
+                                opacity: _selectorAnimation.value,
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                                  child: _buildStatsSelector(),
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                    ),
-                  ),
+                        ),
+                      ) : null,
+                    );
+                  },
                 ),
               ];
             },
             body: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 500),
+              duration: const Duration(milliseconds: 300),
               transitionBuilder: (Widget child, Animation<double> animation) {
                 return FadeTransition(
                   opacity: animation,
@@ -132,7 +186,7 @@ class StatsSelectorPageState extends State<StatsSelectorPage> with TickerProvide
                   ),
                 );
               },
-              child: _getSelectedStatsPage(),
+              child: _getSelectedStatsPageWithScrollListener(),
             ),
           ),
         ),
@@ -285,5 +339,17 @@ class StatsSelectorPageState extends State<StatsSelectorPage> with TickerProvide
       default:
         return const PortfolioStats(key: ValueKey('PortfolioStats'));
     }
+  }
+
+  Widget _getSelectedStatsPageWithScrollListener() {
+    return NotificationListener<ScrollNotification>(
+      onNotification: (ScrollNotification notification) {
+        if (notification is ScrollUpdateNotification) {
+          _handleScroll(notification.metrics.pixels);
+        }
+        return false;
+      },
+      child: _getSelectedStatsPage(),
+    );
   }
 }

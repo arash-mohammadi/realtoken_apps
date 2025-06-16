@@ -2010,6 +2010,56 @@ class S {
     );
   }
 
+  /// `Real Estate Rental`
+  String get productTypeRealEstateRental {
+    return Intl.message(
+      'Real Estate Rental',
+      name: 'productTypeRealEstateRental',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Factoring Profit Share`
+  String get productTypeFactoringProfitshare {
+    return Intl.message(
+      'Factoring Profit Share',
+      name: 'productTypeFactoringProfitshare',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Loan Income`
+  String get productTypeLoanIncome {
+    return Intl.message(
+      'Loan Income',
+      name: 'productTypeLoanIncome',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Other`
+  String get productTypeOther {
+    return Intl.message(
+      'Other',
+      name: 'productTypeOther',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Rent Distribution by Product Type`
+  String get rentDistributionByProductType {
+    return Intl.message(
+      'Rent Distribution by Product Type',
+      name: 'rentDistributionByProductType',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Realt Listing Fee`
   String get realtListingFee {
     return Intl.message(

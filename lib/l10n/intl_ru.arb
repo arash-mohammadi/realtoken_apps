@@ -462,5 +462,10 @@
   "exportAllTransactionsCsv": "Экспорт всех транзакций в CSV",
   "noTransactionOrRentToExport": "Нет транзакций или арендных платежей для экспорта.",
   "noRentDataAvailable": "Нет доступных данных по аренде.",
-  "noRentDataToShare": "Нет данных по аренде для обмена."
+  "noRentDataToShare": "Нет данных по аренде для обмена.",
+  "productTypeRealEstateRental": "Аренда недвижимости",
+  "productTypeFactoringProfitshare": "Долевое участие в факторинге",
+  "productTypeLoanIncome": "Доход от займа",
+  "productTypeOther": "Другое",
+  "rentDistributionByProductType": "Распределение арендной платы по типу продукта"
 }
