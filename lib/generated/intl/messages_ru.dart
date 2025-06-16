@@ -69,6 +69,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "allWorkCorrectly":
             MessageLookupByLibrary.simpleMessage("Все работает корректно"),
         "amount": MessageLookupByLibrary.simpleMessage("Количество"),
+        "analytics": MessageLookupByLibrary.simpleMessage("Аналитика"),
         "annualPercentageYield":
             MessageLookupByLibrary.simpleMessage("Годовая доходность"),
         "annualYield":
@@ -206,6 +207,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "enterValidNumber":
             MessageLookupByLibrary.simpleMessage("Введите корректное число"),
         "errorDuringTest": m3,
+        "errorLoadingData":
+            MessageLookupByLibrary.simpleMessage("Ошибка загрузки данных"),
         "error_occurred": m4,
         "ethereumContract":
             MessageLookupByLibrary.simpleMessage("Контракт Ethereum"),
@@ -608,6 +611,8 @@ class MessageLookup extends MessageLookupByLibrary {
             "Распределение токенов по городам"),
         "tokenDistributionByCountry": MessageLookupByLibrary.simpleMessage(
             "Распределение токенов по странам"),
+        "tokenDistributionByProductType": MessageLookupByLibrary.simpleMessage(
+            "Распределение токенов по типу продукта"),
         "tokenDistributionByRegion": MessageLookupByLibrary.simpleMessage(
             "Распределение токенов по регионам"),
         "tokenDistributionByWallet": MessageLookupByLibrary.simpleMessage(

@@ -230,6 +230,16 @@ class S {
     );
   }
 
+  /// `Rents`
+  String get rents {
+    return Intl.message(
+      'Rents',
+      name: 'rents',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Total Portfolio`
   String get totalPortfolio {
     return Intl.message(
@@ -335,16 +345,6 @@ class S {
     return Intl.message(
       'Total Tokens',
       name: 'totalTokens',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Rents`
-  String get rents {
-    return Intl.message(
-      'Rents',
-      name: 'rents',
       desc: '',
       args: [],
     );
@@ -1430,11 +1430,31 @@ class S {
     );
   }
 
+  /// `Analytics`
+  String get analytics {
+    return Intl.message(
+      'Analytics',
+      name: 'analytics',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `No data available, please add a new wallet`
   String get noDataAvailable {
     return Intl.message(
       'No data available, please add a new wallet',
       name: 'noDataAvailable',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Error loading data`
+  String get errorLoadingData {
+    return Intl.message(
+      'Error loading data',
+      name: 'errorLoadingData',
       desc: '',
       args: [],
     );
@@ -2055,6 +2075,16 @@ class S {
     return Intl.message(
       'Rent Distribution by Product Type',
       name: 'rentDistributionByProductType',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Token Distribution by Product Type`
+  String get tokenDistributionByProductType {
+    return Intl.message(
+      'Token Distribution by Product Type',
+      name: 'tokenDistributionByProductType',
       desc: '',
       args: [],
     );

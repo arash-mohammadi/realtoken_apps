@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:realtoken_asset_tracker/pages/Statistics/rmm/rmm_stats.dart';
-import 'package:realtoken_asset_tracker/pages/Statistics/portfolio/portfolio_stats.dart';
 import 'package:realtoken_asset_tracker/pages/Statistics/wallet/wallet_stats.dart';
+import 'package:realtoken_asset_tracker/pages/Statistics/rents/rents_stats.dart';
 import 'package:provider/provider.dart';
 import 'package:realtoken_asset_tracker/app_state.dart';
 import 'package:realtoken_asset_tracker/utils/ui_utils.dart';
@@ -21,7 +21,7 @@ class StatsSelectorPageState extends State<StatsSelectorPage> with TickerProvide
   // Couleurs spécifiques pour chaque sélecteur
   final Map<String, Color> _statsColors = {
     'WalletStats': Colors.blue,
-    'PortfolioStats': Colors.green,
+    'RentsStats': Colors.green,
     'RMMStats': Colors.orange,
   };
 
@@ -44,7 +44,7 @@ class StatsSelectorPageState extends State<StatsSelectorPage> with TickerProvide
 
   void _initAnimations() {
     // Initialiser les contrôleurs d'animation pour chaque sélecteur
-    for (String key in ['WalletStats', 'PortfolioStats', 'RMMStats']) {
+    for (String key in ['WalletStats', 'RentsStats', 'RMMStats']) {
       _animationControllers[key] = AnimationController(
         vsync: this,
         duration: const Duration(milliseconds: 400),
@@ -198,7 +198,7 @@ class StatsSelectorPageState extends State<StatsSelectorPage> with TickerProvide
     return Row(
       children: [
         _buildStatsChip('WalletStats', S.of(context).wallet, Icons.account_balance_wallet),
-        _buildStatsChip('PortfolioStats', S.of(context).portfolio, Icons.business),
+        _buildStatsChip('RentsStats', S.of(context).rents, Icons.attach_money),
         _buildStatsChip('RMMStats', S.of(context).rmm, Icons.money),
       ],
     );
@@ -332,12 +332,12 @@ class StatsSelectorPageState extends State<StatsSelectorPage> with TickerProvide
     switch (_selectedStats) {
       case 'WalletStats':
         return const WalletStats(key: ValueKey('WalletStats'));
-      case 'PortfolioStats':
-        return const PortfolioStats(key: ValueKey('PortfolioStats'));
+      case 'RentsStats':
+        return const RentsStats(key: ValueKey('RentsStats'));
       case 'RMMStats':
         return const RmmStats(key: ValueKey('RMMStats'));
       default:
-        return const PortfolioStats(key: ValueKey('PortfolioStats'));
+        return const WalletStats(key: ValueKey('WalletStats'));
     }
   }
 

@@ -18,6 +18,7 @@
   "hello": "Привет",
   "lastRentReceived": "Последняя полученная аренда",
   "portfolio": "Портфель",
+  "rents": "Аренда",
   "totalPortfolio": "Общий портфель",
   "wallet": "Кошелек",
   "rmm": "RMM",
@@ -138,7 +139,9 @@
   "clearCacheData": "Очистить кеш/данные",
   "dashboard": "Панель управления",
   "statistics": "Статистика",
-  "noDataAvailable": "Нет данных, добавьте новый кошелек",
+  "analytics": "Аналитика",
+      "noDataAvailable": "Нет данных, добавьте новый кошелек",
+  "errorLoadingData": "Ошибка загрузки данных",
   "noWalletMessage": "Чтобы использовать приложение, вы должны сначала добавить хотя бы один адрес кошелька Ethereum.",
   "manageAddresses": "Добавить кошелек",
   "depositBalance": "Депозиты",
@@ -467,5 +470,6 @@
   "productTypeFactoringProfitshare": "Долевое участие в факторинге",
   "productTypeLoanIncome": "Доход от займа",
   "productTypeOther": "Другое",
-  "rentDistributionByProductType": "Распределение арендной платы по типу продукта"
+  "rentDistributionByProductType": "Распределение арендной платы по типу продукта",
+  "tokenDistributionByProductType": "Распределение токенов по типу продукта"
 }

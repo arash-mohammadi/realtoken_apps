@@ -18,6 +18,7 @@
     "hello": "Olá",
     "lastRentReceived": "O último aluguel recebido",
     "portfolio": "Portfólio",
+  "rents": "Aluguéis",
     "totalPortfolio": "Portfólio Total",
     "wallet": "Carteira",
     "rmm": "RMM",
@@ -137,7 +138,9 @@
     "clearCacheData": "Limpar Cache/Dados",
     "dashboard": "Painel de Controle",
     "statistics": "Estatísticas",
-      "noDataAvailable": "Nenhum dado disponível, por favor adicione uma nova carteira",
+  "analytics": "Análises",
+              "noDataAvailable": "Nenhum dado disponível, por favor adicione uma nova carteira",
+  "errorLoadingData": "Erro ao carregar dados",
   "noWalletMessage": "Para usar a aplicação, você deve primeiro adicionar pelo menos um endereço de wallet Ethereum.",
   "manageAddresses": "Adicionar carteira",
     "depositBalance": "Depósitos",
@@ -423,6 +426,7 @@
   "productTypeFactoringProfitshare": "Participação em Lucros de Factoring",
   "productTypeLoanIncome": "Renda de Empréstimo",
   "productTypeOther": "Outro",
-  "rentDistributionByProductType": "Distribuição de Aluguéis por Tipo de Produto"
+  "rentDistributionByProductType": "Distribuição de Aluguéis por Tipo de Produto",
+  "tokenDistributionByProductType": "Distribuição de Tokens por Tipo de Produto"
 }
   

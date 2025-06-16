@@ -18,6 +18,7 @@
     "hello": "你好",
     "lastRentReceived": "您收到的最后一笔租金",
     "portfolio": "投资组合",
+  "rents": "租金",
     "totalPortfolio": "总投资组合",
     "wallet": "钱包",
     "rmm": "RMM",
@@ -137,7 +138,9 @@
     "clearCacheData": "清除缓存/数据",
     "dashboard": "仪表板",
     "statistics": "统计数据",
-      "noDataAvailable": "无数据，请添加新钱包",
+  "analytics": "分析",
+              "noDataAvailable": "无数据，请添加新钱包",
+  "errorLoadingData": "加载数据时出错",
   "noWalletMessage": "要使用该应用程序，您必须首先添加至少一个以太坊钱包地址。",
   "manageAddresses": "添加钱包",
     "depositBalance": "存款",
@@ -422,6 +425,7 @@
   "productTypeFactoringProfitshare": "保理利润分享",
   "productTypeLoanIncome": "贷款收入",
   "productTypeOther": "其他",
-  "rentDistributionByProductType": "按产品类型分配租金"
+  "rentDistributionByProductType": "按产品类型分配租金",
+  "tokenDistributionByProductType": "按产品类型分配代币"
 }
   

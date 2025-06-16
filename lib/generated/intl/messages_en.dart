@@ -69,6 +69,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "allWorkCorrectly": MessageLookupByLibrary.simpleMessage(
             "Everything is working correctly"),
         "amount": MessageLookupByLibrary.simpleMessage("Amount"),
+        "analytics": MessageLookupByLibrary.simpleMessage("Analytics"),
         "annualPercentageYield":
             MessageLookupByLibrary.simpleMessage("Annual yield"),
         "annualYield": MessageLookupByLibrary.simpleMessage("Net Yield"),
@@ -206,6 +207,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "enterValidNumber":
             MessageLookupByLibrary.simpleMessage("Please enter a valid number"),
         "errorDuringTest": m3,
+        "errorLoadingData":
+            MessageLookupByLibrary.simpleMessage("Error loading data"),
         "error_occurred": m4,
         "ethereumContract":
             MessageLookupByLibrary.simpleMessage("Ethereum contract"),
@@ -590,6 +593,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Token Distribution by City"),
         "tokenDistributionByCountry": MessageLookupByLibrary.simpleMessage(
             "Token Distribution by Country"),
+        "tokenDistributionByProductType": MessageLookupByLibrary.simpleMessage(
+            "Token Distribution by Product Type"),
         "tokenDistributionByRegion": MessageLookupByLibrary.simpleMessage(
             "Token Distribution by Region"),
         "tokenDistributionByWallet": MessageLookupByLibrary.simpleMessage(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:realtoken_asset_tracker/generated/l10n.dart';
 
 class CustomBottomNavigationBar extends StatelessWidget {
   final int selectedIndex;
@@ -13,11 +14,11 @@ class CustomBottomNavigationBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BottomNavigationBar(
-      items: const <BottomNavigationBarItem>[
-        BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Dashboard'),
-        BottomNavigationBarItem(icon: Icon(Icons.wallet_rounded), label: 'Portfolio'),
-        BottomNavigationBarItem(icon: Icon(Icons.bar_chart), label: 'Statistiques'),
-        BottomNavigationBarItem(icon: Icon(Icons.map), label: 'Maps'),
+      items: <BottomNavigationBarItem>[
+        BottomNavigationBarItem(icon: const Icon(Icons.dashboard), label: S.of(context).dashboard),
+        BottomNavigationBarItem(icon: const Icon(Icons.wallet_rounded), label: S.of(context).portfolio),
+        BottomNavigationBarItem(icon: const Icon(Icons.bar_chart), label: S.of(context).analytics),
+        BottomNavigationBarItem(icon: const Icon(Icons.map), label: S.of(context).maps),
       ],
       currentIndex: selectedIndex,
       elevation: 0,

@@ -59,6 +59,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "allRegions": MessageLookupByLibrary.simpleMessage("所有地区"),
         "allWorkCorrectly": MessageLookupByLibrary.simpleMessage("一切正常"),
         "amount": MessageLookupByLibrary.simpleMessage("金额"),
+        "analytics": MessageLookupByLibrary.simpleMessage("分析"),
         "annualPercentageYield": MessageLookupByLibrary.simpleMessage("年收益率"),
         "annualYield": MessageLookupByLibrary.simpleMessage("净收益率"),
         "annually": MessageLookupByLibrary.simpleMessage("每年"),
@@ -172,6 +173,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "english": MessageLookupByLibrary.simpleMessage("English"),
         "enterValidNumber": MessageLookupByLibrary.simpleMessage("请输入有效的数字"),
         "errorDuringTest": m3,
+        "errorLoadingData": MessageLookupByLibrary.simpleMessage("加载数据时出错"),
         "error_occurred": m4,
         "ethereumContract": MessageLookupByLibrary.simpleMessage("以太坊合约"),
         "everyContributionCounts":
@@ -458,6 +460,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("按城市分配代币"),
         "tokenDistributionByCountry":
             MessageLookupByLibrary.simpleMessage("按国家分配代币"),
+        "tokenDistributionByProductType":
+            MessageLookupByLibrary.simpleMessage("按产品类型分配代币"),
         "tokenDistributionByRegion":
             MessageLookupByLibrary.simpleMessage("按地区分配代币"),
         "tokenNotWhitelisted": MessageLookupByLibrary.simpleMessage("代币未白名单"),

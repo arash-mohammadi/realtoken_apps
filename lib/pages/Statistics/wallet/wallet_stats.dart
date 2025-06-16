@@ -1,19 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:realtoken_asset_tracker/managers/data_manager.dart';
 import 'package:realtoken_asset_tracker/generated/l10n.dart';
 import 'package:realtoken_asset_tracker/utils/data_fetch_utils.dart';
-import 'package:realtoken_asset_tracker/utils/date_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 // Import des fichiers de graphiques
-import 'charts/apy_graph.dart';
-import 'charts/rent_graph.dart';
-import 'charts/roi_graph.dart';
 import 'charts/wallet_balance_graph.dart';
 import 'charts/rent_distribution_by_wallet_chart.dart';
+import 'charts/token_distribution_by_product_type_chart.dart';
+import 'charts/roi_graph.dart';
+import 'charts/apy_graph.dart';
+import 'package:realtoken_asset_tracker/pages/Statistics/portfolio/charts/token_distribution_by_wallet_card.dart';
 
 class WalletStats extends StatefulWidget {
   const WalletStats({super.key});
@@ -23,26 +22,21 @@ class WalletStats extends StatefulWidget {
 }
 
 class _WalletStats extends State<WalletStats> {
-  late String _selectedRentPeriod;
   late String _selectedWalletPeriod;
   late String _selectedRoiPeriod;
   late String _selectedApyPeriod;
-  String _selectedApyTimeRange = 'all';
   String _selectedWalletTimeRange = 'all';
   String _selectedRoiTimeRange = 'all';
-  String _selectedRentTimeRange = 'all';
+  String _selectedApyTimeRange = 'all';
 
-  bool apyIsBarChart = true;
-  bool roiIsBarChart = false;
   bool walletIsBarChart = false;
-  bool rentIsBarChart = false;
-  bool showCumulativeRent = false;
+  bool roiIsBarChart = false;
+  bool apyIsBarChart = true;
   late SharedPreferences prefs;
 
   int _walletTimeOffset = 0;
   int _roiTimeOffset = 0;
   int _apyTimeOffset = 0;
-  int _rentTimeOffset = 0;
 
   @override
   void initState() {
@@ -52,26 +46,21 @@ class _WalletStats extends State<WalletStats> {
 
       setState(() {
         // Charger les types de graphiques
-        apyIsBarChart = prefs.getBool('apyIsBarChart') ?? true;
-        roiIsBarChart = prefs.getBool('roiIsBarChart') ?? false;
         walletIsBarChart = prefs.getBool('walletIsBarChart') ?? false;
-        rentIsBarChart = prefs.getBool('rentIsBarChart') ?? false;
-        showCumulativeRent = prefs.getBool('showCumulativeRent') ?? false;
+        roiIsBarChart = prefs.getBool('roiIsBarChart') ?? false;
+        apyIsBarChart = prefs.getBool('apyIsBarChart') ?? true;
         
         // Charger les périodes sélectionnées
-        _selectedRentPeriod = prefs.getString('rentPeriod') ?? S.of(context).week;
         _selectedWalletPeriod = prefs.getString('walletPeriod') ?? S.of(context).week;
         _selectedRoiPeriod = prefs.getString('roiPeriod') ?? S.of(context).week;
         _selectedApyPeriod = prefs.getString('apyPeriod') ?? S.of(context).week;
         
         // Charger les plages de temps
-        _selectedRentTimeRange = prefs.getString('rentTimeRange') ?? 'all';
         _selectedWalletTimeRange = prefs.getString('walletTimeRange') ?? 'all';
         _selectedRoiTimeRange = prefs.getString('roiTimeRange') ?? 'all';
         _selectedApyTimeRange = prefs.getString('apyTimeRange') ?? 'all';
         
         // Charger les offsets
-        _rentTimeOffset = prefs.getInt('rentTimeOffset') ?? 0;
         _walletTimeOffset = prefs.getInt('walletTimeOffset') ?? 0;
         _roiTimeOffset = prefs.getInt('roiTimeOffset') ?? 0;
         _apyTimeOffset = prefs.getInt('apyTimeOffset') ?? 0;
@@ -82,17 +71,11 @@ class _WalletStats extends State<WalletStats> {
         
         // Vérifier si les données sont déjà disponibles
         if (!dataManager.isLoadingMain && dataManager.evmAddresses.isNotEmpty && 
-            dataManager.walletBalanceHistory.isNotEmpty && dataManager.roiHistory.isNotEmpty &&
-            dataManager.apyHistory.isNotEmpty) {
+            dataManager.walletBalanceHistory.isNotEmpty) {
           debugPrint("📈 WalletStats: données déjà chargées, skip chargement");
-          // Vérifier si les données de propriétés doivent être chargées
-          if (dataManager.propertyData.isEmpty) {
-            dataManager.fetchPropertyData();
-          }
         } else {
           debugPrint("📈 WalletStats: chargement des données nécessaire");
           await DataFetchUtils.loadDataWithCache(context);
-          dataManager.fetchPropertyData();
         }
       } catch (e, stacktrace) {
         debugPrint("Error during initState: $e");
@@ -129,53 +112,23 @@ class _WalletStats extends State<WalletStats> {
                 (BuildContext context, int index) {
                   switch (index) {
                     case 0:
-                      return RentGraph(
-                        groupedData: [],
+                      return TokenDistributionByWalletCard(
+                        key: const ValueKey('token_distribution_by_wallet_card'),
                         dataManager: dataManager,
-                        showCumulativeRent: showCumulativeRent,
-                        selectedPeriod: _selectedRentPeriod,
-                        onPeriodChanged: (period) {
-                          setState(() {
-                            _selectedRentPeriod = period;
-                            _savePeriodPreference('rentPeriod', period);
-                          });
-                        },
-                        onCumulativeRentChanged: (value) {
-                          setState(() {
-                            showCumulativeRent = value;
-                            _saveChartPreference('showCumulativeRent', showCumulativeRent);
-                          });
-                        },
-                        selectedTimeRange: _selectedRentTimeRange,
-                        onTimeRangeChanged: (newRange) {
-                          setState(() {
-                            _selectedRentTimeRange = newRange;
-                            _saveTimeRangePreference('rentTimeRange', newRange);
-                            _rentTimeOffset = 0; // Réinitialiser l'offset lors d'un changement de plage
-                            _saveTimeOffsetPreference('rentTimeOffset', 0);
-                          });
-                        },
-                        timeOffset: _rentTimeOffset,
-                        onTimeOffsetChanged: (newOffset) {
-                          setState(() {
-                            _rentTimeOffset = newOffset;
-                            _saveTimeOffsetPreference('rentTimeOffset', newOffset);
-                          });
-                        },
-                        rentIsBarChart: rentIsBarChart,
-                        onChartTypeChanged: (isBarChart) {
-                          setState(() {
-                            rentIsBarChart = isBarChart;
-                            _saveChartPreference('rentIsBarChart', rentIsBarChart);
-                          });
-                        },
                       );
                     case 1:
                       return RentDistributionByWalletChart(
+                        key: const ValueKey('rent_distribution_by_wallet_chart'),
                         dataManager: dataManager,
                       );
                     case 2:
+                      return TokenDistributionByProductTypeChart(
+                        key: const ValueKey('token_distribution_by_product_type_chart'),
+                        dataManager: dataManager,
+                      );
+                    case 3:
                       return WalletBalanceGraph(
+                        key: const ValueKey('wallet_balance_graph'),
                         selectedPeriod: _selectedWalletPeriod,
                         onPeriodChanged: (period) {
                           setState(() {
@@ -207,8 +160,9 @@ class _WalletStats extends State<WalletStats> {
                           });
                         },
                       );
-                    case 3:
+                    case 4:
                       return RoiHistoryGraph(
+                        key: const ValueKey('roi_graph'),
                         selectedPeriod: _selectedRoiPeriod,
                         onPeriodChanged: (period) {
                           setState(() {
@@ -228,7 +182,7 @@ class _WalletStats extends State<WalletStats> {
                           setState(() {
                             _selectedRoiTimeRange = newRange;
                             _saveTimeRangePreference('roiTimeRange', newRange);
-                            _roiTimeOffset = 0; // Réinitialiser l'offset lors d'un changement de plage
+                            _roiTimeOffset = 0;
                             _saveTimeOffsetPreference('roiTimeOffset', 0);
                           });
                         },
@@ -240,17 +194,18 @@ class _WalletStats extends State<WalletStats> {
                           });
                         },
                       );
-                    case 4:
+                    case 5:
                       return ApyHistoryGraph(
+                        key: const ValueKey('apy_graph'),
                         dataManager: dataManager,
                         selectedPeriod: _selectedApyPeriod,
-                        apyIsBarChart: apyIsBarChart,
                         onPeriodChanged: (period) {
                           setState(() {
                             _selectedApyPeriod = period;
                             _savePeriodPreference('apyPeriod', period);
                           });
                         },
+                        apyIsBarChart: apyIsBarChart,
                         onChartTypeChanged: (isBarChart) {
                           setState(() {
                             apyIsBarChart = isBarChart;
@@ -262,7 +217,7 @@ class _WalletStats extends State<WalletStats> {
                           setState(() {
                             _selectedApyTimeRange = newRange;
                             _saveTimeRangePreference('apyTimeRange', newRange);
-                            _apyTimeOffset = 0; // Réinitialiser l'offset lors d'un changement de plage
+                            _apyTimeOffset = 0;
                             _saveTimeOffsetPreference('apyTimeOffset', 0);
                           });
                         },
@@ -278,7 +233,7 @@ class _WalletStats extends State<WalletStats> {
                       return Container();
                   }
                 },
-                childCount: 5,
+                childCount: 6,
               ),
             ),
           ),
