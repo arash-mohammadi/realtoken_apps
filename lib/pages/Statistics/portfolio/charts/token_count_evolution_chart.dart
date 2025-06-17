@@ -57,7 +57,7 @@ class _TokenCountEvolutionChartState extends State<TokenCountEvolutionChart> {
                 Text(
                   S.of(context).tokenCountEvolution,
                   style: TextStyle(
-                    fontSize: 20 + appState.getTextSizeOffset(),
+                    fontSize: 20 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                     fontWeight: FontWeight.bold,
                     letterSpacing: -0.5,
                   ),
@@ -120,7 +120,7 @@ class _TokenCountEvolutionChartState extends State<TokenCountEvolutionChart> {
         child: Text(
           S.of(context).noDataAvailable,
           style: TextStyle(
-            fontSize: 16 + appState.getTextSizeOffset(),
+            fontSize: 16,
             color: Colors.grey.shade600,
           ),
         ),
@@ -139,7 +139,7 @@ class _TokenCountEvolutionChartState extends State<TokenCountEvolutionChart> {
                 if (groupIndex < labels.length) {
                   return BarTooltipItem(
                     '${labels[groupIndex]}\n${rod.toY.toStringAsFixed(0)} tokens',
-                    const TextStyle(
+                    TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.w600,
                       fontSize: 12,
@@ -171,7 +171,7 @@ class _TokenCountEvolutionChartState extends State<TokenCountEvolutionChart> {
                         child: Text(
                           labels[value.toInt()],
                           style: TextStyle(
-                            fontSize: 10 + appState.getTextSizeOffset(),
+                            fontSize: 10,
                             color: Colors.grey.shade600,
                           ),
                           overflow: TextOverflow.ellipsis,
@@ -194,7 +194,7 @@ class _TokenCountEvolutionChartState extends State<TokenCountEvolutionChart> {
                     child: Text(
                       value.toStringAsFixed(0),
                       style: TextStyle(
-                        fontSize: 10 + appState.getTextSizeOffset(),
+                        fontSize: 10,
                         color: Colors.grey.shade600,
                       ),
                     ),
@@ -258,7 +258,7 @@ class _TokenCountEvolutionChartState extends State<TokenCountEvolutionChart> {
                   child: Text(
                     value.toStringAsFixed(0),
                     style: TextStyle(
-                      fontSize: 10 + appState.getTextSizeOffset(),
+                      fontSize: 10,
                       color: Colors.grey.shade600,
                     ),
                   ),
@@ -279,7 +279,7 @@ class _TokenCountEvolutionChartState extends State<TokenCountEvolutionChart> {
                     child: Text(
                       labels[value.toInt()],
                       style: TextStyle(
-                        fontSize: 10 + appState.getTextSizeOffset(),
+                        fontSize: 10,
                         color: Colors.grey.shade600,
                       ),
                     ),
@@ -333,7 +333,7 @@ class _TokenCountEvolutionChartState extends State<TokenCountEvolutionChart> {
 
                 return LineTooltipItem(
                   '$periodLabel\n${value.toStringAsFixed(0)} tokens',
-                  const TextStyle(
+                  TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w600,
                     fontSize: 12,

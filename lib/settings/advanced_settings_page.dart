@@ -74,7 +74,7 @@ class _AdvancedSettingsPageState extends State<AdvancedSettingsPage> {
                 padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
                 child: Row(
                   children: [
-                    Text('Lisse', style: TextStyle(fontSize: 13 + appState.getTextSizeOffset())),
+                    Text('Lisse', style: TextStyle(fontSize: 13 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
                     Expanded(
                       child: Slider.adaptive(
                         value: _apyReactivity,
@@ -92,7 +92,7 @@ class _AdvancedSettingsPageState extends State<AdvancedSettingsPage> {
                         },
                       ),
                     ),
-                    Text('Réactif', style: TextStyle(fontSize: 13 + appState.getTextSizeOffset())),
+                    Text('Réactif', style: TextStyle(fontSize: 13)),
                   ],
                 ),
               ),
@@ -101,7 +101,7 @@ class _AdvancedSettingsPageState extends State<AdvancedSettingsPage> {
                 child: Text(
                   _getApyReactivityLabel(),
                   style: TextStyle(
-                    fontSize: 13 + appState.getTextSizeOffset(),
+                    fontSize: 13,
                     color: Theme.of(context).primaryColor,
                   ),
                 ),
@@ -138,7 +138,7 @@ class _AdvancedSettingsPageState extends State<AdvancedSettingsPage> {
           const SizedBox(width: 6),
           Text(
             title.toUpperCase(),
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w500,
               color: Colors.grey,

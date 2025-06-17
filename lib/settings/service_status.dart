@@ -85,7 +85,7 @@ class ServiceStatusPage extends StatelessWidget {
                           child: Text(
                             allAreUpToDate ? S.of(context).allWorkCorrectly : S.of(context).somethingWrong,
                             style: TextStyle(
-                              fontSize: 15 + appState.getTextSizeOffset(),
+                              fontSize: 15,
                               fontWeight: FontWeight.w500,
                               color: allAreUpToDate ? Colors.green : Colors.red,
                             ),
@@ -142,7 +142,7 @@ class ServiceStatusPage extends StatelessWidget {
               child: Text(
                 'Aucune exécution trouvée',
                 style: TextStyle(
-                  fontSize: 15 + appState.getTextSizeOffset(),
+                  fontSize: 15,
                   color: Colors.grey,
                 ),
               ),
@@ -159,7 +159,7 @@ class ServiceStatusPage extends StatelessWidget {
           const SizedBox(width: 6),
           Text(
             title.toUpperCase(),
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w500,
               color: Colors.grey,

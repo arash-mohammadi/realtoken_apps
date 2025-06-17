@@ -300,6 +300,16 @@ class S {
     );
   }
 
+  /// `Tokens`
+  String get tokensInMap {
+    return Intl.message(
+      'Tokens',
+      name: 'tokensInMap',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Rented`
   String get rented {
     return Intl.message(
@@ -2100,10 +2110,10 @@ class S {
     );
   }
 
-  /// `Filter Options`
+  /// `Filters`
   String get filterOptions {
     return Intl.message(
-      'Filter Options',
+      'Filters',
       name: 'filterOptions',
       desc: '',
       args: [],
@@ -2140,10 +2150,10 @@ class S {
     );
   }
 
-  /// `Total Rent`
+  /// `Total rent`
   String get totalRent {
     return Intl.message(
-      'Total Rent',
+      'Total rent',
       name: 'totalRent',
       desc: '',
       args: [],
@@ -2230,10 +2240,10 @@ class S {
     );
   }
 
-  /// `Rental Status Distribution`
+  /// `Rental status distribution`
   String get rentalStatusDistribution {
     return Intl.message(
-      'Rental Status Distribution',
+      'Rental status distribution',
       name: 'rentalStatusDistribution',
       desc: '',
       args: [],
@@ -2250,30 +2260,30 @@ class S {
     );
   }
 
-  /// `Fully Rented`
+  /// `Fully rented`
   String get fullyRented {
     return Intl.message(
-      'Fully Rented',
+      'Fully rented',
       name: 'fullyRented',
       desc: '',
       args: [],
     );
   }
 
-  /// `Partially Rented`
+  /// `Partially rented`
   String get partiallyRented {
     return Intl.message(
-      'Partially Rented',
+      'Partially rented',
       name: 'partiallyRented',
       desc: '',
       args: [],
     );
   }
 
-  /// `Not Rented`
+  /// `Not rented`
   String get notRented {
     return Intl.message(
-      'Not Rented',
+      'Not rented',
       name: 'notRented',
       desc: '',
       args: [],
@@ -3170,10 +3180,10 @@ class S {
     );
   }
 
-  /// `Show only whitelisted`
+  /// `Whitelist only`
   String get showOnlyWhitelisted {
     return Intl.message(
-      'Show only whitelisted',
+      'Whitelist only',
       name: 'showOnlyWhitelisted',
       desc: '',
       args: [],
@@ -4635,6 +4645,16 @@ class S {
     return Intl.message(
       'No rent data to share.',
       name: 'noRentDataToShare',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `All tokens`
+  String get allTokens {
+    return Intl.message(
+      'All tokens',
+      name: 'allTokens',
       desc: '',
       args: [],
     );

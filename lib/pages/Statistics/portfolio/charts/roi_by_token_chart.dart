@@ -57,7 +57,7 @@ class _RoiByTokenChartState extends State<RoiByTokenChart> {
                 Text(
                   S.of(context).roiByToken,
                   style: TextStyle(
-                    fontSize: 20 + appState.getTextSizeOffset(),
+                    fontSize: 20 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                     fontWeight: FontWeight.bold,
                     letterSpacing: -0.5,
                   ),
@@ -120,7 +120,7 @@ class _RoiByTokenChartState extends State<RoiByTokenChart> {
                       S.of(context).filterOptions,
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 18 + appState.getTextSizeOffset(),
+                        fontSize: 18,
                         color: Theme.of(context).primaryColor,
                       ),
                     ),
@@ -135,7 +135,7 @@ class _RoiByTokenChartState extends State<RoiByTokenChart> {
                       _showTopOnly ? S.of(context).showTop10 : S.of(context).showAll,
                       style: TextStyle(
                         fontWeight: FontWeight.w500,
-                        fontSize: 16 + appState.getTextSizeOffset(),
+                        fontSize: 16,
                       ),
                     ),
                     trailing: Switch(
@@ -160,7 +160,7 @@ class _RoiByTokenChartState extends State<RoiByTokenChart> {
                       S.of(context).sortBy,
                       style: TextStyle(
                         fontWeight: FontWeight.w500,
-                        fontSize: 16 + appState.getTextSizeOffset(),
+                        fontSize: 16,
                       ),
                     ),
                     trailing: DropdownButton<String>(
@@ -219,7 +219,7 @@ class _RoiByTokenChartState extends State<RoiByTokenChart> {
                   final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
                   return BarTooltipItem(
                     '${token['shortName']}\nROI: ${token['roi'].toStringAsFixed(2)}%\n${S.of(context).totalRent}: ${currencyUtils.getFormattedAmount(currencyUtils.convert(token['totalRent']), currencyUtils.currencySymbol, true)}',
-                    const TextStyle(
+                    TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.w600,
                       fontSize: 12,

@@ -108,7 +108,7 @@ class LoanIncomeCard extends StatelessWidget {
               title: '—',
               radius: 18,
               titleStyle: TextStyle(
-                fontSize: 12,
+                fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                 fontWeight: FontWeight.bold,
                 color: Colors.grey.shade600,
               ),

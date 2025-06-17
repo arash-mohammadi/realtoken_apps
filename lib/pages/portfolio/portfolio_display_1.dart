@@ -128,7 +128,7 @@ class PortfolioDisplay1 extends StatelessWidget {
                               child: Text(
                                 "${rentValue.toStringAsFixed(1)}%",
                                 style: TextStyle(
-                                  fontSize: 10,
+                                  fontSize: 10 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                                   fontWeight: FontWeight.w600,
                                   color: Colors.white,
                                   shadows: [
@@ -145,7 +145,7 @@ class PortfolioDisplay1 extends StatelessWidget {
                           : Text(
                               "${rentValue.toStringAsFixed(1)}%",
                               style: TextStyle(
-                                fontSize: 10,
+                                fontSize: 10 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                                 fontWeight: FontWeight.w600,
                                 color: Colors.white,
                                 shadows: [
@@ -172,7 +172,7 @@ class PortfolioDisplay1 extends StatelessWidget {
                           child: Text(
                             "${rentValue.toStringAsFixed(1)}%",
                             style: TextStyle(
-                              fontSize: 10,
+                              fontSize: 10 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                               fontWeight: FontWeight.w600,
                               color: Theme.of(context).textTheme.bodyLarge?.color,
                             ),
@@ -182,7 +182,7 @@ class PortfolioDisplay1 extends StatelessWidget {
                       : Text(
                           "${rentValue.toStringAsFixed(1)}%",
                           style: TextStyle(
-                            fontSize: 10,
+                            fontSize: 10 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                             fontWeight: FontWeight.w600,
                             color: Theme.of(context).textTheme.bodyLarge?.color,
                           ),
@@ -336,7 +336,7 @@ class PortfolioDisplay1 extends StatelessWidget {
                                         child: WidgetFactory.buildImageOverlay(
                                           context: context,
                                           text: S.of(context).rentStartFuture,
-                                          fontSize: 12,
+                                          fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                                         ),
                                       ),
                                     ),
@@ -351,7 +351,7 @@ class PortfolioDisplay1 extends StatelessWidget {
                                             WidgetFactory.buildImageIndicator(
                                               context: context,
                                               text: S.of(context).wallet,
-                                              fontSize: 10,
+                                              fontSize: 10 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                                             ),
                                           const SizedBox(width: 6),
                                           if (isRMM)
@@ -359,7 +359,7 @@ class PortfolioDisplay1 extends StatelessWidget {
                                               context: context,
                                               text: 'RMM',
                                               backgroundColor: const Color.fromARGB(150, 165, 100, 21),
-                                              fontSize: 10,
+                                              fontSize: 10 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                                             ),
                                         ],
                                       ),

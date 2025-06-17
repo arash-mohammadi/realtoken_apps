@@ -136,7 +136,7 @@ class PropertiesCard extends StatelessWidget {
               title: '',
               radius: 23, // Taille de la section louée
               titleStyle: TextStyle(
-                fontSize: 12,
+                fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
               ),

@@ -43,7 +43,7 @@ class RentedHistoryGraph extends StatelessWidget {
             child: Text(
               S.of(context).noDataAvailable,
               style: TextStyle(
-                fontSize: 16 + appState.getTextSizeOffset(),
+                fontSize: 16 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                 color: Colors.grey.shade600,
               ),
             ),
@@ -91,7 +91,7 @@ class RentedHistoryGraph extends StatelessWidget {
                 Text(
                   S.of(context).rented, // Titre principal
                   style: TextStyle(
-                    fontSize: 20 + appState.getTextSizeOffset(),
+                    fontSize: 20,
                     fontWeight: FontWeight.bold,
                     letterSpacing: -0.5,
                   ),
@@ -136,7 +136,7 @@ class RentedHistoryGraph extends StatelessWidget {
                                   "Type de graphique",
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
-                                    fontSize: 18 + appState.getTextSizeOffset(),
+                                    fontSize: 18,
                                     color: Theme.of(context).primaryColor,
                                   ),
                                 ),
@@ -151,7 +151,7 @@ class RentedHistoryGraph extends StatelessWidget {
                                   S.of(context).barChart,
                                   style: TextStyle(
                                     fontWeight: FontWeight.w500,
-                                    fontSize: 16 + appState.getTextSizeOffset(),
+                                    fontSize: 16,
                                   ),
                                 ),
                                 trailing: rentedIsBarChart
@@ -175,7 +175,7 @@ class RentedHistoryGraph extends StatelessWidget {
                                   S.of(context).lineChart,
                                   style: TextStyle(
                                     fontWeight: FontWeight.w500,
-                                    fontSize: 16 + appState.getTextSizeOffset(),
+                                    fontSize: 16,
                                   ),
                                 ),
                                 trailing: !rentedIsBarChart
@@ -233,7 +233,7 @@ class RentedHistoryGraph extends StatelessWidget {
                                       child: Text(
                                         '${value.toStringAsFixed(0)}%',
                                         style: TextStyle(
-                                          fontSize: 10 + appState.getTextSizeOffset(),
+                                          fontSize: 10,
                                           color: Colors.grey.shade600,
                                         ),
                                       ),
@@ -253,7 +253,7 @@ class RentedHistoryGraph extends StatelessWidget {
                                           child: Text(
                                             dateLabels[value.toInt()],
                                             style: TextStyle(
-                                              fontSize: 10 + appState.getTextSizeOffset(),
+                                              fontSize: 10,
                                               color: Colors.grey.shade600,
                                             ),
                                           ),
@@ -298,7 +298,7 @@ class RentedHistoryGraph extends StatelessWidget {
                                   final periodLabel = dateLabels[groupIndex];
                                   return BarTooltipItem(
                                     '$periodLabel\n${rod.toY.toStringAsFixed(1)}%',
-                                    const TextStyle(
+                                    TextStyle(
                                       color: Colors.white,
                                       fontWeight: FontWeight.w600,
                                       fontSize: 12,
@@ -343,7 +343,7 @@ class RentedHistoryGraph extends StatelessWidget {
                                       child: Text(
                                         '${value.toStringAsFixed(0)}%',
                                         style: TextStyle(
-                                          fontSize: 10 + appState.getTextSizeOffset(),
+                                          fontSize: 10,
                                           color: Colors.grey.shade600,
                                         ),
                                       ),
@@ -365,7 +365,7 @@ class RentedHistoryGraph extends StatelessWidget {
                                           child: Text(
                                             labels[value.toInt()],
                                             style: TextStyle(
-                                              fontSize: 10 + appState.getTextSizeOffset(),
+                                              fontSize: 10,
                                               color: Colors.grey.shade600,
                                             ),
                                           ),
@@ -431,7 +431,7 @@ class RentedHistoryGraph extends StatelessWidget {
 
                                     return LineTooltipItem(
                                       '$periodLabel\n${value.toStringAsFixed(1)}%',
-                                      const TextStyle(
+                                      TextStyle(
                                         color: Colors.white,
                                         fontWeight: FontWeight.w600,
                                         fontSize: 12,

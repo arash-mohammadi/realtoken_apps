@@ -25,6 +25,7 @@
   "currency": "Currency",
   "rwaHoldings": "RWA Holdings SA",
   "properties": "Properties",
+  "tokensInMap": "Tokens",
   "rented": "Rented",
   "rentedUnitsSimple": "Rented Units",
   "units": "units",
@@ -500,7 +501,17 @@
   "exportAllTransactionsCsv": "Export all transactions as CSV",
   "noTransactionOrRentToExport": "No transaction or rent to export.",
   "noRentDataAvailable": "No rent data available.",
-  "noRentDataToShare": "No rent data to share."
+  "noRentDataToShare": "No rent data to share.",
+  "showOnlyWhitelisted": "Whitelist only",
+  "allTokens": "All tokens",
+  "averageROI": "Average ROI",
+  "rentalStatusDistribution": "Rental status distribution",
+  "fullyRented": "Fully rented",
+  "partiallyRented": "Partially rented",
+  "notRented": "Not rented",
+  "filterOptions": "Filters",
+  "country": "Country",
+  "totalRent": "Total rent"
 }
 
 

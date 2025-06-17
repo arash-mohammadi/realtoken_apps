@@ -171,7 +171,7 @@ class _PersonalizationSettingsPageState extends State<PersonalizationSettingsPag
                                 Text(
                                   currencyProvider.selectedCurrency.toUpperCase(),
                                   style: TextStyle(
-                                    fontSize: 14.0 + appState.getTextSizeOffset(),
+                                    fontSize: 14.0 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                                     color: Colors.grey,
                                   ),
                                 ),
@@ -255,7 +255,7 @@ class _PersonalizationSettingsPageState extends State<PersonalizationSettingsPag
                           borderRadius: const BorderRadius.horizontal(left: Radius.circular(6), right: Radius.zero),
                           border: Border.all(color: Colors.grey.withOpacity(0.3)),
                         ),
-                        style: TextStyle(fontSize: 14 + appState.getTextSizeOffset()),
+                        style: TextStyle(fontSize: 14),
                       ),
                     ),
                     CupertinoButton(
@@ -342,7 +342,7 @@ class _PersonalizationSettingsPageState extends State<PersonalizationSettingsPag
                           borderRadius: const BorderRadius.horizontal(left: Radius.circular(6), right: Radius.zero),
                           border: Border.all(color: Colors.grey.withOpacity(0.3)),
                         ),
-                        style: TextStyle(fontSize: 14 + appState.getTextSizeOffset()),
+                        style: TextStyle(fontSize: 14),
                       ),
                     ),
                     CupertinoButton(
@@ -399,7 +399,7 @@ class _PersonalizationSettingsPageState extends State<PersonalizationSettingsPag
           const SizedBox(width: 6),
           Text(
             title.toUpperCase(),
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w500,
               color: Colors.grey,
@@ -544,12 +544,12 @@ class _PersonalizationSettingsPageState extends State<PersonalizationSettingsPag
                 children: [
                   CupertinoButton(
                     padding: EdgeInsets.zero,
-                    child: Text("Annuler", style: TextStyle(fontSize: 14 + appState.getTextSizeOffset())),
+                    child: Text("Annuler", style: TextStyle(fontSize: 14)),
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                   CupertinoButton(
                     padding: EdgeInsets.zero,
-                    child: Text("OK", style: TextStyle(fontSize: 14 + appState.getTextSizeOffset())),
+                    child: Text("OK", style: TextStyle(fontSize: 14)),
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                 ],
@@ -569,7 +569,7 @@ class _PersonalizationSettingsPageState extends State<PersonalizationSettingsPag
                     .map((key) => Center(
                           child: Text(
                             key.toUpperCase(),
-                            style: TextStyle(fontSize: 16 + appState.getTextSizeOffset()),
+                            style: TextStyle(fontSize: 16),
                           ),
                         ))
                     .toList(),

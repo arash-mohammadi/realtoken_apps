@@ -124,7 +124,7 @@ class RealEstateCard extends StatelessWidget {
                   title: '',
                   radius: 18,
                   titleStyle: TextStyle(
-                    fontSize: 10,
+                    fontSize: 10 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
@@ -161,7 +161,7 @@ class RealEstateCard extends StatelessWidget {
             child: Text(
               '${rentedPercentage.toStringAsFixed(0)}%',
               style: TextStyle(
-                fontSize: 10,
+                fontSize: 10 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                 fontWeight: FontWeight.bold,
                 color: theme.textTheme.bodyLarge?.color,
               ),

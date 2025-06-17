@@ -67,6 +67,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "allCountries": MessageLookupByLibrary.simpleMessage("Tous les pays"),
         "allRegions":
             MessageLookupByLibrary.simpleMessage("Toutes les régions"),
+        "allTokens": MessageLookupByLibrary.simpleMessage("Tous les tokens"),
         "allWorkCorrectly": MessageLookupByLibrary.simpleMessage(
             "Tout fonctionne correctement"),
         "amount": MessageLookupByLibrary.simpleMessage("Montant"),
@@ -247,11 +248,11 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Retour d\'expérience"),
         "filterNotInWallet":
             MessageLookupByLibrary.simpleMessage("Non présents dans le wallet"),
-        "filterOptions":
-            MessageLookupByLibrary.simpleMessage("Options de filtrage"),
+        "filterOptions": MessageLookupByLibrary.simpleMessage("Filtres"),
         "finances": MessageLookupByLibrary.simpleMessage("Finances"),
         "french": MessageLookupByLibrary.simpleMessage("Francais"),
-        "fullyRented": MessageLookupByLibrary.simpleMessage("Entièrement loué"),
+        "fullyRented":
+            MessageLookupByLibrary.simpleMessage("Entièrement loués"),
         "futureRents": MessageLookupByLibrary.simpleMessage("Loyers futurs"),
         "gnosisContract":
             MessageLookupByLibrary.simpleMessage("Contrat Gnosis"),
@@ -403,7 +404,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "no_market_offers_available": MessageLookupByLibrary.simpleMessage(
             "Aucune offre de marché disponible"),
         "notConnected": MessageLookupByLibrary.simpleMessage("Non connecté"),
-        "notRented": MessageLookupByLibrary.simpleMessage("Non loué"),
+        "notRented": MessageLookupByLibrary.simpleMessage("Non loués"),
         "notSpecified": MessageLookupByLibrary.simpleMessage("Non spécifié"),
         "not_whitelisted_warning": MessageLookupByLibrary.simpleMessage(
             "Token non whitelisté, offre désactivée"),
@@ -425,7 +426,7 @@ class MessageLookup extends MessageLookupByLibrary {
             "Détails de la section Autres"),
         "overview": MessageLookupByLibrary.simpleMessage("Vue d\'ensemble"),
         "partiallyRented":
-            MessageLookupByLibrary.simpleMessage("Partiellement loué"),
+            MessageLookupByLibrary.simpleMessage("Partiellement loués"),
         "paypal": MessageLookupByLibrary.simpleMessage("PayPal"),
         "performanceByRegion":
             MessageLookupByLibrary.simpleMessage("Performance par région"),
@@ -506,8 +507,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "rentalStatus":
             MessageLookupByLibrary.simpleMessage("Statut de location"),
         "rentalStatusAll": MessageLookupByLibrary.simpleMessage("Tout"),
-        "rentalStatusDistribution": MessageLookupByLibrary.simpleMessage(
-            "Répartition par statut de location"),
+        "rentalStatusDistribution":
+            MessageLookupByLibrary.simpleMessage("Répartition des locations"),
         "rentalStatusNotRented":
             MessageLookupByLibrary.simpleMessage("Non loué"),
         "rentalStatusPartiallyRented":
@@ -572,8 +573,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Afficher le total net"),
         "showNetTotalDescription": MessageLookupByLibrary.simpleMessage(
             "Inclure les dépôts et emprunts dans le calcul du portefeuille total"),
-        "showOnlyWhitelisted": MessageLookupByLibrary.simpleMessage(
-            "Afficher seulement les whitelistés"),
+        "showOnlyWhitelisted":
+            MessageLookupByLibrary.simpleMessage("Whitelist uniquement"),
         "showTop10": MessageLookupByLibrary.simpleMessage("Afficher le top 10"),
         "showTotalInvested": MessageLookupByLibrary.simpleMessage(
             "Afficher l\'investissement total"),
@@ -660,6 +661,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Quantité de jetons"),
         "token_value": MessageLookupByLibrary.simpleMessage("Valeur du jeton"),
         "tokens": MessageLookupByLibrary.simpleMessage("Jetons"),
+        "tokensInMap": MessageLookupByLibrary.simpleMessage("Tokens"),
         "toolsTitle": MessageLookupByLibrary.simpleMessage("Outils"),
         "total": MessageLookupByLibrary.simpleMessage("Total"),
         "totalBalance": MessageLookupByLibrary.simpleMessage("Solde Total"),
@@ -671,7 +673,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Portefeuille total"),
         "totalProperties":
             MessageLookupByLibrary.simpleMessage("Total propriétés"),
-        "totalRent": MessageLookupByLibrary.simpleMessage("Loyer total"),
+        "totalRent": MessageLookupByLibrary.simpleMessage("Loyers totaux"),
         "totalRentReceived":
             MessageLookupByLibrary.simpleMessage("Total des revenus"),
         "totalTokens": MessageLookupByLibrary.simpleMessage("Jetons totaux"),

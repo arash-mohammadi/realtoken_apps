@@ -138,7 +138,7 @@ class GenericChartWidget<T> extends StatelessWidget {
                       Text(
                         title,
                         style: TextStyle(
-                          fontSize: 16 + appState.getTextSizeOffset(),
+                          fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -674,7 +674,7 @@ class GenericChartWidget<T> extends StatelessWidget {
               currentRange,
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 12 + appState.getTextSizeOffset(),
+                fontSize: 12,
                 fontWeight: FontWeight.w500,
                 color: Colors.grey.shade700,
               ),
@@ -924,7 +924,7 @@ class GenericChartWidget<T> extends StatelessWidget {
         const SizedBox(width: 6),
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w500,
           ),
@@ -1140,7 +1140,7 @@ class GenericChartWidget<T> extends StatelessWidget {
                         child: Text(
                           "Aucun historique disponible",
                           style: TextStyle(
-                            fontSize: 16 + appState.getTextSizeOffset(),
+                            fontSize: 16,
                             color: Colors.grey.shade600,
                           ),
                         ),
@@ -1159,7 +1159,7 @@ class GenericChartWidget<T> extends StatelessWidget {
                                     "Date",
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
-                                      fontSize: 14 + appState.getTextSizeOffset(),
+                                      fontSize: 14,
                                     ),
                                   ),
                                 ),
@@ -1171,7 +1171,7 @@ class GenericChartWidget<T> extends StatelessWidget {
                                     "Valeur",
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
-                                      fontSize: 14 + appState.getTextSizeOffset(),
+                                      fontSize: 14,
                                     ),
                                   ),
                                 ),
@@ -1183,7 +1183,7 @@ class GenericChartWidget<T> extends StatelessWidget {
                                     "Actions",
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
-                                      fontSize: 14 + appState.getTextSizeOffset(),
+                                      fontSize: 14,
                                     ),
                                     textAlign: TextAlign.right,
                                   ),
@@ -1217,7 +1217,7 @@ class GenericChartWidget<T> extends StatelessWidget {
                                           keyboardType: TextInputType.datetime,
                                           textInputAction: TextInputAction.done,
                                           style: TextStyle(
-                                            fontSize: 14 + appState.getTextSizeOffset(),
+                                            fontSize: 14,
                                           ),
                                           decoration: WidgetFactory.buildStandardInputDecoration(context),
                                           onSubmitted: (value) {
@@ -1239,7 +1239,7 @@ class GenericChartWidget<T> extends StatelessWidget {
                                             FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
                                           ],
                                           style: TextStyle(
-                                            fontSize: 14 + appState.getTextSizeOffset(),
+                                            fontSize: 14,
                                           ),
                                           decoration: WidgetFactory.buildStandardInputDecoration(context),
                                           onSubmitted: (value) {

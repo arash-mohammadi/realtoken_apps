@@ -329,7 +329,7 @@ class WidgetFactory {
     final theme = Theme.of(context);
 
     final defaultValueStyle = valueStyle ?? TextStyle(
-      fontSize: 15 + appState.getTextSizeOffset(),
+      fontSize: 15,
       fontWeight: FontWeight.w600,
       color: theme.textTheme.bodyLarge?.color,
       letterSpacing: -0.3,
@@ -337,7 +337,7 @@ class WidgetFactory {
     );
 
     final defaultLabelStyle = labelStyle ?? TextStyle(
-      fontSize: 14 + appState.getTextSizeOffset(),
+      fontSize: 14,
       color: theme.brightness == Brightness.light ? Colors.black54 : Colors.white70,
       letterSpacing: -0.2,
       height: 1.1,
@@ -412,7 +412,7 @@ class WidgetFactory {
           Text(
             label,
             style: TextStyle(
-              fontSize: 13 + appState.getTextSizeOffset(),
+              fontSize: 13,
               letterSpacing: -0.2,
               color: theme.brightness == Brightness.light ? Colors.black54 : Colors.white70,
             ),
@@ -454,7 +454,7 @@ class WidgetFactory {
             padding: const EdgeInsets.only(left: 16, top: 6, right: 16),
             child: Text(
               footnote,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
                 color: Colors.grey,
               ),

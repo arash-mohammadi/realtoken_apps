@@ -342,7 +342,7 @@ class _BiometricSettingsPageState extends State<BiometricSettingsPage> {
           const SizedBox(width: 6),
           Text(
             title.toUpperCase(),
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w500,
               color: Colors.grey,

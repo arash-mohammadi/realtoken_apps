@@ -66,6 +66,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "allCities": MessageLookupByLibrary.simpleMessage("All Cities"),
         "allCountries": MessageLookupByLibrary.simpleMessage("All Countries"),
         "allRegions": MessageLookupByLibrary.simpleMessage("All Regions"),
+        "allTokens": MessageLookupByLibrary.simpleMessage("All tokens"),
         "allWorkCorrectly": MessageLookupByLibrary.simpleMessage(
             "Everything is working correctly"),
         "amount": MessageLookupByLibrary.simpleMessage("Amount"),
@@ -237,10 +238,10 @@ class MessageLookup extends MessageLookupByLibrary {
         "feedback": MessageLookupByLibrary.simpleMessage("Feedback"),
         "filterNotInWallet":
             MessageLookupByLibrary.simpleMessage("Not in wallet"),
-        "filterOptions": MessageLookupByLibrary.simpleMessage("Filter Options"),
+        "filterOptions": MessageLookupByLibrary.simpleMessage("Filters"),
         "finances": MessageLookupByLibrary.simpleMessage("Finances"),
         "french": MessageLookupByLibrary.simpleMessage("Francais"),
-        "fullyRented": MessageLookupByLibrary.simpleMessage("Fully Rented"),
+        "fullyRented": MessageLookupByLibrary.simpleMessage("Fully rented"),
         "futureRents": MessageLookupByLibrary.simpleMessage("Future Rents"),
         "gnosisContract":
             MessageLookupByLibrary.simpleMessage("Gnosis contract"),
@@ -385,7 +386,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "no_market_offers_available":
             MessageLookupByLibrary.simpleMessage("No market offers available"),
         "notConnected": MessageLookupByLibrary.simpleMessage("Not connected"),
-        "notRented": MessageLookupByLibrary.simpleMessage("Not Rented"),
+        "notRented": MessageLookupByLibrary.simpleMessage("Not rented"),
         "notSpecified": MessageLookupByLibrary.simpleMessage("Not specified"),
         "not_whitelisted_warning": MessageLookupByLibrary.simpleMessage(
             "Token not whitelisted, offer disabled"),
@@ -406,7 +407,7 @@ class MessageLookup extends MessageLookupByLibrary {
             "Details of the Others section"),
         "overview": MessageLookupByLibrary.simpleMessage("Overview"),
         "partiallyRented":
-            MessageLookupByLibrary.simpleMessage("Partially Rented"),
+            MessageLookupByLibrary.simpleMessage("Partially rented"),
         "paypal": MessageLookupByLibrary.simpleMessage("PayPal"),
         "performanceByRegion":
             MessageLookupByLibrary.simpleMessage("Performance by Region"),
@@ -483,7 +484,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "rentalStatus": MessageLookupByLibrary.simpleMessage("Rental status"),
         "rentalStatusAll": MessageLookupByLibrary.simpleMessage("All"),
         "rentalStatusDistribution":
-            MessageLookupByLibrary.simpleMessage("Rental Status Distribution"),
+            MessageLookupByLibrary.simpleMessage("Rental status distribution"),
         "rentalStatusNotRented":
             MessageLookupByLibrary.simpleMessage("Not Rented"),
         "rentalStatusPartiallyRented":
@@ -545,7 +546,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "showNetTotalDescription": MessageLookupByLibrary.simpleMessage(
             "Include deposits and borrows in total portfolio calculation"),
         "showOnlyWhitelisted":
-            MessageLookupByLibrary.simpleMessage("Show only whitelisted"),
+            MessageLookupByLibrary.simpleMessage("Whitelist only"),
         "showTop10": MessageLookupByLibrary.simpleMessage("Show Top 10"),
         "showTotalInvested":
             MessageLookupByLibrary.simpleMessage("Show Total Invested"),
@@ -627,6 +628,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "token_amount": MessageLookupByLibrary.simpleMessage("Token Amount"),
         "token_value": MessageLookupByLibrary.simpleMessage("Token Value"),
         "tokens": MessageLookupByLibrary.simpleMessage("Tokens"),
+        "tokensInMap": MessageLookupByLibrary.simpleMessage("Tokens"),
         "toolsTitle": MessageLookupByLibrary.simpleMessage("Tools"),
         "total": MessageLookupByLibrary.simpleMessage("Total"),
         "totalBalance": MessageLookupByLibrary.simpleMessage("Total Balance"),
@@ -637,7 +639,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Total Portfolio"),
         "totalProperties":
             MessageLookupByLibrary.simpleMessage("Total Properties"),
-        "totalRent": MessageLookupByLibrary.simpleMessage("Total Rent"),
+        "totalRent": MessageLookupByLibrary.simpleMessage("Total rent"),
         "totalRentReceived":
             MessageLookupByLibrary.simpleMessage("Total of revenues"),
         "totalTokens": MessageLookupByLibrary.simpleMessage("Total Tokens"),

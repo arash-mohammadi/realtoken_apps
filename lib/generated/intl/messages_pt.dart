@@ -614,6 +614,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Quantidade de tokens"),
         "token_value": MessageLookupByLibrary.simpleMessage("Valor do token"),
         "tokens": MessageLookupByLibrary.simpleMessage("Tokens"),
+        "tokensInMap": MessageLookupByLibrary.simpleMessage("Tokens"),
         "toolsTitle": MessageLookupByLibrary.simpleMessage("Ferramentas"),
         "total": MessageLookupByLibrary.simpleMessage("Total"),
         "totalBalance": MessageLookupByLibrary.simpleMessage("Saldo Total"),

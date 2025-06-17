@@ -6,6 +6,7 @@ import 'package:realtoken_asset_tracker/managers/data_manager.dart';
 import 'package:realtoken_asset_tracker/models/apy_record.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
+import 'package:realtoken_asset_tracker/app_state.dart';
 
 class EditableAPYRecord {
   APYRecord original;
@@ -230,7 +231,7 @@ class _ApyHistoryGraphState extends State<ApyHistoryGraph> {
                       Text(
                         'Éditer l\'historique APY',
                         style: TextStyle(
-                          fontSize: 20,
+                          fontSize: 20 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -249,7 +250,7 @@ class _ApyHistoryGraphState extends State<ApyHistoryGraph> {
                             child: Text(
                               "Aucun historique disponible",
                               style: TextStyle(
-                                fontSize: 16,
+                                fontSize: 16 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                                 color: Colors.grey.shade600,
                               ),
                             ),
@@ -268,7 +269,7 @@ class _ApyHistoryGraphState extends State<ApyHistoryGraph> {
                                         "Date",
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
-                                          fontSize: 14,
+                                          fontSize: 14 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                                         ),
                                       ),
                                     ),
@@ -280,7 +281,7 @@ class _ApyHistoryGraphState extends State<ApyHistoryGraph> {
                                         S.of(context).net,
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
-                                          fontSize: 14,
+                                          fontSize: 14 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                                         ),
                                       ),
                                     ),
@@ -292,7 +293,7 @@ class _ApyHistoryGraphState extends State<ApyHistoryGraph> {
                                         S.of(context).brute,
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
-                                          fontSize: 14,
+                                          fontSize: 14 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                                         ),
                                       ),
                                     ),
@@ -304,7 +305,7 @@ class _ApyHistoryGraphState extends State<ApyHistoryGraph> {
                                         "Actions",
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
-                                          fontSize: 14,
+                                          fontSize: 14 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                                         ),
                                         textAlign: TextAlign.right,
                                       ),
@@ -322,7 +323,7 @@ class _ApyHistoryGraphState extends State<ApyHistoryGraph> {
                                             keyboardType: TextInputType.datetime,
                                             textInputAction: TextInputAction.done,
                                             style: TextStyle(
-                                              fontSize: 14,
+                                              fontSize: 14 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                                             ),
                                             decoration: InputDecoration(
                                               filled: true,
@@ -388,7 +389,7 @@ class _ApyHistoryGraphState extends State<ApyHistoryGraph> {
                                               FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
                                             ],
                                             style: TextStyle(
-                                              fontSize: 14,
+                                              fontSize: 14 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                                             ),
                                             decoration: InputDecoration(
                                               filled: true,
@@ -462,7 +463,7 @@ class _ApyHistoryGraphState extends State<ApyHistoryGraph> {
                                               FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
                                             ],
                                             style: TextStyle(
-                                              fontSize: 14,
+                                              fontSize: 14 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                                             ),
                                             decoration: InputDecoration(
                                               filled: true,
@@ -623,7 +624,7 @@ class _ApyHistoryGraphState extends State<ApyHistoryGraph> {
                         child: Text(
                           'Sauvegarder',
                           style: TextStyle(
-                            fontSize: 16,
+                            fontSize: 16 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                             fontWeight: FontWeight.bold,
                           ),
                         ),

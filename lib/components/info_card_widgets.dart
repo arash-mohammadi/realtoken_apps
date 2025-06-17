@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:realtoken_asset_tracker/utils/style_constants.dart';
 import 'package:realtoken_asset_tracker/utils/url_utils.dart';
+import 'package:realtoken_asset_tracker/app_state.dart';
+import 'package:provider/provider.dart';
 
 /// Factory pour créer des cartes d'information standardisées
 class InfoCardWidgets {
@@ -17,7 +19,7 @@ class InfoCardWidgets {
       child: Text(
         title,
         style: TextStyle(
-          fontSize: 20 + textSizeOffset,
+          fontSize: 20 + Provider.of<AppState>(context, listen: false).getTextSizeOffset() + textSizeOffset,
           fontWeight: FontWeight.bold,
           color: CupertinoColors.label.resolveFrom(context),
         ),
@@ -138,7 +140,7 @@ class InfoCardWidgets {
                     Text(
                       title,
                       style: TextStyle(
-                        fontSize: 15 + textSizeOffset,
+                        fontSize: 15 + Provider.of<AppState>(context, listen: false).getTextSizeOffset() + textSizeOffset,
                         fontWeight: FontWeight.w500,
                         color: CupertinoColors.label.resolveFrom(context),
                       ),
@@ -147,7 +149,7 @@ class InfoCardWidgets {
                     Text(
                       url,
                       style: TextStyle(
-                        fontSize: 14 + textSizeOffset,
+                        fontSize: 14 + Provider.of<AppState>(context, listen: false).getTextSizeOffset() + textSizeOffset,
                         color: CupertinoColors.systemBlue.resolveFrom(context),
                       ),
                     ),
@@ -199,7 +201,7 @@ class InfoCardWidgets {
           Text(
             value,
             style: TextStyle(
-              fontSize: 22 + textSizeOffset,
+              fontSize: 22 + Provider.of<AppState>(context, listen: false).getTextSizeOffset() + textSizeOffset,
               fontWeight: FontWeight.bold,
               color: valueColor ?? (isDarkMode ? Colors.white : Colors.black),
             ),
@@ -208,7 +210,7 @@ class InfoCardWidgets {
           Text(
             title,
             style: TextStyle(
-              fontSize: 14 + textSizeOffset,
+              fontSize: 14 + Provider.of<AppState>(context, listen: false).getTextSizeOffset() + textSizeOffset,
               color: isDarkMode ? Colors.white70 : Colors.black54,
             ),
           ),
@@ -243,7 +245,7 @@ class InfoCardWidgets {
                 Text(
                   title,
                   style: TextStyle(
-                    fontSize: 17 + textSizeOffset,
+                    fontSize: 17 + Provider.of<AppState>(context, listen: false).getTextSizeOffset() + textSizeOffset,
                     fontWeight: FontWeight.w600,
                     color: CupertinoColors.label.resolveFrom(context),
                   ),
@@ -256,7 +258,7 @@ class InfoCardWidgets {
               child: Text(
                 subtitle,
                 style: TextStyle(
-                  fontSize: 14 + textSizeOffset,
+                  fontSize: 14 + Provider.of<AppState>(context, listen: false).getTextSizeOffset() + textSizeOffset,
                   color: CupertinoColors.secondaryLabel.resolveFrom(context),
                 ),
               ),
@@ -298,7 +300,7 @@ class InfoCardWidgets {
         Text(
           title,
           style: TextStyle(
-            fontSize: 15 + textSizeOffset,
+            fontSize: 15 + Provider.of<AppState>(context, listen: false).getTextSizeOffset() + textSizeOffset,
             fontWeight: FontWeight.w500,
             color: CupertinoColors.label.resolveFrom(context),
           ),
@@ -307,7 +309,7 @@ class InfoCardWidgets {
         Text(
           subtitle,
           style: TextStyle(
-            fontSize: 14 + textSizeOffset,
+            fontSize: 14 + Provider.of<AppState>(context, listen: false).getTextSizeOffset() + textSizeOffset,
             color: CupertinoColors.secondaryLabel.resolveFrom(context),
           ),
         ),

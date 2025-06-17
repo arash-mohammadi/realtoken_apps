@@ -412,7 +412,7 @@ class _PropertiesForSaleSecondaryState extends State<PropertiesForSaleSecondary>
                                                     isWhitelisted ? S.of(context).tokenWhitelisted : S.of(context).tokenNotWhitelisted,
                                                     style: TextStyle(
                                                       color: Colors.white,
-                                                      fontSize: 9,
+                                                      fontSize: 9 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                                                       fontWeight: FontWeight.bold,
                                                     ),
                                                   ),
@@ -532,7 +532,7 @@ class _PropertiesForSaleSecondaryState extends State<PropertiesForSaleSecondary>
               Text(
                 "Whitelisted",
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                   color: Colors.grey[600],
                 ),
               ),
@@ -540,7 +540,7 @@ class _PropertiesForSaleSecondaryState extends State<PropertiesForSaleSecondary>
               Text(
                 "Tous",
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                   color: Colors.grey[600],
                 ),
               ),

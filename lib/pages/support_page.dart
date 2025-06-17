@@ -34,11 +34,11 @@ class RealtPageState extends State<SupportPage> {
       appBar: AppBar(
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
-        title: const Text(
+        title: Text(
           'Support',
           style: TextStyle(
             fontWeight: FontWeight.w600,
-            fontSize: 17,
+            fontSize: 17 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
           ),
         ),
       ),
@@ -56,7 +56,7 @@ class RealtPageState extends State<SupportPage> {
                   'Contribuez ou signalez un problème sur GitHub :',
                   'Github isssues link',
                   'https://github.com/RealToken-Community/realtoken_apps/issues',
-                  appState.getTextSizeOffset(),
+                  Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                   iconColor: CupertinoColors.systemGrey,
                 ),
                 const SizedBox(height: 14),
@@ -67,7 +67,7 @@ class RealtPageState extends State<SupportPage> {
                   'Rejoignez-nous sur Telegram :',
                   'Telegram Link here',
                   'https://t.me/+ae_vCmnjg5JjNWQ0',
-                  appState.getTextSizeOffset(),
+                  Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                   iconColor: const Color(0xFF0088CC),
                 ),
                 const SizedBox(height: 14),
@@ -78,7 +78,7 @@ class RealtPageState extends State<SupportPage> {
                   'Rejoignez-nous sur Discord :',
                   'Discord Link here',
                   'https://discord.com/channels/681940057183092737/681966628527013891',
-                  appState.getTextSizeOffset(),
+                  Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                   iconColor: CupertinoColors.systemPurple,
                 ),
                 const SizedBox(height: 14),
@@ -240,13 +240,13 @@ class RealtPageState extends State<SupportPage> {
               child: Text(
                 S.of(context).donationMessage,
                 style: TextStyle(
-                  fontSize: 14 + appState.getTextSizeOffset(),
+                  fontSize: 14,
                   color: CupertinoColors.secondaryLabel.resolveFrom(context),
                 ),
               ),
             ),
             const SizedBox(height: 12),
-            _buildLinkTreeButton(context, appState.getTextSizeOffset()),
+            _buildLinkTreeButton(context, Provider.of<AppState>(context, listen: false).getTextSizeOffset()),
             const SizedBox(height: 16),
             if (kIsWeb || (!kIsWeb && !Platform.isIOS))
               Padding(
@@ -278,7 +278,7 @@ class RealtPageState extends State<SupportPage> {
                       S.of(context).crypto,
                       CupertinoIcons.bitcoin,
                       CupertinoColors.systemOrange,
-                      () => _showIOSCryptoAddressDialog(context, appState.getTextSizeOffset()),
+                      () => _showIOSCryptoAddressDialog(context, Provider.of<AppState>(context, listen: false).getTextSizeOffset()),
                       appState.getTextSizeOffset(),
                     ),
                   ],
@@ -484,7 +484,7 @@ class RealtPageState extends State<SupportPage> {
                   const SizedBox(width: 10),
                   Text(
                     message,
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: CupertinoColors.white,
                       fontSize: 14,
                     ),

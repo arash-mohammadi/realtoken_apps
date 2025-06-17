@@ -179,7 +179,7 @@ class DashboardPageState extends State<DashboardPage> {
                     child: Text(
                       S.of(context).noDataAvailable,
                       style: TextStyle(
-                        fontSize: 18,
+                        fontSize: 18 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -189,7 +189,7 @@ class DashboardPageState extends State<DashboardPage> {
                              content: Text(
                  S.of(context).noWalletMessage,
                  style: TextStyle(
-                   fontSize: 16,
+                   fontSize: 16 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                  ),
                ),
               actions: [
@@ -385,7 +385,7 @@ class DashboardPageState extends State<DashboardPage> {
               Text(
                 'Problème sync',
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: 11 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                   fontWeight: FontWeight.w600,
                   color: Colors.white,
                 ),

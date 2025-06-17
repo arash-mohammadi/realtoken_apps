@@ -249,14 +249,14 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
                     padding: EdgeInsets.zero,
                     child: Text("Annuler",
                         style: TextStyle(
-                            fontSize: 14 + appState.getTextSizeOffset())),
+                            fontSize: 14)),
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                   CupertinoButton(
                     padding: EdgeInsets.zero,
                     child: Text("OK",
                         style: TextStyle(
-                            fontSize: 14 + appState.getTextSizeOffset())),
+                            fontSize: 14)),
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                 ],
@@ -316,14 +316,14 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
                     padding: EdgeInsets.zero,
                     child: Text("Annuler",
                         style: TextStyle(
-                            fontSize: 14 + appState.getTextSizeOffset())),
+                            fontSize: 14)),
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                   CupertinoButton(
                     padding: EdgeInsets.zero,
                     child: Text("OK",
                         style: TextStyle(
-                            fontSize: 14 + appState.getTextSizeOffset())),
+                            fontSize: 14)),
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                 ],
@@ -373,7 +373,7 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
           const SizedBox(width: 6),
           Text(
             title.toUpperCase(),
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w500,
               color: Colors.grey,

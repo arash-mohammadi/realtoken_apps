@@ -248,7 +248,7 @@ class RmmCard extends StatelessWidget {
                         child: Text(
                           amount,
                           style: TextStyle(
-                            fontSize: 14,
+                            fontSize: 14 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                             fontWeight: FontWeight.w500,
                             letterSpacing: -0.3,
                             color: theme.textTheme.bodyLarge?.color,
@@ -259,7 +259,7 @@ class RmmCard extends StatelessWidget {
                     : Text(
                         amount,
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: 14 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                           fontWeight: FontWeight.w500,
                           letterSpacing: -0.3,
                           color: theme.textTheme.bodyLarge?.color,
@@ -281,7 +281,7 @@ class RmmCard extends StatelessWidget {
                             style: TextStyle(
                               color: apy >= 0 ? Color(0xFF34C759) : Color(0xFFFF3B30),
                               fontWeight: FontWeight.w500,
-                              fontSize: 12,
+                              fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                               letterSpacing: -0.3,
                             ),
                           ),
@@ -299,7 +299,7 @@ class RmmCard extends StatelessWidget {
                           style: TextStyle(
                             color: apy >= 0 ? Color(0xFF34C759) : Color(0xFFFF3B30),
                             fontWeight: FontWeight.w500,
-                            fontSize: 12,
+                            fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                             letterSpacing: -0.3,
                           ),
                         ),
@@ -394,7 +394,7 @@ class RmmCard extends StatelessWidget {
                   Text(
                     'HF',
                     style: TextStyle(
-                      fontSize: 15,
+                      fontSize: 15 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                       fontWeight: FontWeight.bold,
                       letterSpacing: -0.3,
                       color: theme.textTheme.bodyMedium?.color,
@@ -459,7 +459,7 @@ class RmmCard extends StatelessWidget {
                     child: Text(
                       (progressHF * 5).toStringAsFixed(1),
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                         fontWeight: FontWeight.bold,
                         color: hfGaugeColor,
                       ),
@@ -474,7 +474,7 @@ class RmmCard extends StatelessWidget {
                   Text(
                     'LTV',
                     style: TextStyle(
-                      fontSize: 15,
+                      fontSize: 15 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                       fontWeight: FontWeight.bold,
                       letterSpacing: -0.3,
                       color: theme.textTheme.bodyMedium?.color,
@@ -532,7 +532,7 @@ class RmmCard extends StatelessWidget {
                     child: Text(
                       '${(progressLTV * 100).toStringAsFixed(0)}%',
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                         fontWeight: FontWeight.bold,
                         color: ltvGaugeColor,
                       ),
@@ -556,7 +556,7 @@ class RmmCard extends StatelessWidget {
               child: Text(
                 shortAddress,
                 style: TextStyle(
-                  fontSize: 10,
+                  fontSize: 10 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                   letterSpacing: -0.3,
                   color: theme.brightness == Brightness.light ? Colors.black54 : Colors.white70,
                 ),
@@ -585,7 +585,7 @@ class RmmCard extends StatelessWidget {
         child: Text(
           "${S.of(context).timeBeforeLiquidation}",
           style: TextStyle(
-            fontSize: 13,
+            fontSize: 13 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
             fontWeight: FontWeight.w500,
             color: theme.textTheme.bodyMedium?.color,
             letterSpacing: -0.3,
@@ -651,7 +651,7 @@ class RmmCard extends StatelessWidget {
             child: Text(
               "${realTime.isNotEmpty ? "$realTime " : ""}${S.of(context).timeBeforeLiquidation}",
               style: TextStyle(
-                fontSize: 13,
+                fontSize: 13 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                 fontWeight: FontWeight.w500,
                 color: theme.textTheme.bodyMedium?.color,
                 letterSpacing: -0.3,

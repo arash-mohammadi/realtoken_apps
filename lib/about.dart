@@ -17,7 +17,7 @@ class AboutPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context, listen: false);
-    final textSizeOffset = appState.getTextSizeOffset();
+    final textSizeOffset = Provider.of<AppState>(context, listen: false).getTextSizeOffset();
 
     return Scaffold(
       appBar: AppBar(
@@ -25,9 +25,9 @@ class AboutPage extends StatelessWidget {
         elevation: 0,
         title: Text(
           S.of(context).about,
-          style: const TextStyle(
+          style: TextStyle(
             fontWeight: FontWeight.w600,
-            fontSize: 17,
+            fontSize: 17 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
           ),
         ),
       ),

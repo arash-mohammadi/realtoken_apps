@@ -12,6 +12,7 @@ import 'package:show_network_image/show_network_image.dart';
 import 'package:realtoken_asset_tracker/utils/parameters.dart';
 import 'package:realtoken_asset_tracker/utils/location_utils.dart';
 import 'package:realtoken_asset_tracker/components/filter_widgets.dart';
+import 'package:realtoken_asset_tracker/app_state.dart';
 
 class RealTokensPage extends StatefulWidget {
   const RealTokensPage({super.key});
@@ -227,7 +228,7 @@ class RealTokensPageState extends State<RealTokensPage> {
                                                 _searchQuery = value;
                                               });
                                             },
-                                            style: const TextStyle(fontSize: 14),
+                                            style: TextStyle(fontSize: 14),
                                             decoration: InputDecoration(
                                               isDense: true,
                                               hintText: S.of(context).searchHint,
@@ -575,7 +576,7 @@ class RealTokensPageState extends State<RealTokensPage> {
                                                   const SizedBox(width: 3),
                                                   Text(
                                                     S.of(context).presentInWallet,
-                                                    style: const TextStyle(
+                                                    style: TextStyle(
                                                       color: Colors.white,
                                                       fontSize: 10,
                                                       fontWeight: FontWeight.w500,
@@ -625,7 +626,7 @@ class RealTokensPageState extends State<RealTokensPage> {
                                           Expanded(
                                             child: Text(
                                               token['shortName'] ?? S.of(context).nameUnavailable,
-                                              style: const TextStyle(
+                                              style: TextStyle(
                                                 fontWeight: FontWeight.w600,
                                                 fontSize: 15,
                                               ),
@@ -674,7 +675,7 @@ class RealTokensPageState extends State<RealTokensPage> {
                                                 ),
                                                 Text(
                                                   currencyUtils.formatCurrency(token['totalInvestment'], currencyUtils.currencySymbol),
-                                                  style: const TextStyle(
+                                                  style: TextStyle(
                                                     fontSize: 12,
                                                     fontWeight: FontWeight.w500,
                                                   ),
@@ -694,7 +695,7 @@ class RealTokensPageState extends State<RealTokensPage> {
                                                 ),
                                                 Text(
                                                   currencyUtils.formatCurrency(token['tokenPrice'], currencyUtils.currencySymbol),
-                                                  style: const TextStyle(
+                                                  style: TextStyle(
                                                     fontSize: 12,
                                                     fontWeight: FontWeight.w500,
                                                   ),

@@ -9,6 +9,7 @@ import 'package:realtoken_asset_tracker/pages/Statistics/rmm/deposit_chart.dart'
 import 'package:realtoken_asset_tracker/pages/Statistics/rmm/healthFactorLtv_graph.dart';
 import 'package:realtoken_asset_tracker/utils/chart_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:realtoken_asset_tracker/app_state.dart';
 
 class RmmStats extends StatefulWidget {
   const RmmStats({super.key});
@@ -198,7 +199,7 @@ class RmmStatsState extends State<RmmStats> {
                   children: [
                     Text(
                       '${S.of(context).averageApy}',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
                       ),
@@ -236,7 +237,7 @@ class RmmStatsState extends State<RmmStats> {
       fontWeight: FontWeight.w500,
     );
 
-    final valueStyle = const TextStyle(
+    final valueStyle = TextStyle(
       fontSize: 15,
       fontWeight: FontWeight.w600,
     );

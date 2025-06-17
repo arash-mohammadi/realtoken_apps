@@ -57,7 +57,7 @@ class RentsCard extends StatelessWidget {
           Text(
             '(${dataManager.averageAnnualYield.toStringAsFixed(2)}% brut)',
             style: TextStyle(
-              fontSize: 12,
+              fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
               color: Colors.grey[600],
             ),
           ),

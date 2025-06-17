@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:realtoken_asset_tracker/managers/data_manager.dart';
 import 'package:realtoken_asset_tracker/generated/l10n.dart';
 import 'package:realtoken_asset_tracker/utils/ui_utils.dart';
+import 'package:realtoken_asset_tracker/app_state.dart';
 
 class TokensCard extends StatelessWidget {
   final bool showAmounts;
@@ -220,7 +221,7 @@ class TokensCard extends StatelessWidget {
           Text(
             label,
             style: TextStyle(
-              fontSize: 11,
+              fontSize: 11 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
               color: Theme.of(context).brightness == Brightness.light 
                 ? Colors.black54 
                 : Colors.white70,
@@ -232,7 +233,7 @@ class TokensCard extends StatelessWidget {
           Text(
             value,
             style: TextStyle(
-              fontSize: 13,
+              fontSize: 13 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
               fontWeight: FontWeight.bold,
               color: Theme.of(context).textTheme.bodyLarge?.color,
             ),
@@ -249,7 +250,7 @@ class TokensCard extends StatelessWidget {
       child: Text(
         label,
         style: TextStyle(
-          fontSize: 12,
+          fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
           color: Theme.of(context).brightness == Brightness.light 
             ? Colors.black87 
             : Colors.white,
@@ -268,13 +269,13 @@ class TokensCard extends StatelessWidget {
         children: [
           Text(
             emoji,
-            style: const TextStyle(fontSize: 12),
+            style: TextStyle(fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset()),
           ),
           const SizedBox(width: 4),
           Text(
             '$count',
             style: TextStyle(
-              fontSize: 12,
+              fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
               fontWeight: FontWeight.w600,
               color: color,
             ),
@@ -303,7 +304,7 @@ class TokensCard extends StatelessWidget {
       child: Text(
         count.toStringAsFixed(2),
         style: TextStyle(
-          fontSize: 12,
+          fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
           fontWeight: FontWeight.w600,
           color: color,
         ),

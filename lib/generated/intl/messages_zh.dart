@@ -487,6 +487,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "token_amount": MessageLookupByLibrary.simpleMessage("代币数量"),
         "token_value": MessageLookupByLibrary.simpleMessage("代币价值"),
         "tokens": MessageLookupByLibrary.simpleMessage("代币"),
+        "tokensInMap": MessageLookupByLibrary.simpleMessage("代币"),
         "toolsTitle": MessageLookupByLibrary.simpleMessage("工具"),
         "total": MessageLookupByLibrary.simpleMessage("总计"),
         "totalBalance": MessageLookupByLibrary.simpleMessage("总余额"),

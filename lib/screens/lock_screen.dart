@@ -3,6 +3,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:realtoken_asset_tracker/services/biometric_service.dart';
 import 'package:realtoken_asset_tracker/generated/l10n.dart';
+import 'package:realtoken_asset_tracker/app_state.dart';
+import 'package:provider/provider.dart';
 
 class LockScreen extends StatefulWidget {
   final VoidCallback onAuthenticated;
@@ -156,7 +158,7 @@ class _LockScreenState extends State<LockScreen> with WidgetsBindingObserver {
               Text(
                 'RealToken App',
                 style: TextStyle(
-                  fontSize: 24,
+                  fontSize: 24 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -165,7 +167,7 @@ class _LockScreenState extends State<LockScreen> with WidgetsBindingObserver {
                 S.of(context).pleaseAuthenticateToAccess,
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 16,
+                  fontSize: 16 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                   color: Colors.grey[600],
                 ),
               ),
@@ -193,7 +195,7 @@ class _LockScreenState extends State<LockScreen> with WidgetsBindingObserver {
                             S.of(context).biometricAuthenticationFailed,
                             style: TextStyle(
                               color: Colors.red,
-                              fontSize: 14,
+                              fontSize: 14 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                             ),
                           ),
                           const SizedBox(height: 8),

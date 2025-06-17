@@ -6,6 +6,7 @@ import 'package:realtoken_asset_tracker/models/roi_record.dart';
 import 'package:realtoken_asset_tracker/components/charts/generic_chart_widget.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
+import 'package:realtoken_asset_tracker/app_state.dart';
 
 class RoiHistoryGraph extends StatefulWidget {
   final String selectedPeriod;
@@ -206,7 +207,7 @@ class _RoiHistoryGraphState extends State<RoiHistoryGraph> {
                       Text(
                         'Éditer l\'historique ROI',
                         style: TextStyle(
-                          fontSize: 20,
+                          fontSize: 20 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -225,7 +226,7 @@ class _RoiHistoryGraphState extends State<RoiHistoryGraph> {
                             child: Text(
                               "Aucun historique disponible",
                               style: TextStyle(
-                                fontSize: 16,
+                                fontSize: 16 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                                 color: Colors.grey.shade600,
                               ),
                             ),
@@ -244,7 +245,7 @@ class _RoiHistoryGraphState extends State<RoiHistoryGraph> {
                                         "Date",
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
-                                          fontSize: 14,
+                                          fontSize: 14 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                                         ),
                                       ),
                                     ),
@@ -256,7 +257,7 @@ class _RoiHistoryGraphState extends State<RoiHistoryGraph> {
                                         "ROI",
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
-                                          fontSize: 14,
+                                          fontSize: 14 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                                         ),
                                       ),
                                     ),
@@ -268,7 +269,7 @@ class _RoiHistoryGraphState extends State<RoiHistoryGraph> {
                                         "Actions",
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
-                                          fontSize: 14,
+                                          fontSize: 14 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                                         ),
                                         textAlign: TextAlign.right,
                                       ),
@@ -286,7 +287,7 @@ class _RoiHistoryGraphState extends State<RoiHistoryGraph> {
                                             keyboardType: TextInputType.datetime,
                                             textInputAction: TextInputAction.done,
                                             style: TextStyle(
-                                              fontSize: 14,
+                                              fontSize: 14 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                                             ),
                                             decoration: InputDecoration(
                                               filled: true,
@@ -352,7 +353,7 @@ class _RoiHistoryGraphState extends State<RoiHistoryGraph> {
                                               FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
                                             ],
                                             style: TextStyle(
-                                              fontSize: 14,
+                                              fontSize: 14 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                                             ),
                                             decoration: InputDecoration(
                                               filled: true,
@@ -499,7 +500,7 @@ class _RoiHistoryGraphState extends State<RoiHistoryGraph> {
                         child: Text(
                           'Sauvegarder',
                           style: TextStyle(
-                            fontSize: 16,
+                            fontSize: 16 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                             fontWeight: FontWeight.bold,
                           ),
                         ),

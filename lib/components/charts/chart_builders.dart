@@ -6,6 +6,7 @@ import 'package:realtoken_asset_tracker/generated/l10n.dart';
 import 'package:realtoken_asset_tracker/utils/currency_utils.dart';
 import 'package:realtoken_asset_tracker/utils/date_utils.dart';
 import 'package:realtoken_asset_tracker/models/apy_record.dart';
+import 'package:provider/provider.dart';
 
 /// Factory pour construire les éléments de graphiques de manière standardisée
 /// Réduit la duplication dans GenericChartWidget
@@ -187,10 +188,10 @@ class ChartBuilders {
 
     return BarTooltipItem(
       '$periodKey\n$valueText',
-      const TextStyle(
+      TextStyle(
         color: Colors.white,
         fontWeight: FontWeight.w600,
-        fontSize: 12,
+        fontSize: 12 + (Provider.of<AppState>(context, listen: false).getTextSizeOffset()),
       ),
     );
   }

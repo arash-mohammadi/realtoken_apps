@@ -5,6 +5,7 @@ import 'package:realtoken_asset_tracker/app_state.dart';
 import 'package:realtoken_asset_tracker/generated/l10n.dart';
 import 'package:realtoken_asset_tracker/utils/url_utils.dart';
 import 'package:realtoken_asset_tracker/utils/style_constants.dart';
+import 'package:provider/provider.dart';
 
 /// Factory pour créer tous les widgets de donation de manière uniforme
 class DonationWidgets {
@@ -198,7 +199,7 @@ class DonationWidgets {
         Text(
           S.of(context).cryptoDonation,
           style: TextStyle(
-            fontSize: 13,
+            fontSize: 13 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
             color: Theme.of(context).textTheme.bodySmall?.color,
           ),
         ),
@@ -248,7 +249,7 @@ class DonationWidgets {
     return Text(
       S.of(context).everyContributionCounts,
       style: TextStyle(
-        fontSize: 12,
+        fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
         color: Theme.of(context).textTheme.bodySmall?.color?.withOpacity(0.7),
       ),
       textAlign: TextAlign.center,

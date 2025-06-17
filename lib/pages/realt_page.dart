@@ -4,6 +4,7 @@ import 'package:realtoken_asset_tracker/utils/currency_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
+import 'package:realtoken_asset_tracker/app_state.dart';
 
 class RealtPage extends StatefulWidget {
   const RealtPage({super.key});
@@ -156,7 +157,7 @@ class RealtPageState extends State<RealtPage> {
                 Text(
                   title,
                   style: TextStyle(
-                    fontSize: 18,
+                    fontSize: 18 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                     fontWeight: FontWeight.w600,
                     color: CupertinoColors.label.resolveFrom(context),
                   ),
@@ -206,7 +207,7 @@ class RealtPageState extends State<RealtPage> {
           Text(
             label,
             style: TextStyle(
-              fontSize: 14,
+              fontSize: 14 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
               color: CupertinoColors.secondaryLabel.resolveFrom(context),
             ),
           ),

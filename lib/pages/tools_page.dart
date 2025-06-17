@@ -9,6 +9,7 @@ import 'package:realtoken_asset_tracker/utils/currency_utils.dart';
 import 'package:realtoken_asset_tracker/utils/date_utils.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:realtoken_asset_tracker/generated/l10n.dart';
+import 'package:realtoken_asset_tracker/app_state.dart';
 
 class ToolsPage extends StatelessWidget {
   const ToolsPage({Key? key}) : super(key: key);
@@ -23,7 +24,7 @@ class ToolsPage extends StatelessWidget {
       appBar: AppBar(
         title: Text(
           S.of(context).toolsTitle,
-          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 18),
+          style: TextStyle(fontWeight: FontWeight.w600, fontSize: 18 + Provider.of<AppState>(context, listen: false).getTextSizeOffset()),
         ),
         centerTitle: true,
         backgroundColor: Colors.transparent,
@@ -51,7 +52,7 @@ class ToolsPage extends StatelessWidget {
               label: Text(S.of(context).exportRentsCsv),
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                textStyle: TextStyle(fontSize: 16 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(), fontWeight: FontWeight.w600),
                 backgroundColor: theme.primaryColor,
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -104,7 +105,7 @@ class ToolsPage extends StatelessWidget {
               label: Text(S.of(context).exportAllTransactionsCsv),
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                textStyle: TextStyle(fontSize: 16 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(), fontWeight: FontWeight.w600),
                 backgroundColor: theme.primaryColor,
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

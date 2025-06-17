@@ -2,6 +2,8 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:realtoken_asset_tracker/generated/l10n.dart';
+import 'package:realtoken_asset_tracker/app_state.dart';
+import 'package:provider/provider.dart';
 
 void showOtherDetailsModal(BuildContext context, dataManager, List<Map<String, dynamic>> othersDetails, String key) {
   // S'assurer que la liste n'est pas vide pour éviter les erreurs de rendu
@@ -47,7 +49,7 @@ void showOtherDetailsModal(BuildContext context, dataManager, List<Map<String, d
                       Text(
                         S.of(context).othersTitle,
                         style: TextStyle(
-                          fontSize: 22,
+                          fontSize: 22 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                           fontWeight: FontWeight.bold,
                           color: CupertinoColors.label,
                         ),
@@ -93,7 +95,7 @@ void showOtherDetailsModal(BuildContext context, dataManager, List<Map<String, d
                       Text(
                         S.of(context).legend,
                         style: TextStyle(
-                          fontSize: 16,
+                          fontSize: 16 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                           fontWeight: FontWeight.w600,
                           color: CupertinoColors.secondaryLabel,
                         ),
@@ -144,7 +146,7 @@ Widget _buildCenterText(BuildContext context, List<Map<String, dynamic>> othersD
         Text(
           S.of(context).total,
           style: TextStyle(
-            fontSize: 16,
+            fontSize: 16 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
             fontWeight: FontWeight.bold,
             color: CupertinoColors.label,
           ),
@@ -153,7 +155,7 @@ Widget _buildCenterText(BuildContext context, List<Map<String, dynamic>> othersD
         Text(
           '$totalCount',
           style: TextStyle(
-            fontSize: 22,
+            fontSize: 22 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
             fontWeight: FontWeight.w600,
             color: CupertinoColors.systemGrey,
           ),
@@ -174,7 +176,7 @@ Widget _buildCenterText(BuildContext context, List<Map<String, dynamic>> othersD
             name,
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 16,
+              fontSize: 16 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
               fontWeight: FontWeight.bold,
               color: _getColorForIndex(selectedIndex),
             ),
@@ -185,7 +187,7 @@ Widget _buildCenterText(BuildContext context, List<Map<String, dynamic>> othersD
           Text(
             '$count',
             style: TextStyle(
-              fontSize: 20,
+              fontSize: 20 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
               fontWeight: FontWeight.w600,
               color: CupertinoColors.systemGrey,
             ),
@@ -323,7 +325,7 @@ Widget _buildLegendGrid(List<Map<String, dynamic>> othersDetails, String key, in
                 child: Text(
                   name,
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                     color: isSelected ? color : CupertinoColors.label,
                     fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                   ),
@@ -334,7 +336,7 @@ Widget _buildLegendGrid(List<Map<String, dynamic>> othersDetails, String key, in
               Text(
                 value.toStringAsFixed(0),
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                   fontWeight: FontWeight.w600,
                   color: isSelected ? color : CupertinoColors.secondaryLabel,
                 ),

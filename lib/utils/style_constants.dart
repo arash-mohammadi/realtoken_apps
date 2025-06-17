@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:realtoken_asset_tracker/app_state.dart';
+import 'package:provider/provider.dart';
 
 class StyleConstants {
   // Rayons de bordure standardisés
@@ -80,29 +82,29 @@ class StyleConstants {
 
   // Styles de texte avec offset
   static TextStyle titleStyle(BuildContext context, double textSizeOffset) => TextStyle(
-    fontSize: 18 + textSizeOffset,
+    fontSize: 18 + Provider.of<AppState>(context, listen: false).getTextSizeOffset() + textSizeOffset,
     fontWeight: FontWeight.bold,
     color: Theme.of(context).textTheme.bodyLarge?.color,
   );
 
   static TextStyle subtitleStyle(BuildContext context, double textSizeOffset) => TextStyle(
-    fontSize: 16 + textSizeOffset,
+    fontSize: 16 + Provider.of<AppState>(context, listen: false).getTextSizeOffset() + textSizeOffset,
     fontWeight: FontWeight.w600,
     color: Theme.of(context).textTheme.bodyLarge?.color,
   );
 
   static TextStyle bodyStyle(BuildContext context, double textSizeOffset) => TextStyle(
-    fontSize: 14 + textSizeOffset,
+    fontSize: 14 + Provider.of<AppState>(context, listen: false).getTextSizeOffset() + textSizeOffset,
     color: Theme.of(context).textTheme.bodyLarge?.color,
   );
 
   static TextStyle captionStyle(BuildContext context, double textSizeOffset) => TextStyle(
-    fontSize: 12 + textSizeOffset,
+    fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset() + textSizeOffset,
     color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7),
   );
 
   static TextStyle smallStyle(BuildContext context, double textSizeOffset) => TextStyle(
-    fontSize: 10 + textSizeOffset,
+    fontSize: 10 + Provider.of<AppState>(context, listen: false).getTextSizeOffset() + textSizeOffset,
     color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7),
   );
 

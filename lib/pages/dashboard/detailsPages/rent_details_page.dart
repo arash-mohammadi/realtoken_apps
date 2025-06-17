@@ -11,6 +11,7 @@ import 'package:realtoken_asset_tracker/utils/currency_utils.dart';
 import 'package:realtoken_asset_tracker/utils/date_utils.dart';
 import 'package:share_plus/share_plus.dart';
 import 'dart:ui';
+import 'package:realtoken_asset_tracker/app_state.dart';
 
 class DashboardRentsDetailsPage extends StatefulWidget {
   const DashboardRentsDetailsPage({super.key});
@@ -80,11 +81,11 @@ class _DashboardRentsDetailsPageState extends State<DashboardRentsDetailsPage> w
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'Détails des loyers',
           style: TextStyle(
             fontWeight: FontWeight.w600,
-            fontSize: 18,
+            fontSize: 18 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
           ),
         ),
         centerTitle: true,

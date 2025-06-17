@@ -160,7 +160,7 @@ class _SynchronizationSettingsPageState extends State<SynchronizationSettingsPag
                         Text(
                           S.of(context).dataBackup,
                           style: TextStyle(
-                            fontSize: 15 + appState.getTextSizeOffset(),
+                            fontSize: 15 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -241,7 +241,7 @@ class _SynchronizationSettingsPageState extends State<SynchronizationSettingsPag
           const SizedBox(width: 6),
           Text(
             title.toUpperCase(),
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w500,
               color: Colors.grey,

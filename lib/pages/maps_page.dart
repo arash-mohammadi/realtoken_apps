@@ -32,7 +32,31 @@ class MapsPageState extends State<MapsPage> {
   final String _searchQuery = '';
   final String _sortOption = 'Name';
   final bool _isAscending = true;
-  bool _forceLightMode = false; // Nouveau switch pour forcer le mode clair
+  bool _forceLightMode = false;
+  
+  // Nouveaux filtres avancés
+  bool _showHeatmapRent = false;
+  bool _showHeatmapPerformance = false;
+  bool _showYamOffers = false;
+  bool _showRecentTransactions = false;
+  bool _showMiniDashboard = false;
+  
+  // Filtres de rentabilité
+  double _minApy = 0.0;
+  double _maxApy = 50.0;
+  bool _onlyWithRent = false;
+  bool _onlyFullyRented = false;
+  
+  // Filtres par région
+  String? _selectedCountry;
+  List<String> _availableCountries = [];
+  
+  // Filtres par performance
+  double _minRoi = -100.0;  // Permettre les ROI négatifs
+  double _maxRoi = 100.0;
+  
+  // Contrôleur pour le panneau de filtres
+  bool _showFiltersPanel = false;
 
   @override
   void initState() {
@@ -57,33 +81,119 @@ class MapsPageState extends State<MapsPage> {
     await prefs.setBool('forceLightMode', _forceLightMode); // Sauvegarder le mode forcé
   }
 
-  // Méthode pour filtrer et trier les tokens (même approche que PortfolioPage)
-  List<Map<String, dynamic>> _filterAndSortTokens(List<Map<String, dynamic>> tokens) {
-    List<Map<String, dynamic>> filteredTokens = tokens.where((token) => token['fullName'].toLowerCase().contains(_searchQuery.toLowerCase())).toList();
+  // Optimise pour éviter les calculs de loyers sur les tokens non possédés
+  double _getTokenRentSafely(String tokenUuid, DataManager dataManager) {
+    // Vérifier d'abord si c'est dans le portefeuille
+    final portfolioToken = dataManager.portfolio.firstWhere(
+      (portfolioToken) => portfolioToken['uuid'].toLowerCase() == tokenUuid.toLowerCase(),
+      orElse: () => <String, dynamic>{}
+    );
+    
+    // Si pas dans le portefeuille, pas de loyers
+    if (portfolioToken.isEmpty) {
+      return 0.0;
+    }
+    
+    // Utiliser les données précalculées pour tous les tokens possédés (Wallet ET RMM)
+    return dataManager.cumulativeRentsByToken[tokenUuid.toLowerCase()] ?? 0.0;
+  }
 
+  // Méthode pour filtrer et trier les tokens avec critères avancés
+  List<Map<String, dynamic>> _filterAndSortTokens(List<Map<String, dynamic>> tokens, DataManager dataManager) {
+    List<Map<String, dynamic>> filteredTokens = tokens.where((token) {
+      // Exclure les tokens factoring_profitshare (pas des propriétés réelles)
+      final productType = token['productType']?.toString().toLowerCase() ?? '';
+      if (productType == 'factoring_profitshare') {
+        return false;
+      }
+      
+      // Filtre de recherche textuelle
+      if (!token['fullName'].toLowerCase().contains(_searchQuery.toLowerCase())) {
+        return false;
+      }
+      
+      // Filtre APY
+      final apy = token['annualPercentageYield'] ?? 0.0;
+      if (apy < _minApy || apy > _maxApy) {
+        return false;
+      }
+      
+      // Filtre uniquement avec loyers
+      if (_onlyWithRent) {
+        final totalRent = _getTokenRentSafely(token['uuid'], dataManager);
+        if (totalRent <= 0) {
+          return false;
+        }
+      }
+      
+      // Filtre uniquement entièrement loués
+      if (_onlyFullyRented) {
+        final rentedUnits = token['rentedUnits'] ?? 0;
+        final totalUnits = token['totalUnits'] ?? 1;
+        if (rentedUnits < totalUnits) {
+          return false;
+        }
+      }
+      
+      // Filtre par pays
+      if (_selectedCountry != null && _selectedCountry!.isNotEmpty) {
+        if (token['country'] != _selectedCountry) {
+          return false;
+        }
+      }
+      
+      // Filtre ROI (si applicable)
+      final initialValue = token['initialTotalValue'] ?? token['tokenPrice'];
+      final currentValue = token['tokenPrice'] ?? 0.0;
+      final roi = initialValue > 0 ? ((currentValue - initialValue) / initialValue * 100) : 0.0;
+      if (roi < _minRoi || roi > _maxRoi) {
+        return false;
+      }
+      
+      return true;
+    }).toList();
+
+    // Tri
     if (_sortOption == 'Name') {
       filteredTokens.sort((a, b) => _isAscending ? a['shortName'].compareTo(b['shortName']) : b['shortName'].compareTo(a['shortName']));
     } else if (_sortOption == 'Value') {
       filteredTokens.sort((a, b) => _isAscending ? a['totalValue'].compareTo(b['totalValue']) : b['totalValue'].compareTo(a['totalValue']));
     } else if (_sortOption == 'APY') {
       filteredTokens.sort((a, b) => _isAscending ? a['annualPercentageYield'].compareTo(b['annualPercentageYield']) : b['annualPercentageYield'].compareTo(a['annualPercentageYield']));
+    } else if (_sortOption == 'ROI') {
+      filteredTokens.sort((a, b) {
+        final roiA = _calculateRoi(a);
+        final roiB = _calculateRoi(b);
+        return _isAscending ? roiA.compareTo(roiB) : roiB.compareTo(roiA);
+      });
+    } else if (_sortOption == 'Rent') {
+      filteredTokens.sort((a, b) {
+        final rentA = _getTokenRentSafely(a['uuid'], dataManager);
+        final rentB = _getTokenRentSafely(b['uuid'], dataManager);
+        return _isAscending ? rentA.compareTo(rentB) : rentB.compareTo(rentA);
+      });
     }
 
     return filteredTokens;
+  }
+  
+  double _calculateRoi(Map<String, dynamic> token) {
+    final initialValue = token['initialTotalValue'] ?? token['tokenPrice'];
+    final currentValue = token['tokenPrice'] ?? 0.0;
+    return initialValue > 0 ? ((currentValue - initialValue) / initialValue * 100) : 0.0;
   }
 
   @override
   Widget build(BuildContext context) {
     final dataManager = Provider.of<DataManager>(context);
 
-    final tokensToShow = _showAllTokens ? _filterAndSortTokens(dataManager.allTokens) : _filterAndSortTokens(dataManager.portfolio);
+    final sourceTokens = _showAllTokens ? dataManager.allTokens : dataManager.portfolio;
+    
+    final tokensToShow = _filterAndSortTokens(sourceTokens, dataManager);
 
-    final displayedTokens =
-        _showWhitelistedTokens ? tokensToShow.where((token) => dataManager.whitelistTokens.any((w) => w['token'].toLowerCase() == token['uuid'].toLowerCase())).toList() : tokensToShow;
-
-    if (displayedTokens.isEmpty) {
-      return Center(child: Text(S.of(context).noTokensAvailable));
-    }
+    final displayedTokens = _showWhitelistedTokens 
+        ? tokensToShow.where((token) => dataManager.whitelistTokens.any((w) => w['token'].toLowerCase() == token['uuid'].toLowerCase())).toList() 
+        : tokensToShow;
 
     final List<Marker> markers = [];
 
@@ -91,17 +201,19 @@ class MapsPageState extends State<MapsPage> {
     Marker createMarker({
       required dynamic matchingToken,
       required Color color,
+      double? lat,
+      double? lng,
     }) {
-      final lat = double.tryParse(matchingToken['lat']);
-      final lng = double.tryParse(matchingToken['lng']);
+      final latValue = lat ?? double.tryParse(matchingToken['lat']?.toString() ?? '');
+      final lngValue = lng ?? double.tryParse(matchingToken['lng']?.toString() ?? '');
       final rentedUnits = matchingToken['rentedUnits'] ?? 0;
       final totalUnits = matchingToken['totalUnits'] ?? 1;
 
-      if (lat != null && lng != null) {
+      if (latValue != null && lngValue != null) {
         return Marker(
           width: 40.0, // Augmentez cette valeur pour une image plus grande
           height: 40.0, // Augmentez cette valeur pour une image plus grande
-          point: LatLng(lat, lng),
+          point: LatLng(latValue, lngValue),
           child: MouseRegion(
             cursor: SystemMouseCursors.click,
             child: Stack(
@@ -166,27 +278,74 @@ class MapsPageState extends State<MapsPage> {
       }
     }
 
+    // Grouper les tokens par propriété unique (même coordonnées)
+    Map<String, Map<String, dynamic>> uniqueProperties = {};
+    
     for (var token in displayedTokens) {
-      final isWallet = token['source'] == 'Wallet';
-      final isRMM = token['source'] == 'RMM';
-
-      if (token['lat'] != null) {
-        markers.add(
-          createMarker(
-            matchingToken: token,
-            color: isWallet
-                ? Colors.green
-                : isRMM
-                    ? Colors.blue
-                    : Colors.grey,
-          ),
-        );
+      // Vérification comme dans showTokenDetails.dart
+      final double? lat = double.tryParse(token['lat']?.toString() ?? '');
+      final double? lng = double.tryParse(token['lng']?.toString() ?? '');
+      
+      if (lat != null && lng != null) {
+        // Créer une clé unique basée sur les coordonnées
+        final String propertyKey = '${lat.toStringAsFixed(6)}_${lng.toStringAsFixed(6)}';
+        
+        if (!uniqueProperties.containsKey(propertyKey)) {
+          // Première fois qu'on voit cette propriété
+          uniqueProperties[propertyKey] = {
+            ...token,
+            'tokens': [token], // Liste des tokens pour cette propriété
+            'totalAmount': token['amount'] ?? 0.0,
+            'totalValue': token['totalValue'] ?? 0.0,
+            'hasWallet': token['source'] == 'wallet',
+            'hasRMM': token['source'] != 'wallet',
+          };
+        } else {
+          // Propriété déjà existante, on ajoute le token
+          final existingProperty = uniqueProperties[propertyKey]!;
+          (existingProperty['tokens'] as List).add(token);
+          existingProperty['totalAmount'] = (existingProperty['totalAmount'] as double) + (token['amount'] ?? 0.0);
+          existingProperty['totalValue'] = (existingProperty['totalValue'] as double) + (token['totalValue'] ?? 0.0);
+          
+          // Marquer si on a des tokens wallet ou RMM
+          if (token['source'] == 'wallet') {
+            existingProperty['hasWallet'] = true;
+          } else {
+            existingProperty['hasRMM'] = true;
+          }
+        }
       }
     }
 
-    if (markers.isEmpty) {
-      return Center(child: Text(S.of(context).noTokensWithValidCoordinates));
+    // Créer les markers pour chaque propriété unique
+    for (var property in uniqueProperties.values) {
+      final lat = double.tryParse(property['lat'].toString())!;
+      final lng = double.tryParse(property['lng'].toString())!;
+      
+      // Déterminer la couleur basée sur le type de tokens possédés
+      Color markerColor;
+      final hasWallet = property['hasWallet'] as bool;
+      final hasRMM = property['hasRMM'] as bool;
+      
+      if (hasWallet && hasRMM) {
+        markerColor = Colors.purple; // Mixte wallet + RMM
+      } else if (hasWallet) {
+        markerColor = Colors.green; // Seulement wallet
+      } else {
+        markerColor = Colors.blue; // Seulement RMM
+      }
+      
+      markers.add(
+        createMarker(
+          matchingToken: property,
+          color: markerColor,
+          lat: lat,
+          lng: lng,
+        ),
+      );
     }
+
+    // Pas de vérification markers.isEmpty ici - on affiche toujours la carte
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -220,30 +379,51 @@ class MapsPageState extends State<MapsPage> {
                   options: MarkerClusterLayerOptions(
                     maxClusterRadius: 40,
                     disableClusteringAtZoom: 14,
-                    size: const Size(40, 40),
+                    size: const Size(50, 50),
                     markers: markers,
                     builder: (context, clusterMarkers) {
-                      Color clusterColor = _getClusterColor(clusterMarkers);
-                      return Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: RadialGradient(
-                            colors: [
-                              clusterColor.withOpacity(0.9),
-                              clusterColor.withOpacity(0.2),
-                            ],
-                            stops: [0.4, 1.0],
-                          ),
-                        ),
-                        child: Center(
-                          child: Text(
-                            clusterMarkers.length.toString(),
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
+                      final clusterStats = _getClusterStats(clusterMarkers, dataManager);
+                      final Color clusterColor = clusterStats['color'];
+                      final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
+                      
+                      return GestureDetector(
+                        onTap: () {
+                          _showClusterPopup(context, clusterStats, clusterMarkers.length, dataManager);
+                        },
+                        child: Container(
+                          width: 50,
+                          height: 50,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: RadialGradient(
+                              colors: [
+                                clusterColor.withOpacity(0.9),
+                                clusterColor.withOpacity(0.2),
+                              ],
+                              stops: [0.4, 1.0],
                             ),
+                            border: Border.all(color: Colors.white, width: 2),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                clusterMarkers.length.toString(),
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
+                                ),
+                              ),
+                              Text(
+                                '${clusterStats['averageApy'].toStringAsFixed(0)}%',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 8 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       );
@@ -277,119 +457,203 @@ class MapsPageState extends State<MapsPage> {
               ],
             ),
           ),
-          // Switch en haut à gauche pour basculer entre le portefeuille/all tokens et le filtrage whitelist
+          // Panneau de contrôles avancés en haut à gauche
           Positioned(
             top: UIUtils.getAppBarHeight(context),
             left: 16,
-            child: Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Switch pour Portfolio / All Tokens
-                Transform.scale(
-                  scale: 0.8,
-                  child: CupertinoSwitch(
-                    value: _showAllTokens,
-                    onChanged: (value) {
-                      setState(() {
-                        _showAllTokens = value;
-                      });
-                    },
-                    activeColor: Theme.of(context).primaryColor,
-                    trackColor: Colors.grey.shade300,
+                // Contrôles principaux
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).cardColor.withOpacity(0.9),
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black26,
+                        blurRadius: 4,
+                        offset: Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    children: [
+                      // Indicateur de mode actuel
+                      Container(
+                        constraints: BoxConstraints(maxWidth: 200),
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).primaryColor.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: Theme.of(context).primaryColor.withOpacity(0.3)),
+                        ),
+                        child: Text(
+                          _getCurrentModeDescription(),
+                          style: TextStyle(
+                            fontSize: 10 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
+                            fontWeight: FontWeight.w600,
+                            color: Theme.of(context).primaryColor,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Switch pour Portfolio / All Tokens avec indicateurs
+                          Row(
+                            children: [
+                              Transform.scale(
+                                scale: 0.7,
+                                child: CupertinoSwitch(
+                                  value: _showAllTokens,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _showAllTokens = value;
+                                    });
+                                  },
+                                  activeColor: Theme.of(context).primaryColor,
+                                  trackColor: Colors.grey.shade300,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    _showAllTokens ? S.of(context).portfolioGlobal : S.of(context).portfolio,
+                                    style: TextStyle(fontSize: 10 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(), fontWeight: FontWeight.w600, height: 1.1),
+                                  ),
+                                  Text(
+                                    _showAllTokens ? '${dataManager.allTokens.length} ${S.of(context).tokens}' : '${dataManager.portfolio.length} ${S.of(context).tokens}',
+                                    style: TextStyle(fontSize: 8 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(), color: Colors.grey[600], height: 1.1),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 2),
+                          
+                          // Switch pour whitelist avec indicateurs
+                          Row(
+                            children: [
+                              Transform.scale(
+                                scale: 0.7,
+                                child: CupertinoSwitch(
+                                  value: _showWhitelistedTokens,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _showWhitelistedTokens = value;
+                                    });
+                                  },
+                                  activeColor: Theme.of(context).primaryColor,
+                                  trackColor: Colors.grey.shade300,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    _showWhitelistedTokens ? S.of(context).showOnlyWhitelisted : S.of(context).tokens,
+                                    style: TextStyle(fontSize: 10 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(), fontWeight: FontWeight.w600, height: 1.1),
+                                  ),
+                                  Text(
+                                    _getWhitelistDescription(dataManager),
+                                    style: TextStyle(fontSize: 8 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(), color: Colors.grey[600], height: 1.1),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 3),
+                      // Boutons de contrôle avancés
+                      Row(
+                        children: [
+                          ElevatedButton.icon(
+                            icon: Icon(Icons.filter_list, size: 14),
+                            label: Text(S.of(context).filterOptions, style: TextStyle(fontSize: 10 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
+                             onPressed: () {
+                               setState(() {
+                                 _showFiltersPanel = !_showFiltersPanel;
+                               });
+                             },
+                             style: ElevatedButton.styleFrom(
+                               backgroundColor: _showFiltersPanel ? Theme.of(context).primaryColor : Colors.grey.shade400,
+                               foregroundColor: Colors.white,
+                               minimumSize: Size(55, 26),
+                               padding: EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                             ),
+                           ),
+                           const SizedBox(width: 6),
+                           ElevatedButton.icon(
+                             icon: Icon(Icons.dashboard, size: 14),
+                             label: Text(S.of(context).statistics, style: TextStyle(fontSize: 10 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
+                             onPressed: () {
+                               setState(() {
+                                 _showMiniDashboard = !_showMiniDashboard;
+                               });
+                             },
+                             style: ElevatedButton.styleFrom(
+                               backgroundColor: _showMiniDashboard ? Theme.of(context).primaryColor : Colors.grey.shade400,
+                               foregroundColor: Colors.white,
+                               minimumSize: Size(55, 26),
+                               padding: EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                             ),
+                           ),
+                           const SizedBox(width: 6),
+                           // Bouton d'aide
+                           IconButton(
+                             icon: Icon(Icons.help_outline, size: 14),
+                             onPressed: () => _showHelpDialog(context),
+                             style: IconButton.styleFrom(
+                               backgroundColor: Colors.blue.shade100,
+                               foregroundColor: Colors.blue.shade700,
+                               minimumSize: Size(26, 26),
+                             ),
+                           ),
+                         ],
+                       ),
+                    ],
                   ),
                 ),
-                const SizedBox(width: 4),
-                Text(_showAllTokens ? 'All Tokens' : 'Portfolio'),
-
-                const SizedBox(width: 20),
-
-                // Switch pour afficher uniquement les tokens whitelist
-                Transform.scale(
-                  scale: 0.8,
-                  child: CupertinoSwitch(
-                    value: _showWhitelistedTokens,
-                    onChanged: (value) {
-                      setState(() {
-                        _showWhitelistedTokens = value;
-                      });
-                    },
-                    activeColor: Theme.of(context).primaryColor,
-                    trackColor: Colors.grey.shade300,
-                  ),
-                ),
-                const SizedBox(width: 4),
-                Text(_showWhitelistedTokens ? 'Whitelist' : 'Tous'),
+                
+                // Panneau de filtres avancés
+                if (_showFiltersPanel) ...[
+                  const SizedBox(height: 8),
+                  _buildFiltersPanel(context, dataManager),
+                ],
+                
+                // Mini-dashboard
+                if (_showMiniDashboard) ...[
+                  const SizedBox(height: 8),
+                  _buildMiniDashboard(context, dataManager, displayedTokens),
+                ],
               ],
             ),
           ),
-          // Légende en bas à gauche
-          Positioned(
-            bottom: 90, // Remonter la légende pour la placer au-dessus de la BottomBar
-            left: 16,
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Theme.of(context).cardColor,
-                borderRadius: BorderRadius.circular(8),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black26,
-                    blurRadius: 6,
-                    offset: Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(Icons.location_on, color: Colors.green),
-                      SizedBox(width: 4),
-                      Text(
-                        "Fully Rented",
-                        style: TextStyle(
-                          fontSize: 13 + Provider.of<AppState>(context).getTextSizeOffset(), // Taille du texte ajustée
-                        ),
-                      ),
-                    ],
-                  ),
-                  Row(
-                    children: [
-                      Icon(Icons.location_on, color: Colors.orange),
-                      SizedBox(width: 4),
-                      Text(
-                        "Partially Rented",
-                        style: TextStyle(
-                          fontSize: 13 + Provider.of<AppState>(context).getTextSizeOffset(), // Taille du texte ajustée
-                        ),
-                      ),
-                    ],
-                  ),
-                  Row(
-                    children: [
-                      Icon(Icons.location_on, color: Colors.red),
-                      SizedBox(width: 4),
-                      Text(
-                        "Not Rented",
-                        style: TextStyle(
-                          fontSize: 13 + Provider.of<AppState>(context).getTextSizeOffset(), // Taille du texte ajustée
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
+
         ],
       ),
     );
   }
 
-  // Fonction pour déterminer la couleur du cluster en fonction des marqueurs qu'il contient
-  Color _getClusterColor(List<Marker> markers) {
+  // Fonction améliorée pour déterminer la couleur et les stats du cluster
+  Map<String, dynamic> _getClusterStats(List<Marker> markers, DataManager dataManager) {
     int fullyRented = 0;
     int notRented = 0;
+    double totalValue = 0;
+    double totalRent = 0;
+    double totalApy = 0;
+    int apyCount = 0;
 
     for (var marker in markers) {
       if (marker.key is ValueKey) {
@@ -397,7 +661,19 @@ class MapsPageState extends State<MapsPage> {
 
         final rentedUnits = token['rentedUnits'] ?? 0;
         final totalUnits = token['totalUnits'] ?? 1;
+        final tokenPrice = token['tokenPrice'] ?? 0.0;
+        final apy = token['annualPercentageYield'] ?? 0.0;
 
+        // Calculs pour les statistiques
+        totalValue += tokenPrice;
+        totalRent += _getTokenRentSafely(token['uuid'], dataManager);
+        
+        if (apy > 0) {
+          totalApy += apy;
+          apyCount++;
+        }
+
+        // Classification par statut de location
         if (rentedUnits == 0) {
           notRented++;
         } else if (rentedUnits == totalUnits) {
@@ -406,13 +682,68 @@ class MapsPageState extends State<MapsPage> {
       }
     }
 
+    Color clusterColor;
     if (fullyRented == markers.length) {
-      return Colors.green;
+      clusterColor = Colors.green;
     } else if (notRented == markers.length) {
-      return Colors.red;
+      clusterColor = Colors.red;
     } else {
-      return Colors.orange;
+      clusterColor = Colors.orange;
     }
+
+    return {
+      'color': clusterColor,
+      'totalValue': totalValue,
+      'totalRent': totalRent,
+      'averageApy': apyCount > 0 ? totalApy / apyCount : 0.0,
+      'fullyRented': fullyRented,
+      'notRented': notRented,
+      'partiallyRented': markers.length - fullyRented - notRented,
+    };
+  }
+
+  void _showClusterPopup(BuildContext context, Map<String, dynamic> clusterStats, int tokenCount, DataManager dataManager) {
+    final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
+    
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Theme.of(context).cardColor,
+          title: Text('${S.of(context).tokens} ($tokenCount)'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildInfoRow(S.of(context).totalTokens, '$tokenCount', Icons.location_on, Colors.blue),
+              const Divider(height: 8),
+              _buildInfoRow(S.of(context).totalValue, 
+                currencyUtils.formatCurrency(currencyUtils.convert(clusterStats['totalValue']), currencyUtils.currencySymbol),
+                Icons.attach_money, Colors.green),
+              const Divider(height: 8),
+              _buildInfoRow(S.of(context).averageApy, 
+                '${clusterStats['averageApy'].toStringAsFixed(2)}%',
+                Icons.trending_up, Colors.orange),
+              const Divider(height: 8),
+              _buildInfoRow(S.of(context).totalRent, 
+                currencyUtils.formatCurrency(currencyUtils.convert(clusterStats['totalRent']), currencyUtils.currencySymbol),
+                Icons.account_balance, Colors.purple),
+              const Divider(height: 16),
+              Text(S.of(context).rentalStatusDistribution, style: TextStyle(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 8),
+              _buildInfoRow(S.of(context).fullyRented, '${clusterStats['fullyRented']}', Icons.check_circle, Colors.green),
+              _buildInfoRow(S.of(context).partiallyRented, '${clusterStats['partiallyRented']}', Icons.pause_circle, Colors.orange),
+              _buildInfoRow(S.of(context).notRented, '${clusterStats['notRented']}', Icons.cancel, Colors.red),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(S.of(context).close),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   void _showMarkerPopup(BuildContext context, dynamic matchingToken) {
@@ -425,6 +756,17 @@ class MapsPageState extends State<MapsPage> {
       (whitelisted) => whitelisted['token'].toLowerCase() == matchingToken['uuid'].toLowerCase(),
     );
 
+    // Données financières enrichies
+    final String tokenId = matchingToken['uuid'].toLowerCase();
+    final double totalRentReceived = _getTokenRentSafely(matchingToken['uuid'], dataManager);
+    final int walletCount = dataManager.getWalletCountForToken(tokenId);
+    final double yamTotalVolume = matchingToken['yamTotalVolume'] ?? 0.0;
+    final double yamAverageValue = matchingToken['yamAverageValue'] ?? 0.0;
+    final List<Map<String, dynamic>> transactions = dataManager.transactionsByToken[tokenId] ?? [];
+    final double initialValue = matchingToken['initialTotalValue'] ?? matchingToken['tokenPrice'];
+    final double currentValue = matchingToken['tokenPrice'] ?? 0.0;
+    final double roi = initialValue > 0 ? ((currentValue - initialValue) / initialValue * 100) : 0.0;
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -436,110 +778,595 @@ class MapsPageState extends State<MapsPage> {
 
         return AlertDialog(
           backgroundColor: Theme.of(context).cardColor,
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              if (matchingToken['imageLink'] != null)
-                GestureDetector(
-                  onTap: () => showTokenDetails(context, matchingToken),
-                  child: CachedNetworkImage(
-                    imageUrl: matchingToken['imageLink'][0],
-                    width: 200,
-                    fit: BoxFit.cover,
-                    placeholder: (context, url) => const CircularProgressIndicator(),
-                    errorWidget: (context, url, error) => const Icon(
-                      Icons.error,
-                      color: Colors.red,
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                if (matchingToken['imageLink'] != null)
+                  GestureDetector(
+                    onTap: () => showTokenDetails(context, matchingToken),
+                    child: CachedNetworkImage(
+                      imageUrl: matchingToken['imageLink'][0],
+                      width: 200,
+                      fit: BoxFit.cover,
+                      placeholder: (context, url) => const CircularProgressIndicator(),
+                      errorWidget: (context, url, error) => const Icon(
+                        Icons.error,
+                        color: Colors.red,
+                      ),
+                    ),
+                  ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(
+                    matchingToken['shortName'],
+                    style: TextStyle(
+                      fontSize: 18 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                
+                // Informations de base
+                Card(
+                  margin: const EdgeInsets.symmetric(vertical: 4),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12.0),
+                    child: Column(
+                      children: [
+                        _buildInfoRow(S.of(context).tokenPrice, 
+                          currencyUtils.formatCurrency(currencyUtils.convert(matchingToken['tokenPrice']), currencyUtils.currencySymbol),
+                          Icons.monetization_on, Colors.green),
+                        const Divider(height: 8),
+                        _buildInfoRow(S.of(context).annualPercentageYield, 
+                          '${matchingToken['annualPercentageYield'] != null ? matchingToken['annualPercentageYield'].toStringAsFixed(2) : 'N/A'}%',
+                          Icons.trending_up, Colors.blue),
+                        const Divider(height: 8),
+                        _buildInfoRow(S.of(context).rentedUnitsSimple, 
+                          '$rentedUnits / $totalUnits',
+                          Icons.home, UIUtils.getRentalStatusColor(rentedUnits, totalUnits)),
+                      ],
                     ),
                   ),
                 ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Text(
-                  matchingToken['shortName'],
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              // Affichage des infos "token in wallet" et "whitelist"
 
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Token Price: ',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                // Données financières avancées
+                Card(
+                  margin: const EdgeInsets.symmetric(vertical: 4),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(S.of(context).finances, 
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
+                        const SizedBox(height: 8),
+                        _buildInfoRow(S.of(context).totalRentReceived, 
+                          currencyUtils.formatCurrency(currencyUtils.convert(totalRentReceived), currencyUtils.currencySymbol),
+                          Icons.account_balance, Colors.green),
+                        const Divider(height: 8),
+                        _buildInfoRow(S.of(context).averageROI, 
+                          '${roi.toStringAsFixed(2)}%',
+                          Icons.show_chart, roi >= 0 ? Colors.green : Colors.red),
+                        const Divider(height: 8),
+                        _buildInfoRow(S.of(context).walletsContainingToken, 
+                          '$walletCount',
+                          Icons.account_balance_wallet, Colors.purple),
+                        if (transactions.isNotEmpty) ...[
+                          const Divider(height: 8),
+                          _buildInfoRow(S.of(context).transactionCount, 
+                            '${transactions.length}',
+                            Icons.swap_horiz, Colors.orange),
+                        ],
+                      ],
+                    ),
                   ),
-                  Text(currencyUtils.formatCurrency(currencyUtils.convert(matchingToken['tokenPrice']), currencyUtils.currencySymbol)),
-                ],
-              ),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Token Yield: ',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  Text('${matchingToken['annualPercentageYield'] != null ? matchingToken['annualPercentageYield'].toStringAsFixed(2) : 'N/A'}%'),
-                ],
-              ),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Units Rented: ',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  Text('$rentedUnits / $totalUnits'),
-                ],
-              ),
-              const SizedBox(height: 12.0),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    isInWallet ? Icons.account_balance_wallet : Icons.account_balance_wallet_outlined,
-                    color: isInWallet ? Colors.green : Colors.grey,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    isInWallet ? "Présent dans wallet" : "Non présent dans wallet",
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 4),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    isWhitelisted ? Icons.check_circle : Icons.cancel,
-                    color: isWhitelisted ? Colors.green : Colors.red,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    isWhitelisted ? "Token whitelisté" : "Token non whitelisté",
-                    style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+
+                // Données YAM si disponibles
+                if (yamTotalVolume > 0) ...[
+                  Card(
+                    margin: const EdgeInsets.symmetric(vertical: 4),
+                    child: Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(S.of(context).yam, 
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
+                          const SizedBox(height: 8),
+                          _buildInfoRow(S.of(context).transactionVolume, 
+                            currencyUtils.formatCurrency(currencyUtils.convert(yamTotalVolume), currencyUtils.currencySymbol),
+                            Icons.bar_chart, Colors.indigo),
+                          const Divider(height: 8),
+                          _buildInfoRow(S.of(context).initialPrice, 
+                            currencyUtils.formatCurrency(currencyUtils.convert(yamAverageValue), currencyUtils.currencySymbol),
+                            Icons.trending_flat, Colors.teal),
+                        ],
+                      ),
+                    ),
                   ),
                 ],
-              ),
-              const SizedBox(height: 16.0),
-              IconButton(
-                icon: const Icon(Icons.streetview, color: Colors.blue),
-                onPressed: () {
-                  final googleStreetViewUrl = 'https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=$lat,$lng';
-                  UrlUtils.launchURL(googleStreetViewUrl);
-                },
-              ),
-              const Text('View in Street View'),
-            ],
+
+                // Statut dans portefeuille
+                Card(
+                  margin: const EdgeInsets.symmetric(vertical: 4),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12.0),
+                    child: Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              isInWallet ? Icons.account_balance_wallet : Icons.account_balance_wallet_outlined,
+                              color: isInWallet ? Colors.green : Colors.grey,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              isInWallet ? "Présent dans portefeuille" : "Non présent dans portefeuille",
+                              style: const TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              isWhitelisted ? Icons.check_circle : Icons.cancel,
+                              color: isWhitelisted ? Colors.green : Colors.red,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              isWhitelisted ? "Token whitelisté" : "Token non whitelisté",
+                              style: const TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                // Actions
+                const SizedBox(height: 16.0),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    ElevatedButton.icon(
+                      icon: const Icon(Icons.info, size: 16),
+                      label: const Text('Détails'),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        showTokenDetails(context, matchingToken);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Theme.of(context).primaryColor,
+                        foregroundColor: Colors.white,
+                      ),
+                    ),
+                    ElevatedButton.icon(
+                      icon: const Icon(Icons.streetview, size: 16),
+                      label: const Text('Street View'),
+                      onPressed: () {
+                        final googleStreetViewUrl = 'https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=$lat,$lng';
+                        UrlUtils.launchURL(googleStreetViewUrl);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        foregroundColor: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         );
       },
+    );
+  }
+
+  Widget _buildInfoRow(String label, String value, IconData icon, Color iconColor) {
+    return Row(
+      children: [
+        Icon(icon, size: 16, color: iconColor),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(label, style: const TextStyle(fontWeight: FontWeight.w500)),
+        ),
+        Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
+      ],
+    );
+  }
+
+  Widget _buildFiltersPanel(BuildContext context, DataManager dataManager) {
+    return Container(
+      width: 300,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor.withOpacity(0.95),
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black26,
+            blurRadius: 6,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(S.of(context).filterOptions, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
+          const SizedBox(height: 12),
+          
+          // Filtre APY
+          Text('APY ($_minApy% - $_maxApy%)', style: TextStyle(fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
+          RangeSlider(
+            values: RangeValues(_minApy, _maxApy),
+            min: 0,
+            max: 50,
+            divisions: 50,
+            onChanged: (values) {
+              setState(() {
+                _minApy = values.start;
+                _maxApy = values.end;
+              });
+            },
+          ),
+          
+          // Filtres booléens
+          CheckboxListTile(
+            title: Text(S.of(context).rents, style: TextStyle(fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
+            value: _onlyWithRent,
+            onChanged: (value) {
+              setState(() {
+                _onlyWithRent = value ?? false;
+              });
+            },
+            dense: true,
+          ),
+          
+          CheckboxListTile(
+            title: Text(S.of(context).fullyRented, style: TextStyle(fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
+            value: _onlyFullyRented,
+            onChanged: (value) {
+              setState(() {
+                _onlyFullyRented = value ?? false;
+              });
+            },
+            dense: true,
+          ),
+          
+          // Filtre par pays
+          Text(S.of(context).country, style: TextStyle(fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(), fontWeight: FontWeight.w500)),
+          DropdownButton<String>(
+            value: _selectedCountry,
+            hint: Text(S.of(context).allCountries, style: TextStyle(fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
+            isExpanded: true,
+            items: [
+              DropdownMenuItem<String>(
+                value: null,
+                child: Text(S.of(context).allCountries, style: TextStyle(fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
+              ),
+              ...dataManager.allTokens
+                  .map((token) => token['country'])
+                  .where((country) => country != null)
+                  .toSet()
+                  .map((country) => DropdownMenuItem<String>(
+                        value: country,
+                        child: Text(country, style: TextStyle(fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
+                      )),
+            ],
+            onChanged: (value) {
+              setState(() {
+                _selectedCountry = value;
+              });
+            },
+          ),
+          
+          // Filtre ROI
+          const SizedBox(height: 8),
+          Text('ROI ($_minRoi% - $_maxRoi%)', style: TextStyle(fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
+          RangeSlider(
+            values: RangeValues(_minRoi, _maxRoi),
+            min: 0,
+            max: 100,
+            divisions: 100,
+            onChanged: (values) {
+              setState(() {
+                _minRoi = values.start;
+                _maxRoi = values.end;
+              });
+            },
+          ),
+          
+          // Bouton de reset
+          Center(
+            child: ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  _minApy = 0.0;
+                  _maxApy = 50.0;
+                  _onlyWithRent = false;
+                  _onlyFullyRented = false;
+                  _selectedCountry = null;
+                  _minRoi = 0.0;
+                  _maxRoi = 100.0;
+                });
+              },
+              child: Text('Reset', style: TextStyle(fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.orange,
+                foregroundColor: Colors.white,
+                minimumSize: Size(80, 30),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMiniDashboard(BuildContext context, DataManager dataManager, List<Map<String, dynamic>> displayedTokens) {
+    final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
+    final appState = Provider.of<AppState>(context, listen: false);
+    
+    // Calculer les propriétés uniques
+    Set<String> uniquePropertiesSet = {};
+    for (var token in displayedTokens) {
+      if (token['lat'] != null && token['lng'] != null) {
+        final lat = double.tryParse(token['lat'].toString());
+        final lng = double.tryParse(token['lng'].toString());
+        if (lat != null && lng != null) {
+          uniquePropertiesSet.add('${lat.toStringAsFixed(6)}_${lng.toStringAsFixed(6)}');
+        }
+      }
+    }
+    
+    // Calculer les statistiques
+    final int totalTokens = displayedTokens.length;
+    final int uniqueProperties = uniquePropertiesSet.length;
+    final double totalValue = displayedTokens.fold(0.0, (sum, token) => sum + (token['tokenPrice'] ?? 0.0));
+    final double averageApy = displayedTokens.isNotEmpty 
+        ? displayedTokens.fold(0.0, (sum, token) => sum + (token['annualPercentageYield'] ?? 0.0)) / totalTokens
+        : 0.0;
+    final double totalRent = displayedTokens.fold(0.0, (sum, token) => 
+        sum + _getTokenRentSafely(token['uuid'], dataManager));
+    
+    final int fullyRented = displayedTokens.where((token) => 
+        (token['rentedUnits'] ?? 0) >= (token['totalUnits'] ?? 1)).length;
+    final int partiallyRented = displayedTokens.where((token) => 
+        (token['rentedUnits'] ?? 0) > 0 && (token['rentedUnits'] ?? 0) < (token['totalUnits'] ?? 1)).length;
+    final int notRented = displayedTokens.where((token) => 
+        (token['rentedUnits'] ?? 0) == 0).length;
+    
+    // Répartition par pays
+    final Map<String, int> countryDistribution = {};
+    for (var token in displayedTokens) {
+      final country = token['country'] ?? 'Inconnu';
+      countryDistribution[country] = (countryDistribution[country] ?? 0) + 1;
+    }
+
+    return Container(
+      width: 320,
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor.withOpacity(0.95),
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black26,
+            blurRadius: 6,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(S.of(context).statistics, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12 + appState.getTextSizeOffset())),
+          const SizedBox(height: 8),
+          
+          // Résumé du mode actuel
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: totalTokens == 0 ? Colors.orange.withOpacity(0.1) : Theme.of(context).primaryColor.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: totalTokens == 0 ? Colors.orange.withOpacity(0.3) : Theme.of(context).primaryColor.withOpacity(0.3)
+              ),
+            ),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      totalTokens == 0 ? Icons.warning : Icons.info,
+                      color: totalTokens == 0 ? Colors.orange : Theme.of(context).primaryColor,
+                      size: 16
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        totalTokens == 0 
+                          ? 'Aucune ${S.of(context).properties.toLowerCase()} ne correspond aux critères'
+                          : _getCurrentModeDescription(),
+                        style: TextStyle(
+                          fontSize: 10 + appState.getTextSizeOffset(),
+                          fontWeight: FontWeight.w600,
+                          color: totalTokens == 0 ? Colors.orange.shade700 : Theme.of(context).primaryColor,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                if (totalTokens > 0) ...[
+                  const SizedBox(height: 3),
+                  Text(
+                    'Base: ${_showAllTokens ? dataManager.allTokens.length : dataManager.portfolio.length} → Filtrés: $totalTokens ${S.of(context).properties.toLowerCase()}',
+                    style: TextStyle(fontSize: 8 + appState.getTextSizeOffset(), color: Colors.grey[600]),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          const SizedBox(height: 8),
+          
+          // Métriques principales
+          _buildStatRow(S.of(context).tokensInMap, '$totalTokens', Icons.location_on, totalTokens == 0 ? Colors.orange : Colors.blue),
+          _buildStatRow(S.of(context).totalProperties, '$uniqueProperties', Icons.map, Colors.indigo),
+          _buildStatRow(S.of(context).totalValue, currencyUtils.formatCurrency(currencyUtils.convert(totalValue), currencyUtils.currencySymbol), Icons.attach_money, Colors.green),
+          _buildStatRow(S.of(context).averageApy, '${averageApy.toStringAsFixed(2)}%', Icons.trending_up, Colors.orange),
+          _buildStatRow(S.of(context).totalRent, currencyUtils.formatCurrency(currencyUtils.convert(totalRent), currencyUtils.currencySymbol), Icons.account_balance, Colors.purple),
+          
+          const Divider(height: 12),
+          
+          // Statut de location
+          Text(S.of(context).rentalStatus, style: TextStyle(fontWeight: FontWeight.w500, fontSize: 11 + appState.getTextSizeOffset())),
+          const SizedBox(height: 6),
+          _buildStatRow(S.of(context).fullyRented, '$fullyRented', Icons.check_circle, Colors.green),
+          _buildStatRow(S.of(context).partiallyRented, '$partiallyRented', Icons.pause_circle, Colors.orange),
+          _buildStatRow(S.of(context).notRented, '$notRented', Icons.cancel, Colors.red),
+          
+          const Divider(height: 12),
+          
+          // Répartition par pays (top 3)
+          Text(S.of(context).country, style: TextStyle(fontWeight: FontWeight.w500, fontSize: 11 + appState.getTextSizeOffset())),
+          const SizedBox(height: 6),
+          ...() {
+            final sortedEntries = countryDistribution.entries.toList()
+              ..sort((a, b) => b.value.compareTo(a.value));
+            return sortedEntries
+                .take(3)
+                .map((entry) => _buildStatRow(entry.key, '${entry.value}', Icons.flag, Colors.indigo))
+                .toList();
+          }(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatRow(String label, String value, IconData icon, Color iconColor) {
+    final appState = Provider.of<AppState>(context, listen: false);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 1),
+      child: Row(
+        children: [
+          Icon(icon, size: 12 + appState.getTextSizeOffset(), color: iconColor),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Text(label, style: TextStyle(fontSize: 10 + appState.getTextSizeOffset())),
+          ),
+          Text(value, style: TextStyle(fontSize: 10 + appState.getTextSizeOffset(), fontWeight: FontWeight.bold)),
+        ],
+      ),
+    );
+  }
+
+  String _getWhitelistDescription(DataManager dataManager) {
+    if (_showWhitelistedTokens) {
+      final baseTokens = _showAllTokens ? dataManager.allTokens : dataManager.portfolio;
+      final whitelistedCount = baseTokens.where((token) => 
+        dataManager.whitelistTokens.any((w) => w['token'].toLowerCase() == token['uuid'].toLowerCase())
+      ).length;
+      return '$whitelistedCount ${S.of(context).properties.toLowerCase()} whitelistées';
+    } else {
+      final baseCount = _showAllTokens ? dataManager.allTokens.length : dataManager.portfolio.length;
+      return '$baseCount ${S.of(context).properties.toLowerCase()} disponibles';
+    }
+  }
+
+  String _getCurrentModeDescription() {
+    if (_showAllTokens && _showWhitelistedTokens) {
+      return '🌍 ${S.of(context).properties} whitelistées (${S.of(context).portfolioGlobal})';
+    } else if (_showAllTokens && !_showWhitelistedTokens) {
+      return '🌍 Toutes les ${S.of(context).properties.toLowerCase()}';
+    } else if (!_showAllTokens && _showWhitelistedTokens) {
+      return '💼 Mes ${S.of(context).properties.toLowerCase()} whitelistées';
+    } else {
+      return '💼 ${S.of(context).portfolio}';
+    }
+  }
+
+  void _showHelpDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Row(
+            children: [
+              Icon(Icons.help_outline, color: Theme.of(context).primaryColor),
+              const SizedBox(width: 8),
+              Text('Guide des modes d\'affichage'),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('Les 4 modes disponibles :', style: TextStyle(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 12),
+                
+                _buildHelpRow('💼 ${S.of(context).portfolio}', 'Affiche uniquement vos ${S.of(context).properties.toLowerCase()}', 'OFF + OFF'),
+                const Divider(),
+                _buildHelpRow('💼 Mes ${S.of(context).properties.toLowerCase()} whitelistées', 'Vos ${S.of(context).properties.toLowerCase()} dans la whitelist', 'OFF + ON'),
+                const Divider(),
+                _buildHelpRow('🌍 Toutes les ${S.of(context).properties.toLowerCase()}', 'Toutes les ${S.of(context).properties.toLowerCase()} du marché', 'ON + OFF'),
+                const Divider(),
+                _buildHelpRow('🌍 ${S.of(context).properties} whitelistées globales', 'Toutes les ${S.of(context).properties.toLowerCase()} whitelistées', 'ON + ON'),
+                
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('💡 Conseils :', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue)),
+                      const SizedBox(height: 4),
+                      Text('• Utilisez les filtres pour affiner l\'analyse', style: TextStyle(fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
+                      Text('• Cliquez sur Stats pour voir les métriques', style: TextStyle(fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
+                      Text('• Les clusters montrent nombre + APY moyen', style: TextStyle(fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(S.of(context).close),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildHelpRow(String title, String description, String switches) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title, style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
+          const SizedBox(height: 2),
+          Text(description, style: TextStyle(fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(), color: Colors.grey[600])),
+          const SizedBox(height: 2),
+          Text('Switches: $switches', style: TextStyle(fontSize: 10 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(), color: Colors.grey[500], fontStyle: FontStyle.italic)),
+        ],
+      ),
     );
   }
 }

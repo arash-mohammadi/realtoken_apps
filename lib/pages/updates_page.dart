@@ -55,7 +55,7 @@ class _UpdatesPageState extends State<UpdatesPage> {
             S.of(context).recentUpdatesTitle,
             style: TextStyle(
               fontWeight: FontWeight.w600,
-              fontSize: 17 + appState.getTextSizeOffset(),
+              fontSize: 17 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
             ),
           ),
         ),
@@ -71,9 +71,9 @@ class _UpdatesPageState extends State<UpdatesPage> {
               const SizedBox(height: 20),
               Text(
                 S.of(context).noRecentUpdates,
-                style: const TextStyle(
+                style: TextStyle(
                   color: CupertinoColors.systemGrey,
-                  fontSize: 17,
+                  fontSize: 17 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                   fontWeight: FontWeight.w400,
                 ),
               ),
@@ -119,7 +119,7 @@ class _UpdatesPageState extends State<UpdatesPage> {
           S.of(context).recentUpdatesTitle,
           style: TextStyle(
             fontWeight: FontWeight.w600,
-            fontSize: 17 + appState.getTextSizeOffset(),
+            fontSize: 17,
           ),
         ),
       ),
@@ -146,7 +146,7 @@ class _UpdatesPageState extends State<UpdatesPage> {
                       Text(
                         S.of(context).portfolio,
                         style: TextStyle(
-                          fontSize: 16 + appState.getTextSizeOffset(),
+                          fontSize: 16,
                           fontWeight: FontWeight.w500,
                           color: CupertinoColors.label.resolveFrom(context),
                         ),
@@ -198,7 +198,7 @@ class _UpdatesPageState extends State<UpdatesPage> {
                             child: Text(
                               dateKey,
                               style: TextStyle(
-                                fontSize: 17 + appState.getTextSizeOffset(),
+                                fontSize: 17,
                                 fontWeight: FontWeight.w600,
                                 color: CupertinoColors.secondaryLabel.resolveFrom(context),
                                 letterSpacing: -0.5,
@@ -291,7 +291,7 @@ class _UpdatesPageState extends State<UpdatesPage> {
                                             Text(
                                               tokenName,
                                               style: TextStyle(
-                                                fontSize: 18 + appState.getTextSizeOffset(),
+                                                fontSize: 18,
                                                 fontWeight: FontWeight.bold,
                                                 color: CupertinoColors.label.resolveFrom(context),
                                                 letterSpacing: -0.5,
@@ -317,7 +317,7 @@ class _UpdatesPageState extends State<UpdatesPage> {
                                                   Text(
                                                     update['formattedKey'],
                                                     style: TextStyle(
-                                                      fontSize: 15 + appState.getTextSizeOffset(),
+                                                      fontSize: 15,
                                                       fontWeight: FontWeight.w600,
                                                       color: CupertinoColors.systemBlue,
                                                       letterSpacing: -0.3,
@@ -329,7 +329,7 @@ class _UpdatesPageState extends State<UpdatesPage> {
                                                       Text(
                                                         update['formattedOldValue'],
                                                         style: TextStyle(
-                                                          fontSize: 14 + appState.getTextSizeOffset(),
+                                                          fontSize: 14,
                                                           decoration: TextDecoration.lineThrough,
                                                           color: CupertinoColors.systemGrey,
                                                         ),
@@ -351,7 +351,7 @@ class _UpdatesPageState extends State<UpdatesPage> {
                                                       Text(
                                                         update['formattedNewValue'],
                                                         style: TextStyle(
-                                                          fontSize: 15 + appState.getTextSizeOffset(),
+                                                          fontSize: 15,
                                                           fontWeight: FontWeight.w600,
                                                           color: CupertinoColors.label.resolveFrom(context),
                                                         ),

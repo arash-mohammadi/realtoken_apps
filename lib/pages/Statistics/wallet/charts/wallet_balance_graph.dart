@@ -210,7 +210,7 @@ class _WalletBalanceGraphState extends State<WalletBalanceGraph> {
                       Text(
                         S.of(context).editWalletBalance,
                         style: TextStyle(
-                          fontSize: 20,
+                          fontSize: 20 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                           fontWeight: FontWeight.bold,
                         ),
                       ),

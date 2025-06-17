@@ -246,7 +246,7 @@ class ManageEvmAddressesPageState extends State<ManageEvmAddressesPage> {
                     child: Text(
                       'Save Address',
                       style: TextStyle(
-                        fontSize: 15 + appState.getTextSizeOffset(),
+                        fontSize: 15,
                         color: Colors.white,
                       ),
                     ),
@@ -299,7 +299,7 @@ class ManageEvmAddressesPageState extends State<ManageEvmAddressesPage> {
           const SizedBox(width: 6),
           Text(
             title.toUpperCase(),
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w500,
               color: Colors.grey,
@@ -339,7 +339,7 @@ class ManageEvmAddressesPageState extends State<ManageEvmAddressesPage> {
               child: Text(
                 address,
                 style: TextStyle(
-                  fontSize: 14 + appState.getTextSizeOffset(),
+                  fontSize: 14,
                 ),
                 overflow: TextOverflow.ellipsis,
               ),
@@ -415,7 +415,7 @@ class ManageEvmAddressesPageState extends State<ManageEvmAddressesPage> {
                     Text(
                       'User ID: $userId',
                       style: TextStyle(
-                        fontSize: 15 + appState.getTextSizeOffset(),
+                        fontSize: 15,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -447,7 +447,7 @@ class ManageEvmAddressesPageState extends State<ManageEvmAddressesPage> {
                         child: Text(
                           addresses[i],
                           style: TextStyle(
-                            fontSize: 14 + appState.getTextSizeOffset(),
+                            fontSize: 14,
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),

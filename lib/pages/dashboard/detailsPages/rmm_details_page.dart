@@ -60,7 +60,7 @@ class RmmWalletDetailsPage extends StatelessWidget {
         backgroundColor: Colors.transparent,
         title: Text(
           S.of(context).rmmDetails,
-          style: const TextStyle(
+          style: TextStyle(
             fontWeight: FontWeight.w600,
             fontSize: 18,
           ),
@@ -168,7 +168,7 @@ class _WalletDetailCard extends StatelessWidget {
                     Text(
                       TextUtils.truncateWallet(address),
                       style: TextStyle(
-                        fontSize: 15 + appState.getTextSizeOffset(),
+                        fontSize: 15 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                         fontWeight: FontWeight.w600,
                         letterSpacing: -0.5,
                         color: Theme.of(context).primaryColor,
@@ -292,7 +292,7 @@ class _WalletDetailCard extends StatelessWidget {
           Text(
             title,
             style: TextStyle(
-              fontSize: 14 + appState.getTextSizeOffset(),
+              fontSize: 14,
               fontWeight: FontWeight.w600,
               color: Theme.of(context).textTheme.bodyMedium?.color,
             ),
@@ -384,7 +384,7 @@ class _WalletDetailCard extends StatelessWidget {
               Text(
                 'HF',
                 style: TextStyle(
-                  fontSize: 15 + appState.getTextSizeOffset(),
+                  fontSize: 15,
                   fontWeight: FontWeight.bold,
                   letterSpacing: -0.3,
                   color: theme.textTheme.bodyMedium?.color,
@@ -444,7 +444,7 @@ class _WalletDetailCard extends StatelessWidget {
                 child: Text(
                   hf.toStringAsFixed(1),
                   style: TextStyle(
-                    fontSize: 12 + appState.getTextSizeOffset(),
+                    fontSize: 12,
                     fontWeight: FontWeight.bold,
                     color: hfGaugeColor,
                   ),
@@ -460,7 +460,7 @@ class _WalletDetailCard extends StatelessWidget {
               Text(
                 'LTV',
                 style: TextStyle(
-                  fontSize: 15 + appState.getTextSizeOffset(),
+                  fontSize: 15,
                   fontWeight: FontWeight.bold,
                   letterSpacing: -0.3,
                   color: theme.textTheme.bodyMedium?.color,
@@ -520,7 +520,7 @@ class _WalletDetailCard extends StatelessWidget {
                 child: Text(
                   '${ltvPercent.toStringAsFixed(0)}%',
                   style: TextStyle(
-                    fontSize: 12 + appState.getTextSizeOffset(),
+                    fontSize: 12,
                     fontWeight: FontWeight.bold,
                     color: ltvGaugeColor,
                   ),
@@ -580,7 +580,7 @@ class _NoUsageWalletsCard extends StatelessWidget {
                 Text(
                   S.of(context).walletsWithoutRmmUsage,
                   style: TextStyle(
-                    fontSize: 16 + appState.getTextSizeOffset(),
+                    fontSize: 16 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                     fontWeight: FontWeight.w600,
                     color: Theme.of(context).textTheme.bodyLarge?.color,
                   ),
@@ -612,7 +612,7 @@ class _NoUsageWalletsCard extends StatelessWidget {
                               Text(
                                 appState.showAmounts ? address : TextUtils.truncateWallet(address),
                                 style: TextStyle(
-                                  fontSize: 14 + appState.getTextSizeOffset(),
+                                  fontSize: 14 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                                   color: Theme.of(context).textTheme.bodyMedium?.color,
                                 ),
                               ),

@@ -51,7 +51,7 @@ class NextRondaysCard extends StatelessWidget {
         child: Text(
           S.of(context).noScheduledRonday,
           style: TextStyle(
-            fontSize: 14,
+            fontSize: 14 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
             fontWeight: FontWeight.w500,
             letterSpacing: -0.3,
             color: theme.textTheme.bodyLarge?.color,
@@ -85,7 +85,7 @@ class NextRondaysCard extends StatelessWidget {
               Text(
                 S.of(context).nextRondayInDays(daysRemaining),
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: 14 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                   fontWeight: FontWeight.w600,
                   letterSpacing: -0.3,
                   color: theme.textTheme.bodyLarge?.color,
@@ -95,7 +95,7 @@ class NextRondaysCard extends StatelessWidget {
               Text(
                 "${DateFormat('dd MMM yyyy').format(nextDate)} · ${currencyUtils.getFormattedAmount(currencyUtils.convert(nextAmount), currencyUtils.currencySymbol, showAmounts)}",
                 style: TextStyle(
-                  fontSize: 13,
+                  fontSize: 13 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                   fontWeight: FontWeight.w400,
                   letterSpacing: -0.3,
                   color: theme.brightness == Brightness.light ? Colors.black54 : Colors.white70,
@@ -185,7 +185,7 @@ class NextRondaysCard extends StatelessWidget {
                       child: Text(
                         graphData[value.toInt()]['date'],
                         style: TextStyle(
-                          fontSize: 9,
+                          fontSize: 9 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                           color: theme.brightness == Brightness.light ? Colors.black54 : Colors.white70,
                           letterSpacing: -0.5,
                         ),
@@ -227,7 +227,7 @@ class NextRondaysCard extends StatelessWidget {
                       TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
-                        fontSize: 10,
+                        fontSize: 10 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                       ),
                     );
                   }
@@ -287,7 +287,7 @@ class NextRondaysCard extends StatelessWidget {
             Text(
               S.of(context).calendar,
               style: TextStyle(
-                fontSize: 13,
+                fontSize: 13 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                 fontWeight: FontWeight.w600,
                 letterSpacing: -0.3,
                 color: theme.textTheme.titleMedium?.color,
@@ -338,7 +338,7 @@ class NextRondaysCard extends StatelessWidget {
                   Text(
                     displayDate,
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: 13 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                       letterSpacing: -0.3,
                       color: theme.textTheme.bodyMedium?.color,
                       fontWeight: FontWeight.w500,
@@ -348,7 +348,7 @@ class NextRondaysCard extends StatelessWidget {
                   Text(
                     S.of(context).daysShort(daysRemaining),
                     style: TextStyle(
-                      fontSize: 11,
+                      fontSize: 11 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                       letterSpacing: -0.3,
                       color: theme.brightness == Brightness.light ? Colors.black38 : Colors.white54,
                     ),
@@ -358,7 +358,7 @@ class NextRondaysCard extends StatelessWidget {
               Text(
                 currencyUtils.getFormattedAmount(currencyUtils.convert(entry['cumulativeRent']), currencyUtils.currencySymbol, showAmounts),
                 style: TextStyle(
-                  fontSize: 13,
+                  fontSize: 13 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                   fontWeight: FontWeight.w600,
                   letterSpacing: -0.3,
                   color: theme.textTheme.bodyLarge?.color,

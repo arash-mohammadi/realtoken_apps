@@ -381,7 +381,7 @@ class AgendaCalendarState extends State<AgendaCalendar> {
                 Text(
                   "${_selectedDay.day}/${_selectedDay.month}/${_selectedDay.year}",
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: 16 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                     fontWeight: FontWeight.w600,
                     color: CupertinoColors.label.resolveFrom(context),
                   ),
@@ -390,7 +390,7 @@ class AgendaCalendarState extends State<AgendaCalendar> {
                 Text(
                   _getFormattedDay(_selectedDay),
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: 14 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                     color: CupertinoColors.secondaryLabel.resolveFrom(context),
                   ),
                 ),
@@ -472,7 +472,7 @@ class AgendaCalendarState extends State<AgendaCalendar> {
           color: CupertinoColors.systemBlue.resolveFrom(context)
         ),
         titleTextStyle: TextStyle(
-          fontSize: 18,
+          fontSize: 18 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
           fontWeight: FontWeight.w600,
           color: CupertinoColors.label.resolveFrom(context),
         ),
@@ -507,12 +507,12 @@ class AgendaCalendarState extends State<AgendaCalendar> {
       ),
       daysOfWeekStyle: DaysOfWeekStyle(
         weekdayStyle: TextStyle(
-          fontSize: 14,
+          fontSize: 14 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
           color: CupertinoColors.secondaryLabel.resolveFrom(context),
           fontWeight: FontWeight.w500,
         ),
         weekendStyle: TextStyle(
-          fontSize: 14,
+          fontSize: 14 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
           color: CupertinoColors.systemGrey.resolveFrom(context),
           fontWeight: FontWeight.w500,
         ),

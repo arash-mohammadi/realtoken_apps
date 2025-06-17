@@ -60,7 +60,7 @@ class _PropertiesForSaleRealtState extends State<PropertiesForSaleRealt> {
                   child: Center(
                     child: Text(
                       "${rentValue.toStringAsFixed(1)}%",
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w600,
                         color: CupertinoColors.white,
@@ -90,7 +90,7 @@ class _PropertiesForSaleRealtState extends State<PropertiesForSaleRealt> {
               child: Text(
                 S.of(context).noPropertiesForSale,
                 style: TextStyle(
-                  fontSize: 16 + appState.getTextSizeOffset(),
+                  fontSize: 16 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -168,7 +168,7 @@ class _PropertiesForSaleRealtState extends State<PropertiesForSaleRealt> {
                                     status,
                                     style: TextStyle(
                                       color: CupertinoColors.white,
-                                      fontSize: 12 + appState.getTextSizeOffset(),
+                                      fontSize: 12,
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),
@@ -214,7 +214,7 @@ class _PropertiesForSaleRealtState extends State<PropertiesForSaleRealt> {
                                       child: Text(
                                         title,
                                         style: TextStyle(
-                                          fontSize: 18 + appState.getTextSizeOffset(),
+                                          fontSize: 18,
                                           fontWeight: FontWeight.w600,
                                           color: Theme.of(context).textTheme.bodyLarge?.color,
                                           letterSpacing: -0.5,
@@ -237,7 +237,7 @@ class _PropertiesForSaleRealtState extends State<PropertiesForSaleRealt> {
                                     Text(
                                       city,
                                       style: TextStyle(
-                                        fontSize: 14 + appState.getTextSizeOffset(),
+                                        fontSize: 14,
                                         color: Theme.of(context).textTheme.bodyMedium?.color,
                                         fontWeight: FontWeight.w500,
                                       ),
@@ -257,7 +257,7 @@ class _PropertiesForSaleRealtState extends State<PropertiesForSaleRealt> {
                                           Text(
                                             'Stock',
                                             style: TextStyle(
-                                              fontSize: 12 + appState.getTextSizeOffset(),
+                                              fontSize: 12,
                                               color: Theme.of(context).textTheme.bodyMedium?.color,
                                               fontWeight: FontWeight.w500,
                                             ),
@@ -266,7 +266,7 @@ class _PropertiesForSaleRealtState extends State<PropertiesForSaleRealt> {
                                           Text(
                                             '${stock.toInt()} / ${totalTokens.toInt()}',
                                             style: TextStyle(
-                                              fontSize: 14 + appState.getTextSizeOffset(),
+                                              fontSize: 14,
                                               color: Theme.of(context).textTheme.bodyLarge?.color,
                                               fontWeight: FontWeight.w600,
                                             ),
@@ -281,7 +281,7 @@ class _PropertiesForSaleRealtState extends State<PropertiesForSaleRealt> {
                                           Text(
                                             'Prix',
                                             style: TextStyle(
-                                              fontSize: 12 + appState.getTextSizeOffset(),
+                                              fontSize: 12,
                                               color: Theme.of(context).textTheme.bodyMedium?.color,
                                               fontWeight: FontWeight.w500,
                                             ),
@@ -290,7 +290,7 @@ class _PropertiesForSaleRealtState extends State<PropertiesForSaleRealt> {
                                           Text(
                                             currencyUtils.formatCurrency(tokenPrice, currencyUtils.currencySymbol),
                                             style: TextStyle(
-                                              fontSize: 14 + appState.getTextSizeOffset(),
+                                              fontSize: 14,
                                               color: Theme.of(context).textTheme.bodyLarge?.color,
                                               fontWeight: FontWeight.w600,
                                             ),
@@ -305,7 +305,7 @@ class _PropertiesForSaleRealtState extends State<PropertiesForSaleRealt> {
                                           Text(
                                             'Rendement',
                                             style: TextStyle(
-                                              fontSize: 12 + appState.getTextSizeOffset(),
+                                              fontSize: 12,
                                               color: Theme.of(context).textTheme.bodyMedium?.color,
                                               fontWeight: FontWeight.w500,
                                             ),
@@ -314,7 +314,7 @@ class _PropertiesForSaleRealtState extends State<PropertiesForSaleRealt> {
                                           Text(
                                             '${annualPercentageYield.toStringAsFixed(2)}%',
                                             style: TextStyle(
-                                              fontSize: 14 + appState.getTextSizeOffset(),
+                                              fontSize: 14,
                                               color: CupertinoColors.activeGreen,
                                               fontWeight: FontWeight.w600,
                                             ),
@@ -340,7 +340,7 @@ class _PropertiesForSaleRealtState extends State<PropertiesForSaleRealt> {
                                       'Acheter cette propriété',
                                       style: TextStyle(
                                         color: CupertinoColors.white,
-                                        fontSize: 15 + appState.getTextSizeOffset(),
+                                        fontSize: 15,
                                         fontWeight: FontWeight.w600,
                                       ),
                                     ),

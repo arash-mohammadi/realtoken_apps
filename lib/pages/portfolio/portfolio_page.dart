@@ -12,6 +12,7 @@ import 'package:realtoken_asset_tracker/generated/l10n.dart'; // Import pour les
 import 'package:realtoken_asset_tracker/utils/parameters.dart';
 import 'package:realtoken_asset_tracker/utils/location_utils.dart';
 import 'package:realtoken_asset_tracker/components/filter_widgets.dart';
+import 'package:realtoken_asset_tracker/app_state.dart';
 
 class PortfolioPage extends StatefulWidget {
   const PortfolioPage({super.key});
@@ -425,12 +426,12 @@ class PortfolioPageState extends State<PortfolioPage> {
                                                     onChanged: (value) {
                                                       _updateSearchQuery(value);
                                                     },
-                                                    style: const TextStyle(fontSize: 14),
+                                                    style: TextStyle(fontSize: 14 + Provider.of<AppState>(context, listen: false).getTextSizeOffset()),
                                                     decoration: InputDecoration(
                                                       isDense: true,
                                                       hintText: S.of(context).searchHint,
                                                       hintStyle: TextStyle(
-                                                        fontSize: 14,
+                                                        fontSize: 14 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                                                         color: Theme.of(context).textTheme.bodySmall?.color,
                                                       ),
                                                       border: InputBorder.none,

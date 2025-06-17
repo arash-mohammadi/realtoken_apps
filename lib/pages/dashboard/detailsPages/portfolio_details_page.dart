@@ -60,7 +60,7 @@ class PortfolioDetailsPage extends StatelessWidget {
         backgroundColor: Colors.transparent,
         title: Text(
           S.of(context).portfolio,
-          style: const TextStyle(
+          style: TextStyle(
             fontWeight: FontWeight.w600,
             fontSize: 18,
           ),
@@ -138,7 +138,7 @@ class PortfolioDetailsPage extends StatelessWidget {
                 Text(
                   S.of(context).portfolioGlobal,
                   style: TextStyle(
-                    fontSize: 20 + appState.getTextSizeOffset(),
+                    fontSize: 20,
                     fontWeight: FontWeight.w700,
                     color: Colors.white,
                   ),
@@ -307,7 +307,7 @@ class PortfolioDetailsPage extends StatelessWidget {
                     Text(
                       _truncateWallet(address),
                       style: TextStyle(
-                        fontSize: 15 + appState.getTextSizeOffset(),
+                        fontSize: 15,
                         fontWeight: FontWeight.w600,
                         letterSpacing: -0.5,
                         color: theme.primaryColor,
@@ -407,7 +407,7 @@ class PortfolioDetailsPage extends StatelessWidget {
                   Text(
                     "Statistiques des Tokens",
                     style: TextStyle(
-                      fontSize: 14 + appState.getTextSizeOffset(),
+                      fontSize: 14,
                       fontWeight: FontWeight.w600,
                       color: theme.textTheme.bodyMedium?.color,
                     ),
@@ -484,7 +484,7 @@ class PortfolioDetailsPage extends StatelessWidget {
                   Text(
                     "Soldes de Dépôt et Emprunt",
                     style: TextStyle(
-                      fontSize: 14 + appState.getTextSizeOffset(),
+                      fontSize: 14,
                       fontWeight: FontWeight.w600,
                       color: theme.textTheme.bodyMedium?.color,
                     ),
@@ -621,7 +621,7 @@ class PortfolioDetailsPage extends StatelessWidget {
             Text(
               value,
               style: TextStyle(
-                fontSize: 14 + appState.getTextSizeOffset(),
+                fontSize: 14,
                 fontWeight: FontWeight.w600,
                 color: isWhite ? Colors.white : theme.textTheme.bodyLarge?.color,
               ),
@@ -629,7 +629,7 @@ class PortfolioDetailsPage extends StatelessWidget {
             Text(
               label,
               style: TextStyle(
-                fontSize: 12 + appState.getTextSizeOffset(),
+                fontSize: 12,
                 color: isWhite ? Colors.white70 : theme.textTheme.bodyMedium?.color,
               ),
             ),

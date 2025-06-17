@@ -257,7 +257,7 @@ class PortfolioCard extends StatelessWidget {
                       child: Text(
                         formattedAmount,
                         style: TextStyle(
-                          fontSize: 18,
+                          fontSize: 18 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                           fontWeight: FontWeight.bold,
                           letterSpacing: -0.5,
                           color: theme.primaryColor,
@@ -268,7 +268,7 @@ class PortfolioCard extends StatelessWidget {
                   : Text(
                       formattedAmount,
                       style: TextStyle(
-                        fontSize: 18,
+                        fontSize: 18 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                         fontWeight: FontWeight.bold,
                         letterSpacing: -0.5,
                         color: theme.primaryColor,
@@ -285,7 +285,7 @@ class PortfolioCard extends StatelessWidget {
                   child: Text(
                     "net",
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                       fontWeight: FontWeight.w500,
                       color: theme.primaryColor,
                     ),
@@ -302,7 +302,7 @@ class PortfolioCard extends StatelessWidget {
                 Text(
                   grossFormattedAmount,
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: 14 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                     fontWeight: FontWeight.w500,
                     letterSpacing: -0.3,
                     color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
@@ -318,7 +318,7 @@ class PortfolioCard extends StatelessWidget {
                   child: Text(
                     "brut",
                     style: TextStyle(
-                      fontSize: 11,
+                      fontSize: 11 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                       fontWeight: FontWeight.w500,
                       color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
                     ),
@@ -341,7 +341,7 @@ class PortfolioCard extends StatelessWidget {
                   child: Text(
                     formattedAmount,
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: 14 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                       fontWeight: FontWeight.w500,
                       letterSpacing: -0.3,
                       color: theme.textTheme.bodyMedium?.color,
@@ -352,7 +352,7 @@ class PortfolioCard extends StatelessWidget {
               : Text(
                   formattedAmount,
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: 14 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                     fontWeight: FontWeight.w500,
                     letterSpacing: -0.3,
                     color: theme.textTheme.bodyMedium?.color,
@@ -362,7 +362,7 @@ class PortfolioCard extends StatelessWidget {
           Text(
             label,
             style: TextStyle(
-              fontSize: 12,
+              fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
               letterSpacing: -0.2,
               color: theme.textTheme.bodyMedium?.color?.withOpacity(0.8),
             ),
@@ -393,7 +393,7 @@ class PortfolioCard extends StatelessWidget {
                   child: Text(
                     formattedAmount,
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: 13 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                       fontWeight: FontWeight.w600,
                       letterSpacing: -0.3,
                       color: valueColor,
@@ -404,7 +404,7 @@ class PortfolioCard extends StatelessWidget {
               : Text(
                   formattedAmount,
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: 13 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                     fontWeight: FontWeight.w600,
                     letterSpacing: -0.3,
                     color: valueColor,
@@ -477,7 +477,7 @@ class PortfolioCard extends StatelessWidget {
               Text(
                 'ROI',
                 style: TextStyle(
-                  fontSize: 15,
+                  fontSize: 15 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                   fontWeight: FontWeight.bold,
                   letterSpacing: -0.3,
                   color: theme.textTheme.bodyMedium?.color,
@@ -550,7 +550,7 @@ class PortfolioCard extends StatelessWidget {
             child: Text(
               displayValue >= 3650 ? "∞" : "${displayValue.toStringAsFixed(1)}%",
               style: TextStyle(
-                fontSize: 13,
+                fontSize: 13 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                 fontWeight: FontWeight.bold,
                 color: theme.primaryColor,
               ),

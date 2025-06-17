@@ -25,6 +25,7 @@
   "currency": "Валюта",
   "rwaHoldings": "RWA Holdings SA",
   "properties": "Недвижимость",
+  "tokensInMap": "Токены",
   "rented": "Арендовано",
   "rentedUnitsSimple": "Арендованные единицы",
   "units": "ед.",
