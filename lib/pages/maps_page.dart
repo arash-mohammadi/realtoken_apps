@@ -16,6 +16,8 @@ import 'package:show_network_image/show_network_image.dart';
 import 'package:realtoken_asset_tracker/app_state.dart';
 import 'package:flutter/cupertino.dart';
 import 'dart:math';
+import 'dart:ui' as ui;
+import 'dart:async';
 import 'package:realtoken_asset_tracker/generated/l10n.dart';
 
 class MapsPage extends StatefulWidget {
@@ -58,6 +60,12 @@ class MapsPageState extends State<MapsPage> {
   // Contrôleur pour le panneau de filtres
   bool _showFiltersPanel = false;
 
+  final MapController _mapController = MapController();
+  
+  // Variables pour l'atténuation du mini-dashboard pendant les interactions
+  double _dashboardOpacity = 1.0;
+  Timer? _dashboardTimer;
+
   @override
   void initState() {
     super.initState();
@@ -65,6 +73,12 @@ class MapsPageState extends State<MapsPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<DataManager>(context, listen: false).fetchAndStoreAllTokens();
     });
+  }
+
+  @override
+  void dispose() {
+    _dashboardTimer?.cancel();
+    super.dispose();
   }
 
   // Charger la préférence du thème à partir de SharedPreferences
@@ -79,6 +93,43 @@ class MapsPageState extends State<MapsPage> {
   Future<void> _saveThemePreference() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setBool('forceLightMode', _forceLightMode); // Sauvegarder le mode forcé
+  }
+
+  // Gérer l'atténuation du panneau de contrôle et fermer les panneaux ouverts
+  void _onMapInteraction() {
+    // Annuler le timer précédent s'il existe
+    _dashboardTimer?.cancel();
+    
+    // Fermer les panneaux Statistics et Filtres s'ils sont ouverts
+    bool shouldUpdate = false;
+    if (_showMiniDashboard) {
+      _showMiniDashboard = false;
+      shouldUpdate = true;
+    }
+    if (_showFiltersPanel) {
+      _showFiltersPanel = false;
+      shouldUpdate = true;
+    }
+    
+    // Atténuer immédiatement le panneau de contrôle principal
+    if (_dashboardOpacity == 1.0) {
+      _dashboardOpacity = 0.3;
+      shouldUpdate = true;
+    }
+    
+    // Appliquer les changements si nécessaire
+    if (shouldUpdate) {
+      setState(() {});
+    }
+    
+    // Programmer le retour à l'opacité normale après 2.5 secondes
+    _dashboardTimer = Timer(const Duration(milliseconds: 2500), () {
+      if (mounted) {
+        setState(() {
+          _dashboardOpacity = 1.0;
+        });
+      }
+    });
   }
 
   // Optimise pour éviter les calculs de loyers sur les tokens non possédés
@@ -96,6 +147,44 @@ class MapsPageState extends State<MapsPage> {
     
     // Utiliser les données précalculées pour tous les tokens possédés (Wallet ET RMM)
     return dataManager.cumulativeRentsByToken[tokenUuid.toLowerCase()] ?? 0.0;
+  }
+
+  // Méthode pour zoomer sur un cluster
+  void _zoomToCluster(List<Marker> clusterMarkers) {
+    if (clusterMarkers.isEmpty) return;
+
+    // Calculer les limites géographiques du cluster
+    double minLat = double.infinity;
+    double maxLat = -double.infinity;
+    double minLng = double.infinity;
+    double maxLng = -double.infinity;
+
+    for (var marker in clusterMarkers) {
+      final lat = marker.point.latitude;
+      final lng = marker.point.longitude;
+      
+      minLat = min(minLat, lat);
+      maxLat = max(maxLat, lat);
+      minLng = min(minLng, lng);
+      maxLng = max(maxLng, lng);
+    }
+
+    // Calculer le centre et les limites avec une marge
+    final centerLat = (minLat + maxLat) / 2;
+    final centerLng = (minLng + maxLng) / 2;
+    final latDiff = maxLat - minLat;
+    final lngDiff = maxLng - minLng;
+
+    // Ajouter une marge de 20% autour des limites
+    final margin = 0.2;
+    final boundsSouthWest = LatLng(minLat - latDiff * margin, minLng - lngDiff * margin);
+    final boundsNorthEast = LatLng(maxLat + latDiff * margin, maxLng + lngDiff * margin);
+
+    // Zoomer sur la zone calculée
+    _mapController.fitCamera(CameraFit.bounds(
+      bounds: LatLngBounds(boundsSouthWest, boundsNorthEast),
+      padding: const EdgeInsets.all(50.0),
+    ));
   }
 
   // Méthode pour filtrer et trier les tokens avec critères avancés
@@ -211,61 +300,23 @@ class MapsPageState extends State<MapsPage> {
 
       if (latValue != null && lngValue != null) {
         return Marker(
-          width: 40.0, // Augmentez cette valeur pour une image plus grande
-          height: 40.0, // Augmentez cette valeur pour une image plus grande
+          width: 50.0,
+          height: 60.0, // Plus haut pour accommoder le pointeur
           point: LatLng(latValue, lngValue),
           child: MouseRegion(
             cursor: SystemMouseCursors.click,
-            child: Stack(
-              children: [
-                // ✅ Conteneur avec bordure circulaire
-                Container(
-                  width: 40.0, // Augmentez cette valeur pour une image plus grande
-                  height: 40.0, // Augmentez cette valeur pour une image plus grande
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: UIUtils.getRentalStatusColor(rentedUnits, totalUnits),
-                      width: 3.0,
-                    ),
-                  ),
-                  child: ClipOval(
-                    child: matchingToken['imageLink'] != null
-                        ? kIsWeb
-                            ? ShowNetworkImage(
-                                imageSrc: matchingToken['imageLink'][0],
-                                mobileBoxFit: BoxFit.cover,
-                                mobileWidth: 40,
-                                mobileHeight: 40,
-                              )
-                            : CachedNetworkImage(
-                                imageUrl: matchingToken['imageLink'][0],
-                                fit: BoxFit.cover,
-                                placeholder: (context, url) => const CircularProgressIndicator(),
-                                errorWidget: (context, url, error) => const Icon(
-                                  Icons.error,
-                                  color: Colors.red,
-                                ),
-                              )
-                        : Icon(
-                            Icons.location_on,
-                            color: color,
-                            size: 40.0,
-                          ),
-                  ),
-                ),
-
-                // ✅ Clic capté par ce conteneur transparent superposé
-                Positioned.fill(
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.translucent,
-                    onTap: () {
-                      print("✅ Clic détecté avec bordure !");
-                      _showMarkerPopup(context, matchingToken);
-                    },
-                  ),
-                ),
-              ],
+            child: GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onTap: () {
+                print("✅ Clic détecté sur le pointeur !");
+                _showMarkerPopup(context, matchingToken);
+              },
+              child: _buildMapPointer(
+                matchingToken: matchingToken,
+                color: color,
+                rentedUnits: rentedUnits,
+                totalUnits: totalUnits,
+              ),
             ),
           ),
           key: ValueKey(matchingToken),
@@ -354,10 +405,13 @@ class MapsPageState extends State<MapsPage> {
           Container(
             color: Theme.of(context).scaffoldBackgroundColor, // Définit la couleur de fond pour la carte
             child: FlutterMap(
+              mapController: _mapController,
               options: MapOptions(
                 initialCenter: LatLng(42.367476, -83.130921),
                 initialZoom: 8.0,
                 onTap: (_, __) => _popupController.hideAllPopups(),
+                onPointerDown: (_, __) => _onMapInteraction(),
+                onPointerHover: (_, __) => _onMapInteraction(),
                 interactionOptions: const InteractionOptions(flags: InteractiveFlag.pinchZoom | InteractiveFlag.drag | InteractiveFlag.scrollWheelZoom),
               ),
               children: [
@@ -377,8 +431,8 @@ class MapsPageState extends State<MapsPage> {
                 ),
                 MarkerClusterLayerWidget(
                   options: MarkerClusterLayerOptions(
-                    maxClusterRadius: 40,
-                    disableClusteringAtZoom: 14,
+                    maxClusterRadius: 80,
+                    disableClusteringAtZoom: 11,
                     size: const Size(50, 50),
                     markers: markers,
                     builder: (context, clusterMarkers) {
@@ -388,6 +442,9 @@ class MapsPageState extends State<MapsPage> {
                       
                       return GestureDetector(
                         onTap: () {
+                          _zoomToCluster(clusterMarkers);
+                        },
+                        onLongPress: () {
                           _showClusterPopup(context, clusterStats, clusterMarkers.length, dataManager);
                         },
                         child: Container(
@@ -464,165 +521,169 @@ class MapsPageState extends State<MapsPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Contrôles principaux
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).cardColor.withOpacity(0.9),
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black26,
-                        blurRadius: 4,
-                        offset: Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    children: [
-                      // Indicateur de mode actuel
-                      Container(
-                        constraints: BoxConstraints(maxWidth: 200),
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).primaryColor.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(6),
-                          border: Border.all(color: Theme.of(context).primaryColor.withOpacity(0.3)),
+                // Contrôles principaux avec animation d'opacité
+                AnimatedOpacity(
+                  opacity: _dashboardOpacity,
+                  duration: const Duration(milliseconds: 300),
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).cardColor.withOpacity(0.9),
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black26,
+                          blurRadius: 4,
+                          offset: Offset(0, 2),
                         ),
-                        child: Text(
-                          _getCurrentModeDescription(),
-                          style: TextStyle(
-                            fontSize: 10 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
-                            fontWeight: FontWeight.w600,
-                            color: Theme.of(context).primaryColor,
+                      ],
+                    ),
+                    child: Column(
+                      children: [
+                        // Indicateur de mode actuel
+                        Container(
+                          constraints: BoxConstraints(maxWidth: 200),
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).primaryColor.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: Theme.of(context).primaryColor.withOpacity(0.3)),
                           ),
-                          textAlign: TextAlign.center,
+                          child: Text(
+                            _getCurrentModeDescription(),
+                            style: TextStyle(
+                              fontSize: 13 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
+                              fontWeight: FontWeight.w600,
+                              color: Theme.of(context).primaryColor,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 6),
-                      
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Switch pour Portfolio / All Tokens avec indicateurs
-                          Row(
-                            children: [
-                              Transform.scale(
-                                scale: 0.7,
-                                child: CupertinoSwitch(
-                                  value: _showAllTokens,
-                                  onChanged: (value) {
-                                    setState(() {
-                                      _showAllTokens = value;
-                                    });
-                                  },
-                                  activeColor: Theme.of(context).primaryColor,
-                                  trackColor: Colors.grey.shade300,
+                        const SizedBox(height: 6),
+                        
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Switch pour Portfolio / All Tokens avec indicateurs
+                            Row(
+                              children: [
+                                Transform.scale(
+                                  scale: 0.7,
+                                  child: CupertinoSwitch(
+                                    value: _showAllTokens,
+                                    onChanged: (value) {
+                                      setState(() {
+                                        _showAllTokens = value;
+                                      });
+                                    },
+                                    activeColor: Theme.of(context).primaryColor,
+                                    trackColor: Colors.grey.shade300,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(width: 4),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    _showAllTokens ? S.of(context).portfolioGlobal : S.of(context).portfolio,
-                                    style: TextStyle(fontSize: 10 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(), fontWeight: FontWeight.w600, height: 1.1),
-                                  ),
-                                  Text(
-                                    _showAllTokens ? '${dataManager.allTokens.length} ${S.of(context).tokens}' : '${dataManager.portfolio.length} ${S.of(context).tokens}',
-                                    style: TextStyle(fontSize: 8 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(), color: Colors.grey[600], height: 1.1),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 2),
-                          
-                          // Switch pour whitelist avec indicateurs
-                          Row(
-                            children: [
-                              Transform.scale(
-                                scale: 0.7,
-                                child: CupertinoSwitch(
-                                  value: _showWhitelistedTokens,
-                                  onChanged: (value) {
-                                    setState(() {
-                                      _showWhitelistedTokens = value;
-                                    });
-                                  },
-                                  activeColor: Theme.of(context).primaryColor,
-                                  trackColor: Colors.grey.shade300,
+                                const SizedBox(width: 4),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      _showAllTokens ? S.of(context).portfolioGlobal : S.of(context).portfolio,
+                                      style: TextStyle(fontSize: 13 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(), fontWeight: FontWeight.w600, height: 1.1),
+                                    ),
+                                    Text(
+                                      _showAllTokens ? '${dataManager.allTokens.length} ${S.of(context).tokens}' : '${dataManager.portfolio.length} ${S.of(context).tokens}',
+                                      style: TextStyle(fontSize: 11 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(), color: Colors.grey[600], height: 1.1),
+                                    ),
+                                  ],
                                 ),
-                              ),
-                              const SizedBox(width: 4),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    _showWhitelistedTokens ? S.of(context).showOnlyWhitelisted : S.of(context).tokens,
-                                    style: TextStyle(fontSize: 10 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(), fontWeight: FontWeight.w600, height: 1.1),
+                              ],
+                            ),
+                            const SizedBox(height: 2),
+                            
+                            // Switch pour whitelist avec indicateurs
+                            Row(
+                              children: [
+                                Transform.scale(
+                                  scale: 0.7,
+                                  child: CupertinoSwitch(
+                                    value: _showWhitelistedTokens,
+                                    onChanged: (value) {
+                                      setState(() {
+                                        _showWhitelistedTokens = value;
+                                      });
+                                    },
+                                    activeColor: Theme.of(context).primaryColor,
+                                    trackColor: Colors.grey.shade300,
                                   ),
-                                  Text(
-                                    _getWhitelistDescription(dataManager),
-                                    style: TextStyle(fontSize: 8 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(), color: Colors.grey[600], height: 1.1),
-                                  ),
-                                ],
+                                ),
+                                const SizedBox(width: 4),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      _showWhitelistedTokens ? S.of(context).showOnlyWhitelisted : S.of(context).showAll,
+                                      style: TextStyle(fontSize: 13 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(), fontWeight: FontWeight.w600, height: 1.1),
+                                    ),
+                                    Text(
+                                      _getWhitelistDescription(dataManager),
+                                      style: TextStyle(fontSize: 11 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(), color: Colors.grey[600], height: 1.1),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 3),
+                        // Boutons de contrôle avancés
+                        Row(
+                          children: [
+                            ElevatedButton.icon(
+                              icon: Icon(Icons.filter_list, size: 16),
+                              label: Text(S.of(context).filterOptions, style: TextStyle(fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
+                              onPressed: () {
+                                setState(() {
+                                  _showFiltersPanel = !_showFiltersPanel;
+                                });
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: _showFiltersPanel ? Theme.of(context).primaryColor : Colors.grey.shade400,
+                                foregroundColor: Colors.white,
+                                minimumSize: Size(55, 26),
+                                padding: EdgeInsets.symmetric(horizontal: 6, vertical: 3),
                               ),
-                            ],
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 3),
-                      // Boutons de contrôle avancés
-                      Row(
-                        children: [
-                          ElevatedButton.icon(
-                            icon: Icon(Icons.filter_list, size: 14),
-                            label: Text(S.of(context).filterOptions, style: TextStyle(fontSize: 10 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
-                             onPressed: () {
-                               setState(() {
-                                 _showFiltersPanel = !_showFiltersPanel;
-                               });
-                             },
-                             style: ElevatedButton.styleFrom(
-                               backgroundColor: _showFiltersPanel ? Theme.of(context).primaryColor : Colors.grey.shade400,
-                               foregroundColor: Colors.white,
-                               minimumSize: Size(55, 26),
-                               padding: EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                             ),
-                           ),
-                           const SizedBox(width: 6),
-                           ElevatedButton.icon(
-                             icon: Icon(Icons.dashboard, size: 14),
-                             label: Text(S.of(context).statistics, style: TextStyle(fontSize: 10 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
-                             onPressed: () {
-                               setState(() {
-                                 _showMiniDashboard = !_showMiniDashboard;
-                               });
-                             },
-                             style: ElevatedButton.styleFrom(
-                               backgroundColor: _showMiniDashboard ? Theme.of(context).primaryColor : Colors.grey.shade400,
-                               foregroundColor: Colors.white,
-                               minimumSize: Size(55, 26),
-                               padding: EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                             ),
-                           ),
-                           const SizedBox(width: 6),
-                           // Bouton d'aide
-                           IconButton(
-                             icon: Icon(Icons.help_outline, size: 14),
-                             onPressed: () => _showHelpDialog(context),
-                             style: IconButton.styleFrom(
-                               backgroundColor: Colors.blue.shade100,
-                               foregroundColor: Colors.blue.shade700,
-                               minimumSize: Size(26, 26),
-                             ),
-                           ),
-                         ],
-                       ),
-                    ],
+                            ),
+                            const SizedBox(width: 6),
+                            ElevatedButton.icon(
+                              icon: Icon(Icons.dashboard, size: 16),
+                              label: Text(S.of(context).statistics, style: TextStyle(fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
+                              onPressed: () {
+                                setState(() {
+                                  _showMiniDashboard = !_showMiniDashboard;
+                                });
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: _showMiniDashboard ? Theme.of(context).primaryColor : Colors.grey.shade400,
+                                foregroundColor: Colors.white,
+                                minimumSize: Size(55, 26),
+                                padding: EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            // Bouton d'aide
+                            IconButton(
+                              icon: Icon(Icons.help_outline, size: 16),
+                              onPressed: () => _showHelpDialog(context),
+                              style: IconButton.styleFrom(
+                                backgroundColor: Colors.blue.shade100,
+                                foregroundColor: Colors.blue.shade700,
+                                minimumSize: Size(26, 26),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
                 
@@ -632,7 +693,7 @@ class MapsPageState extends State<MapsPage> {
                   _buildFiltersPanel(context, dataManager),
                 ],
                 
-                // Mini-dashboard
+                // Mini-dashboard (sans atténuation)
                 if (_showMiniDashboard) ...[
                   const SizedBox(height: 8),
                   _buildMiniDashboard(context, dataManager, displayedTokens),
@@ -710,7 +771,7 @@ class MapsPageState extends State<MapsPage> {
       builder: (BuildContext context) {
         return AlertDialog(
           backgroundColor: Theme.of(context).cardColor,
-          title: Text('${S.of(context).tokens} ($tokenCount)'),
+          title: Text('${S.of(context).tokens} ($tokenCount)', style: TextStyle(fontSize: 18 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -728,7 +789,7 @@ class MapsPageState extends State<MapsPage> {
                 currencyUtils.formatCurrency(currencyUtils.convert(clusterStats['totalRent']), currencyUtils.currencySymbol),
                 Icons.account_balance, Colors.purple),
               const Divider(height: 16),
-              Text(S.of(context).rentalStatusDistribution, style: TextStyle(fontWeight: FontWeight.bold)),
+              Text(S.of(context).rentalStatusDistribution, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
               const SizedBox(height: 8),
               _buildInfoRow(S.of(context).fullyRented, '${clusterStats['fullyRented']}', Icons.check_circle, Colors.green),
               _buildInfoRow(S.of(context).partiallyRented, '${clusterStats['partiallyRented']}', Icons.pause_circle, Colors.orange),
@@ -973,12 +1034,12 @@ class MapsPageState extends State<MapsPage> {
   Widget _buildInfoRow(String label, String value, IconData icon, Color iconColor) {
     return Row(
       children: [
-        Icon(icon, size: 16, color: iconColor),
+        Icon(icon, size: 18, color: iconColor),
         const SizedBox(width: 8),
         Expanded(
-          child: Text(label, style: const TextStyle(fontWeight: FontWeight.w500)),
+          child: Text(label, style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
         ),
-        Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
+        Text(value, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
       ],
     );
   }
@@ -1074,9 +1135,9 @@ class MapsPageState extends State<MapsPage> {
           Text('ROI ($_minRoi% - $_maxRoi%)', style: TextStyle(fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
           RangeSlider(
             values: RangeValues(_minRoi, _maxRoi),
-            min: 0,
+            min: -100,
             max: 100,
-            divisions: 100,
+            divisions: 200,
             onChanged: (values) {
               setState(() {
                 _minRoi = values.start;
@@ -1095,7 +1156,7 @@ class MapsPageState extends State<MapsPage> {
                   _onlyWithRent = false;
                   _onlyFullyRented = false;
                   _selectedCountry = null;
-                  _minRoi = 0.0;
+                  _minRoi = -100.0;
                   _maxRoi = 100.0;
                 });
               },
@@ -1169,7 +1230,7 @@ class MapsPageState extends State<MapsPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(S.of(context).statistics, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12 + appState.getTextSizeOffset())),
+          Text(S.of(context).statistics, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16 + appState.getTextSizeOffset())),
           const SizedBox(height: 8),
           
           // Résumé du mode actuel
@@ -1198,7 +1259,7 @@ class MapsPageState extends State<MapsPage> {
                           ? 'Aucune ${S.of(context).properties.toLowerCase()} ne correspond aux critères'
                           : _getCurrentModeDescription(),
                         style: TextStyle(
-                          fontSize: 10 + appState.getTextSizeOffset(),
+                          fontSize: 13 + appState.getTextSizeOffset(),
                           fontWeight: FontWeight.w600,
                           color: totalTokens == 0 ? Colors.orange.shade700 : Theme.of(context).primaryColor,
                         ),
@@ -1210,7 +1271,7 @@ class MapsPageState extends State<MapsPage> {
                   const SizedBox(height: 3),
                   Text(
                     'Base: ${_showAllTokens ? dataManager.allTokens.length : dataManager.portfolio.length} → Filtrés: $totalTokens ${S.of(context).properties.toLowerCase()}',
-                    style: TextStyle(fontSize: 8 + appState.getTextSizeOffset(), color: Colors.grey[600]),
+                    style: TextStyle(fontSize: 11 + appState.getTextSizeOffset(), color: Colors.grey[600]),
                   ),
                 ],
               ],
@@ -1228,7 +1289,7 @@ class MapsPageState extends State<MapsPage> {
           const Divider(height: 12),
           
           // Statut de location
-          Text(S.of(context).rentalStatus, style: TextStyle(fontWeight: FontWeight.w500, fontSize: 11 + appState.getTextSizeOffset())),
+          Text(S.of(context).rentalStatus, style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14 + appState.getTextSizeOffset())),
           const SizedBox(height: 6),
           _buildStatRow(S.of(context).fullyRented, '$fullyRented', Icons.check_circle, Colors.green),
           _buildStatRow(S.of(context).partiallyRented, '$partiallyRented', Icons.pause_circle, Colors.orange),
@@ -1237,7 +1298,7 @@ class MapsPageState extends State<MapsPage> {
           const Divider(height: 12),
           
           // Répartition par pays (top 3)
-          Text(S.of(context).country, style: TextStyle(fontWeight: FontWeight.w500, fontSize: 11 + appState.getTextSizeOffset())),
+          Text(S.of(context).country, style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14 + appState.getTextSizeOffset())),
           const SizedBox(height: 6),
           ...() {
             final sortedEntries = countryDistribution.entries.toList()
@@ -1258,12 +1319,12 @@ class MapsPageState extends State<MapsPage> {
       padding: const EdgeInsets.symmetric(vertical: 1),
       child: Row(
         children: [
-          Icon(icon, size: 12 + appState.getTextSizeOffset(), color: iconColor),
+          Icon(icon, size: 15 + appState.getTextSizeOffset(), color: iconColor),
           const SizedBox(width: 6),
           Expanded(
-            child: Text(label, style: TextStyle(fontSize: 10 + appState.getTextSizeOffset())),
+            child: Text(label, style: TextStyle(fontSize: 13 + appState.getTextSizeOffset())),
           ),
-          Text(value, style: TextStyle(fontSize: 10 + appState.getTextSizeOffset(), fontWeight: FontWeight.bold)),
+          Text(value, style: TextStyle(fontSize: 13 + appState.getTextSizeOffset(), fontWeight: FontWeight.bold)),
         ],
       ),
     );
@@ -1369,4 +1430,152 @@ class MapsPageState extends State<MapsPage> {
       ),
     );
   }
+
+  // Widget pour créer un pointeur de carte personnalisé avec photo
+  Widget _buildMapPointer({
+    required dynamic matchingToken,
+    required Color color,
+    required int rentedUnits,
+    required int totalUnits,
+  }) {
+    final statusColor = UIUtils.getRentalStatusColor(rentedUnits, totalUnits);
+    
+    return Stack(
+      alignment: Alignment.topCenter,
+      children: [
+        // Ombre du pointeur
+        Positioned(
+          top: 2,
+          child: Container(
+            width: 36,
+            height: 46,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(18),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.3),
+                  blurRadius: 4,
+                  offset: Offset(2, 2),
+                ),
+              ],
+            ),
+          ),
+        ),
+        
+                 // Corps principal du pointeur
+         Column(
+           mainAxisSize: MainAxisSize.min,
+           children: [
+             // Cercle avec la photo (décalé vers le bas)
+             Transform.translate(
+               offset: Offset(0, 1.5), // Décale le cercle de 3 pixels vers le bas
+               child: Container(
+                 width: 36,
+                 height: 36,
+                 decoration: BoxDecoration(
+                   shape: BoxShape.circle,
+                   color: Colors.white,
+                   border: Border.all(
+                     color: statusColor,
+                     width: 3.0,
+                   ),
+                   boxShadow: [
+                     BoxShadow(
+                       color: Colors.black.withOpacity(0.2),
+                       blurRadius: 3,
+                       offset: Offset(0, 1),
+                     ),
+                   ],
+                 ),
+                 child: ClipOval(
+                   child: matchingToken['imageLink'] != null
+                       ? kIsWeb
+                           ? ShowNetworkImage(
+                               imageSrc: matchingToken['imageLink'][0],
+                               mobileBoxFit: BoxFit.cover,
+                               mobileWidth: 30,
+                               mobileHeight: 30,
+                             )
+                           : CachedNetworkImage(
+                               imageUrl: matchingToken['imageLink'][0],
+                               fit: BoxFit.cover,
+                               placeholder: (context, url) => Container(
+                                 color: Colors.grey.shade200,
+                                 child: Icon(
+                                   Icons.home,
+                                   color: Colors.grey.shade400,
+                                   size: 16,
+                                 ),
+                               ),
+                               errorWidget: (context, url, error) => Container(
+                                 color: Colors.grey.shade200,
+                                 child: Icon(
+                                   Icons.error,
+                                   color: Colors.red.shade400,
+                                   size: 16,
+                                 ),
+                               ),
+                             )
+                       : Container(
+                           color: color.withOpacity(0.1),
+                           child: Icon(
+                             Icons.home,
+                             color: color,
+                             size: 20,
+                           ),
+                         ),
+                 ),
+               ),
+             ),
+             
+             // Pointe du pointeur
+             CustomPaint(
+               size: Size(16, 12),
+               painter: _PointerTipPainter(statusColor),
+             ),
+           ],
+         ),
+        
+        
+      ],
+    );
+  }
+}
+
+// Painter personnalisé pour dessiner la pointe du pointeur
+class _PointerTipPainter extends CustomPainter {
+  final Color color;
+
+  _PointerTipPainter(this.color);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill;
+
+    // Créer la forme triangulaire de la pointe
+    final path = ui.Path();
+    path.moveTo(size.width / 2, size.height); // Point bas (pointe)
+    path.lineTo(0, 0); // Point haut gauche
+    path.lineTo(size.width, 0); // Point haut droit
+    path.close();
+
+    // Ombre de la pointe
+    final shadowPaint = Paint()
+      ..color = Colors.black.withOpacity(0.3)
+      ..style = PaintingStyle.fill;
+      
+    final shadowPath = ui.Path();
+    shadowPath.moveTo(size.width / 2 + 1, size.height + 1);
+    shadowPath.lineTo(1, 1);
+    shadowPath.lineTo(size.width + 1, 1);
+    shadowPath.close();
+    
+    canvas.drawPath(shadowPath, shadowPaint);
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) => false;
 }
