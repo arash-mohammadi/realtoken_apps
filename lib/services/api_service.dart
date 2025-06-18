@@ -1810,4 +1810,38 @@ static Future<BigInt?> _fetchVaultBalance(String contract, String address, {bool
       },
     );
   }
+
+  /// Récupère l'historique des tokens depuis l'API token_history
+  static Future<List<dynamic>> fetchTokenHistory({bool forceFetch = false}) async {
+    return _fetchWithCacheList(
+      cacheKey: 'cachedTokenHistoryData',
+      debugName: "Token History",
+      forceFetch: forceFetch,
+      customCacheDuration: Duration(hours: 6), // Cache de 6 heures pour l'historique
+      apiCall: () async {
+        const apiUrl = 'https://api.vfhome.fr/token_history/?limit=10000';
+        debugPrint("🔄 Récupération de l'historique des tokens");
+        
+        final response = await _httpGetWithRetry(
+          apiUrl,
+          timeout: _longTimeout,
+          debugContext: "historique des tokens",
+        );
+
+        if (response.statusCode == 200) {
+          final data = json.decode(response.body);
+          if (data is List) {
+            debugPrint("✅ Historique des tokens récupéré: ${data.length} entrées");
+            return data;
+          } else {
+            debugPrint("⚠️ Format de données inattendu pour l'historique des tokens");
+            return [];
+          }
+        } else {
+          debugPrint("❌ Erreur récupération historique tokens: HTTP ${response.statusCode}");
+          throw Exception("Échec de la récupération de l'historique: ${response.statusCode}");
+        }
+      },
+    );
+  }
 }

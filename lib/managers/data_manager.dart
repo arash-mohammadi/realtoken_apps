@@ -194,6 +194,7 @@ class DataManager extends ChangeNotifier {
   List<Map<String, dynamic>> yamHistory = [];
   Map<String, List<Map<String, dynamic>>> transactionsByToken = {};
   List<Map<String, dynamic>> whitelistTokens = [];
+  List<Map<String, dynamic>> tokenHistoryData = []; // Historique des modifications des tokens
 
   var customInitPricesBox = Hive.box('CustomInitPrices');
 
@@ -325,7 +326,13 @@ class DataManager extends ChangeNotifier {
                 ApiService.fetchWhitelistTokens(forceFetch: forceFetch),
             cacheKey: 'cachedWhitelistTokens',
             updateVariable: (data) => whitelistTokens = data,
-            debugName: "Whitelist")
+            debugName: "Whitelist"),
+        // Ajout de l'appel pour récupérer l'historique des tokens
+        fetchData(
+            apiCall: () => ApiService.fetchTokenHistory(forceFetch: forceFetch),
+            cacheKey: 'cachedTokenHistoryData',
+            updateVariable: (data) => tokenHistoryData = data,
+            debugName: "Token History")
       ]);
 
       // Charger les historiques
@@ -684,6 +691,15 @@ class DataManager extends ChangeNotifier {
           debugName: "Whitelist"
         ),
         loadFromCacheWithFallback(
+          cacheKey: 'cachedData_cachedTokenHistoryData',
+          alternativeCacheKey: 'cachedTokenHistoryData',
+          updateVariable: (data) {
+            tokenHistoryData = data;
+            if (data.isNotEmpty) processTokenHistory();
+          },
+          debugName: "Token History"
+        ),
+        loadFromCacheWithFallback(
           cacheKey: 'cachedData_cachedWalletsTransactions',
           alternativeCacheKey: 'cachedWalletsTransactions',
           updateVariable: (data) => yamWalletsTransactionsFetched = data,
@@ -792,6 +808,10 @@ class DataManager extends ChangeNotifier {
           await fetchAndStoreAllTokens();
           await fetchAndStorePropertiesForSale();
           await fetchAndStoreYamMarketData();
+          // Traiter l'historique des tokens si disponible
+          if (tokenHistoryData.isNotEmpty) {
+            processTokenHistory();
+          }
         }
         
         debugPrint("$_logSuccess Mise à jour en arrière-plan terminée");
@@ -1257,6 +1277,8 @@ class DataManager extends ChangeNotifier {
           // Récupérer les loyers cumulés pour ce token
           double totalRentReceived = cumulativeRentsByToken[tokenContractAddress] ?? 0.0;
 
+         
+
           allTokensList.add({
             'uuid': tokenContractAddress,
             'shortName': realToken['shortName'],
@@ -1534,45 +1556,45 @@ debugPrint("🗃️ Début récupération et calcul des données pour le Dashboa
         }
       }
 
-      // Parsing du fullName pour obtenir country, regionCode et city
-      final nameDetails = parseFullName(matchingRealToken['fullName']);
+              // Parsing du fullName pour obtenir country, regionCode et city
+        final nameDetails = parseFullName(matchingRealToken['fullName']);
 
-      // Récupération des données Yam avec index optimisé
-      final yamData = yamHistoryIndex[tokenContractAddress] ?? <String, dynamic>{};
-      final double yamTotalVolume = yamData['totalVolume'] ?? 1.0;
-      final double yamAverageValue =
-          (yamData['averageValue'] != null && yamData['averageValue'] != 0)
-              ? yamData['averageValue']
-              : tokenPrice;
+        // Récupération des données Yam avec index optimisé
+        final yamData = yamHistoryIndex[tokenContractAddress] ?? <String, dynamic>{};
+        final double yamTotalVolume = yamData['totalVolume'] ?? 1.0;
+        final double yamAverageValue =
+            (yamData['averageValue'] != null && yamData['averageValue'] != 0)
+                ? yamData['averageValue']
+                : tokenPrice;
 
-      // Fusion dans le portfolio par token (agrégation si le même token apparaît plusieurs fois)
-      int index = newPortfolio.indexWhere((item) => item['uuid'] == tokenContractAddress);
-      if (index != -1) {
-        Map<String, dynamic> existingItem = newPortfolio[index];
-        List<String> wallets = existingItem['wallets'] is List<String>
-            ? List<String>.from(existingItem['wallets'])
-            : [];
-        if (!wallets.contains(walletToken['wallet'])) {
-          wallets.add(walletToken['wallet']);
-          // Log dès qu'un nouveau wallet est ajouté pour ce token
-        }
-        existingItem['wallets'] += wallets;
-        existingItem['amount'] += walletToken['amount'];
-        existingItem['totalValue'] = existingItem['amount'] * tokenPrice;
-        existingItem['initialTotalValue'] = existingItem['amount'] * initPrice;
-        existingItem['dailyIncome'] = matchingRealToken['netRentDayPerToken'] * existingItem['amount'];
-        existingItem['monthlyIncome'] = matchingRealToken['netRentMonthPerToken'] * existingItem['amount'];
-        existingItem['yearlyIncome'] = matchingRealToken['netRentYearPerToken'] * existingItem['amount'];
-      } else {
-        Map<String, dynamic> portfolioItem = {
-          'id': matchingRealToken['id'],
-          'uuid': tokenContractAddress,
-          'shortName': matchingRealToken['shortName'],
-          'fullName': matchingRealToken['fullName'],
-          'country': nameDetails['country'],
-          'regionCode': nameDetails['regionCode'],
-          'city': nameDetails['city'],
-          'imageLink': matchingRealToken['imageLink'],
+        // Fusion dans le portfolio par token (agrégation si le même token apparaît plusieurs fois)
+        int index = newPortfolio.indexWhere((item) => item['uuid'] == tokenContractAddress);
+        if (index != -1) {
+          Map<String, dynamic> existingItem = newPortfolio[index];
+          List<String> wallets = existingItem['wallets'] is List<String>
+              ? List<String>.from(existingItem['wallets'])
+              : [];
+          if (!wallets.contains(walletToken['wallet'])) {
+            wallets.add(walletToken['wallet']);
+            // Log dès qu'un nouveau wallet est ajouté pour ce token
+          }
+          existingItem['wallets'] += wallets;
+          existingItem['amount'] += walletToken['amount'];
+          existingItem['totalValue'] = existingItem['amount'] * tokenPrice;
+          existingItem['initialTotalValue'] = existingItem['amount'] * initPrice;
+          existingItem['dailyIncome'] = matchingRealToken['netRentDayPerToken'] * existingItem['amount'];
+          existingItem['monthlyIncome'] = matchingRealToken['netRentMonthPerToken'] * existingItem['amount'];
+          existingItem['yearlyIncome'] = matchingRealToken['netRentYearPerToken'] * existingItem['amount'];
+        } else {
+          Map<String, dynamic> portfolioItem = {
+            'id': matchingRealToken['id'],
+            'uuid': tokenContractAddress,
+            'shortName': matchingRealToken['shortName'],
+            'fullName': matchingRealToken['fullName'],
+            'country': nameDetails['country'],
+            'regionCode': nameDetails['regionCode'],
+            'city': nameDetails['city'],
+            'imageLink': matchingRealToken['imageLink'],
           'lat': matchingRealToken['coordinate']['lat'],
           'lng': matchingRealToken['coordinate']['lng'],
           'amount': walletToken['amount'],
@@ -2902,5 +2924,210 @@ debugPrint("🗃️ Début récupération et calcul des données pour le Dashboa
         'timestamp': DateTime.now().toIso8601String(),
       };
     }
+  }
+
+  /// Traite et associe l'historique des tokens aux données existantes
+  void processTokenHistory() {
+    final startTime = DateTime.now();
+    debugPrint("$_logSub Traitement de l'historique des tokens...");
+    
+    if (tokenHistoryData.isEmpty) {
+      debugPrint("$_logWarning Aucune donnée d'historique de token disponible");
+      return;
+    }
+    
+    try {
+      // Grouper l'historique par token_uuid
+      Map<String, List<Map<String, dynamic>>> historyByToken = {};
+      
+      for (var historyEntry in tokenHistoryData) {
+        String tokenUuid = historyEntry['token_uuid']?.toLowerCase() ?? '';
+        if (tokenUuid.isNotEmpty) {
+          if (!historyByToken.containsKey(tokenUuid)) {
+            historyByToken[tokenUuid] = [];
+          }
+          historyByToken[tokenUuid]!.add(historyEntry);
+        }
+      }
+      
+      // Trier l'historique de chaque token par date (du plus récent au plus ancien)
+      historyByToken.forEach((tokenUuid, history) {
+        history.sort((a, b) {
+          String dateA = a['date'] ?? '';
+          String dateB = b['date'] ?? '';
+          return dateB.compareTo(dateA); // Tri décroissant
+        });
+      });
+      
+      // Associer l'historique aux tokens dans allTokens
+      for (var token in _allTokens) {
+        String tokenUuid = token['uuid']?.toLowerCase() ?? '';
+        if (historyByToken.containsKey(tokenUuid)) {
+          token['history'] = historyByToken[tokenUuid];
+        } else {
+          token['history'] = <Map<String, dynamic>>[];
+        }
+      }
+      
+      // Associer l'historique aux tokens dans portfolio
+      for (var token in _portfolio) {
+        String tokenUuid = token['uuid']?.toLowerCase() ?? '';
+        if (historyByToken.containsKey(tokenUuid)) {
+          token['history'] = historyByToken[tokenUuid];
+        } else {
+          token['history'] = <Map<String, dynamic>>[];
+        }
+      }
+      
+      final duration = DateTime.now().difference(startTime);
+      debugPrint("$_logSuccess Historique des tokens traité: ${historyByToken.length} tokens avec historique (${duration.inMilliseconds}ms)");
+    } catch (e) {
+      debugPrint("$_logError Erreur lors du traitement de l'historique des tokens: $e");
+    }
+  }
+
+  /// Méthode pour obtenir l'historique d'un token spécifique
+  List<Map<String, dynamic>> getTokenHistory(String tokenUuid) {
+    tokenUuid = tokenUuid.toLowerCase();
+    return tokenHistoryData.where((entry) => 
+      entry['token_uuid']?.toLowerCase() == tokenUuid
+    ).toList()
+      ..sort((a, b) {
+        String dateA = a['date'] ?? '';
+        String dateB = b['date'] ?? '';
+        return dateB.compareTo(dateA); // Tri décroissant
+      });
+  }
+
+  /// Méthode pour obtenir les modifications récentes (derniers 30 jours)
+  List<Map<String, dynamic>> getRecentTokenChanges({int? days = 365, bool includeAllChanges = false}) {
+    // Si days est null, pas de filtre de date (tous les changements)
+    final DateTime? cutoffDate = days != null ? DateTime.now().subtract(Duration(days: days)) : null;
+    
+    List<Map<String, dynamic>> recentChanges = [];
+    
+    // Grouper par token pour détecter les changements
+    Map<String, List<Map<String, dynamic>>> historyByToken = {};
+    
+    for (var entry in tokenHistoryData) {
+      String tokenUuid = entry['token_uuid']?.toLowerCase() ?? '';
+      String dateStr = entry['date'] ?? '';
+      
+      if (tokenUuid.isNotEmpty && dateStr.isNotEmpty) {
+        try {
+          DateTime entryDate = DateTime.parse(dateStr);
+          // Si pas de limite de date (cutoffDate = null) ou si la date est après la limite
+          if (cutoffDate == null || entryDate.isAfter(cutoffDate)) {
+            if (!historyByToken.containsKey(tokenUuid)) {
+              historyByToken[tokenUuid] = [];
+            }
+            historyByToken[tokenUuid]!.add(entry);
+          }
+        } catch (e) {
+          debugPrint("⚠️ Erreur de parsing de date pour l'entrée: $entry");
+        }
+      }
+    }
+    
+    // Pour chaque token, détecter les changements entre les entrées
+    historyByToken.forEach((tokenUuid, history) {
+      // Trier par date
+      history.sort((a, b) => DateTime.parse(a['date']).compareTo(DateTime.parse(b['date'])));
+      
+      for (int i = 1; i < history.length; i++) {
+        var previous = history[i - 1];
+        var current = history[i];
+        
+        // Détecter les changements dans les champs importants
+        List<Map<String, dynamic>> changes = _detectChanges(previous, current, tokenUuid, includeAllChanges);
+        recentChanges.addAll(changes);
+      }
+    });
+    
+    // Trier les changements par date (du plus récent au plus ancien)
+    recentChanges.sort((a, b) => DateTime.parse(b['date']).compareTo(DateTime.parse(a['date'])));
+    
+    return recentChanges;
+  }
+
+  /// Détecte les changements entre deux entrées d'historique
+  List<Map<String, dynamic>> _detectChanges(
+    Map<String, dynamic> previous, 
+    Map<String, dynamic> current, 
+    String tokenUuid,
+    bool includeAllChanges
+  ) {
+    List<Map<String, dynamic>> changes = [];
+    
+    // Champs liés aux loyers (toujours affichés)
+    final rentFields = {
+      'gross_rent_year': 'Loyer brut annuel',
+      'net_rent_year': 'Loyer net annuel',
+      'rented_units': 'Unités louées',
+    };
+    
+    // Autres champs (affichés seulement si includeAllChanges = true)
+    final otherFields = {
+      'token_price': 'Prix du token',
+      'underlying_asset_price': 'Prix de l\'actif sous-jacent',
+      'total_investment': 'Investissement total',
+      'initial_maintenance_reserve': 'Réserve de maintenance initiale',
+      'renovation_reserve': 'Réserve de rénovation',
+    };
+    
+    // Combiner les champs selon le paramètre
+    Map<String, String> fieldsToWatch = Map.from(rentFields);
+    if (includeAllChanges) {
+      fieldsToWatch.addAll(otherFields);
+    }
+    
+    // Trouver le token correspondant pour obtenir les informations d'affichage
+    Map<String, dynamic> tokenInfo = _allTokens.firstWhere(
+      (token) => token['uuid']?.toLowerCase() == tokenUuid,
+      orElse: () => {'shortName': 'Token inconnu', 'imageLink': ''},
+    );
+    
+    // Gérer le cas où imageLink peut être une liste
+    String imageLink = '';
+    var imageData = tokenInfo['imageLink'];
+    if (imageData is List && imageData.isNotEmpty) {
+      imageLink = imageData.first?.toString() ?? '';
+    } else if (imageData is String) {
+      imageLink = imageData;
+    }
+    tokenInfo['imageLink'] = imageLink;
+    
+    fieldsToWatch.forEach((field, label) {
+      var prevValue = previous[field];
+      var currValue = current[field];
+      
+      if (prevValue != null && currValue != null && prevValue != currValue) {
+        changes.add({
+          'token_uuid': tokenUuid,
+          'shortName': tokenInfo['shortName'] ?? 'Token inconnu',
+          'imageLink': tokenInfo['imageLink'] ?? '',
+          'field': field,
+          'fieldLabel': label,
+          'previousValue': prevValue,
+          'currentValue': currValue,
+          'date': current['date'],
+          'changeType': _getChangeType(field, prevValue, currValue),
+        });
+      }
+    });
+    
+    return changes;
+  }
+
+  /// Détermine le type de changement (hausse, baisse, modification)
+  String _getChangeType(String field, dynamic prevValue, dynamic currValue) {
+    if (prevValue is num && currValue is num) {
+      if (currValue > prevValue) {
+        return 'increase';
+      } else if (currValue < prevValue) {
+        return 'decrease';
+      }
+    }
+    return 'change';
   }
 }

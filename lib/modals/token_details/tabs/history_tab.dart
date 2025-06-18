@@ -12,6 +12,7 @@ Widget buildHistoryTab(BuildContext context, Map<String, dynamic> token,
     bool isLoadingTransactions) {
   final appState = Provider.of<AppState>(context, listen: false);
   final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
+  final dataManager = Provider.of<DataManager>(context, listen: false);
 
   // Tri des transactions par date (du plus récent au plus ancien) si disponibles
   if (token['transactions'] != null && token['transactions'].isNotEmpty) {
@@ -22,6 +23,37 @@ Widget buildHistoryTab(BuildContext context, Map<String, dynamic> token,
       return dateB.compareTo(dateA);
     });
     token['transactions'] = sortedTransactions;
+  }
+
+  // Récupérer l'historique des modifications pour ce token spécifique
+  final String tokenUuid = token['uuid'] ?? token['gnosisContract'] ?? '';
+  List<Map<String, dynamic>> rawTokenHistory = [];
+  List<Map<String, dynamic>> tokenChanges = [];
+  
+  if (tokenUuid.isNotEmpty && dataManager.tokenHistoryData.isNotEmpty) {
+    print("🔍 Recherche historique pour token: $tokenUuid");
+    
+    // Utiliser la méthode existante du DataManager
+    rawTokenHistory = dataManager.getTokenHistory(tokenUuid);
+    print("📋 Historique brut trouvé: ${rawTokenHistory.length} entrées");
+    
+    // Détecter les changements entre les entrées consécutives
+    for (int i = 1; i < rawTokenHistory.length; i++) {
+      var previous = rawTokenHistory[i]; // Plus ancien
+      var current = rawTokenHistory[i - 1]; // Plus récent
+      
+      // Détecter les changements dans les champs importants
+      List<Map<String, dynamic>> changes = _detectTokenChanges(previous, current, token);
+      
+      if (changes.isNotEmpty) {
+        tokenChanges.add({
+          'date': current['date'],
+          'changes': changes,
+        });
+      }
+    }
+    
+    print("📊 Changements détectés: ${tokenChanges.length} dates avec modifications");
   }
 
   return Padding(
@@ -267,6 +299,139 @@ Widget buildHistoryTab(BuildContext context, Map<String, dynamic> token,
               ),
           ],
         ),
+
+        const SizedBox(height: 16),
+
+        // Section historique des modifications
+        _buildSectionCard(
+          context,
+          title: "Historique des modifications",
+          children: [
+            if (tokenChanges.isNotEmpty)
+              ...tokenChanges.map((historyEntry) {
+                final date = DateTime.parse(historyEntry['date']);
+                final changes = historyEntry['changes'] as List<dynamic>? ?? [];
+                
+                if (changes.isEmpty) {
+                  return const SizedBox.shrink();
+                }
+
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
+                  child: Container(
+                    margin: const EdgeInsets.only(bottom: 8.0),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).cardColor,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.03),
+                          blurRadius: 6,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Date de la modification
+                          Text(
+                            _formatHistoryDate(date),
+                            style: TextStyle(
+                              fontSize: 14 + appState.getTextSizeOffset(),
+                              fontWeight: FontWeight.w600,
+                              color: Theme.of(context).primaryColor,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          // Liste des changements
+                          ...changes.map((change) {
+                            final changeType = _getChangeTypeFromChange(change);
+                            final changeColor = _getChangeColor(changeType);
+                            final changeIcon = _getChangeIcon(changeType);
+                            
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 6.0),
+                              child: Row(
+                                children: [
+                                  // Icône du changement
+                                  Container(
+                                    width: 24,
+                                    height: 24,
+                                    decoration: BoxDecoration(
+                                      color: changeColor.withOpacity(0.1),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Icon(
+                                      changeIcon,
+                                      size: 14,
+                                      color: changeColor,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  // Description du changement
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          _getFieldDisplayName(change['field']),
+                                          style: TextStyle(
+                                            fontSize: 13 + appState.getTextSizeOffset(),
+                                            fontWeight: FontWeight.w500,
+                                            color: Theme.of(context).textTheme.bodyLarge?.color,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          _formatChangeDescription(change, currencyUtils),
+                                          style: TextStyle(
+                                            fontSize: 12 + appState.getTextSizeOffset(),
+                                            color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.8),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }).toList(),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              }).toList()
+            else
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Center(
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.timeline_outlined,
+                        size: 48,
+                        color: Colors.grey[400],
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        "Aucune modification disponible",
+                        style: TextStyle(
+                          fontSize: 16 + appState.getTextSizeOffset(),
+                          color: Theme.of(context).textTheme.bodyMedium?.color,
+                          fontWeight: FontWeight.w400,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+          ],
+        ),
       ],
     ),
   );
@@ -318,4 +483,154 @@ String _getLocalizedTransactionType(String transactionType, BuildContext context
   } else {
     return S.of(context).unknownTransaction;
   }
+}
+
+String _formatHistoryDate(DateTime date) {
+  final now = DateTime.now();
+  final difference = now.difference(date);
+
+  if (difference.inDays == 0) {
+    return "Aujourd'hui";
+  } else if (difference.inDays == 1) {
+    return "Hier";
+  } else if (difference.inDays < 7) {
+    return "Il y a ${difference.inDays} jour${difference.inDays > 1 ? 's' : ''}";
+  } else {
+    return DateFormat('dd MMMM yyyy').format(date);
+  }
+}
+
+String _getChangeTypeFromChange(dynamic change) {
+  final oldValue = change['oldValue'];
+  final newValue = change['newValue'];
+  
+  if (oldValue == null || newValue == null) {
+    return 'neutral';
+  }
+  
+  // Convertir en double pour la comparaison
+  double? oldVal = double.tryParse(oldValue.toString());
+  double? newVal = double.tryParse(newValue.toString());
+  
+  if (oldVal != null && newVal != null) {
+    if (newVal > oldVal) {
+      return 'increase';
+    } else if (newVal < oldVal) {
+      return 'decrease';
+    }
+  }
+  
+  return 'neutral';
+}
+
+String _formatChangeDescription(dynamic change, CurrencyProvider currencyUtils) {
+  final field = change['field'];
+  final oldValue = change['oldValue'];
+  final newValue = change['newValue'];
+  
+  if (oldValue == null || newValue == null) {
+    return 'Valeur modifiée';
+  }
+  
+  String formattedOldValue = oldValue.toString();
+  String formattedNewValue = newValue.toString();
+  
+  // Formatage spécifique selon le champ
+  if (field == 'token_price' || field == 'underlying_asset_price') {
+    double? oldVal = double.tryParse(oldValue.toString());
+    double? newVal = double.tryParse(newValue.toString());
+    if (oldVal != null && newVal != null) {
+      formattedOldValue = '${currencyUtils.convert(oldVal).toStringAsFixed(2)} ${currencyUtils.currencySymbol}';
+      formattedNewValue = '${currencyUtils.convert(newVal).toStringAsFixed(2)} ${currencyUtils.currencySymbol}';
+    }
+  } else if (field == 'total_investment' || field == 'gross_rent_year' || field == 'net_rent_year') {
+    double? oldVal = double.tryParse(oldValue.toString());
+    double? newVal = double.tryParse(newValue.toString());
+    if (oldVal != null && newVal != null) {
+      formattedOldValue = '${currencyUtils.convert(oldVal).toStringAsFixed(0)} ${currencyUtils.currencySymbol}';
+      formattedNewValue = '${currencyUtils.convert(newVal).toStringAsFixed(0)} ${currencyUtils.currencySymbol}';
+    }
+  } else if (field == 'rented_units') {
+    formattedOldValue = '${oldValue} unité${oldValue != '1' ? 's' : ''}';
+    formattedNewValue = '${newValue} unité${newValue != '1' ? 's' : ''}';
+  }
+  
+  return '$formattedOldValue → $formattedNewValue';
+}
+
+String _getFieldDisplayName(String field) {
+  switch (field) {
+    case 'token_price':
+      return 'Prix du token';
+    case 'underlying_asset_price':
+      return 'Prix de l\'actif sous-jacent';
+    case 'total_investment':
+      return 'Investissement total';
+    case 'gross_rent_year':
+      return 'Loyer brut annuel';
+    case 'net_rent_year':
+      return 'Loyer net annuel';
+    case 'rented_units':
+      return 'Unités louées';
+    default:
+      return field;
+  }
+}
+
+Color _getChangeColor(String changeType) {
+  switch (changeType) {
+    case 'increase':
+      return Colors.green;
+    case 'decrease':
+      return Colors.red;
+    case 'neutral':
+    default:
+      return Colors.blue;
+  }
+}
+
+IconData _getChangeIcon(String changeType) {
+  switch (changeType) {
+    case 'increase':
+      return Icons.trending_up;
+    case 'decrease':
+      return Icons.trending_down;
+    case 'neutral':
+    default:
+      return Icons.trending_flat;
+  }
+}
+
+List<Map<String, dynamic>> _detectTokenChanges(
+  Map<String, dynamic> previous, 
+  Map<String, dynamic> current, 
+  Map<String, dynamic> tokenInfo
+) {
+  List<Map<String, dynamic>> changes = [];
+  
+  // Champs à surveiller
+  final fieldsToWatch = {
+    'token_price': 'Prix du token',
+    'underlying_asset_price': 'Prix de l\'actif sous-jacent',
+    'total_investment': 'Investissement total',
+    'gross_rent_year': 'Loyer brut annuel',
+    'net_rent_year': 'Loyer net annuel',
+    'rented_units': 'Unités louées',
+  };
+  
+  fieldsToWatch.forEach((field, label) {
+    var prevValue = previous[field];
+    var currValue = current[field];
+    
+    if (prevValue != null && currValue != null && prevValue != currValue) {
+      changes.add({
+        'field': field,
+        'fieldLabel': label,
+        'oldValue': prevValue,
+        'newValue': currValue,
+      });
+    }
+  });
+  
+  return changes;
 }

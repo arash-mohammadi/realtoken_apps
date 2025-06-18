@@ -20,6 +20,9 @@ import 'dart:ui' as ui;
 import 'dart:async';
 import 'package:realtoken_asset_tracker/generated/l10n.dart';
 
+// Mode de coloration des markers et clusters
+enum ColorationMode { rental, apy }
+
 class MapsPage extends StatefulWidget {
   const MapsPage({super.key});
 
@@ -65,11 +68,15 @@ class MapsPageState extends State<MapsPage> {
   // Variables pour l'atténuation du mini-dashboard pendant les interactions
   double _dashboardOpacity = 1.0;
   Timer? _dashboardTimer;
+  
+  // Mode de coloration des markers et clusters
+  ColorationMode _colorationMode = ColorationMode.apy;
 
   @override
   void initState() {
     super.initState();
     _loadThemePreference(); // Charger la préférence du thème à l'initialisation
+    _loadColorationModePreference(); // Charger la préférence du mode de coloration
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<DataManager>(context, listen: false).fetchAndStoreAllTokens();
     });
@@ -93,6 +100,21 @@ class MapsPageState extends State<MapsPage> {
   Future<void> _saveThemePreference() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setBool('forceLightMode', _forceLightMode); // Sauvegarder le mode forcé
+  }
+
+  // Charger la préférence du mode de coloration à partir de SharedPreferences
+  Future<void> _loadColorationModePreference() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    final colorationModeString = prefs.getString('colorationMode') ?? 'apy';
+    setState(() {
+      _colorationMode = colorationModeString == 'rental' ? ColorationMode.rental : ColorationMode.apy;
+    });
+  }
+
+  // Sauvegarder la préférence du mode de coloration dans SharedPreferences
+  Future<void> _saveColorationModePreference() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString('colorationMode', _colorationMode == ColorationMode.rental ? 'rental' : 'apy');
   }
 
   // Gérer l'atténuation du panneau de contrôle et fermer les panneaux ouverts
@@ -289,7 +311,6 @@ class MapsPageState extends State<MapsPage> {
     // Helper function to create markers
     Marker createMarker({
       required dynamic matchingToken,
-      required Color color,
       double? lat,
       double? lng,
     }) {
@@ -313,7 +334,7 @@ class MapsPageState extends State<MapsPage> {
               },
               child: _buildMapPointer(
                 matchingToken: matchingToken,
-                color: color,
+                color: _getMarkerColor(matchingToken),
                 rentedUnits: rentedUnits,
                 totalUnits: totalUnits,
               ),
@@ -389,7 +410,6 @@ class MapsPageState extends State<MapsPage> {
       markers.add(
         createMarker(
           matchingToken: property,
-          color: markerColor,
           lat: lat,
           lng: lng,
         ),
@@ -430,9 +450,10 @@ class MapsPageState extends State<MapsPage> {
                   retinaMode: true,
                 ),
                 MarkerClusterLayerWidget(
+                  key: ValueKey('markerLayer_${_colorationMode.name}'),
                   options: MarkerClusterLayerOptions(
                     maxClusterRadius: 80,
-                    disableClusteringAtZoom: 11,
+                    disableClusteringAtZoom: 10,
                     size: const Size(50, 50),
                     markers: markers,
                     builder: (context, clusterMarkers) {
@@ -522,11 +543,12 @@ class MapsPageState extends State<MapsPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Contrôles principaux avec animation d'opacité
-                AnimatedOpacity(
+                                  AnimatedOpacity(
                   opacity: _dashboardOpacity,
                   duration: const Duration(milliseconds: 300),
                   child: Container(
-                    padding: const EdgeInsets.all(8),
+                    width: 280, // Largeur fixe pour le panneau
+                    padding: const EdgeInsets.fromLTRB(8, 4, 4, 4), // Padding réduit haut/bas et à droite
                     decoration: BoxDecoration(
                       color: Theme.of(context).cardColor.withOpacity(0.9),
                       borderRadius: BorderRadius.circular(12),
@@ -540,64 +562,60 @@ class MapsPageState extends State<MapsPage> {
                     ),
                     child: Column(
                       children: [
-                        // Indicateur de mode actuel
-                        Container(
-                          constraints: BoxConstraints(maxWidth: 200),
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).primaryColor.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(6),
-                            border: Border.all(color: Theme.of(context).primaryColor.withOpacity(0.3)),
-                          ),
-                          child: Text(
-                            _getCurrentModeDescription(),
-                            style: TextStyle(
-                              fontSize: 13 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
-                              fontWeight: FontWeight.w600,
-                              color: Theme.of(context).primaryColor,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
                         
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             // Switch pour Portfolio / All Tokens avec indicateurs
                             Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Transform.scale(
-                                  scale: 0.7,
-                                  child: CupertinoSwitch(
-                                    value: _showAllTokens,
-                                    onChanged: (value) {
-                                      setState(() {
-                                        _showAllTokens = value;
-                                      });
-                                    },
-                                    activeColor: Theme.of(context).primaryColor,
-                                    trackColor: Colors.grey.shade300,
-                                  ),
-                                ),
-                                const SizedBox(width: 4),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    Text(
-                                      _showAllTokens ? S.of(context).portfolioGlobal : S.of(context).portfolio,
-                                      style: TextStyle(fontSize: 13 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(), fontWeight: FontWeight.w600, height: 1.1),
+                                    Transform.scale(
+                                      scale: 0.7,
+                                      child: CupertinoSwitch(
+                                        value: _showAllTokens,
+                                        onChanged: (value) {
+                                          setState(() {
+                                            _showAllTokens = value;
+                                          });
+                                        },
+                                        activeColor: Theme.of(context).primaryColor,
+                                        trackColor: Colors.grey.shade300,
+                                      ),
                                     ),
-                                    Text(
-                                      _showAllTokens ? '${dataManager.allTokens.length} ${S.of(context).tokens}' : '${dataManager.portfolio.length} ${S.of(context).tokens}',
-                                      style: TextStyle(fontSize: 11 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(), color: Colors.grey[600], height: 1.1),
+                                    const SizedBox(width: 4),
+                                    Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          _showAllTokens ? S.of(context).portfolioGlobal : S.of(context).portfolio,
+                                          style: TextStyle(fontSize: 13 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(), fontWeight: FontWeight.w600, height: 1.1),
+                                        ),
+                                        Text(
+                                          _showAllTokens ? '${dataManager.allTokens.length} ${S.of(context).tokens}' : '${dataManager.portfolio.length} ${S.of(context).tokens}',
+                                          style: TextStyle(fontSize: 11 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(), color: Colors.grey[600], height: 1.1),
+                                        ),
+                                      ],
                                     ),
                                   ],
                                 ),
+                                // Bouton d'aide aligné à droite
+                                IconButton(
+                                  icon: Icon(Icons.help_outline, size: 14),
+                                  onPressed: () => _showHelpDialog(context),
+                                  style: IconButton.styleFrom(
+                                    backgroundColor: Colors.blue.shade100,
+                                    foregroundColor: Colors.blue.shade700,
+                                    minimumSize: Size(22, 22),
+                                    padding: EdgeInsets.all(2),
+                                  ),
+                                ),
                               ],
                             ),
-                            const SizedBox(height: 2),
                             
                             // Switch pour whitelist avec indicateurs
                             Row(
@@ -634,51 +652,57 @@ class MapsPageState extends State<MapsPage> {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 3),
                         // Boutons de contrôle avancés
                         Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            ElevatedButton.icon(
-                              icon: Icon(Icons.filter_list, size: 16),
-                              label: Text(S.of(context).filterOptions, style: TextStyle(fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
-                              onPressed: () {
-                                setState(() {
-                                  _showFiltersPanel = !_showFiltersPanel;
-                                });
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: _showFiltersPanel ? Theme.of(context).primaryColor : Colors.grey.shade400,
-                                foregroundColor: Colors.white,
-                                minimumSize: Size(55, 26),
-                                padding: EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                              ),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                ElevatedButton.icon(
+                                  icon: Icon(Icons.filter_list, size: 16),
+                                  label: Text(S.of(context).filterOptions, style: TextStyle(fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
+                                  onPressed: () {
+                                    setState(() {
+                                      _showFiltersPanel = !_showFiltersPanel;
+                                    });
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: _showFiltersPanel ? Theme.of(context).primaryColor : Colors.grey.shade400,
+                                    foregroundColor: Colors.white,
+                                    minimumSize: Size(55, 26),
+                                    padding: EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                ElevatedButton.icon(
+                                  icon: Icon(Icons.dashboard, size: 16),
+                                  label: Text(S.of(context).statistics, style: TextStyle(fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
+                                  onPressed: () {
+                                    setState(() {
+                                      _showMiniDashboard = !_showMiniDashboard;
+                                    });
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: _showMiniDashboard ? Theme.of(context).primaryColor : Colors.grey.shade400,
+                                    foregroundColor: Colors.white,
+                                    minimumSize: Size(55, 26),
+                                    padding: EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                                  ),
+                                ),
+                              ],
                             ),
-                            const SizedBox(width: 6),
-                            ElevatedButton.icon(
-                              icon: Icon(Icons.dashboard, size: 16),
-                              label: Text(S.of(context).statistics, style: TextStyle(fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
-                              onPressed: () {
-                                setState(() {
-                                  _showMiniDashboard = !_showMiniDashboard;
-                                });
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: _showMiniDashboard ? Theme.of(context).primaryColor : Colors.grey.shade400,
-                                foregroundColor: Colors.white,
-                                minimumSize: Size(55, 26),
-                                padding: EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                              ),
-                            ),
-                            const SizedBox(width: 6),
-                            // Bouton d'aide
+                            // Bouton paramètres aligné à droite
                             IconButton(
-                              icon: Icon(Icons.help_outline, size: 16),
-                              onPressed: () => _showHelpDialog(context),
+                              icon: Icon(Icons.settings, size: 14),
+                              onPressed: () => _showMapSettingsDialog(context),
                               style: IconButton.styleFrom(
-                                backgroundColor: Colors.blue.shade100,
-                                foregroundColor: Colors.blue.shade700,
-                                minimumSize: Size(26, 26),
+                                backgroundColor: Colors.grey.shade200,
+                                foregroundColor: Colors.grey.shade700,
+                                minimumSize: Size(22, 22),
+                                padding: EdgeInsets.all(2),
                               ),
+                              tooltip: 'Paramètres de la carte',
                             ),
                           ],
                         ),
@@ -744,12 +768,19 @@ class MapsPageState extends State<MapsPage> {
     }
 
     Color clusterColor;
-    if (fullyRented == markers.length) {
-      clusterColor = Colors.green;
-    } else if (notRented == markers.length) {
-      clusterColor = Colors.red;
+    if (_colorationMode == ColorationMode.apy) {
+      // Mode APY : utiliser la couleur basée sur l'APY moyen
+      final averageApy = apyCount > 0 ? totalApy / apyCount : 0.0;
+      clusterColor = _getApyBasedColor(averageApy);
     } else {
-      clusterColor = Colors.orange;
+      // Mode location par défaut
+      if (fullyRented == markers.length) {
+        clusterColor = Colors.green;
+      } else if (notRented == markers.length) {
+        clusterColor = Colors.red;
+      } else {
+        clusterColor = Colors.orange;
+      }
     }
 
     return {
@@ -1233,52 +1264,6 @@ class MapsPageState extends State<MapsPage> {
           Text(S.of(context).statistics, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16 + appState.getTextSizeOffset())),
           const SizedBox(height: 8),
           
-          // Résumé du mode actuel
-          Container(
-            padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(
-              color: totalTokens == 0 ? Colors.orange.withOpacity(0.1) : Theme.of(context).primaryColor.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: totalTokens == 0 ? Colors.orange.withOpacity(0.3) : Theme.of(context).primaryColor.withOpacity(0.3)
-              ),
-            ),
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    Icon(
-                      totalTokens == 0 ? Icons.warning : Icons.info,
-                      color: totalTokens == 0 ? Colors.orange : Theme.of(context).primaryColor,
-                      size: 16
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        totalTokens == 0 
-                          ? 'Aucune ${S.of(context).properties.toLowerCase()} ne correspond aux critères'
-                          : _getCurrentModeDescription(),
-                        style: TextStyle(
-                          fontSize: 13 + appState.getTextSizeOffset(),
-                          fontWeight: FontWeight.w600,
-                          color: totalTokens == 0 ? Colors.orange.shade700 : Theme.of(context).primaryColor,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                if (totalTokens > 0) ...[
-                  const SizedBox(height: 3),
-                  Text(
-                    'Base: ${_showAllTokens ? dataManager.allTokens.length : dataManager.portfolio.length} → Filtrés: $totalTokens ${S.of(context).properties.toLowerCase()}',
-                    style: TextStyle(fontSize: 11 + appState.getTextSizeOffset(), color: Colors.grey[600]),
-                  ),
-                ],
-              ],
-            ),
-          ),
-          const SizedBox(height: 8),
-          
           // Métriques principales
           _buildStatRow(S.of(context).tokensInMap, '$totalTokens', Icons.location_on, totalTokens == 0 ? Colors.orange : Colors.blue),
           _buildStatRow(S.of(context).totalProperties, '$uniqueProperties', Icons.map, Colors.indigo),
@@ -1353,6 +1338,170 @@ class MapsPageState extends State<MapsPage> {
     } else {
       return '💼 ${S.of(context).portfolio}';
     }
+  }
+
+  // Obtenir la couleur basée sur l'APY - progression rouge à vert de 0 à 12%
+  Color _getApyBasedColor(double apy) {
+    if (apy <= 0) return Colors.red.shade700;
+    
+    // Répartir rouge-vert de 0 à 12% avec granularité fine sur 9-12%
+    if (apy < 3) {
+      // Rouge intense à rouge-orange (0-3%)
+      final ratio = (apy / 3.0).clamp(0.0, 1.0);
+      return Color.lerp(Colors.red.shade700, Colors.deepOrange.shade600, ratio)!;
+    } else if (apy < 6) {
+      // Rouge-orange à orange (3-6%)
+      final ratio = ((apy - 3) / 3.0).clamp(0.0, 1.0);
+      return Color.lerp(Colors.deepOrange.shade600, Colors.orange.shade500, ratio)!;
+    } else if (apy < 9.0) {
+      // Orange à jaune (6-9%)
+      final ratio = ((apy - 6) / 3.0).clamp(0.0, 1.0);
+      return Color.lerp(Colors.orange.shade500, Colors.amber.shade600, ratio)!;
+    } else if (apy < 9.5) {
+      // Jaune à jaune-vert (9.0-9.5%) - début granularité fine
+      final ratio = ((apy - 9.0) / 0.5).clamp(0.0, 1.0);
+      return Color.lerp(Colors.amber.shade600, Colors.lime.shade500, ratio)!;
+    } else if (apy < 10.0) {
+      // Jaune-vert à vert clair (9.5-10.0%)
+      final ratio = ((apy - 9.5) / 0.5).clamp(0.0, 1.0);
+      return Color.lerp(Colors.lime.shade500, Colors.lightGreen.shade500, ratio)!;
+    } else if (apy < 10.5) {
+      // Vert clair à vert (10.0-10.5%)
+      final ratio = ((apy - 10.0) / 0.5).clamp(0.0, 1.0);
+      return Color.lerp(Colors.lightGreen.shade500, Colors.green.shade500, ratio)!;
+    } else if (apy < 11.0) {
+      // Vert à vert moyen (10.5-11.0%)
+      final ratio = ((apy - 10.5) / 0.5).clamp(0.0, 1.0);
+      return Color.lerp(Colors.green.shade500, Colors.green.shade600, ratio)!;
+    } else if (apy < 11.5) {
+      // Vert moyen à vert foncé (11.0-11.5%)
+      final ratio = ((apy - 11.0) / 0.5).clamp(0.0, 1.0);
+      return Color.lerp(Colors.green.shade600, Colors.green.shade700, ratio)!;
+    } else if (apy < 12.0) {
+      // Vert foncé à vert très foncé (11.5-12.0%)
+      final ratio = ((apy - 11.5) / 0.5).clamp(0.0, 1.0);
+      return Color.lerp(Colors.green.shade700, Colors.green.shade800, ratio)!;
+    } else {
+      // Vert excellence pour 12%+
+      return Colors.green.shade900;
+    }
+  }
+
+  // Obtenir la couleur d'un marker selon le mode de coloration
+  Color _getMarkerColor(Map<String, dynamic> token) {
+    if (_colorationMode == ColorationMode.apy) {
+      final apy = token['annualPercentageYield'] ?? 0.0;
+      return _getApyBasedColor(apy);
+    } else {
+      // Mode location par défaut
+      final rentedUnits = token['rentedUnits'] ?? 0;
+      final totalUnits = token['totalUnits'] ?? 1;
+      return UIUtils.getRentalStatusColor(rentedUnits, totalUnits);
+    }
+  }
+
+  // Dialog des paramètres de la carte
+  void _showMapSettingsDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Theme.of(context).cardColor,
+          title: Row(
+            children: [
+              Icon(Icons.settings, color: Theme.of(context).primaryColor),
+              const SizedBox(width: 8),
+              Text('Paramètres de la carte'),
+            ],
+          ),
+          content: StatefulBuilder(
+            builder: (context, setDialogState) {
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Mode de coloration',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  
+                  // Option location
+                  RadioListTile<ColorationMode>(
+                    title: Text('État de location'),
+                    subtitle: Text('Couleurs basées sur le taux de location'),
+                    value: ColorationMode.rental,
+                    groupValue: _colorationMode,
+                    onChanged: (value) {
+                      setDialogState(() {
+                        _colorationMode = value!;
+                      });
+                      setState(() {});
+                      _saveColorationModePreference(); // Sauvegarder le choix
+                    },
+                    secondary: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(width: 12, height: 12, decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.green)),
+                        const SizedBox(width: 4),
+                        Container(width: 12, height: 12, decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.orange)),
+                        const SizedBox(width: 4),
+                        Container(width: 12, height: 12, decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.red)),
+                      ],
+                    ),
+                  ),
+                  
+                  // Option APY
+                  RadioListTile<ColorationMode>(
+                    title: Text('Rendement APY'),
+                    subtitle: Text('Rouge→Vert (0-12%), granularité 0,5% sur 9-12%'),
+                    value: ColorationMode.apy,
+                    groupValue: _colorationMode,
+                    onChanged: (value) {
+                      setDialogState(() {
+                        _colorationMode = value!;
+                      });
+                      setState(() {});
+                      _saveColorationModePreference(); // Sauvegarder le choix
+                    },
+                    secondary: Container(
+                      width: 60,
+                      height: 12,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(6),
+                        gradient: LinearGradient(
+                          colors: [
+                            Colors.red.shade700,          // 0-3%
+                            Colors.deepOrange.shade600,   // 3-6%
+                            Colors.orange.shade500,       // 6-9%
+                            Colors.amber.shade600,        // 9-9.5%
+                            Colors.lime.shade500,         // 9.5-10%
+                            Colors.lightGreen.shade500,   // 10-10.5%
+                            Colors.green.shade500,        // 10.5-11%
+                            Colors.green.shade600,        // 11-11.5%
+                            Colors.green.shade700,        // 11.5-12%
+                            Colors.green.shade900,        // 12%+
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text('Fermer'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   void _showHelpDialog(BuildContext context) {
@@ -1438,7 +1587,48 @@ class MapsPageState extends State<MapsPage> {
     required int rentedUnits,
     required int totalUnits,
   }) {
-    final statusColor = UIUtils.getRentalStatusColor(rentedUnits, totalUnits);
+    // Utiliser la couleur calculée selon le mode de coloration choisi
+    final markerColor = color;
+    
+    // Validation et nettoyage de l'URL d'image
+    String? getValidImageUrl() {
+      try {
+        if (matchingToken['imageLink'] == null) {
+          debugPrint("⚠️ imageLink est null pour ${matchingToken['shortName']}");
+          return null;
+        }
+        
+        var imageLink = matchingToken['imageLink'];
+        String? imageUrl;
+        
+        if (imageLink is List && imageLink.isNotEmpty) {
+          imageUrl = imageLink[0]?.toString();
+        } else if (imageLink is String && imageLink.isNotEmpty) {
+          imageUrl = imageLink;
+        }
+        
+        if (imageUrl == null || imageUrl.isEmpty) {
+          debugPrint("⚠️ URL d'image vide pour ${matchingToken['shortName']}");
+          return null;
+        }
+        
+        // Vérifier si l'URL est valide
+        final uri = Uri.tryParse(imageUrl);
+        if (uri == null || (!uri.hasScheme || (!uri.scheme.startsWith('http')))) {
+          debugPrint("⚠️ URL d'image invalide pour ${matchingToken['shortName']}: $imageUrl");
+          return null;
+        }
+        
+        debugPrint("✅ URL d'image valide pour ${matchingToken['shortName']}: $imageUrl");
+        return imageUrl;
+        
+      } catch (e) {
+        debugPrint("❌ Erreur lors de la validation de l'image pour ${matchingToken['shortName']}: $e");
+        return null;
+      }
+    }
+    
+    final String? validImageUrl = getValidImageUrl();
     
     return Stack(
       alignment: Alignment.topCenter,
@@ -1462,81 +1652,88 @@ class MapsPageState extends State<MapsPage> {
           ),
         ),
         
-                 // Corps principal du pointeur
-         Column(
-           mainAxisSize: MainAxisSize.min,
-           children: [
-             // Cercle avec la photo (décalé vers le bas)
-             Transform.translate(
-               offset: Offset(0, 1.5), // Décale le cercle de 3 pixels vers le bas
-               child: Container(
-                 width: 36,
-                 height: 36,
-                 decoration: BoxDecoration(
-                   shape: BoxShape.circle,
-                   color: Colors.white,
-                   border: Border.all(
-                     color: statusColor,
-                     width: 3.0,
-                   ),
-                   boxShadow: [
-                     BoxShadow(
-                       color: Colors.black.withOpacity(0.2),
-                       blurRadius: 3,
-                       offset: Offset(0, 1),
-                     ),
-                   ],
-                 ),
-                 child: ClipOval(
-                   child: matchingToken['imageLink'] != null
-                       ? kIsWeb
-                           ? ShowNetworkImage(
-                               imageSrc: matchingToken['imageLink'][0],
-                               mobileBoxFit: BoxFit.cover,
-                               mobileWidth: 30,
-                               mobileHeight: 30,
-                             )
-                           : CachedNetworkImage(
-                               imageUrl: matchingToken['imageLink'][0],
-                               fit: BoxFit.cover,
-                               placeholder: (context, url) => Container(
-                                 color: Colors.grey.shade200,
-                                 child: Icon(
-                                   Icons.home,
-                                   color: Colors.grey.shade400,
-                                   size: 16,
-                                 ),
-                               ),
-                               errorWidget: (context, url, error) => Container(
-                                 color: Colors.grey.shade200,
-                                 child: Icon(
-                                   Icons.error,
-                                   color: Colors.red.shade400,
-                                   size: 16,
-                                 ),
-                               ),
-                             )
-                       : Container(
-                           color: color.withOpacity(0.1),
-                           child: Icon(
-                             Icons.home,
-                             color: color,
-                             size: 20,
-                           ),
-                         ),
-                 ),
-               ),
-             ),
-             
-             // Pointe du pointeur
-             CustomPaint(
-               size: Size(16, 12),
-               painter: _PointerTipPainter(statusColor),
-             ),
-           ],
-         ),
-        
-        
+        // Corps principal du pointeur
+        Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Cercle avec la photo (décalé vers le bas)
+            Transform.translate(
+              offset: Offset(0, 1.5), // Décale le cercle de 3 pixels vers le bas
+              child: Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white,
+                  border: Border.all(
+                    color: markerColor,
+                    width: 3.0,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.2),
+                      blurRadius: 3,
+                      offset: Offset(0, 1),
+                    ),
+                  ],
+                ),
+                child: ClipOval(
+                  child: validImageUrl != null
+                      ? kIsWeb
+                          ? ShowNetworkImage(
+                              imageSrc: validImageUrl,
+                              mobileBoxFit: BoxFit.cover,
+                              mobileWidth: 30,
+                              mobileHeight: 30,
+                            )
+                          : CachedNetworkImage(
+                              imageUrl: validImageUrl,
+                              fit: BoxFit.cover,
+                              fadeInDuration: Duration(milliseconds: 300),
+                              fadeOutDuration: Duration(milliseconds: 100),
+                              placeholder: (context, url) => Container(
+                                color: markerColor.withOpacity(0.1),
+                                child: Icon(
+                                  Icons.home,
+                                  color: markerColor.withOpacity(0.7),
+                                  size: 16,
+                                ),
+                              ),
+                              errorWidget: (context, url, error) {
+                                debugPrint("❌ Erreur chargement image pour ${matchingToken['shortName']}: $error");
+                                return Container(
+                                  color: markerColor.withOpacity(0.1),
+                                  child: Icon(
+                                    Icons.home,
+                                    color: markerColor,
+                                    size: 20,
+                                  ),
+                                );
+                              },
+                              // Ajouter des headers pour contourner les problèmes CORS potentiels
+                              httpHeaders: {
+                                'User-Agent': 'Mozilla/5.0 (compatible; RealTokenApp/1.0)',
+                              },
+                            )
+                      : Container(
+                          color: markerColor.withOpacity(0.1),
+                          child: Icon(
+                            Icons.home,
+                            color: markerColor,
+                            size: 20,
+                          ),
+                        ),
+                ),
+              ),
+            ),
+            
+            // Pointe du pointeur
+            CustomPaint(
+              size: Size(16, 12),
+              painter: _PointerTipPainter(markerColor),
+            ),
+          ],
+        ),
       ],
     );
   }
