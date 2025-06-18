@@ -145,7 +145,7 @@ class _RentDistributionChartState extends State<RentDistributionChart> {
         key = token['country'] ?? S.of(context).unknownCountry;
       } else if (_selectedFilter == 'Region') {
         String regionCode = token['regionCode'] ?? S.of(context).unknownRegion;
-        key = Parameters.usStateAbbreviations[regionCode] ?? regionCode;
+        key = Parameters.getRegionDisplayName(regionCode);
       } else if (_selectedFilter == 'City') {
         key = token['city'] ?? S.of(context).unknownCity;
       } else {

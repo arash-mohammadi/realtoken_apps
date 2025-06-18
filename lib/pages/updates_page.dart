@@ -213,7 +213,7 @@ class _UpdatesPageState extends State<UpdatesPage> {
                         child: Column(
                           children: [
                             Text(
-                              "Prix &\nInvestissements",
+                              "Tous les\nchangements",
                               style: TextStyle(
                                 fontSize: 12 + appState.getTextSizeOffset(),
                                 fontWeight: FontWeight.w500,
@@ -408,6 +408,14 @@ class _UpdatesPageState extends State<UpdatesPage> {
           imageUrl = imageData;
         }
 
+        // Récupérer les informations du token complet pour obtenir le pays
+        final dataManager = Provider.of<DataManager>(context, listen: false);
+        Map<String, dynamic>? fullTokenInfo = dataManager.allTokens.cast<Map<String, dynamic>?>().firstWhere(
+          (token) => token?['uuid']?.toLowerCase() == tokenUuid.toLowerCase(),
+          orElse: () => null,
+        );
+        String? country = fullTokenInfo?['country'];
+
         widgets.add(
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
@@ -488,15 +496,32 @@ class _UpdatesPageState extends State<UpdatesPage> {
                               // Nom du token avec indicateur
                               Row(
                                 children: [
-                                  Container(
-                                    width: 8,
-                                    height: 8,
-                                    decoration: BoxDecoration(
-                                      color: _getChangeColor(tokenChanges),
+                                  if (country != null)
+                                    ClipRRect(
                                       borderRadius: BorderRadius.circular(4),
+                                      child: Image.asset(
+                                        'assets/country/${country.toLowerCase()}.png',
+                                        width: 20 + appState.getTextSizeOffset(),
+                                        height: 20 + appState.getTextSizeOffset(),
+                                        errorBuilder: (context, error, stackTrace) {
+                                          return Icon(
+                                            CupertinoIcons.flag,
+                                            size: 20 + appState.getTextSizeOffset(),
+                                            color: CupertinoColors.systemGrey,
+                                          );
+                                        },
+                                      ),
                                     ),
-                                  ),
-                                  SizedBox(width: 10),
+                                  if (country == null)
+                                    Container(
+                                      width: 8,
+                                      height: 8,
+                                      decoration: BoxDecoration(
+                                        color: _getChangeColor(tokenChanges),
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                    ),
+                                  SizedBox(width: 8),
                                   Expanded(
                                     child: Text(
                                       shortName,
@@ -506,11 +531,6 @@ class _UpdatesPageState extends State<UpdatesPage> {
                                         color: CupertinoColors.label.resolveFrom(context),
                                       ),
                                     ),
-                                  ),
-                                  Icon(
-                                    CupertinoIcons.clock,
-                                    size: 16,
-                                    color: CupertinoColors.systemGrey,
                                   ),
                                 ],
                               ),

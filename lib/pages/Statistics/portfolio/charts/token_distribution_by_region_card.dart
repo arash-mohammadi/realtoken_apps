@@ -125,7 +125,7 @@ class _TokenDistributionByRegionCardState extends State<TokenDistributionByRegio
     // Remplir le dictionnaire avec les counts par région (utilise LocationUtils)
     for (var token in dataManager.portfolio) {
       String regionCode = token['regionCode'] ?? LocationUtils.extractRegion(token['fullName'] ?? '');
-      String regionName = Parameters.usStateAbbreviations[regionCode] ?? regionCode;
+      String regionName = Parameters.getRegionDisplayName(regionCode);
       regionCount[regionName] = (regionCount[regionName] ?? 0) + 1;
     }
 
@@ -235,7 +235,7 @@ class _TokenDistributionByRegionCardState extends State<TokenDistributionByRegio
     // Remplir le dictionnaire avec les counts par région (utilise LocationUtils)
     for (var token in dataManager.portfolio) {
       String regionCode = token['regionCode'] ?? LocationUtils.extractRegion(token['fullName'] ?? '');
-      String regionName = Parameters.usStateAbbreviations[regionCode] ?? regionCode;
+      String regionName = Parameters.getRegionDisplayName(regionCode);
       regionCount[regionName] = (regionCount[regionName] ?? 0) + 1;
     }
 
@@ -343,7 +343,7 @@ class _TokenDistributionByRegionCardState extends State<TokenDistributionByRegio
     // Remplir le dictionnaire avec les counts par région
     for (var token in dataManager.portfolio) {
       String regionCode = token['regionCode'] ?? S.of(context).unknownRegion;
-      String regionName = Parameters.usStateAbbreviations[regionCode] ?? regionCode;
+      String regionName = Parameters.getRegionDisplayName(regionCode);
       regionCount[regionName] = (regionCount[regionName] ?? 0) + 1;
     }
 

@@ -366,7 +366,7 @@ class _TokenDetailsWidgetState extends State<TokenDetailsWidget> with SingleTick
                                     Text(
                                       [
                                         widget.token['city'],
-                                        widget.token['regionCode'] != null ? Parameters.usStateAbbreviations[widget.token['regionCode']] ?? widget.token['regionCode'] : null
+                                        widget.token['regionCode'] != null ? Parameters.getRegionDisplayName(widget.token['regionCode']) : null
                                       ].where((e) => e != null).join(', '),
                                       style: TextStyle(
                                         fontSize: 12 + appState.getTextSizeOffset(),
@@ -523,12 +523,12 @@ class _TokenDetailsWidgetState extends State<TokenDetailsWidget> with SingleTick
             ),
           ),
           // Contenu de l'onglet sélectionné
-          SliverFillRemaining(
+          SliverToBoxAdapter(
             child: _buildTabContent(context, _tabController.index),
           ),
           // Padding bas pour permettre le scroll complet
           SliverToBoxAdapter(
-            child: SizedBox(height: 60),
+            child: SizedBox(height: 80),
           ),
         ],
       ),

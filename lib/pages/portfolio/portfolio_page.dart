@@ -234,7 +234,7 @@ class PortfolioPageState extends State<PortfolioPage> {
             // Filtre par région
             (_selectedRegion == null || (token['regionCode'] != null && token['regionCode'] == _selectedRegion)) &&
             // Filtre par pays
-            (_selectedCountry == null || (token['country'] != null && token['country'] == _selectedCountry)) &&
+            (_selectedCountry == null || _matchesCountryFilter(token, _selectedCountry)) &&
             // Filtre par statut de location
             (_rentalStatusFilter == rentalStatusAll || _filterByRentalStatus(token)))
         .toList();
@@ -323,6 +323,22 @@ class PortfolioPageState extends State<PortfolioPage> {
   List<String> _getUniqueCities(List<Map<String, dynamic>> portfolio) => FilterWidgets.getUniqueCities(portfolio);
   List<String> _getUniqueRegions(List<Map<String, dynamic>> portfolio) => FilterWidgets.getUniqueRegions(portfolio);
   List<String> _getUniqueCountries(List<Map<String, dynamic>> portfolio) => FilterWidgets.getUniqueCountries(portfolio);
+  
+  // Méthode pour vérifier si un token correspond au filtre pays
+  bool _matchesCountryFilter(Map<String, dynamic> token, String? selectedCountry) {
+    if (selectedCountry == null) return true;
+    
+    String tokenCountry = token['country'] ?? "Unknown Country";
+    
+    // Si "Series XX" est sélectionné, filtrer tous les tokens factoring_profitshare avec des séries
+    if (selectedCountry == "Series XX") {
+      return (token['productType']?.toString().toLowerCase() == 'factoring_profitshare') && 
+             tokenCountry.toLowerCase().startsWith('series ');
+    }
+    
+    // Filtre normal
+    return tokenCountry == selectedCountry;
+  }
   
   // Méthode pour obtenir les types de produits uniques
   List<String> _getUniqueProductTypes(List<Map<String, dynamic>> portfolio) {
@@ -462,73 +478,25 @@ class PortfolioPageState extends State<PortfolioPage> {
                                       padding: const EdgeInsets.only(bottom: 8),
                                       child: Row(
                                         children: [
-                                          // Filtre par Région
-                                          _buildFilterPopupMenu(
+                                          // Filtre par Pays
+                                          _buildCountryFilterMenu(
                                             context: context,
-                                            icon: Icons.map,
-                                            label: "",
-                                            items: [
-                                              PopupMenuItem(
-                                                value: "all_regions",
-                                                child: Text(S.of(context).allRegions),
-                                              ),
-                                              ...(_getUniqueRegions(Provider.of<DataManager>(context, listen: false).portfolio).map((region) => PopupMenuItem(
-                                                    value: region,
-                                                    child: Row(
-                                                      children: [
-                                                        if (region != "Unknown Region")
-                                                          Padding(
-                                                            padding: const EdgeInsets.only(right: 8.0),
-                                                            child: Image.asset(
-                                                              'assets/states/${region.toLowerCase()}.png',
-                                                              width: 24,
-                                                              height: 16,
-                                                              errorBuilder: (context, _, __) => const Icon(Icons.flag, size: 20),
-                                                            ),
-                                                          ),
-                                                        Text(Parameters.usStateAbbreviations[region] ?? region),
-                                                      ],
-                                                    ),
-                                                  ))),
-                                            ],
-                                            onSelected: (String value) {
-                                              _updateRegionFilter(value == "all_regions" ? null : value);
+                                            icon: Icons.flag,
+                                            selectedCountry: _selectedCountry,
+                                            onCountryChanged: (newSelectedCountry) {
+                                              _updateCountryFilter(newSelectedCountry);
                                             },
                                           ),
 
                                           const SizedBox(width: 8),
 
-                                          // Filtre par Pays
-                                          _buildFilterPopupMenu(
+                                          // Filtre par Région
+                                          _buildRegionFilterMenu(
                                             context: context,
-                                            icon: Icons.flag,
-                                            label: "",
-                                            items: [
-                                              PopupMenuItem(
-                                                value: "all_countries",
-                                                child: Text(S.of(context).allCountries),
-                                              ),
-                                              ...(_getUniqueCountries(Provider.of<DataManager>(context, listen: false).portfolio).map((country) => PopupMenuItem(
-                                                    value: country,
-                                                    child: Row(
-                                                      children: [
-                                                        if (country != "Unknown Country")
-                                                          Padding(
-                                                            padding: const EdgeInsets.only(right: 8.0),
-                                                            child: Image.asset(
-                                                              'assets/country/${country.toLowerCase()}.png',
-                                                              width: 24,
-                                                              height: 16,
-                                                              errorBuilder: (context, _, __) => const Icon(Icons.flag, size: 20),
-                                                            ),
-                                                          ),
-                                                        Text(country),
-                                                      ],
-                                                    ),
-                                                  ))),
-                                            ],
-                                            onSelected: (String value) {
-                                              _updateCountryFilter(value == "all_countries" ? null : value);
+                                            icon: Icons.map,
+                                            selectedRegion: _selectedRegion,
+                                            onRegionChanged: (newSelectedRegion) {
+                                              _updateRegionFilter(newSelectedRegion);
                                             },
                                           ),
 
@@ -549,137 +517,29 @@ class PortfolioPageState extends State<PortfolioPage> {
 
                                           const SizedBox(width: 8),
 
-                                          // Filtres combinés: Statut de location et Type de token
-                                          _buildFilterPopupMenu(
+                                          // Filtre Statut de location
+                                          _buildRentalStatusFilterMenu(
                                             context: context,
-                                            icon: Icons.filter_alt,
-                                            label: "",
-                                            items: [
-                                              // Section Statut de location
-                                              PopupMenuItem(
-                                                value: rentalStatusAll,
-                                                child: Row(
-                                                  children: [
-                                                    const Icon(Icons.home_work_outlined, size: 20),
-                                                    const SizedBox(width: 8.0),
-                                                    Text(
-                                                      S.of(context).rentalStatusAll,
-                                                      style: TextStyle(fontWeight: FontWeight.bold),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                              PopupMenuItem(
-                                                value: rentalStatusRented,
-                                                child: Row(
-                                                  children: [
-                                                    const Icon(Icons.check_circle, size: 20, color: Colors.green),
-                                                    const SizedBox(width: 8.0),
-                                                    Text(S.of(context).rentalStatusRented),
-                                                  ],
-                                                ),
-                                              ),
-                                              PopupMenuItem(
-                                                value: rentalStatusPartially,
-                                                child: Row(
-                                                  children: [
-                                                    const Icon(Icons.adjust, size: 20, color: Colors.orange),
-                                                    const SizedBox(width: 8.0),
-                                                    Text(S.of(context).rentalStatusPartiallyRented),
-                                                  ],
-                                                ),
-                                              ),
-                                              PopupMenuItem(
-                                                value: rentalStatusNotRented,
-                                                child: Row(
-                                                  children: [
-                                                    const Icon(Icons.cancel, size: 20, color: Colors.red),
-                                                    const SizedBox(width: 8.0),
-                                                    Text(S.of(context).rentalStatusNotRented),
-                                                  ],
-                                                ),
-                                              ),
+                                            icon: Icons.home_work,
+                                            selectedRentalStatus: _rentalStatusFilter,
+                                            onRentalStatusChanged: (newRentalStatus) {
+                                              _updateRentalStatusFilter(newRentalStatus);
+                                              _saveFilterPreferences();
+                                            },
+                                          ),
 
-                                              // Séparateur
-                                              const PopupMenuDivider(),
+                                          const SizedBox(width: 8),
 
-                                              // Section Type de token
-                                              PopupMenuItem(
-                                                value: "type_header",
-                                                enabled: false,
-                                                child: Row(
-                                                  children: [
-                                                    const Icon(Icons.category, size: 20),
-                                                    const SizedBox(width: 8.0),
-                                                    Text(
-                                                      S.of(context).tokenTypeTitle,
-                                                      style: TextStyle(fontWeight: FontWeight.bold),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                              PopupMenuItem(
-                                                value: "type_wallet_toggle",
-                                                child: StatefulBuilder(
-                                                  builder: (context, setStateLocal) {
-                                                    return InkWell(
-                                                      onTap: () {
-                                                        setState(() {
-                                                          if (_selectedTokenTypes.contains("wallet")) {
-                                                            _selectedTokenTypes.remove("wallet");
-                                                          } else {
-                                                            _selectedTokenTypes.add("wallet");
-                                                          }
-                                                        });
-                                                        setStateLocal(() {});
-                                                      },
-                                                      child: Row(
-                                                        children: [
-                                                          _selectedTokenTypes.contains("wallet") ? const Icon(Icons.check, size: 20) : const SizedBox(width: 20),
-                                                          const SizedBox(width: 8.0),
-                                                          const Icon(Icons.account_balance_wallet, size: 20),
-                                                          const SizedBox(width: 8.0),
-                                                          const Text("Wallet"),
-                                                        ],
-                                                      ),
-                                                    );
-                                                  },
-                                                ),
-                                              ),
-                                              PopupMenuItem(
-                                                value: "type_rmm_toggle",
-                                                child: StatefulBuilder(
-                                                  builder: (context, setStateLocal) {
-                                                    return InkWell(
-                                                      onTap: () {
-                                                        setState(() {
-                                                          if (_selectedTokenTypes.contains("RMM")) {
-                                                            _selectedTokenTypes.remove("RMM");
-                                                          } else {
-                                                            _selectedTokenTypes.add("RMM");
-                                                          }
-                                                        });
-                                                        setStateLocal(() {});
-                                                      },
-                                                      child: Row(
-                                                        children: [
-                                                          _selectedTokenTypes.contains("RMM") ? const Icon(Icons.check, size: 20) : const SizedBox(width: 20),
-                                                          const SizedBox(width: 8.0),
-                                                          const Icon(Icons.business, size: 20),
-                                                          const SizedBox(width: 8.0),
-                                                          const Text("RMM"),
-                                                        ],
-                                                      ),
-                                                    );
-                                                  },
-                                                ),
-                                              ),
-                                            ],
-                                            onSelected: (String value) {
-                                              if (value == rentalStatusAll || value == rentalStatusRented || value == rentalStatusPartially || value == rentalStatusNotRented) {
-                                                _updateRentalStatusFilter(value);
-                                                _saveFilterPreferences();
-                                              }
+                                          // Filtre Type de token (Wallet/RMM)
+                                          _buildTokenTypeFilterMenu(
+                                            context: context,
+                                            icon: Icons.account_tree,
+                                            selectedTokenTypes: _selectedTokenTypes,
+                                            onTokenTypesChanged: (newSelectedTokenTypes) {
+                                              setState(() {
+                                                _selectedTokenTypes = newSelectedTokenTypes;
+                                              });
+                                              _saveFilterPreferences();
                                             },
                                           ),
 
@@ -903,8 +763,13 @@ class PortfolioPageState extends State<PortfolioPage> {
         child: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: Theme.of(context).primaryColor.withOpacity(0.1),
+            color: selectedWallets.isNotEmpty 
+              ? Theme.of(context).primaryColor.withOpacity(0.2)
+              : Theme.of(context).primaryColor.withOpacity(0.1),
             borderRadius: BorderRadius.circular(12),
+            border: selectedWallets.isNotEmpty 
+              ? Border.all(color: Theme.of(context).primaryColor, width: 2)
+              : null,
           ),
           child: Icon(
             icon,
@@ -1002,8 +867,13 @@ class PortfolioPageState extends State<PortfolioPage> {
         child: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: Theme.of(context).primaryColor.withOpacity(0.1),
+            color: selectedProductTypes.isNotEmpty 
+              ? Theme.of(context).primaryColor.withOpacity(0.2)
+              : Theme.of(context).primaryColor.withOpacity(0.1),
             borderRadius: BorderRadius.circular(12),
+            border: selectedProductTypes.isNotEmpty 
+              ? Border.all(color: Theme.of(context).primaryColor, width: 2)
+              : null,
           ),
           child: Icon(
             icon,
@@ -1086,6 +956,426 @@ class PortfolioPageState extends State<PortfolioPage> {
           ];
         },
       );
+  }
+
+  // Filtre Region
+  Widget _buildRegionFilterMenu({
+    required BuildContext context,
+    required IconData icon,
+    required String? selectedRegion,
+    required Function(String?) onRegionChanged,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(right: 8),
+      child: PopupMenuButton<String>(
+        tooltip: "",
+        onSelected: (String value) {
+          if (value == "all_regions") {
+            onRegionChanged(null);
+          } else {
+            onRegionChanged(value);
+          }
+        },
+        offset: const Offset(0, 40),
+        elevation: 8,
+        color: Theme.of(context).cardColor.withOpacity(0.97),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: selectedRegion != null 
+              ? Theme.of(context).primaryColor.withOpacity(0.2)
+              : Theme.of(context).primaryColor.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(12),
+            border: selectedRegion != null 
+              ? Border.all(color: Theme.of(context).primaryColor, width: 2)
+              : null,
+          ),
+          child: Icon(
+            icon,
+            size: 20,
+            color: Theme.of(context).primaryColor,
+          ),
+        ),
+        itemBuilder: (context) {
+          final uniqueRegions = _getUniqueRegions(Provider.of<DataManager>(context, listen: false).portfolio);
+          
+          return [
+            PopupMenuItem(
+              value: "region_header",
+              enabled: false,
+              child: Row(
+                children: [
+                  Icon(Icons.map, size: 20),
+                  SizedBox(width: 8.0),
+                  Text(
+                    S.of(context).region,
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+            ),
+            const PopupMenuDivider(),
+            PopupMenuItem(
+              value: "all_regions",
+              child: Row(
+                children: [
+                  selectedRegion == null ? Icon(Icons.check, size: 20) : SizedBox(width: 20),
+                  SizedBox(width: 8.0),
+                  Icon(Icons.public, size: 20),
+                  SizedBox(width: 8.0),
+                  Text(S.of(context).allRegions),
+                ],
+              ),
+            ),
+            const PopupMenuDivider(),
+            ...uniqueRegions.map((region) => PopupMenuItem(
+                  value: region,
+                  child: Row(
+                    children: [
+                      selectedRegion == region ? Icon(Icons.check, size: 20) : SizedBox(width: 20),
+                      SizedBox(width: 8.0),
+                      if (region != "Unknown Region")
+                        Padding(
+                          padding: const EdgeInsets.only(right: 8.0),
+                          child: Image.asset(
+                            'assets/states/${region.toLowerCase()}.png',
+                            width: 24,
+                            height: 16,
+                            errorBuilder: (context, _, __) => const Icon(Icons.flag, size: 20),
+                          ),
+                        ),
+                      Flexible(child: Text(Parameters.getRegionDisplayName(region))),
+                    ],
+                  ),
+                )),
+          ];
+        },
+      ),
+    );
+  }
+
+  // Filtre Country
+  Widget _buildCountryFilterMenu({
+    required BuildContext context,
+    required IconData icon,
+    required String? selectedCountry,
+    required Function(String?) onCountryChanged,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(right: 8),
+      child: PopupMenuButton<String>(
+        tooltip: "",
+        onSelected: (String value) {
+          if (value == "all_countries") {
+            onCountryChanged(null);
+          } else {
+            onCountryChanged(value);
+          }
+        },
+        offset: const Offset(0, 40),
+        elevation: 8,
+        color: Theme.of(context).cardColor.withOpacity(0.97),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: selectedCountry != null 
+              ? Theme.of(context).primaryColor.withOpacity(0.2)
+              : Theme.of(context).primaryColor.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(12),
+            border: selectedCountry != null 
+              ? Border.all(color: Theme.of(context).primaryColor, width: 2)
+              : null,
+          ),
+          child: Icon(
+            icon,
+            size: 20,
+            color: Theme.of(context).primaryColor,
+          ),
+        ),
+        itemBuilder: (context) {
+          final uniqueCountries = _getUniqueCountries(Provider.of<DataManager>(context, listen: false).portfolio);
+          
+          return [
+            PopupMenuItem(
+              value: "country_header",
+              enabled: false,
+              child: Row(
+                children: [
+                  Icon(Icons.flag, size: 20),
+                  SizedBox(width: 8.0),
+                  Text(
+                    S.of(context).country,
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+            ),
+            const PopupMenuDivider(),
+            PopupMenuItem(
+              value: "all_countries",
+              child: Row(
+                children: [
+                  selectedCountry == null ? Icon(Icons.check, size: 20) : SizedBox(width: 20),
+                  SizedBox(width: 8.0),
+                  Icon(Icons.public, size: 20),
+                  SizedBox(width: 8.0),
+                  Text(S.of(context).allCountries),
+                ],
+              ),
+            ),
+            const PopupMenuDivider(),
+            ...uniqueCountries.map((country) => PopupMenuItem(
+                  value: country,
+                  child: Row(
+                    children: [
+                      selectedCountry == country ? Icon(Icons.check, size: 20) : SizedBox(width: 20),
+                      SizedBox(width: 8.0),
+                      if (country != "Unknown Country")
+                        Padding(
+                          padding: const EdgeInsets.only(right: 8.0),
+                          child: Image.asset(
+                            'assets/country/${Parameters.getCountryFileName(country)}.png',
+                            width: 24,
+                            height: 16,
+                            errorBuilder: (context, _, __) => const Icon(Icons.flag, size: 20),
+                          ),
+                        ),
+                      Flexible(child: Text(country)),
+                    ],
+                  ),
+                )),
+          ];
+        },
+      ),
+    );
+  }
+
+  // Filtre Statut de location
+  Widget _buildRentalStatusFilterMenu({
+    required BuildContext context,
+    required IconData icon,
+    required String selectedRentalStatus,
+    required Function(String) onRentalStatusChanged,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(right: 8),
+      child: PopupMenuButton<String>(
+        tooltip: "",
+        onSelected: (String value) {
+          onRentalStatusChanged(value);
+        },
+        offset: const Offset(0, 40),
+        elevation: 8,
+        color: Theme.of(context).cardColor.withOpacity(0.97),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: selectedRentalStatus != rentalStatusAll 
+              ? Theme.of(context).primaryColor.withOpacity(0.2)
+              : Theme.of(context).primaryColor.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(12),
+            border: selectedRentalStatus != rentalStatusAll 
+              ? Border.all(color: Theme.of(context).primaryColor, width: 2)
+              : null,
+          ),
+          child: Icon(
+            icon,
+            size: 20,
+            color: Theme.of(context).primaryColor,
+          ),
+        ),
+        itemBuilder: (context) => [
+          PopupMenuItem(
+            value: "rental_status_header",
+            enabled: false,
+            child: Row(
+              children: [
+                Icon(Icons.home_work, size: 20),
+                SizedBox(width: 8.0),
+                Text(
+                  "Statut de location",
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+          ),
+          const PopupMenuDivider(),
+          PopupMenuItem(
+            value: rentalStatusAll,
+            child: Row(
+              children: [
+                selectedRentalStatus == rentalStatusAll ? Icon(Icons.check, size: 20) : SizedBox(width: 20),
+                SizedBox(width: 8.0),
+                Icon(Icons.home_work_outlined, size: 20),
+                SizedBox(width: 8.0),
+                Text(S.of(context).rentalStatusAll),
+              ],
+            ),
+          ),
+          PopupMenuItem(
+            value: rentalStatusRented,
+            child: Row(
+              children: [
+                selectedRentalStatus == rentalStatusRented ? Icon(Icons.check, size: 20) : SizedBox(width: 20),
+                SizedBox(width: 8.0),
+                Icon(Icons.check_circle, size: 20, color: Colors.green),
+                SizedBox(width: 8.0),
+                Text(S.of(context).rentalStatusRented),
+              ],
+            ),
+          ),
+          PopupMenuItem(
+            value: rentalStatusPartially,
+            child: Row(
+              children: [
+                selectedRentalStatus == rentalStatusPartially ? Icon(Icons.check, size: 20) : SizedBox(width: 20),
+                SizedBox(width: 8.0),
+                Icon(Icons.adjust, size: 20, color: Colors.orange),
+                SizedBox(width: 8.0),
+                Text(S.of(context).rentalStatusPartiallyRented),
+              ],
+            ),
+          ),
+          PopupMenuItem(
+            value: rentalStatusNotRented,
+            child: Row(
+              children: [
+                selectedRentalStatus == rentalStatusNotRented ? Icon(Icons.check, size: 20) : SizedBox(width: 20),
+                SizedBox(width: 8.0),
+                Icon(Icons.cancel, size: 20, color: Colors.red),
+                SizedBox(width: 8.0),
+                Text(S.of(context).rentalStatusNotRented),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Filtre Type de token (Wallet/RMM)
+  Widget _buildTokenTypeFilterMenu({
+    required BuildContext context,
+    required IconData icon,
+    required Set<String> selectedTokenTypes,
+    required Function(Set<String>) onTokenTypesChanged,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(right: 8),
+      child: PopupMenuButton<String>(
+        tooltip: "",
+        onSelected: (String value) {
+          // La logique de sélection est gérée dans StatefulBuilder
+        },
+        offset: const Offset(0, 40),
+        elevation: 8,
+        color: Theme.of(context).cardColor.withOpacity(0.97),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: selectedTokenTypes.isNotEmpty 
+              ? Theme.of(context).primaryColor.withOpacity(0.2)
+              : Theme.of(context).primaryColor.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(12),
+            border: selectedTokenTypes.isNotEmpty 
+              ? Border.all(color: Theme.of(context).primaryColor, width: 2)
+              : null,
+          ),
+          child: Icon(
+            icon,
+            size: 20,
+            color: Theme.of(context).primaryColor,
+          ),
+        ),
+        itemBuilder: (context) => [
+          PopupMenuItem(
+            value: "token_type_header",
+            enabled: false,
+            child: Row(
+              children: [
+                Icon(Icons.account_tree, size: 20),
+                SizedBox(width: 8.0),
+                Text(
+                  S.of(context).tokenTypeTitle,
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+          ),
+          const PopupMenuDivider(),
+          PopupMenuItem(
+            value: "wallet_toggle",
+            child: StatefulBuilder(
+              builder: (context, setStateLocal) {
+                return InkWell(
+                  onTap: () {
+                    setState(() {
+                      if (selectedTokenTypes.contains("wallet")) {
+                        selectedTokenTypes.remove("wallet");
+                      } else {
+                        selectedTokenTypes.add("wallet");
+                      }
+                    });
+                    setStateLocal(() {});
+                    onTokenTypesChanged(selectedTokenTypes);
+                  },
+                  child: Row(
+                    children: [
+                      selectedTokenTypes.contains("wallet") ? Icon(Icons.check, size: 20) : SizedBox(width: 20),
+                      SizedBox(width: 8.0),
+                      Icon(Icons.account_balance_wallet, size: 20),
+                      SizedBox(width: 8.0),
+                      Text("Wallet"),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+          PopupMenuItem(
+            value: "rmm_toggle",
+            child: StatefulBuilder(
+              builder: (context, setStateLocal) {
+                return InkWell(
+                  onTap: () {
+                    setState(() {
+                      if (selectedTokenTypes.contains("RMM")) {
+                        selectedTokenTypes.remove("RMM");
+                      } else {
+                        selectedTokenTypes.add("RMM");
+                      }
+                    });
+                    setStateLocal(() {});
+                    onTokenTypesChanged(selectedTokenTypes);
+                  },
+                  child: Row(
+                    children: [
+                      selectedTokenTypes.contains("RMM") ? Icon(Icons.check, size: 20) : SizedBox(width: 20),
+                      SizedBox(width: 8.0),
+                      Icon(Icons.business, size: 20),
+                      SizedBox(width: 8.0),
+                      Text("RMM"),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   // Méthode pour obtenir le nom localisé du type de produit

@@ -11,6 +11,7 @@ import 'package:realtoken_asset_tracker/generated/l10n.dart';
 import 'package:realtoken_asset_tracker/utils/currency_utils.dart';
 import 'package:realtoken_asset_tracker/utils/data_fetch_utils.dart';
 import 'package:realtoken_asset_tracker/utils/date_utils.dart';
+import 'package:realtoken_asset_tracker/utils/parameters.dart';
 import 'package:realtoken_asset_tracker/utils/url_utils.dart';
 import 'package:show_network_image/show_network_image.dart';
 
@@ -433,7 +434,7 @@ class _PropertiesForSaleSecondaryState extends State<PropertiesForSaleSecondary>
                                           Row(
                                             children: [
                                               Image.asset(
-                                                'assets/country/${country.toLowerCase()}.png',
+                                                'assets/country/${Parameters.getCountryFileName(country)}.png',
                                                 width: 16,
                                                 height: 16,
                                                 errorBuilder: (context, error, stackTrace) {

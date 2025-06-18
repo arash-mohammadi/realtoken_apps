@@ -69,7 +69,7 @@ class RealTokensPageState extends State<RealTokensPage> {
       final matchesSearchQuery = token['fullName'].toLowerCase().contains(_searchQuery.toLowerCase());
       final matchesCity = _selectedCity == null || token['fullName'].contains(_selectedCity!);
       final matchesRegion = _selectedRegion == null || (token['regionCode'] != null && token['regionCode'] == _selectedRegion);
-      final matchesCountry = _selectedCountry == null || (token['country'] != null && token['country'] == _selectedCountry);
+      final matchesCountry = _selectedCountry == null || _matchesCountryFilter(token, _selectedCountry);
 
       return matchesSearchQuery && matchesCity && matchesRegion && matchesCountry;
     }).toList();
@@ -99,6 +99,22 @@ class RealTokensPageState extends State<RealTokensPage> {
   List<String> _getUniqueCities(List<Map<String, dynamic>> tokens) => FilterWidgets.getUniqueCities(tokens);
   List<String> _getUniqueRegions(List<Map<String, dynamic>> tokens) => FilterWidgets.getUniqueRegions(tokens);
   List<String> _getUniqueCountries(List<Map<String, dynamic>> tokens) => FilterWidgets.getUniqueCountries(tokens);
+  
+  // Méthode pour vérifier si un token correspond au filtre pays
+  bool _matchesCountryFilter(Map<String, dynamic> token, String? selectedCountry) {
+    if (selectedCountry == null) return true;
+    
+    String tokenCountry = token['country'] ?? "Unknown Country";
+    
+    // Si "Series XX" est sélectionné, filtrer tous les tokens factoring_profitshare avec des séries
+    if (selectedCountry == "Series XX") {
+      return (token['productType']?.toString().toLowerCase() == 'factoring_profitshare') && 
+             tokenCountry.toLowerCase().startsWith('series ');
+    }
+    
+    // Filtre normal
+    return tokenCountry == selectedCountry;
+  }
 
   // Méthodes factorisées utilisant FilterWidgets
   Widget _buildFilterButton({
@@ -118,13 +134,37 @@ class RealTokensPageState extends State<RealTokensPage> {
     required String label,
     required List<PopupMenuEntry<String>> items,
     required Function(String) onSelected,
-  }) => FilterWidgets.buildFilterPopupMenu(
-    context: context,
-    icon: icon,
-    label: label,
-    items: items,
-    onSelected: onSelected,
-  );
+    bool isActive = false,
+  }) {
+    return PopupMenuButton<String>(
+      onSelected: onSelected,
+      offset: const Offset(0, 40),
+      elevation: 8,
+      color: Theme.of(context).cardColor.withOpacity(0.97),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Container(
+        margin: const EdgeInsets.only(right: 8),
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: isActive 
+            ? Theme.of(context).primaryColor.withOpacity(0.2)
+            : Theme.of(context).primaryColor.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(12),
+          border: isActive 
+            ? Border.all(color: Theme.of(context).primaryColor, width: 2)
+            : null,
+        ),
+        child: Icon(
+          icon,
+          size: 20,
+          color: Theme.of(context).primaryColor,
+        ),
+      ),
+      itemBuilder: (context) => items,
+    );
+  }
 
   // Helper pour obtenir le label du tri actuel
   String _getSortLabel(BuildContext context) {
@@ -258,6 +298,7 @@ class RealTokensPageState extends State<RealTokensPage> {
                                     context: context,
                                     icon: Icons.location_city,
                                     label: _selectedCity ?? S.of(context).city,
+                                    isActive: _selectedCity != null,
                                     items: [
                                       PopupMenuItem(
                                         value: S.of(context).allCities,
@@ -275,48 +316,12 @@ class RealTokensPageState extends State<RealTokensPage> {
                                     },
                                   ),
 
-                                  // Filtre par région
-                                  _buildFilterPopupMenu(
-                                    context: context,
-                                    icon: Icons.map,
-                                    label: _selectedRegion != null ? (Parameters.usStateAbbreviations[_selectedRegion!] ?? _selectedRegion!) : "Région",
-                                    items: [
-                                      const PopupMenuItem(
-                                        value: "all_regions",
-                                        child: Text("Toutes les régions"),
-                                      ),
-                                      ...uniqueRegions.map((region) => PopupMenuItem(
-                                            value: region,
-                                            child: Row(
-                                              children: [
-                                                if (region != "Unknown Region")
-                                                  Padding(
-                                                    padding: const EdgeInsets.only(right: 8.0),
-                                                    child: Image.asset(
-                                                      'assets/states/${region.toLowerCase()}.png',
-                                                      width: 24,
-                                                      height: 16,
-                                                      errorBuilder: (context, _, __) => const Icon(Icons.flag, size: 20),
-                                                    ),
-                                                  ),
-                                                Text(Parameters.usStateAbbreviations[region] ?? region),
-                                              ],
-                                            ),
-                                          )),
-                                    ],
-                                    onSelected: (String value) {
-                                      setState(() {
-                                        _selectedRegion = value == "all_regions" ? null : value;
-                                        _saveSortPreferences();
-                                      });
-                                    },
-                                  ),
-
                                   // Filtre par pays
                                   _buildFilterPopupMenu(
                                     context: context,
                                     icon: Icons.flag,
                                     label: _selectedCountry ?? "Pays",
+                                    isActive: _selectedCountry != null,
                                     items: [
                                       const PopupMenuItem(
                                         value: "all_countries",
@@ -326,11 +331,13 @@ class RealTokensPageState extends State<RealTokensPage> {
                                             value: country,
                                             child: Row(
                                               children: [
+                                                _selectedCountry == country ? Icon(Icons.check, size: 20) : SizedBox(width: 20),
+                                                SizedBox(width: 8.0),
                                                 if (country != "Unknown Country")
                                                   Padding(
                                                     padding: const EdgeInsets.only(right: 8.0),
                                                     child: Image.asset(
-                                                      'assets/country/${country.toLowerCase()}.png',
+                                                      'assets/country/${Parameters.getCountryFileName(country)}.png',
                                                       width: 24,
                                                       height: 16,
                                                       errorBuilder: (context, _, __) => const Icon(Icons.flag, size: 20),
@@ -349,11 +356,52 @@ class RealTokensPageState extends State<RealTokensPage> {
                                     },
                                   ),
 
+                                  // Filtre par région
+                                  _buildFilterPopupMenu(
+                                    context: context,
+                                    icon: Icons.map,
+                                    label: _selectedRegion != null ? Parameters.getRegionDisplayName(_selectedRegion!) : "Région",
+                                    isActive: _selectedRegion != null,
+                                    items: [
+                                      const PopupMenuItem(
+                                        value: "all_regions",
+                                        child: Text("Toutes les régions"),
+                                      ),
+                                      ...uniqueRegions.map((region) => PopupMenuItem(
+                                            value: region,
+                                            child: Row(
+                                              children: [
+                                                _selectedRegion == region ? Icon(Icons.check, size: 20) : SizedBox(width: 20),
+                                                SizedBox(width: 8.0),
+                                                if (region != "Unknown Region")
+                                                  Padding(
+                                                    padding: const EdgeInsets.only(right: 8.0),
+                                                    child: Image.asset(
+                                                      'assets/states/${region.toLowerCase()}.png',
+                                                      width: 24,
+                                                      height: 16,
+                                                      errorBuilder: (context, _, __) => const Icon(Icons.flag, size: 20),
+                                                    ),
+                                                  ),
+                                                Text(Parameters.getRegionDisplayName(region)),
+                                              ],
+                                            ),
+                                          )),
+                                    ],
+                                    onSelected: (String value) {
+                                      setState(() {
+                                        _selectedRegion = value == "all_regions" ? null : value;
+                                        _saveSortPreferences();
+                                      });
+                                    },
+                                  ),
+
                                   // Filtres combinés (whitelist + wallet)
                                   _buildFilterPopupMenu(
                                     context: context,
                                     icon: Icons.filter_alt,
                                     label: _getFilterLabel(),
+                                    isActive: _filterNotInWallet || !_showNonWhitelisted,
                                     items: [
                                       PopupMenuItem(
                                         value: "filter_header",
@@ -655,7 +703,7 @@ class RealTokensPageState extends State<RealTokensPage> {
                                         Padding(
                                           padding: const EdgeInsets.only(top: 2.0),
                                           child: Text(
-                                            Parameters.usStateAbbreviations[token['regionCode']] ?? token['regionCode'],
+                                            Parameters.getRegionDisplayName(token['regionCode']),
                                             style: TextStyle(
                                               fontSize: 12,
                                               color: Theme.of(context).textTheme.bodySmall?.color,

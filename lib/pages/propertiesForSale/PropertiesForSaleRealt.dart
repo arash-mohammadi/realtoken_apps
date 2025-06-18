@@ -8,6 +8,7 @@ import 'package:realtoken_asset_tracker/generated/l10n.dart';
 import 'package:realtoken_asset_tracker/managers/data_manager.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:realtoken_asset_tracker/utils/currency_utils.dart';
+import 'package:realtoken_asset_tracker/utils/parameters.dart';
 import 'package:realtoken_asset_tracker/utils/url_utils.dart';
 import 'package:show_network_image/show_network_image.dart';
 
@@ -200,7 +201,7 @@ class _PropertiesForSaleRealtState extends State<PropertiesForSaleRealt> {
                                           child: ClipRRect(
                                             borderRadius: BorderRadius.circular(4),
                                             child: Image.asset(
-                                              'assets/country/${country.toLowerCase()}.png',
+                                              'assets/country/${Parameters.getCountryFileName(country)}.png',
                                               width: 24,
                                               height: 24,
                                               errorBuilder: (context, error, stackTrace) {

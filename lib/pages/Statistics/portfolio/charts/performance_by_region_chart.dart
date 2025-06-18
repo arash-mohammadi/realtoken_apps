@@ -105,7 +105,7 @@ class _PerformanceByRegionChartState extends State<PerformanceByRegionChart> {
 
     for (var token in widget.dataManager.portfolio) {
       final String regionCode = token['regionCode'] ?? 'Unknown';
-      final String regionName = Parameters.usStateAbbreviations[regionCode] ?? regionCode;
+      final String regionName = Parameters.getRegionDisplayName(regionCode);
       final double totalRentReceived = (token['totalRentReceived'] ?? 0.0).toDouble();
       final double initialValue = (token['initialValue'] ?? 0.0).toDouble();
       final double roi = initialValue > 0 ? (totalRentReceived / initialValue) * 100 : 0.0;

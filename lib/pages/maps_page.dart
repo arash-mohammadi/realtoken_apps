@@ -248,7 +248,7 @@ class MapsPageState extends State<MapsPage> {
       
       // Filtre par pays
       if (_selectedCountry != null && _selectedCountry!.isNotEmpty) {
-        if (token['country'] != _selectedCountry) {
+        if (!_matchesCountryFilter(token, _selectedCountry)) {
           return false;
         }
       }
@@ -292,6 +292,22 @@ class MapsPageState extends State<MapsPage> {
     final initialValue = token['initialTotalValue'] ?? token['tokenPrice'];
     final currentValue = token['tokenPrice'] ?? 0.0;
     return initialValue > 0 ? ((currentValue - initialValue) / initialValue * 100) : 0.0;
+  }
+  
+  // Méthode pour vérifier si un token correspond au filtre pays
+  bool _matchesCountryFilter(Map<String, dynamic> token, String? selectedCountry) {
+    if (selectedCountry == null) return true;
+    
+    String tokenCountry = token['country'] ?? "Unknown Country";
+    
+    // Si "Series XX" est sélectionné, filtrer tous les tokens factoring_profitshare avec des séries
+    if (selectedCountry == "Series XX") {
+      return (token['productType']?.toString().toLowerCase() == 'factoring_profitshare') && 
+             tokenCountry.toLowerCase().startsWith('series ');
+    }
+    
+    // Filtre normal
+    return tokenCountry == selectedCountry;
   }
 
   @override

@@ -136,4 +136,24 @@ class Parameters {
   };
 
   static final Map<String, String> currencySymbols = {'usd': '\$', 'eur': '€', 'gbp': '£', 'jpy': '¥', 'inr': '₹', 'btc': '₿', 'eth': 'Ξ'};
+
+  // Mapping des régions spéciales
+  static String getRegionDisplayName(String region) {
+    switch (region) {
+      case 'Ty':
+        return 'Factoring';
+      default:
+        return usStateAbbreviations[region] ?? region;
+    }
+  }
+
+  // Mapping des noms de pays vers les noms de fichiers
+  static String getCountryFileName(String country) {
+    switch (country.toLowerCase()) {
+      case 'series xx':
+        return 'series_xx';
+      default:
+        return country.toLowerCase();
+    }
+  }
 }

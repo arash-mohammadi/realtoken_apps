@@ -95,7 +95,15 @@ class FilterWidgets {
   /// Extrait les pays uniques depuis une liste de tokens/portfolio
   static List<String> getUniqueCountries(List<Map<String, dynamic>> items) {
     final countries = items
-        .map((item) => item['country'] ?? "Unknown Country")
+        .map((item) {
+          String country = item['country'] ?? "Unknown Country";
+          // Regrouper les tokens factoring_profitshare avec des séries sous "Series XX"
+          if ((item['productType']?.toString().toLowerCase() == 'factoring_profitshare') && 
+              country.toLowerCase().startsWith('series ')) {
+            return "Series XX";
+          }
+          return country;
+        })
         .where((country) => country != null)
         .toSet()
         .cast<String>()

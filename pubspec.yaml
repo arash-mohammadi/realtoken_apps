@@ -87,6 +87,7 @@ flutter:
     - assets/country/panama.png
     - assets/country/suisse.png
     - assets/country/colombia.png
+    - assets/country/series_xx.png
     - assets/states/
 
   uses-material-design: true
