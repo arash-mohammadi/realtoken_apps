@@ -287,7 +287,21 @@ class RealTokensPageState extends State<RealTokensPage> {
                                       ),
                                       ...uniqueRegions.map((region) => PopupMenuItem(
                                             value: region,
-                                            child: Text(Parameters.usStateAbbreviations[region] ?? region),
+                                            child: Row(
+                                              children: [
+                                                if (region != "Unknown Region")
+                                                  Padding(
+                                                    padding: const EdgeInsets.only(right: 8.0),
+                                                    child: Image.asset(
+                                                      'assets/states/${region.toLowerCase()}.png',
+                                                      width: 24,
+                                                      height: 16,
+                                                      errorBuilder: (context, _, __) => const Icon(Icons.flag, size: 20),
+                                                    ),
+                                                  ),
+                                                Text(Parameters.usStateAbbreviations[region] ?? region),
+                                              ],
+                                            ),
                                           )),
                                     ],
                                     onSelected: (String value) {

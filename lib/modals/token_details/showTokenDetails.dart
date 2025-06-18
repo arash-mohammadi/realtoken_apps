@@ -317,10 +317,10 @@ class _TokenDetailsWidgetState extends State<TokenDetailsWidget> with SingleTick
                               margin: const EdgeInsets.only(right: 6.0),
                               child: Image.asset(
                                 'assets/country/${widget.token['country'].toLowerCase()}.png',
-                                width: 28 + appState.getTextSizeOffset(),
-                                height: 28 + appState.getTextSizeOffset(),
+                                width: 36 + appState.getTextSizeOffset(),
+                                height: 36 + appState.getTextSizeOffset(),
                                 errorBuilder: (context, error, stackTrace) {
-                                  return const Icon(Icons.flag, size: 20);
+                                  return const Icon(Icons.flag, size: 28);
                                 },
                               ),
                             ),
@@ -345,6 +345,23 @@ class _TokenDetailsWidgetState extends State<TokenDetailsWidget> with SingleTick
                                       size: 14 + appState.getTextSizeOffset(),
                                       color: Colors.grey[600],
                                     ),
+                                    // Drapeau de l'état américain si disponible
+                                    if (widget.token['regionCode'] != null && widget.token['country']?.toLowerCase() == 'usa')
+                                      Container(
+                                        margin: const EdgeInsets.only(left: 4.0, right: 2.0),
+                                        child: Image.asset(
+                                          'assets/states/${widget.token['regionCode'].toLowerCase()}.png',
+                                          width: 16 + appState.getTextSizeOffset(),
+                                          height: 16 + appState.getTextSizeOffset(),
+                                          errorBuilder: (context, error, stackTrace) {
+                                            return Icon(
+                                              Icons.location_city,
+                                              size: 14 + appState.getTextSizeOffset(),
+                                              color: Colors.grey[600],
+                                            );
+                                          },
+                                        ),
+                                      ),
                                     const SizedBox(width: 2),
                                     Text(
                                       [
