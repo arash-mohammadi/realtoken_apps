@@ -485,7 +485,7 @@ Widget buildFinanceTab(BuildContext context, Map<String, dynamic> token, bool co
             _buildDetailRow(
               context,
               S.of(context).initialPrice,
-              currencyUtils.formatCurrency(currencyUtils.convert(token['initPrice']), currencyUtils.currencySymbol),
+              currencyUtils.formatCurrency(currencyUtils.convert(token['averagePurchasePrice'] ?? token['initPrice']), currencyUtils.currencySymbol),
               icon: Icons.price_change_sharp,
               iconColor: Colors.indigo,
               trailing: IconButton(
@@ -509,10 +509,18 @@ Widget buildFinanceTab(BuildContext context, Map<String, dynamic> token, bool co
             _buildDetailRow(
               context,
               'YAM',
-              '${currencyUtils.formatCurrency(currencyUtils.convert((token['yamAverageValue'])), currencyUtils.currencySymbol)} (${((token['yamAverageValue'] / token['initPrice'] - 1) * 100).toStringAsFixed(0)}%)',
+              '${currencyUtils.formatCurrency(currencyUtils.convert((token['yamAverageValue'])), currencyUtils.currencySymbol)} (${(token['averagePurchasePrice'] != null && token['averagePurchasePrice'] > 0) ? ((token['yamAverageValue'] / token['averagePurchasePrice'] - 1) * 100).toStringAsFixed(0) : "0"}%)',
               icon: Icons.price_change_sharp,
               iconColor: Colors.blueGrey,
               textColor: (token['yamAverageValue'] * token['amount']) > token['totalValue'] ? Colors.green : Colors.red,
+            ),
+            const Divider(height: 1, thickness: 0.5),
+            _buildDetailRow(
+              context,
+              'Prix initial historique',
+              currencyUtils.formatCurrency(currencyUtils.convert(token['initPrice'] ?? 0), currencyUtils.currencySymbol),
+              icon: Icons.history,
+              iconColor: Colors.grey,
             ),
             const Divider(height: 1, thickness: 0.5),
             _buildDetailRow(
@@ -639,7 +647,7 @@ Widget _buildDetailRow(BuildContext context, String label, String value, {IconDa
 // Méthode pour afficher le BottomModal de modification du prix
 void _showEditPriceBottomModal(BuildContext context, Map<String, dynamic> token, DataManager dataManager) {
   final TextEditingController priceController = TextEditingController(
-    text: token['initPrice']?.toString() ?? '0.00',
+    text: token['averagePurchasePrice']?.toString() ?? '0.00',
   );
 
   showModalBottomSheet(

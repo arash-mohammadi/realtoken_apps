@@ -22,27 +22,27 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m0(biometricType) => "Аутентификация ${biometricType}";
 
-  static String m1(days) => "+${days} д";
+  static String m2(days) => "+${days} д";
 
-  static String m2(biometricType) => "Устройство поддерживает ${biometricType}";
-
-  static String m3(error) => "Ошибка: ${error}";
+  static String m3(biometricType) => "Устройство поддерживает ${biometricType}";
 
   static String m4(error) => "Ошибка: ${error}";
 
-  static String m5(language) => "Язык изменен на ${language}";
+  static String m5(error) => "Ошибка: ${error}";
 
-  static String m6(days) => "Следующий RONday через ${days} дней";
+  static String m6(language) => "Язык изменен на ${language}";
 
-  static String m7(rented, total) => "Арендовано: ${rented}/${total}";
+  static String m7(days) => "Следующий RONday через ${days} дней";
 
-  static String m8(weeks) => "ROI: ${weeks} недель";
+  static String m8(rented, total) => "Арендовано: ${rented}/${total}";
 
-  static String m9(theme) => "Тема обновлена на ${theme}";
+  static String m9(weeks) => "ROI: ${weeks} недель";
 
-  static String m10(rented, total) => "Арендовано: ${rented}/${total}";
+  static String m10(theme) => "Тема обновлена на ${theme}";
 
-  static String m11(address) => "Кошелек сохранен: ${address}";
+  static String m11(rented, total) => "Арендовано: ${rented}/${total}";
+
+  static String m12(address) => "Кошелек сохранен: ${address}";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -177,7 +177,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "day": MessageLookupByLibrary.simpleMessage("День"),
         "days": MessageLookupByLibrary.simpleMessage("Дни"),
         "daysLimit": MessageLookupByLibrary.simpleMessage("Лимит дней"),
-        "daysShort": m1,
+        "daysShort": m2,
         "delta_price": MessageLookupByLibrary.simpleMessage("Изменение цены"),
         "depositBalance": MessageLookupByLibrary.simpleMessage("Депозиты"),
         "deposits": MessageLookupByLibrary.simpleMessage("Депозиты"),
@@ -188,7 +188,7 @@ class MessageLookup extends MessageLookupByLibrary {
             "Устройство не поддерживает биометрию"),
         "deviceDoesNotSupportBiometric":
             MessageLookupByLibrary.simpleMessage("Биометрия не поддерживается"),
-        "deviceSupportsBiometric": m2,
+        "deviceSupportsBiometric": m3,
         "donate": MessageLookupByLibrary.simpleMessage("Пожертвовать"),
         "donationMessage": MessageLookupByLibrary.simpleMessage(
             "Если вам нравится это приложение, вы можете поддержать его развитие."),
@@ -207,10 +207,10 @@ class MessageLookup extends MessageLookupByLibrary {
         "english": MessageLookupByLibrary.simpleMessage("Английский"),
         "enterValidNumber":
             MessageLookupByLibrary.simpleMessage("Введите корректное число"),
-        "errorDuringTest": m3,
+        "errorDuringTest": m4,
         "errorLoadingData":
             MessageLookupByLibrary.simpleMessage("Ошибка загрузки данных"),
-        "error_occurred": m4,
+        "error_occurred": m5,
         "ethereumContract":
             MessageLookupByLibrary.simpleMessage("Контракт Ethereum"),
         "everyContributionCounts":
@@ -296,7 +296,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "investment": MessageLookupByLibrary.simpleMessage("Инвестиция"),
         "italian": MessageLookupByLibrary.simpleMessage("Итальянский"),
         "language": MessageLookupByLibrary.simpleMessage("Язык"),
-        "languageUpdated": m5,
+        "languageUpdated": m6,
         "lastExecution":
             MessageLookupByLibrary.simpleMessage("Последнее обновление"),
         "lastRentReceived":
@@ -349,7 +349,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "newVersionAvailable":
             MessageLookupByLibrary.simpleMessage("Доступна новая версия"),
         "new_yield": MessageLookupByLibrary.simpleMessage("Новая доходность:"),
-        "nextRondayInDays": m6,
+        "nextRondayInDays": m7,
         "nextRondays": MessageLookupByLibrary.simpleMessage("Следующие Ronday"),
         "noCommunicatedDate":
             MessageLookupByLibrary.simpleMessage("Дата не указана"),
@@ -510,7 +510,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Статус аренды"),
         "rentalType": MessageLookupByLibrary.simpleMessage("Тип аренды"),
         "rented": MessageLookupByLibrary.simpleMessage("Арендовано"),
-        "rentedUnits": m7,
+        "rentedUnits": m8,
         "rentedUnitsSimple":
             MessageLookupByLibrary.simpleMessage("Арендованные единицы"),
         "rents": MessageLookupByLibrary.simpleMessage("Арендные платежи"),
@@ -530,7 +530,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "roiByToken": MessageLookupByLibrary.simpleMessage("ROI по токенам"),
         "roiHistory": MessageLookupByLibrary.simpleMessage("История ROI"),
         "roiPerProperties": MessageLookupByLibrary.simpleMessage("ROI объекта"),
-        "roi_label": m8,
+        "roi_label": m9,
         "russian": MessageLookupByLibrary.simpleMessage("Русский"),
         "rwaHoldings": MessageLookupByLibrary.simpleMessage("RWA Holdings SA"),
         "save": MessageLookupByLibrary.simpleMessage("Сохранить"),
@@ -588,6 +588,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "spanish": MessageLookupByLibrary.simpleMessage("Испанский"),
         "specialThanks": MessageLookupByLibrary.simpleMessage(
             "Особая благодарность @Sigri, @ehpst и @pitsbi за поддержку."),
+        "specialThanksJojodunet": MessageLookupByLibrary.simpleMessage(
+            "Особая благодарность @Jojodunet за его упорство и часы, потраченные на тестирование и повторное тестирование приложения!"),
         "squareFeet":
             MessageLookupByLibrary.simpleMessage("Внутренняя площадь"),
         "statistics": MessageLookupByLibrary.simpleMessage("Статистика"),
@@ -618,7 +620,9 @@ class MessageLookup extends MessageLookupByLibrary {
         "thankYouMessage": MessageLookupByLibrary.simpleMessage(
             "Спасибо всем, кто участвовал в разработке проекта."),
         "thanks": MessageLookupByLibrary.simpleMessage("Благодарности"),
-        "themeUpdated": m9,
+        "thanksDonators": MessageLookupByLibrary.simpleMessage(
+            "Спасибо также всем жертвователям, которые поддерживают разработку этого приложения!"),
+        "themeUpdated": m10,
         "timeBeforeLiquidation":
             MessageLookupByLibrary.simpleMessage("до ликвидации"),
         "timestamp": MessageLookupByLibrary.simpleMessage("Время"),
@@ -637,6 +641,7 @@ class MessageLookup extends MessageLookupByLibrary {
             "Распределение токенов по регионам"),
         "tokenDistributionByWallet": MessageLookupByLibrary.simpleMessage(
             "Распределение токенов по кошелькам"),
+        "tokenHistory": MessageLookupByLibrary.simpleMessage("История токенов"),
         "tokenNotWhitelisted":
             MessageLookupByLibrary.simpleMessage("Токен не в белом списке"),
         "tokenPrice": MessageLookupByLibrary.simpleMessage("Цена токена"),
@@ -680,7 +685,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Объем транзакций"),
         "underlyingAssetPrice":
             MessageLookupByLibrary.simpleMessage("Цена актива"),
-        "unitesLouees": m10,
+        "unitesLouees": m11,
         "units": MessageLookupByLibrary.simpleMessage("ед."),
         "unknown": MessageLookupByLibrary.simpleMessage("Неизвестно"),
         "unknownCity":
@@ -711,7 +716,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("История баланса кошелька"),
         "walletDetails":
             MessageLookupByLibrary.simpleMessage("Детали кошелька"),
-        "walletSaved": m11,
+        "walletSaved": m12,
         "wallets": MessageLookupByLibrary.simpleMessage("Кошельки"),
         "walletsContainingToken":
             MessageLookupByLibrary.simpleMessage("Кошельки с этим токеном"),

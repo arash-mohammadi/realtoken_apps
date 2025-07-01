@@ -20,25 +20,25 @@ typedef String MessageIfAbsent(String messageStr, List<dynamic> args);
 class MessageLookup extends MessageLookupByLibrary {
   String get localeName => 'zh';
 
-  static String m1(days) => "+${days}天";
+  static String m2(days) => "+${days}天";
 
-  static String m2(biometricType) => "您的设备支持${biometricType}";
+  static String m3(biometricType) => "您的设备支持${biometricType}";
 
-  static String m3(error) => "测试期间出错：${error}";
+  static String m4(error) => "测试期间出错：${error}";
 
-  static String m4(error) => "错误：${error}";
+  static String m5(error) => "错误：${error}";
 
-  static String m5(language) => "语言已更新为 ${language}";
+  static String m6(language) => "语言已更新为 ${language}";
 
-  static String m6(days) => "${days}天后的下一个RONday";
+  static String m7(days) => "${days}天后的下一个RONday";
 
-  static String m7(rented, total) => "已租出单元";
+  static String m8(rented, total) => "已租出单元";
 
-  static String m8(weeks) => "投资回报期：${weeks} 周";
+  static String m9(weeks) => "投资回报期：${weeks} 周";
 
-  static String m9(theme) => "主题已更新为 ${theme}";
+  static String m10(theme) => "主题已更新为 ${theme}";
 
-  static String m11(address) => "钱包已保存: ${address}";
+  static String m12(address) => "钱包已保存: ${address}";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -149,7 +149,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "day": MessageLookupByLibrary.simpleMessage("天"),
         "days": MessageLookupByLibrary.simpleMessage("天"),
         "daysLimit": MessageLookupByLibrary.simpleMessage("天数限制"),
-        "daysShort": m1,
+        "daysShort": m2,
         "delta_price": MessageLookupByLibrary.simpleMessage("价格差异"),
         "depositBalance": MessageLookupByLibrary.simpleMessage("存款"),
         "deposits": MessageLookupByLibrary.simpleMessage("存款"),
@@ -159,7 +159,7 @@ class MessageLookup extends MessageLookupByLibrary {
             "您的设备不支持生物认证，或者设备设置中没有注册生物识别数据。"),
         "deviceDoesNotSupportBiometric":
             MessageLookupByLibrary.simpleMessage("您的设备不支持生物认证"),
-        "deviceSupportsBiometric": m2,
+        "deviceSupportsBiometric": m3,
         "donate": MessageLookupByLibrary.simpleMessage("捐赠"),
         "donationMessage":
             MessageLookupByLibrary.simpleMessage("如果您喜欢此应用并希望支持其开发，您可以捐款。"),
@@ -173,9 +173,9 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("启用生物认证"),
         "english": MessageLookupByLibrary.simpleMessage("English"),
         "enterValidNumber": MessageLookupByLibrary.simpleMessage("请输入有效的数字"),
-        "errorDuringTest": m3,
+        "errorDuringTest": m4,
         "errorLoadingData": MessageLookupByLibrary.simpleMessage("加载数据时出错"),
-        "error_occurred": m4,
+        "error_occurred": m5,
         "ethereumContract": MessageLookupByLibrary.simpleMessage("以太坊合约"),
         "everyContributionCounts":
             MessageLookupByLibrary.simpleMessage("每一份贡献都很重要 🙏"),
@@ -243,7 +243,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "investment": MessageLookupByLibrary.simpleMessage("投资"),
         "italian": MessageLookupByLibrary.simpleMessage("Italiano"),
         "language": MessageLookupByLibrary.simpleMessage("语言"),
-        "languageUpdated": m5,
+        "languageUpdated": m6,
         "lastExecution": MessageLookupByLibrary.simpleMessage("最后更新"),
         "lastRentReceived": MessageLookupByLibrary.simpleMessage("您收到的最后一笔租金"),
         "last_update": MessageLookupByLibrary.simpleMessage("最后更新："),
@@ -277,7 +277,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "network": MessageLookupByLibrary.simpleMessage("网络"),
         "newVersionAvailable": MessageLookupByLibrary.simpleMessage("新版本可用"),
         "new_yield": MessageLookupByLibrary.simpleMessage("新收益率："),
-        "nextRondayInDays": m6,
+        "nextRondayInDays": m7,
         "nextRondays": MessageLookupByLibrary.simpleMessage("下一个 Rondays"),
         "noCommunicatedDate": MessageLookupByLibrary.simpleMessage("未提供日期"),
         "noDataAvailable": MessageLookupByLibrary.simpleMessage("无数据，请添加新钱包"),
@@ -384,7 +384,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "rentalStatusTitle": MessageLookupByLibrary.simpleMessage("租赁状态"),
         "rentalType": MessageLookupByLibrary.simpleMessage("租赁类型"),
         "rented": MessageLookupByLibrary.simpleMessage("已租出"),
-        "rentedUnits": m7,
+        "rentedUnits": m8,
         "rents": MessageLookupByLibrary.simpleMessage("租金"),
         "resortBungalow": MessageLookupByLibrary.simpleMessage("度假村平房"),
         "revenue": MessageLookupByLibrary.simpleMessage("收入"),
@@ -399,7 +399,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "roiByToken": MessageLookupByLibrary.simpleMessage("按代币ROI"),
         "roiHistory": MessageLookupByLibrary.simpleMessage("ROI 历史"),
         "roiPerProperties": MessageLookupByLibrary.simpleMessage("每个物业的 ROI"),
-        "roi_label": m8,
+        "roi_label": m9,
         "russian": MessageLookupByLibrary.simpleMessage("俄语"),
         "rwaHoldings": MessageLookupByLibrary.simpleMessage("RWA Holdings SA"),
         "save": MessageLookupByLibrary.simpleMessage("保存"),
@@ -440,6 +440,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "spanish": MessageLookupByLibrary.simpleMessage("Español"),
         "specialThanks": MessageLookupByLibrary.simpleMessage(
             "特别感谢 @Sigri, @ehpst 和 @pitsbi 的支持。"),
+        "specialThanksJojodunet": MessageLookupByLibrary.simpleMessage(
+            "特别感谢 @Jojodunet 的坚持不懈和花费数小时测试和重新测试应用程序！"),
         "squareFeet": MessageLookupByLibrary.simpleMessage("室内面积"),
         "statistics": MessageLookupByLibrary.simpleMessage("统计数据"),
         "support": MessageLookupByLibrary.simpleMessage("支持"),
@@ -466,7 +468,9 @@ class MessageLookup extends MessageLookupByLibrary {
         "thankYouMessage":
             MessageLookupByLibrary.simpleMessage("感谢所有为此项目作出贡献的人。"),
         "thanks": MessageLookupByLibrary.simpleMessage("感谢"),
-        "themeUpdated": m9,
+        "thanksDonators":
+            MessageLookupByLibrary.simpleMessage("也感谢所有支持该应用程序开发的捐助者！"),
+        "themeUpdated": m10,
         "timeBeforeLiquidation": MessageLookupByLibrary.simpleMessage("清算前的时间"),
         "tokenAddress": MessageLookupByLibrary.simpleMessage("代币地址"),
         "tokenCountEvolution": MessageLookupByLibrary.simpleMessage("代币数量演变"),
@@ -479,6 +483,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("按产品类型分配代币"),
         "tokenDistributionByRegion":
             MessageLookupByLibrary.simpleMessage("按地区分配代币"),
+        "tokenHistory": MessageLookupByLibrary.simpleMessage("代币历史"),
         "tokenNotWhitelisted": MessageLookupByLibrary.simpleMessage("代币未白名单"),
         "tokenPrice": MessageLookupByLibrary.simpleMessage("代币价格"),
         "tokenSymbol": MessageLookupByLibrary.simpleMessage("代币符号"),
@@ -520,7 +525,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "walletAddress": MessageLookupByLibrary.simpleMessage("钱包地址"),
         "walletBalanceHistory": MessageLookupByLibrary.simpleMessage("钱包余额历史"),
         "walletDetails": MessageLookupByLibrary.simpleMessage("钱包详情"),
-        "walletSaved": m11,
+        "walletSaved": m12,
         "walletsContainingToken":
             MessageLookupByLibrary.simpleMessage("包含此代币的钱包"),
         "walletsWithoutRmmUsage":

@@ -156,7 +156,7 @@ class _LockScreenState extends State<LockScreen> with WidgetsBindingObserver {
               ),
               const SizedBox(height: 48),
               Text(
-                'RealToken App',
+                'RealToken Asset Tracker',
                 style: TextStyle(
                   fontSize: 24 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                   fontWeight: FontWeight.bold,

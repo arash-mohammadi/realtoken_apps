@@ -100,6 +100,8 @@
   "thanks": "Remerciements",
   "thankYouMessage": "Merci à tous ceux qui ont contribué à ce projet.",
   "specialThanks": "Remerciements spéciaux à @Sigri, @ehpst, et @pitsbi pour leur soutien.",
+  "specialThanksJojodunet": "Un merci spécial à @Jojodunet pour sa ténacité et ses heures à tester et retester l'app !",
+  "thanksDonators": "Merci également à tous les donateurs qui soutiennent le développement de cette application !",
   "donate": "Faire un don",
   "supportProject": "Soutenir le projet",
   "donationMessage": "Si vous aimez cette application et souhaitez soutenir son développement, vous pouvez faire un don.",
@@ -163,7 +165,30 @@
   "roiPerProperties": "ROI de la propriété",
   "roiAlertInfo": "Cette fonction ROI est en beta, elle est pour le moment calculée en fonction des revenus reçus de la propriété et la valeur initiale du token.",
   "recentUpdatesTitle": "30 derniers jours",
+  "tokenHistory": "Historique des jetons",
   "noRecentUpdates": "Aucune modification récente disponible.",
+  "noChangesFoundInCompleteHistory": "Aucun changement trouvé dans l'historique complet",
+  "noChangesFoundInPastYear": "Aucun changement trouvé dans l'année écoulée",
+  "allChanges": "Tous les\nchangements",
+  "completeHistory": "Historique\nComplet",
+  "modifications": "modifications",
+  "modification": "modification",
+  "unknownToken": "Token inconnu",
+  "old": "Ancien:",
+  "newValue": "Nouveau:",
+  "today": "Aujourd'hui",
+  "yesterday": "Hier",
+  "daysAgo": "Il y a {days} jours",
+  "@daysAgo": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "notAvailable": "N/A",
+  "unit": "unité",
+  "units": "unités",
   "unknownTokenName": "Nom inconnu",
   "noImageAvailable": "Lien d'image non disponible",
   "duplicate_title": "Propriétés en doublons",

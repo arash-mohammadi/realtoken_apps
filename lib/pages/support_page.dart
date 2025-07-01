@@ -51,11 +51,11 @@ class RealtPageState extends State<SupportPage> {
               children: [
                 _buildIOSStyleCard(
                   context,
-                  'GitHub support',
+                  'Support (Bugs & Features)',
                   CupertinoIcons.globe,
-                  'Contribuez ou signalez un problème sur GitHub :',
-                  'Github isssues link',
-                  'https://github.com/RealToken-Community/realtoken_apps/issues',
+                  'Contribuez ou signalez un problème',
+                  'Canny link',
+                  'https://realtoken-asset-tracker.canny.io',
                   Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                   iconColor: CupertinoColors.systemGrey,
                 ),

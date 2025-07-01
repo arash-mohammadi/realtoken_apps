@@ -45,8 +45,9 @@ class DrawerMenuFactory {
       ),
       child: Text(
         title,
-        style: StyleConstants.titleStyle(context, appState.getTextSizeOffset()).copyWith(
-          fontSize: 18 + appState.getTextSizeOffset(),
+        style: TextStyle(
+          fontSize: 17.0 + appState.getTextSizeOffset(),
+          fontWeight: FontWeight.w600,
           color: Theme.of(context).primaryColor,
         ),
       ),
@@ -80,7 +81,8 @@ class DrawerMenuFactory {
                   Expanded(
                     child: Text(
                       item.title,
-                      style: StyleConstants.bodyStyle(context, appState.getTextSizeOffset()).copyWith(
+                      style: TextStyle(
+                        fontSize: 14.0 + appState.getTextSizeOffset(),
                         fontWeight: FontWeight.w400,
                         color: CupertinoColors.label.resolveFrom(context),
                       ),
@@ -178,16 +180,20 @@ class DrawerMenuFactory {
       title: title,
       iconColor: iconColor,
       onTap: () {
+        Navigator.pop(context);
         showModalBottomSheet(
           context: context,
           isScrollControlled: true,
-          backgroundColor: CupertinoColors.systemBackground.resolveFrom(context),
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.vertical(top: Radius.circular(StyleConstants.modalBorderRadius + 4)),
-          ),
+          backgroundColor: Colors.transparent,
           builder: (BuildContext context) {
-            return SizedBox(
-              height: modalHeight ?? MediaQuery.of(context).size.height * StyleConstants.maxModalHeight,
+            return Container(
+              height: modalHeight != null 
+                  ? MediaQuery.of(context).size.height * modalHeight
+                  : MediaQuery.of(context).size.height * 0.8,
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+              ),
               child: modal,
             );
           },

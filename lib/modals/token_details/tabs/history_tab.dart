@@ -56,11 +56,16 @@ Widget buildHistoryTab(BuildContext context, Map<String, dynamic> token,
     print("📊 Changements détectés: ${tokenChanges.length} dates avec modifications");
   }
 
-  return Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 0.0),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
+  return Container(
+    constraints: const BoxConstraints(
+      minHeight: 200,
+    ),
+    child: Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 0.0),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
         // Section historique des transactions
         _buildSectionCard(
           context,
@@ -165,9 +170,9 @@ Widget buildHistoryTab(BuildContext context, Map<String, dynamic> token,
 
                 // Afficher chaque transaction dans une belle carte style iOS
                 return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 2.0),
                   child: Container(
-                    margin: const EdgeInsets.only(bottom: 8.0),
+                    margin: const EdgeInsets.only(bottom: 4.0),
                     decoration: BoxDecoration(
                       color: Theme.of(context).cardColor,
                       borderRadius: BorderRadius.circular(12),
@@ -219,7 +224,7 @@ Widget buildHistoryTab(BuildContext context, Map<String, dynamic> token,
                                       Text(
                                         _getLocalizedTransactionType(transactionType, context),
                                         style: TextStyle(
-                                          fontSize: 16 + appState.getTextSizeOffset(),
+                                          fontSize: 14 + appState.getTextSizeOffset(),
                                           fontWeight: FontWeight.w400,
                                           color: Theme.of(context).textTheme.bodyLarge?.color,
                                         ),
@@ -231,7 +236,7 @@ Widget buildHistoryTab(BuildContext context, Map<String, dynamic> token,
                                           Text(
                                             price, 
                                             style: TextStyle(
-                                              fontSize: 14 + appState.getTextSizeOffset(),
+                                              fontSize: 12 + appState.getTextSizeOffset(),
                                               color: Theme.of(context).primaryColor,
                                               fontWeight: FontWeight.w500,
                                             ),
@@ -240,7 +245,7 @@ Widget buildHistoryTab(BuildContext context, Map<String, dynamic> token,
                                           Text(
                                             "${S.of(context).quantity}: $amount",
                                             style: TextStyle(
-                                              fontSize: 14 + appState.getTextSizeOffset(),
+                                              fontSize: 12 + appState.getTextSizeOffset(),
                                               color: Theme.of(context).textTheme.bodyMedium?.color,
                                             ),
                                           ),
@@ -251,7 +256,7 @@ Widget buildHistoryTab(BuildContext context, Map<String, dynamic> token,
                                       Text(
                                         DateFormat('dd MMMM yyyy, HH:mm').format(DateTime.parse(dateTime)),
                                         style: TextStyle(
-                                          fontSize: 12 + appState.getTextSizeOffset(),
+                                          fontSize: 10 + appState.getTextSizeOffset(),
                                           color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7),
                                         ),
                                       ),
@@ -287,7 +292,7 @@ Widget buildHistoryTab(BuildContext context, Map<String, dynamic> token,
                       Text(
                         S.of(context).noTransactionsAvailable,
                         style: TextStyle(
-                          fontSize: 16 + appState.getTextSizeOffset(),
+                          fontSize: 14 + appState.getTextSizeOffset(),
                           color: Theme.of(context).textTheme.bodyMedium?.color,
                           fontWeight: FontWeight.w400,
                         ),
@@ -300,7 +305,7 @@ Widget buildHistoryTab(BuildContext context, Map<String, dynamic> token,
           ],
         ),
 
-        const SizedBox(height: 16),
+        const SizedBox(height: 10),
 
         // Section historique des modifications
         _buildSectionCard(
@@ -317,9 +322,9 @@ Widget buildHistoryTab(BuildContext context, Map<String, dynamic> token,
                 }
 
                 return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 2.0),
                   child: Container(
-                    margin: const EdgeInsets.only(bottom: 8.0),
+                    margin: const EdgeInsets.only(bottom: 4.0),
                     decoration: BoxDecoration(
                       color: Theme.of(context).cardColor,
                       borderRadius: BorderRadius.circular(12),
@@ -340,7 +345,7 @@ Widget buildHistoryTab(BuildContext context, Map<String, dynamic> token,
                           Text(
                             _formatHistoryDate(date),
                             style: TextStyle(
-                              fontSize: 14 + appState.getTextSizeOffset(),
+                              fontSize: 15 + appState.getTextSizeOffset(),
                               fontWeight: FontWeight.w600,
                               color: Theme.of(context).primaryColor,
                             ),
@@ -379,7 +384,7 @@ Widget buildHistoryTab(BuildContext context, Map<String, dynamic> token,
                                         Text(
                                           _getFieldDisplayName(change['field']),
                                           style: TextStyle(
-                                            fontSize: 13 + appState.getTextSizeOffset(),
+                                            fontSize: 14 + appState.getTextSizeOffset(),
                                             fontWeight: FontWeight.w500,
                                             color: Theme.of(context).textTheme.bodyLarge?.color,
                                           ),
@@ -388,7 +393,7 @@ Widget buildHistoryTab(BuildContext context, Map<String, dynamic> token,
                                         Text(
                                           _formatChangeDescription(change, currencyUtils),
                                           style: TextStyle(
-                                            fontSize: 12 + appState.getTextSizeOffset(),
+                                            fontSize: 13 + appState.getTextSizeOffset(),
                                             color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.8),
                                           ),
                                         ),
@@ -433,6 +438,7 @@ Widget buildHistoryTab(BuildContext context, Map<String, dynamic> token,
           ],
         ),
       ],
+      ),
     ),
   );
 }
@@ -440,7 +446,7 @@ Widget buildHistoryTab(BuildContext context, Map<String, dynamic> token,
 // Widget pour construire une section, comme dans property_tab.dart
 Widget _buildSectionCard(BuildContext context, {required String title, required List<Widget> children}) {
   return Container(
-    margin: const EdgeInsets.only(bottom: 6),
+    margin: const EdgeInsets.only(bottom: 4),
     decoration: BoxDecoration(
       color: Theme.of(context).scaffoldBackgroundColor,
       borderRadius: BorderRadius.circular(12),
@@ -453,10 +459,11 @@ Widget _buildSectionCard(BuildContext context, {required String title, required 
       ],
     ),
     child: Column(
+      mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(12.0, 10.0, 12.0, 6.0),
+          padding: const EdgeInsets.fromLTRB(12.0, 8.0, 12.0, 4.0),
           child: Text(
             title,
             style: TextStyle(
@@ -466,7 +473,10 @@ Widget _buildSectionCard(BuildContext context, {required String title, required 
             ),
           ),
         ),
-        Column(children: children),
+        Column(
+          mainAxisSize: MainAxisSize.min,
+          children: children,
+        ),
       ],
     ),
   );
@@ -479,6 +489,7 @@ String _getLocalizedTransactionType(String transactionType, BuildContext context
   } else if (transactionType == DataManager.transactionTypeTransfer) {
     return S.of(context).internal_transfer;
   } else if (transactionType == DataManager.transactionTypeYam) {
+    
     return S.of(context).yam;
   } else {
     return S.of(context).unknownTransaction;

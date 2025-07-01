@@ -1262,12 +1262,32 @@ class DataManager extends ChangeNotifier {
             realToken['fullName'] != null &&
             !realToken['fullName'].startsWith('OLD-') &&
             realToken['uuid'].toLowerCase() !=  Parameters.rwaTokenAddress.toLowerCase()) {
+          
+          // 1. Calculer le prix initial depuis l'historique (la valeur la plus ancienne)
+          double initPrice = 0.0;
+          // Vérifier s'il y a un historique pour ce token
+          List<Map<String, dynamic>> tokenHistory = getTokenHistory(tokenContractAddress);
+          if (tokenHistory.isNotEmpty) {
+            // Trier par date pour obtenir la plus ancienne entrée
+            tokenHistory.sort((a, b) {
+              String dateA = a['date'] ?? '';
+              String dateB = b['date'] ?? '';
+              return dateA.compareTo(dateB); // Tri croissant pour avoir la plus ancienne en premier
+            });
+            
+            // Prendre le prix du token de la première entrée (la plus ancienne)
+            var oldestEntry = tokenHistory.first;
+            initPrice = (oldestEntry['token_price'] as num?)?.toDouble() ?? 
+                       (realToken['historic']?['init_price'] as num?)?.toDouble() ?? 
+                       0.0;
+          } else {
+            // Si pas d'historique, utiliser le prix initial des données historiques
+            initPrice = (realToken['historic']?['init_price'] as num?)?.toDouble() ?? 0.0;
+          }
+          
+          // 2. Calculer le prix d'achat moyen pondéré à partir des transactions (ou prix personnalisé)
           double? customInitPrice = customInitPrices[tokenContractAddress];
-          double initPrice = customInitPrice ??
-              (realToken['historic']['init_price'] as num?)?.toDouble() ??
-              0.0;
-
-
+          double averagePurchasePrice = customInitPrice ?? initPrice; // Utiliser initPrice comme valeur par défaut
 
           String fullName = realToken['fullName'];
           String country = LocationUtils.extractCountry(fullName);
@@ -1321,8 +1341,9 @@ class DataManager extends ChangeNotifier {
             'ethereumContract': realToken['ethereumContract'],
             'gnosisContract': realToken['gnosisContract'],
             'initPrice': initPrice,
+            'averagePurchasePrice': averagePurchasePrice,
             'totalRentReceived': totalRentReceived,
-            'initialTotalValue': initPrice,
+            'initialTotalValue': averagePurchasePrice,
             'propertyMaintenanceMonthly':
                 realToken['propertyMaintenanceMonthly'],
             'propertyManagement': realToken['propertyManagement'],
@@ -1359,7 +1380,7 @@ class DataManager extends ChangeNotifier {
                 .toDouble(); // Utiliser directement si c'est un num
           }
 
-          tempInitialPrice += initPrice * totalTokens;
+          tempInitialPrice += averagePurchasePrice * totalTokens;
 
           if (tokenPrice != null) {
             tempActualPrice += tokenPrice * totalTokens;
@@ -1521,15 +1542,41 @@ debugPrint("🗃️ Début récupération et calcul des données pour le Dashboa
         }
       }
 
-      // Récupération du prix d'initialisation
+      // Récupération du prix d'initialisation depuis l'historique du token
       final tokenContractAddress = matchingRealToken['uuid'].toLowerCase();
-      double? customInitPrice = customInitPrices[tokenContractAddress];
-      double initPrice = customInitPrice ??
-          ((matchingRealToken['historic']['init_price'] as num?)?.toDouble() ??
-          0.0);
       
-      // Vérification des transactions pour calculer un prix moyen si customInitPrice est null
-      if (customInitPrice == null && transactionsByToken.containsKey(tokenContractAddress) && transactionsByToken[tokenContractAddress]!.isNotEmpty) {
+      // 1. Calculer le prix initial depuis l'historique (la valeur la plus ancienne)
+      double initPrice = 0.0;
+      // Vérifier s'il y a un historique pour ce token
+      List<Map<String, dynamic>> tokenHistory = getTokenHistory(tokenContractAddress);
+      if (tokenHistory.isNotEmpty) {
+        // Trier par date pour obtenir la plus ancienne entrée
+        tokenHistory.sort((a, b) {
+          String dateA = a['date'] ?? '';
+          String dateB = b['date'] ?? '';
+          return dateA.compareTo(dateB); // Tri croissant pour avoir la plus ancienne en premier
+        });
+        
+        // Prendre le prix du token de la première entrée (la plus ancienne)
+        var oldestEntry = tokenHistory.first;
+        initPrice = (oldestEntry['token_price'] as num?)?.toDouble() ?? 
+                   (matchingRealToken['historic']?['init_price'] as num?)?.toDouble() ?? 
+                   0.0;
+      } else {
+        // Si pas d'historique, utiliser le prix initial des données historiques
+        initPrice = (matchingRealToken['historic']?['init_price'] as num?)?.toDouble() ?? 0.0;
+      }
+      
+      // 2. Calculer le prix d'achat moyen pondéré à partir des transactions
+      double averagePurchasePrice = initPrice; // Valeur par défaut
+      double? customInitPrice = customInitPrices[tokenContractAddress];
+      
+      // Si un prix personnalisé existe, l'utiliser comme prix d'achat moyen
+      if (customInitPrice != null) {
+        averagePurchasePrice = customInitPrice;
+      } 
+      // Sinon, calculer à partir des transactions si disponibles
+      else if (transactionsByToken.containsKey(tokenContractAddress) && transactionsByToken[tokenContractAddress]!.isNotEmpty) {
         List<Map<String, dynamic>> tokenTransactions = transactionsByToken[tokenContractAddress]!;
         double totalWeightedPrice = 0.0;
         double totalQuantity = 0.0;
@@ -1551,8 +1598,7 @@ debugPrint("🗃️ Début récupération et calcul des données pour le Dashboa
         }
         
         if (transactionCount > 0 && totalQuantity > 0) {
-          double weightedAveragePrice = totalWeightedPrice / totalQuantity;
-          initPrice = weightedAveragePrice;
+          averagePurchasePrice = totalWeightedPrice / totalQuantity;
         }
       }
 
@@ -1581,7 +1627,7 @@ debugPrint("🗃️ Début récupération et calcul des données pour le Dashboa
           existingItem['wallets'] += wallets;
           existingItem['amount'] += walletToken['amount'];
           existingItem['totalValue'] = existingItem['amount'] * tokenPrice;
-          existingItem['initialTotalValue'] = existingItem['amount'] * initPrice;
+          existingItem['initialTotalValue'] = existingItem['amount'] * averagePurchasePrice;
           existingItem['dailyIncome'] = matchingRealToken['netRentDayPerToken'] * existingItem['amount'];
           existingItem['monthlyIncome'] = matchingRealToken['netRentMonthPerToken'] * existingItem['amount'];
           existingItem['yearlyIncome'] = matchingRealToken['netRentYearPerToken'] * existingItem['amount'];
@@ -1602,7 +1648,7 @@ debugPrint("🗃️ Début récupération et calcul des données pour le Dashboa
           'source': walletToken['type'],
           'tokenPrice': tokenPrice,
           'totalValue': tokenValue,
-          'initialTotalValue': walletToken['amount'] * initPrice,
+          'initialTotalValue': walletToken['amount'] * averagePurchasePrice,
           'annualPercentageYield': matchingRealToken['annualPercentageYield'],
           'dailyIncome':
               matchingRealToken['netRentDayPerToken'] * walletToken['amount'],
@@ -1645,6 +1691,7 @@ debugPrint("🗃️ Début récupération et calcul des données pour le Dashboa
           'gnosisContract': matchingRealToken['gnosisContract'],
           'totalRentReceived': 0.0, // sera mis à jour juste après
           'initPrice': initPrice,
+          'averagePurchasePrice': averagePurchasePrice,
           'section8paid': matchingRealToken['section8paid'] ?? 0.0,
           'yamTotalVolume': yamTotalVolume,
           'yamAverageValue': yamAverageValue,
@@ -1656,7 +1703,7 @@ debugPrint("🗃️ Début récupération et calcul des données pour le Dashboa
         // Log de création de l'entrée dans le portfolio pour ce token
       }
 
-      initialTotalValue += walletToken['amount'] * initPrice;
+      initialTotalValue += walletToken['amount'] * averagePurchasePrice;
       yamTotalValue += walletToken['amount'] * yamAverageValue;
 
       // Mise à jour du loyer total pour ce token
@@ -1966,6 +2013,11 @@ debugPrint("🗃️ Début récupération et calcul des données pour le Dashboa
     List<Map<String, dynamic>> transactionsHistory,
     List<Map<String, dynamic>> yamTransactions) async {
   
+  // 🚨 IMPORTANT: Cette fonction traite les transactions et leur attribue des prix
+  // Elle ne doit JAMAIS modifier l'historique des tokens (tokenHistoryData)
+  // L'historique des tokens contient UNIQUEMENT les prix du marché du token, 
+  // pas les prix d'achat individuels des utilisateurs
+  
   final SharedPreferences prefs = await SharedPreferences.getInstance();
   final Set<String> evmAddresses = Set.from(prefs.getStringList('evmAddresses') ?? {});
 
@@ -2022,8 +2074,9 @@ debugPrint("🗃️ Début récupération et calcul des données pour le Dashboa
           // Utiliser le texte capturé pour YAM
           transactionType = transactionTypeYam;
         } else {          
-          // Ajouter un prix par défaut pour les transactions d'achat
-          if (transactionType == transactionTypePurchase) {            
+          // Pour les transactions d'achat/transfert, utiliser UNIQUEMENT les prix du marché du token
+          // JAMAIS ajouter de prix à l'historique du token basé sur la transaction
+          if (transactionType == transactionTypePurchase || transactionType == transactionTypeTransfer) {            
             // Chercher le token dans realTokens pour obtenir un prix initial
             final matchingRealToken = realTokens.cast<Map<String, dynamic>>().firstWhere(
               (rt) => rt['uuid'].toLowerCase() == tokenId,
@@ -2031,13 +2084,103 @@ debugPrint("🗃️ Début récupération et calcul des données pour le Dashboa
             );
             
             if (matchingRealToken.isNotEmpty) {
-              // Utiliser tokenPrice au lieu du prix initial
-              price = (matchingRealToken['tokenPrice'] as num?)?.toDouble() ?? 
-                     (matchingRealToken['historic']?['init_price'] as num?)?.toDouble() ?? 
-                     0.0;
+              // 1. D'abord chercher dans token['history'] avec la bonne date
+              List<Map<String, dynamic>> tokenHistory = getTokenHistory(tokenId);
+              
+              // debugPrint("🔍 PRIX_DEBUG: Historique pour token $tokenId: ${tokenHistory.length} entrées");
+              if (tokenHistory.isNotEmpty) {
+                // debugPrint("🔍 PRIX_DEBUG:   Structure première entrée: ${tokenHistory.first.keys.toList()}");
+              }
+              
+              if (tokenHistory.isNotEmpty) {
+                // Trier l'historique par date (du plus ancien au plus récent)
+                tokenHistory.sort((a, b) {
+                  String dateA = a['date'] ?? '';
+                  String dateB = b['date'] ?? '';
+                  return dateA.compareTo(dateB);
+                });
+                
+                // Chercher l'entrée d'historique à la date de transaction ou antérieure la plus proche
+                Map<String, dynamic>? bestEntry;
+                DateTime transactionDate = dateTime;
+                DateTime? closestPreviousDate;
+                
+                // debugPrint("🔍 PRIX_DEBUG: Recherche prix pour transaction $tokenId du ${transactionDate.toString().split(' ')[0]}");
+                
+                for (var historyEntry in tokenHistory) {
+                  try {
+                    // Convertir la date depuis le format YYYY-MM-DD vers DateTime
+                    DateTime historyDate = DateTime.parse(historyEntry['date']);
+                    
+                    // debugPrint("🔍 PRIX_DEBUG:   Comparaison avec entrée historique ${historyDate.toString().split(' ')[0]} (token_price: ${historyEntry['token_price']})");
+                    
+                    // Ne prendre que les dates antérieures ou égales à la date de transaction
+                    if (historyDate.isBefore(transactionDate) || 
+                        historyDate.isAtSameMomentAs(transactionDate) ||
+                        (historyDate.year == transactionDate.year && 
+                         historyDate.month == transactionDate.month && 
+                         historyDate.day == transactionDate.day)) {
+                      
+                      // debugPrint("🔍 PRIX_DEBUG:     ✅ Date antérieure/égale trouvée");
+                      
+                      // Prendre la date antérieure la plus proche ET qui a un token_price valide
+                      if (historyEntry['token_price'] != null && 
+                          (closestPreviousDate == null || historyDate.isAfter(closestPreviousDate))) {
+                        closestPreviousDate = historyDate;
+                        bestEntry = historyEntry;
+                        // debugPrint("🔍 PRIX_DEBUG:     ✅ Nouvelle meilleure entrée sélectionnée avec prix valide: ${historyEntry['token_price']}");
+                      } else if (historyEntry['token_price'] == null) {
+                        // debugPrint("🔍 PRIX_DEBUG:     ⚠️ Entrée ignorée car token_price est null");
+                      }
+                    } else {
+                      // debugPrint("🔍 PRIX_DEBUG:     ❌ Date postérieure, ignorée");
+                    }
+                  } catch (e) {
+                    // debugPrint("🔍 PRIX_DEBUG:     ❌ Erreur parsing date: $e");
+                    continue;
+                  }
+                }
+                
+                // Utiliser le prix de l'entrée trouvée dans token['history']
+                if (bestEntry != null && bestEntry['token_price'] != null) {
+                  price = (bestEntry['token_price'] as num?)?.toDouble() ?? 0.0;
+                  String dateUsed = closestPreviousDate != null ? closestPreviousDate.toString().split(' ')[0] : 'inconnue';
+                  // debugPrint("💰 PRIX_DEBUG: Transaction $tokenId ${dateTime.toString().split(' ')[0]}: Prix historique token['history'] utilisé ${price.toStringAsFixed(2)} (date historique: $dateUsed)");
+                } else {
+                  // debugPrint("🔍 PRIX_DEBUG: Aucune entrée avec prix valide trouvée pour $tokenId avant ${dateTime.toString().split(' ')[0]}");
+                  
+                  // Chercher n'importe quelle entrée avec un prix valide dans l'historique (même future)
+                  Map<String, dynamic>? fallbackEntry;
+                  for (var historyEntry in tokenHistory) {
+                    if (historyEntry['token_price'] != null) {
+                      fallbackEntry = historyEntry;
+                      break; // Prendre la première entrée avec un prix valide
+                    }
+                  }
+                  
+                  if (fallbackEntry != null) {
+                    price = (fallbackEntry['token_price'] as num?)?.toDouble() ?? 0.0;
+                    // debugPrint("💰 PRIX_DEBUG: Transaction $tokenId ${dateTime.toString().split(' ')[0]}: Prix de fallback depuis l'historique utilisé ${price.toStringAsFixed(2)} (date: ${fallbackEntry['date']})");
+                  } else {
+                    // 3. Si aucune entrée avec prix dans token['history'], utiliser historic.init_price en dernier recours
+                    price = (matchingRealToken['historic']?['init_price'] as num?)?.toDouble() ?? 
+                            (matchingRealToken['tokenPrice'] as num?)?.toDouble() ?? 0.0;
+                    // debugPrint("💰 PRIX_DEBUG: Transaction $tokenId ${dateTime.toString().split(' ')[0]}: Prix historic.init_price utilisé en dernier recours ${price.toStringAsFixed(2)}");
+                  }
+                }
+              } else {
+                // 3. Si pas de token['history'], utiliser historic.init_price puis tokenPrice
+                price = (matchingRealToken['historic']?['init_price'] as num?)?.toDouble() ?? 
+                        (matchingRealToken['tokenPrice'] as num?)?.toDouble() ?? 0.0;
+                // debugPrint("💰 PRIX_DEBUG: Transaction $tokenId ${dateTime.toString().split(' ')[0]}: Aucun historique, prix par défaut ${price.toStringAsFixed(2)}");
+              }
             } else {
               price = 0.0; // Prix par défaut si aucune information n'est disponible
+              debugPrint("⚠️ // PRIX_DEBUG: Transaction $tokenId: Token non trouvé, prix = 0.0");
             }
+          } else {
+            // Pour les autres types de transactions, prix = 0
+            price = 0.0;
           }
         }
 
@@ -2389,34 +2532,89 @@ debugPrint("🗃️ Début récupération et calcul des données pour le Dashboa
       if (propertiesForSaleFetched.isNotEmpty) {
         propertiesForSale = propertiesForSaleFetched.map((property) {
           // Chercher le RealToken correspondant à partir de realTokens en comparant `title` et `fullName`
-          final matchingToken = allTokens.firstWhere(
-            (token) =>
-                property['title'] != null &&
-                token['shortName'] != null &&
-                property['title']
-                    .toString()
-                    .contains(token['shortName'].toString()),
-            orElse: () => <String, dynamic>{},
-          );
+          final String propertyTitle = property['title']?.toString() ?? '';
+          
+          Map<String, dynamic> matchingToken = <String, dynamic>{};
+          
+          // Stratégie de correspondance multiple
+          if (propertyTitle.isNotEmpty) {
+            // 1. Correspondance exacte avec shortName
+            matchingToken = allTokens.firstWhere(
+              (token) => token['shortName']?.toString().toLowerCase() == propertyTitle.toLowerCase(),
+              orElse: () => <String, dynamic>{},
+            );
+            
+            // 2. Si pas trouvé, essayer avec fullName
+            if (matchingToken.isEmpty) {
+              matchingToken = allTokens.firstWhere(
+                (token) => token['fullName']?.toString().toLowerCase() == propertyTitle.toLowerCase(),
+                orElse: () => <String, dynamic>{},
+              );
+            }
+            
+            // 3. Si pas trouvé, essayer une correspondance partielle avec shortName (insensible à la casse)
+            if (matchingToken.isEmpty) {
+              matchingToken = allTokens.firstWhere(
+                (token) => 
+                  token['shortName'] != null &&
+                  propertyTitle.toLowerCase().contains(token['shortName'].toString().toLowerCase()),
+                orElse: () => <String, dynamic>{},
+              );
+            }
+            
+            // 4. Si pas trouvé, essayer une correspondance partielle inverse (insensible à la casse)
+            if (matchingToken.isEmpty) {
+              matchingToken = allTokens.firstWhere(
+                (token) => 
+                  token['shortName'] != null &&
+                  token['shortName'].toString().toLowerCase().contains(propertyTitle.toLowerCase()),
+                orElse: () => <String, dynamic>{},
+              );
+            }
+            
+            // 5. Si toujours pas trouvé, essayer une correspondance plus flexible basée sur des mots-clés
+            if (matchingToken.isEmpty) {
+              for (var token in allTokens) {
+                if (token['shortName'] != null) {
+                  final tokenShortName = token['shortName'].toString().toLowerCase();
+                  final propertyTitleLower = propertyTitle.toLowerCase();
+                  
+                  // Extraire les mots-clés principaux du shortName
+                  final tokenWords = tokenShortName.split(' ').where((word) => word.length > 2).toList();
+                  
+                  // Vérifier si tous les mots-clés principaux sont présents
+                  bool allWordsMatch = tokenWords.every((word) => propertyTitleLower.contains(word));
+                  
+                  if (allWordsMatch && tokenWords.isNotEmpty) {
+                    matchingToken = token;
+                    break;
+                  }
+                }
+              }
+            }
+          }
 
+          // Retourner les données avec fallback pour les cas non correspondants
           return {
             'title': property['title'],
-            'fullName': matchingToken['fullName'],
-            'shortName': matchingToken['shortName'],
-            'marketplaceLink': matchingToken['marketplaceLink'],
-            'country': matchingToken['country'],
-            'city': matchingToken['city'],
-            'tokenPrice': matchingToken['tokenPrice'],
-            'annualPercentageYield': matchingToken['annualPercentageYield'],
-            'totalTokens': matchingToken['totalTokens'],
+            'fullName': matchingToken['fullName'] ?? property['title'],
+            'shortName': matchingToken['shortName'] ?? property['title'],
+            'marketplaceLink': matchingToken['marketplaceLink'] ?? 'https://realt.co',
+            'country': matchingToken['country'] ?? 'Unknown',
+            'city': matchingToken['city'] ?? 'Unknown',
+            'tokenPrice': matchingToken['tokenPrice'] ?? 0.0,
+            'annualPercentageYield': matchingToken['annualPercentageYield'] ?? 0.0,
+            'totalTokens': property['stock'] ?? 0.0, // Utiliser le stock de l'API si pas de correspondance
             'rentStartDate': matchingToken['rentStartDate'],
             'status': property['status'],
             'productId': property['product_id'],
             'stock': property['stock'],
             'maxPurchase': property['max_purchase'],
-            'imageLink': matchingToken['imageLink'],
+            'imageLink': matchingToken['imageLink'] ?? [],
           };
         }).toList();
+        
+        debugPrint("✅ DataManager: ${propertiesForSale.length} propriétés en vente traitées");
       } else {
         debugPrint("⚠️ DataManager: Aucune propriété en vente trouvée");
       }

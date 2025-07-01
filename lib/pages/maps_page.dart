@@ -531,9 +531,8 @@ class MapsPageState extends State<MapsPage> {
           Positioned(
             top: UIUtils.getAppBarHeight(context),
             right: 16,
-            child: Row(
+            child: Column(
               children: [
-                Text(_forceLightMode ? 'Light' : 'Auto'),
                 Transform.scale(
                   scale: 0.8, // Réduire la taille du switch à 80%
                   child: CupertinoSwitch(
@@ -548,13 +547,14 @@ class MapsPageState extends State<MapsPage> {
                     trackColor: Colors.grey.shade300,
                   ),
                 ),
+                Text(_forceLightMode ? 'Light' : 'Auto'),
               ],
             ),
           ),
           // Panneau de contrôles avancés en haut à gauche
           Positioned(
-            top: UIUtils.getAppBarHeight(context),
-            left: 16,
+            top: UIUtils.getAppBarHeight(context) + 8,
+            left: 8,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

@@ -1020,6 +1020,26 @@ class S {
     );
   }
 
+  /// `Special thanks to @Jojodunet for his tenacity and hours spent testing and retesting the app!`
+  String get specialThanksJojodunet {
+    return Intl.message(
+      'Special thanks to @Jojodunet for his tenacity and hours spent testing and retesting the app!',
+      name: 'specialThanksJojodunet',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Thanks also to all the donors who support the development of this application!`
+  String get thanksDonators {
+    return Intl.message(
+      'Thanks also to all the donors who support the development of this application!',
+      name: 'thanksDonators',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Donate`
   String get donate {
     return Intl.message(
@@ -1650,11 +1670,161 @@ class S {
     );
   }
 
+  /// `Token History`
+  String get tokenHistory {
+    return Intl.message(
+      'Token History',
+      name: 'tokenHistory',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `No recent changes available.`
   String get noRecentUpdates {
     return Intl.message(
       'No recent changes available.',
       name: 'noRecentUpdates',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No changes found in complete history`
+  String get noChangesFoundInCompleteHistory {
+    return Intl.message(
+      'No changes found in complete history',
+      name: 'noChangesFoundInCompleteHistory',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No changes found in the past year`
+  String get noChangesFoundInPastYear {
+    return Intl.message(
+      'No changes found in the past year',
+      name: 'noChangesFoundInPastYear',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `All\nchanges`
+  String get allChanges {
+    return Intl.message(
+      'All\nchanges',
+      name: 'allChanges',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Complete\nHistory`
+  String get completeHistory {
+    return Intl.message(
+      'Complete\nHistory',
+      name: 'completeHistory',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `modifications`
+  String get modifications {
+    return Intl.message(
+      'modifications',
+      name: 'modifications',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `modification`
+  String get modification {
+    return Intl.message(
+      'modification',
+      name: 'modification',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Unknown token`
+  String get unknownToken {
+    return Intl.message(
+      'Unknown token',
+      name: 'unknownToken',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Previous:`
+  String get old {
+    return Intl.message(
+      'Previous:',
+      name: 'old',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `New:`
+  String get newValue {
+    return Intl.message(
+      'New:',
+      name: 'newValue',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Today`
+  String get today {
+    return Intl.message(
+      'Today',
+      name: 'today',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Yesterday`
+  String get yesterday {
+    return Intl.message(
+      'Yesterday',
+      name: 'yesterday',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `{days} days ago`
+  String daysAgo(int days) {
+    return Intl.message(
+      '$days days ago',
+      name: 'daysAgo',
+      desc: '',
+      args: [days],
+    );
+  }
+
+  /// `N/A`
+  String get notAvailable {
+    return Intl.message(
+      'N/A',
+      name: 'notAvailable',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `unit`
+  String get unit {
+    return Intl.message(
+      'unit',
+      name: 'unit',
       desc: '',
       args: [],
     );

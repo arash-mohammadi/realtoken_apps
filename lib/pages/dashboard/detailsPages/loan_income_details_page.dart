@@ -7,10 +7,10 @@ import 'package:realtoken_asset_tracker/pages/Statistics/portfolio/charts/token_
 import 'package:realtoken_asset_tracker/pages/Statistics/portfolio/charts/token_distribution_by_wallet_card.dart';
 import 'package:flutter/services.dart';
 import 'package:realtoken_asset_tracker/app_state.dart';
-import 'package:fl_chart/fl_chart.dart'; // Nouvelle bibliothèque pour graphiques
+import 'package:fl_chart/fl_chart.dart';
 
-class PropertiesDetailsPage extends StatelessWidget {
-  const PropertiesDetailsPage({super.key});
+class LoanIncomeDetailsPage extends StatelessWidget {
+  const LoanIncomeDetailsPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -18,16 +18,16 @@ class PropertiesDetailsPage extends StatelessWidget {
     final appState = Provider.of<AppState>(context);
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
-    // Filtrer uniquement les tokens de type real_estate_rental
-    final realEstateTokens = dataManager.portfolio.where((token) => 
-      (token['productType'] ?? '').toLowerCase() == 'real_estate_rental'
+    // Filtrer uniquement les tokens de loan income
+    final loanTokens = dataManager.portfolio.where((token) => 
+      (token['productType'] ?? '').toLowerCase() == 'loan_income'
     ).toList();
 
     return Scaffold(
       backgroundColor: isDarkMode ? const Color(0xFF1C1C1E) : const Color(0xFFF2F2F7),
       appBar: AppBar(
         title: Text(
-          S.of(context).properties,
+          'Loan Income',
           style: TextStyle(
             fontWeight: FontWeight.w600,
             fontSize: 17 + appState.getTextSizeOffset(),
@@ -37,7 +37,7 @@ class PropertiesDetailsPage extends StatelessWidget {
         elevation: 0,
         scrolledUnderElevation: 0,
       ),
-      body: realEstateTokens.isEmpty
+      body: loanTokens.isEmpty
           ? Center(
               child: Text(
                 S.of(context).noDataAvailableDot,
@@ -56,47 +56,30 @@ class PropertiesDetailsPage extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildSectionTitle(context, S.of(context).overview, appState),
+                        Text(
+                          S.of(context).overview,
+                          style: TextStyle(
+                            fontSize: 20 + appState.getTextSizeOffset(),
+                            fontWeight: FontWeight.bold,
+                            color: isDarkMode ? Colors.white : Colors.black,
+                          ),
+                        ),
                         const SizedBox(height: 12),
-                        _buildOverviewCards(context, realEstateTokens, appState),
+                        _buildOverviewCards(context, loanTokens, appState),
                         const SizedBox(height: 24),
-                        _buildSectionTitle(context, S.of(context).occupancyRate, appState),
+                        Text(
+                          'Revenus Prêts',
+                          style: TextStyle(
+                            fontSize: 20 + appState.getTextSizeOffset(),
+                            fontWeight: FontWeight.bold,
+                            color: isDarkMode ? Colors.white : Colors.black,
+                          ),
+                        ),
                         const SizedBox(height: 12),
-                        _buildOccupancyChart(context, realEstateTokens, appState),
-                        const SizedBox(height: 24),
-                        _buildSectionTitle(context, S.of(context).tokenDistribution, appState),
-                        const SizedBox(height: 12),
-                        _buildTokenDistribution(context, dataManager),
-                        const SizedBox(height: 24),
-                        _buildSectionTitle(context, S.of(context).wallets, appState),
+                        _buildIncomeChart(context, loanTokens, appState),
+                        const SizedBox(height: 20),
                       ],
                     ),
-                  ),
-                ),
-                SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      final walletDetails = _getSortedWalletDetails(dataManager);
-                      if (walletDetails.isEmpty) {
-                        return Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Center(
-                            child: Text(
-                              S.of(context).noWalletsAvailable,
-                              style: TextStyle(
-                                fontSize: 16 + appState.getTextSizeOffset(),
-                                color: isDarkMode ? Colors.white70 : Colors.black54,
-                              ),
-                            ),
-                          ),
-                        );
-                      }
-                      return Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-                        child: _buildWalletCard(context, walletDetails[index], appState),
-                      );
-                    },
-                    childCount: _getSortedWalletDetails(dataManager).isEmpty ? 1 : _getSortedWalletDetails(dataManager).length,
                   ),
                 ),
                 SliverToBoxAdapter(
@@ -107,173 +90,171 @@ class PropertiesDetailsPage extends StatelessWidget {
     );
   }
 
-  List<Map<String, dynamic>> _getSortedWalletDetails(DataManager dataManager) {
-    final List<Map<String, dynamic>> walletDetails = dataManager.walletStats;
-    final List<Map<String, dynamic>> perWalletBalances = dataManager.perWalletBalances;
-
-    // Associer les informations d'emprunt et de dépôt à chaque wallet
-    for (var wallet in walletDetails) {
-      final String address = wallet['address'] as String;
-      final matchingBalance = perWalletBalances.firstWhere(
-        (balance) => balance['address'] == address,
-        orElse: () => <String, dynamic>{},
-      );
-
-      wallet['usdcDeposit'] = matchingBalance['usdcDeposit'] ?? 0.0;
-      wallet['xdaiDeposit'] = matchingBalance['xdaiDeposit'] ?? 0.0;
-      wallet['usdcBorrow'] = matchingBalance['usdcBorrow'] ?? 0.0;
-      wallet['xdaiBorrow'] = matchingBalance['xdaiBorrow'] ?? 0.0;
+  List<Map<String, dynamic>> _getSortedWalletDetails(DataManager dataManager, String productType) {
+    final List<Map<String, dynamic>> walletDetails = [];
+    
+    // Grouper les tokens de loan income par wallet
+    final Map<String, Map<String, dynamic>> walletGroups = {};
+    
+    for (var token in dataManager.portfolio) {
+      if ((token['productType'] ?? '').toLowerCase() == productType) {
+        final address = token['walletAddress'] ?? 'Unknown';
+        
+        if (!walletGroups.containsKey(address)) {
+          walletGroups[address] = {
+            'address': address,
+            'tokenCount': 0,
+            'walletTokensSum': 0.0,
+            'rmmTokensSum': 0.0,
+            'totalValue': 0.0,
+          };
+        }
+        
+        walletGroups[address]!['tokenCount'] = (walletGroups[address]!['tokenCount'] as int) + 1;
+        
+        final amount = (token['amount'] as num?)?.toDouble() ?? 0.0;
+        final totalValue = (token['totalValue'] as num?)?.toDouble() ?? 0.0;
+        
+        if (token['source'] == 'wallet') {
+          walletGroups[address]!['walletTokensSum'] = (walletGroups[address]!['walletTokensSum'] as double) + amount;
+        } else {
+          walletGroups[address]!['rmmTokensSum'] = (walletGroups[address]!['rmmTokensSum'] as double) + amount;
+        }
+        
+        walletGroups[address]!['totalValue'] = (walletGroups[address]!['totalValue'] as double) + totalValue;
+      }
     }
-
+    
+    walletDetails.addAll(walletGroups.values);
+    
     // Trier par valeur totale
     walletDetails.sort((a, b) {
-      final double aWalletValue = a['walletValueSum'] as double? ?? 0;
-      final double aRmmValue = a['rmmValue'] as double? ?? 0;
-      final double aTotalValue = aWalletValue + aRmmValue;
-
-      final double bWalletValue = b['walletValueSum'] as double? ?? 0;
-      final double bRmmValue = b['rmmValue'] as double? ?? 0;
-      final double bTotalValue = bWalletValue + bRmmValue;
-
-      return bTotalValue.compareTo(aTotalValue); // Tri décroissant
+      final double aTotalValue = a['totalValue'] as double? ?? 0;
+      final double bTotalValue = b['totalValue'] as double? ?? 0;
+      return bTotalValue.compareTo(aTotalValue);
     });
 
     return walletDetails;
   }
 
-  Widget _buildSectionTitle(BuildContext context, String title, AppState appState) {
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-
-    return Text(
-      title,
-      style: TextStyle(
-        fontSize: 20 + appState.getTextSizeOffset(),
-        fontWeight: FontWeight.bold,
-        color: isDarkMode ? Colors.white : Colors.black,
-      ),
-    );
-  }
-
-  Widget _buildOverviewCards(BuildContext context, List<Map<String, dynamic>> realEstateTokens, AppState appState) {
+  Widget _buildOverviewCards(BuildContext context, List<Map<String, dynamic>> loanTokens, AppState appState) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final cardColor = isDarkMode ? const Color(0xFF2C2C2E) : Colors.white;
 
-    final totalTokensSum = realEstateTokens.fold<double>(0.0, (sum, token) => 
+    final totalTokens = loanTokens.length;
+    final totalTokensSum = loanTokens.fold<double>(0.0, (sum, token) => 
       sum + ((token['amount'] as num?)?.toDouble() ?? 0.0)
     );
 
     return Row(
       children: [
         Expanded(
-          child: _buildOverviewCard(
-            context,
-            S.of(context).properties,
-            realEstateTokens.length.toString(),
-            Icons.home_outlined,
-            cardColor,
-            appState,
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+            decoration: BoxDecoration(
+              color: cardColor,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  Icons.account_balance_outlined,
+                  size: 28,
+                  color: Colors.indigo.shade600,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  totalTokens.toString(),
+                  style: TextStyle(
+                    fontSize: 22 + appState.getTextSizeOffset(),
+                    fontWeight: FontWeight.bold,
+                    color: isDarkMode ? Colors.white : Colors.black,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Prêts',
+                  style: TextStyle(
+                    fontSize: 14 + appState.getTextSizeOffset(),
+                    color: isDarkMode ? Colors.white70 : Colors.black54,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
         const SizedBox(width: 12),
         Expanded(
-          child: _buildOverviewCard(
-            context,
-            S.of(context).tokens,
-            totalTokensSum.toStringAsFixed(2),
-            Icons.token_outlined,
-            cardColor,
-            appState,
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+            decoration: BoxDecoration(
+              color: cardColor,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  Icons.analytics_outlined,
+                  size: 28,
+                  color: Colors.indigo.shade600,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  totalTokensSum.toStringAsFixed(2),
+                  style: TextStyle(
+                    fontSize: 22 + appState.getTextSizeOffset(),
+                    fontWeight: FontWeight.bold,
+                    color: isDarkMode ? Colors.white : Colors.black,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Quantité',
+                  style: TextStyle(
+                    fontSize: 14 + appState.getTextSizeOffset(),
+                    color: isDarkMode ? Colors.white70 : Colors.black54,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildOverviewCard(
-    BuildContext context,
-    String title,
-    String value,
-    IconData icon,
-    Color cardColor,
-    AppState appState,
-  ) {
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-      decoration: BoxDecoration(
-        color: cardColor,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(
-            icon,
-            size: 28,
-            color: Theme.of(context).primaryColor,
-          ),
-          const SizedBox(height: 12),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 22 + appState.getTextSizeOffset(),
-              fontWeight: FontWeight.bold,
-              color: isDarkMode ? Colors.white : Colors.black,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 14 + appState.getTextSizeOffset(),
-              color: isDarkMode ? Colors.white70 : Colors.black54,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildOccupancyChart(BuildContext context, List<Map<String, dynamic>> realEstateTokens, AppState appState) {
+  Widget _buildIncomeChart(BuildContext context, List<Map<String, dynamic>> loanTokens, AppState appState) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final cardColor = isDarkMode ? const Color(0xFF2C2C2E) : Colors.white;
     
-    final totalUnits = realEstateTokens.fold<int>(0, (sum, token) => 
-      sum + ((token['totalUnits'] as num?)?.toInt() ?? 0)
-    );
-    final rentedUnits = realEstateTokens.fold<int>(0, (sum, token) => 
-      sum + ((token['rentedUnits'] as num?)?.toInt() ?? 0)
-    );
-    
-    final double rentedPercentage = totalUnits > 0 ? (rentedUnits / totalUnits) * 100 : 0.0;
+    final today = DateTime.now();
+    final activeTokens = loanTokens.where((token) {
+      final rentStartDateString = token['rentStartDate'] as String?;
+      if (rentStartDateString != null) {
+        final rentStartDate = DateTime.tryParse(rentStartDateString);
+        return rentStartDate != null && rentStartDate.isBefore(today);
+      }
+      return false;
+    }).length;
 
-    // Déterminer la couleur en fonction du pourcentage
-    Color progressColor;
-    if (rentedPercentage < 50) {
-      progressColor = Colors.redAccent;
-    } else if (rentedPercentage < 80) {
-      progressColor = Colors.orangeAccent;
-    } else {
-      progressColor = Colors.greenAccent;
-    }
-
-    // Déterminer le statut
-    String status;
-    if (rentedPercentage < 50) {
-      status = S.of(context).occupancyStatusLow;
-    } else if (rentedPercentage < 80) {
-      status = S.of(context).occupancyStatusMedium;
-    } else {
-      status = S.of(context).occupancyStatusHigh;
-    }
+    final double activePercentage = loanTokens.isNotEmpty ? (activeTokens / loanTokens.length * 100) : 0.0;
+    final Color progressColor = Colors.indigo.shade600;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -298,7 +279,7 @@ class PropertiesDetailsPage extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '${rentedPercentage.toStringAsFixed(1)}%',
+                    '${activePercentage.toStringAsFixed(1)}%',
                     style: TextStyle(
                       fontSize: 28 + appState.getTextSizeOffset(),
                       fontWeight: FontWeight.bold,
@@ -306,7 +287,7 @@ class PropertiesDetailsPage extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    S.of(context).rentedUnits(rentedUnits.toString(), totalUnits.toString()),
+                    'Prêts actifs ($activeTokens/${loanTokens.length})',
                     style: TextStyle(
                       fontSize: 14 + appState.getTextSizeOffset(),
                       color: isDarkMode ? Colors.white70 : Colors.black54,
@@ -321,7 +302,7 @@ class PropertiesDetailsPage extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  status,
+                  'Loan Income',
                   style: TextStyle(
                     fontSize: 14 + appState.getTextSizeOffset(),
                     fontWeight: FontWeight.w500,
@@ -341,7 +322,7 @@ class PropertiesDetailsPage extends StatelessWidget {
             child: Stack(
               children: [
                 FractionallySizedBox(
-                  widthFactor: rentedPercentage / 100,
+                  widthFactor: activePercentage / 100,
                   child: Container(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
@@ -418,13 +399,13 @@ class PropertiesDetailsPage extends StatelessWidget {
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                      color: Theme.of(context).primaryColor.withOpacity(0.2),
+                      color: Colors.indigo.shade600.withOpacity(0.2),
                       shape: BoxShape.circle,
                     ),
                     child: Center(
                       child: Icon(
                         CupertinoIcons.creditcard,
-                        color: Theme.of(context).primaryColor,
+                        color: Colors.indigo.shade600,
                         size: 20,
                       ),
                     ),
@@ -469,7 +450,7 @@ class PropertiesDetailsPage extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _buildWalletStat(context, S.of(context).properties, tokenCount.toString(), appState),
+                    _buildWalletStat(context, 'Prêts', tokenCount.toString(), appState),
                     _buildWalletStat(context, 'Wallet', walletTokensSum.toStringAsFixed(2), appState),
                     _buildWalletStat(context, 'RMM', rmmTokensSum.toStringAsFixed(2), appState),
                   ],
@@ -542,7 +523,6 @@ class PropertiesDetailsPage extends StatelessWidget {
   void _copyToClipboard(BuildContext context, String text) {
     Clipboard.setData(ClipboardData(text: text));
 
-    // Afficher une notification iOS style
     showCupertinoModalPopup(
       context: context,
       builder: (BuildContext context) => CupertinoActionSheet(
@@ -559,4 +539,4 @@ class PropertiesDetailsPage extends StatelessWidget {
       ),
     );
   }
-}
+} 

@@ -42,7 +42,7 @@ class TokensCard extends StatelessWidget {
           hasGraph: false, // Ne pas utiliser le graphique dans la carte
         ),
         Positioned(
-          top: 30, // Position négative pour remonter le donut
+          top: 50, // Position ajustée pour mieux centrer verticalement
           right: 12, // Alignement à droite
           child: _buildPieChart(realEstateCount, loanCount, factoringCount, totalCount, context),
         ),
@@ -68,48 +68,45 @@ class TokensCard extends StatelessWidget {
 
     List<PieChartSectionData> sections = [];
     
-    // Real Estate (vert)
+    // Real Estate (bleu-vert)
     if (realEstateCount > 0) {
       sections.add(PieChartSectionData(
         value: realEstateCount,
-        color: Colors.green,
+        color: _getRealEstateTableColor(),
         title: '',
         radius: 23,
         gradient: LinearGradient(
-          colors: [Colors.green.shade300, Colors.green.shade700],
+          colors: [_getRealEstateTableColor().withOpacity(0.7), _getRealEstateTableColor()],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
       ));
     }
     
-    // Loan Income (bleu - couleur du thème)
+    // Loan Income (indigo)
     if (loanCount > 0) {
       sections.add(PieChartSectionData(
         value: loanCount,
-        color: Theme.of(context).primaryColor,
+        color: _getLoanTableColor(),
         title: '',
         radius: 23,
         gradient: LinearGradient(
-          colors: [
-            Theme.of(context).primaryColor.withOpacity(0.7),
-            Theme.of(context).primaryColor,
-          ],
+          colors: [_getLoanTableColor().withOpacity(0.7), _getLoanTableColor()],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
       ));
     }
     
-    // Factoring (orange)
+    // Factoring (violet)
     if (factoringCount > 0) {
       sections.add(PieChartSectionData(
         value: factoringCount,
-        color: Colors.orange,
+        color: _getFactoringTableColor(),
         title: '',
         radius: 23,
         gradient: LinearGradient(
-          colors: [Colors.orange.shade300, Colors.orange.shade700],
+          colors: [_getFactoringTableColor().withOpacity(0.7), _getFactoringTableColor()],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -250,7 +247,7 @@ class TokensCard extends StatelessWidget {
       child: Text(
         label,
         style: TextStyle(
-          fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
+          fontSize: 14 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
           color: Theme.of(context).brightness == Brightness.light 
             ? Colors.black87 
             : Colors.white,
@@ -304,7 +301,7 @@ class TokensCard extends StatelessWidget {
       child: Text(
         count.toStringAsFixed(2),
         style: TextStyle(
-          fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
+          fontSize: 14 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
           fontWeight: FontWeight.w600,
           color: color,
         ),

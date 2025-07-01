@@ -8,6 +8,7 @@ import 'package:realtoken_asset_tracker/generated/l10n.dart';
 import 'package:realtoken_asset_tracker/utils/ui_utils.dart';
 import 'package:realtoken_asset_tracker/utils/currency_utils.dart';
 import 'package:realtoken_asset_tracker/utils/shimmer_utils.dart';
+import 'package:realtoken_asset_tracker/pages/dashboard/detailsPages/loan_income_details_page.dart';
 
 class LoanIncomeCard extends StatelessWidget {
   final bool showAmounts;
@@ -43,43 +44,53 @@ class LoanIncomeCard extends StatelessWidget {
       return sum;
     });
 
-    return UIUtils.buildCard(
-      'Loan',
-      Icons.account_balance_outlined,
-      _buildValueWithIconSmall(
-        context, 
-        currencyUtils.getFormattedAmount(
-          currencyUtils.convert(monthlyIncome), 
-          currencyUtils.currencySymbol, 
-          showAmounts
-        ), 
-        Icons.attach_money_rounded,
-        isLoading
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const LoanIncomeDetailsPage(),
+          ),
+        );
+      },
+      child: UIUtils.buildCard(
+        'Loan',
+        Icons.account_balance_outlined,
+        _buildValueWithIconSmall(
+          context, 
+          currencyUtils.getFormattedAmount(
+            currencyUtils.convert(monthlyIncome), 
+            currencyUtils.currencySymbol, 
+            showAmounts
+          ), 
+          Icons.attach_money_rounded,
+          isLoading
+        ),
+        [
+          _buildTextWithShimmerSmall(
+            '$totalTokens',
+            S.of(context).quantity,
+            isLoading,
+            context,
+          ),
+          _buildTextWithShimmerSmall(
+            showAmounts 
+              ? _formatCurrencyWithoutDecimals(currencyUtils.convert(totalValue), currencyUtils.currencySymbol)
+              : '*' * _formatCurrencyWithoutDecimals(currencyUtils.convert(totalValue), currencyUtils.currencySymbol).length,
+            'Total',
+            isLoading,
+            context,
+          ),
+          const SizedBox(height: 8),
+          // Graphique en donut positionné en dessous
+          Center(
+            child: _buildPieChart(totalTokens, totalValue, context),
+          ),
+        ],
+        dataManager,
+        context,
+        hasGraph: false,
       ),
-      [
-        _buildTextWithShimmerSmall(
-          '$totalTokens',
-          'Prêts',
-          isLoading,
-          context,
-        ),
-        _buildTextWithShimmerSmall(
-          showAmounts 
-            ? _formatCurrencyWithoutDecimals(currencyUtils.convert(totalValue), currencyUtils.currencySymbol)
-            : '*' * _formatCurrencyWithoutDecimals(currencyUtils.convert(totalValue), currencyUtils.currencySymbol).length,
-          'Total',
-          isLoading,
-          context,
-        ),
-        const SizedBox(height: 8),
-        // Graphique en donut positionné en dessous
-        Center(
-          child: _buildPieChart(totalTokens, totalValue, context),
-        ),
-      ],
-      dataManager,
-      context,
-      hasGraph: false,
     );
   }
 

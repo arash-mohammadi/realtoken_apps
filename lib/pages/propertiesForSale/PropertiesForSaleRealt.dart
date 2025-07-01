@@ -105,20 +105,31 @@ class _PropertiesForSaleRealtState extends State<PropertiesForSaleRealt> {
               itemBuilder: (context, index) {
                 final property = propertiesForSale[index];
 
-                final imageUrl = (property['imageLink'] != null && property['imageLink'] is List && property['imageLink'].isNotEmpty) ? property['imageLink'][0] : '';
-                final title = property['shortName'] ?? S.of(context).nameUnavailable;
+                // Gestion améliorée de l'image
+                String imageUrl = '';
+                if (property['imageLink'] != null && property['imageLink'] is List && property['imageLink'].isNotEmpty) {
+                  imageUrl = property['imageLink'][0];
+                } else {
+                  // Image par défaut selon le type de propriété
+                  final title = property['title']?.toString() ?? '';
+                  if (title.toLowerCase().contains('factoring')) {
+                    imageUrl = ''; // Pas d'image pour les produits factoring
+                  }
+                }
+                
+                final title = property['shortName'] ?? property['title'] ?? S.of(context).nameUnavailable;
                 final double stock = (property['stock'] as num?)?.toDouble() ?? 0.0;
 
                 final double tokenPrice = (property['tokenPrice'] as num?)?.toDouble() ?? 0.0;
                 final double annualPercentageYield = (property['annualPercentageYield'] as num?)?.toDouble() ?? 0.0;
 
-                final double totalTokens = (property['totalTokens'] as num?)?.toDouble() ?? 0.0;
+                final double totalTokens = (property['totalTokens'] as num?)?.toDouble() ?? stock; // Fallback sur stock si totalTokens non disponible
 
                 final country = property['country'] ?? 'unknown';
 
                 final city = property['city'] ?? 'unknown';
                 final status = property['status'] ?? 'Unknown';
-                final sellPercentage = (totalTokens - stock) / totalTokens * 100;
+                final sellPercentage = totalTokens > 0 ? ((totalTokens - stock) / totalTokens * 100).toDouble() : 0.0;
 
                 return GestureDetector(
                   onTap: () {
@@ -145,15 +156,49 @@ class _PropertiesForSaleRealtState extends State<PropertiesForSaleRealt> {
                             children: [
                               AspectRatio(
                                 aspectRatio: 16 / 9,
-                                child: kIsWeb
-                                    ? ShowNetworkImage(
-                                        imageSrc: imageUrl,
-                                        mobileBoxFit: BoxFit.cover,
-                                      )
-                                    : CachedNetworkImage(
-                                        imageUrl: imageUrl,
-                                        fit: BoxFit.cover,
-                                        errorWidget: (context, url, error) => const Icon(CupertinoIcons.photo, color: CupertinoColors.systemGrey),
+                                child: imageUrl.isNotEmpty 
+                                    ? (kIsWeb
+                                        ? ShowNetworkImage(
+                                            imageSrc: imageUrl,
+                                            mobileBoxFit: BoxFit.cover,
+                                          )
+                                        : CachedNetworkImage(
+                                            imageUrl: imageUrl,
+                                            fit: BoxFit.cover,
+                                            errorWidget: (context, url, error) => Container(
+                                              color: Colors.grey[300],
+                                              child: const Icon(
+                                                CupertinoIcons.photo, 
+                                                color: CupertinoColors.systemGrey,
+                                                size: 50,
+                                              ),
+                                            ),
+                                          ))
+                                    : Container(
+                                        color: Colors.grey[300],
+                                        child: Column(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            Icon(
+                                              title.toLowerCase().contains('factoring') 
+                                                  ? CupertinoIcons.chart_bar
+                                                  : CupertinoIcons.building_2_fill, 
+                                              color: CupertinoColors.systemGrey,
+                                              size: 50,
+                                            ),
+                                            const SizedBox(height: 8),
+                                            Text(
+                                              title.toLowerCase().contains('factoring') 
+                                                  ? 'Factoring'
+                                                  : 'Propriété',
+                                              style: TextStyle(
+                                                color: CupertinoColors.systemGrey,
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
                                       ),
                               ),
                               Positioned(
@@ -328,7 +373,15 @@ class _PropertiesForSaleRealtState extends State<PropertiesForSaleRealt> {
                                 const SizedBox(height: 16),
                                 CupertinoButton(
                                   padding: EdgeInsets.zero,
-                                  onPressed: () => UrlUtils.launchURL(property['marketplaceLink']),
+                                  onPressed: () {
+                                    final String marketplaceLink = property['marketplaceLink'] ?? 'https://realt.co';
+                                    if (marketplaceLink.isNotEmpty && marketplaceLink != 'https://realt.co') {
+                                      UrlUtils.launchURL(marketplaceLink);
+                                    } else {
+                                      // Pour les produits sans lien spécifique (comme factoring), rediriger vers RealT
+                                      UrlUtils.launchURL('https://realt.co');
+                                    }
+                                  },
                                   child: Container(
                                     width: double.infinity,
                                     padding: const EdgeInsets.symmetric(vertical: 12),

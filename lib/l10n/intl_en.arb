@@ -98,6 +98,8 @@
   "thanks": "Thanks",
   "thankYouMessage": "Thank you to everyone who contributed to this project.",
   "specialThanks": "Special thanks to @Sigri, @ehpst, and @pitsbi for their support.",
+  "specialThanksJojodunet": "Special thanks to @Jojodunet for his tenacity and hours spent testing and retesting the app!",
+  "thanksDonators": "Thanks also to all the donors who support the development of this application!",
   "donate": "Donate",
   "supportProject": "Support the project",
   "donationMessage": "If you like this app and want to support its development, you can donate.",
@@ -161,7 +163,30 @@
   "roiPerProperties": "Property ROI",
   "roiAlertInfo": "This ROI feature is in beta and is currently calculated based on the income received from the property and the initial token value.",
   "recentUpdatesTitle": "Last 30 days",
+  "tokenHistory": "Token History",
   "noRecentUpdates": "No recent changes available.",
+  "noChangesFoundInCompleteHistory": "No changes found in complete history",
+  "noChangesFoundInPastYear": "No changes found in the past year",
+  "allChanges": "All\nchanges",
+  "completeHistory": "Complete\nHistory",
+  "modifications": "modifications",
+  "modification": "modification",
+  "unknownToken": "Unknown token",
+  "old": "Previous:",
+  "newValue": "New:",
+  "today": "Today",
+  "yesterday": "Yesterday",
+  "daysAgo": "{days} days ago",
+  "@daysAgo": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "notAvailable": "N/A",
+  "unit": "unit",
+  "units": "units",
   "unknownTokenName": "Unknown name",
   "noImageAvailable": "Image link not available",
   "duplicate_title": "Duplicate properties",

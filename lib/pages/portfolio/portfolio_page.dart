@@ -394,7 +394,7 @@ class PortfolioPageState extends State<PortfolioPage> {
                       floating: true,
                       snap: true,
                       automaticallyImplyLeading: false,
-                      expandedHeight: UIUtils.getSliverAppBarHeight(context) + 65,
+                      expandedHeight: UIUtils.getSliverAppBarHeight(context) + 54,
                       flexibleSpace: FlexibleSpaceBar(
                         background: Container(
                           color: Theme.of(context).scaffoldBackgroundColor,
@@ -792,7 +792,39 @@ class PortfolioPageState extends State<PortfolioPage> {
               ],
             ),
           ),
-          const PopupMenuDivider(),
+          PopupMenuItem(
+            value: "divider_1",
+            enabled: false,
+            height: 8,
+            child: Divider(height: 1, thickness: 1),
+          ),
+          PopupMenuItem(
+            value: "all_wallets",
+            child: InkWell(
+              onTap: () {
+                setState(() {
+                  selectedWallets.clear();
+                });
+                onWalletsChanged(selectedWallets);
+                Navigator.of(context).pop();
+              },
+              child: Row(
+                children: [
+                  selectedWallets.isEmpty ? Icon(Icons.check, size: 20) : SizedBox(width: 20),
+                  SizedBox(width: 8.0),
+                  Icon(Icons.all_inclusive, size: 20),
+                  SizedBox(width: 8.0),
+                  Text("Tous wallets"),
+                ],
+              ),
+            ),
+          ),
+          PopupMenuItem(
+            value: "divider_2",
+            enabled: false,
+            height: 8,
+            child: Divider(height: 1, thickness: 1),
+          ),
           ...Provider.of<DataManager>(context, listen: false).evmAddresses.toSet().toList().map((wallet) => PopupMenuItem(
                 value: wallet,
                 child: StatefulBuilder(
@@ -899,7 +931,39 @@ class PortfolioPageState extends State<PortfolioPage> {
                 ],
               ),
             ),
-            const PopupMenuDivider(),
+            PopupMenuItem(
+              value: "divider_product_1",
+              enabled: false,
+              height: 8,
+              child: Divider(height: 1, thickness: 1),
+            ),
+            PopupMenuItem(
+              value: "all_product_types",
+              child: InkWell(
+                onTap: () {
+                  setState(() {
+                    selectedProductTypes.clear();
+                  });
+                  onProductTypesChanged(selectedProductTypes);
+                  Navigator.of(context).pop();
+                },
+                child: Row(
+                  children: [
+                    selectedProductTypes.isEmpty ? Icon(Icons.check, size: 20) : SizedBox(width: 20),
+                    SizedBox(width: 8.0),
+                    Icon(Icons.all_inclusive, size: 20),
+                    SizedBox(width: 8.0),
+                    Text("Tous types"),
+                  ],
+                ),
+              ),
+            ),
+            PopupMenuItem(
+              value: "divider_product_2",
+              enabled: false,
+              height: 8,
+              child: Divider(height: 1, thickness: 1),
+            ),
             ...uniqueProductTypes.map((productType) => PopupMenuItem(
                   value: productType,
                   child: StatefulBuilder(
@@ -1017,7 +1081,12 @@ class PortfolioPageState extends State<PortfolioPage> {
                 ],
               ),
             ),
-            const PopupMenuDivider(),
+            PopupMenuItem(
+              value: "divider_region_1",
+              enabled: false,
+              height: 8,
+              child: Divider(height: 1, thickness: 1),
+            ),
             PopupMenuItem(
               value: "all_regions",
               child: Row(
@@ -1030,7 +1099,12 @@ class PortfolioPageState extends State<PortfolioPage> {
                 ],
               ),
             ),
-            const PopupMenuDivider(),
+            PopupMenuItem(
+              value: "divider_region_2",
+              enabled: false,
+              height: 8,
+              child: Divider(height: 1, thickness: 1),
+            ),
             ...uniqueRegions.map((region) => PopupMenuItem(
                   value: region,
                   child: Row(
@@ -1116,7 +1190,12 @@ class PortfolioPageState extends State<PortfolioPage> {
                 ],
               ),
             ),
-            const PopupMenuDivider(),
+            PopupMenuItem(
+              value: "divider_country_1",
+              enabled: false,
+              height: 8,
+              child: Divider(height: 1, thickness: 1),
+            ),
             PopupMenuItem(
               value: "all_countries",
               child: Row(
@@ -1129,7 +1208,12 @@ class PortfolioPageState extends State<PortfolioPage> {
                 ],
               ),
             ),
-            const PopupMenuDivider(),
+            PopupMenuItem(
+              value: "divider_country_2",
+              enabled: false,
+              height: 8,
+              child: Divider(height: 1, thickness: 1),
+            ),
             ...uniqueCountries.map((country) => PopupMenuItem(
                   value: country,
                   child: Row(
@@ -1179,13 +1263,13 @@ class PortfolioPageState extends State<PortfolioPage> {
         child: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: selectedRentalStatus != rentalStatusAll 
-              ? Theme.of(context).primaryColor.withOpacity(0.2)
-              : Theme.of(context).primaryColor.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(12),
-            border: selectedRentalStatus != rentalStatusAll 
-              ? Border.all(color: Theme.of(context).primaryColor, width: 2)
-              : null,
+                      color: _rentalStatusFilter != rentalStatusAll 
+            ? Theme.of(context).primaryColor.withOpacity(0.2)
+            : Theme.of(context).primaryColor.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(12),
+          border: _rentalStatusFilter != rentalStatusAll 
+            ? Border.all(color: Theme.of(context).primaryColor, width: 2)
+            : null,
           ),
           child: Icon(
             icon,
@@ -1208,55 +1292,66 @@ class PortfolioPageState extends State<PortfolioPage> {
               ],
             ),
           ),
-          const PopupMenuDivider(),
-          PopupMenuItem(
-            value: rentalStatusAll,
-            child: Row(
-              children: [
-                selectedRentalStatus == rentalStatusAll ? Icon(Icons.check, size: 20) : SizedBox(width: 20),
-                SizedBox(width: 8.0),
-                Icon(Icons.home_work_outlined, size: 20),
-                SizedBox(width: 8.0),
-                Text(S.of(context).rentalStatusAll),
-              ],
+                      PopupMenuItem(
+              value: "divider_rental_1",
+              enabled: false,
+              height: 8,
+              child: Divider(height: 1, thickness: 1),
             ),
-          ),
-          PopupMenuItem(
-            value: rentalStatusRented,
-            child: Row(
-              children: [
-                selectedRentalStatus == rentalStatusRented ? Icon(Icons.check, size: 20) : SizedBox(width: 20),
-                SizedBox(width: 8.0),
-                Icon(Icons.check_circle, size: 20, color: Colors.green),
-                SizedBox(width: 8.0),
-                Text(S.of(context).rentalStatusRented),
-              ],
+            PopupMenuItem(
+              value: rentalStatusAll,
+              child: Row(
+                children: [
+                  _rentalStatusFilter == rentalStatusAll ? Icon(Icons.check, size: 20) : SizedBox(width: 20),
+                  SizedBox(width: 8.0),
+                  Icon(Icons.all_inclusive, size: 20),
+                  SizedBox(width: 8.0),
+                  Text("Tous statuts"),
+                ],
+              ),
             ),
-          ),
-          PopupMenuItem(
-            value: rentalStatusPartially,
-            child: Row(
-              children: [
-                selectedRentalStatus == rentalStatusPartially ? Icon(Icons.check, size: 20) : SizedBox(width: 20),
-                SizedBox(width: 8.0),
-                Icon(Icons.adjust, size: 20, color: Colors.orange),
-                SizedBox(width: 8.0),
-                Text(S.of(context).rentalStatusPartiallyRented),
-              ],
+            PopupMenuItem(
+              value: "divider_rental_2",
+              enabled: false,
+              height: 8,
+              child: Divider(height: 1, thickness: 1),
             ),
-          ),
-          PopupMenuItem(
-            value: rentalStatusNotRented,
-            child: Row(
-              children: [
-                selectedRentalStatus == rentalStatusNotRented ? Icon(Icons.check, size: 20) : SizedBox(width: 20),
-                SizedBox(width: 8.0),
-                Icon(Icons.cancel, size: 20, color: Colors.red),
-                SizedBox(width: 8.0),
-                Text(S.of(context).rentalStatusNotRented),
-              ],
+                      PopupMenuItem(
+              value: rentalStatusRented,
+              child: Row(
+                children: [
+                  _rentalStatusFilter == rentalStatusRented ? Icon(Icons.check, size: 20) : SizedBox(width: 20),
+                  SizedBox(width: 8.0),
+                  Icon(Icons.check_circle, size: 20, color: Colors.green),
+                  SizedBox(width: 8.0),
+                  Text(S.of(context).rentalStatusRented),
+                ],
+              ),
             ),
-          ),
+            PopupMenuItem(
+              value: rentalStatusPartially,
+              child: Row(
+                children: [
+                  _rentalStatusFilter == rentalStatusPartially ? Icon(Icons.check, size: 20) : SizedBox(width: 20),
+                  SizedBox(width: 8.0),
+                  Icon(Icons.adjust, size: 20, color: Colors.orange),
+                  SizedBox(width: 8.0),
+                  Text(S.of(context).rentalStatusPartiallyRented),
+                ],
+              ),
+            ),
+            PopupMenuItem(
+              value: rentalStatusNotRented,
+              child: Row(
+                children: [
+                  _rentalStatusFilter == rentalStatusNotRented ? Icon(Icons.check, size: 20) : SizedBox(width: 20),
+                  SizedBox(width: 8.0),
+                  Icon(Icons.cancel, size: 20, color: Colors.red),
+                  SizedBox(width: 8.0),
+                  Text(S.of(context).rentalStatusNotRented),
+                ],
+              ),
+            ),
         ],
       ),
     );
@@ -1285,13 +1380,13 @@ class PortfolioPageState extends State<PortfolioPage> {
         child: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: selectedTokenTypes.isNotEmpty 
-              ? Theme.of(context).primaryColor.withOpacity(0.2)
-              : Theme.of(context).primaryColor.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(12),
-            border: selectedTokenTypes.isNotEmpty 
-              ? Border.all(color: Theme.of(context).primaryColor, width: 2)
-              : null,
+                      color: (selectedTokenTypes.isNotEmpty && !(selectedTokenTypes.contains("wallet") && selectedTokenTypes.contains("RMM")))
+            ? Theme.of(context).primaryColor.withOpacity(0.2)
+            : Theme.of(context).primaryColor.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(12),
+          border: (selectedTokenTypes.isNotEmpty && !(selectedTokenTypes.contains("wallet") && selectedTokenTypes.contains("RMM")))
+            ? Border.all(color: Theme.of(context).primaryColor, width: 2)
+            : null,
           ),
           child: Icon(
             icon,
@@ -1314,9 +1409,42 @@ class PortfolioPageState extends State<PortfolioPage> {
               ],
             ),
           ),
-          const PopupMenuDivider(),
-          PopupMenuItem(
-            value: "wallet_toggle",
+                      PopupMenuItem(
+              value: "divider_token_1",
+              enabled: false,
+              height: 8,
+              child: Divider(height: 1, thickness: 1),
+            ),
+            PopupMenuItem(
+              value: "all_token_types",
+              child: InkWell(
+                onTap: () {
+                  setState(() {
+                    selectedTokenTypes.clear();
+                    selectedTokenTypes.addAll({"wallet", "RMM"});
+                  });
+                  onTokenTypesChanged(selectedTokenTypes);
+                  Navigator.of(context).pop();
+                },
+                child: Row(
+                  children: [
+                    (selectedTokenTypes.contains("wallet") && selectedTokenTypes.contains("RMM")) ? Icon(Icons.check, size: 20) : SizedBox(width: 20),
+                    SizedBox(width: 8.0),
+                    Icon(Icons.all_inclusive, size: 20),
+                    SizedBox(width: 8.0),
+                    Text("Tous types"),
+                  ],
+                ),
+              ),
+            ),
+            PopupMenuItem(
+              value: "divider_token_2",
+              enabled: false,
+              height: 8,
+              child: Divider(height: 1, thickness: 1),
+            ),
+            PopupMenuItem(
+              value: "wallet_toggle",
             child: StatefulBuilder(
               builder: (context, setStateLocal) {
                 return InkWell(

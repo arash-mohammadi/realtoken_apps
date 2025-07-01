@@ -84,7 +84,7 @@ class _UpdatesPageState extends State<UpdatesPage> {
           backgroundColor: CupertinoColors.systemBackground.resolveFrom(context).withOpacity(0.8),
           border: null,
           middle: Text(
-            S.of(context).recentUpdatesTitle,
+            S.of(context).tokenHistory,
             style: TextStyle(
               fontWeight: FontWeight.w600,
               fontSize: 17 + appState.getTextSizeOffset(),
@@ -102,7 +102,7 @@ class _UpdatesPageState extends State<UpdatesPage> {
               ),
               SizedBox(height: 20),
               Text(
-                "Aucune modification récente",
+                S.of(context).noRecentUpdates,
                 style: TextStyle(
                   color: CupertinoColors.systemGrey,
                   fontSize: 17 + appState.getTextSizeOffset(),
@@ -112,8 +112,8 @@ class _UpdatesPageState extends State<UpdatesPage> {
               SizedBox(height: 8),
               Text(
                 showAllChanges 
-                  ? "Aucun changement trouvé dans l'historique complet"
-                  : "Aucun changement trouvé dans l'année écoulée",
+                  ? S.of(context).noChangesFoundInCompleteHistory
+                  : S.of(context).noChangesFoundInPastYear,
                 style: TextStyle(
                   color: CupertinoColors.systemGrey2,
                   fontSize: 14 + appState.getTextSizeOffset(),
@@ -147,7 +147,7 @@ class _UpdatesPageState extends State<UpdatesPage> {
         backgroundColor: CupertinoColors.systemBackground.resolveFrom(context).withOpacity(0.8),
         border: null,
         middle: Text(
-          S.of(context).recentUpdatesTitle,
+          S.of(context).tokenHistory,
           style: TextStyle(
             fontWeight: FontWeight.w600,
             fontSize: 17 + appState.getTextSizeOffset(),
@@ -180,7 +180,7 @@ class _UpdatesPageState extends State<UpdatesPage> {
                         child: Column(
                           children: [
                             Text(
-                              "Portfolio",
+                              S.of(context).portfolio,
                               style: TextStyle(
                                 fontSize: 12 + appState.getTextSizeOffset(),
                                 fontWeight: FontWeight.w500,
@@ -213,7 +213,7 @@ class _UpdatesPageState extends State<UpdatesPage> {
                         child: Column(
                           children: [
                             Text(
-                              "Tous les\nchangements",
+                              S.of(context).allChanges,
                               style: TextStyle(
                                 fontSize: 12 + appState.getTextSizeOffset(),
                                 fontWeight: FontWeight.w500,
@@ -246,7 +246,7 @@ class _UpdatesPageState extends State<UpdatesPage> {
                         child: Column(
                           children: [
                             Text(
-                              "Historique\nComplet",
+                              S.of(context).completeHistory,
                               style: TextStyle(
                                 fontSize: 12 + appState.getTextSizeOffset(),
                                 fontWeight: FontWeight.w500,
@@ -344,7 +344,7 @@ class _UpdatesPageState extends State<UpdatesPage> {
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: Text(
-                                    "${changesForDate.length} modification${changesForDate.length > 1 ? 's' : ''}",
+                                    "${changesForDate.length} ${changesForDate.length > 1 ? S.of(context).modifications : S.of(context).modification}",
                                     style: TextStyle(
                                       fontSize: 12 + appState.getTextSizeOffset(),
                                       fontWeight: FontWeight.w500,
@@ -398,7 +398,7 @@ class _UpdatesPageState extends State<UpdatesPage> {
       
       if (tokenChanges.isNotEmpty) {
         var firstChange = tokenChanges.first;
-        String shortName = firstChange['shortName'] ?? 'Token inconnu';
+        String shortName = firstChange['shortName'] ?? S.of(context).unknownToken;
         // Gérer le cas où imageLink peut être une liste ou une chaîne
         String imageUrl = '';
         var imageData = firstChange['imageLink'];
@@ -705,7 +705,7 @@ class _UpdatesPageState extends State<UpdatesPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                                       Text(
-                    "Ancien:",
+                    S.of(context).old,
                     style: TextStyle(
                       fontSize: 12 + appState.getTextSizeOffset(),
                       color: CupertinoColors.systemGrey.resolveFrom(context),
@@ -737,7 +737,7 @@ class _UpdatesPageState extends State<UpdatesPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "Nouveau:",
+                      S.of(context).newValue,
                       style: TextStyle(
                         fontSize: 12 + appState.getTextSizeOffset(),
                         color: CupertinoColors.systemGrey.resolveFrom(context),
@@ -771,11 +771,11 @@ class _UpdatesPageState extends State<UpdatesPage> {
       int difference = today.difference(targetDate).inDays;
       
       if (difference == 0) {
-        return "Aujourd'hui";
+        return S.of(context).today;
       } else if (difference == 1) {
-        return "Hier";
+        return S.of(context).yesterday;
       } else if (difference < 7) {
-        return "Il y a $difference jours";
+        return S.of(context).daysAgo(difference);
       } else {
         return DateFormat('dd/MM/yyyy').format(date);
       }
@@ -785,14 +785,14 @@ class _UpdatesPageState extends State<UpdatesPage> {
   }
 
   String _formatValue(dynamic value, String? field) {
-    if (value == null) return 'N/A';
+    if (value == null) return S.of(context).notAvailable;
     
     if (value is num) {
       if (field?.contains('price') == true || field?.contains('investment') == true || field?.contains('rent') == true || field?.contains('reserve') == true) {
         return '\$${NumberFormat('#,##0.00').format(value)}';
       } else if (field?.contains('units') == true) {
         int units = value.round();
-        return '$units unité${units > 1 ? 's' : ''}';
+        return '$units ${units > 1 ? S.of(context).units : S.of(context).unit}';
       } else {
         return NumberFormat('#,##0.00').format(value);
       }

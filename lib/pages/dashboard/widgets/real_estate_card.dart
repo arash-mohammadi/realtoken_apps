@@ -8,6 +8,7 @@ import 'package:realtoken_asset_tracker/generated/l10n.dart';
 import 'package:realtoken_asset_tracker/utils/ui_utils.dart';
 import 'package:realtoken_asset_tracker/utils/shimmer_utils.dart';
 import 'package:realtoken_asset_tracker/utils/currency_utils.dart';
+import 'package:realtoken_asset_tracker/pages/dashboard/detailsPages/properties_details_page.dart';
 
 class RealEstateCard extends StatelessWidget {
   final bool showAmounts;
@@ -50,51 +51,61 @@ class RealEstateCard extends StatelessWidget {
       return sum;
     });
 
-    return UIUtils.buildCard(
-      'Estate',
-      Icons.home_outlined,
-      _buildValueWithIconSmall(
-        context, 
-        currencyUtils.getFormattedAmount(
-          currencyUtils.convert(monthlyIncome), 
-          currencyUtils.currencySymbol, 
-          showAmounts
-        ), 
-        Icons.attach_money_rounded,
-        isLoading
-      ),
-      [
-        _buildTextWithShimmerSmall(
-          '$totalTokens',
-          S.of(context).properties,
-          isLoading,
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
           context,
-        ),
-        _buildTextWithShimmerSmall(
-          showAmounts 
-            ? _formatCurrencyWithoutDecimals(currencyUtils.convert(totalValue), currencyUtils.currencySymbol)
-            : '*' * _formatCurrencyWithoutDecimals(currencyUtils.convert(totalValue), currencyUtils.currencySymbol).length,
-          'Total',
-          isLoading,
-          context,
-        ),
-        const SizedBox(height: 8),
-        // Graphique en donut positionné en dessous
-        Center(
-          child: Builder(
-            builder: (context) {
-              double rentedPercentage = totalUnits > 0 ? (rentedUnits / totalUnits * 100) : 0.0;
-              if (rentedPercentage.isNaN || rentedPercentage < 0) {
-                rentedPercentage = 0;
-              }
-              return _buildPieChart(rentedPercentage, context);
-            },
+          MaterialPageRoute(
+            builder: (context) => const PropertiesDetailsPage(),
           ),
+        );
+      },
+      child: UIUtils.buildCard(
+        'Estate',
+        Icons.home_outlined,
+        _buildValueWithIconSmall(
+          context, 
+          currencyUtils.getFormattedAmount(
+            currencyUtils.convert(monthlyIncome), 
+            currencyUtils.currencySymbol, 
+            showAmounts
+          ), 
+          Icons.attach_money_rounded,
+          isLoading
         ),
-      ],
-      dataManager,
-      context,
-      hasGraph: false, // Pas de rightWidget
+        [
+          _buildTextWithShimmerSmall(
+            '$totalTokens',
+            S.of(context).quantity,
+            isLoading,
+            context,
+          ),
+          _buildTextWithShimmerSmall(
+            showAmounts 
+              ? _formatCurrencyWithoutDecimals(currencyUtils.convert(totalValue), currencyUtils.currencySymbol)
+              : '*' * _formatCurrencyWithoutDecimals(currencyUtils.convert(totalValue), currencyUtils.currencySymbol).length,
+            'Total',
+            isLoading,
+            context,
+          ),
+          const SizedBox(height: 8),
+          // Graphique en donut positionné en dessous
+          Center(
+            child: Builder(
+              builder: (context) {
+                double rentedPercentage = totalUnits > 0 ? (rentedUnits / totalUnits * 100) : 0.0;
+                if (rentedPercentage.isNaN || rentedPercentage < 0) {
+                  rentedPercentage = 0;
+                }
+                return _buildPieChart(rentedPercentage, context);
+              },
+            ),
+          ),
+        ],
+        dataManager,
+        context,
+        hasGraph: false, // Pas de rightWidget
+      ),
     );
   }
 

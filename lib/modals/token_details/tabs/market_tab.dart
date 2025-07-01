@@ -82,6 +82,59 @@ class _MarketTabState extends State<MarketTab> {
     }
   }
 
+  // Gérer les notifications de scroll pour déléguer au parent quand nécessaire
+  bool _handleScrollNotification(ScrollNotification scrollInfo) {
+    // Seulement traiter les notifications si la TabBar est sticky (sinon le scroll est désactivé)
+    if (!isTabBarSticky || _parentScrollController == null) {
+      return false;
+    }
+
+    // Détecter si on a atteint les limites du scroll local
+    if (scrollInfo is ScrollUpdateNotification) {
+      final metrics = scrollInfo.metrics;
+      
+      // Si on essaie de scroller vers le haut alors qu'on est déjà en haut
+      if (metrics.pixels <= metrics.minScrollExtent && scrollInfo.scrollDelta! < 0) {
+        // Déléguer le scroll vers le haut au parent de manière fluide
+        final parentPosition = _parentScrollController!.position;
+        final scrollSensitivity = 0.8; // Facteur pour rendre le scroll plus fluide
+        final newOffset = (parentPosition.pixels + (scrollInfo.scrollDelta! * scrollSensitivity)).clamp(
+          parentPosition.minScrollExtent,
+          parentPosition.maxScrollExtent,
+        );
+        
+        // Utiliser animateTo pour une transition plus fluide
+        _parentScrollController!.animateTo(
+          newOffset,
+          duration: const Duration(milliseconds: 100),
+          curve: Curves.easeOut,
+        );
+        return true; // Consomme l'événement
+      }
+      
+      // Si on essaie de scroller vers le bas alors qu'on est déjà en bas
+      if (metrics.pixels >= metrics.maxScrollExtent && scrollInfo.scrollDelta! > 0) {
+        // Déléguer le scroll vers le bas au parent de manière fluide
+        final parentPosition = _parentScrollController!.position;
+        final scrollSensitivity = 0.8; // Facteur pour rendre le scroll plus fluide
+        final newOffset = (parentPosition.pixels + (scrollInfo.scrollDelta! * scrollSensitivity)).clamp(
+          parentPosition.minScrollExtent,
+          parentPosition.maxScrollExtent,
+        );
+        
+        // Utiliser animateTo pour une transition plus fluide
+        _parentScrollController!.animateTo(
+          newOffset,
+          duration: const Duration(milliseconds: 100),
+          curve: Curves.easeOut,
+        );
+        return true; // Consomme l'événement
+      }
+    }
+    
+    return false; // Laisse passer l'événement normalement
+  }
+
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context, listen: false);
@@ -97,17 +150,23 @@ class _MarketTabState extends State<MarketTab> {
     }
 
     // Si c'est intégré dans la page de détails du token
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Barre de filtres en haut - fixe
-          _buildFilterBar(isDarkMode, appState),
+    return Container(
+      constraints: const BoxConstraints(
+        minHeight: 300,
+        maxHeight: 800,
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Barre de filtres en haut - fixe
+            _buildFilterBar(isDarkMode, appState),
 
-          // Contenu principal avec liste défilante qui s'active quand la TabBar est sticky
-          Expanded(
-            child: FutureBuilder<List<Map<String, dynamic>>>(
+            // Contenu principal avec liste défilante qui s'active quand la TabBar est sticky
+            Flexible(
+              child: FutureBuilder<List<Map<String, dynamic>>>(
               future: _getFilteredOffers(dataManager, widget.token['uuid'], selectedOfferType),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
@@ -121,12 +180,16 @@ class _MarketTabState extends State<MarketTab> {
                 } else {
                   final offers = _getSortedOffers(snapshot.data!);
 
-                  // Utiliser un ListView avec ScrollPhysics adaptatif selon l'état de la TabBar
-                  return ListView(
-                    // Changer la physique selon si la TabBar est sticky ou non
-                    physics: isTabBarSticky
-                        ? const BouncingScrollPhysics() // Activer le défilement quand la TabBar est sticky
-                        : const NeverScrollableScrollPhysics(), // Désactiver le défilement sinon
+                  // Utiliser un ListView avec ScrollPhysics adaptatif et NotificationListener pour gérer le scroll imbriqué
+                  return NotificationListener<ScrollNotification>(
+                    onNotification: (ScrollNotification scrollInfo) {
+                      return _handleScrollNotification(scrollInfo);
+                    },
+                    child: ListView(
+                      // Changer la physique selon si la TabBar est sticky ou non
+                      physics: isTabBarSticky
+                          ? const BouncingScrollPhysics() // Activer le défilement quand la TabBar est sticky
+                          : const NeverScrollableScrollPhysics(), // Désactiver le défilement sinon
                     children: [
                       // Titre de la section
                       Padding(
@@ -159,6 +222,7 @@ class _MarketTabState extends State<MarketTab> {
                       // Espace en bas
                       const SizedBox(height: 16),
                     ],
+                    ),
                   );
                 }
               },
@@ -166,6 +230,7 @@ class _MarketTabState extends State<MarketTab> {
           ),
         ],
       ),
+    ),
     );
   }
 
@@ -216,8 +281,13 @@ class _MarketTabState extends State<MarketTab> {
         Expanded(
           child: Container(
             color: isDarkMode ? Colors.black : _iosBackgroundColor,
-            child: ListView(
-              physics: const BouncingScrollPhysics(),
+            child: NotificationListener<ScrollNotification>(
+              onNotification: (ScrollNotification scrollInfo) {
+                // Dans la vue modale, on peut ajouter des comportements spécifiques si nécessaire
+                return false; // Laisser le scroll normal pour la vue modale
+              },
+              child: ListView(
+                physics: const BouncingScrollPhysics(),
               children: [
                 // Titre de la section
                 Padding(
@@ -281,6 +351,7 @@ class _MarketTabState extends State<MarketTab> {
                 // Espace en bas
                 const SizedBox(height: 20),
               ],
+              ),
             ),
           ),
         ),

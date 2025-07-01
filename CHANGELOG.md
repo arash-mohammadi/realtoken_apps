@@ -1,3 +1,32 @@
+
+## [1.12.10] - 2025-03-29
+
+### Added
+- Add support for Loan & Factoring tokens
+  
+### Changed
+- Improve Maps page
+- Improve Analytics Page
+- Improve Recent change page
+- Improve average purchase price
+- Improve rents fetch & updates
+- Optimize background updates & calculations
+- New support on canny instead of Github
+
+### Fixed
+- Fix poperties for sale page
+- Fix market tab
+- Correction of image positioning (upside down) in certain configurations
+
+
+## [1.11.0] - 2025-03-29
+
+### Changed
+- Immediate data display at launch
+- Performance and network call optimization
+- Memory and cache optimization
+- Some visual improvements and bug fixes
+
 ## [1.9.0] - 2025-03-29
 
 ### Added
