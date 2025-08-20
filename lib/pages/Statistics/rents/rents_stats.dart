@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:provider/provider.dart';
-import 'package:realtoken_asset_tracker/managers/data_manager.dart';
-import 'package:realtoken_asset_tracker/pages/Statistics/portfolio/charts/rent_distribution_chart.dart';
-import 'package:realtoken_asset_tracker/pages/Statistics/portfolio/charts/rent_distribution_by_product_type_chart.dart';
-import 'package:realtoken_asset_tracker/pages/Statistics/portfolio/charts/rented_graph.dart';
-import 'package:realtoken_asset_tracker/pages/Statistics/wallet/charts/rent_graph.dart';
+import 'package:meprop_asset_tracker/managers/data_manager.dart';
+import 'package:meprop_asset_tracker/pages/Statistics/portfolio/charts/rent_distribution_chart.dart';
+import 'package:meprop_asset_tracker/pages/Statistics/portfolio/charts/rent_distribution_by_product_type_chart.dart';
+import 'package:meprop_asset_tracker/pages/Statistics/portfolio/charts/rented_graph.dart';
+import 'package:meprop_asset_tracker/pages/Statistics/wallet/charts/rent_graph.dart';
 
-import 'package:realtoken_asset_tracker/utils/data_fetch_utils.dart';
-import 'package:realtoken_asset_tracker/generated/l10n.dart';
+import 'package:meprop_asset_tracker/utils/data_fetch_utils.dart';
+import 'package:meprop_asset_tracker/generated/l10n.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class RentsStats extends StatefulWidget {
@@ -19,17 +19,17 @@ class RentsStats extends StatefulWidget {
 }
 
 class _RentsStatsState extends State<RentsStats> {
-  late String _selectedPeriod;
-  late String _selectedRentPeriod;
-  
+  String _selectedPeriod = '';
+  String _selectedRentPeriod = '';
+
   String _selectedRentTimeRange = 'all';
-  
+
   bool _rentedIsBarChart = true;
   bool rentIsBarChart = false;
   bool showCumulativeRent = false;
-  
+
   late SharedPreferences prefs;
-  
+
   int _rentTimeOffset = 0;
 
   @override
@@ -43,22 +43,24 @@ class _RentsStatsState extends State<RentsStats> {
         rentIsBarChart = prefs.getBool('rentIsBarChart') ?? false;
         showCumulativeRent = prefs.getBool('showCumulativeRent') ?? false;
         _rentedIsBarChart = prefs.getBool('rentedIsBarChart') ?? true;
-        
+
         // Charger les périodes sélectionnées
         _selectedRentPeriod = prefs.getString('rentPeriod') ?? S.of(context).week;
-        
+
         // Charger les plages de temps
         _selectedRentTimeRange = prefs.getString('rentTimeRange') ?? 'all';
-        
+
         // Charger les offsets
         _rentTimeOffset = prefs.getInt('rentTimeOffset') ?? 0;
       });
 
       try {
         final dataManager = Provider.of<DataManager>(context, listen: false);
-        
-        if (!dataManager.isLoadingMain && dataManager.evmAddresses.isNotEmpty && 
-            dataManager.portfolio.isNotEmpty && dataManager.rentHistory.isNotEmpty) {
+
+        if (!dataManager.isLoadingMain &&
+            dataManager.evmAddresses.isNotEmpty &&
+            dataManager.portfolio.isNotEmpty &&
+            dataManager.rentHistory.isNotEmpty) {
           debugPrint("📊 RentsStats: données déjà chargées, skip chargement");
         } else {
           debugPrint("📊 RentsStats: chargement des données nécessaire");
@@ -115,7 +117,7 @@ class _RentsStatsState extends State<RentsStats> {
                   delegate: SliverChildBuilderDelegate(
                     (BuildContext context, int index) {
                       if (!mounted) return const SizedBox.shrink();
-                      
+
                       return _buildChartWidget(context, index, dataManager);
                     },
                     childCount: 4,
@@ -138,7 +140,7 @@ class _RentsStatsState extends State<RentsStats> {
             groupedData: [],
             dataManager: dataManager,
             showCumulativeRent: showCumulativeRent,
-            selectedPeriod: _selectedRentPeriod,
+            selectedPeriod: _selectedRentPeriod.isNotEmpty ? _selectedRentPeriod : S.of(context).week,
             onPeriodChanged: (period) {
               setState(() {
                 _selectedRentPeriod = period;
@@ -235,4 +237,4 @@ class _RentsStatsState extends State<RentsStats> {
   void _saveTimeOffsetPreference(String key, int value) {
     prefs.setInt(key, value);
   }
-} 
+}

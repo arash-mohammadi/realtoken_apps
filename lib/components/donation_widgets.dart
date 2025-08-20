@@ -1,23 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
-import 'package:realtoken_asset_tracker/app_state.dart';
-import 'package:realtoken_asset_tracker/generated/l10n.dart';
-import 'package:realtoken_asset_tracker/utils/url_utils.dart';
-import 'package:realtoken_asset_tracker/utils/style_constants.dart';
+import 'package:meprop_asset_tracker/app_state.dart';
+import 'package:meprop_asset_tracker/generated/l10n.dart';
+import 'package:meprop_asset_tracker/utils/url_utils.dart';
+import 'package:meprop_asset_tracker/utils/style_constants.dart';
 import 'package:provider/provider.dart';
 
 /// Factory pour créer tous les widgets de donation de manière uniforme
 class DonationWidgets {
-  
   /// Constantes de couleurs pour les boutons de donation
   static const Color buyMeACoffeeColor = Color(0xFFFFDD00);
   static const Color paypalColor = Color(0xFF0070ba);
   static const Color cryptoBackgroundLight = Color(0xFFF4F4F4);
-  
+
   /// Adresse de donation crypto
   static const String donationAddress = '0xdc30b07aebaef3f15544a3801c6cb0f35f0118fc';
-  
+
   /// URLs de donation
   static const String buyMeACoffeeUrl = 'https://buymeacoffee.com/byackee';
   static const String paypalUrl = 'https://paypal.me/byackee?country.x=FR&locale.x=fr_FR';
@@ -207,9 +206,7 @@ class DonationWidgets {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           decoration: BoxDecoration(
-            color: Theme.of(context).brightness == Brightness.dark
-                ? Colors.grey[800]
-                : cryptoBackgroundLight,
+            color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[800] : cryptoBackgroundLight,
             borderRadius: BorderRadius.circular(StyleConstants.smallBorderRadius),
           ),
           child: Row(
@@ -292,7 +289,6 @@ class DonationWidgets {
           buildTitle(context: context, appState: appState),
           buildSpacer(appState: appState, baseHeight: 4),
         ],
-        
         if (showAmount)
           buildAmountDisplay(
             context: context,
@@ -300,27 +296,22 @@ class DonationWidgets {
             amount: amount,
             isLoading: isLoading,
           ),
-        
         buildSpacer(appState: appState),
         buildDescription(context: context, appState: appState),
         buildSpacer(appState: appState),
         buildDivider(context: context),
         buildSpacer(appState: appState),
-
         if (showButtons) ...[
           buildBuyMeACoffeeButton(context: context, appState: appState),
           buildSpacer(appState: appState, baseHeight: 10),
           buildPaypalButton(context: context, appState: appState),
           buildSpacer(appState: appState, baseHeight: 10),
         ],
-
         if (showCrypto) ...[
           buildCryptoSection(context: context, appState: appState),
           buildSpacer(appState: appState),
         ],
-
-        if (showThankYou)
-          buildThankYouMessage(context: context, appState: appState),
+        if (showThankYou) buildThankYouMessage(context: context, appState: appState),
       ],
     );
   }
@@ -337,4 +328,4 @@ class DonationWidgets {
       );
     }
   }
-} 
+}

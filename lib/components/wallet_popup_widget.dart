@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:realtoken_asset_tracker/app_state.dart';
-import 'package:realtoken_asset_tracker/managers/data_manager.dart';
-import 'package:realtoken_asset_tracker/utils/currency_utils.dart';
-import 'package:realtoken_asset_tracker/generated/l10n.dart';
+import 'package:meprop_asset_tracker/app_state.dart';
+import 'package:meprop_asset_tracker/managers/data_manager.dart';
+import 'package:meprop_asset_tracker/utils/currency_utils.dart';
+import 'package:meprop_asset_tracker/generated/l10n.dart';
 import 'dart:ui';
 
 class WalletPopupWidget extends StatelessWidget {
@@ -23,8 +23,8 @@ class WalletPopupWidget extends StatelessWidget {
       child: Container(
         padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
         decoration: BoxDecoration(
-          color: Theme.of(context).brightness == Brightness.dark 
-              ? Colors.black.withOpacity(0.9) 
+          color: Theme.of(context).brightness == Brightness.dark
+              ? Colors.black.withOpacity(0.9)
               : Colors.white.withOpacity(0.9),
           borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
           boxShadow: [
@@ -58,8 +58,8 @@ class WalletPopupWidget extends StatelessWidget {
       width: 36,
       height: 4,
       decoration: BoxDecoration(
-        color: Theme.of(context).brightness == Brightness.dark 
-            ? Colors.white.withOpacity(0.2) 
+        color: Theme.of(context).brightness == Brightness.dark
+            ? Colors.white.withOpacity(0.2)
             : Colors.black.withOpacity(0.2),
         borderRadius: BorderRadius.circular(4),
       ),
@@ -98,7 +98,8 @@ class WalletPopupWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildTotalBalanceCard(BuildContext context, AppState appState, CurrencyProvider currencyUtils, DataManager dataManager, bool hasStaking) {
+  Widget _buildTotalBalanceCard(BuildContext context, AppState appState, CurrencyProvider currencyUtils,
+      DataManager dataManager, bool hasStaking) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       padding: const EdgeInsets.all(12),
@@ -125,9 +126,12 @@ class WalletPopupWidget extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildCurrencyBalance(context, appState, currencyUtils, 'assets/icons/usdc.png', 'USDC', dataManager.gnosisUsdcBalance),
-              _buildCurrencyBalance(context, appState, currencyUtils, 'assets/icons/xdai.png', 'XDAI', dataManager.gnosisXdaiBalance),
-              _buildRegBalance(context, appState, 'assets/icons/reg.png', 'REG', dataManager.gnosisRegBalance + dataManager.gnosisVaultRegBalance, hasStaking),
+              _buildCurrencyBalance(
+                  context, appState, currencyUtils, 'assets/icons/usdc.png', 'USDC', dataManager.gnosisUsdcBalance),
+              _buildCurrencyBalance(
+                  context, appState, currencyUtils, 'assets/icons/xdai.png', 'XDAI', dataManager.gnosisXdaiBalance),
+              _buildRegBalance(context, appState, 'assets/icons/reg.png', 'REG',
+                  dataManager.gnosisRegBalance + dataManager.gnosisVaultRegBalance, hasStaking),
             ],
           ),
         ],
@@ -135,7 +139,8 @@ class WalletPopupWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildCurrencyBalance(BuildContext context, AppState appState, CurrencyProvider currencyUtils, String iconPath, String currency, double balance) {
+  Widget _buildCurrencyBalance(BuildContext context, AppState appState, CurrencyProvider currencyUtils, String iconPath,
+      String currency, double balance) {
     return Row(
       children: [
         Image.asset(iconPath, width: 28 + appState.getTextSizeOffset(), height: 28 + appState.getTextSizeOffset()),
@@ -164,7 +169,8 @@ class WalletPopupWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildRegBalance(BuildContext context, AppState appState, String iconPath, String currency, double balance, bool hasStaking) {
+  Widget _buildRegBalance(
+      BuildContext context, AppState appState, String iconPath, String currency, double balance, bool hasStaking) {
     return Row(
       children: [
         Image.asset(iconPath, width: 28 + appState.getTextSizeOffset(), height: 28 + appState.getTextSizeOffset()),
@@ -223,7 +229,8 @@ class WalletPopupWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildWalletList(BuildContext context, List<Map<String, dynamic>> walletDetails, CurrencyProvider currencyUtils, AppState appState) {
+  Widget _buildWalletList(BuildContext context, List<Map<String, dynamic>> walletDetails,
+      CurrencyProvider currencyUtils, AppState appState) {
     return Expanded(
       child: ListView.builder(
         padding: const EdgeInsets.fromLTRB(12, 4, 12, 16),
@@ -264,13 +271,13 @@ class WalletItemWidget extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
       decoration: BoxDecoration(
-        color: Theme.of(context).brightness == Brightness.dark 
-            ? Colors.white.withOpacity(0.05) 
+        color: Theme.of(context).brightness == Brightness.dark
+            ? Colors.white.withOpacity(0.05)
             : Colors.black.withOpacity(0.03),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: Theme.of(context).brightness == Brightness.dark 
-              ? Colors.white.withOpacity(0.1) 
+          color: Theme.of(context).brightness == Brightness.dark
+              ? Colors.white.withOpacity(0.1)
               : Colors.black.withOpacity(0.05),
           width: 1,
         ),
@@ -379,7 +386,8 @@ class WalletItemWidget extends StatelessWidget {
 
     return Row(
       children: [
-        Image.asset('assets/icons/reg.png', width: 20 + appState.getTextSizeOffset(), height: 20 + appState.getTextSizeOffset()),
+        Image.asset('assets/icons/reg.png',
+            width: 20 + appState.getTextSizeOffset(), height: 20 + appState.getTextSizeOffset()),
         const SizedBox(width: 6),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -430,4 +438,4 @@ class WalletItemWidget extends StatelessWidget {
     if (address.length <= 12) return address;
     return address.substring(0, 6) + "..." + address.substring(address.length - 4);
   }
-} 
+}

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
-import 'package:realtoken_asset_tracker/managers/data_manager.dart';
-import 'package:realtoken_asset_tracker/generated/l10n.dart';
-import 'package:realtoken_asset_tracker/pages/Statistics/portfolio/charts/token_distribution_chart.dart';
-import 'package:realtoken_asset_tracker/pages/Statistics/portfolio/charts/token_distribution_by_wallet_card.dart';
+import 'package:meprop_asset_tracker/managers/data_manager.dart';
+import 'package:meprop_asset_tracker/generated/l10n.dart';
+import 'package:meprop_asset_tracker/pages/Statistics/portfolio/charts/token_distribution_chart.dart';
+import 'package:meprop_asset_tracker/pages/Statistics/portfolio/charts/token_distribution_by_wallet_card.dart';
 import 'package:flutter/services.dart';
-import 'package:realtoken_asset_tracker/app_state.dart';
+import 'package:meprop_asset_tracker/app_state.dart';
 import 'package:fl_chart/fl_chart.dart';
 
 class FactoringDetailsPage extends StatelessWidget {
@@ -19,9 +19,9 @@ class FactoringDetailsPage extends StatelessWidget {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     // Filtrer uniquement les tokens de factoring
-    final factoringTokens = dataManager.portfolio.where((token) => 
-      (token['productType'] ?? '').toLowerCase() == 'factoring_profitshare'
-    ).toList();
+    final factoringTokens = dataManager.portfolio
+        .where((token) => (token['productType'] ?? '').toLowerCase() == 'factoring_profitshare')
+        .toList();
 
     return Scaffold(
       backgroundColor: isDarkMode ? const Color(0xFF1C1C1E) : const Color(0xFFF2F2F7),
@@ -92,9 +92,8 @@ class FactoringDetailsPage extends StatelessWidget {
     final cardColor = isDarkMode ? const Color(0xFF2C2C2E) : Colors.white;
 
     final totalTokens = factoringTokens.length;
-    final totalTokensSum = factoringTokens.fold<double>(0.0, (sum, token) => 
-      sum + ((token['amount'] as num?)?.toDouble() ?? 0.0)
-    );
+    final totalTokensSum =
+        factoringTokens.fold<double>(0.0, (sum, token) => sum + ((token['amount'] as num?)?.toDouble() ?? 0.0));
 
     return Row(
       children: [
@@ -192,7 +191,7 @@ class FactoringDetailsPage extends StatelessWidget {
   Widget _buildIncomeChart(BuildContext context, List<Map<String, dynamic>> factoringTokens, AppState appState) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final cardColor = isDarkMode ? const Color(0xFF2C2C2E) : Colors.white;
-    
+
     final today = DateTime.now();
     final activeTokens = factoringTokens.where((token) {
       final rentStartDateString = token['rentStartDate'] as String?;
@@ -489,4 +488,4 @@ class FactoringDetailsPage extends StatelessWidget {
       ),
     );
   }
-} 
+}

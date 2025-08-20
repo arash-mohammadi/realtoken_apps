@@ -2,12 +2,12 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:realtoken_asset_tracker/managers/data_manager.dart';
-import 'package:realtoken_asset_tracker/app_state.dart';
-import 'package:realtoken_asset_tracker/generated/l10n.dart';
-import 'package:realtoken_asset_tracker/utils/currency_utils.dart';
-import 'package:realtoken_asset_tracker/utils/ui_utils.dart';
-import 'package:realtoken_asset_tracker/pages/dashboard/detailsPages/rent_details_page.dart';
+import 'package:meprop_asset_tracker/managers/data_manager.dart';
+import 'package:meprop_asset_tracker/app_state.dart';
+import 'package:meprop_asset_tracker/generated/l10n.dart';
+import 'package:meprop_asset_tracker/utils/currency_utils.dart';
+import 'package:meprop_asset_tracker/utils/ui_utils.dart';
+import 'package:meprop_asset_tracker/pages/dashboard/detailsPages/rent_details_page.dart';
 
 class RentsCard extends StatelessWidget {
   final bool showAmounts;
@@ -26,7 +26,8 @@ class RentsCard extends StatelessWidget {
       Icons.attach_money,
       Row(
         children: [
-          UIUtils.buildValueBeforeText(context, '${dataManager.netGlobalApy.toStringAsFixed(2)}%' as String?, S.of(context).annualYield, dataManager.isLoadingMain),
+          UIUtils.buildValueBeforeText(context, '${dataManager.netGlobalApy.toStringAsFixed(2)}%' as String?,
+              S.of(context).annualYield, dataManager.isLoadingMain),
           SizedBox(width: 6),
           GestureDetector(
             onTap: () {
@@ -65,13 +66,15 @@ class RentsCard extends StatelessWidget {
       ),
       [
         UIUtils.buildTextWithShimmer(
-          currencyUtils.getFormattedAmount(currencyUtils.convert(dataManager.dailyRent), currencyUtils.currencySymbol, showAmounts),
+          currencyUtils.getFormattedAmount(
+              currencyUtils.convert(dataManager.dailyRent), currencyUtils.currencySymbol, showAmounts),
           S.of(context).daily,
           isLoading || dataManager.isLoadingMain,
           context,
         ),
         UIUtils.buildTextWithShimmer(
-          currencyUtils.getFormattedAmount(currencyUtils.convert(dataManager.weeklyRent), currencyUtils.currencySymbol, showAmounts),
+          currencyUtils.getFormattedAmount(
+              currencyUtils.convert(dataManager.weeklyRent), currencyUtils.currencySymbol, showAmounts),
           S.of(context).weekly,
           isLoading || dataManager.isLoadingMain,
           context,
@@ -87,7 +90,8 @@ class RentsCard extends StatelessWidget {
           context,
         ),
         UIUtils.buildTextWithShimmer(
-          currencyUtils.getFormattedAmount(currencyUtils.convert(dataManager.yearlyRent), currencyUtils.currencySymbol, showAmounts),
+          currencyUtils.getFormattedAmount(
+              currencyUtils.convert(dataManager.yearlyRent), currencyUtils.currencySymbol, showAmounts),
           S.of(context).annually,
           isLoading || dataManager.isLoadingMain,
           context,

@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:realtoken_asset_tracker/generated/l10n.dart';
-import 'package:realtoken_asset_tracker/managers/data_manager.dart';
-import 'package:realtoken_asset_tracker/models/balance_record.dart';
-import 'package:realtoken_asset_tracker/components/charts/generic_chart_widget.dart';
-import 'package:realtoken_asset_tracker/app_state.dart';
+import 'package:meprop_asset_tracker/generated/l10n.dart';
+import 'package:meprop_asset_tracker/managers/data_manager.dart';
+import 'package:meprop_asset_tracker/models/balance_record.dart';
+import 'package:meprop_asset_tracker/components/charts/generic_chart_widget.dart';
+import 'package:meprop_asset_tracker/app_state.dart';
 import 'package:intl/intl.dart';
 
 class EditableBalanceRecord {
@@ -67,11 +67,10 @@ class _WalletBalanceGraphState extends State<WalletBalanceGraph> {
 
   void _updateBalanceValue(DataManager dataManager, EditableBalanceRecord editableRecord, double newValue) {
     // Récupérer l'index de l'enregistrement original
-    final index = dataManager.walletBalanceHistory.indexWhere((r) => 
-      r.timestamp.isAtSameMomentAs(editableRecord.original.timestamp) && 
-      r.balance == editableRecord.original.balance
-    );
-    
+    final index = dataManager.walletBalanceHistory.indexWhere((r) =>
+        r.timestamp.isAtSameMomentAs(editableRecord.original.timestamp) &&
+        r.balance == editableRecord.original.balance);
+
     if (index != -1) {
       // Créer un nouvel enregistrement avec la valeur mise à jour
       final updatedRecord = BalanceRecord(
@@ -79,21 +78,21 @@ class _WalletBalanceGraphState extends State<WalletBalanceGraph> {
         balance: newValue,
         tokenType: editableRecord.original.tokenType,
       );
-      
+
       // Mettre à jour la liste
       dataManager.walletBalanceHistory[index] = updatedRecord;
       // Mettre à jour l'original dans l'enregistrement éditable
       editableRecord.original = updatedRecord;
-      
+
       // Sauvegarder dans Hive
       dataManager.saveWalletBalanceHistory();
-      
+
       // Notifier les écouteurs
       dataManager.notifyListeners();
-      
+
       // Mettre à jour l'enregistrement éditable
       editableRecord.valueController.text = newValue.toStringAsFixed(2);
-      
+
       // Pour le débogage
       print('Balance mise à jour à l\'index $index: $newValue');
     } else {
@@ -103,11 +102,10 @@ class _WalletBalanceGraphState extends State<WalletBalanceGraph> {
 
   void _updateBalanceDate(DataManager dataManager, EditableBalanceRecord editableRecord, DateTime newDate) {
     // Récupérer l'index de l'enregistrement original
-    final index = dataManager.walletBalanceHistory.indexWhere((r) => 
-      r.timestamp.isAtSameMomentAs(editableRecord.original.timestamp) && 
-      r.balance == editableRecord.original.balance
-    );
-    
+    final index = dataManager.walletBalanceHistory.indexWhere((r) =>
+        r.timestamp.isAtSameMomentAs(editableRecord.original.timestamp) &&
+        r.balance == editableRecord.original.balance);
+
     if (index != -1) {
       // Créer un nouvel enregistrement avec la date mise à jour
       final updatedRecord = BalanceRecord(
@@ -115,21 +113,21 @@ class _WalletBalanceGraphState extends State<WalletBalanceGraph> {
         balance: editableRecord.original.balance,
         tokenType: editableRecord.original.tokenType,
       );
-      
+
       // Mettre à jour la liste
       dataManager.walletBalanceHistory[index] = updatedRecord;
       // Mettre à jour l'original dans l'enregistrement éditable
       editableRecord.original = updatedRecord;
-      
+
       // Sauvegarder dans Hive
       dataManager.saveWalletBalanceHistory();
-      
+
       // Notifier les écouteurs
       dataManager.notifyListeners();
-      
+
       // Mettre à jour l'enregistrement éditable
       editableRecord.dateController.text = DateFormat('yyyy-MM-dd HH:mm:ss').format(newDate);
-      
+
       // Pour le débogage
       print('Date balance mise à jour à l\'index $index: ${newDate.toIso8601String()}');
     } else {
@@ -139,29 +137,27 @@ class _WalletBalanceGraphState extends State<WalletBalanceGraph> {
 
   void _deleteBalanceRecord(DataManager dataManager, EditableBalanceRecord editableRecord, StateSetter setState) {
     // Récupérer l'index de l'enregistrement original
-    final index = dataManager.walletBalanceHistory.indexWhere((r) => 
-      r.timestamp.isAtSameMomentAs(editableRecord.original.timestamp) && 
-      r.balance == editableRecord.original.balance
-    );
-    
+    final index = dataManager.walletBalanceHistory.indexWhere((r) =>
+        r.timestamp.isAtSameMomentAs(editableRecord.original.timestamp) &&
+        r.balance == editableRecord.original.balance);
+
     if (index != -1) {
       // Supprimer de la liste
       dataManager.walletBalanceHistory.removeAt(index);
-      
+
       // Sauvegarder dans Hive
       dataManager.saveWalletBalanceHistory();
-      
+
       // Notifier les écouteurs
       dataManager.notifyListeners();
-      
+
       // Pour le débogage
       print('Balance supprimée à l\'index $index');
-      
+
       // Recréer les enregistrements éditables
       setState(() {
-        _editableRecords = _createEditableRecords(
-          List<BalanceRecord>.from(dataManager.walletBalanceHistory)..sort((a, b) => b.timestamp.compareTo(a.timestamp))
-        );
+        _editableRecords = _createEditableRecords(List<BalanceRecord>.from(dataManager.walletBalanceHistory)
+          ..sort((a, b) => b.timestamp.compareTo(a.timestamp)));
       });
     } else {
       print('Enregistrement non trouvé pour la suppression');
@@ -171,8 +167,7 @@ class _WalletBalanceGraphState extends State<WalletBalanceGraph> {
   void _showEditModal(BuildContext context, DataManager dataManager) {
     // Créer des enregistrements éditables à partir des enregistrements triés
     _editableRecords = _createEditableRecords(
-      List<BalanceRecord>.from(dataManager.walletBalanceHistory)..sort((a, b) => b.timestamp.compareTo(a.timestamp))
-    );
+        List<BalanceRecord>.from(dataManager.walletBalanceHistory)..sort((a, b) => b.timestamp.compareTo(a.timestamp)));
 
     showModalBottomSheet(
       context: context,
@@ -332,7 +327,8 @@ class _WalletBalanceGraphState extends State<WalletBalanceGraph> {
                                             },
                                             onEditingComplete: () {
                                               try {
-                                                DateTime newDate = DateFormat('yyyy-MM-dd HH:mm:ss').parse(editableRecord.dateController.text);
+                                                DateTime newDate = DateFormat('yyyy-MM-dd HH:mm:ss')
+                                                    .parse(editableRecord.dateController.text);
                                                 _updateBalanceDate(dataManager, editableRecord, newDate);
                                                 FocusScope.of(context).unfocus();
                                               } catch (e) {
@@ -450,18 +446,17 @@ class _WalletBalanceGraphState extends State<WalletBalanceGraph> {
                               // Mettre à jour la date
                               final dateText = editableRecord.dateController.text;
                               final DateTime newDate = DateFormat('yyyy-MM-dd HH:mm:ss').parse(dateText);
-                              
+
                               // Mettre à jour la valeur
                               final valueText = editableRecord.valueController.text;
                               final double? newValue = double.tryParse(valueText);
-                              
+
                               if (newValue != null) {
                                 // Trouver l'index dans la liste originale
-                                final index = dataManager.walletBalanceHistory.indexWhere((r) => 
-                                  r.timestamp.isAtSameMomentAs(editableRecord.original.timestamp) && 
-                                  r.balance == editableRecord.original.balance
-                                );
-                                
+                                final index = dataManager.walletBalanceHistory.indexWhere((r) =>
+                                    r.timestamp.isAtSameMomentAs(editableRecord.original.timestamp) &&
+                                    r.balance == editableRecord.original.balance);
+
                                 if (index != -1) {
                                   // Créer un nouvel enregistrement avec les nouvelles valeurs
                                   final updatedRecord = BalanceRecord(
@@ -469,7 +464,7 @@ class _WalletBalanceGraphState extends State<WalletBalanceGraph> {
                                     balance: newValue,
                                     tokenType: editableRecord.original.tokenType,
                                   );
-                                  
+
                                   // Mettre à jour la liste
                                   dataManager.walletBalanceHistory[index] = updatedRecord;
                                   print('Mise à jour index $index: ${newDate.toIso8601String()} -> $newValue');
@@ -479,16 +474,16 @@ class _WalletBalanceGraphState extends State<WalletBalanceGraph> {
                               print('Erreur lors de la mise à jour: $e');
                             }
                           }
-                          
+
                           // Sauvegarder dans Hive
                           dataManager.saveWalletBalanceHistory();
-                          
+
                           // Notifier les écouteurs
                           dataManager.notifyListeners();
-                          
+
                           // Fermer le modal
                           Navigator.pop(context);
-                          
+
                           // Forcer la mise à jour du widget parent
                           setState(() {});
                         },

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:realtoken_asset_tracker/generated/l10n.dart';
-import 'package:realtoken_asset_tracker/app_state.dart';
-import 'package:realtoken_asset_tracker/managers/data_manager.dart';
-import 'package:realtoken_asset_tracker/utils/text_utils.dart';
-import 'package:realtoken_asset_tracker/utils/url_utils.dart';
+import 'package:meprop_asset_tracker/generated/l10n.dart';
+import 'package:meprop_asset_tracker/app_state.dart';
+import 'package:meprop_asset_tracker/managers/data_manager.dart';
+import 'package:meprop_asset_tracker/utils/text_utils.dart';
+import 'package:meprop_asset_tracker/utils/url_utils.dart';
 
 Widget buildOthersTab(BuildContext context, Map<String, dynamic> token) {
   final appState = Provider.of<AppState>(context, listen: false);

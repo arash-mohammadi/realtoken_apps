@@ -6,19 +6,19 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_marker_cluster/flutter_map_marker_cluster.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
-import 'package:realtoken_asset_tracker/modals/token_details/showTokenDetails.dart';
-import 'package:realtoken_asset_tracker/utils/currency_utils.dart';
-import 'package:realtoken_asset_tracker/utils/ui_utils.dart';
-import 'package:realtoken_asset_tracker/utils/url_utils.dart';
+import 'package:meprop_asset_tracker/modals/token_details/showTokenDetails.dart';
+import 'package:meprop_asset_tracker/utils/currency_utils.dart';
+import 'package:meprop_asset_tracker/utils/ui_utils.dart';
+import 'package:meprop_asset_tracker/utils/url_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:realtoken_asset_tracker/managers/data_manager.dart';
+import 'package:meprop_asset_tracker/managers/data_manager.dart';
 import 'package:show_network_image/show_network_image.dart';
-import 'package:realtoken_asset_tracker/app_state.dart';
+import 'package:meprop_asset_tracker/app_state.dart';
 import 'package:flutter/cupertino.dart';
 import 'dart:math';
 import 'dart:ui' as ui;
 import 'dart:async';
-import 'package:realtoken_asset_tracker/generated/l10n.dart';
+import 'package:meprop_asset_tracker/generated/l10n.dart';
 
 // Mode de coloration des markers et clusters
 enum ColorationMode { rental, apy }
@@ -38,37 +38,37 @@ class MapsPageState extends State<MapsPage> {
   final String _sortOption = 'Name';
   final bool _isAscending = true;
   bool _forceLightMode = false;
-  
+
   // Nouveaux filtres avancés
   bool _showHeatmapRent = false;
   bool _showHeatmapPerformance = false;
   bool _showYamOffers = false;
   bool _showRecentTransactions = false;
   bool _showMiniDashboard = false;
-  
+
   // Filtres de rentabilité
   double _minApy = 0.0;
   double _maxApy = 50.0;
   bool _onlyWithRent = false;
   bool _onlyFullyRented = false;
-  
+
   // Filtres par région
   String? _selectedCountry;
   List<String> _availableCountries = [];
-  
+
   // Filtres par performance
-  double _minRoi = -100.0;  // Permettre les ROI négatifs
+  double _minRoi = -100.0; // Permettre les ROI négatifs
   double _maxRoi = 100.0;
-  
+
   // Contrôleur pour le panneau de filtres
   bool _showFiltersPanel = false;
 
   final MapController _mapController = MapController();
-  
+
   // Variables pour l'atténuation du mini-dashboard pendant les interactions
   double _dashboardOpacity = 1.0;
   Timer? _dashboardTimer;
-  
+
   // Mode de coloration des markers et clusters
   ColorationMode _colorationMode = ColorationMode.apy;
 
@@ -121,7 +121,7 @@ class MapsPageState extends State<MapsPage> {
   void _onMapInteraction() {
     // Annuler le timer précédent s'il existe
     _dashboardTimer?.cancel();
-    
+
     // Fermer les panneaux Statistics et Filtres s'ils sont ouverts
     bool shouldUpdate = false;
     if (_showMiniDashboard) {
@@ -132,18 +132,18 @@ class MapsPageState extends State<MapsPage> {
       _showFiltersPanel = false;
       shouldUpdate = true;
     }
-    
+
     // Atténuer immédiatement le panneau de contrôle principal
     if (_dashboardOpacity == 1.0) {
       _dashboardOpacity = 0.3;
       shouldUpdate = true;
     }
-    
+
     // Appliquer les changements si nécessaire
     if (shouldUpdate) {
       setState(() {});
     }
-    
+
     // Programmer le retour à l'opacité normale après 2.5 secondes
     _dashboardTimer = Timer(const Duration(milliseconds: 2500), () {
       if (mounted) {
@@ -158,15 +158,14 @@ class MapsPageState extends State<MapsPage> {
   double _getTokenRentSafely(String tokenUuid, DataManager dataManager) {
     // Vérifier d'abord si c'est dans le portefeuille
     final portfolioToken = dataManager.portfolio.firstWhere(
-      (portfolioToken) => portfolioToken['uuid'].toLowerCase() == tokenUuid.toLowerCase(),
-      orElse: () => <String, dynamic>{}
-    );
-    
+        (portfolioToken) => portfolioToken['uuid'].toLowerCase() == tokenUuid.toLowerCase(),
+        orElse: () => <String, dynamic>{});
+
     // Si pas dans le portefeuille, pas de loyers
     if (portfolioToken.isEmpty) {
       return 0.0;
     }
-    
+
     // Utiliser les données précalculées pour tous les tokens possédés (Wallet ET RMM)
     return dataManager.cumulativeRentsByToken[tokenUuid.toLowerCase()] ?? 0.0;
   }
@@ -184,7 +183,7 @@ class MapsPageState extends State<MapsPage> {
     for (var marker in clusterMarkers) {
       final lat = marker.point.latitude;
       final lng = marker.point.longitude;
-      
+
       minLat = min(minLat, lat);
       maxLat = max(maxLat, lat);
       minLng = min(minLng, lng);
@@ -217,18 +216,18 @@ class MapsPageState extends State<MapsPage> {
       if (productType == 'factoring_profitshare') {
         return false;
       }
-      
+
       // Filtre de recherche textuelle
       if (!token['fullName'].toLowerCase().contains(_searchQuery.toLowerCase())) {
         return false;
       }
-      
+
       // Filtre APY
       final apy = token['annualPercentageYield'] ?? 0.0;
       if (apy < _minApy || apy > _maxApy) {
         return false;
       }
-      
+
       // Filtre uniquement avec loyers
       if (_onlyWithRent) {
         final totalRent = _getTokenRentSafely(token['uuid'], dataManager);
@@ -236,7 +235,7 @@ class MapsPageState extends State<MapsPage> {
           return false;
         }
       }
-      
+
       // Filtre uniquement entièrement loués
       if (_onlyFullyRented) {
         final rentedUnits = token['rentedUnits'] ?? 0;
@@ -245,14 +244,14 @@ class MapsPageState extends State<MapsPage> {
           return false;
         }
       }
-      
+
       // Filtre par pays
       if (_selectedCountry != null && _selectedCountry!.isNotEmpty) {
         if (!_matchesCountryFilter(token, _selectedCountry)) {
           return false;
         }
       }
-      
+
       // Filtre ROI (si applicable)
       final initialValue = token['initialTotalValue'] ?? token['tokenPrice'];
       final currentValue = token['tokenPrice'] ?? 0.0;
@@ -260,17 +259,21 @@ class MapsPageState extends State<MapsPage> {
       if (roi < _minRoi || roi > _maxRoi) {
         return false;
       }
-      
+
       return true;
     }).toList();
 
     // Tri
     if (_sortOption == 'Name') {
-      filteredTokens.sort((a, b) => _isAscending ? a['shortName'].compareTo(b['shortName']) : b['shortName'].compareTo(a['shortName']));
+      filteredTokens.sort(
+          (a, b) => _isAscending ? a['shortName'].compareTo(b['shortName']) : b['shortName'].compareTo(a['shortName']));
     } else if (_sortOption == 'Value') {
-      filteredTokens.sort((a, b) => _isAscending ? a['totalValue'].compareTo(b['totalValue']) : b['totalValue'].compareTo(a['totalValue']));
+      filteredTokens.sort((a, b) =>
+          _isAscending ? a['totalValue'].compareTo(b['totalValue']) : b['totalValue'].compareTo(a['totalValue']));
     } else if (_sortOption == 'APY') {
-      filteredTokens.sort((a, b) => _isAscending ? a['annualPercentageYield'].compareTo(b['annualPercentageYield']) : b['annualPercentageYield'].compareTo(a['annualPercentageYield']));
+      filteredTokens.sort((a, b) => _isAscending
+          ? a['annualPercentageYield'].compareTo(b['annualPercentageYield'])
+          : b['annualPercentageYield'].compareTo(a['annualPercentageYield']));
     } else if (_sortOption == 'ROI') {
       filteredTokens.sort((a, b) {
         final roiA = _calculateRoi(a);
@@ -287,25 +290,25 @@ class MapsPageState extends State<MapsPage> {
 
     return filteredTokens;
   }
-  
+
   double _calculateRoi(Map<String, dynamic> token) {
     final initialValue = token['initialTotalValue'] ?? token['tokenPrice'];
     final currentValue = token['tokenPrice'] ?? 0.0;
     return initialValue > 0 ? ((currentValue - initialValue) / initialValue * 100) : 0.0;
   }
-  
+
   // Méthode pour vérifier si un token correspond au filtre pays
   bool _matchesCountryFilter(Map<String, dynamic> token, String? selectedCountry) {
     if (selectedCountry == null) return true;
-    
+
     String tokenCountry = token['country'] ?? "Unknown Country";
-    
+
     // Si "Series XX" est sélectionné, filtrer tous les tokens factoring_profitshare avec des séries
     if (selectedCountry == "Series XX") {
-      return (token['productType']?.toString().toLowerCase() == 'factoring_profitshare') && 
-             tokenCountry.toLowerCase().startsWith('series ');
+      return (token['productType']?.toString().toLowerCase() == 'factoring_profitshare') &&
+          tokenCountry.toLowerCase().startsWith('series ');
     }
-    
+
     // Filtre normal
     return tokenCountry == selectedCountry;
   }
@@ -315,11 +318,14 @@ class MapsPageState extends State<MapsPage> {
     final dataManager = Provider.of<DataManager>(context);
 
     final sourceTokens = _showAllTokens ? dataManager.allTokens : dataManager.portfolio;
-    
+
     final tokensToShow = _filterAndSortTokens(sourceTokens, dataManager);
 
-    final displayedTokens = _showWhitelistedTokens 
-        ? tokensToShow.where((token) => dataManager.whitelistTokens.any((w) => w['token'].toLowerCase() == token['uuid'].toLowerCase())).toList() 
+    final displayedTokens = _showWhitelistedTokens
+        ? tokensToShow
+            .where((token) =>
+                dataManager.whitelistTokens.any((w) => w['token'].toLowerCase() == token['uuid'].toLowerCase()))
+            .toList()
         : tokensToShow;
 
     final List<Marker> markers = [];
@@ -368,16 +374,16 @@ class MapsPageState extends State<MapsPage> {
 
     // Grouper les tokens par propriété unique (même coordonnées)
     Map<String, Map<String, dynamic>> uniqueProperties = {};
-    
+
     for (var token in displayedTokens) {
       // Vérification comme dans showTokenDetails.dart
       final double? lat = double.tryParse(token['lat']?.toString() ?? '');
       final double? lng = double.tryParse(token['lng']?.toString() ?? '');
-      
+
       if (lat != null && lng != null) {
         // Créer une clé unique basée sur les coordonnées
         final String propertyKey = '${lat.toStringAsFixed(6)}_${lng.toStringAsFixed(6)}';
-        
+
         if (!uniqueProperties.containsKey(propertyKey)) {
           // Première fois qu'on voit cette propriété
           uniqueProperties[propertyKey] = {
@@ -394,7 +400,7 @@ class MapsPageState extends State<MapsPage> {
           (existingProperty['tokens'] as List).add(token);
           existingProperty['totalAmount'] = (existingProperty['totalAmount'] as double) + (token['amount'] ?? 0.0);
           existingProperty['totalValue'] = (existingProperty['totalValue'] as double) + (token['totalValue'] ?? 0.0);
-          
+
           // Marquer si on a des tokens wallet ou RMM
           if (token['source'] == 'wallet') {
             existingProperty['hasWallet'] = true;
@@ -409,12 +415,12 @@ class MapsPageState extends State<MapsPage> {
     for (var property in uniqueProperties.values) {
       final lat = double.tryParse(property['lat'].toString())!;
       final lng = double.tryParse(property['lng'].toString())!;
-      
+
       // Déterminer la couleur basée sur le type de tokens possédés
       Color markerColor;
       final hasWallet = property['hasWallet'] as bool;
       final hasRMM = property['hasRMM'] as bool;
-      
+
       if (hasWallet && hasRMM) {
         markerColor = Colors.purple; // Mixte wallet + RMM
       } else if (hasWallet) {
@@ -422,7 +428,7 @@ class MapsPageState extends State<MapsPage> {
       } else {
         markerColor = Colors.blue; // Seulement RMM
       }
-      
+
       markers.add(
         createMarker(
           matchingToken: property,
@@ -448,7 +454,8 @@ class MapsPageState extends State<MapsPage> {
                 onTap: (_, __) => _popupController.hideAllPopups(),
                 onPointerDown: (_, __) => _onMapInteraction(),
                 onPointerHover: (_, __) => _onMapInteraction(),
-                interactionOptions: const InteractionOptions(flags: InteractiveFlag.pinchZoom | InteractiveFlag.drag | InteractiveFlag.scrollWheelZoom),
+                interactionOptions: const InteractionOptions(
+                    flags: InteractiveFlag.pinchZoom | InteractiveFlag.drag | InteractiveFlag.scrollWheelZoom),
               ),
               children: [
                 TileLayer(
@@ -462,7 +469,7 @@ class MapsPageState extends State<MapsPage> {
                   tileProvider: kIsWeb
                       ? NetworkTileProvider() // Utilisé uniquement pour le web
                       : FMTCStore('mapStore').getTileProvider(), // Utilisé pour iOS, Android, etc.
-                  userAgentPackageName: 'com.byackee.realtoken_asset_tracker',
+                  userAgentPackageName: 'com.byackee.meprop_asset_tracker',
                   retinaMode: true,
                 ),
                 MarkerClusterLayerWidget(
@@ -476,7 +483,7 @@ class MapsPageState extends State<MapsPage> {
                       final clusterStats = _getClusterStats(clusterMarkers, dataManager);
                       final Color clusterColor = clusterStats['color'];
                       final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
-                      
+
                       return GestureDetector(
                         onTap: () {
                           _zoomToCluster(clusterMarkers);
@@ -559,7 +566,7 @@ class MapsPageState extends State<MapsPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Contrôles principaux avec animation d'opacité
-                                  AnimatedOpacity(
+                AnimatedOpacity(
                   opacity: _dashboardOpacity,
                   duration: const Duration(milliseconds: 300),
                   child: Container(
@@ -578,7 +585,6 @@ class MapsPageState extends State<MapsPage> {
                     ),
                     child: Column(
                       children: [
-                        
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -609,11 +615,21 @@ class MapsPageState extends State<MapsPage> {
                                       children: [
                                         Text(
                                           _showAllTokens ? S.of(context).portfolioGlobal : S.of(context).portfolio,
-                                          style: TextStyle(fontSize: 13 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(), fontWeight: FontWeight.w600, height: 1.1),
+                                          style: TextStyle(
+                                              fontSize: 13 +
+                                                  Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
+                                              fontWeight: FontWeight.w600,
+                                              height: 1.1),
                                         ),
                                         Text(
-                                          _showAllTokens ? '${dataManager.allTokens.length} ${S.of(context).tokens}' : '${dataManager.portfolio.length} ${S.of(context).tokens}',
-                                          style: TextStyle(fontSize: 11 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(), color: Colors.grey[600], height: 1.1),
+                                          _showAllTokens
+                                              ? '${dataManager.allTokens.length} ${S.of(context).tokens}'
+                                              : '${dataManager.portfolio.length} ${S.of(context).tokens}',
+                                          style: TextStyle(
+                                              fontSize: 11 +
+                                                  Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
+                                              color: Colors.grey[600],
+                                              height: 1.1),
                                         ),
                                       ],
                                     ),
@@ -632,7 +648,7 @@ class MapsPageState extends State<MapsPage> {
                                 ),
                               ],
                             ),
-                            
+
                             // Switch pour whitelist avec indicateurs
                             Row(
                               children: [
@@ -655,12 +671,22 @@ class MapsPageState extends State<MapsPage> {
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     Text(
-                                      _showWhitelistedTokens ? S.of(context).showOnlyWhitelisted : S.of(context).showAll,
-                                      style: TextStyle(fontSize: 13 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(), fontWeight: FontWeight.w600, height: 1.1),
+                                      _showWhitelistedTokens
+                                          ? S.of(context).showOnlyWhitelisted
+                                          : S.of(context).showAll,
+                                      style: TextStyle(
+                                          fontSize:
+                                              13 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
+                                          fontWeight: FontWeight.w600,
+                                          height: 1.1),
                                     ),
                                     Text(
                                       _getWhitelistDescription(dataManager),
-                                      style: TextStyle(fontSize: 11 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(), color: Colors.grey[600], height: 1.1),
+                                      style: TextStyle(
+                                          fontSize:
+                                              11 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
+                                          color: Colors.grey[600],
+                                          height: 1.1),
                                     ),
                                   ],
                                 ),
@@ -677,14 +703,18 @@ class MapsPageState extends State<MapsPage> {
                               children: [
                                 ElevatedButton.icon(
                                   icon: Icon(Icons.filter_list, size: 16),
-                                  label: Text(S.of(context).filterOptions, style: TextStyle(fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
+                                  label: Text(S.of(context).filterOptions,
+                                      style: TextStyle(
+                                          fontSize:
+                                              12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
                                   onPressed: () {
                                     setState(() {
                                       _showFiltersPanel = !_showFiltersPanel;
                                     });
                                   },
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: _showFiltersPanel ? Theme.of(context).primaryColor : Colors.grey.shade400,
+                                    backgroundColor:
+                                        _showFiltersPanel ? Theme.of(context).primaryColor : Colors.grey.shade400,
                                     foregroundColor: Colors.white,
                                     minimumSize: Size(55, 26),
                                     padding: EdgeInsets.symmetric(horizontal: 6, vertical: 3),
@@ -693,14 +723,18 @@ class MapsPageState extends State<MapsPage> {
                                 const SizedBox(width: 6),
                                 ElevatedButton.icon(
                                   icon: Icon(Icons.dashboard, size: 16),
-                                  label: Text(S.of(context).statistics, style: TextStyle(fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
+                                  label: Text(S.of(context).statistics,
+                                      style: TextStyle(
+                                          fontSize:
+                                              12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
                                   onPressed: () {
                                     setState(() {
                                       _showMiniDashboard = !_showMiniDashboard;
                                     });
                                   },
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: _showMiniDashboard ? Theme.of(context).primaryColor : Colors.grey.shade400,
+                                    backgroundColor:
+                                        _showMiniDashboard ? Theme.of(context).primaryColor : Colors.grey.shade400,
                                     foregroundColor: Colors.white,
                                     minimumSize: Size(55, 26),
                                     padding: EdgeInsets.symmetric(horizontal: 6, vertical: 3),
@@ -726,13 +760,13 @@ class MapsPageState extends State<MapsPage> {
                     ),
                   ),
                 ),
-                
+
                 // Panneau de filtres avancés
                 if (_showFiltersPanel) ...[
                   const SizedBox(height: 8),
                   _buildFiltersPanel(context, dataManager),
                 ],
-                
+
                 // Mini-dashboard (sans atténuation)
                 if (_showMiniDashboard) ...[
                   const SizedBox(height: 8),
@@ -741,7 +775,6 @@ class MapsPageState extends State<MapsPage> {
               ],
             ),
           ),
-
         ],
       ),
     );
@@ -768,7 +801,7 @@ class MapsPageState extends State<MapsPage> {
         // Calculs pour les statistiques
         totalValue += tokenPrice;
         totalRent += _getTokenRentSafely(token['uuid'], dataManager);
-        
+
         if (apy > 0) {
           totalApy += apy;
           apyCount++;
@@ -810,36 +843,48 @@ class MapsPageState extends State<MapsPage> {
     };
   }
 
-  void _showClusterPopup(BuildContext context, Map<String, dynamic> clusterStats, int tokenCount, DataManager dataManager) {
+  void _showClusterPopup(
+      BuildContext context, Map<String, dynamic> clusterStats, int tokenCount, DataManager dataManager) {
     final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
-    
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           backgroundColor: Theme.of(context).cardColor,
-          title: Text('${S.of(context).tokens} ($tokenCount)', style: TextStyle(fontSize: 18 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
+          title: Text('${S.of(context).tokens} ($tokenCount)',
+              style: TextStyle(fontSize: 18 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               _buildInfoRow(S.of(context).totalTokens, '$tokenCount', Icons.location_on, Colors.blue),
               const Divider(height: 8),
-              _buildInfoRow(S.of(context).totalValue, 
-                currencyUtils.formatCurrency(currencyUtils.convert(clusterStats['totalValue']), currencyUtils.currencySymbol),
-                Icons.attach_money, Colors.green),
+              _buildInfoRow(
+                  S.of(context).totalValue,
+                  currencyUtils.formatCurrency(
+                      currencyUtils.convert(clusterStats['totalValue']), currencyUtils.currencySymbol),
+                  Icons.attach_money,
+                  Colors.green),
               const Divider(height: 8),
-              _buildInfoRow(S.of(context).averageApy, 
-                '${clusterStats['averageApy'].toStringAsFixed(2)}%',
-                Icons.trending_up, Colors.orange),
+              _buildInfoRow(S.of(context).averageApy, '${clusterStats['averageApy'].toStringAsFixed(2)}%',
+                  Icons.trending_up, Colors.orange),
               const Divider(height: 8),
-              _buildInfoRow(S.of(context).totalRent, 
-                currencyUtils.formatCurrency(currencyUtils.convert(clusterStats['totalRent']), currencyUtils.currencySymbol),
-                Icons.account_balance, Colors.purple),
+              _buildInfoRow(
+                  S.of(context).totalRent,
+                  currencyUtils.formatCurrency(
+                      currencyUtils.convert(clusterStats['totalRent']), currencyUtils.currencySymbol),
+                  Icons.account_balance,
+                  Colors.purple),
               const Divider(height: 16),
-              Text(S.of(context).rentalStatusDistribution, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
+              Text(S.of(context).rentalStatusDistribution,
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
               const SizedBox(height: 8),
-              _buildInfoRow(S.of(context).fullyRented, '${clusterStats['fullyRented']}', Icons.check_circle, Colors.green),
-              _buildInfoRow(S.of(context).partiallyRented, '${clusterStats['partiallyRented']}', Icons.pause_circle, Colors.orange),
+              _buildInfoRow(
+                  S.of(context).fullyRented, '${clusterStats['fullyRented']}', Icons.check_circle, Colors.green),
+              _buildInfoRow(S.of(context).partiallyRented, '${clusterStats['partiallyRented']}', Icons.pause_circle,
+                  Colors.orange),
               _buildInfoRow(S.of(context).notRented, '${clusterStats['notRented']}', Icons.cancel, Colors.red),
             ],
           ),
@@ -916,7 +961,7 @@ class MapsPageState extends State<MapsPage> {
                     textAlign: TextAlign.center,
                   ),
                 ),
-                
+
                 // Informations de base
                 Card(
                   margin: const EdgeInsets.symmetric(vertical: 4),
@@ -924,17 +969,21 @@ class MapsPageState extends State<MapsPage> {
                     padding: const EdgeInsets.all(12.0),
                     child: Column(
                       children: [
-                        _buildInfoRow(S.of(context).tokenPrice, 
-                          currencyUtils.formatCurrency(currencyUtils.convert(matchingToken['tokenPrice']), currencyUtils.currencySymbol),
-                          Icons.monetization_on, Colors.green),
+                        _buildInfoRow(
+                            S.of(context).tokenPrice,
+                            currencyUtils.formatCurrency(
+                                currencyUtils.convert(matchingToken['tokenPrice']), currencyUtils.currencySymbol),
+                            Icons.monetization_on,
+                            Colors.green),
                         const Divider(height: 8),
-                        _buildInfoRow(S.of(context).annualPercentageYield, 
-                          '${matchingToken['annualPercentageYield'] != null ? matchingToken['annualPercentageYield'].toStringAsFixed(2) : 'N/A'}%',
-                          Icons.trending_up, Colors.blue),
+                        _buildInfoRow(
+                            S.of(context).annualPercentageYield,
+                            '${matchingToken['annualPercentageYield'] != null ? matchingToken['annualPercentageYield'].toStringAsFixed(2) : 'N/A'}%',
+                            Icons.trending_up,
+                            Colors.blue),
                         const Divider(height: 8),
-                        _buildInfoRow(S.of(context).rentedUnitsSimple, 
-                          '$rentedUnits / $totalUnits',
-                          Icons.home, UIUtils.getRentalStatusColor(rentedUnits, totalUnits)),
+                        _buildInfoRow(S.of(context).rentedUnitsSimple, '$rentedUnits / $totalUnits', Icons.home,
+                            UIUtils.getRentalStatusColor(rentedUnits, totalUnits)),
                       ],
                     ),
                   ),
@@ -948,25 +997,27 @@ class MapsPageState extends State<MapsPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(S.of(context).finances, 
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
+                        Text(S.of(context).finances,
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
                         const SizedBox(height: 8),
-                        _buildInfoRow(S.of(context).totalRentReceived, 
-                          currencyUtils.formatCurrency(currencyUtils.convert(totalRentReceived), currencyUtils.currencySymbol),
-                          Icons.account_balance, Colors.green),
+                        _buildInfoRow(
+                            S.of(context).totalRentReceived,
+                            currencyUtils.formatCurrency(
+                                currencyUtils.convert(totalRentReceived), currencyUtils.currencySymbol),
+                            Icons.account_balance,
+                            Colors.green),
                         const Divider(height: 8),
-                        _buildInfoRow(S.of(context).averageROI, 
-                          '${roi.toStringAsFixed(2)}%',
-                          Icons.show_chart, roi >= 0 ? Colors.green : Colors.red),
+                        _buildInfoRow(S.of(context).averageROI, '${roi.toStringAsFixed(2)}%', Icons.show_chart,
+                            roi >= 0 ? Colors.green : Colors.red),
                         const Divider(height: 8),
-                        _buildInfoRow(S.of(context).walletsContainingToken, 
-                          '$walletCount',
-                          Icons.account_balance_wallet, Colors.purple),
+                        _buildInfoRow(S.of(context).walletsContainingToken, '$walletCount',
+                            Icons.account_balance_wallet, Colors.purple),
                         if (transactions.isNotEmpty) ...[
                           const Divider(height: 8),
-                          _buildInfoRow(S.of(context).transactionCount, 
-                            '${transactions.length}',
-                            Icons.swap_horiz, Colors.orange),
+                          _buildInfoRow(S.of(context).transactionCount, '${transactions.length}', Icons.swap_horiz,
+                              Colors.orange),
                         ],
                       ],
                     ),
@@ -982,16 +1033,24 @@ class MapsPageState extends State<MapsPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(S.of(context).yam, 
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
+                          Text(S.of(context).yam,
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
                           const SizedBox(height: 8),
-                          _buildInfoRow(S.of(context).transactionVolume, 
-                            currencyUtils.formatCurrency(currencyUtils.convert(yamTotalVolume), currencyUtils.currencySymbol),
-                            Icons.bar_chart, Colors.indigo),
+                          _buildInfoRow(
+                              S.of(context).transactionVolume,
+                              currencyUtils.formatCurrency(
+                                  currencyUtils.convert(yamTotalVolume), currencyUtils.currencySymbol),
+                              Icons.bar_chart,
+                              Colors.indigo),
                           const Divider(height: 8),
-                          _buildInfoRow(S.of(context).initialPrice, 
-                            currencyUtils.formatCurrency(currencyUtils.convert(yamAverageValue), currencyUtils.currencySymbol),
-                            Icons.trending_flat, Colors.teal),
+                          _buildInfoRow(
+                              S.of(context).initialPrice,
+                              currencyUtils.formatCurrency(
+                                  currencyUtils.convert(yamAverageValue), currencyUtils.currencySymbol),
+                              Icons.trending_flat,
+                              Colors.teal),
                         ],
                       ),
                     ),
@@ -1060,7 +1119,8 @@ class MapsPageState extends State<MapsPage> {
                       icon: const Icon(Icons.streetview, size: 16),
                       label: const Text('Street View'),
                       onPressed: () {
-                        final googleStreetViewUrl = 'https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=$lat,$lng';
+                        final googleStreetViewUrl =
+                            'https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=$lat,$lng';
                         UrlUtils.launchURL(googleStreetViewUrl);
                       },
                       style: ElevatedButton.styleFrom(
@@ -1084,9 +1144,15 @@ class MapsPageState extends State<MapsPage> {
         Icon(icon, size: 18, color: iconColor),
         const SizedBox(width: 8),
         Expanded(
-          child: Text(label, style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
+          child: Text(label,
+              style: TextStyle(
+                  fontWeight: FontWeight.w500,
+                  fontSize: 14 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
         ),
-        Text(value, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
+        Text(value,
+            style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 14 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
       ],
     );
   }
@@ -1109,11 +1175,15 @@ class MapsPageState extends State<MapsPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(S.of(context).filterOptions, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
+          Text(S.of(context).filterOptions,
+              style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
           const SizedBox(height: 12),
-          
+
           // Filtre APY
-          Text('APY ($_minApy% - $_maxApy%)', style: TextStyle(fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
+          Text('APY ($_minApy% - $_maxApy%)',
+              style: TextStyle(fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
           RangeSlider(
             values: RangeValues(_minApy, _maxApy),
             min: 0,
@@ -1126,10 +1196,11 @@ class MapsPageState extends State<MapsPage> {
               });
             },
           ),
-          
+
           // Filtres booléens
           CheckboxListTile(
-            title: Text(S.of(context).rents, style: TextStyle(fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
+            title: Text(S.of(context).rents,
+                style: TextStyle(fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
             value: _onlyWithRent,
             onChanged: (value) {
               setState(() {
@@ -1138,9 +1209,10 @@ class MapsPageState extends State<MapsPage> {
             },
             dense: true,
           ),
-          
+
           CheckboxListTile(
-            title: Text(S.of(context).fullyRented, style: TextStyle(fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
+            title: Text(S.of(context).fullyRented,
+                style: TextStyle(fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
             value: _onlyFullyRented,
             onChanged: (value) {
               setState(() {
@@ -1149,17 +1221,22 @@ class MapsPageState extends State<MapsPage> {
             },
             dense: true,
           ),
-          
+
           // Filtre par pays
-          Text(S.of(context).country, style: TextStyle(fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(), fontWeight: FontWeight.w500)),
+          Text(S.of(context).country,
+              style: TextStyle(
+                  fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
+                  fontWeight: FontWeight.w500)),
           DropdownButton<String>(
             value: _selectedCountry,
-            hint: Text(S.of(context).allCountries, style: TextStyle(fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
+            hint: Text(S.of(context).allCountries,
+                style: TextStyle(fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
             isExpanded: true,
             items: [
               DropdownMenuItem<String>(
                 value: null,
-                child: Text(S.of(context).allCountries, style: TextStyle(fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
+                child: Text(S.of(context).allCountries,
+                    style: TextStyle(fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
               ),
               ...dataManager.allTokens
                   .map((token) => token['country'])
@@ -1167,7 +1244,9 @@ class MapsPageState extends State<MapsPage> {
                   .toSet()
                   .map((country) => DropdownMenuItem<String>(
                         value: country,
-                        child: Text(country, style: TextStyle(fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
+                        child: Text(country,
+                            style: TextStyle(
+                                fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
                       )),
             ],
             onChanged: (value) {
@@ -1176,10 +1255,11 @@ class MapsPageState extends State<MapsPage> {
               });
             },
           ),
-          
+
           // Filtre ROI
           const SizedBox(height: 8),
-          Text('ROI ($_minRoi% - $_maxRoi%)', style: TextStyle(fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
+          Text('ROI ($_minRoi% - $_maxRoi%)',
+              style: TextStyle(fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
           RangeSlider(
             values: RangeValues(_minRoi, _maxRoi),
             min: -100,
@@ -1192,7 +1272,7 @@ class MapsPageState extends State<MapsPage> {
               });
             },
           ),
-          
+
           // Bouton de reset
           Center(
             child: ElevatedButton(
@@ -1207,7 +1287,8 @@ class MapsPageState extends State<MapsPage> {
                   _maxRoi = 100.0;
                 });
               },
-              child: Text('Reset', style: TextStyle(fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
+              child: Text('Reset',
+                  style: TextStyle(fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.orange,
                 foregroundColor: Colors.white,
@@ -1220,10 +1301,11 @@ class MapsPageState extends State<MapsPage> {
     );
   }
 
-  Widget _buildMiniDashboard(BuildContext context, DataManager dataManager, List<Map<String, dynamic>> displayedTokens) {
+  Widget _buildMiniDashboard(
+      BuildContext context, DataManager dataManager, List<Map<String, dynamic>> displayedTokens) {
     final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
     final appState = Provider.of<AppState>(context, listen: false);
-    
+
     // Calculer les propriétés uniques
     Set<String> uniquePropertiesSet = {};
     for (var token in displayedTokens) {
@@ -1235,24 +1317,24 @@ class MapsPageState extends State<MapsPage> {
         }
       }
     }
-    
+
     // Calculer les statistiques
     final int totalTokens = displayedTokens.length;
     final int uniqueProperties = uniquePropertiesSet.length;
     final double totalValue = displayedTokens.fold(0.0, (sum, token) => sum + (token['tokenPrice'] ?? 0.0));
-    final double averageApy = displayedTokens.isNotEmpty 
+    final double averageApy = displayedTokens.isNotEmpty
         ? displayedTokens.fold(0.0, (sum, token) => sum + (token['annualPercentageYield'] ?? 0.0)) / totalTokens
         : 0.0;
-    final double totalRent = displayedTokens.fold(0.0, (sum, token) => 
-        sum + _getTokenRentSafely(token['uuid'], dataManager));
-    
-    final int fullyRented = displayedTokens.where((token) => 
-        (token['rentedUnits'] ?? 0) >= (token['totalUnits'] ?? 1)).length;
-    final int partiallyRented = displayedTokens.where((token) => 
-        (token['rentedUnits'] ?? 0) > 0 && (token['rentedUnits'] ?? 0) < (token['totalUnits'] ?? 1)).length;
-    final int notRented = displayedTokens.where((token) => 
-        (token['rentedUnits'] ?? 0) == 0).length;
-    
+    final double totalRent =
+        displayedTokens.fold(0.0, (sum, token) => sum + _getTokenRentSafely(token['uuid'], dataManager));
+
+    final int fullyRented =
+        displayedTokens.where((token) => (token['rentedUnits'] ?? 0) >= (token['totalUnits'] ?? 1)).length;
+    final int partiallyRented = displayedTokens
+        .where((token) => (token['rentedUnits'] ?? 0) > 0 && (token['rentedUnits'] ?? 0) < (token['totalUnits'] ?? 1))
+        .length;
+    final int notRented = displayedTokens.where((token) => (token['rentedUnits'] ?? 0) == 0).length;
+
     // Répartition par pays
     final Map<String, int> countryDistribution = {};
     for (var token in displayedTokens) {
@@ -1277,33 +1359,45 @@ class MapsPageState extends State<MapsPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(S.of(context).statistics, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16 + appState.getTextSizeOffset())),
+          Text(S.of(context).statistics,
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16 + appState.getTextSizeOffset())),
           const SizedBox(height: 8),
-          
+
           // Métriques principales
-          _buildStatRow(S.of(context).tokensInMap, '$totalTokens', Icons.location_on, totalTokens == 0 ? Colors.orange : Colors.blue),
+          _buildStatRow(S.of(context).tokensInMap, '$totalTokens', Icons.location_on,
+              totalTokens == 0 ? Colors.orange : Colors.blue),
           _buildStatRow(S.of(context).totalProperties, '$uniqueProperties', Icons.map, Colors.indigo),
-          _buildStatRow(S.of(context).totalValue, currencyUtils.formatCurrency(currencyUtils.convert(totalValue), currencyUtils.currencySymbol), Icons.attach_money, Colors.green),
-          _buildStatRow(S.of(context).averageApy, '${averageApy.toStringAsFixed(2)}%', Icons.trending_up, Colors.orange),
-          _buildStatRow(S.of(context).totalRent, currencyUtils.formatCurrency(currencyUtils.convert(totalRent), currencyUtils.currencySymbol), Icons.account_balance, Colors.purple),
-          
+          _buildStatRow(
+              S.of(context).totalValue,
+              currencyUtils.formatCurrency(currencyUtils.convert(totalValue), currencyUtils.currencySymbol),
+              Icons.attach_money,
+              Colors.green),
+          _buildStatRow(
+              S.of(context).averageApy, '${averageApy.toStringAsFixed(2)}%', Icons.trending_up, Colors.orange),
+          _buildStatRow(
+              S.of(context).totalRent,
+              currencyUtils.formatCurrency(currencyUtils.convert(totalRent), currencyUtils.currencySymbol),
+              Icons.account_balance,
+              Colors.purple),
+
           const Divider(height: 12),
-          
+
           // Statut de location
-          Text(S.of(context).rentalStatus, style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14 + appState.getTextSizeOffset())),
+          Text(S.of(context).rentalStatus,
+              style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14 + appState.getTextSizeOffset())),
           const SizedBox(height: 6),
           _buildStatRow(S.of(context).fullyRented, '$fullyRented', Icons.check_circle, Colors.green),
           _buildStatRow(S.of(context).partiallyRented, '$partiallyRented', Icons.pause_circle, Colors.orange),
           _buildStatRow(S.of(context).notRented, '$notRented', Icons.cancel, Colors.red),
-          
+
           const Divider(height: 12),
-          
+
           // Répartition par pays (top 3)
-          Text(S.of(context).country, style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14 + appState.getTextSizeOffset())),
+          Text(S.of(context).country,
+              style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14 + appState.getTextSizeOffset())),
           const SizedBox(height: 6),
           ...() {
-            final sortedEntries = countryDistribution.entries.toList()
-              ..sort((a, b) => b.value.compareTo(a.value));
+            final sortedEntries = countryDistribution.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
             return sortedEntries
                 .take(3)
                 .map((entry) => _buildStatRow(entry.key, '${entry.value}', Icons.flag, Colors.indigo))
@@ -1334,9 +1428,10 @@ class MapsPageState extends State<MapsPage> {
   String _getWhitelistDescription(DataManager dataManager) {
     if (_showWhitelistedTokens) {
       final baseTokens = _showAllTokens ? dataManager.allTokens : dataManager.portfolio;
-      final whitelistedCount = baseTokens.where((token) => 
-        dataManager.whitelistTokens.any((w) => w['token'].toLowerCase() == token['uuid'].toLowerCase())
-      ).length;
+      final whitelistedCount = baseTokens
+          .where((token) =>
+              dataManager.whitelistTokens.any((w) => w['token'].toLowerCase() == token['uuid'].toLowerCase()))
+          .length;
       return '$whitelistedCount ${S.of(context).properties.toLowerCase()} whitelistées';
     } else {
       final baseCount = _showAllTokens ? dataManager.allTokens.length : dataManager.portfolio.length;
@@ -1359,7 +1454,7 @@ class MapsPageState extends State<MapsPage> {
   // Obtenir la couleur basée sur l'APY - progression rouge à vert de 0 à 12%
   Color _getApyBasedColor(double apy) {
     if (apy <= 0) return Colors.red.shade700;
-    
+
     // Répartir rouge-vert de 0 à 12% avec granularité fine sur 9-12%
     if (apy < 3) {
       // Rouge intense à rouge-orange (0-3%)
@@ -1444,7 +1539,7 @@ class MapsPageState extends State<MapsPage> {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  
+
                   // Option location
                   RadioListTile<ColorationMode>(
                     title: Text('État de location'),
@@ -1461,15 +1556,24 @@ class MapsPageState extends State<MapsPage> {
                     secondary: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Container(width: 12, height: 12, decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.green)),
+                        Container(
+                            width: 12,
+                            height: 12,
+                            decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.green)),
                         const SizedBox(width: 4),
-                        Container(width: 12, height: 12, decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.orange)),
+                        Container(
+                            width: 12,
+                            height: 12,
+                            decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.orange)),
                         const SizedBox(width: 4),
-                        Container(width: 12, height: 12, decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.red)),
+                        Container(
+                            width: 12,
+                            height: 12,
+                            decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.red)),
                       ],
                     ),
                   ),
-                  
+
                   // Option APY
                   RadioListTile<ColorationMode>(
                     title: Text('Rendement APY'),
@@ -1490,16 +1594,16 @@ class MapsPageState extends State<MapsPage> {
                         borderRadius: BorderRadius.circular(6),
                         gradient: LinearGradient(
                           colors: [
-                            Colors.red.shade700,          // 0-3%
-                            Colors.deepOrange.shade600,   // 3-6%
-                            Colors.orange.shade500,       // 6-9%
-                            Colors.amber.shade600,        // 9-9.5%
-                            Colors.lime.shade500,         // 9.5-10%
-                            Colors.lightGreen.shade500,   // 10-10.5%
-                            Colors.green.shade500,        // 10.5-11%
-                            Colors.green.shade600,        // 11-11.5%
-                            Colors.green.shade700,        // 11.5-12%
-                            Colors.green.shade900,        // 12%+
+                            Colors.red.shade700, // 0-3%
+                            Colors.deepOrange.shade600, // 3-6%
+                            Colors.orange.shade500, // 6-9%
+                            Colors.amber.shade600, // 9-9.5%
+                            Colors.lime.shade500, // 9.5-10%
+                            Colors.lightGreen.shade500, // 10-10.5%
+                            Colors.green.shade500, // 10.5-11%
+                            Colors.green.shade600, // 11-11.5%
+                            Colors.green.shade700, // 11.5-12%
+                            Colors.green.shade900, // 12%+
                           ],
                         ),
                       ),
@@ -1539,15 +1643,17 @@ class MapsPageState extends State<MapsPage> {
               children: [
                 Text('Les 4 modes disponibles :', style: TextStyle(fontWeight: FontWeight.bold)),
                 const SizedBox(height: 12),
-                
-                _buildHelpRow('💼 ${S.of(context).portfolio}', 'Affiche uniquement vos ${S.of(context).properties.toLowerCase()}', 'OFF + OFF'),
+                _buildHelpRow('💼 ${S.of(context).portfolio}',
+                    'Affiche uniquement vos ${S.of(context).properties.toLowerCase()}', 'OFF + OFF'),
                 const Divider(),
-                _buildHelpRow('💼 Mes ${S.of(context).properties.toLowerCase()} whitelistées', 'Vos ${S.of(context).properties.toLowerCase()} dans la whitelist', 'OFF + ON'),
+                _buildHelpRow('💼 Mes ${S.of(context).properties.toLowerCase()} whitelistées',
+                    'Vos ${S.of(context).properties.toLowerCase()} dans la whitelist', 'OFF + ON'),
                 const Divider(),
-                _buildHelpRow('🌍 Toutes les ${S.of(context).properties.toLowerCase()}', 'Toutes les ${S.of(context).properties.toLowerCase()} du marché', 'ON + OFF'),
+                _buildHelpRow('🌍 Toutes les ${S.of(context).properties.toLowerCase()}',
+                    'Toutes les ${S.of(context).properties.toLowerCase()} du marché', 'ON + OFF'),
                 const Divider(),
-                _buildHelpRow('🌍 ${S.of(context).properties} whitelistées globales', 'Toutes les ${S.of(context).properties.toLowerCase()} whitelistées', 'ON + ON'),
-                
+                _buildHelpRow('🌍 ${S.of(context).properties} whitelistées globales',
+                    'Toutes les ${S.of(context).properties.toLowerCase()} whitelistées', 'ON + ON'),
                 const SizedBox(height: 16),
                 Container(
                   padding: const EdgeInsets.all(8),
@@ -1560,9 +1666,15 @@ class MapsPageState extends State<MapsPage> {
                     children: [
                       Text('💡 Conseils :', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue)),
                       const SizedBox(height: 4),
-                      Text('• Utilisez les filtres pour affiner l\'analyse', style: TextStyle(fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
-                      Text('• Cliquez sur Stats pour voir les métriques', style: TextStyle(fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
-                      Text('• Les clusters montrent nombre + APY moyen', style: TextStyle(fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
+                      Text('• Utilisez les filtres pour affiner l\'analyse',
+                          style: TextStyle(
+                              fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
+                      Text('• Cliquez sur Stats pour voir les métriques',
+                          style: TextStyle(
+                              fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
+                      Text('• Les clusters montrent nombre + APY moyen',
+                          style: TextStyle(
+                              fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
                     ],
                   ),
                 ),
@@ -1586,11 +1698,21 @@ class MapsPageState extends State<MapsPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
+          Text(title,
+              style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
           const SizedBox(height: 2),
-          Text(description, style: TextStyle(fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(), color: Colors.grey[600])),
+          Text(description,
+              style: TextStyle(
+                  fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
+                  color: Colors.grey[600])),
           const SizedBox(height: 2),
-          Text('Switches: $switches', style: TextStyle(fontSize: 10 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(), color: Colors.grey[500], fontStyle: FontStyle.italic)),
+          Text('Switches: $switches',
+              style: TextStyle(
+                  fontSize: 10 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
+                  color: Colors.grey[500],
+                  fontStyle: FontStyle.italic)),
         ],
       ),
     );
@@ -1605,7 +1727,7 @@ class MapsPageState extends State<MapsPage> {
   }) {
     // Utiliser la couleur calculée selon le mode de coloration choisi
     final markerColor = color;
-    
+
     // Validation et nettoyage de l'URL d'image
     String? getValidImageUrl() {
       try {
@@ -1613,39 +1735,38 @@ class MapsPageState extends State<MapsPage> {
           debugPrint("⚠️ imageLink est null pour ${matchingToken['shortName']}");
           return null;
         }
-        
+
         var imageLink = matchingToken['imageLink'];
         String? imageUrl;
-        
+
         if (imageLink is List && imageLink.isNotEmpty) {
           imageUrl = imageLink[0]?.toString();
         } else if (imageLink is String && imageLink.isNotEmpty) {
           imageUrl = imageLink;
         }
-        
+
         if (imageUrl == null || imageUrl.isEmpty) {
           debugPrint("⚠️ URL d'image vide pour ${matchingToken['shortName']}");
           return null;
         }
-        
+
         // Vérifier si l'URL est valide
         final uri = Uri.tryParse(imageUrl);
         if (uri == null || (!uri.hasScheme || (!uri.scheme.startsWith('http')))) {
           debugPrint("⚠️ URL d'image invalide pour ${matchingToken['shortName']}: $imageUrl");
           return null;
         }
-        
+
         debugPrint("✅ URL d'image valide pour ${matchingToken['shortName']}: $imageUrl");
         return imageUrl;
-        
       } catch (e) {
         debugPrint("❌ Erreur lors de la validation de l'image pour ${matchingToken['shortName']}: $e");
         return null;
       }
     }
-    
+
     final String? validImageUrl = getValidImageUrl();
-    
+
     return Stack(
       alignment: Alignment.topCenter,
       children: [
@@ -1667,7 +1788,7 @@ class MapsPageState extends State<MapsPage> {
             ),
           ),
         ),
-        
+
         // Corps principal du pointeur
         Column(
           mainAxisSize: MainAxisSize.min,
@@ -1742,7 +1863,7 @@ class MapsPageState extends State<MapsPage> {
                 ),
               ),
             ),
-            
+
             // Pointe du pointeur
             CustomPaint(
               size: Size(16, 12),
@@ -1778,13 +1899,13 @@ class _PointerTipPainter extends CustomPainter {
     final shadowPaint = Paint()
       ..color = Colors.black.withOpacity(0.3)
       ..style = PaintingStyle.fill;
-      
+
     final shadowPath = ui.Path();
     shadowPath.moveTo(size.width / 2 + 1, size.height + 1);
     shadowPath.lineTo(1, 1);
     shadowPath.lineTo(size.width + 1, 1);
     shadowPath.close();
-    
+
     canvas.drawPath(shadowPath, shadowPaint);
     canvas.drawPath(path, paint);
   }

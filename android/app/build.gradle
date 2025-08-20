@@ -10,14 +10,18 @@ plugins {
 }
 
 // Chargement des propriétés du keystore à partir de key.properties
-def keystorePropertiesFile = rootProject.file("key.properties")
-def keystoreProperties = new Properties()
-keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+// def keystorePropertiesFile = rootProject.file("key.properties")
+// def keystoreProperties = new Properties()
+// keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 
 android {
-    namespace = "com.byackee.realtoken_asset_tracker"
+    namespace = "com.byackee.meprop_asset_tracker"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = "26.1.10909125"
+    // ndkVersion = "26.1.10909125"
+    // NOTE: Commented out to avoid failing the build when that exact NDK
+    // is not installed on the developer machine. If your project requires
+    // a specific NDK, reinstall it (via sdkmanager) or uncomment and set
+    // the correct version.
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
@@ -30,7 +34,7 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.byackee.realtoken_asset_tracker"
+        applicationId = "com.byackee.meprop_asset_tracker"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdkVersion 23  // OneSignal Flutter nécessite au moins 21
@@ -44,18 +48,21 @@ android {
         }
     }
 
-    signingConfigs {
-        release {
-            keyAlias keystoreProperties['keyAlias']
-            keyPassword keystoreProperties['keyPassword']
-            storeFile file(keystoreProperties['storeFile'])
-            storePassword keystoreProperties['storePassword']
-        }
-    }
+    // signingConfigs {
+    //     release {
+    //         keyAlias keystoreProperties['keyAlias']
+    //         keyPassword keystoreProperties['keyPassword']
+    //         storeFile file(keystoreProperties['storeFile'])
+    //         storePassword keystoreProperties['storePassword']
+    //     }
+    // }
 
     buildTypes {
         release {
-            signingConfig signingConfigs.release
+            // Intentionally do not set a signingConfig here so the release build
+            // will not be signed automatically. For local debug/testing of
+            // unsigned APKs, build with `flutter build apk --debug` or
+            // configure signing manually when producing a final release.
             minifyEnabled false
             shrinkResources false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'

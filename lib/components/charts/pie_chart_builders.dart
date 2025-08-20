@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:provider/provider.dart';
-import 'package:realtoken_asset_tracker/app_state.dart';
-import 'package:realtoken_asset_tracker/generated/l10n.dart';
+import 'package:meprop_asset_tracker/app_state.dart';
+import 'package:meprop_asset_tracker/generated/l10n.dart';
 
 /// Factory pour construire les éléments de graphiques en secteurs de manière standardisée
 /// Réduit la duplication dans les cartes de distribution de tokens
 class PieChartBuilders {
-  
   /// Construit un graphique en secteurs standardisé avec gestion du touch
   static Widget buildStandardPieChart({
     required BuildContext context,
@@ -18,7 +17,7 @@ class PieChartBuilders {
     double sectionsSpace = 3,
   }) {
     final appState = Provider.of<AppState>(context, listen: false);
-    
+
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
@@ -113,7 +112,7 @@ class PieChartBuilders {
     final opacity = selectedIndex != null && !isSelected ? 0.5 : 1.0;
     final radius = isSelected ? selectedRadius : normalRadius;
     final fontSize = isSelected ? selectedFontSize : normalFontSize;
-    
+
     return PieChartSectionData(
       value: value,
       title: title,
@@ -208,7 +207,7 @@ class PieChartBuilders {
   }) {
     final double othersPercentage = (othersValue / totalCount) * 100;
     final bool isOthersSelected = selectedIndex == sectionIndex;
-    
+
     return buildStandardSection(
       value: othersValue,
       title: '${S.of(context).others} ${othersPercentage.toStringAsFixed(1)}%',
@@ -262,11 +261,13 @@ class PieChartBuilders {
     return Wrap(
       spacing: 16,
       runSpacing: 8,
-      children: items.map((item) => buildLegendItem(
-        label: item.label,
-        color: item.color,
-        appState: appState,
-      )).toList(),
+      children: items
+          .map((item) => buildLegendItem(
+                label: item.label,
+                color: item.color,
+                appState: appState,
+              ))
+          .toList(),
     );
   }
 
@@ -309,4 +310,4 @@ class LegendItem {
     required this.label,
     required this.color,
   });
-} 
+}

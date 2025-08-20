@@ -3,13 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:provider/provider.dart';
-import 'package:realtoken_asset_tracker/app_state.dart';
-import 'package:realtoken_asset_tracker/generated/l10n.dart';
-import 'package:realtoken_asset_tracker/managers/data_manager.dart';
+import 'package:meprop_asset_tracker/app_state.dart';
+import 'package:meprop_asset_tracker/generated/l10n.dart';
+import 'package:meprop_asset_tracker/managers/data_manager.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:realtoken_asset_tracker/utils/currency_utils.dart';
-import 'package:realtoken_asset_tracker/utils/parameters.dart';
-import 'package:realtoken_asset_tracker/utils/url_utils.dart';
+import 'package:meprop_asset_tracker/utils/currency_utils.dart';
+import 'package:meprop_asset_tracker/utils/parameters.dart';
+import 'package:meprop_asset_tracker/utils/url_utils.dart';
 import 'package:show_network_image/show_network_image.dart';
 
 class PropertiesForSaleRealt extends StatefulWidget {
@@ -107,7 +107,9 @@ class _PropertiesForSaleRealtState extends State<PropertiesForSaleRealt> {
 
                 // Gestion améliorée de l'image
                 String imageUrl = '';
-                if (property['imageLink'] != null && property['imageLink'] is List && property['imageLink'].isNotEmpty) {
+                if (property['imageLink'] != null &&
+                    property['imageLink'] is List &&
+                    property['imageLink'].isNotEmpty) {
                   imageUrl = property['imageLink'][0];
                 } else {
                   // Image par défaut selon le type de propriété
@@ -116,14 +118,15 @@ class _PropertiesForSaleRealtState extends State<PropertiesForSaleRealt> {
                     imageUrl = ''; // Pas d'image pour les produits factoring
                   }
                 }
-                
+
                 final title = property['shortName'] ?? property['title'] ?? S.of(context).nameUnavailable;
                 final double stock = (property['stock'] as num?)?.toDouble() ?? 0.0;
 
                 final double tokenPrice = (property['tokenPrice'] as num?)?.toDouble() ?? 0.0;
                 final double annualPercentageYield = (property['annualPercentageYield'] as num?)?.toDouble() ?? 0.0;
 
-                final double totalTokens = (property['totalTokens'] as num?)?.toDouble() ?? stock; // Fallback sur stock si totalTokens non disponible
+                final double totalTokens = (property['totalTokens'] as num?)?.toDouble() ??
+                    stock; // Fallback sur stock si totalTokens non disponible
 
                 final country = property['country'] ?? 'unknown';
 
@@ -141,7 +144,9 @@ class _PropertiesForSaleRealtState extends State<PropertiesForSaleRealt> {
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
-                          color: Theme.of(context).brightness == Brightness.dark ? Colors.black.withOpacity(0.2) : Colors.black.withOpacity(0.05),
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? Colors.black.withOpacity(0.2)
+                              : Colors.black.withOpacity(0.05),
                           blurRadius: 10,
                           offset: const Offset(0, 4),
                         ),
@@ -156,7 +161,7 @@ class _PropertiesForSaleRealtState extends State<PropertiesForSaleRealt> {
                             children: [
                               AspectRatio(
                                 aspectRatio: 16 / 9,
-                                child: imageUrl.isNotEmpty 
+                                child: imageUrl.isNotEmpty
                                     ? (kIsWeb
                                         ? ShowNetworkImage(
                                             imageSrc: imageUrl,
@@ -168,7 +173,7 @@ class _PropertiesForSaleRealtState extends State<PropertiesForSaleRealt> {
                                             errorWidget: (context, url, error) => Container(
                                               color: Colors.grey[300],
                                               child: const Icon(
-                                                CupertinoIcons.photo, 
+                                                CupertinoIcons.photo,
                                                 color: CupertinoColors.systemGrey,
                                                 size: 50,
                                               ),
@@ -180,17 +185,17 @@ class _PropertiesForSaleRealtState extends State<PropertiesForSaleRealt> {
                                           mainAxisAlignment: MainAxisAlignment.center,
                                           children: [
                                             Icon(
-                                              title.toLowerCase().contains('factoring') 
+                                              title.toLowerCase().contains('factoring')
                                                   ? CupertinoIcons.chart_bar
-                                                  : CupertinoIcons.building_2_fill, 
+                                                  : CupertinoIcons.building_2_fill,
                                               color: CupertinoColors.systemGrey,
                                               size: 50,
                                             ),
                                             const SizedBox(height: 8),
                                             Text(
-                                              title.toLowerCase().contains('factoring') 
-                                                  ? 'Factoring'
-                                                  : 'Propriété',
+                                              title.toLowerCase().contains('factoring')
+                                                  ? S.of(context).propertiesFactoring
+                                                  : S.of(context).propertiesProperty,
                                               style: TextStyle(
                                                 color: CupertinoColors.systemGrey,
                                                 fontSize: 12,
@@ -207,7 +212,8 @@ class _PropertiesForSaleRealtState extends State<PropertiesForSaleRealt> {
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                                   decoration: BoxDecoration(
-                                    color: status == 'Available' ? CupertinoColors.activeGreen : CupertinoColors.systemRed,
+                                    color:
+                                        status == 'Available' ? CupertinoColors.activeGreen : CupertinoColors.systemRed,
                                     borderRadius: BorderRadius.circular(20),
                                   ),
                                   child: Text(
@@ -237,7 +243,9 @@ class _PropertiesForSaleRealtState extends State<PropertiesForSaleRealt> {
                                             borderRadius: BorderRadius.circular(4),
                                             boxShadow: [
                                               BoxShadow(
-                                                color: Theme.of(context).brightness == Brightness.dark ? Colors.black.withOpacity(0.2) : Colors.black.withOpacity(0.05),
+                                                color: Theme.of(context).brightness == Brightness.dark
+                                                    ? Colors.black.withOpacity(0.2)
+                                                    : Colors.black.withOpacity(0.05),
                                                 blurRadius: 2,
                                                 offset: const Offset(0, 1),
                                               ),
@@ -250,7 +258,8 @@ class _PropertiesForSaleRealtState extends State<PropertiesForSaleRealt> {
                                               width: 24,
                                               height: 24,
                                               errorBuilder: (context, error, stackTrace) {
-                                                return Icon(CupertinoIcons.flag, size: 24, color: Theme.of(context).textTheme.bodyMedium?.color);
+                                                return Icon(CupertinoIcons.flag,
+                                                    size: 24, color: Theme.of(context).textTheme.bodyMedium?.color);
                                               },
                                             ),
                                           ),
@@ -301,7 +310,7 @@ class _PropertiesForSaleRealtState extends State<PropertiesForSaleRealt> {
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            'Stock',
+                                            S.of(context).propertiesStock,
                                             style: TextStyle(
                                               fontSize: 12,
                                               color: Theme.of(context).textTheme.bodyMedium?.color,
@@ -325,7 +334,7 @@ class _PropertiesForSaleRealtState extends State<PropertiesForSaleRealt> {
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            'Prix',
+                                            S.of(context).propertiesPrice,
                                             style: TextStyle(
                                               fontSize: 12,
                                               color: Theme.of(context).textTheme.bodyMedium?.color,
@@ -349,7 +358,7 @@ class _PropertiesForSaleRealtState extends State<PropertiesForSaleRealt> {
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            'Rendement',
+                                            S.of(context).propertiesYield,
                                             style: TextStyle(
                                               fontSize: 12,
                                               color: Theme.of(context).textTheme.bodyMedium?.color,
@@ -378,8 +387,20 @@ class _PropertiesForSaleRealtState extends State<PropertiesForSaleRealt> {
                                     if (marketplaceLink.isNotEmpty && marketplaceLink != 'https://realt.co') {
                                       UrlUtils.launchURL(marketplaceLink);
                                     } else {
-                                      // Pour les produits sans lien spécifique (comme factoring), rediriger vers RealT
-                                      UrlUtils.launchURL('https://realt.co');
+                                      // Show dialog informing user that trading is not available for this property
+                                      showDialog(
+                                        context: context,
+                                        builder: (context) => AlertDialog(
+                                          title: Text(S.of(context).propertiesForSale),
+                                          content: Text(S.of(context).propertiesNoMarketplaceAvailable),
+                                          actions: [
+                                            TextButton(
+                                              onPressed: () => Navigator.of(context).pop(),
+                                              child: Text(S.of(context).ok),
+                                            ),
+                                          ],
+                                        ),
+                                      );
                                     }
                                   },
                                   child: Container(
@@ -391,7 +412,7 @@ class _PropertiesForSaleRealtState extends State<PropertiesForSaleRealt> {
                                     ),
                                     alignment: Alignment.center,
                                     child: Text(
-                                      'Acheter cette propriété',
+                                      S.of(context).propertiesBuyThisProperty,
                                       style: TextStyle(
                                         color: CupertinoColors.white,
                                         fontSize: 15,

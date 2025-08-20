@@ -2,9 +2,9 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
-import 'package:realtoken_asset_tracker/generated/l10n.dart';
-import 'package:realtoken_asset_tracker/app_state.dart';
-import 'package:realtoken_asset_tracker/components/info_card_widgets.dart';
+import 'package:meprop_asset_tracker/generated/l10n.dart';
+import 'package:meprop_asset_tracker/app_state.dart';
+import 'package:meprop_asset_tracker/components/info_card_widgets.dart';
 
 class AboutPage extends StatelessWidget {
   const AboutPage({super.key});
@@ -91,7 +91,7 @@ class AboutPage extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             _buildTextWithIcon(
-              context, 
+              context,
               textSizeOffset,
               CupertinoIcons.person_3,
               S.of(context).specialThanks,
@@ -100,7 +100,7 @@ class AboutPage extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             _buildTextWithIcon(
-              context, 
+              context,
               textSizeOffset,
               CupertinoIcons.lab_flask,
               S.of(context).specialThanksJojodunet,
@@ -109,7 +109,7 @@ class AboutPage extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             _buildTextWithIcon(
-              context, 
+              context,
               textSizeOffset,
               CupertinoIcons.money_dollar_circle,
               S.of(context).thanksDonators,
@@ -177,7 +177,7 @@ class AboutPage extends StatelessWidget {
             children: <Widget>[
               // Section Application avec icône
               _buildApplicationHeader(context, textSizeOffset),
-              
+
               InfoCardWidgets.buildInfoCard(
                 context,
                 icon: CupertinoIcons.info_circle,
@@ -185,7 +185,7 @@ class AboutPage extends StatelessWidget {
                 subtitle: S.of(context).appName,
                 textSizeOffset: textSizeOffset,
               ),
-              
+
               FutureBuilder<String>(
                 future: _getAppVersion(),
                 builder: (context, snapshot) {
@@ -198,7 +198,7 @@ class AboutPage extends StatelessWidget {
                   );
                 },
               ),
-              
+
               InfoCardWidgets.buildInfoCard(
                 context,
                 icon: CupertinoIcons.person,
@@ -207,7 +207,7 @@ class AboutPage extends StatelessWidget {
                 textSizeOffset: textSizeOffset,
                 linkUrl: 'https://linktr.ee/byackee',
               ),
-              
+
               InfoCardWidgets.buildLinkCard(
                 context,
                 title: 'Linktree',
@@ -220,7 +220,7 @@ class AboutPage extends StatelessWidget {
 
               // Section Remerciements avec icône cœur
               _buildThanksHeader(context, textSizeOffset),
-              
+
               _buildCustomThanksCard(context, textSizeOffset),
             ],
           ),

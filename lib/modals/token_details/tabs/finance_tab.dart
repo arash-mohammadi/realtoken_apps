@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:realtoken_asset_tracker/managers/data_manager.dart';
-import 'package:realtoken_asset_tracker/generated/l10n.dart';
-import 'package:realtoken_asset_tracker/app_state.dart';
-import 'package:realtoken_asset_tracker/utils/currency_utils.dart';
+import 'package:meprop_asset_tracker/managers/data_manager.dart';
+import 'package:meprop_asset_tracker/generated/l10n.dart';
+import 'package:meprop_asset_tracker/app_state.dart';
+import 'package:meprop_asset_tracker/utils/currency_utils.dart';
 
 Widget buildFinanceTab(BuildContext context, Map<String, dynamic> token, bool convertToSquareMeters) {
   final appState = Provider.of<AppState>(context, listen: false);
@@ -39,7 +39,8 @@ Widget buildFinanceTab(BuildContext context, Map<String, dynamic> token, bool co
             _buildDetailRow(
               context,
               S.of(context).totalInvestment,
-              currencyUtils.formatCurrency(currencyUtils.convert(token['totalInvestment']), currencyUtils.currencySymbol),
+              currencyUtils.formatCurrency(
+                  currencyUtils.convert(token['totalInvestment']), currencyUtils.currencySymbol),
               icon: Icons.monetization_on,
               iconColor: Colors.green,
             ),
@@ -91,7 +92,9 @@ Widget buildFinanceTab(BuildContext context, Map<String, dynamic> token, bool co
                       ],
                     ),
                     Text(
-                      currencyUtils.formatCurrency(currencyUtils.convert(token['totalInvestment'] - token['underlyingAssetPrice']), currencyUtils.currencySymbol),
+                      currencyUtils.formatCurrency(
+                          currencyUtils.convert(token['totalInvestment'] - token['underlyingAssetPrice']),
+                          currencyUtils.currencySymbol),
                       style: TextStyle(
                         fontSize: 14 + appState.getTextSizeOffset(),
                         fontWeight: FontWeight.w400,
@@ -116,7 +119,8 @@ Widget buildFinanceTab(BuildContext context, Map<String, dynamic> token, bool co
                             _buildDetailRow(
                               context,
                               S.of(context).realtListingFee,
-                              currencyUtils.formatCurrency(currencyUtils.convert(token['realtListingFee'] ?? 0), currencyUtils.currencySymbol),
+                              currencyUtils.formatCurrency(
+                                  currencyUtils.convert(token['realtListingFee'] ?? 0), currencyUtils.currencySymbol),
                               icon: Icons.circle,
                               iconColor: Colors.red.shade300,
                               isExpenseItem: true,
@@ -124,7 +128,9 @@ Widget buildFinanceTab(BuildContext context, Map<String, dynamic> token, bool co
                             _buildDetailRow(
                               context,
                               S.of(context).initialMaintenanceReserve,
-                              currencyUtils.formatCurrency(currencyUtils.convert(token['initialMaintenanceReserve'] ?? 0), currencyUtils.currencySymbol),
+                              currencyUtils.formatCurrency(
+                                  currencyUtils.convert(token['initialMaintenanceReserve'] ?? 0),
+                                  currencyUtils.currencySymbol),
                               icon: Icons.circle,
                               iconColor: Colors.orange.shade300,
                               isExpenseItem: true,
@@ -132,7 +138,8 @@ Widget buildFinanceTab(BuildContext context, Map<String, dynamic> token, bool co
                             _buildDetailRow(
                               context,
                               S.of(context).renovationReserve,
-                              currencyUtils.formatCurrency(currencyUtils.convert(token['renovationReserve'] ?? 0), currencyUtils.currencySymbol),
+                              currencyUtils.formatCurrency(
+                                  currencyUtils.convert(token['renovationReserve'] ?? 0), currencyUtils.currencySymbol),
                               icon: Icons.circle,
                               iconColor: Colors.purple.shade300,
                               isExpenseItem: true,
@@ -140,7 +147,8 @@ Widget buildFinanceTab(BuildContext context, Map<String, dynamic> token, bool co
                             _buildDetailRow(
                               context,
                               S.of(context).miscellaneousCosts,
-                              currencyUtils.formatCurrency(currencyUtils.convert(token['miscellaneousCosts'] ?? 0), currencyUtils.currencySymbol),
+                              currencyUtils.formatCurrency(currencyUtils.convert(token['miscellaneousCosts'] ?? 0),
+                                  currencyUtils.currencySymbol),
                               icon: Icons.circle,
                               iconColor: Colors.amber.shade300,
                               isExpenseItem: true,
@@ -148,7 +156,10 @@ Widget buildFinanceTab(BuildContext context, Map<String, dynamic> token, bool co
                             _buildDetailRow(
                               context,
                               S.of(context).others,
-                              currencyUtils.formatCurrency(currencyUtils.convert((token['totalInvestment'] - token['underlyingAssetPrice'] - totalCosts) ?? 0), currencyUtils.currencySymbol),
+                              currencyUtils.formatCurrency(
+                                  currencyUtils.convert(
+                                      (token['totalInvestment'] - token['underlyingAssetPrice'] - totalCosts) ?? 0),
+                                  currencyUtils.currencySymbol),
                               icon: Icons.circle,
                               iconColor: Colors.grey.shade400,
                               isExpenseItem: true,
@@ -182,7 +193,9 @@ Widget buildFinanceTab(BuildContext context, Map<String, dynamic> token, bool co
                     (token['initialMaintenanceReserve'] ?? 0).toDouble(),
                     (token['renovationReserve'] ?? 0).toDouble(),
                     (token['miscellaneousCosts'] ?? 0).toDouble(),
-                    ((token['totalInvestment'] ?? 0).toDouble() - (token['underlyingAssetPrice'] ?? 0).toDouble() - totalCosts),
+                    ((token['totalInvestment'] ?? 0).toDouble() -
+                        (token['underlyingAssetPrice'] ?? 0).toDouble() -
+                        totalCosts),
                   ];
                   final double sum = totalCosts > 0 ? totalCosts : 1;
                   final List<double> widths = parts.map((v) => v / sum * totalWidth).toList();
@@ -255,8 +268,13 @@ Widget buildFinanceTab(BuildContext context, Map<String, dynamic> token, bool co
             ),
 
             const Divider(height: 1, thickness: 0.5),
-            _buildDetailRow(context, S.of(context).underlyingAssetPrice, currencyUtils.formatCurrency(currencyUtils.convert(token['underlyingAssetPrice'] ?? 0), currencyUtils.currencySymbol),
-                icon: Icons.home, iconColor: Colors.blue),
+            _buildDetailRow(
+                context,
+                S.of(context).underlyingAssetPrice,
+                currencyUtils.formatCurrency(
+                    currencyUtils.convert(token['underlyingAssetPrice'] ?? 0), currencyUtils.currencySymbol),
+                icon: Icons.home,
+                iconColor: Colors.blue),
           ],
         ),
 
@@ -267,8 +285,13 @@ Widget buildFinanceTab(BuildContext context, Map<String, dynamic> token, bool co
           context,
           title: S.of(context).rents,
           children: [
-            _buildDetailRow(context, S.of(context).grossRentMonth, currencyUtils.formatCurrency(currencyUtils.convert(token['grossRentMonth'] ?? 0), currencyUtils.currencySymbol),
-                icon: Icons.attach_money, iconColor: Colors.green),
+            _buildDetailRow(
+                context,
+                S.of(context).grossRentMonth,
+                currencyUtils.formatCurrency(
+                    currencyUtils.convert(token['grossRentMonth'] ?? 0), currencyUtils.currencySymbol),
+                icon: Icons.attach_money,
+                iconColor: Colors.green),
 
             const Divider(height: 1, thickness: 0.5),
 
@@ -340,21 +363,57 @@ Widget buildFinanceTab(BuildContext context, Map<String, dynamic> token, bool co
                   child: showDetails
                       ? Column(
                           children: [
-                            _buildDetailRow(context, S.of(context).propertyMaintenanceMonthly,
-                                currencyUtils.formatCurrency(currencyUtils.convert(token['propertyMaintenanceMonthly'] ?? 0), currencyUtils.currencySymbol),
-                                icon: Icons.circle, iconColor: Colors.deepOrange.shade300, isExpenseItem: true),
                             _buildDetailRow(
-                                context, S.of(context).propertyManagement, currencyUtils.formatCurrency(currencyUtils.convert(token['propertyManagement'] ?? 0), currencyUtils.currencySymbol),
-                                icon: Icons.circle, iconColor: Colors.amber.shade300, isExpenseItem: true),
-                            _buildDetailRow(context, S.of(context).realtPlatform, currencyUtils.formatCurrency(currencyUtils.convert(token['realtPlatform'] ?? 0), currencyUtils.currencySymbol),
-                                icon: Icons.circle, iconColor: Colors.orange.shade300, isExpenseItem: true),
-                            _buildDetailRow(context, S.of(context).insurance, currencyUtils.formatCurrency(currencyUtils.convert(token['insurance'] ?? 0), currencyUtils.currencySymbol),
-                                icon: Icons.circle, iconColor: Colors.purple.shade300, isExpenseItem: true),
-                            _buildDetailRow(context, S.of(context).propertyTaxes, currencyUtils.formatCurrency(currencyUtils.convert(token['propertyTaxes'] ?? 0), currencyUtils.currencySymbol),
-                                icon: Icons.circle, iconColor: Colors.red.shade300, isExpenseItem: true),
-                            _buildDetailRow(context, S.of(context).others,
-                                currencyUtils.formatCurrency((currencyUtils.convert(token['grossRentMonth'] - token['netRentMonth'] - totalRentCosts)), currencyUtils.currencySymbol),
-                                icon: Icons.circle, iconColor: Colors.grey.shade400, isExpenseItem: true),
+                                context,
+                                S.of(context).propertyMaintenanceMonthly,
+                                currencyUtils.formatCurrency(
+                                    currencyUtils.convert(token['propertyMaintenanceMonthly'] ?? 0),
+                                    currencyUtils.currencySymbol),
+                                icon: Icons.circle,
+                                iconColor: Colors.deepOrange.shade300,
+                                isExpenseItem: true),
+                            _buildDetailRow(
+                                context,
+                                S.of(context).propertyManagement,
+                                currencyUtils.formatCurrency(currencyUtils.convert(token['propertyManagement'] ?? 0),
+                                    currencyUtils.currencySymbol),
+                                icon: Icons.circle,
+                                iconColor: Colors.amber.shade300,
+                                isExpenseItem: true),
+                            _buildDetailRow(
+                                context,
+                                S.of(context).realtPlatform,
+                                currencyUtils.formatCurrency(
+                                    currencyUtils.convert(token['realtPlatform'] ?? 0), currencyUtils.currencySymbol),
+                                icon: Icons.circle,
+                                iconColor: Colors.orange.shade300,
+                                isExpenseItem: true),
+                            _buildDetailRow(
+                                context,
+                                S.of(context).insurance,
+                                currencyUtils.formatCurrency(
+                                    currencyUtils.convert(token['insurance'] ?? 0), currencyUtils.currencySymbol),
+                                icon: Icons.circle,
+                                iconColor: Colors.purple.shade300,
+                                isExpenseItem: true),
+                            _buildDetailRow(
+                                context,
+                                S.of(context).propertyTaxes,
+                                currencyUtils.formatCurrency(
+                                    currencyUtils.convert(token['propertyTaxes'] ?? 0), currencyUtils.currencySymbol),
+                                icon: Icons.circle,
+                                iconColor: Colors.red.shade300,
+                                isExpenseItem: true),
+                            _buildDetailRow(
+                                context,
+                                S.of(context).others,
+                                currencyUtils.formatCurrency(
+                                    (currencyUtils
+                                        .convert(token['grossRentMonth'] - token['netRentMonth'] - totalRentCosts)),
+                                    currencyUtils.currencySymbol),
+                                icon: Icons.circle,
+                                iconColor: Colors.grey.shade400,
+                                isExpenseItem: true),
                           ],
                         )
                       : const SizedBox.shrink(),
@@ -470,8 +529,13 @@ Widget buildFinanceTab(BuildContext context, Map<String, dynamic> token, bool co
             ),
 
             const Divider(height: 1, thickness: 0.5),
-            _buildDetailRow(context, S.of(context).netRentMonth, currencyUtils.formatCurrency(currencyUtils.convert(token['netRentMonth'] ?? 0), currencyUtils.currencySymbol),
-                icon: Icons.account_balance, iconColor: Colors.green),
+            _buildDetailRow(
+                context,
+                S.of(context).netRentMonth,
+                currencyUtils.formatCurrency(
+                    currencyUtils.convert(token['netRentMonth'] ?? 0), currencyUtils.currencySymbol),
+                icon: Icons.account_balance,
+                iconColor: Colors.green),
           ],
         ),
 
@@ -485,7 +549,8 @@ Widget buildFinanceTab(BuildContext context, Map<String, dynamic> token, bool co
             _buildDetailRow(
               context,
               S.of(context).initialPrice,
-              currencyUtils.formatCurrency(currencyUtils.convert(token['averagePurchasePrice'] ?? token['initPrice']), currencyUtils.currencySymbol),
+              currencyUtils.formatCurrency(currencyUtils.convert(token['averagePurchasePrice'] ?? token['initPrice']),
+                  currencyUtils.currencySymbol),
               icon: Icons.price_change_sharp,
               iconColor: Colors.indigo,
               trailing: IconButton(
@@ -518,7 +583,8 @@ Widget buildFinanceTab(BuildContext context, Map<String, dynamic> token, bool co
             _buildDetailRow(
               context,
               'Prix initial historique',
-              currencyUtils.formatCurrency(currencyUtils.convert(token['initPrice'] ?? 0), currencyUtils.currencySymbol),
+              currencyUtils.formatCurrency(
+                  currencyUtils.convert(token['initPrice'] ?? 0), currencyUtils.currencySymbol),
               icon: Icons.history,
               iconColor: Colors.grey,
             ),
@@ -534,7 +600,8 @@ Widget buildFinanceTab(BuildContext context, Map<String, dynamic> token, bool co
             _buildDetailRow(
               context,
               S.of(context).totalRentReceived,
-              currencyUtils.formatCurrency(currencyUtils.convert(token['totalRentReceived'] ?? 0), currencyUtils.currencySymbol),
+              currencyUtils.formatCurrency(
+                  currencyUtils.convert(token['totalRentReceived'] ?? 0), currencyUtils.currencySymbol),
               icon: Icons.receipt_long,
               iconColor: Colors.green,
             ),
@@ -589,7 +656,8 @@ Widget _buildSectionCard(BuildContext context, {required String title, required 
 }
 
 // Méthode pour construire les lignes de détails, comme dans property_tab.dart
-Widget _buildDetailRow(BuildContext context, String label, String value, {IconData? icon, Color? iconColor, Color? textColor, Widget? trailing, bool isExpenseItem = false}) {
+Widget _buildDetailRow(BuildContext context, String label, String value,
+    {IconData? icon, Color? iconColor, Color? textColor, Widget? trailing, bool isExpenseItem = false}) {
   final appState = Provider.of<AppState>(context, listen: false);
 
   return Padding(
@@ -731,73 +799,72 @@ void _showEditPriceBottomModal(BuildContext context, Map<String, dynamic> token,
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   // Bouton pour sauvegarder
-                  
-                    ElevatedButton.icon(
-                      onPressed: () {
-                        final newPrice = double.tryParse(priceController.text);
-                        if (newPrice != null) {
-                          dataManager.setCustomInitPrice(token['uuid'], newPrice);
-                          Navigator.pop(context);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(S.of(context).initialPriceUpdated),
-                              behavior: SnackBarBehavior.floating,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                            ),
-                          );
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(S.of(context).enterValidNumber),
-                              behavior: SnackBarBehavior.floating,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                            ),
-                          );
-                        }
-                      },
-                      icon: const Icon(Icons.check, color: Colors.white),
-                      label: Text(S.of(context).save),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 6),
-                      ),
-                    ),
-                  
-                  const SizedBox(width: 12),
-                  // Bouton pour supprimer
-                  
-                    ElevatedButton.icon(
-                      onPressed: () {
-                        dataManager.removeCustomInitPrice(token['uuid']);
+
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      final newPrice = double.tryParse(priceController.text);
+                      if (newPrice != null) {
+                        dataManager.setCustomInitPrice(token['uuid'], newPrice);
                         Navigator.pop(context);
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text(S.of(context).initialPriceRemoved),
+                            content: Text(S.of(context).initialPriceUpdated),
                             behavior: SnackBarBehavior.floating,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10),
                             ),
                           ),
                         );
-                      },
-                      icon: const Icon(Icons.delete, color: Colors.white),
-                      label: Text('Supprimer'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 6),
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(S.of(context).enterValidNumber),
+                            behavior: SnackBarBehavior.floating,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                        );
+                      }
+                    },
+                    icon: const Icon(Icons.check, color: Colors.white),
+                    label: Text(S.of(context).save),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
                       ),
+                      padding: const EdgeInsets.symmetric(vertical: 6),
                     ),
-                  
+                  ),
+
+                  const SizedBox(width: 12),
+                  // Bouton pour supprimer
+
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      dataManager.removeCustomInitPrice(token['uuid']);
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(S.of(context).initialPriceRemoved),
+                          behavior: SnackBarBehavior.floating,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.delete, color: Colors.white),
+                    label: Text('Supprimer'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 6),
+                    ),
+                  ),
                 ],
               ),
             ],

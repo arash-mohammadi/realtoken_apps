@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:realtoken_asset_tracker/generated/l10n.dart';
-import 'package:realtoken_asset_tracker/app_state.dart';
-import 'package:realtoken_asset_tracker/managers/data_manager.dart';
-import 'package:realtoken_asset_tracker/utils/currency_utils.dart';
+import 'package:meprop_asset_tracker/generated/l10n.dart';
+import 'package:meprop_asset_tracker/app_state.dart';
+import 'package:meprop_asset_tracker/managers/data_manager.dart';
+import 'package:meprop_asset_tracker/utils/currency_utils.dart';
 
 Widget buildInsightsTab(BuildContext context, Map<String, dynamic> token) {
   final appState = Provider.of<AppState>(context, listen: false);
@@ -65,7 +65,8 @@ Widget buildInsightsTab(BuildContext context, Map<String, dynamic> token) {
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
-              child: _buildYieldChartOrMessage(context, token['historic']?['yields'] ?? [], token['historic']?['init_yield'], currencyUtils),
+              child: _buildYieldChartOrMessage(
+                  context, token['historic']?['yields'] ?? [], token['historic']?['init_yield'], currencyUtils),
             ),
           ],
         ),
@@ -79,7 +80,8 @@ Widget buildInsightsTab(BuildContext context, Map<String, dynamic> token) {
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
-              child: _buildPriceChartOrMessage(context, token['historic']?['prices'] ?? [], token['initPrice'], currencyUtils),
+              child: _buildPriceChartOrMessage(
+                  context, token['historic']?['prices'] ?? [], token['initPrice'], currencyUtils),
             ),
           ],
         ),
@@ -222,7 +224,8 @@ Widget _buildGaugeForROI(double roiValue, BuildContext context) {
 }
 
 // Méthode pour afficher soit le graphique du yield, soit un message
-Widget _buildYieldChartOrMessage(BuildContext context, List<dynamic> yields, double? initYield, CurrencyProvider currencyUtils) {
+Widget _buildYieldChartOrMessage(
+    BuildContext context, List<dynamic> yields, double? initYield, CurrencyProvider currencyUtils) {
   final appState = Provider.of<AppState>(context, listen: false);
 
   if (yields.length <= 1) {
@@ -408,7 +411,8 @@ Widget _buildYieldChart(BuildContext context, List<dynamic> yields, CurrencyProv
               final int index = touchedSpot.x.toInt();
               return LineTooltipItem(
                 '${dateLabels[index]}: ${touchedSpot.y.toStringAsFixed(2)}%',
-                TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12 + appState.getTextSizeOffset()),
+                TextStyle(
+                    color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12 + appState.getTextSizeOffset()),
               );
             }).toList();
           },
@@ -426,7 +430,8 @@ Widget _buildYieldChart(BuildContext context, List<dynamic> yields, CurrencyProv
 }
 
 // Méthode pour afficher soit le graphique des prix, soit un message
-Widget _buildPriceChartOrMessage(BuildContext context, List<dynamic> prices, double? initPrice, CurrencyProvider currencyUtils) {
+Widget _buildPriceChartOrMessage(
+    BuildContext context, List<dynamic> prices, double? initPrice, CurrencyProvider currencyUtils) {
   final appState = Provider.of<AppState>(context, listen: false);
 
   if (prices.length <= 1) {
@@ -440,7 +445,10 @@ Widget _buildPriceChartOrMessage(BuildContext context, List<dynamic> prices, dou
         ),
         children: [
           TextSpan(
-            text: prices.isNotEmpty ? currencyUtils.formatCurrency(currencyUtils.convert(prices.first['price']), currencyUtils.currencySymbol) : S.of(context).notSpecified,
+            text: prices.isNotEmpty
+                ? currencyUtils.formatCurrency(
+                    currencyUtils.convert(prices.first['price']), currencyUtils.currencySymbol)
+                : S.of(context).notSpecified,
             style: TextStyle(
               fontWeight: FontWeight.bold,
               color: Theme.of(context).textTheme.bodyLarge?.color,
@@ -630,7 +638,8 @@ Widget _buildPriceChart(BuildContext context, List<dynamic> prices, CurrencyProv
               final convertedValue = currencyUtils.convert(touchedSpot.y);
               return LineTooltipItem(
                 '${dateLabels[index]}: ${currencyUtils.formatCurrency(convertedValue, currencyUtils.currencySymbol)}',
-                TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12 + appState.getTextSizeOffset()),
+                TextStyle(
+                    color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12 + appState.getTextSizeOffset()),
               );
             }).toList();
           },
@@ -648,7 +657,8 @@ Widget _buildPriceChart(BuildContext context, List<dynamic> prices, CurrencyProv
 }
 
 // Méthode pour afficher soit le graphique cumulatif des loyers, soit un message
-Widget _buildRentCumulativeChartOrMessage(BuildContext context, String tokenId, DataManager dataManager, CurrencyProvider currencyUtils) {
+Widget _buildRentCumulativeChartOrMessage(
+    BuildContext context, String tokenId, DataManager dataManager, CurrencyProvider currencyUtils) {
   final appState = Provider.of<AppState>(context, listen: false);
 
   // Récupérer l'historique des loyers pour ce token
@@ -698,7 +708,8 @@ Widget _buildRentCumulativeChartOrMessage(BuildContext context, String tokenId, 
                 ),
                 children: [
                   TextSpan(
-                    text: currencyUtils.getFormattedAmount(currencyUtils.convert(totalRent), currencyUtils.currencySymbol, appState.showAmounts),
+                    text: currencyUtils.getFormattedAmount(
+                        currencyUtils.convert(totalRent), currencyUtils.currencySymbol, appState.showAmounts),
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       color: Colors.green[700],
@@ -715,7 +726,8 @@ Widget _buildRentCumulativeChartOrMessage(BuildContext context, String tokenId, 
 }
 
 // Méthode pour construire le graphique cumulatif des loyers
-Widget _buildRentCumulativeChart(BuildContext context, List<Map<String, dynamic>> rentHistory, CurrencyProvider currencyUtils) {
+Widget _buildRentCumulativeChart(
+    BuildContext context, List<Map<String, dynamic>> rentHistory, CurrencyProvider currencyUtils) {
   final appState = Provider.of<AppState>(context, listen: false);
 
   // Trier l'historique par date
@@ -861,7 +873,8 @@ Widget _buildRentCumulativeChart(BuildContext context, List<Map<String, dynamic>
               final convertedValue = currencyUtils.convert(touchedSpot.y);
               return LineTooltipItem(
                 '${dateLabels[index]}: ${currencyUtils.formatCurrency(convertedValue, currencyUtils.currencySymbol)}',
-                TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12 + appState.getTextSizeOffset()),
+                TextStyle(
+                    color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12 + appState.getTextSizeOffset()),
               );
             }).toList();
           },

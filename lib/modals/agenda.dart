@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:realtoken_asset_tracker/app_state.dart';
-import 'package:realtoken_asset_tracker/managers/data_manager.dart';
-import 'package:realtoken_asset_tracker/utils/currency_utils.dart';
+import 'package:meprop_asset_tracker/app_state.dart';
+import 'package:meprop_asset_tracker/managers/data_manager.dart';
+import 'package:meprop_asset_tracker/utils/currency_utils.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:provider/provider.dart';
-import 'package:realtoken_asset_tracker/generated/l10n.dart';
+import 'package:meprop_asset_tracker/generated/l10n.dart';
 import 'package:flutter/cupertino.dart';
 
 class AgendaCalendar extends StatefulWidget {
@@ -27,23 +27,22 @@ class AgendaCalendarState extends State<AgendaCalendar> {
   void initState() {
     super.initState();
     _focusedDay = DateTime.now();
-    _selectedDay =
-        DateTime(_focusedDay.year, _focusedDay.month, _focusedDay.day);
+    _selectedDay = DateTime(_focusedDay.year, _focusedDay.month, _focusedDay.day);
     final dataManager = Provider.of<DataManager>(context, listen: false);
     _events = _extractTransactions(widget.portfolio);
     _addRentEvents(_events, dataManager.rentData);
-    
+
     // Ajout d'un listener pour le défilement
     _scrollController.addListener(_onScroll);
   }
-  
+
   @override
   void dispose() {
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     super.dispose();
   }
-  
+
   void _onScroll() {
     // On réduit le calendrier si on scrolle vers le bas
     if (_scrollController.offset > 20 && !_isCalendarCollapsed) {
@@ -64,8 +63,7 @@ class AgendaCalendarState extends State<AgendaCalendar> {
     });
   }
 
-  Map<DateTime, List<Map<String, dynamic>>> _extractTransactions(
-      List<Map<String, dynamic>> portfolio) {
+  Map<DateTime, List<Map<String, dynamic>>> _extractTransactions(List<Map<String, dynamic>> portfolio) {
     Map<DateTime, List<Map<String, dynamic>>> events = {};
     final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
 
@@ -73,9 +71,8 @@ class AgendaCalendarState extends State<AgendaCalendar> {
       if (token.containsKey('transactions') && token['transactions'] is List) {
         for (var transaction in token['transactions']) {
           if (transaction['dateTime'] != null) {
-            DateTime date = transaction['dateTime'] is String
-                ? DateTime.parse(transaction['dateTime'])
-                : transaction['dateTime'];
+            DateTime date =
+                transaction['dateTime'] is String ? DateTime.parse(transaction['dateTime']) : transaction['dateTime'];
             DateTime normalizedDate = DateTime(date.year, date.month, date.day);
             events.putIfAbsent(normalizedDate, () => []);
 
@@ -86,8 +83,7 @@ class AgendaCalendarState extends State<AgendaCalendar> {
                   '${currencyUtils.convert(transaction['price'] ?? token['tokenPrice']).toStringAsFixed(2)} ${currencyUtils.currencySymbol}',
               'date': date.toIso8601String(),
               'fullName': token['fullName'],
-              'transactionType': transaction['transactionType'] ??
-                  S.of(context).unknownTransaction,
+              'transactionType': transaction['transactionType'] ?? S.of(context).unknownTransaction,
             });
           }
         }
@@ -96,13 +92,10 @@ class AgendaCalendarState extends State<AgendaCalendar> {
     return events;
   }
 
-  void _addRentEvents(Map<DateTime, List<Map<String, dynamic>>> events,
-      List<Map<String, dynamic>> rentData) {
+  void _addRentEvents(Map<DateTime, List<Map<String, dynamic>>> events, List<Map<String, dynamic>> rentData) {
     for (var rent in rentData) {
       if (rent['date'] != null) {
-        DateTime date = rent['date'] is String
-            ? DateTime.parse(rent['date'])
-            : rent['date'];
+        DateTime date = rent['date'] is String ? DateTime.parse(rent['date']) : rent['date'];
         DateTime normalizedDate = DateTime(date.year, date.month, date.day);
         events.putIfAbsent(normalizedDate, () => []);
         events[normalizedDate]!.add({
@@ -136,9 +129,7 @@ class AgendaCalendarState extends State<AgendaCalendar> {
               curve: Curves.easeInOut,
               height: _isCalendarCollapsed ? 80 : null,
               decoration: BoxDecoration(
-                color: isDarkMode 
-                    ? CupertinoColors.systemGrey6.darkColor 
-                    : CupertinoColors.systemGrey6.color,
+                color: isDarkMode ? CupertinoColors.systemGrey6.darkColor : CupertinoColors.systemGrey6.color,
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
@@ -148,17 +139,12 @@ class AgendaCalendarState extends State<AgendaCalendar> {
                   ),
                 ],
               ),
-              padding: EdgeInsets.symmetric(
-                vertical: _isCalendarCollapsed ? 8 : 12, 
-                horizontal: 8
-              ),
-              child: _isCalendarCollapsed 
-                  ? _buildCollapsedCalendar() 
-                  : _buildFullCalendar(isDarkMode, context),
+              padding: EdgeInsets.symmetric(vertical: _isCalendarCollapsed ? 8 : 12, horizontal: 8),
+              child: _isCalendarCollapsed ? _buildCollapsedCalendar() : _buildFullCalendar(isDarkMode, context),
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             // Titre de section avec bouton pour contrôler le calendrier
             Padding(
               padding: const EdgeInsets.only(left: 8, bottom: 8),
@@ -176,9 +162,7 @@ class AgendaCalendarState extends State<AgendaCalendar> {
                   CupertinoButton(
                     padding: EdgeInsets.zero,
                     child: Icon(
-                      _isCalendarCollapsed 
-                          ? CupertinoIcons.calendar_badge_plus 
-                          : CupertinoIcons.calendar_badge_minus,
+                      _isCalendarCollapsed ? CupertinoIcons.calendar_badge_plus : CupertinoIcons.calendar_badge_minus,
                       color: CupertinoColors.systemBlue.resolveFrom(context),
                     ),
                     onPressed: _toggleCalendarSize,
@@ -186,10 +170,9 @@ class AgendaCalendarState extends State<AgendaCalendar> {
                 ],
               ),
             ),
-            
+
             Expanded(
-              child: (_events.containsKey(_selectedDay) &&
-                      _events[_selectedDay]!.isNotEmpty)
+              child: (_events.containsKey(_selectedDay) && _events[_selectedDay]!.isNotEmpty)
                   ? ClipRRect(
                       borderRadius: BorderRadius.circular(16),
                       child: ListView.separated(
@@ -204,25 +187,22 @@ class AgendaCalendarState extends State<AgendaCalendar> {
                         itemBuilder: (context, index) {
                           final event = _events[_selectedDay]![index];
                           final type = event['type'];
-                          final fullName = event.containsKey('fullName')
-                              ? event['fullName']
-                              : "N/A";
+                          final fullName = event.containsKey('fullName') ? event['fullName'] : "N/A";
                           final date = event['date'];
                           final price = event['price'];
                           final amount = event['amount'] ?? 0.0;
-                          final transactionType =
-                              event.containsKey('transactionType')
-                                  ? event['transactionType']
-                                  : S.of(context).unknownTransaction;
-                          
+                          final transactionType = event.containsKey('transactionType')
+                              ? event['transactionType']
+                              : S.of(context).unknownTransaction;
+
                           // Obtenir la version localisée du type de transaction pour l'affichage
                           final localizedTransactionType = _getLocalizedTransactionType(transactionType, context);
 
                           return Container(
                             padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
                             decoration: BoxDecoration(
-                              color: isDarkMode 
-                                  ? CupertinoColors.systemGrey6.darkColor 
+                              color: isDarkMode
+                                  ? CupertinoColors.systemGrey6.darkColor
                                   : CupertinoColors.systemGrey6.color,
                               borderRadius: BorderRadius.circular(0),
                             ),
@@ -329,9 +309,7 @@ class AgendaCalendarState extends State<AgendaCalendar> {
                       child: Container(
                         padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
-                          color: isDarkMode 
-                              ? CupertinoColors.systemGrey6.darkColor 
-                              : CupertinoColors.systemGrey6.color,
+                          color: isDarkMode ? CupertinoColors.systemGrey6.darkColor : CupertinoColors.systemGrey6.color,
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Column(
@@ -360,7 +338,7 @@ class AgendaCalendarState extends State<AgendaCalendar> {
       ),
     );
   }
-  
+
   // Version compacte du calendrier
   Widget _buildCollapsedCalendar() {
     return GestureDetector(
@@ -437,7 +415,7 @@ class AgendaCalendarState extends State<AgendaCalendar> {
       ),
     );
   }
-  
+
   // Version complète du calendrier
   Widget _buildFullCalendar(bool isDarkMode, BuildContext context) {
     return TableCalendar(
@@ -451,8 +429,7 @@ class AgendaCalendarState extends State<AgendaCalendar> {
       },
       onDaySelected: (selectedDay, focusedDay) {
         setState(() {
-          _selectedDay = DateTime(
-              selectedDay.year, selectedDay.month, selectedDay.day);
+          _selectedDay = DateTime(selectedDay.year, selectedDay.month, selectedDay.day);
           _focusedDay = focusedDay;
         });
       },
@@ -461,16 +438,10 @@ class AgendaCalendarState extends State<AgendaCalendar> {
       headerStyle: HeaderStyle(
         titleCentered: true,
         formatButtonVisible: false,
-        leftChevronIcon: Icon(
-          CupertinoIcons.chevron_left, 
-          size: 16, 
-          color: CupertinoColors.systemBlue.resolveFrom(context)
-        ),
-        rightChevronIcon: Icon(
-          CupertinoIcons.chevron_right, 
-          size: 16, 
-          color: CupertinoColors.systemBlue.resolveFrom(context)
-        ),
+        leftChevronIcon:
+            Icon(CupertinoIcons.chevron_left, size: 16, color: CupertinoColors.systemBlue.resolveFrom(context)),
+        rightChevronIcon:
+            Icon(CupertinoIcons.chevron_right, size: 16, color: CupertinoColors.systemBlue.resolveFrom(context)),
         titleTextStyle: TextStyle(
           fontSize: 18 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
           fontWeight: FontWeight.w600,
@@ -522,8 +493,7 @@ class AgendaCalendarState extends State<AgendaCalendar> {
           if (events.isEmpty) return null;
           List<Widget> markers = [];
 
-          bool hasRent = events
-              .any((e) => (e as Map<String, dynamic>)['type'] == 'rent');
+          bool hasRent = events.any((e) => (e as Map<String, dynamic>)['type'] == 'rent');
           bool hasPurchase = events.any((e) =>
               (e as Map<String, dynamic>)['type'] == 'transaction' &&
               e['transactionType'] == DataManager.transactionTypePurchase);
@@ -539,48 +509,40 @@ class AgendaCalendarState extends State<AgendaCalendar> {
                 margin: const EdgeInsets.only(left: 1, right: 1),
                 width: 6,
                 height: 6,
-                decoration: BoxDecoration(
-                    color: CupertinoColors.systemGreen.resolveFrom(context), 
-                    shape: BoxShape.circle)));
+                decoration:
+                    BoxDecoration(color: CupertinoColors.systemGreen.resolveFrom(context), shape: BoxShape.circle)));
           }
           if (hasPurchase) {
             markers.add(Container(
                 margin: const EdgeInsets.only(left: 1, right: 1),
                 width: 6,
                 height: 6,
-                decoration: BoxDecoration(
-                    color: CupertinoColors.systemBlue.resolveFrom(context), 
-                    shape: BoxShape.circle)));
+                decoration:
+                    BoxDecoration(color: CupertinoColors.systemBlue.resolveFrom(context), shape: BoxShape.circle)));
           }
           if (hasYAM) {
             markers.add(Container(
                 margin: const EdgeInsets.only(left: 1, right: 1),
                 width: 6,
                 height: 6,
-                decoration: BoxDecoration(
-                    color: CupertinoColors.systemOrange.resolveFrom(context), 
-                    shape: BoxShape.circle)));
+                decoration:
+                    BoxDecoration(color: CupertinoColors.systemOrange.resolveFrom(context), shape: BoxShape.circle)));
           }
           if (hasTransfer) {
             markers.add(Container(
                 margin: const EdgeInsets.only(left: 1, right: 1),
                 width: 6,
                 height: 6,
-                decoration: BoxDecoration(
-                    color: CupertinoColors.systemGrey.resolveFrom(context), 
-                    shape: BoxShape.circle)));
+                decoration:
+                    BoxDecoration(color: CupertinoColors.systemGrey.resolveFrom(context), shape: BoxShape.circle)));
           }
 
-          return markers.isNotEmpty
-              ? Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: markers)
-              : null;
+          return markers.isNotEmpty ? Row(mainAxisAlignment: MainAxisAlignment.center, children: markers) : null;
         },
       ),
     );
   }
-  
+
   // Fonction pour obtenir le jour de la semaine formaté
   String _getFormattedDay(DateTime date) {
     const days = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
@@ -612,7 +574,7 @@ class AgendaCalendarState extends State<AgendaCalendar> {
       return CupertinoColors.systemTeal.resolveFrom(context);
     }
   }
-  
+
   // Méthode pour traduire les constantes en textes localisés
   String _getLocalizedTransactionType(String transactionType, BuildContext context) {
     if (transactionType == DataManager.transactionTypePurchase) {

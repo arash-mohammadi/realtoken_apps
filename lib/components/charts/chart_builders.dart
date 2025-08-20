@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
-import 'package:realtoken_asset_tracker/app_state.dart';
-import 'package:realtoken_asset_tracker/generated/l10n.dart';
-import 'package:realtoken_asset_tracker/utils/currency_utils.dart';
-import 'package:realtoken_asset_tracker/utils/date_utils.dart';
-import 'package:realtoken_asset_tracker/models/apy_record.dart';
+import 'package:meprop_asset_tracker/app_state.dart';
+import 'package:meprop_asset_tracker/generated/l10n.dart';
+import 'package:meprop_asset_tracker/utils/currency_utils.dart';
+import 'package:meprop_asset_tracker/utils/date_utils.dart';
+import 'package:meprop_asset_tracker/models/apy_record.dart';
 import 'package:provider/provider.dart';
 
 /// Factory pour construire les éléments de graphiques de manière standardisée
 /// Réduit la duplication dans GenericChartWidget
 class ChartBuilders {
-  
   /// Construit les données de grille standardisées pour les graphiques
   static FlGridData buildStandardGridData() {
     return FlGridData(
@@ -275,28 +274,30 @@ class ChartBuilders {
           final isLast = spot.x == barData.spots.length - 1;
           final int dataLength = barData.spots.length;
           int step = 1;
-          
+
           if (dataLength > 20) {
             step = (dataLength / 20).ceil();
           } else if (dataLength > 10) {
             step = 2;
           }
-          
+
           final isInteresting = spot.x % step == 0;
           return isFirst || isLast || isInteresting;
         },
       ),
-      belowBarData: showArea ? BarAreaData(
-        show: true,
-        gradient: LinearGradient(
-          colors: [
-            color.withOpacity(0.3),
-            color.withOpacity(0.05),
-          ],
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-        ),
-      ) : BarAreaData(show: false),
+      belowBarData: showArea
+          ? BarAreaData(
+              show: true,
+              gradient: LinearGradient(
+                colors: [
+                  color.withOpacity(0.3),
+                  color.withOpacity(0.05),
+                ],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
+            )
+          : BarAreaData(show: false),
     );
   }
 
@@ -367,4 +368,4 @@ class ChartBuilders {
       ),
     );
   }
-} 
+}

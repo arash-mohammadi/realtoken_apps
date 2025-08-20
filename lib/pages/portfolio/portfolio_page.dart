@@ -1,18 +1,18 @@
 import 'package:googleapis/meet/v2.dart';
-import 'package:realtoken_asset_tracker/utils/data_fetch_utils.dart';
+import 'package:meprop_asset_tracker/utils/data_fetch_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:realtoken_asset_tracker/utils/text_utils.dart';
-import 'package:realtoken_asset_tracker/utils/ui_utils.dart';
+import 'package:meprop_asset_tracker/utils/text_utils.dart';
+import 'package:meprop_asset_tracker/utils/ui_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:realtoken_asset_tracker/managers/data_manager.dart';
+import 'package:meprop_asset_tracker/managers/data_manager.dart';
 import 'portfolio_display_1.dart';
 import 'portfolio_display_2.dart';
-import 'package:realtoken_asset_tracker/generated/l10n.dart'; // Import pour les traductions
-import 'package:realtoken_asset_tracker/utils/parameters.dart';
-import 'package:realtoken_asset_tracker/utils/location_utils.dart';
-import 'package:realtoken_asset_tracker/components/filter_widgets.dart';
-import 'package:realtoken_asset_tracker/app_state.dart';
+import 'package:meprop_asset_tracker/generated/l10n.dart'; // Import pour les traductions
+import 'package:meprop_asset_tracker/utils/parameters.dart';
+import 'package:meprop_asset_tracker/utils/location_utils.dart';
+import 'package:meprop_asset_tracker/components/filter_widgets.dart';
+import 'package:meprop_asset_tracker/app_state.dart';
 
 class PortfolioPage extends StatefulWidget {
   const PortfolioPage({super.key});
@@ -46,17 +46,17 @@ class PortfolioPageState extends State<PortfolioPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       // Vérifier si les données sont déjà chargées
       final dataManager = Provider.of<DataManager>(context, listen: false);
-      
+
       // Si les données du portfolio sont déjà chargées (depuis main.dart)
       if (!dataManager.isLoadingMain && dataManager.evmAddresses.isNotEmpty && dataManager.portfolio.isNotEmpty) {
         debugPrint("💼 Portfolio: données déjà chargées, skip chargement");
-      } 
+      }
       // Sinon, charger les données avec cache
       else {
         debugPrint("💼 Portfolio: chargement des données nécessaire");
         await DataFetchUtils.loadDataWithCache(context);
       }
-      
+
       // Charger les préférences d'affichage dans tous les cas
       _loadDisplayPreference();
       _loadFilterPreferences();
@@ -103,8 +103,10 @@ class PortfolioPageState extends State<PortfolioPage> {
           _sortOption = prefs.getString('sortOption') ?? S.of(context).sortByInitialLaunchDate;
           _isAscending = prefs.getBool('isAscending') ?? false;
           _selectedCity = prefs.getString('selectedCity')?.isEmpty ?? true ? null : prefs.getString('selectedCity');
-          _selectedRegion = prefs.getString('selectedRegion')?.isEmpty ?? true ? null : prefs.getString('selectedRegion');
-          _selectedCountry = prefs.getString('selectedCountry')?.isEmpty ?? true ? null : prefs.getString('selectedCountry');
+          _selectedRegion =
+              prefs.getString('selectedRegion')?.isEmpty ?? true ? null : prefs.getString('selectedRegion');
+          _selectedCountry =
+              prefs.getString('selectedCountry')?.isEmpty ?? true ? null : prefs.getString('selectedCountry');
           // On récupère l'identifiant interne, par défaut "all"
           _rentalStatusFilter = prefs.getString('rentalStatusFilter') ?? rentalStatusAll;
           // Charger les productTypes sélectionnés
@@ -187,10 +189,14 @@ class PortfolioPageState extends State<PortfolioPage> {
 
       if (groupedPortfolio.containsKey(shortName)) {
         groupedPortfolio[shortName]!['amount'] = (groupedPortfolio[shortName]!['amount'] as double) + tokenAmount;
-        groupedPortfolio[shortName]!['totalValue'] = (groupedPortfolio[shortName]!['totalValue'] as double) + tokenValue;
-        groupedPortfolio[shortName]!['dailyIncome'] = (groupedPortfolio[shortName]!['dailyIncome'] as double) + dailyIncome;
-        groupedPortfolio[shortName]!['monthlyIncome'] = (groupedPortfolio[shortName]!['monthlyIncome'] as double) + monthlyIncome;
-        groupedPortfolio[shortName]!['yearlyIncome'] = (groupedPortfolio[shortName]!['yearlyIncome'] as double) + yearlyIncome;
+        groupedPortfolio[shortName]!['totalValue'] =
+            (groupedPortfolio[shortName]!['totalValue'] as double) + tokenValue;
+        groupedPortfolio[shortName]!['dailyIncome'] =
+            (groupedPortfolio[shortName]!['dailyIncome'] as double) + dailyIncome;
+        groupedPortfolio[shortName]!['monthlyIncome'] =
+            (groupedPortfolio[shortName]!['monthlyIncome'] as double) + monthlyIncome;
+        groupedPortfolio[shortName]!['yearlyIncome'] =
+            (groupedPortfolio[shortName]!['yearlyIncome'] as double) + yearlyIncome;
 
         groupedPortfolio[shortName]!['inWallet'] |= isInWallet;
         groupedPortfolio[shortName]!['inRMM'] |= isInRMM;
@@ -212,7 +218,10 @@ class PortfolioPageState extends State<PortfolioPage> {
         groupedPortfolio[shortName]!['inWallet'] = isInWallet;
         groupedPortfolio[shortName]!['inRMM'] = isInRMM;
         // Initialisation du set d'adresses wallet
-        groupedPortfolio[shortName]!['evmAddresses'] = (token['evmAddress'] != null && token['evmAddress'].toString().isNotEmpty) ? {token['evmAddress']} : <String>{};
+        groupedPortfolio[shortName]!['evmAddresses'] =
+            (token['evmAddress'] != null && token['evmAddress'].toString().isNotEmpty)
+                ? {token['evmAddress']}
+                : <String>{};
       }
     }
 
@@ -288,11 +297,15 @@ class PortfolioPageState extends State<PortfolioPage> {
 
     // Tri en fonction des options sélectionnées
     if (_sortOption == S.of(context).sortByName) {
-      filteredPortfolio.sort((a, b) => _isAscending ? a['shortName'].compareTo(b['shortName']) : b['shortName'].compareTo(a['shortName']));
+      filteredPortfolio.sort(
+          (a, b) => _isAscending ? a['shortName'].compareTo(b['shortName']) : b['shortName'].compareTo(a['shortName']));
     } else if (_sortOption == S.of(context).sortByValue) {
-      filteredPortfolio.sort((a, b) => _isAscending ? a['totalValue'].compareTo(b['totalValue']) : b['totalValue'].compareTo(a['totalValue']));
+      filteredPortfolio.sort((a, b) =>
+          _isAscending ? a['totalValue'].compareTo(b['totalValue']) : b['totalValue'].compareTo(a['totalValue']));
     } else if (_sortOption == S.of(context).sortByAPY) {
-      filteredPortfolio.sort((a, b) => _isAscending ? a['annualPercentageYield'].compareTo(b['annualPercentageYield']) : b['annualPercentageYield'].compareTo(a['annualPercentageYield']));
+      filteredPortfolio.sort((a, b) => _isAscending
+          ? a['annualPercentageYield'].compareTo(b['annualPercentageYield'])
+          : b['annualPercentageYield'].compareTo(a['annualPercentageYield']));
     } else if (_sortOption == S.of(context).sortByInitialLaunchDate) {
       filteredPortfolio.sort((a, b) {
         final dateA = a['initialLaunchDate'] != null ? DateTime.tryParse(a['initialLaunchDate']) : DateTime(1970);
@@ -323,23 +336,23 @@ class PortfolioPageState extends State<PortfolioPage> {
   List<String> _getUniqueCities(List<Map<String, dynamic>> portfolio) => FilterWidgets.getUniqueCities(portfolio);
   List<String> _getUniqueRegions(List<Map<String, dynamic>> portfolio) => FilterWidgets.getUniqueRegions(portfolio);
   List<String> _getUniqueCountries(List<Map<String, dynamic>> portfolio) => FilterWidgets.getUniqueCountries(portfolio);
-  
+
   // Méthode pour vérifier si un token correspond au filtre pays
   bool _matchesCountryFilter(Map<String, dynamic> token, String? selectedCountry) {
     if (selectedCountry == null) return true;
-    
+
     String tokenCountry = token['country'] ?? "Unknown Country";
-    
+
     // Si "Series XX" est sélectionné, filtrer tous les tokens factoring_profitshare avec des séries
     if (selectedCountry == "Series XX") {
-      return (token['productType']?.toString().toLowerCase() == 'factoring_profitshare') && 
-             tokenCountry.toLowerCase().startsWith('series ');
+      return (token['productType']?.toString().toLowerCase() == 'factoring_profitshare') &&
+          tokenCountry.toLowerCase().startsWith('series ');
     }
-    
+
     // Filtre normal
     return tokenCountry == selectedCountry;
   }
-  
+
   // Méthode pour obtenir les types de produits uniques
   List<String> _getUniqueProductTypes(List<Map<String, dynamic>> portfolio) {
     Set<String> productTypes = {};
@@ -442,16 +455,22 @@ class PortfolioPageState extends State<PortfolioPage> {
                                                     onChanged: (value) {
                                                       _updateSearchQuery(value);
                                                     },
-                                                    style: TextStyle(fontSize: 14 + Provider.of<AppState>(context, listen: false).getTextSizeOffset()),
+                                                    style: TextStyle(
+                                                        fontSize: 14 +
+                                                            Provider.of<AppState>(context, listen: false)
+                                                                .getTextSizeOffset()),
                                                     decoration: InputDecoration(
                                                       isDense: true,
                                                       hintText: S.of(context).searchHint,
                                                       hintStyle: TextStyle(
-                                                        fontSize: 14 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
+                                                        fontSize: 14 +
+                                                            Provider.of<AppState>(context, listen: false)
+                                                                .getTextSizeOffset(),
                                                         color: Theme.of(context).textTheme.bodySmall?.color,
                                                       ),
                                                       border: InputBorder.none,
-                                                      contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                                                      contentPadding:
+                                                          const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
                                                     ),
                                                   ),
                                                 ),
@@ -641,15 +660,18 @@ class PortfolioPageState extends State<PortfolioPage> {
                     )
                   ];
                 },
- body: _isDisplay1 
-                  ? PortfolioDisplay1(
-                      portfolio: sortedFilteredPortfolio,
-                      isLoading: Provider.of<DataManager>(context).isLoadingMain || Provider.of<DataManager>(context).isUpdatingData,
-                    ) 
-                  : PortfolioDisplay2(
-                      portfolio: sortedFilteredPortfolio,
-                      isLoading: Provider.of<DataManager>(context).isLoadingMain || Provider.of<DataManager>(context).isUpdatingData,
-                    ),              ),
+                body: _isDisplay1
+                    ? PortfolioDisplay1(
+                        portfolio: sortedFilteredPortfolio,
+                        isLoading: Provider.of<DataManager>(context).isLoadingMain ||
+                            Provider.of<DataManager>(context).isUpdatingData,
+                      )
+                    : PortfolioDisplay2(
+                        portfolio: sortedFilteredPortfolio,
+                        isLoading: Provider.of<DataManager>(context).isLoadingMain ||
+                            Provider.of<DataManager>(context).isUpdatingData,
+                      ),
+              ),
             );
           },
         ),
@@ -663,12 +685,13 @@ class PortfolioPageState extends State<PortfolioPage> {
     required IconData icon,
     required String label,
     required VoidCallback onTap,
-  }) => FilterWidgets.buildFilterButton(
-    context: context,
-    icon: icon,
-    label: label,
-    onTap: onTap,
-  );
+  }) =>
+      FilterWidgets.buildFilterButton(
+        context: context,
+        icon: icon,
+        label: label,
+        onTap: onTap,
+      );
 
   Widget _buildFilterPopupMenu({
     required BuildContext context,
@@ -676,13 +699,14 @@ class PortfolioPageState extends State<PortfolioPage> {
     required String label,
     required List<PopupMenuEntry<String>> items,
     required Function(String) onSelected,
-  }) => FilterWidgets.buildFilterPopupMenu(
-    context: context,
-    icon: icon,
-    label: label,
-    items: items,
-    onSelected: onSelected,
-  );
+  }) =>
+      FilterWidgets.buildFilterPopupMenu(
+        context: context,
+        icon: icon,
+        label: label,
+        items: items,
+        onSelected: onSelected,
+      );
 
   // Helper pour obtenir le label du tri actuel
   String _getSortLabel(BuildContext context) {
@@ -763,13 +787,11 @@ class PortfolioPageState extends State<PortfolioPage> {
         child: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: selectedWallets.isNotEmpty 
-              ? Theme.of(context).primaryColor.withOpacity(0.2)
-              : Theme.of(context).primaryColor.withOpacity(0.1),
+            color: selectedWallets.isNotEmpty
+                ? Theme.of(context).primaryColor.withOpacity(0.2)
+                : Theme.of(context).primaryColor.withOpacity(0.1),
             borderRadius: BorderRadius.circular(12),
-            border: selectedWallets.isNotEmpty 
-              ? Border.all(color: Theme.of(context).primaryColor, width: 2)
-              : null,
+            border: selectedWallets.isNotEmpty ? Border.all(color: Theme.of(context).primaryColor, width: 2) : null,
           ),
           child: Icon(
             icon,
@@ -782,11 +804,11 @@ class PortfolioPageState extends State<PortfolioPage> {
             value: "wallet_header",
             enabled: false,
             child: Row(
-              children: const [
+              children: [
                 Icon(Icons.account_balance_wallet, size: 20),
                 SizedBox(width: 8.0),
                 Text(
-                  "Wallets",
+                  S.of(context).walletHeader,
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
               ],
@@ -814,7 +836,7 @@ class PortfolioPageState extends State<PortfolioPage> {
                   SizedBox(width: 8.0),
                   Icon(Icons.all_inclusive, size: 20),
                   SizedBox(width: 8.0),
-                  Text("Tous wallets"),
+                  Text(S.of(context).allWallets),
                 ],
               ),
             ),
@@ -825,34 +847,43 @@ class PortfolioPageState extends State<PortfolioPage> {
             height: 8,
             child: Divider(height: 1, thickness: 1),
           ),
-          ...Provider.of<DataManager>(context, listen: false).evmAddresses.toSet().toList().map((wallet) => PopupMenuItem(
-                value: wallet,
-                child: StatefulBuilder(
-                  builder: (context, setStateLocal) {
-                    return InkWell(
-                      onTap: () {
-                        setState(() {
-                          if (selectedWallets.contains(wallet)) {
-                            selectedWallets.remove(wallet);
-                          } else {
-                            selectedWallets.add(wallet);
-                          }
-                        });
-                        setStateLocal(() {});
+          ...Provider.of<DataManager>(context, listen: false)
+              .evmAddresses
+              .toSet()
+              .toList()
+              .map((wallet) => PopupMenuItem(
+                    value: wallet,
+                    child: StatefulBuilder(
+                      builder: (context, setStateLocal) {
+                        return InkWell(
+                          onTap: () {
+                            setState(() {
+                              if (selectedWallets.contains(wallet)) {
+                                selectedWallets.remove(wallet);
+                              } else {
+                                selectedWallets.add(wallet);
+                              }
+                            });
+                            setStateLocal(() {});
+                          },
+                          child: Row(
+                            children: [
+                              selectedWallets.contains(wallet)
+                                  ? const Icon(Icons.check, size: 20)
+                                  : const SizedBox(width: 20),
+                              const SizedBox(width: 8.0),
+                              const Icon(Icons.account_balance_wallet, size: 20),
+                              const SizedBox(width: 8.0),
+                              Flexible(
+                                  child: Text(wallet.length > 15
+                                      ? '${wallet.substring(0, 6)}...${wallet.substring(wallet.length - 4)}'
+                                      : wallet)),
+                            ],
+                          ),
+                        );
                       },
-                      child: Row(
-                        children: [
-                          selectedWallets.contains(wallet) ? const Icon(Icons.check, size: 20) : const SizedBox(width: 20),
-                          const SizedBox(width: 8.0),
-                          const Icon(Icons.account_balance_wallet, size: 20),
-                          const SizedBox(width: 8.0),
-                          Flexible(child: Text(wallet.length > 15 ? '${wallet.substring(0, 6)}...${wallet.substring(wallet.length - 4)}' : wallet)),
-                        ],
-                      ),
-                    );
-                  },
-                ),
-              )),
+                    ),
+                  )),
           // Bouton pour fermer/appliquer
           const PopupMenuDivider(),
           PopupMenuItem(
@@ -869,7 +900,7 @@ class PortfolioPageState extends State<PortfolioPage> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: Text("Appliquer"),
+                child: Text(S.of(context).applyWallets),
               ),
             ),
           ),
@@ -886,140 +917,138 @@ class PortfolioPageState extends State<PortfolioPage> {
     required Function(Set<String>) onProductTypesChanged,
   }) {
     return PopupMenuButton<String>(
-        tooltip: "",
-        onSelected: (String value) {
-          // La logique de sélection est gérée dans StatefulBuilder
-        },
-        offset: const Offset(0, 40),
-        elevation: 8,
-        color: Theme.of(context).cardColor.withOpacity(0.97),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: selectedProductTypes.isNotEmpty 
+      tooltip: "",
+      onSelected: (String value) {
+        // La logique de sélection est gérée dans StatefulBuilder
+      },
+      offset: const Offset(0, 40),
+      elevation: 8,
+      color: Theme.of(context).cardColor.withOpacity(0.97),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: selectedProductTypes.isNotEmpty
               ? Theme.of(context).primaryColor.withOpacity(0.2)
               : Theme.of(context).primaryColor.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(12),
-            border: selectedProductTypes.isNotEmpty 
-              ? Border.all(color: Theme.of(context).primaryColor, width: 2)
-              : null,
-          ),
-          child: Icon(
-            icon,
-            size: 20,
-            color: Theme.of(context).primaryColor,
-          ),
+          borderRadius: BorderRadius.circular(12),
+          border: selectedProductTypes.isNotEmpty ? Border.all(color: Theme.of(context).primaryColor, width: 2) : null,
         ),
-        itemBuilder: (context) {
-          final uniqueProductTypes = _getUniqueProductTypes(Provider.of<DataManager>(context, listen: false).portfolio);
-          
-          return [
-            PopupMenuItem(
-              value: "product_type_header",
-              enabled: false,
+        child: Icon(
+          icon,
+          size: 20,
+          color: Theme.of(context).primaryColor,
+        ),
+      ),
+      itemBuilder: (context) {
+        final uniqueProductTypes = _getUniqueProductTypes(Provider.of<DataManager>(context, listen: false).portfolio);
+
+        return [
+          PopupMenuItem(
+            value: "product_type_header",
+            enabled: false,
+            child: Row(
+              children: [
+                Icon(Icons.category, size: 20),
+                SizedBox(width: 8.0),
+                Text(
+                  S.of(context).productTypeHeader,
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+          ),
+          PopupMenuItem(
+            value: "divider_product_1",
+            enabled: false,
+            height: 8,
+            child: Divider(height: 1, thickness: 1),
+          ),
+          PopupMenuItem(
+            value: "all_product_types",
+            child: InkWell(
+              onTap: () {
+                setState(() {
+                  selectedProductTypes.clear();
+                });
+                onProductTypesChanged(selectedProductTypes);
+                Navigator.of(context).pop();
+              },
               child: Row(
-                children: const [
-                  Icon(Icons.category, size: 20),
+                children: [
+                  selectedProductTypes.isEmpty ? Icon(Icons.check, size: 20) : SizedBox(width: 20),
                   SizedBox(width: 8.0),
-                  Text(
-                    "Types de produit",
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
+                  Icon(Icons.all_inclusive, size: 20),
+                  SizedBox(width: 8.0),
+                  Text(S.of(context).allProductTypes),
                 ],
               ),
             ),
-            PopupMenuItem(
-              value: "divider_product_1",
-              enabled: false,
-              height: 8,
-              child: Divider(height: 1, thickness: 1),
-            ),
-            PopupMenuItem(
-              value: "all_product_types",
-              child: InkWell(
-                onTap: () {
-                  setState(() {
-                    selectedProductTypes.clear();
-                  });
-                  onProductTypesChanged(selectedProductTypes);
+          ),
+          PopupMenuItem(
+            value: "divider_product_2",
+            enabled: false,
+            height: 8,
+            child: Divider(height: 1, thickness: 1),
+          ),
+          ...uniqueProductTypes.map((productType) => PopupMenuItem(
+                value: productType,
+                child: StatefulBuilder(
+                  builder: (context, setStateLocal) {
+                    return InkWell(
+                      onTap: () {
+                        setState(() {
+                          if (selectedProductTypes.contains(productType)) {
+                            selectedProductTypes.remove(productType);
+                          } else {
+                            selectedProductTypes.add(productType);
+                          }
+                        });
+                        setStateLocal(() {});
+                        onProductTypesChanged(selectedProductTypes);
+                      },
+                      child: Row(
+                        children: [
+                          selectedProductTypes.contains(productType)
+                              ? const Icon(Icons.check, size: 20)
+                              : const SizedBox(width: 20),
+                          const SizedBox(width: 8.0),
+                          Icon(_getProductTypeIcon(productType), size: 20),
+                          const SizedBox(width: 8.0),
+                          Flexible(
+                            child: Text(_getLocalizedProductTypeName(context, productType)),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              )),
+          // Bouton pour fermer/appliquer
+          const PopupMenuDivider(),
+          PopupMenuItem(
+            value: "apply_product_types",
+            child: Center(
+              child: ElevatedButton(
+                onPressed: () {
                   Navigator.of(context).pop();
                 },
-                child: Row(
-                  children: [
-                    selectedProductTypes.isEmpty ? Icon(Icons.check, size: 20) : SizedBox(width: 20),
-                    SizedBox(width: 8.0),
-                    Icon(Icons.all_inclusive, size: 20),
-                    SizedBox(width: 8.0),
-                    Text("Tous types"),
-                  ],
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Theme.of(context).primaryColor,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
+                child: Text(S.of(context).applyProductTypes),
               ),
             ),
-            PopupMenuItem(
-              value: "divider_product_2",
-              enabled: false,
-              height: 8,
-              child: Divider(height: 1, thickness: 1),
-            ),
-            ...uniqueProductTypes.map((productType) => PopupMenuItem(
-                  value: productType,
-                  child: StatefulBuilder(
-                    builder: (context, setStateLocal) {
-                      return InkWell(
-                        onTap: () {
-                          setState(() {
-                            if (selectedProductTypes.contains(productType)) {
-                              selectedProductTypes.remove(productType);
-                            } else {
-                              selectedProductTypes.add(productType);
-                            }
-                          });
-                          setStateLocal(() {});
-                          onProductTypesChanged(selectedProductTypes);
-                        },
-                        child: Row(
-                          children: [
-                            selectedProductTypes.contains(productType) 
-                              ? const Icon(Icons.check, size: 20) 
-                              : const SizedBox(width: 20),
-                            const SizedBox(width: 8.0),
-                            Icon(_getProductTypeIcon(productType), size: 20),
-                            const SizedBox(width: 8.0),
-                            Flexible(
-                              child: Text(_getLocalizedProductTypeName(context, productType)),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-                )),
-            // Bouton pour fermer/appliquer
-            const PopupMenuDivider(),
-            PopupMenuItem(
-              value: "apply_product_types",
-              child: Center(
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).primaryColor,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: Text("Appliquer"),
-                ),
-              ),
-            ),
-          ];
-        },
-      );
+          ),
+        ];
+      },
+    );
   }
 
   // Filtre Region
@@ -1049,13 +1078,11 @@ class PortfolioPageState extends State<PortfolioPage> {
         child: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: selectedRegion != null 
-              ? Theme.of(context).primaryColor.withOpacity(0.2)
-              : Theme.of(context).primaryColor.withOpacity(0.1),
+            color: selectedRegion != null
+                ? Theme.of(context).primaryColor.withOpacity(0.2)
+                : Theme.of(context).primaryColor.withOpacity(0.1),
             borderRadius: BorderRadius.circular(12),
-            border: selectedRegion != null 
-              ? Border.all(color: Theme.of(context).primaryColor, width: 2)
-              : null,
+            border: selectedRegion != null ? Border.all(color: Theme.of(context).primaryColor, width: 2) : null,
           ),
           child: Icon(
             icon,
@@ -1065,7 +1092,7 @@ class PortfolioPageState extends State<PortfolioPage> {
         ),
         itemBuilder: (context) {
           final uniqueRegions = _getUniqueRegions(Provider.of<DataManager>(context, listen: false).portfolio);
-          
+
           return [
             PopupMenuItem(
               value: "region_header",
@@ -1158,13 +1185,11 @@ class PortfolioPageState extends State<PortfolioPage> {
         child: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: selectedCountry != null 
-              ? Theme.of(context).primaryColor.withOpacity(0.2)
-              : Theme.of(context).primaryColor.withOpacity(0.1),
+            color: selectedCountry != null
+                ? Theme.of(context).primaryColor.withOpacity(0.2)
+                : Theme.of(context).primaryColor.withOpacity(0.1),
             borderRadius: BorderRadius.circular(12),
-            border: selectedCountry != null 
-              ? Border.all(color: Theme.of(context).primaryColor, width: 2)
-              : null,
+            border: selectedCountry != null ? Border.all(color: Theme.of(context).primaryColor, width: 2) : null,
           ),
           child: Icon(
             icon,
@@ -1174,7 +1199,7 @@ class PortfolioPageState extends State<PortfolioPage> {
         ),
         itemBuilder: (context) {
           final uniqueCountries = _getUniqueCountries(Provider.of<DataManager>(context, listen: false).portfolio);
-          
+
           return [
             PopupMenuItem(
               value: "country_header",
@@ -1263,13 +1288,13 @@ class PortfolioPageState extends State<PortfolioPage> {
         child: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-                      color: _rentalStatusFilter != rentalStatusAll 
-            ? Theme.of(context).primaryColor.withOpacity(0.2)
-            : Theme.of(context).primaryColor.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(12),
-          border: _rentalStatusFilter != rentalStatusAll 
-            ? Border.all(color: Theme.of(context).primaryColor, width: 2)
-            : null,
+            color: _rentalStatusFilter != rentalStatusAll
+                ? Theme.of(context).primaryColor.withOpacity(0.2)
+                : Theme.of(context).primaryColor.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(12),
+            border: _rentalStatusFilter != rentalStatusAll
+                ? Border.all(color: Theme.of(context).primaryColor, width: 2)
+                : null,
           ),
           child: Icon(
             icon,
@@ -1292,66 +1317,66 @@ class PortfolioPageState extends State<PortfolioPage> {
               ],
             ),
           ),
-                      PopupMenuItem(
-              value: "divider_rental_1",
-              enabled: false,
-              height: 8,
-              child: Divider(height: 1, thickness: 1),
+          PopupMenuItem(
+            value: "divider_rental_1",
+            enabled: false,
+            height: 8,
+            child: Divider(height: 1, thickness: 1),
+          ),
+          PopupMenuItem(
+            value: rentalStatusAll,
+            child: Row(
+              children: [
+                _rentalStatusFilter == rentalStatusAll ? Icon(Icons.check, size: 20) : SizedBox(width: 20),
+                SizedBox(width: 8.0),
+                Icon(Icons.all_inclusive, size: 20),
+                SizedBox(width: 8.0),
+                Text("Tous statuts"),
+              ],
             ),
-            PopupMenuItem(
-              value: rentalStatusAll,
-              child: Row(
-                children: [
-                  _rentalStatusFilter == rentalStatusAll ? Icon(Icons.check, size: 20) : SizedBox(width: 20),
-                  SizedBox(width: 8.0),
-                  Icon(Icons.all_inclusive, size: 20),
-                  SizedBox(width: 8.0),
-                  Text("Tous statuts"),
-                ],
-              ),
+          ),
+          PopupMenuItem(
+            value: "divider_rental_2",
+            enabled: false,
+            height: 8,
+            child: Divider(height: 1, thickness: 1),
+          ),
+          PopupMenuItem(
+            value: rentalStatusRented,
+            child: Row(
+              children: [
+                _rentalStatusFilter == rentalStatusRented ? Icon(Icons.check, size: 20) : SizedBox(width: 20),
+                SizedBox(width: 8.0),
+                Icon(Icons.check_circle, size: 20, color: Colors.green),
+                SizedBox(width: 8.0),
+                Text(S.of(context).rentalStatusRented),
+              ],
             ),
-            PopupMenuItem(
-              value: "divider_rental_2",
-              enabled: false,
-              height: 8,
-              child: Divider(height: 1, thickness: 1),
+          ),
+          PopupMenuItem(
+            value: rentalStatusPartially,
+            child: Row(
+              children: [
+                _rentalStatusFilter == rentalStatusPartially ? Icon(Icons.check, size: 20) : SizedBox(width: 20),
+                SizedBox(width: 8.0),
+                Icon(Icons.adjust, size: 20, color: Colors.orange),
+                SizedBox(width: 8.0),
+                Text(S.of(context).rentalStatusPartiallyRented),
+              ],
             ),
-                      PopupMenuItem(
-              value: rentalStatusRented,
-              child: Row(
-                children: [
-                  _rentalStatusFilter == rentalStatusRented ? Icon(Icons.check, size: 20) : SizedBox(width: 20),
-                  SizedBox(width: 8.0),
-                  Icon(Icons.check_circle, size: 20, color: Colors.green),
-                  SizedBox(width: 8.0),
-                  Text(S.of(context).rentalStatusRented),
-                ],
-              ),
+          ),
+          PopupMenuItem(
+            value: rentalStatusNotRented,
+            child: Row(
+              children: [
+                _rentalStatusFilter == rentalStatusNotRented ? Icon(Icons.check, size: 20) : SizedBox(width: 20),
+                SizedBox(width: 8.0),
+                Icon(Icons.cancel, size: 20, color: Colors.red),
+                SizedBox(width: 8.0),
+                Text(S.of(context).rentalStatusNotRented),
+              ],
             ),
-            PopupMenuItem(
-              value: rentalStatusPartially,
-              child: Row(
-                children: [
-                  _rentalStatusFilter == rentalStatusPartially ? Icon(Icons.check, size: 20) : SizedBox(width: 20),
-                  SizedBox(width: 8.0),
-                  Icon(Icons.adjust, size: 20, color: Colors.orange),
-                  SizedBox(width: 8.0),
-                  Text(S.of(context).rentalStatusPartiallyRented),
-                ],
-              ),
-            ),
-            PopupMenuItem(
-              value: rentalStatusNotRented,
-              child: Row(
-                children: [
-                  _rentalStatusFilter == rentalStatusNotRented ? Icon(Icons.check, size: 20) : SizedBox(width: 20),
-                  SizedBox(width: 8.0),
-                  Icon(Icons.cancel, size: 20, color: Colors.red),
-                  SizedBox(width: 8.0),
-                  Text(S.of(context).rentalStatusNotRented),
-                ],
-              ),
-            ),
+          ),
         ],
       ),
     );
@@ -1380,13 +1405,15 @@ class PortfolioPageState extends State<PortfolioPage> {
         child: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-                      color: (selectedTokenTypes.isNotEmpty && !(selectedTokenTypes.contains("wallet") && selectedTokenTypes.contains("RMM")))
-            ? Theme.of(context).primaryColor.withOpacity(0.2)
-            : Theme.of(context).primaryColor.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(12),
-          border: (selectedTokenTypes.isNotEmpty && !(selectedTokenTypes.contains("wallet") && selectedTokenTypes.contains("RMM")))
-            ? Border.all(color: Theme.of(context).primaryColor, width: 2)
-            : null,
+            color: (selectedTokenTypes.isNotEmpty &&
+                    !(selectedTokenTypes.contains("wallet") && selectedTokenTypes.contains("RMM")))
+                ? Theme.of(context).primaryColor.withOpacity(0.2)
+                : Theme.of(context).primaryColor.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(12),
+            border: (selectedTokenTypes.isNotEmpty &&
+                    !(selectedTokenTypes.contains("wallet") && selectedTokenTypes.contains("RMM")))
+                ? Border.all(color: Theme.of(context).primaryColor, width: 2)
+                : null,
           ),
           child: Icon(
             icon,
@@ -1409,42 +1436,44 @@ class PortfolioPageState extends State<PortfolioPage> {
               ],
             ),
           ),
-                      PopupMenuItem(
-              value: "divider_token_1",
-              enabled: false,
-              height: 8,
-              child: Divider(height: 1, thickness: 1),
-            ),
-            PopupMenuItem(
-              value: "all_token_types",
-              child: InkWell(
-                onTap: () {
-                  setState(() {
-                    selectedTokenTypes.clear();
-                    selectedTokenTypes.addAll({"wallet", "RMM"});
-                  });
-                  onTokenTypesChanged(selectedTokenTypes);
-                  Navigator.of(context).pop();
-                },
-                child: Row(
-                  children: [
-                    (selectedTokenTypes.contains("wallet") && selectedTokenTypes.contains("RMM")) ? Icon(Icons.check, size: 20) : SizedBox(width: 20),
-                    SizedBox(width: 8.0),
-                    Icon(Icons.all_inclusive, size: 20),
-                    SizedBox(width: 8.0),
-                    Text("Tous types"),
-                  ],
-                ),
+          PopupMenuItem(
+            value: "divider_token_1",
+            enabled: false,
+            height: 8,
+            child: Divider(height: 1, thickness: 1),
+          ),
+          PopupMenuItem(
+            value: "all_token_types",
+            child: InkWell(
+              onTap: () {
+                setState(() {
+                  selectedTokenTypes.clear();
+                  selectedTokenTypes.addAll({"wallet", "RMM"});
+                });
+                onTokenTypesChanged(selectedTokenTypes);
+                Navigator.of(context).pop();
+              },
+              child: Row(
+                children: [
+                  (selectedTokenTypes.contains("wallet") && selectedTokenTypes.contains("RMM"))
+                      ? Icon(Icons.check, size: 20)
+                      : SizedBox(width: 20),
+                  SizedBox(width: 8.0),
+                  Icon(Icons.all_inclusive, size: 20),
+                  SizedBox(width: 8.0),
+                  Text("Tous types"),
+                ],
               ),
             ),
-            PopupMenuItem(
-              value: "divider_token_2",
-              enabled: false,
-              height: 8,
-              child: Divider(height: 1, thickness: 1),
-            ),
-            PopupMenuItem(
-              value: "wallet_toggle",
+          ),
+          PopupMenuItem(
+            value: "divider_token_2",
+            enabled: false,
+            height: 8,
+            child: Divider(height: 1, thickness: 1),
+          ),
+          PopupMenuItem(
+            value: "wallet_toggle",
             child: StatefulBuilder(
               builder: (context, setStateLocal) {
                 return InkWell(

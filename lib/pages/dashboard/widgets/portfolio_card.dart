@@ -1,17 +1,17 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:realtoken_asset_tracker/managers/data_manager.dart';
-import 'package:realtoken_asset_tracker/app_state.dart';
-import 'package:realtoken_asset_tracker/utils/currency_utils.dart';
-import 'package:realtoken_asset_tracker/generated/l10n.dart';
-import 'package:realtoken_asset_tracker/utils/ui_utils.dart';
-import 'package:realtoken_asset_tracker/utils/parameters.dart';
-import 'package:realtoken_asset_tracker/utils/widget_factory.dart';
+import 'package:meprop_asset_tracker/managers/data_manager.dart';
+import 'package:meprop_asset_tracker/app_state.dart';
+import 'package:meprop_asset_tracker/utils/currency_utils.dart';
+import 'package:meprop_asset_tracker/generated/l10n.dart';
+import 'package:meprop_asset_tracker/utils/ui_utils.dart';
+import 'package:meprop_asset_tracker/utils/parameters.dart';
+import 'package:meprop_asset_tracker/utils/widget_factory.dart';
 import 'package:shimmer/shimmer.dart';
-import 'package:realtoken_asset_tracker/settings/personalization_settings_page.dart';
-import 'package:realtoken_asset_tracker/pages/dashboard/detailsPages/portfolio_details_page.dart';
-import 'package:realtoken_asset_tracker/utils/shimmer_utils.dart';
+import 'package:meprop_asset_tracker/settings/personalization_settings_page.dart';
+import 'package:meprop_asset_tracker/pages/dashboard/detailsPages/portfolio_details_page.dart';
+import 'package:meprop_asset_tracker/utils/shimmer_utils.dart';
 
 class PortfolioCard extends StatelessWidget {
   final bool showAmounts;
@@ -56,7 +56,8 @@ class PortfolioCard extends StatelessWidget {
 
     // Calcul du pourcentage de rendement par rapport à l'investissement total
     double percentageYam = ((portfolioDisplayValue / totalPortfolioValue - 1) * 100);
-    String percentageYamDisplay = percentageYam.isNaN || percentageYam.isInfinite ? '0' : percentageYam.toStringAsFixed(0);
+    String percentageYamDisplay =
+        percentageYam.isNaN || percentageYam.isInfinite ? '0' : percentageYam.toStringAsFixed(0);
 
     // Calculer le nombre d'éléments visibles pour estimer la hauteur minimale
     int visibleSections = 2; // Toujours afficher la section "Actifs"
@@ -83,7 +84,8 @@ class PortfolioCard extends StatelessWidget {
         Parameters.showYamProjection
             ? UIUtils.buildValueBeforeText(
                 context,
-                currencyUtils.getFormattedAmount(currencyUtils.convert(portfolioDisplayValue), currencyUtils.currencySymbol, showAmounts),
+                currencyUtils.getFormattedAmount(
+                    currencyUtils.convert(portfolioDisplayValue), currencyUtils.currencySymbol, showAmounts),
                 '${S.of(context).projection} YAM ($percentageYamDisplay%)',
                 isLoading,
                 highlightPercentage: true,
@@ -92,14 +94,22 @@ class PortfolioCard extends StatelessWidget {
         [
           // Section des totaux - mise en évidence avec un style particulier
           WidgetFactory.buildSectionHeader(context, S.of(context).totalPortfolio),
-          _buildTotalValue(context, currencyUtils.getFormattedAmount(currencyUtils.convert(totalPortfolioValue), currencyUtils.currencySymbol, showAmounts), isLoading, theme,
+          _buildTotalValue(
+              context,
+              currencyUtils.getFormattedAmount(
+                  currencyUtils.convert(totalPortfolioValue), currencyUtils.currencySymbol, showAmounts),
+              isLoading,
+              theme,
               showNetLabel: Parameters.showNetTotal),
 
           // Ajout du total investi si l'option est activée
           if (Parameters.showTotalInvested)
             _buildSubtotalValue(
                 context,
-                currencyUtils.getFormattedAmount(currencyUtils.convert(dataManager.initialTotalValue + Parameters.initialInvestmentAdjustment), currencyUtils.currencySymbol, showAmounts),
+                currencyUtils.getFormattedAmount(
+                    currencyUtils.convert(dataManager.initialTotalValue + Parameters.initialInvestmentAdjustment),
+                    currencyUtils.currencySymbol,
+                    showAmounts),
                 S.of(context).initialInvestment,
                 isLoading,
                 theme),
@@ -108,26 +118,39 @@ class PortfolioCard extends StatelessWidget {
 
           // Section des actifs - avec titre de section
           WidgetFactory.buildSectionHeader(context, S.of(context).assets),
-          _buildIndentedBalance(S.of(context).wallet, currencyUtils.convert(dataManager.walletValue), currencyUtils.currencySymbol, true, context, isLoading),
-          _buildIndentedBalance(S.of(context).rmm, currencyUtils.convert(dataManager.rmmValue), currencyUtils.currencySymbol, true, context, isLoading),
-          _buildIndentedBalance(S.of(context).rwaHoldings, currencyUtils.convert(dataManager.rwaHoldingsValue), currencyUtils.currencySymbol, true, context, isLoading),
+          _buildIndentedBalance(S.of(context).wallet, currencyUtils.convert(dataManager.walletValue),
+              currencyUtils.currencySymbol, true, context, isLoading),
+          _buildIndentedBalance(S.of(context).rmm, currencyUtils.convert(dataManager.rmmValue),
+              currencyUtils.currencySymbol, true, context, isLoading),
+          _buildIndentedBalance(S.of(context).rwaHoldings, currencyUtils.convert(dataManager.rwaHoldingsValue),
+              currencyUtils.currencySymbol, true, context, isLoading),
 
           if (Parameters.showNetTotal) ...[
             const SizedBox(height: 3), // Réduit de 6 à 3
             // Section des dépôts et emprunts - avec titre de section
             WidgetFactory.buildSectionHeader(context, S.of(context).depositsAndLoans),
             _buildIndentedBalance(
-                S.of(context).depositBalance, currencyUtils.convert(dataManager.totalUsdcDepositBalance + dataManager.totalXdaiDepositBalance), currencyUtils.currencySymbol, true, context, isLoading),
+                S.of(context).depositBalance,
+                currencyUtils.convert(dataManager.totalUsdcDepositBalance + dataManager.totalXdaiDepositBalance),
+                currencyUtils.currencySymbol,
+                true,
+                context,
+                isLoading),
             _buildIndentedBalance(
-                S.of(context).borrowBalance, currencyUtils.convert(dataManager.totalUsdcBorrowBalance + dataManager.totalXdaiBorrowBalance), currencyUtils.currencySymbol, false, context, isLoading),
+                S.of(context).borrowBalance,
+                currencyUtils.convert(dataManager.totalUsdcBorrowBalance + dataManager.totalXdaiBorrowBalance),
+                currencyUtils.currencySymbol,
+                false,
+                context,
+                isLoading),
           ],
 
           // Affichage de l'ajustement manuel si différent de zéro
           if (Parameters.manualAdjustment != 0) ...[
             const SizedBox(height: 3), // Réduit de 6 à 3
             WidgetFactory.buildSectionHeader(context, S.of(context).adjustments),
-            _buildIndentedBalance(
-                S.of(context).manualAdjustment, currencyUtils.convert(Parameters.manualAdjustment), currencyUtils.currencySymbol, Parameters.manualAdjustment > 0, context, isLoading),
+            _buildIndentedBalance(S.of(context).manualAdjustment, currencyUtils.convert(Parameters.manualAdjustment),
+                currencyUtils.currencySymbol, Parameters.manualAdjustment > 0, context, isLoading),
           ],
 
           // Ajouter un espace pour assurer une hauteur minimale si nécessaire
@@ -235,15 +258,16 @@ class PortfolioCard extends StatelessWidget {
     );
   }
 
-
-
-  Widget _buildTotalValue(BuildContext context, String formattedAmount, bool isLoading, ThemeData theme, {bool showNetLabel = false}) {
+  Widget _buildTotalValue(BuildContext context, String formattedAmount, bool isLoading, ThemeData theme,
+      {bool showNetLabel = false}) {
     final dataManager = Provider.of<DataManager>(context, listen: false);
     final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
-    
+
     // Calculer le montant brut
-    double grossValue = dataManager.walletValue + dataManager.rmmValue + dataManager.rwaHoldingsValue + Parameters.manualAdjustment;
-    String grossFormattedAmount = currencyUtils.getFormattedAmount(currencyUtils.convert(grossValue), currencyUtils.currencySymbol, showAmounts);
+    double grossValue =
+        dataManager.walletValue + dataManager.rmmValue + dataManager.rwaHoldingsValue + Parameters.manualAdjustment;
+    String grossFormattedAmount =
+        currencyUtils.getFormattedAmount(currencyUtils.convert(grossValue), currencyUtils.currencySymbol, showAmounts);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -331,7 +355,8 @@ class PortfolioCard extends StatelessWidget {
     );
   }
 
-  Widget _buildSubtotalValue(BuildContext context, String formattedAmount, String label, bool isLoading, ThemeData theme) {
+  Widget _buildSubtotalValue(
+      BuildContext context, String formattedAmount, String label, bool isLoading, ThemeData theme) {
     return Padding(
       padding: const EdgeInsets.only(left: 12.0, top: 1, bottom: 1),
       child: Row(
@@ -372,13 +397,17 @@ class PortfolioCard extends StatelessWidget {
     );
   }
 
-  Widget _buildIndentedBalance(String label, double value, String symbol, bool isPositive, BuildContext context, bool isLoading) {
+  Widget _buildIndentedBalance(
+      String label, double value, String symbol, bool isPositive, BuildContext context, bool isLoading) {
     final appState = Provider.of<AppState>(context, listen: false);
     final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
     final theme = Theme.of(context);
 
-    String formattedAmount =
-        showAmounts ? (isPositive ? "+ ${currencyUtils.formatCurrency(value, symbol)}" : "- ${currencyUtils.formatCurrency(value, symbol)}") : (isPositive ? "+ " : "- ") + ('*' * 10);
+    String formattedAmount = showAmounts
+        ? (isPositive
+            ? "+ ${currencyUtils.formatCurrency(value, symbol)}"
+            : "- ${currencyUtils.formatCurrency(value, symbol)}")
+        : (isPositive ? "+ " : "- ") + ('*' * 10);
 
     Color valueColor = isPositive
         ? Color(0xFF34C759) // Vert iOS
@@ -521,7 +550,8 @@ class PortfolioCard extends StatelessWidget {
             width: 26,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(13),
-              color: theme.brightness == Brightness.light ? Colors.black.withOpacity(0.05) : Colors.white.withOpacity(0.1),
+              color:
+                  theme.brightness == Brightness.light ? Colors.black.withOpacity(0.05) : Colors.white.withOpacity(0.1),
             ),
             child: Align(
               alignment: Alignment.bottomCenter,

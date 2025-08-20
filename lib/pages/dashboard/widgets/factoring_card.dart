@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:realtoken_asset_tracker/managers/data_manager.dart';
-import 'package:realtoken_asset_tracker/app_state.dart';
-import 'package:realtoken_asset_tracker/generated/l10n.dart';
-import 'package:realtoken_asset_tracker/utils/ui_utils.dart';
-import 'package:realtoken_asset_tracker/utils/currency_utils.dart';
-import 'package:realtoken_asset_tracker/utils/shimmer_utils.dart';
-import 'package:realtoken_asset_tracker/pages/dashboard/detailsPages/factoring_details_page.dart';
+import 'package:meprop_asset_tracker/managers/data_manager.dart';
+import 'package:meprop_asset_tracker/app_state.dart';
+import 'package:meprop_asset_tracker/generated/l10n.dart';
+import 'package:meprop_asset_tracker/utils/ui_utils.dart';
+import 'package:meprop_asset_tracker/utils/currency_utils.dart';
+import 'package:meprop_asset_tracker/utils/shimmer_utils.dart';
+import 'package:meprop_asset_tracker/pages/dashboard/detailsPages/factoring_details_page.dart';
 
 class FactoringCard extends StatelessWidget {
   final bool showAmounts;
@@ -23,14 +23,13 @@ class FactoringCard extends StatelessWidget {
     final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
 
     // Filtrer les tokens de type factoring_profitshare
-    final factoringTokens = dataManager.portfolio.where((token) => 
-      (token['productType'] ?? '').toLowerCase() == 'factoring_profitshare'
-    ).toList();
+    final factoringTokens = dataManager.portfolio
+        .where((token) => (token['productType'] ?? '').toLowerCase() == 'factoring_profitshare')
+        .toList();
 
     final totalTokens = factoringTokens.length;
-    final totalValue = factoringTokens.fold<double>(0.0, (sum, token) => 
-      sum + ((token['totalValue'] as num?)?.toDouble() ?? 0.0)
-    );
+    final totalValue =
+        factoringTokens.fold<double>(0.0, (sum, token) => sum + ((token['totalValue'] as num?)?.toDouble() ?? 0.0));
     // Filtrer selon rentStartDate pour ne prendre que les tokens qui génèrent déjà des revenus
     final today = DateTime.now();
     final monthlyIncome = factoringTokens.fold<double>(0.0, (sum, token) {
@@ -57,15 +56,11 @@ class FactoringCard extends StatelessWidget {
         'Factoring',
         Icons.business_center_outlined,
         _buildValueWithIconSmall(
-          context, 
-          currencyUtils.getFormattedAmount(
-            currencyUtils.convert(monthlyIncome), 
-            currencyUtils.currencySymbol, 
-            showAmounts
-          ), 
-          Icons.attach_money_rounded,
-          isLoading
-        ),
+            context,
+            currencyUtils.getFormattedAmount(
+                currencyUtils.convert(monthlyIncome), currencyUtils.currencySymbol, showAmounts),
+            Icons.attach_money_rounded,
+            isLoading),
         [
           _buildTextWithShimmerSmall(
             '$totalTokens',
@@ -74,9 +69,11 @@ class FactoringCard extends StatelessWidget {
             context,
           ),
           _buildTextWithShimmerSmall(
-            showAmounts 
-              ? _formatCurrencyWithoutDecimals(currencyUtils.convert(totalValue), currencyUtils.currencySymbol)
-              : '*' * _formatCurrencyWithoutDecimals(currencyUtils.convert(totalValue), currencyUtils.currencySymbol).length,
+            showAmounts
+                ? _formatCurrencyWithoutDecimals(currencyUtils.convert(totalValue), currencyUtils.currencySymbol)
+                : '*' *
+                    _formatCurrencyWithoutDecimals(currencyUtils.convert(totalValue), currencyUtils.currencySymbol)
+                        .length,
             'Total',
             isLoading,
             context,
@@ -184,7 +181,7 @@ class FactoringCard extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
           Text(
-            text, 
+            text,
             style: TextStyle(
               fontSize: 12 + appState.getTextSizeOffset(),
               color: theme.brightness == Brightness.light ? Colors.black54 : Colors.white70,
@@ -196,7 +193,7 @@ class FactoringCard extends StatelessWidget {
           isLoading
               ? ShimmerUtils.originalColorShimmer(
                   child: Text(
-                    value ?? '', 
+                    value ?? '',
                     style: TextStyle(
                       fontSize: 13 + appState.getTextSizeOffset(),
                       fontWeight: FontWeight.w600,
@@ -208,7 +205,7 @@ class FactoringCard extends StatelessWidget {
                   color: theme.textTheme.bodyLarge?.color,
                 )
               : Text(
-                  value ?? '', 
+                  value ?? '',
                   style: TextStyle(
                     fontSize: 13 + appState.getTextSizeOffset(),
                     fontWeight: FontWeight.w600,
@@ -262,4 +259,4 @@ class FactoringCard extends StatelessWidget {
       ),
     );
   }
-} 
+}

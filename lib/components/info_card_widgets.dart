@@ -1,19 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:realtoken_asset_tracker/utils/style_constants.dart';
-import 'package:realtoken_asset_tracker/utils/url_utils.dart';
-import 'package:realtoken_asset_tracker/app_state.dart';
+import 'package:meprop_asset_tracker/utils/style_constants.dart';
+import 'package:meprop_asset_tracker/utils/url_utils.dart';
+import 'package:meprop_asset_tracker/app_state.dart';
 import 'package:provider/provider.dart';
 
 /// Factory pour créer des cartes d'information standardisées
 class InfoCardWidgets {
-  
   /// Construit un header de section standardisé
-  static Widget buildSectionHeader(
-    BuildContext context, 
-    String title, 
-    double textSizeOffset
-  ) {
+  static Widget buildSectionHeader(BuildContext context, String title, double textSizeOffset) {
     return Padding(
       padding: const EdgeInsets.only(top: 20.0, bottom: 12.0, left: 4.0),
       child: Text(
@@ -97,11 +92,7 @@ class InfoCardWidgets {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildIconContainer(
-              context, 
-              CupertinoIcons.heart_fill, 
-              CupertinoColors.systemPink.resolveFrom(context)
-            ),
+            _buildIconContainer(context, CupertinoIcons.heart_fill, CupertinoColors.systemPink.resolveFrom(context)),
             const SizedBox(width: 14),
             Expanded(
               child: _buildTextContent(context, title, subtitle, textSizeOffset),
@@ -140,7 +131,8 @@ class InfoCardWidgets {
                     Text(
                       title,
                       style: TextStyle(
-                        fontSize: 15 + Provider.of<AppState>(context, listen: false).getTextSizeOffset() + textSizeOffset,
+                        fontSize:
+                            15 + Provider.of<AppState>(context, listen: false).getTextSizeOffset() + textSizeOffset,
                         fontWeight: FontWeight.w500,
                         color: CupertinoColors.label.resolveFrom(context),
                       ),
@@ -149,7 +141,8 @@ class InfoCardWidgets {
                     Text(
                       url,
                       style: TextStyle(
-                        fontSize: 14 + Provider.of<AppState>(context, listen: false).getTextSizeOffset() + textSizeOffset,
+                        fontSize:
+                            14 + Provider.of<AppState>(context, listen: false).getTextSizeOffset() + textSizeOffset,
                         color: CupertinoColors.systemBlue.resolveFrom(context),
                       ),
                     ),
@@ -237,10 +230,7 @@ class InfoCardWidgets {
             Row(
               children: [
                 _buildIconContainer(
-                  context, 
-                  CupertinoIcons.money_dollar_circle,
-                  CupertinoColors.systemGreen.resolveFrom(context)
-                ),
+                    context, CupertinoIcons.money_dollar_circle, CupertinoColors.systemGreen.resolveFrom(context)),
                 const SizedBox(width: 12),
                 Text(
                   title,
@@ -288,12 +278,7 @@ class InfoCardWidgets {
   }
 
   /// Construit le contenu textuel standardisé (titre + sous-titre)
-  static Widget _buildTextContent(
-    BuildContext context, 
-    String title, 
-    String subtitle, 
-    double textSizeOffset
-  ) {
+  static Widget _buildTextContent(BuildContext context, String title, String subtitle, double textSizeOffset) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -316,4 +301,4 @@ class InfoCardWidgets {
       ],
     );
   }
-} 
+}

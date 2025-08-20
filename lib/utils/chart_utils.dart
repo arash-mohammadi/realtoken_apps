@@ -2,9 +2,9 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:realtoken_asset_tracker/app_state.dart';
-import 'package:realtoken_asset_tracker/generated/l10n.dart';
-import 'package:realtoken_asset_tracker/utils/date_utils.dart';
+import 'package:meprop_asset_tracker/app_state.dart';
+import 'package:meprop_asset_tracker/generated/l10n.dart';
+import 'package:meprop_asset_tracker/utils/date_utils.dart';
 
 class ChartUtils {
   // Constante pour le nombre maximum de barres à afficher
@@ -37,7 +37,8 @@ class ChartUtils {
     );
   }
 
-  static Widget _buildPeriodButton(String period, BuildContext context, String selectedPeriod, Function(String) onPeriodChanged) {
+  static Widget _buildPeriodButton(
+      String period, BuildContext context, String selectedPeriod, Function(String) onPeriodChanged) {
     final isSelected = selectedPeriod == period;
     final appState = Provider.of<AppState>(context);
 
@@ -66,7 +67,7 @@ class ChartUtils {
     if (dataLength <= maxBarsToDisplay) {
       return 1; // Pas de step si moins que le maximum
     }
-    
+
     // Calcule le pas minimum pour ne pas dépasser maxBarsToDisplay
     return (dataLength / maxBarsToDisplay).ceil();
   }
@@ -74,41 +75,37 @@ class ChartUtils {
   /// Applique un step aux données pour limiter le nombre de points affichés
   static List<FlSpot> applyStepToData(List<FlSpot> spots) {
     if (spots.isEmpty) return spots;
-    
+
     final step = calculateStep(spots.length);
     if (step == 1) return spots; // Pas de changement nécessaire
-    
+
     List<FlSpot> filteredSpots = [];
-    
+
     // Toujours inclure le premier et le dernier point
     if (spots.isNotEmpty) {
       filteredSpots.add(spots.first);
     }
-    
+
     // Ajouter les points intermédiaires selon le step
     for (int i = step; i < spots.length - 1; i += step) {
       filteredSpots.add(spots[i]);
     }
-    
+
     // Ajouter le dernier point s'il n'est pas déjà inclus
     if (spots.length > 1 && spots.last != filteredSpots.last) {
       filteredSpots.add(spots.last);
     }
-    
+
     // Recalculer les indices x pour qu'ils soient séquentiels
     return filteredSpots.asMap().entries.map((entry) {
       return FlSpot(entry.key.toDouble(), entry.value.y);
     }).toList();
   }
 
-  static List<FlSpot> buildHistoryChartData<T>(
-    BuildContext context, 
-    List<T> history, 
-    String selectedPeriod, 
-    double Function(T) getValue, 
-    DateTime Function(T) getTimestamp,
-    {bool applyStep = true, String aggregate = "average"} // Ajout du paramètre aggregate
-  ) {
+  static List<FlSpot> buildHistoryChartData<T>(BuildContext context, List<T> history, String selectedPeriod,
+      double Function(T) getValue, DateTime Function(T) getTimestamp,
+      {bool applyStep = true, String aggregate = "average"} // Ajout du paramètre aggregate
+      ) {
     Map<String, List<double>> groupedData = {};
 
     for (var record in history) {
@@ -153,35 +150,35 @@ class ChartUtils {
   /// Applique un step aux dates pour limiter le nombre d'étiquettes affichées
   static List<String> applyStepToLabels(List<String> labels) {
     if (labels.isEmpty) return labels;
-    
+
     final step = calculateStep(labels.length);
     if (step == 1) return labels; // Pas de changement nécessaire
-    
+
     List<String> filteredLabels = [];
-    
+
     // Toujours inclure la première et la dernière étiquette
     if (labels.isNotEmpty) {
       filteredLabels.add(labels.first);
     }
-    
+
     // Ajouter les étiquettes intermédiaires selon le step
     for (int i = step; i < labels.length - 1; i += step) {
       filteredLabels.add(labels[i]);
     }
-    
+
     // Ajouter la dernière étiquette si elle n'est pas déjà incluse
     if (labels.length > 1 && !filteredLabels.contains(labels.last)) {
       filteredLabels.add(labels.last);
     }
-    
+
     // Compléter avec des étiquettes vides pour maintenir l'alignement
     final fullLength = filteredLabels.length;
     List<String> completeLabels = List.filled(fullLength, "");
-    
+
     for (int i = 0; i < filteredLabels.length; i++) {
       completeLabels[i] = filteredLabels[i];
     }
-    
+
     return completeLabels;
   }
 

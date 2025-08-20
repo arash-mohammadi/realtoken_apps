@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:local_auth/local_auth.dart';
-import 'package:realtoken_asset_tracker/services/biometric_service.dart';
-import 'package:realtoken_asset_tracker/generated/l10n.dart';
-import 'package:realtoken_asset_tracker/app_state.dart';
+import 'package:meprop_asset_tracker/services/biometric_service.dart';
+import 'package:meprop_asset_tracker/generated/l10n.dart';
+import 'package:meprop_asset_tracker/app_state.dart';
 import 'package:provider/provider.dart';
 
 class LockScreen extends StatefulWidget {
@@ -85,7 +85,8 @@ class _LockScreenState extends State<LockScreen> with WidgetsBindingObserver {
     });
 
     try {
-      final authenticated = await _biometricService.authenticate(reason: 'Veuillez vous authentifier pour accéder à l\'application');
+      final authenticated =
+          await _biometricService.authenticate(reason: 'Veuillez vous authentifier pour accéder à l\'application');
 
       if (authenticated) {
         widget.onAuthenticated();
@@ -156,7 +157,7 @@ class _LockScreenState extends State<LockScreen> with WidgetsBindingObserver {
               ),
               const SizedBox(height: 48),
               Text(
-                'RealToken Asset Tracker',
+                'MeProp Asset Tracker',
                 style: TextStyle(
                   fontSize: 24 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                   fontWeight: FontWeight.bold,

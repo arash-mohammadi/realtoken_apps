@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:realtoken_asset_tracker/app_state.dart';
-import 'package:realtoken_asset_tracker/utils/style_constants.dart';
+import 'package:meprop_asset_tracker/app_state.dart';
+import 'package:meprop_asset_tracker/utils/style_constants.dart';
 
 /// Widget commun pour créer des cartes de section standardisées
 /// Remplace toutes les méthodes _buildSectionCard dupliquées
@@ -30,7 +30,7 @@ class SectionCardWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context, listen: false);
-    
+
     return Container(
       margin: margin ?? const EdgeInsets.only(bottom: 6),
       decoration: BoxDecoration(
@@ -144,13 +144,11 @@ class DetailRowWidget extends StatelessWidget {
             style: TextStyle(
               fontSize: (valueFontSize ?? 14) + appState.getTextSizeOffset(),
               fontWeight: valueFontWeight ?? FontWeight.w400,
-              color: isExpenseItem 
-                  ? Colors.red 
-                  : (textColor ?? Theme.of(context).textTheme.bodyLarge?.color),
+              color: isExpenseItem ? Colors.red : (textColor ?? Theme.of(context).textTheme.bodyLarge?.color),
             ),
           ),
         ],
       ),
     );
   }
-} 
+}

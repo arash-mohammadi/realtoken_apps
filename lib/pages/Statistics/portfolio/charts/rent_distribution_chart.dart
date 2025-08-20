@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:provider/provider.dart';
-import 'package:realtoken_asset_tracker/managers/data_manager.dart';
-import 'package:realtoken_asset_tracker/app_state.dart';
-import 'package:realtoken_asset_tracker/generated/l10n.dart';
-import 'package:realtoken_asset_tracker/utils/currency_utils.dart';
-import 'package:realtoken_asset_tracker/pages/Statistics/portfolio/common_functions.dart';
-import 'package:realtoken_asset_tracker/utils/parameters.dart';
+import 'package:meprop_asset_tracker/managers/data_manager.dart';
+import 'package:meprop_asset_tracker/app_state.dart';
+import 'package:meprop_asset_tracker/generated/l10n.dart';
+import 'package:meprop_asset_tracker/utils/currency_utils.dart';
+import 'package:meprop_asset_tracker/pages/Statistics/portfolio/common_functions.dart';
+import 'package:meprop_asset_tracker/utils/parameters.dart';
 
 class RentDistributionChart extends StatefulWidget {
   final DataManager dataManager;
@@ -189,7 +189,9 @@ class _RentDistributionChartState extends State<RentDistributionChart> {
         color: generateColor(index).withOpacity(opacity),
         radius: isSelected ? 52 : 45,
         titleStyle: TextStyle(
-          fontSize: isSelected ? 14 + Provider.of<AppState>(context).getTextSizeOffset() : 10 + Provider.of<AppState>(context).getTextSizeOffset(),
+          fontSize: isSelected
+              ? 14 + Provider.of<AppState>(context).getTextSizeOffset()
+              : 10 + Provider.of<AppState>(context).getTextSizeOffset(),
           color: Colors.white,
           fontWeight: FontWeight.w600,
           shadows: [
@@ -279,7 +281,8 @@ class _RentDistributionChartState extends State<RentDistributionChart> {
         ),
         const SizedBox(height: 4),
         Text(
-          currencyUtils.getFormattedAmount(currencyUtils.convert(selectedEntry.value), currencyUtils.currencySymbol, true),
+          currencyUtils.getFormattedAmount(
+              currencyUtils.convert(selectedEntry.value), currencyUtils.currencySymbol, true),
           style: TextStyle(
             fontSize: 14 + Provider.of<AppState>(context).getTextSizeOffset(),
             color: Colors.grey.shade600,
@@ -344,7 +347,8 @@ class _RentDistributionChartState extends State<RentDistributionChart> {
                   '${data.key}',
                   style: TextStyle(
                     fontSize: 12 + appState.getTextSizeOffset(),
-                    color: _selectedIndexNotifier.value == index ? color : Theme.of(context).textTheme.bodyMedium?.color,
+                    color:
+                        _selectedIndexNotifier.value == index ? color : Theme.of(context).textTheme.bodyMedium?.color,
                     fontWeight: _selectedIndexNotifier.value == index ? FontWeight.w600 : FontWeight.normal,
                   ),
                 ),

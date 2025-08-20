@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-import 'package:realtoken_asset_tracker/managers/data_manager.dart';
-import 'package:realtoken_asset_tracker/generated/l10n.dart';
-import 'package:realtoken_asset_tracker/app_state.dart';
-import 'package:realtoken_asset_tracker/models/rented_record.dart';
-import 'package:realtoken_asset_tracker/utils/chart_utils.dart';
-import 'package:realtoken_asset_tracker/utils/date_utils.dart';
+import 'package:meprop_asset_tracker/managers/data_manager.dart';
+import 'package:meprop_asset_tracker/generated/l10n.dart';
+import 'package:meprop_asset_tracker/app_state.dart';
+import 'package:meprop_asset_tracker/models/rented_record.dart';
+import 'package:meprop_asset_tracker/utils/chart_utils.dart';
+import 'package:meprop_asset_tracker/utils/date_utils.dart';
 
 class RentedHistoryGraph extends StatelessWidget {
   final String selectedPeriod;
@@ -332,7 +332,8 @@ class RentedHistoryGraph extends StatelessWidget {
                                   showTitles: true,
                                   reservedSize: 45,
                                   getTitlesWidget: (value, meta) {
-                                    final highestValue = rentedHistoryData.map((e) => e.y).reduce((a, b) => a > b ? a : b);
+                                    final highestValue =
+                                        rentedHistoryData.map((e) => e.y).reduce((a, b) => a > b ? a : b);
 
                                     if (value == highestValue) {
                                       return const SizedBox.shrink();
@@ -355,7 +356,8 @@ class RentedHistoryGraph extends StatelessWidget {
                                 sideTitles: SideTitles(
                                   showTitles: true,
                                   getTitlesWidget: (value, meta) {
-                                    List<String> labels = _buildDateLabelsForRented(context, dataManager, selectedPeriod);
+                                    List<String> labels =
+                                        _buildDateLabelsForRented(context, dataManager, selectedPeriod);
 
                                     if (value.toInt() >= 0 && value.toInt() < labels.length) {
                                       return Padding(
@@ -427,7 +429,8 @@ class RentedHistoryGraph extends StatelessWidget {
                                   return touchedSpots.map((touchedSpot) {
                                     final index = touchedSpot.x.toInt();
                                     final value = touchedSpot.y;
-                                    final String periodLabel = _buildDateLabelsForRented(context, dataManager, selectedPeriod)[index];
+                                    final String periodLabel =
+                                        _buildDateLabelsForRented(context, dataManager, selectedPeriod)[index];
 
                                     return LineTooltipItem(
                                       '$periodLabel\n${value.toStringAsFixed(1)}%',
@@ -470,7 +473,8 @@ class RentedHistoryGraph extends StatelessWidget {
     );
   }
 
-  List<BarChartGroupData> _buildRentedHistoryBarChartData(BuildContext context, DataManager dataManager, String selectedPeriod) {
+  List<BarChartGroupData> _buildRentedHistoryBarChartData(
+      BuildContext context, DataManager dataManager, String selectedPeriod) {
     List<FlSpot> rentedHistoryData = _buildRentedHistoryChartData(context, dataManager, selectedPeriod);
     return rentedHistoryData
         .asMap()
@@ -529,12 +533,10 @@ class RentedHistoryGraph extends StatelessWidget {
     final dataManager = Provider.of<DataManager>(context, listen: false);
 
     for (var token in dataManager.portfolio) {
-  
-      
       // Vérifier si le token a un revenu mensuel positif
       if (token['monthlyIncome'] != null) {
         double monthlyIncome = (token['monthlyIncome'] ?? 0.0).toDouble();
-        
+
         // Vérifier si la valeur est valide
         if (monthlyIncome > 0) {
           spots.add(FlSpot(index.toDouble(), monthlyIncome));

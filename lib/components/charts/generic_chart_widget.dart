@@ -4,15 +4,15 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'dart:math';
-import 'package:realtoken_asset_tracker/app_state.dart';
-import 'package:realtoken_asset_tracker/generated/l10n.dart';
-import 'package:realtoken_asset_tracker/utils/chart_utils.dart';
-import 'package:realtoken_asset_tracker/utils/currency_utils.dart';
-import 'package:realtoken_asset_tracker/utils/chart_options_utils.dart';
-import 'package:realtoken_asset_tracker/utils/date_utils.dart';
-import 'package:realtoken_asset_tracker/utils/widget_factory.dart';
-import 'package:realtoken_asset_tracker/components/charts/chart_builders.dart';
-import 'package:realtoken_asset_tracker/models/apy_record.dart';
+import 'package:meprop_asset_tracker/app_state.dart';
+import 'package:meprop_asset_tracker/generated/l10n.dart';
+import 'package:meprop_asset_tracker/utils/chart_utils.dart';
+import 'package:meprop_asset_tracker/utils/currency_utils.dart';
+import 'package:meprop_asset_tracker/utils/chart_options_utils.dart';
+import 'package:meprop_asset_tracker/utils/date_utils.dart';
+import 'package:meprop_asset_tracker/utils/widget_factory.dart';
+import 'package:meprop_asset_tracker/components/charts/chart_builders.dart';
+import 'package:meprop_asset_tracker/models/apy_record.dart';
 import 'package:flutter/services.dart';
 
 /// Widget générique pour les graphiques (Wallet Balance, ROI, APY)
@@ -35,12 +35,12 @@ class GenericChartWidget<T> extends StatelessWidget {
   final String valueSuffix;
   final double? maxY; // Valeur maximale de l'axe Y (optionnelle)
   final bool isStacked; // Nouvel attribut pour indiquer si le graphique doit être empilé
-  
+
   // Nouveaux paramètres pour les graphiques empilés
   final List<Color>? stackColors; // Liste des couleurs pour chaque série empilée
   final List<double> Function(T)? getStackValues; // Fonction pour obtenir les valeurs des séries empilées
   final List<String>? stackLabels; // Étiquettes pour la légende des séries empilées
-  
+
   // Nouveaux paramètres pour le switch cumulatif (utilisé pour les graphiques de loyer)
   final bool? isCumulative;
   final Function(bool)? onCumulativeChanged;
@@ -198,12 +198,14 @@ class GenericChartWidget<T> extends StatelessWidget {
                           valueSuffix: valueSuffix,
                         ),
                         borderData: FlBorderData(show: false),
-                        lineBarsData: isStacked && getStackValues != null && stackColors != null 
-                          ? _buildStackedLineChartData(context) 
-                          : [ChartBuilders.buildStandardLine(
-                              spots: _buildChartData(context),
-                              color: chartColor,
-                            )],
+                        lineBarsData: isStacked && getStackValues != null && stackColors != null
+                            ? _buildStackedLineChartData(context)
+                            : [
+                                ChartBuilders.buildStandardLine(
+                                  spots: _buildChartData(context),
+                                  color: chartColor,
+                                )
+                              ],
                         lineTouchData: LineTouchData(
                           touchTooltipData: LineTouchTooltipData(
                             getTooltipItems: (touchedSpots) {
@@ -224,8 +226,7 @@ class GenericChartWidget<T> extends StatelessWidget {
                     ),
             ),
             // Légende pour les graphiques empilés
-            if (isStacked && stackLabels != null && stackColors != null)
-              _buildStackedLegend(),
+            if (isStacked && stackLabels != null && stackColors != null) _buildStackedLegend(),
           ],
         ),
       ),
@@ -246,15 +247,15 @@ class GenericChartWidget<T> extends StatelessWidget {
     if (isStacked && getStackValues != null && stackColors != null) {
       return _buildCustomStackedBarChartData(context);
     }
-    
+
     // Cas spécial pour les APY empilés
     if (isStacked && dataList.isNotEmpty && dataList.first is APYRecord) {
       return _buildStackedApyBarChartData(context);
     }
-    
+
     // Cas normal pour les barres simples
     List<FlSpot> chartData = _buildChartData(context);
-    
+
     return chartData
         .asMap()
         .entries
@@ -283,18 +284,19 @@ class GenericChartWidget<T> extends StatelessWidget {
   List<BarChartGroupData> _buildCustomStackedBarChartData(BuildContext context) {
     // On filtre d'abord les données selon la plage de temps
     final filteredData = _filterDataByTimeRange(context, dataList);
-    
+
     if (filteredData.isEmpty || getStackValues == null || stackColors == null) {
       return [];
     }
-    
+
     // Vérifier que nous avons suffisamment de couleurs
     final stackCount = getStackValues!(filteredData.first).length;
     if (stackCount != stackColors!.length) {
-      debugPrint("❌ Erreur: Le nombre de valeurs empilées ($stackCount) ne correspond pas au nombre de couleurs (${stackColors!.length})");
+      debugPrint(
+          "❌ Erreur: Le nombre de valeurs empilées ($stackCount) ne correspond pas au nombre de couleurs (${stackColors!.length})");
       return [];
     }
-    
+
     // Regrouper les données selon la période sélectionnée pour limiter le nombre de barres
     Map<String, List<T>> groupedData = {};
     for (var record in filteredData) {
@@ -316,25 +318,25 @@ class GenericChartWidget<T> extends StatelessWidget {
 
     // Trier les périodes
     List<String> sortedKeys = groupedData.keys.toList()..sort();
-    
+
     // Appliquer le step pour limiter le nombre de barres si nécessaire
     List<String> displayedKeys = ChartUtils.applyStepToLabels(sortedKeys);
-    
+
     final List<BarChartGroupData> barGroups = [];
-    
+
     // Pour chaque période à afficher
     for (int i = 0; i < displayedKeys.length; i++) {
       String periodKey = displayedKeys[i];
-      
+
       // Si c'est une étiquette vide (appliquée par le step), sauter cette entrée
       if (periodKey.isEmpty) continue;
-      
+
       List<T>? periodRecords = groupedData[periodKey];
       if (periodRecords == null || periodRecords.isEmpty) continue;
-      
+
       // Calculer les valeurs moyennes pour cette période
       List<double> stackAverages = List.filled(stackCount, 0.0);
-      
+
       try {
         for (var record in periodRecords) {
           final stackValues = getStackValues!(record);
@@ -344,7 +346,7 @@ class GenericChartWidget<T> extends StatelessWidget {
             }
           }
         }
-        
+
         // Diviser par le nombre d'enregistrements pour obtenir la moyenne
         for (int j = 0; j < stackCount; j++) {
           stackAverages[j] /= periodRecords.length;
@@ -353,22 +355,22 @@ class GenericChartWidget<T> extends StatelessWidget {
             stackAverages[j] = 1.0;
           }
         }
-        
+
         // Créer les éléments empilés
         double cumulativeValue = 0;
         List<BarChartRodStackItem> stackItems = [];
-        
+
         for (int j = 0; j < stackCount; j++) {
           double startValue = cumulativeValue;
           cumulativeValue += stackAverages[j];
-          
+
           // Vérifier les valeurs invalides
           if (startValue.isNaN || startValue.isInfinite) startValue = j * 1.0;
           if (cumulativeValue.isNaN || cumulativeValue.isInfinite) cumulativeValue = (j + 1) * 1.0;
-          
+
           stackItems.add(BarChartRodStackItem(startValue, cumulativeValue, stackColors![j]));
         }
-        
+
         barGroups.add(
           BarChartGroupData(
             x: i,
@@ -391,7 +393,7 @@ class GenericChartWidget<T> extends StatelessWidget {
         debugPrint("❌ Erreur lors de la création des barres empilées: $e");
       }
     }
-    
+
     return barGroups;
   }
 
@@ -399,9 +401,9 @@ class GenericChartWidget<T> extends StatelessWidget {
   List<BarChartGroupData> _buildStackedApyBarChartData(BuildContext context) {
     // On filtre d'abord les données selon la plage de temps
     final filteredData = _filterDataByTimeRange(context, dataList);
-    
+
     Map<String, List<APYRecord>> groupedData = {};
-    
+
     for (var record in filteredData) {
       if (record is APYRecord) {
         DateTime date = record.timestamp;
@@ -420,51 +422,51 @@ class GenericChartWidget<T> extends StatelessWidget {
         groupedData.putIfAbsent(periodKey, () => []).add(record);
       }
     }
-    
+
     List<BarChartGroupData> barGroups = [];
     List<String> sortedKeys = groupedData.keys.toList()..sort();
-    
+
     // Appliquer le step pour limiter le nombre de barres si nécessaire
     List<String> displayedKeys = isBarChart ? ChartUtils.applyStepToLabels(sortedKeys) : sortedKeys;
-    
+
     // Définir les couleurs pour les valeurs nettes et brutes
     final Color netColor = chartColor;
     final Color grossColor = Color(0xFFFF9500); // Orange pour la partie brute
-    
+
     for (int i = 0; i < displayedKeys.length; i++) {
       String periodKey = displayedKeys[i];
-      
+
       // Si c'est une étiquette vide (appliquée par le step), sauter cette entrée
       if (periodKey.isEmpty) continue;
-      
+
       List<APYRecord>? records = groupedData[periodKey];
       if (records == null) continue; // Cette clé peut ne pas exister dans groupedData après le step
-      
+
       // Calculer les moyennes des valeurs net et gross pour cette période
       double netApyAvg = 0;
       double grossApyAvg = 0;
-      
+
       if (records.isNotEmpty) {
         for (var record in records) {
           // Assurer que nous avons les deux valeurs
           double netValue = record.netApy ?? record.apy;
           double grossValue = record.grossApy ?? record.apy;
-          
+
           netApyAvg += netValue;
           grossApyAvg += grossValue;
         }
-        
+
         netApyAvg /= records.length;
         grossApyAvg /= records.length;
       }
-      
+
       // Calculer la différence entre gross et net pour empiler
       double netValue = netApyAvg;
       double grossDiff = grossApyAvg - netApyAvg;
-      
+
       // Si la différence est négative (cas rare), on affiche juste la valeur nette
       if (grossDiff < 0) grossDiff = 0;
-      
+
       barGroups.add(
         BarChartGroupData(
           x: i,
@@ -475,7 +477,8 @@ class GenericChartWidget<T> extends StatelessWidget {
               borderRadius: const BorderRadius.all(Radius.circular(6)),
               rodStackItems: [
                 BarChartRodStackItem(0, netValue, netColor), // Partie nette (fond) - couleur principale
-                BarChartRodStackItem(netValue, netValue + grossDiff, grossColor), // Différence brute (haut) - couleur différente
+                BarChartRodStackItem(
+                    netValue, netValue + grossDiff, grossColor), // Différence brute (haut) - couleur différente
               ],
               backDrawRodData: BackgroundBarChartRodData(
                 show: true,
@@ -487,15 +490,14 @@ class GenericChartWidget<T> extends StatelessWidget {
         ),
       );
     }
-    
+
     return barGroups;
   }
 
   List<FlSpot> _buildChartData(BuildContext context) {
     // On filtre d'abord les données selon la plage de temps
     final filteredData = _filterDataByTimeRange(context, dataList);
-    
-    
+
     // Fonction personnalisée pour obtenir la valeur Y
     double Function(T) getYValueAdapter = (T record) {
       double value;
@@ -518,27 +520,23 @@ class GenericChartWidget<T> extends StatelessWidget {
         return 1.0;
       }
     };
-    
+
     // Puis on utilise la méthode buildHistoryChartData avec applyStep selon le type de graphique
     try {
       List<FlSpot> spots = ChartUtils.buildHistoryChartData<T>(
         context,
-        filteredData, 
+        filteredData,
         selectedPeriod,
         getYValueAdapter,
         getTimestamp,
         applyStep: isBarChart, // N'appliquer le step que pour les graphiques à barres
         aggregate: title.toLowerCase().contains('loyer') ? "sum" : "average",
       );
-      
+
       // Filtrer les spots pour éliminer tout point avec NaN ou Infinity
-      spots = spots.where((spot) => 
-        !spot.x.isNaN && 
-        !spot.x.isInfinite && 
-        !spot.y.isNaN && 
-        !spot.y.isInfinite
-      ).toList();
-      
+      spots =
+          spots.where((spot) => !spot.x.isNaN && !spot.x.isInfinite && !spot.y.isNaN && !spot.y.isInfinite).toList();
+
       // Vérifier que tous les spots ont y >= 1.0
       return spots.map((spot) => FlSpot(spot.x, spot.y < 1.0 ? 1.0 : spot.y)).toList();
     } catch (e) {
@@ -570,17 +568,17 @@ class GenericChartWidget<T> extends StatelessWidget {
     }
 
     List<String> sortedKeys = groupedData.keys.toList()..sort();
-    
+
     // Appliquer le step pour limiter le nombre d'étiquettes seulement pour les graphiques à barres
     return isBarChart ? ChartUtils.applyStepToLabels(sortedKeys) : sortedKeys;
   }
 
   Widget _buildTimeNavigator(BuildContext context) {
     final appState = Provider.of<AppState>(context);
-    
+
     // Déterminer la plage actuelle à afficher
     String currentRange = "";
-    
+
     if (selectedPeriod == S.of(context).day) {
       // Pour l'affichage par jour
       final filteredData = _filterDataByTimeRange(context, dataList);
@@ -608,7 +606,7 @@ class GenericChartWidget<T> extends StatelessWidget {
         currentRange = "${years.first} - ${years.last}";
       }
     }
-    
+
     // Si nous n'avons pas pu déterminer la plage, utiliser la plage de temps sélectionnée
     if (currentRange.isEmpty) {
       switch (selectedTimeRange) {
@@ -625,10 +623,10 @@ class GenericChartWidget<T> extends StatelessWidget {
           currentRange = "Toutes les données";
       }
     }
-    
+
     // Déterminer l'offset maximum selon la plage temporelle
     int maxOffset = 10; // Valeur par défaut
-    
+
     switch (selectedTimeRange) {
       case '3months':
         maxOffset = 8; // Permet de remonter jusqu'à 2 ans
@@ -642,16 +640,16 @@ class GenericChartWidget<T> extends StatelessWidget {
       default:
         maxOffset = 0; // Pas de navigation pour 'all'
     }
-    
+
     // Vérifier si les boutons doivent être activés
     bool canGoBack = selectedTimeRange != 'all' && timeOffset < maxOffset;
     bool canGoForward = timeOffset > 0;
-    
+
     // Ajouter l'offset au texte si offset > 0
     if (timeOffset > 0) {
       currentRange += " (offset: -${timeOffset * 3} mois)";
     }
-    
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 2.0, vertical: 0),
       margin: EdgeInsets.zero,
@@ -695,15 +693,15 @@ class GenericChartWidget<T> extends StatelessWidget {
       ),
     );
   }
-  
+
   // Méthode pour naviguer dans le temps
   void _navigateTime(BuildContext context, int direction) {
     // -1 pour reculer (augmenter l'offset), +1 pour avancer (diminuer l'offset)
     int newOffset = timeOffset;
-    
+
     // Déterminer l'offset maximum selon la plage temporelle
     int maxOffset = 10; // Valeur par défaut
-    
+
     switch (selectedTimeRange) {
       case '3months':
         maxOffset = 8; // Permet de remonter jusqu'à 2 ans
@@ -717,7 +715,7 @@ class GenericChartWidget<T> extends StatelessWidget {
       default:
         maxOffset = 0; // Pas de navigation pour 'all'
     }
-    
+
     if (direction < 0) {
       // Reculer dans le temps (augmenter l'offset) avec une limite maximale
       if (timeOffset < maxOffset) {
@@ -727,12 +725,12 @@ class GenericChartWidget<T> extends StatelessWidget {
       // Avancer dans le temps (diminuer l'offset)
       newOffset = max(0, timeOffset - 1);
     }
-    
+
     // Si nous n'avons pas de changement ou si nous sommes déjà à l'offset minimum/maximum, ne rien faire
     if (newOffset == timeOffset) {
       return;
     }
-    
+
     // Appliquer le nouvel offset et réinitialiser la vue
     onTimeOffsetChanged(newOffset);
   }
@@ -742,11 +740,11 @@ class GenericChartWidget<T> extends StatelessWidget {
     if (selectedTimeRange == 'all' || records.isEmpty) {
       return records;
     }
-    
+
     // Date actuelle avec prise en compte du décalage temporel
     DateTime now = DateTime.now();
     DateTime referenceDate;
-    
+
     // Appliquer le décalage temporel en fonction de la période sélectionnée
     if (selectedPeriod == S.of(context).day) {
       // Décalage en jours
@@ -763,9 +761,9 @@ class GenericChartWidget<T> extends StatelessWidget {
     } else {
       referenceDate = now;
     }
-    
+
     DateTime cutoffDate;
-    
+
     // Déterminer la date limite selon la plage sélectionnée
     switch (selectedTimeRange) {
       case '3months':
@@ -780,18 +778,18 @@ class GenericChartWidget<T> extends StatelessWidget {
       default:
         return records;
     }
-    
+
     // Définir la date maximale (la fin de la période)
     DateTime maxDate = referenceDate.add(const Duration(days: 1));
-    
+
     // Filtre des données selon la date calculée et la date max
     return records.where((record) {
       DateTime timestamp = getTimestamp(record);
-      return (timestamp.isAfter(cutoffDate) || 
-             (timestamp.year == cutoffDate.year && 
-              timestamp.month == cutoffDate.month && 
-              timestamp.day >= cutoffDate.day)) && 
-             timestamp.isBefore(maxDate);
+      return (timestamp.isAfter(cutoffDate) ||
+              (timestamp.year == cutoffDate.year &&
+                  timestamp.month == cutoffDate.month &&
+                  timestamp.day >= cutoffDate.day)) &&
+          timestamp.isBefore(maxDate);
     }).toList();
   }
 
@@ -800,12 +798,12 @@ class GenericChartWidget<T> extends StatelessWidget {
     if (dataList.isEmpty || !(dataList.first is APYRecord)) {
       return null;
     }
-    
+
     // On filtre d'abord les données selon la plage de temps
     final filteredData = _filterDataByTimeRange(context, dataList);
-    
+
     List<APYRecord> periodRecords = [];
-    
+
     for (var record in filteredData) {
       if (record is APYRecord) {
         DateTime date = record.timestamp;
@@ -820,29 +818,29 @@ class GenericChartWidget<T> extends StatelessWidget {
         } else {
           key = date.year.toString();
         }
-        
+
         if (key == periodKey) {
           periodRecords.add(record);
         }
       }
     }
-    
+
     if (periodRecords.isEmpty) {
       return null;
     }
-    
+
     // Calculer les moyennes
     double netAvg = 0;
     double grossAvg = 0;
-    
+
     for (var record in periodRecords) {
       netAvg += record.netApy ?? record.apy;
       grossAvg += record.grossApy ?? record.apy;
     }
-    
+
     netAvg /= periodRecords.length;
     grossAvg /= periodRecords.length;
-    
+
     return (netAvg, grossAvg);
   }
 
@@ -901,7 +899,7 @@ class GenericChartWidget<T> extends StatelessWidget {
           if (index % 2 == 1) {
             return const SizedBox(width: 24); // Espace entre les éléments
           }
-          
+
           int itemIndex = index ~/ 2;
           return _buildLegendItem(stackLabels![itemIndex], stackColors![itemIndex]);
         }),
@@ -937,18 +935,19 @@ class GenericChartWidget<T> extends StatelessWidget {
   List<LineChartBarData> _buildStackedLineChartData(BuildContext context) {
     // On filtre d'abord les données selon la plage de temps
     final filteredData = _filterDataByTimeRange(context, dataList);
-    
+
     if (filteredData.isEmpty || getStackValues == null || stackColors == null) {
       return [];
     }
-    
+
     // Vérifier que nous avons suffisamment de couleurs
     final stackCount = getStackValues!(filteredData.first).length;
     if (stackCount != stackColors!.length) {
-      debugPrint("❌ Erreur: Le nombre de valeurs empilées ($stackCount) ne correspond pas au nombre de couleurs (${stackColors!.length})");
+      debugPrint(
+          "❌ Erreur: Le nombre de valeurs empilées ($stackCount) ne correspond pas au nombre de couleurs (${stackColors!.length})");
       return [];
     }
-    
+
     // Regrouper les données selon la période sélectionnée
     Map<String, List<T>> groupedData = {};
     for (var record in filteredData) {
@@ -970,20 +969,20 @@ class GenericChartWidget<T> extends StatelessWidget {
 
     // Trier les périodes
     List<String> sortedKeys = groupedData.keys.toList()..sort();
-    
+
     // Créer les points pour chaque série avec les données regroupées
     List<List<FlSpot>> stackedSpots = List.generate(stackCount, (_) => []);
-    
+
     for (int i = 0; i < sortedKeys.length; i++) {
       String periodKey = sortedKeys[i];
       List<T> periodRecords = groupedData[periodKey]!;
-      
+
       // Vérifier qu'il y a des enregistrements pour éviter une division par zéro
       if (periodRecords.isEmpty) continue;
-      
+
       // Calculer les valeurs moyennes pour cette période
       List<double> stackAverages = List.filled(stackCount, 0.0);
-      
+
       for (var record in periodRecords) {
         try {
           final stackValues = getStackValues!(record);
@@ -997,7 +996,7 @@ class GenericChartWidget<T> extends StatelessWidget {
           debugPrint("❌ Erreur lors de l'obtention des valeurs empilées: $e");
         }
       }
-      
+
       // Diviser par le nombre d'enregistrements pour obtenir la moyenne
       for (int j = 0; j < stackCount; j++) {
         stackAverages[j] /= periodRecords.length;
@@ -1006,7 +1005,7 @@ class GenericChartWidget<T> extends StatelessWidget {
           stackAverages[j] = 1.0;
         }
       }
-      
+
       // Cumuler les valeurs pour l'empilement
       double cumulativeValue = 0;
       for (int j = 0; j < stackCount; j++) {
@@ -1015,7 +1014,7 @@ class GenericChartWidget<T> extends StatelessWidget {
         if (cumulativeValue.isNaN || cumulativeValue.isInfinite) {
           cumulativeValue = (j + 1) * 1.0; // Valeur de repli simple
         }
-        
+
         // Ajouter le point avec validation
         double xValue = i.toDouble();
         if (!xValue.isNaN && !xValue.isInfinite && !cumulativeValue.isNaN && !cumulativeValue.isInfinite) {
@@ -1023,13 +1022,13 @@ class GenericChartWidget<T> extends StatelessWidget {
         }
       }
     }
-    
+
     // Créer un LineChartBarData pour chaque série (en ordre inverse pour l'empilement visuel correct)
     final List<LineChartBarData> lineBarsData = [];
-    
+
     for (int i = stackCount - 1; i >= 0; i--) {
       final color = stackColors![i];
-      
+
       lineBarsData.add(
         LineChartBarData(
           spots: stackedSpots[i],
@@ -1051,18 +1050,18 @@ class GenericChartWidget<T> extends StatelessWidget {
               // Montrer points aux extrémités et quelques points intermédiaires
               final isFirst = spot.x == 0;
               final isLast = spot.x == barData.spots.length - 1;
-              
+
               // Calcul du pas adaptatif pour l'affichage des points
               final int dataLength = barData.spots.length;
               int step = 1;
-              
+
               // Si trop de points, n'afficher qu'un sous-ensemble
               if (dataLength > ChartUtils.maxBarsToDisplay) {
                 step = (dataLength / ChartUtils.maxBarsToDisplay).ceil();
               } else if (dataLength > 10) {
                 step = 2; // Afficher un point sur deux si entre 10 et 20 points
               }
-              
+
               final isInteresting = spot.x % step == 0;
               return isFirst || isLast || isInteresting;
             },
@@ -1081,7 +1080,7 @@ class GenericChartWidget<T> extends StatelessWidget {
         ),
       );
     }
-    
+
     return lineBarsData;
   }
 
@@ -1191,12 +1190,9 @@ class GenericChartWidget<T> extends StatelessWidget {
                               ),
                             ],
                             rows: (() {
-                              final sortedEntries = dataList
-                                  .asMap()
-                                  .entries
-                                  .toList()
+                              final sortedEntries = dataList.asMap().entries.toList()
                                 ..sort((a, b) => getTimestamp(b.value).compareTo(getTimestamp(a.value)));
-                              
+
                               return sortedEntries.map((entry) {
                                 final index = entry.key;
                                 final record = entry.value;
@@ -1204,7 +1200,8 @@ class GenericChartWidget<T> extends StatelessWidget {
                                   text: getDisplayValue?.call(record) ?? getYValue(record).toStringAsFixed(2),
                                 );
                                 TextEditingController dateController = TextEditingController(
-                                  text: getDisplayDate?.call(record) ?? DateFormat('yyyy-MM-dd HH:mm').format(getTimestamp(record)),
+                                  text: getDisplayDate?.call(record) ??
+                                      DateFormat('yyyy-MM-dd HH:mm').format(getTimestamp(record)),
                                 );
 
                                 return DataRow(
@@ -1286,4 +1283,4 @@ class GenericChartWidget<T> extends StatelessWidget {
       },
     );
   }
-} 
+}

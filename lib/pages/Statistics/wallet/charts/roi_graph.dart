@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:realtoken_asset_tracker/generated/l10n.dart';
-import 'package:realtoken_asset_tracker/managers/data_manager.dart';
-import 'package:realtoken_asset_tracker/models/roi_record.dart';
-import 'package:realtoken_asset_tracker/components/charts/generic_chart_widget.dart';
+import 'package:meprop_asset_tracker/generated/l10n.dart';
+import 'package:meprop_asset_tracker/managers/data_manager.dart';
+import 'package:meprop_asset_tracker/models/roi_record.dart';
+import 'package:meprop_asset_tracker/components/charts/generic_chart_widget.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
-import 'package:realtoken_asset_tracker/app_state.dart';
+import 'package:meprop_asset_tracker/app_state.dart';
 
 class RoiHistoryGraph extends StatefulWidget {
   final String selectedPeriod;
@@ -66,32 +66,30 @@ class _RoiHistoryGraphState extends State<RoiHistoryGraph> {
 
   void _updateROIValue(DataManager dataManager, EditableROIRecord editableRecord, double newValue) {
     // Récupérer l'index de l'enregistrement original
-    final index = dataManager.roiHistory.indexWhere((r) => 
-      r.timestamp.isAtSameMomentAs(editableRecord.original.timestamp) && 
-      r.roi == editableRecord.original.roi
-    );
-    
+    final index = dataManager.roiHistory.indexWhere(
+        (r) => r.timestamp.isAtSameMomentAs(editableRecord.original.timestamp) && r.roi == editableRecord.original.roi);
+
     if (index != -1) {
       // Créer un nouvel enregistrement avec la valeur mise à jour
       final updatedRecord = ROIRecord(
         timestamp: editableRecord.original.timestamp,
         roi: newValue,
       );
-      
+
       // Mettre à jour la liste
       dataManager.roiHistory[index] = updatedRecord;
       // Mettre à jour l'original dans l'enregistrement éditable
       editableRecord.original = updatedRecord;
-      
+
       // Sauvegarder dans Hive
       dataManager.saveRoiHistory();
-      
+
       // Notifier les écouteurs
       dataManager.notifyListeners();
-      
+
       // Mettre à jour l'enregistrement éditable
       editableRecord.valueController.text = newValue.toStringAsFixed(2);
-      
+
       // Pour le débogage
       print('ROI mis à jour à l\'index $index: $newValue');
     } else {
@@ -101,32 +99,30 @@ class _RoiHistoryGraphState extends State<RoiHistoryGraph> {
 
   void _updateROIDate(DataManager dataManager, EditableROIRecord editableRecord, DateTime newDate) {
     // Récupérer l'index de l'enregistrement original
-    final index = dataManager.roiHistory.indexWhere((r) => 
-      r.timestamp.isAtSameMomentAs(editableRecord.original.timestamp) && 
-      r.roi == editableRecord.original.roi
-    );
-    
+    final index = dataManager.roiHistory.indexWhere(
+        (r) => r.timestamp.isAtSameMomentAs(editableRecord.original.timestamp) && r.roi == editableRecord.original.roi);
+
     if (index != -1) {
       // Créer un nouvel enregistrement avec la date mise à jour
       final updatedRecord = ROIRecord(
         timestamp: newDate,
         roi: editableRecord.original.roi,
       );
-      
+
       // Mettre à jour la liste
       dataManager.roiHistory[index] = updatedRecord;
       // Mettre à jour l'original dans l'enregistrement éditable
       editableRecord.original = updatedRecord;
-      
+
       // Sauvegarder dans Hive
       dataManager.saveRoiHistory();
-      
+
       // Notifier les écouteurs
       dataManager.notifyListeners();
-      
+
       // Mettre à jour l'enregistrement éditable
       editableRecord.dateController.text = DateFormat('yyyy-MM-dd HH:mm:ss').format(newDate);
-      
+
       // Pour le débogage
       print('Date ROI mise à jour à l\'index $index: ${newDate.toIso8601String()}');
     } else {
@@ -136,29 +132,26 @@ class _RoiHistoryGraphState extends State<RoiHistoryGraph> {
 
   void _deleteROIRecord(DataManager dataManager, EditableROIRecord editableRecord, StateSetter setState) {
     // Récupérer l'index de l'enregistrement original
-    final index = dataManager.roiHistory.indexWhere((r) => 
-      r.timestamp.isAtSameMomentAs(editableRecord.original.timestamp) && 
-      r.roi == editableRecord.original.roi
-    );
-    
+    final index = dataManager.roiHistory.indexWhere(
+        (r) => r.timestamp.isAtSameMomentAs(editableRecord.original.timestamp) && r.roi == editableRecord.original.roi);
+
     if (index != -1) {
       // Supprimer de la liste
       dataManager.roiHistory.removeAt(index);
-      
+
       // Sauvegarder dans Hive
       dataManager.saveRoiHistory();
-      
+
       // Notifier les écouteurs
       dataManager.notifyListeners();
-      
+
       // Pour le débogage
       print('ROI supprimé à l\'index $index');
-      
+
       // Recréer les enregistrements éditables
       setState(() {
         _editableRecords = _createEditableRecords(
-          List<ROIRecord>.from(dataManager.roiHistory)..sort((a, b) => b.timestamp.compareTo(a.timestamp))
-        );
+            List<ROIRecord>.from(dataManager.roiHistory)..sort((a, b) => b.timestamp.compareTo(a.timestamp)));
       });
     } else {
       print('Enregistrement non trouvé pour la suppression');
@@ -168,8 +161,7 @@ class _RoiHistoryGraphState extends State<RoiHistoryGraph> {
   void _showEditModal(BuildContext context, DataManager dataManager) {
     // Créer des enregistrements éditables à partir des enregistrements triés
     _editableRecords = _createEditableRecords(
-      List<ROIRecord>.from(dataManager.roiHistory)..sort((a, b) => b.timestamp.compareTo(a.timestamp))
-    );
+        List<ROIRecord>.from(dataManager.roiHistory)..sort((a, b) => b.timestamp.compareTo(a.timestamp)));
 
     showModalBottomSheet(
       context: context,
@@ -245,7 +237,8 @@ class _RoiHistoryGraphState extends State<RoiHistoryGraph> {
                                         "Date",
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
-                                          fontSize: 14 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
+                                          fontSize:
+                                              14 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                                         ),
                                       ),
                                     ),
@@ -257,7 +250,8 @@ class _RoiHistoryGraphState extends State<RoiHistoryGraph> {
                                         "ROI",
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
-                                          fontSize: 14 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
+                                          fontSize:
+                                              14 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                                         ),
                                       ),
                                     ),
@@ -269,7 +263,8 @@ class _RoiHistoryGraphState extends State<RoiHistoryGraph> {
                                         "Actions",
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
-                                          fontSize: 14 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
+                                          fontSize:
+                                              14 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                                         ),
                                         textAlign: TextAlign.right,
                                       ),
@@ -287,7 +282,8 @@ class _RoiHistoryGraphState extends State<RoiHistoryGraph> {
                                             keyboardType: TextInputType.datetime,
                                             textInputAction: TextInputAction.done,
                                             style: TextStyle(
-                                              fontSize: 14 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
+                                              fontSize: 14 +
+                                                  Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                                             ),
                                             decoration: InputDecoration(
                                               filled: true,
@@ -329,7 +325,8 @@ class _RoiHistoryGraphState extends State<RoiHistoryGraph> {
                                             },
                                             onEditingComplete: () {
                                               try {
-                                                DateTime newDate = DateFormat('yyyy-MM-dd HH:mm:ss').parse(editableRecord.dateController.text);
+                                                DateTime newDate = DateFormat('yyyy-MM-dd HH:mm:ss')
+                                                    .parse(editableRecord.dateController.text);
                                                 _updateROIDate(dataManager, editableRecord, newDate);
                                                 FocusScope.of(context).unfocus();
                                               } catch (e) {
@@ -353,7 +350,8 @@ class _RoiHistoryGraphState extends State<RoiHistoryGraph> {
                                               FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
                                             ],
                                             style: TextStyle(
-                                              fontSize: 14 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
+                                              fontSize: 14 +
+                                                  Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                                             ),
                                             decoration: InputDecoration(
                                               filled: true,
@@ -447,25 +445,24 @@ class _RoiHistoryGraphState extends State<RoiHistoryGraph> {
                               // Mettre à jour la date
                               final dateText = editableRecord.dateController.text;
                               final DateTime newDate = DateFormat('yyyy-MM-dd HH:mm:ss').parse(dateText);
-                              
+
                               // Mettre à jour la valeur
                               final valueText = editableRecord.valueController.text;
                               final double? newValue = double.tryParse(valueText);
-                              
+
                               if (newValue != null) {
                                 // Trouver l'index dans la liste originale
-                                final index = dataManager.roiHistory.indexWhere((r) => 
-                                  r.timestamp.isAtSameMomentAs(editableRecord.original.timestamp) && 
-                                  r.roi == editableRecord.original.roi
-                                );
-                                
+                                final index = dataManager.roiHistory.indexWhere((r) =>
+                                    r.timestamp.isAtSameMomentAs(editableRecord.original.timestamp) &&
+                                    r.roi == editableRecord.original.roi);
+
                                 if (index != -1) {
                                   // Créer un nouvel enregistrement avec les nouvelles valeurs
                                   final updatedRecord = ROIRecord(
                                     timestamp: newDate,
                                     roi: newValue,
                                   );
-                                  
+
                                   // Mettre à jour la liste
                                   dataManager.roiHistory[index] = updatedRecord;
                                   print('Mise à jour index $index: ${newDate.toIso8601String()} -> $newValue');
@@ -475,16 +472,16 @@ class _RoiHistoryGraphState extends State<RoiHistoryGraph> {
                               print('Erreur lors de la mise à jour: $e');
                             }
                           }
-                          
+
                           // Sauvegarder dans Hive
                           dataManager.saveRoiHistory();
-                          
+
                           // Notifier les écouteurs
                           dataManager.notifyListeners();
-                          
+
                           // Fermer le modal
                           Navigator.pop(context);
-                          
+
                           // Forcer la mise à jour du widget parent
                           setState(() {});
                         },

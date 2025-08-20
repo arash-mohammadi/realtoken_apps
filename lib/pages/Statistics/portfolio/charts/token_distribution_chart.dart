@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:provider/provider.dart';
-import 'package:realtoken_asset_tracker/managers/data_manager.dart';
-import 'package:realtoken_asset_tracker/app_state.dart';
-import 'package:realtoken_asset_tracker/generated/l10n.dart';
-import 'package:realtoken_asset_tracker/utils/parameters.dart';
-import 'package:realtoken_asset_tracker/utils/ui_utils.dart';
-import 'package:realtoken_asset_tracker/pages/Statistics/portfolio/common_functions.dart';
+import 'package:meprop_asset_tracker/managers/data_manager.dart';
+import 'package:meprop_asset_tracker/app_state.dart';
+import 'package:meprop_asset_tracker/generated/l10n.dart';
+import 'package:meprop_asset_tracker/utils/parameters.dart';
+import 'package:meprop_asset_tracker/utils/ui_utils.dart';
+import 'package:meprop_asset_tracker/pages/Statistics/portfolio/common_functions.dart';
 
 class TokenDistributionCard extends StatefulWidget {
   final DataManager dataManager;
@@ -256,7 +256,7 @@ class _TokenDistributionCardState extends State<TokenDistributionCard> {
       ..sort((a, b) => b['count'].compareTo(a['count']));
 
     if (selectedIndex >= sortedData.length) return Container();
-    
+
     final selectedData = sortedData[selectedIndex];
 
     return Column(
@@ -338,7 +338,9 @@ class _TokenDistributionCardState extends State<TokenDistributionCard> {
                     Parameters.getPropertyTypeName(data['propertyType'], context),
                     style: TextStyle(
                       fontSize: 12 + appState.getTextSizeOffset(),
-                      color: _selectedIndexNotifierToken.value == index ? color : Theme.of(context).textTheme.bodyMedium?.color,
+                      color: _selectedIndexNotifierToken.value == index
+                          ? color
+                          : Theme.of(context).textTheme.bodyMedium?.color,
                       fontWeight: _selectedIndexNotifierToken.value == index ? FontWeight.w600 : FontWeight.normal,
                     ),
                   ),

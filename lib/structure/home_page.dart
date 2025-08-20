@@ -1,26 +1,26 @@
 import 'package:flutter/material.dart';
-import 'package:realtoken_asset_tracker/managers/data_manager.dart';
-import 'package:realtoken_asset_tracker/modals/agenda.dart';
-import 'package:realtoken_asset_tracker/utils/currency_utils.dart';
-import 'package:realtoken_asset_tracker/utils/ui_utils.dart';
-import 'package:realtoken_asset_tracker/utils/performance_utils.dart';
-import 'package:realtoken_asset_tracker/utils/cache_constants.dart';
-import 'package:realtoken_asset_tracker/generated/l10n.dart';
+import 'package:meprop_asset_tracker/managers/data_manager.dart';
+import 'package:meprop_asset_tracker/modals/agenda.dart';
+import 'package:meprop_asset_tracker/utils/currency_utils.dart';
+import 'package:meprop_asset_tracker/utils/ui_utils.dart';
+import 'package:meprop_asset_tracker/utils/performance_utils.dart';
+import 'package:meprop_asset_tracker/utils/cache_constants.dart';
+import 'package:meprop_asset_tracker/generated/l10n.dart';
 import 'dart:math';
 
 import 'bottom_bar.dart';
 import 'drawer.dart';
-import 'package:realtoken_asset_tracker/pages/dashboard/dashboard_page.dart';
-import 'package:realtoken_asset_tracker/pages/portfolio/portfolio_page.dart';
-import 'package:realtoken_asset_tracker/pages/Statistics/stats_selector_page.dart';
-import 'package:realtoken_asset_tracker/pages/maps_page.dart';
+import 'package:meprop_asset_tracker/pages/dashboard/dashboard_page.dart';
+import 'package:meprop_asset_tracker/pages/portfolio/portfolio_page.dart';
+import 'package:meprop_asset_tracker/pages/Statistics/stats_selector_page.dart';
+import 'package:meprop_asset_tracker/pages/maps_page.dart';
 import 'dart:ui';
 import 'package:provider/provider.dart';
-import 'package:realtoken_asset_tracker/app_state.dart';
-import 'package:realtoken_asset_tracker/components/donation_card_widget.dart';
-import 'package:realtoken_asset_tracker/components/donation_widgets.dart';
-import 'package:realtoken_asset_tracker/components/wallet_popup_widget.dart';
-import 'package:realtoken_asset_tracker/services/api_service.dart';
+import 'package:meprop_asset_tracker/app_state.dart';
+import 'package:meprop_asset_tracker/components/donation_card_widget.dart';
+import 'package:meprop_asset_tracker/components/donation_widgets.dart';
+import 'package:meprop_asset_tracker/components/wallet_popup_widget.dart';
+import 'package:meprop_asset_tracker/services/api_service.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key});
@@ -40,31 +40,32 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-    final random = Random();
+    // final random = Random();
 
     // Ajout de la condition de probabilité
-    if (random.nextInt(3) == 0) { // Génère 0, 1, ou 2. La condition est vraie pour 0 (1/3 des cas)
-      final delaySeconds = 5 + random.nextInt(26); // 5 à 30 inclus
-      Future.delayed(Duration(seconds: delaySeconds), _showDonationPopupIfNeeded);
-    }
+    // if (random.nextInt(3) == 0) {
+      // Génère 0, 1, ou 2. La condition est vraie pour 0 (1/3 des cas)
+      // final delaySeconds = 5 + random.nextInt(26); // 5 à 30 inclus
+      // Future.delayed(Duration(seconds: delaySeconds), _showDonationPopupIfNeeded);
+    // }
   }
 
   void _showDonationPopupIfNeeded() async {
     if (_donationPopupShown) return;
     if (!mounted) return;
-    
+
     // Throttle pour éviter les appels répétitifs
     if (!PerformanceUtils.throttle('donation_popup_check', const Duration(seconds: 30))) {
       return;
     }
-    
+
     final appState = Provider.of<AppState>(context, listen: false);
     if (!appState.shouldShowDonationPopup) return;
     _donationPopupShown = true;
-    
+
     // Mettre à jour le timestamp de la dernière popup affichée
     await appState.updateLastDonationPopupTimestamp();
-    
+
     if (!mounted) return;
     showDialog(
       context: context,
@@ -143,7 +144,9 @@ class _MyHomePageState extends State<MyHomePage> {
                 filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                 child: Container(
                   height: UIUtils.getAppBarHeight(context),
-                  color: Theme.of(context).brightness == Brightness.dark ? Colors.black.withOpacity(0.3) : Colors.white.withOpacity(0.3),
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.black.withOpacity(0.3)
+                      : Colors.white.withOpacity(0.3),
                   child: AppBar(
                     forceMaterialTransparency: true,
                     backgroundColor: Colors.transparent,
@@ -213,7 +216,9 @@ class _MyHomePageState extends State<MyHomePage> {
                 filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                 child: Container(
                   height: _getContainerHeight(context),
-                  color: Theme.of(context).brightness == Brightness.dark ? Colors.black.withOpacity(0.3) : Colors.white.withOpacity(0.3),
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.black.withOpacity(0.3)
+                      : Colors.white.withOpacity(0.3),
                   child: SafeArea(
                     top: false,
                     child: CustomBottomNavigationBar(
@@ -254,7 +259,7 @@ class _DonationPopupAsyncLoaderState extends State<_DonationPopupAsyncLoader> {
 
   Future<void> _fetchWalletAmount() async {
     const cacheKey = 'donation_wallet_amount';
-    
+
     // Vérifier le cache d'abord avec PerformanceUtils
     final cachedAmount = PerformanceUtils.getFromCache<String>(cacheKey);
     if (cachedAmount != null) {
@@ -272,18 +277,18 @@ class _DonationPopupAsyncLoaderState extends State<_DonationPopupAsyncLoader> {
       if (balances.isNotEmpty) {
         final wallet = balances.first;
         debugPrint('🎁 Donation wallet balance: ${wallet.toString()}');
-        
+
         final double gnosisUsdc = wallet['gnosisUsdcBalance'] ?? 0.0;
         final double gnosisXdai = wallet['gnosisXdaiBalance'] ?? 0.0;
         final double usdcDeposit = wallet['usdcDepositBalance'] ?? 0.0;
         final double xdaiDeposit = wallet['xdaiDepositBalance'] ?? 0.0;
         final double total = gnosisUsdc + gnosisXdai + usdcDeposit + xdaiDeposit;
-        
+
         final String formattedAmount = total.toStringAsFixed(2);
-        
+
         // Mettre à jour le cache avec PerformanceUtils
         PerformanceUtils.setCache(cacheKey, formattedAmount, CacheConstants.donationAmountCache);
-        
+
         if (mounted) {
           setState(() {
             montant = formattedAmount;
@@ -331,7 +336,7 @@ class _DonationPopupAsyncLoaderState extends State<_DonationPopupAsyncLoader> {
                 right: 0,
                 child: IconButton(
                   icon: Icon(
-                    Icons.close_rounded, 
+                    Icons.close_rounded,
                     size: 28,
                     color: Theme.of(context).iconTheme.color,
                   ),

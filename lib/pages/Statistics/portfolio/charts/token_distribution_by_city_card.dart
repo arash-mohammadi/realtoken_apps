@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:provider/provider.dart';
-import 'package:realtoken_asset_tracker/managers/data_manager.dart';
-import 'package:realtoken_asset_tracker/app_state.dart';
-import 'package:realtoken_asset_tracker/generated/l10n.dart';
-import 'package:realtoken_asset_tracker/modals/modal_others_pie.dart'; // Assurez-vous que ce fichier existe
-import 'package:realtoken_asset_tracker/pages/Statistics/portfolio/common_functions.dart';
+import 'package:meprop_asset_tracker/managers/data_manager.dart';
+import 'package:meprop_asset_tracker/app_state.dart';
+import 'package:meprop_asset_tracker/generated/l10n.dart';
+import 'package:meprop_asset_tracker/modals/modal_others_pie.dart'; // Assurez-vous que ce fichier existe
+import 'package:meprop_asset_tracker/pages/Statistics/portfolio/common_functions.dart';
 
 class TokenDistributionByCityCard extends StatefulWidget {
   final DataManager dataManager;
@@ -116,7 +116,8 @@ class _TokenDistributionByCityCardState extends State<TokenDistributionByCityCar
     );
   }
 
-  List<PieChartSectionData> _buildDonutChartDataByCity(DataManager dataManager, List<Map<String, dynamic>> othersDetails, int? selectedIndex) {
+  List<PieChartSectionData> _buildDonutChartDataByCity(
+      DataManager dataManager, List<Map<String, dynamic>> othersDetails, int? selectedIndex) {
     Map<String, int> cityCount = {};
     final appState = Provider.of<AppState>(context);
 
@@ -183,7 +184,9 @@ class _TokenDistributionByCityCardState extends State<TokenDistributionByCityCar
         color: Colors.grey.shade400.withOpacity(selectedIndex != null && selectedIndex == sections.length ? 1.0 : 0.5),
         radius: selectedIndex != null && selectedIndex == sections.length ? 52 : 45,
         titleStyle: TextStyle(
-          fontSize: selectedIndex != null && selectedIndex == sections.length ? 14 + appState.getTextSizeOffset() : 10 + appState.getTextSizeOffset(),
+          fontSize: selectedIndex != null && selectedIndex == sections.length
+              ? 14 + appState.getTextSizeOffset()
+              : 10 + appState.getTextSizeOffset(),
           color: Colors.white,
           fontWeight: FontWeight.w600,
           shadows: [
@@ -389,7 +392,9 @@ class _TokenDistributionByCityCardState extends State<TokenDistributionByCityCar
                     city,
                     style: TextStyle(
                       fontSize: 12 + appState.getTextSizeOffset(),
-                      color: _selectedIndexNotifierCity.value == index ? color : Theme.of(context).textTheme.bodyMedium?.color,
+                      color: _selectedIndexNotifierCity.value == index
+                          ? color
+                          : Theme.of(context).textTheme.bodyMedium?.color,
                       fontWeight: _selectedIndexNotifierCity.value == index ? FontWeight.w600 : FontWeight.normal,
                     ),
                   ),
@@ -418,7 +423,8 @@ class _TokenDistributionByCityCardState extends State<TokenDistributionByCityCar
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 6.0, vertical: 2.0),
             decoration: BoxDecoration(
-              color: _selectedIndexNotifierCity.value == indexOthers ? Colors.grey.withOpacity(0.1) : Colors.transparent,
+              color:
+                  _selectedIndexNotifierCity.value == indexOthers ? Colors.grey.withOpacity(0.1) : Colors.transparent,
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
                 color: _selectedIndexNotifierCity.value == indexOthers ? Colors.grey : Colors.transparent,
@@ -448,7 +454,9 @@ class _TokenDistributionByCityCardState extends State<TokenDistributionByCityCar
                   S.of(context).others,
                   style: TextStyle(
                     fontSize: 12 + appState.getTextSizeOffset(),
-                    color: _selectedIndexNotifierCity.value == indexOthers ? Colors.grey.shade700 : Theme.of(context).textTheme.bodyMedium?.color,
+                    color: _selectedIndexNotifierCity.value == indexOthers
+                        ? Colors.grey.shade700
+                        : Theme.of(context).textTheme.bodyMedium?.color,
                     fontWeight: _selectedIndexNotifierCity.value == indexOthers ? FontWeight.w600 : FontWeight.normal,
                   ),
                 ),

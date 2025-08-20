@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:realtoken_asset_tracker/generated/l10n.dart';
+import 'package:meprop_asset_tracker/generated/l10n.dart';
 
 class CustomBottomNavigationBar extends StatelessWidget {
   final int selectedIndex;

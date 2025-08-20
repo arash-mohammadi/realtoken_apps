@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:realtoken_asset_tracker/app_state.dart';
-import 'package:realtoken_asset_tracker/pages/propertiesForSale/PropertiesForSaleRealt.dart';
-import 'package:realtoken_asset_tracker/pages/propertiesForSale/PropertiesForSaleSecondary.dart';
-import 'package:realtoken_asset_tracker/generated/l10n.dart';
-import 'package:realtoken_asset_tracker/utils/ui_utils.dart';
+import 'package:meprop_asset_tracker/app_state.dart';
+import 'package:meprop_asset_tracker/pages/propertiesForSale/PropertiesForSaleRealt.dart';
+import 'package:meprop_asset_tracker/pages/propertiesForSale/PropertiesForSaleSecondary.dart';
+import 'package:meprop_asset_tracker/generated/l10n.dart';
+import 'package:meprop_asset_tracker/utils/ui_utils.dart';
 
 class PropertiesForSalePage extends StatefulWidget {
   const PropertiesForSalePage({super.key});
@@ -70,7 +70,9 @@ class _PropertiesForSalePageState extends State<PropertiesForSalePage> {
               ),
             );
           },
-          child: _selectedPage == 'RealT' ? const PropertiesForSaleRealt(key: ValueKey('RealT')) : const PropertiesForSaleSecondary(key: ValueKey('Secondary')),
+          child: _selectedPage == 'RealT'
+              ? const PropertiesForSaleRealt(key: ValueKey('RealT'))
+              : const PropertiesForSaleSecondary(key: ValueKey('Secondary')),
         ),
       ),
     );
@@ -106,7 +108,9 @@ class _PropertiesForSalePageState extends State<PropertiesForSalePage> {
       fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
     );
 
-    double minWidth = isSelected ? _calculateTextWidth(context, label, textStyle) : 56; // Largeur minimale pour les icônes non sélectionnées
+    double minWidth = isSelected
+        ? _calculateTextWidth(context, label, textStyle)
+        : 56; // Largeur minimale pour les icônes non sélectionnées
 
     return isSelected
         ? Expanded(

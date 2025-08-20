@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:realtoken_asset_tracker/generated/l10n.dart';
-import 'package:realtoken_asset_tracker/managers/archive_manager.dart';
-import 'package:realtoken_asset_tracker/managers/data_manager.dart';
-import 'package:realtoken_asset_tracker/models/balance_record.dart';
-import 'package:realtoken_asset_tracker/pages/Statistics/rmm/borrow_chart.dart';
-import 'package:realtoken_asset_tracker/pages/Statistics/rmm/deposit_chart.dart';
-import 'package:realtoken_asset_tracker/pages/Statistics/rmm/healthFactorLtv_graph.dart';
-import 'package:realtoken_asset_tracker/utils/chart_utils.dart';
+import 'package:meprop_asset_tracker/generated/l10n.dart';
+import 'package:meprop_asset_tracker/managers/archive_manager.dart';
+import 'package:meprop_asset_tracker/managers/data_manager.dart';
+import 'package:meprop_asset_tracker/models/balance_record.dart';
+import 'package:meprop_asset_tracker/pages/Statistics/rmm/borrow_chart.dart';
+import 'package:meprop_asset_tracker/pages/Statistics/rmm/deposit_chart.dart';
+import 'package:meprop_asset_tracker/pages/Statistics/rmm/healthFactorLtv_graph.dart';
+import 'package:meprop_asset_tracker/utils/chart_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:realtoken_asset_tracker/app_state.dart';
+import 'package:meprop_asset_tracker/app_state.dart';
 
 class RmmStats extends StatefulWidget {
   const RmmStats({super.key});
@@ -34,7 +34,7 @@ class RmmStatsState extends State<RmmStats> {
   String selectedDepositTimeRange = 'all';
   int depositTimeOffset = 0;
   bool isDepositBarChart = false;
-  
+
   String selectedBorrowTimeRange = 'all';
   int borrowTimeOffset = 0;
   bool isBorrowBarChart = false;
@@ -50,15 +50,15 @@ class RmmStatsState extends State<RmmStats> {
     setState(() {
       // Charger la préférence stockée, si elle existe, sinon utiliser true par défaut
       healthAndLtvIsBarChart = prefs.getBool('healthAndLtvIsBarChart') ?? true;
-      
+
       // Initialiser les nouvelles options
       selectedDepositPeriod = prefs.getString('selectedDepositPeriod') ?? S.of(context).month;
       selectedBorrowPeriod = prefs.getString('selectedBorrowPeriod') ?? S.of(context).month;
-      
+
       isDepositBarChart = prefs.getBool('isDepositBarChart') ?? false;
       selectedDepositTimeRange = prefs.getString('selectedDepositTimeRange') ?? 'all';
       depositTimeOffset = prefs.getInt('depositTimeOffset') ?? 0;
-      
+
       isBorrowBarChart = prefs.getBool('isBorrowBarChart') ?? false;
       selectedBorrowTimeRange = prefs.getString('selectedBorrowTimeRange') ?? 'all';
       borrowTimeOffset = prefs.getInt('borrowTimeOffset') ?? 0;
@@ -88,40 +88,40 @@ class RmmStatsState extends State<RmmStats> {
     const double fixedCardHeight = 380;
 
     return CustomScrollView(
-        slivers: [
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: _buildApyCard(dataManager, screenWidth),
-            ),
+      slivers: [
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: _buildApyCard(dataManager, screenWidth),
           ),
-          SliverPadding(
-            padding: const EdgeInsets.only(top: 8, left: 8, right: 8, bottom: 80),
-            sliver: SliverGrid(
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: screenWidth > 700 ? 2 : 1,
-                mainAxisExtent: fixedCardHeight,
-              ),
-              delegate: SliverChildBuilderDelegate(
-                (BuildContext context, int index) {
-                  switch (index) {
-                    case 0:
-                      return _buildDepositBalanceCard(dataManager, 380);
-                    case 1:
-                      return _buildBorrowBalanceCard(dataManager, 380);
-                    case 2:
-                      return _buildHealthAndLtvHistoryCard(dataManager);
+        ),
+        SliverPadding(
+          padding: const EdgeInsets.only(top: 8, left: 8, right: 8, bottom: 80),
+          sliver: SliverGrid(
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: screenWidth > 700 ? 2 : 1,
+              mainAxisExtent: fixedCardHeight,
+            ),
+            delegate: SliverChildBuilderDelegate(
+              (BuildContext context, int index) {
+                switch (index) {
+                  case 0:
+                    return _buildDepositBalanceCard(dataManager, 380);
+                  case 1:
+                    return _buildBorrowBalanceCard(dataManager, 380);
+                  case 2:
+                    return _buildHealthAndLtvHistoryCard(dataManager);
 
-                    default:
-                      return Container();
-                  }
-                },
-                childCount: 3,
-              ),
+                  default:
+                    return Container();
+                }
+              },
+              childCount: 3,
             ),
           ),
-        ],
-      );
+        ),
+      ],
+    );
   }
 
   Widget _buildHealthAndLtvHistoryCard(DataManager dataManager) {
@@ -423,7 +423,8 @@ class RmmStatsState extends State<RmmStats> {
     );
   }
 
-  Future<Map<String, List<BalanceRecord>>> _fetchAndAggregateBalanceHistories(DataManager dataManager, String selectedPeriod) async {
+  Future<Map<String, List<BalanceRecord>>> _fetchAndAggregateBalanceHistories(
+      DataManager dataManager, String selectedPeriod) async {
     Map<String, List<BalanceRecord>> allHistories = {};
 
     allHistories['usdcDeposit'] = await _archiveManager.getBalanceHistory('usdcDeposit');

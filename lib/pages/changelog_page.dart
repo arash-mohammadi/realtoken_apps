@@ -3,7 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
-import 'package:realtoken_asset_tracker/app_state.dart';
+import 'package:meprop_asset_tracker/app_state.dart';
 
 class ChangelogPage extends StatefulWidget {
   const ChangelogPage({super.key});
@@ -48,12 +48,10 @@ class _ChangelogPageState extends State<ChangelogPage> {
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
-    
+
     return Container(
       decoration: BoxDecoration(
-        color: Theme.of(context).brightness == Brightness.light 
-            ? const Color(0xFFF2F2F7) 
-            : const Color(0xFF000000),
+        color: Theme.of(context).brightness == Brightness.light ? const Color(0xFFF2F2F7) : const Color(0xFF000000),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: Column(
@@ -184,14 +182,14 @@ class _ChangelogPageState extends State<ChangelogPage> {
                           ),
                           code: TextStyle(
                             fontSize: 14 + appState.getTextSizeOffset(),
-                            backgroundColor: Theme.of(context).brightness == Brightness.light 
-                                ? const Color(0xFFF2F2F7) 
+                            backgroundColor: Theme.of(context).brightness == Brightness.light
+                                ? const Color(0xFFF2F2F7)
                                 : const Color(0xFF1C1C1E),
                             color: Theme.of(context).primaryColor,
                           ),
                           codeblockDecoration: BoxDecoration(
-                            color: Theme.of(context).brightness == Brightness.light 
-                                ? const Color(0xFFF2F2F7) 
+                            color: Theme.of(context).brightness == Brightness.light
+                                ? const Color(0xFFF2F2F7)
                                 : const Color(0xFF1C1C1E),
                             borderRadius: BorderRadius.circular(12),
                           ),

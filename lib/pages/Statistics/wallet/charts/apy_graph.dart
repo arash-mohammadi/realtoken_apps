@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:realtoken_asset_tracker/components/charts/generic_chart_widget.dart';
-import 'package:realtoken_asset_tracker/generated/l10n.dart';
-import 'package:realtoken_asset_tracker/managers/data_manager.dart';
-import 'package:realtoken_asset_tracker/models/apy_record.dart';
+import 'package:meprop_asset_tracker/components/charts/generic_chart_widget.dart';
+import 'package:meprop_asset_tracker/generated/l10n.dart';
+import 'package:meprop_asset_tracker/managers/data_manager.dart';
+import 'package:meprop_asset_tracker/models/apy_record.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
-import 'package:realtoken_asset_tracker/app_state.dart';
+import 'package:meprop_asset_tracker/app_state.dart';
 
 class EditableAPYRecord {
   APYRecord original;
@@ -14,12 +14,7 @@ class EditableAPYRecord {
   final TextEditingController grossController;
   final TextEditingController dateController;
 
-  EditableAPYRecord(
-    this.original, 
-    this.netController,
-    this.grossController,
-    this.dateController
-  );
+  EditableAPYRecord(this.original, this.netController, this.grossController, this.dateController);
 }
 
 class ApyHistoryGraph extends StatefulWidget {
@@ -74,19 +69,17 @@ class _ApyHistoryGraphState extends State<ApyHistoryGraph> {
     }).toList();
   }
 
-  void _updateAPYValue(DataManager dataManager, EditableAPYRecord editableRecord, 
+  void _updateAPYValue(DataManager dataManager, EditableAPYRecord editableRecord,
       {double? netValue, double? grossValue}) {
     // Récupérer l'index de l'enregistrement original
-    final index = dataManager.apyHistory.indexWhere((r) => 
-      r.timestamp.isAtSameMomentAs(editableRecord.original.timestamp) && 
-      r.apy == editableRecord.original.apy
-    );
-    
+    final index = dataManager.apyHistory.indexWhere(
+        (r) => r.timestamp.isAtSameMomentAs(editableRecord.original.timestamp) && r.apy == editableRecord.original.apy);
+
     if (index != -1) {
       // Déterminer les valeurs à utiliser
       final newNetValue = netValue ?? editableRecord.original.netApy ?? editableRecord.original.apy;
       final newGrossValue = grossValue ?? editableRecord.original.grossApy ?? editableRecord.original.apy;
-      
+
       // Créer un nouvel enregistrement avec les valeurs mises à jour
       final updatedRecord = APYRecord(
         timestamp: editableRecord.original.timestamp,
@@ -94,18 +87,18 @@ class _ApyHistoryGraphState extends State<ApyHistoryGraph> {
         netApy: newNetValue,
         grossApy: newGrossValue,
       );
-      
+
       // Mettre à jour la liste
       dataManager.apyHistory[index] = updatedRecord;
       // Mettre à jour l'original dans l'enregistrement éditable
       editableRecord.original = updatedRecord;
-      
+
       // Sauvegarder dans Hive
       dataManager.saveApyHistory();
-      
+
       // Notifier les écouteurs
       dataManager.notifyListeners();
-      
+
       // Mettre à jour les contrôleurs si nécessaire
       if (netValue != null) {
         editableRecord.netController.text = newNetValue.toStringAsFixed(2);
@@ -113,7 +106,7 @@ class _ApyHistoryGraphState extends State<ApyHistoryGraph> {
       if (grossValue != null) {
         editableRecord.grossController.text = newGrossValue.toStringAsFixed(2);
       }
-      
+
       // Pour le débogage
       print('APY mis à jour à l\'index $index: Net=$newNetValue, Gross=$newGrossValue');
     } else {
@@ -123,11 +116,9 @@ class _ApyHistoryGraphState extends State<ApyHistoryGraph> {
 
   void _updateAPYDate(DataManager dataManager, EditableAPYRecord editableRecord, DateTime newDate) {
     // Récupérer l'index de l'enregistrement original
-    final index = dataManager.apyHistory.indexWhere((r) => 
-      r.timestamp.isAtSameMomentAs(editableRecord.original.timestamp) && 
-      r.apy == editableRecord.original.apy
-    );
-    
+    final index = dataManager.apyHistory.indexWhere(
+        (r) => r.timestamp.isAtSameMomentAs(editableRecord.original.timestamp) && r.apy == editableRecord.original.apy);
+
     if (index != -1) {
       // Créer un nouvel enregistrement avec la date mise à jour
       final updatedRecord = APYRecord(
@@ -136,21 +127,21 @@ class _ApyHistoryGraphState extends State<ApyHistoryGraph> {
         netApy: editableRecord.original.netApy,
         grossApy: editableRecord.original.grossApy,
       );
-      
+
       // Mettre à jour la liste
       dataManager.apyHistory[index] = updatedRecord;
       // Mettre à jour l'original dans l'enregistrement éditable
       editableRecord.original = updatedRecord;
-      
+
       // Sauvegarder dans Hive
       dataManager.saveApyHistory();
-      
+
       // Notifier les écouteurs
       dataManager.notifyListeners();
-      
+
       // Mettre à jour l'enregistrement éditable
       editableRecord.dateController.text = DateFormat('yyyy-MM-dd HH:mm:ss').format(newDate);
-      
+
       // Pour le débogage
       print('Date APY mise à jour à l\'index $index: ${newDate.toIso8601String()}');
     } else {
@@ -160,29 +151,26 @@ class _ApyHistoryGraphState extends State<ApyHistoryGraph> {
 
   void _deleteAPYRecord(DataManager dataManager, EditableAPYRecord editableRecord, StateSetter setState) {
     // Récupérer l'index de l'enregistrement original
-    final index = dataManager.apyHistory.indexWhere((r) => 
-      r.timestamp.isAtSameMomentAs(editableRecord.original.timestamp) && 
-      r.apy == editableRecord.original.apy
-    );
-    
+    final index = dataManager.apyHistory.indexWhere(
+        (r) => r.timestamp.isAtSameMomentAs(editableRecord.original.timestamp) && r.apy == editableRecord.original.apy);
+
     if (index != -1) {
       // Supprimer de la liste
       dataManager.apyHistory.removeAt(index);
-      
+
       // Sauvegarder dans Hive
       dataManager.saveApyHistory();
-      
+
       // Notifier les écouteurs
       dataManager.notifyListeners();
-      
+
       // Pour le débogage
       print('APY supprimé à l\'index $index');
-      
+
       // Recréer les enregistrements éditables
       setState(() {
         _editableRecords = _createEditableRecords(
-          List<APYRecord>.from(dataManager.apyHistory)..sort((a, b) => b.timestamp.compareTo(a.timestamp))
-        );
+            List<APYRecord>.from(dataManager.apyHistory)..sort((a, b) => b.timestamp.compareTo(a.timestamp)));
       });
     } else {
       print('Enregistrement non trouvé pour la suppression');
@@ -192,8 +180,7 @@ class _ApyHistoryGraphState extends State<ApyHistoryGraph> {
   void _showEditModal(BuildContext context) {
     // Créer des enregistrements éditables à partir des enregistrements triés
     _editableRecords = _createEditableRecords(
-      List<APYRecord>.from(widget.dataManager.apyHistory)..sort((a, b) => b.timestamp.compareTo(a.timestamp))
-    );
+        List<APYRecord>.from(widget.dataManager.apyHistory)..sort((a, b) => b.timestamp.compareTo(a.timestamp)));
 
     showModalBottomSheet(
       context: context,
@@ -269,7 +256,8 @@ class _ApyHistoryGraphState extends State<ApyHistoryGraph> {
                                         "Date",
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
-                                          fontSize: 14 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
+                                          fontSize:
+                                              14 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                                         ),
                                       ),
                                     ),
@@ -281,7 +269,8 @@ class _ApyHistoryGraphState extends State<ApyHistoryGraph> {
                                         S.of(context).net,
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
-                                          fontSize: 14 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
+                                          fontSize:
+                                              14 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                                         ),
                                       ),
                                     ),
@@ -293,7 +282,8 @@ class _ApyHistoryGraphState extends State<ApyHistoryGraph> {
                                         S.of(context).brute,
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
-                                          fontSize: 14 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
+                                          fontSize:
+                                              14 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                                         ),
                                       ),
                                     ),
@@ -305,7 +295,8 @@ class _ApyHistoryGraphState extends State<ApyHistoryGraph> {
                                         "Actions",
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
-                                          fontSize: 14 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
+                                          fontSize:
+                                              14 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                                         ),
                                         textAlign: TextAlign.right,
                                       ),
@@ -323,7 +314,8 @@ class _ApyHistoryGraphState extends State<ApyHistoryGraph> {
                                             keyboardType: TextInputType.datetime,
                                             textInputAction: TextInputAction.done,
                                             style: TextStyle(
-                                              fontSize: 14 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
+                                              fontSize: 14 +
+                                                  Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                                             ),
                                             decoration: InputDecoration(
                                               filled: true,
@@ -365,7 +357,8 @@ class _ApyHistoryGraphState extends State<ApyHistoryGraph> {
                                             },
                                             onEditingComplete: () {
                                               try {
-                                                DateTime newDate = DateFormat('yyyy-MM-dd HH:mm:ss').parse(editableRecord.dateController.text);
+                                                DateTime newDate = DateFormat('yyyy-MM-dd HH:mm:ss')
+                                                    .parse(editableRecord.dateController.text);
                                                 _updateAPYDate(widget.dataManager, editableRecord, newDate);
                                                 FocusScope.of(context).unfocus();
                                               } catch (e) {
@@ -389,7 +382,8 @@ class _ApyHistoryGraphState extends State<ApyHistoryGraph> {
                                               FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
                                             ],
                                             style: TextStyle(
-                                              fontSize: 14 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
+                                              fontSize: 14 +
+                                                  Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                                             ),
                                             decoration: InputDecoration(
                                               filled: true,
@@ -420,11 +414,7 @@ class _ApyHistoryGraphState extends State<ApyHistoryGraph> {
                                             onSubmitted: (value) {
                                               double? newValue = double.tryParse(value);
                                               if (newValue != null) {
-                                                _updateAPYValue(
-                                                  widget.dataManager, 
-                                                  editableRecord, 
-                                                  netValue: newValue
-                                                );
+                                                _updateAPYValue(widget.dataManager, editableRecord, netValue: newValue);
                                                 FocusScope.of(context).unfocus();
                                               } else {
                                                 print('Valeur non valide: $value');
@@ -436,11 +426,7 @@ class _ApyHistoryGraphState extends State<ApyHistoryGraph> {
                                             onEditingComplete: () {
                                               double? newValue = double.tryParse(editableRecord.netController.text);
                                               if (newValue != null) {
-                                                _updateAPYValue(
-                                                  widget.dataManager, 
-                                                  editableRecord, 
-                                                  netValue: newValue
-                                                );
+                                                _updateAPYValue(widget.dataManager, editableRecord, netValue: newValue);
                                                 FocusScope.of(context).unfocus();
                                               } else {
                                                 print('Valeur non valide: ${editableRecord.netController.text}');
@@ -463,7 +449,8 @@ class _ApyHistoryGraphState extends State<ApyHistoryGraph> {
                                               FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
                                             ],
                                             style: TextStyle(
-                                              fontSize: 14 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
+                                              fontSize: 14 +
+                                                  Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                                             ),
                                             decoration: InputDecoration(
                                               filled: true,
@@ -494,11 +481,8 @@ class _ApyHistoryGraphState extends State<ApyHistoryGraph> {
                                             onSubmitted: (value) {
                                               double? newValue = double.tryParse(value);
                                               if (newValue != null) {
-                                                _updateAPYValue(
-                                                  widget.dataManager, 
-                                                  editableRecord, 
-                                                  grossValue: newValue
-                                                );
+                                                _updateAPYValue(widget.dataManager, editableRecord,
+                                                    grossValue: newValue);
                                                 FocusScope.of(context).unfocus();
                                               } else {
                                                 print('Valeur non valide: $value');
@@ -510,11 +494,8 @@ class _ApyHistoryGraphState extends State<ApyHistoryGraph> {
                                             onEditingComplete: () {
                                               double? newValue = double.tryParse(editableRecord.grossController.text);
                                               if (newValue != null) {
-                                                _updateAPYValue(
-                                                  widget.dataManager, 
-                                                  editableRecord, 
-                                                  grossValue: newValue
-                                                );
+                                                _updateAPYValue(widget.dataManager, editableRecord,
+                                                    grossValue: newValue);
                                                 FocusScope.of(context).unfocus();
                                               } else {
                                                 print('Valeur non valide: ${editableRecord.grossController.text}');
@@ -565,22 +546,21 @@ class _ApyHistoryGraphState extends State<ApyHistoryGraph> {
                               // Mettre à jour la date
                               final dateText = editableRecord.dateController.text;
                               final DateTime newDate = DateFormat('yyyy-MM-dd HH:mm:ss').parse(dateText);
-                              
+
                               // Mettre à jour la valeur nette
                               final netText = editableRecord.netController.text;
                               final double? newNetValue = double.tryParse(netText);
-                              
+
                               // Mettre à jour la valeur brute
                               final grossText = editableRecord.grossController.text;
                               final double? newGrossValue = double.tryParse(grossText);
-                              
+
                               if (newNetValue != null && newGrossValue != null) {
                                 // Trouver l'index dans la liste originale
-                                final index = widget.dataManager.apyHistory.indexWhere((r) => 
-                                  r.timestamp.isAtSameMomentAs(editableRecord.original.timestamp) && 
-                                  r.apy == editableRecord.original.apy
-                                );
-                                
+                                final index = widget.dataManager.apyHistory.indexWhere((r) =>
+                                    r.timestamp.isAtSameMomentAs(editableRecord.original.timestamp) &&
+                                    r.apy == editableRecord.original.apy);
+
                                 if (index != -1) {
                                   // Créer un nouvel enregistrement avec les nouvelles valeurs
                                   final updatedRecord = APYRecord(
@@ -589,7 +569,7 @@ class _ApyHistoryGraphState extends State<ApyHistoryGraph> {
                                     netApy: newNetValue,
                                     grossApy: newGrossValue,
                                   );
-                                  
+
                                   // Mettre à jour la liste
                                   widget.dataManager.apyHistory[index] = updatedRecord;
                                   print('Mise à jour index $index: ${newDate.toIso8601String()} -> $newNetValue');
@@ -599,16 +579,16 @@ class _ApyHistoryGraphState extends State<ApyHistoryGraph> {
                               print('Erreur lors de la mise à jour: $e');
                             }
                           }
-                          
+
                           // Sauvegarder dans Hive
                           widget.dataManager.saveApyHistory();
-                          
+
                           // Notifier les écouteurs
                           widget.dataManager.notifyListeners();
-                          
+
                           // Fermer le modal
                           Navigator.pop(context);
-                          
+
                           // Forcer la mise à jour du widget parent
                           setState(() {});
                         },
@@ -645,7 +625,7 @@ class _ApyHistoryGraphState extends State<ApyHistoryGraph> {
     // Définir les couleurs pour les séries empilées
     final Color netColor = const Color(0xFF5AC8FA); // Bleu pour net
     final Color grossColor = const Color(0xFFFF9500); // Orange pour brut
-    
+
     return GenericChartWidget<APYRecord>(
       title: S.of(context).apyHistory,
       chartColor: netColor, // Utiliser la couleur de la série principale
@@ -664,10 +644,10 @@ class _ApyHistoryGraphState extends State<ApyHistoryGraph> {
       getStackValues: (record) {
         final netValue = record?.netApy ?? record?.apy ?? 0.0;
         final grossValue = record?.grossApy ?? record?.apy ?? 0.0;
-        
+
         // Si gross est inférieur à net (rare), on affiche juste la valeur nette
         final grossDiff = grossValue > netValue ? grossValue - netValue : 0.0;
-        
+
         return [netValue, grossDiff];
       },
       getTimestamp: (record) => record?.timestamp ?? DateTime.now(),

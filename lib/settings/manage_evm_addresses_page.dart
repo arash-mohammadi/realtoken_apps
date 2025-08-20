@@ -2,13 +2,13 @@ import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
-import 'package:realtoken_asset_tracker/app_state.dart';
-import 'package:realtoken_asset_tracker/managers/data_manager.dart';
-import 'package:realtoken_asset_tracker/services/api_service.dart';
-import 'package:realtoken_asset_tracker/utils/data_fetch_utils.dart';
+import 'package:meprop_asset_tracker/app_state.dart';
+import 'package:meprop_asset_tracker/managers/data_manager.dart';
+import 'package:meprop_asset_tracker/services/api_service.dart';
+import 'package:meprop_asset_tracker/utils/data_fetch_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/services.dart'; // Pour copier dans le presse-papiers
-import 'package:realtoken_asset_tracker/generated/l10n.dart';
+import 'package:meprop_asset_tracker/generated/l10n.dart';
 
 class ManageEvmAddressesPage extends StatefulWidget {
   const ManageEvmAddressesPage({super.key});
@@ -30,7 +30,7 @@ class ManageEvmAddressesPageState extends State<ManageEvmAddressesPage> {
       final dataManager = Provider.of<DataManager>(context, listen: false);
       debugPrint("🔑 ManageEvmAddresses: chargement des relations userId-adresses");
       dataManager.loadUserIdToAddresses(); // Charger les relations userId-adresses
-      
+
       // Forcé la mise à jour des données car c'est une page de gestion d'adresses
       // On a besoin des données les plus récentes ici
       debugPrint("🔑 ManageEvmAddresses: forçage de la mise à jour des données");
@@ -157,7 +157,8 @@ class ManageEvmAddressesPageState extends State<ManageEvmAddressesPage> {
     final appState = Provider.of<AppState>(context); // Récupérer AppState pour le texte
 
     // Récupérer toutes les adresses liées à un userId
-    final List linkedAddresses = dataManager.getAllUserIds().expand((userId) => dataManager.getAddressesForUserId(userId) ?? []).toList();
+    final List linkedAddresses =
+        dataManager.getAllUserIds().expand((userId) => dataManager.getAddressesForUserId(userId) ?? []).toList();
 
     // Filtrer les adresses non liées
     final unlinkedAddresses = evmAddresses.where((address) => !linkedAddresses.contains(address)).toList();
@@ -257,7 +258,7 @@ class ManageEvmAddressesPageState extends State<ManageEvmAddressesPage> {
           ),
           if (unlinkedAddresses.isNotEmpty) ...[
             const SizedBox(height: 16),
-            _buildSectionHeader(context, "Adresses non associées", CupertinoIcons.creditcard),
+            _buildSectionHeader(context, S.of(context).unlinkedAddressesHeader, CupertinoIcons.creditcard),
             ListView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
@@ -275,7 +276,7 @@ class ManageEvmAddressesPageState extends State<ManageEvmAddressesPage> {
           ],
           if (dataManager.getAllUserIds().isNotEmpty) ...[
             const SizedBox(height: 16),
-            _buildSectionHeader(context, "Adresses associées", CupertinoIcons.person_crop_circle),
+            _buildSectionHeader(context, S.of(context).linkedAddressesHeader, CupertinoIcons.person_crop_circle),
             for (final userId in dataManager.getAllUserIds())
               _buildUserSection(
                 context,

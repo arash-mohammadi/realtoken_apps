@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
-import 'package:realtoken_asset_tracker/managers/data_manager.dart';
-import 'package:realtoken_asset_tracker/generated/l10n.dart';
-import 'package:realtoken_asset_tracker/pages/Statistics/portfolio/charts/token_distribution_chart.dart';
-import 'package:realtoken_asset_tracker/pages/Statistics/portfolio/charts/token_distribution_by_wallet_card.dart';
+import 'package:meprop_asset_tracker/managers/data_manager.dart';
+import 'package:meprop_asset_tracker/generated/l10n.dart';
+import 'package:meprop_asset_tracker/pages/Statistics/portfolio/charts/token_distribution_chart.dart';
+import 'package:meprop_asset_tracker/pages/Statistics/portfolio/charts/token_distribution_by_wallet_card.dart';
 import 'package:flutter/services.dart';
-import 'package:realtoken_asset_tracker/app_state.dart';
+import 'package:meprop_asset_tracker/app_state.dart';
 import 'package:fl_chart/fl_chart.dart';
 
 class LoanIncomeDetailsPage extends StatelessWidget {
@@ -19,9 +19,8 @@ class LoanIncomeDetailsPage extends StatelessWidget {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     // Filtrer uniquement les tokens de loan income
-    final loanTokens = dataManager.portfolio.where((token) => 
-      (token['productType'] ?? '').toLowerCase() == 'loan_income'
-    ).toList();
+    final loanTokens =
+        dataManager.portfolio.where((token) => (token['productType'] ?? '').toLowerCase() == 'loan_income').toList();
 
     return Scaffold(
       backgroundColor: isDarkMode ? const Color(0xFF1C1C1E) : const Color(0xFFF2F2F7),
@@ -92,14 +91,14 @@ class LoanIncomeDetailsPage extends StatelessWidget {
 
   List<Map<String, dynamic>> _getSortedWalletDetails(DataManager dataManager, String productType) {
     final List<Map<String, dynamic>> walletDetails = [];
-    
+
     // Grouper les tokens de loan income par wallet
     final Map<String, Map<String, dynamic>> walletGroups = {};
-    
+
     for (var token in dataManager.portfolio) {
       if ((token['productType'] ?? '').toLowerCase() == productType) {
         final address = token['walletAddress'] ?? 'Unknown';
-        
+
         if (!walletGroups.containsKey(address)) {
           walletGroups[address] = {
             'address': address,
@@ -109,24 +108,24 @@ class LoanIncomeDetailsPage extends StatelessWidget {
             'totalValue': 0.0,
           };
         }
-        
+
         walletGroups[address]!['tokenCount'] = (walletGroups[address]!['tokenCount'] as int) + 1;
-        
+
         final amount = (token['amount'] as num?)?.toDouble() ?? 0.0;
         final totalValue = (token['totalValue'] as num?)?.toDouble() ?? 0.0;
-        
+
         if (token['source'] == 'wallet') {
           walletGroups[address]!['walletTokensSum'] = (walletGroups[address]!['walletTokensSum'] as double) + amount;
         } else {
           walletGroups[address]!['rmmTokensSum'] = (walletGroups[address]!['rmmTokensSum'] as double) + amount;
         }
-        
+
         walletGroups[address]!['totalValue'] = (walletGroups[address]!['totalValue'] as double) + totalValue;
       }
     }
-    
+
     walletDetails.addAll(walletGroups.values);
-    
+
     // Trier par valeur totale
     walletDetails.sort((a, b) {
       final double aTotalValue = a['totalValue'] as double? ?? 0;
@@ -142,9 +141,8 @@ class LoanIncomeDetailsPage extends StatelessWidget {
     final cardColor = isDarkMode ? const Color(0xFF2C2C2E) : Colors.white;
 
     final totalTokens = loanTokens.length;
-    final totalTokensSum = loanTokens.fold<double>(0.0, (sum, token) => 
-      sum + ((token['amount'] as num?)?.toDouble() ?? 0.0)
-    );
+    final totalTokensSum =
+        loanTokens.fold<double>(0.0, (sum, token) => sum + ((token['amount'] as num?)?.toDouble() ?? 0.0));
 
     return Row(
       children: [
@@ -242,7 +240,7 @@ class LoanIncomeDetailsPage extends StatelessWidget {
   Widget _buildIncomeChart(BuildContext context, List<Map<String, dynamic>> loanTokens, AppState appState) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final cardColor = isDarkMode ? const Color(0xFF2C2C2E) : Colors.white;
-    
+
     final today = DateTime.now();
     final activeTokens = loanTokens.where((token) {
       final rentStartDateString = token['rentStartDate'] as String?;
@@ -539,4 +537,4 @@ class LoanIncomeDetailsPage extends StatelessWidget {
       ),
     );
   }
-} 
+}

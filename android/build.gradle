@@ -17,6 +17,28 @@ tasks.register("clean", Delete) {
     delete rootProject.buildDir
 }
 
+// Workaround: some plugins (in pub-cache) may not declare an Android "namespace"
+// in their plugin `build.gradle`. Set a fallback namespace for that module so
+// the project can configure with AGP 7+/8+. This avoids editing files in
+// .pub-cache. If you later upgrade the plugin, you can remove this.
+gradle.projectsEvaluated {
+    rootProject.subprojects.each { proj ->
+        if (proj.name == 'flutter_inappwebview') {
+            try {
+                def androidExt = proj.extensions.findByName('android')
+                if (androidExt != null) {
+                    // Only set if namespace property is missing or empty
+                    if (!androidExt.hasProperty('namespace') || !androidExt.namespace) {
+                        androidExt.namespace = 'com.pichillilorenzo.flutter_inappwebview'
+                    }
+                }
+            } catch (Exception e) {
+                // ignore; this is only a best-effort workaround
+            }
+        }
+    }
+}
+
 buildscript {
     repositories {
         google()         // Dépôt pour les services Google
@@ -30,8 +52,8 @@ buildscript {
 }
 
 
-def keystoreProperties = new Properties()
-def keystorePropertiesFile = rootProject.file('key.properties')
-if (keystorePropertiesFile.exists()) {
-    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
-}
+// def keystoreProperties = new Properties()
+// def keystorePropertiesFile = rootProject.file('key.properties')
+// if (keystorePropertiesFile.exists()) {
+//     keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+// }

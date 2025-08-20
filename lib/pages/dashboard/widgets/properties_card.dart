@@ -1,11 +1,11 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:realtoken_asset_tracker/managers/data_manager.dart';
-import 'package:realtoken_asset_tracker/app_state.dart';
-import 'package:realtoken_asset_tracker/generated/l10n.dart';
-import 'package:realtoken_asset_tracker/utils/ui_utils.dart';
-import 'package:realtoken_asset_tracker/pages/dashboard/detailsPages/properties_details_page.dart';
+import 'package:meprop_asset_tracker/managers/data_manager.dart';
+import 'package:meprop_asset_tracker/app_state.dart';
+import 'package:meprop_asset_tracker/generated/l10n.dart';
+import 'package:meprop_asset_tracker/utils/ui_utils.dart';
+import 'package:meprop_asset_tracker/pages/dashboard/detailsPages/properties_details_page.dart';
 
 class PropertiesCard extends StatelessWidget {
   final bool showAmounts;
@@ -22,7 +22,11 @@ class PropertiesCard extends StatelessWidget {
     return UIUtils.buildCard(
       S.of(context).properties,
       Icons.business_outlined,
-      UIUtils.buildValueBeforeText(context, '${(dataManager.rentedUnits / dataManager.totalUnits * 100).toStringAsFixed(2)}%', S.of(context).rented, isLoading),
+      UIUtils.buildValueBeforeText(
+          context,
+          '${(dataManager.rentedUnits / dataManager.totalUnits * 100).toStringAsFixed(2)}%',
+          S.of(context).rented,
+          isLoading),
       [
         UIUtils.buildTextWithShimmer(
           '${dataManager.totalTokenCount}',

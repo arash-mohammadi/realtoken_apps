@@ -1,8 +1,8 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:realtoken_asset_tracker/generated/l10n.dart';
-import 'package:realtoken_asset_tracker/app_state.dart';
+import 'package:meprop_asset_tracker/generated/l10n.dart';
+import 'package:meprop_asset_tracker/app_state.dart';
 import 'package:provider/provider.dart';
 
 void showOtherDetailsModal(BuildContext context, dataManager, List<Map<String, dynamic>> othersDetails, String key) {
@@ -75,7 +75,8 @@ void showOtherDetailsModal(BuildContext context, dataManager, List<Map<String, d
                                           if (touchResponse != null && touchResponse.touchedSection != null) {
                                             final touchedIndex = touchResponse.touchedSection!.touchedSectionIndex;
                                             if (event is FlTapUpEvent) {
-                                              selectedIndexNotifier.value = selectedIndex == touchedIndex ? null : touchedIndex;
+                                              selectedIndexNotifier.value =
+                                                  selectedIndex == touchedIndex ? null : touchedIndex;
                                             }
                                           }
                                         },
@@ -132,7 +133,8 @@ void showOtherDetailsModal(BuildContext context, dataManager, List<Map<String, d
 }
 
 // Widget pour afficher le texte au centre du donut
-Widget _buildCenterText(BuildContext context, List<Map<String, dynamic>> othersDetails, String key, int? selectedIndex) {
+Widget _buildCenterText(
+    BuildContext context, List<Map<String, dynamic>> othersDetails, String key, int? selectedIndex) {
   if (selectedIndex == null) {
     // Afficher le total quand rien n'est sélectionné
     final int totalCount = othersDetails.fold(0, (sum, item) {
@@ -167,7 +169,8 @@ Widget _buildCenterText(BuildContext context, List<Map<String, dynamic>> othersD
     if (selectedIndex < othersDetails.length) {
       final selectedItem = othersDetails[selectedIndex];
       final String name = selectedItem[key] ?? S.of(context).unknown;
-      final count = selectedItem['count'] is int ? selectedItem['count'] as int : (selectedItem['count'] as double).round();
+      final count =
+          selectedItem['count'] is int ? selectedItem['count'] as int : (selectedItem['count'] as double).round();
 
       return Column(
         mainAxisSize: MainAxisSize.min,
@@ -201,7 +204,8 @@ Widget _buildCenterText(BuildContext context, List<Map<String, dynamic>> othersD
   }
 }
 
-List<PieChartSectionData> _buildOtherDetailsDonutData(List<Map<String, dynamic>> othersDetails, String key, int? selectedIndex) {
+List<PieChartSectionData> _buildOtherDetailsDonutData(
+    List<Map<String, dynamic>> othersDetails, String key, int? selectedIndex) {
   // Couleurs iOS
   final List<Color> sectionColors = [
     CupertinoColors.systemBlue,

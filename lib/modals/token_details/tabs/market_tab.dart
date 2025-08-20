@@ -3,13 +3,13 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
-import 'package:realtoken_asset_tracker/managers/data_manager.dart';
-import 'package:realtoken_asset_tracker/generated/l10n.dart';
-import 'package:realtoken_asset_tracker/app_state.dart';
-import 'package:realtoken_asset_tracker/utils/currency_utils.dart';
-import 'package:realtoken_asset_tracker/utils/date_utils.dart';
-import 'package:realtoken_asset_tracker/utils/url_utils.dart';
-import 'package:realtoken_asset_tracker/modals/token_details/showTokenDetails.dart';
+import 'package:meprop_asset_tracker/managers/data_manager.dart';
+import 'package:meprop_asset_tracker/generated/l10n.dart';
+import 'package:meprop_asset_tracker/app_state.dart';
+import 'package:meprop_asset_tracker/utils/currency_utils.dart';
+import 'package:meprop_asset_tracker/utils/date_utils.dart';
+import 'package:meprop_asset_tracker/utils/url_utils.dart';
+import 'package:meprop_asset_tracker/modals/token_details/showTokenDetails.dart';
 
 class MarketTab extends StatefulWidget {
   final Map<String, dynamic> token;
@@ -50,14 +50,23 @@ class _MarketTabState extends State<MarketTab> {
   }
 
   void _setupScrollListener() {
-    // Trouver le contrôleur de défilement parent
-    final ancestor = context.findAncestorWidgetOfExactType<TokenDetailsWidget>();
-    if (ancestor != null) {
-      setState(() {
-        _parentScrollController = ancestor.scrollController;
-        _parentScrollController?.addListener(_checkTabBarSticky);
-      });
-    }
+    // Trouver le contrôleur de défilement parent de façon sûre via l'état ancêtre
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+
+      final ancestorState = context.findAncestorStateOfType<State<TokenDetailsWidget>>();
+      if (ancestorState != null) {
+        final controller = (ancestorState.widget as TokenDetailsWidget).scrollController;
+        if (controller != _parentScrollController) {
+          // Retirer l'ancien listener si présent
+          if (_parentScrollController != null) {
+            _parentScrollController!.removeListener(_checkTabBarSticky);
+          }
+          _parentScrollController = controller;
+          _parentScrollController?.addListener(_checkTabBarSticky);
+        }
+      }
+    });
   }
 
   @override
@@ -92,7 +101,7 @@ class _MarketTabState extends State<MarketTab> {
     // Détecter si on a atteint les limites du scroll local
     if (scrollInfo is ScrollUpdateNotification) {
       final metrics = scrollInfo.metrics;
-      
+
       // Si on essaie de scroller vers le haut alors qu'on est déjà en haut
       if (metrics.pixels <= metrics.minScrollExtent && scrollInfo.scrollDelta! < 0) {
         // Déléguer le scroll vers le haut au parent de manière fluide
@@ -102,7 +111,7 @@ class _MarketTabState extends State<MarketTab> {
           parentPosition.minScrollExtent,
           parentPosition.maxScrollExtent,
         );
-        
+
         // Utiliser animateTo pour une transition plus fluide
         _parentScrollController!.animateTo(
           newOffset,
@@ -111,7 +120,7 @@ class _MarketTabState extends State<MarketTab> {
         );
         return true; // Consomme l'événement
       }
-      
+
       // Si on essaie de scroller vers le bas alors qu'on est déjà en bas
       if (metrics.pixels >= metrics.maxScrollExtent && scrollInfo.scrollDelta! > 0) {
         // Déléguer le scroll vers le bas au parent de manière fluide
@@ -121,7 +130,7 @@ class _MarketTabState extends State<MarketTab> {
           parentPosition.minScrollExtent,
           parentPosition.maxScrollExtent,
         );
-        
+
         // Utiliser animateTo pour une transition plus fluide
         _parentScrollController!.animateTo(
           newOffset,
@@ -131,7 +140,7 @@ class _MarketTabState extends State<MarketTab> {
         return true; // Consomme l'événement
       }
     }
-    
+
     return false; // Laisse passer l'événement normalement
   }
 
@@ -167,75 +176,80 @@ class _MarketTabState extends State<MarketTab> {
             // Contenu principal avec liste défilante qui s'active quand la TabBar est sticky
             Flexible(
               child: FutureBuilder<List<Map<String, dynamic>>>(
-              future: _getFilteredOffers(dataManager, widget.token['uuid'], selectedOfferType),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(
-                    child: CupertinoActivityIndicator(),
-                  );
-                } else if (snapshot.hasError) {
-                  return _buildErrorWidget(snapshot.error.toString(), isDarkMode);
-                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return _buildEmptyWidget(appState, isDarkMode);
-                } else {
-                  final offers = _getSortedOffers(snapshot.data!);
+                future: _getFilteredOffers(dataManager, widget.token['uuid'], selectedOfferType),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(
+                      child: CupertinoActivityIndicator(),
+                    );
+                  } else if (snapshot.hasError) {
+                    return _buildErrorWidget(snapshot.error.toString(), isDarkMode);
+                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return _buildEmptyWidget(appState, isDarkMode);
+                  } else {
+                    final offers = _getSortedOffers(snapshot.data!);
 
-                  // Utiliser un ListView avec ScrollPhysics adaptatif et NotificationListener pour gérer le scroll imbriqué
-                  return NotificationListener<ScrollNotification>(
-                    onNotification: (ScrollNotification scrollInfo) {
-                      return _handleScrollNotification(scrollInfo);
-                    },
-                    child: ListView(
-                      // Changer la physique selon si la TabBar est sticky ou non
-                      physics: isTabBarSticky
-                          ? const BouncingScrollPhysics() // Activer le défilement quand la TabBar est sticky
-                          : const NeverScrollableScrollPhysics(), // Désactiver le défilement sinon
-                    children: [
-                      // Titre de la section
-                      Padding(
-                        padding: const EdgeInsets.only(left: 8.0, right: 8.0, top: 16.0, bottom: 8.0),
-                        child: Text(
-                          S.of(context).secondary_offers_related_to_token,
-                          style: TextStyle(
-                            fontSize: 18 + appState.getTextSizeOffset(),
-                            fontWeight: FontWeight.bold,
-                            color: Theme.of(context).primaryColor,
+                    // Utiliser un ListView avec ScrollPhysics adaptatif et NotificationListener pour gérer le scroll imbriqué
+                    return NotificationListener<ScrollNotification>(
+                      onNotification: (ScrollNotification scrollInfo) {
+                        return _handleScrollNotification(scrollInfo);
+                      },
+                      child: ListView(
+                        // Changer la physique selon si la TabBar est sticky ou non
+                        physics: isTabBarSticky
+                            ? const BouncingScrollPhysics() // Activer le défilement quand la TabBar est sticky
+                            : const NeverScrollableScrollPhysics(), // Désactiver le défilement sinon
+                        children: [
+                          // Titre de la section
+                          Padding(
+                            padding: const EdgeInsets.only(left: 8.0, right: 8.0, top: 16.0, bottom: 8.0),
+                            child: Text(
+                              S.of(context).secondary_offers_related_to_token,
+                              style: TextStyle(
+                                fontSize: 18 + appState.getTextSizeOffset(),
+                                fontWeight: FontWeight.bold,
+                                color: Theme.of(context).primaryColor,
+                              ),
+                            ),
                           ),
-                        ),
+
+                          // Construction de toutes les offres dans le ListView
+                          ...offers.map((offer) {
+                            final bool isTokenWhitelisted = dataManager.whitelistTokens.any(
+                              (whitelisted) => whitelisted['token'].toLowerCase() == widget.token['uuid'].toLowerCase(),
+                            );
+
+                            if (selectedOfferType == "vente" ||
+                                (selectedOfferType == "tout" && offer['token_to_buy'] == null)) {
+                              return _buildIOSSaleOfferCard(
+                                  context, appState, currencyUtils, offer, isTokenWhitelisted, isDarkMode);
+                            } else if (selectedOfferType == "achat" ||
+                                (selectedOfferType == "tout" && offer['token_to_buy'] != null)) {
+                              return _buildIOSPurchaseOfferCard(
+                                  context, appState, currencyUtils, offer, isTokenWhitelisted, isDarkMode);
+                            } else {
+                              return const SizedBox.shrink(); // Ne devrait jamais arriver
+                            }
+                          }).toList(),
+
+                          // Espace en bas
+                          const SizedBox(height: 16),
+                        ],
                       ),
-
-                      // Construction de toutes les offres dans le ListView
-                      ...offers.map((offer) {
-                        final bool isTokenWhitelisted = dataManager.whitelistTokens.any(
-                          (whitelisted) => whitelisted['token'].toLowerCase() == widget.token['uuid'].toLowerCase(),
-                        );
-
-                        if (selectedOfferType == "vente" || (selectedOfferType == "tout" && offer['token_to_buy'] == null)) {
-                          return _buildIOSSaleOfferCard(context, appState, currencyUtils, offer, isTokenWhitelisted, isDarkMode);
-                        } else if (selectedOfferType == "achat" || (selectedOfferType == "tout" && offer['token_to_buy'] != null)) {
-                          return _buildIOSPurchaseOfferCard(context, appState, currencyUtils, offer, isTokenWhitelisted, isDarkMode);
-                        } else {
-                          return const SizedBox.shrink(); // Ne devrait jamais arriver
-                        }
-                      }).toList(),
-
-                      // Espace en bas
-                      const SizedBox(height: 16),
-                    ],
-                    ),
-                  );
-                }
-              },
+                    );
+                  }
+                },
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
-    ),
     );
   }
 
   // Contenu pour l'affichage modal plein écran
-  Widget _buildModalContent(AppState appState, DataManager dataManager, CurrencyProvider currencyUtils, bool isDarkMode) {
+  Widget _buildModalContent(
+      AppState appState, DataManager dataManager, CurrencyProvider currencyUtils, bool isDarkMode) {
     return Column(
       children: [
         // Header pour la vue modale - fixe
@@ -288,69 +302,73 @@ class _MarketTabState extends State<MarketTab> {
               },
               child: ListView(
                 physics: const BouncingScrollPhysics(),
-              children: [
-                // Titre de la section
-                Padding(
-                  padding: const EdgeInsets.only(left: 16, right: 16, top: 20, bottom: 10),
-                  child: Text(
-                    S.of(context).secondary_offers_related_to_token,
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 20 + appState.getTextSizeOffset(),
-                      letterSpacing: -0.5,
-                      color: isDarkMode ? Colors.white : _iosLabelColor,
+                children: [
+                  // Titre de la section
+                  Padding(
+                    padding: const EdgeInsets.only(left: 16, right: 16, top: 20, bottom: 10),
+                    child: Text(
+                      S.of(context).secondary_offers_related_to_token,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 20 + appState.getTextSizeOffset(),
+                        letterSpacing: -0.5,
+                        color: isDarkMode ? Colors.white : _iosLabelColor,
+                      ),
                     ),
                   ),
-                ),
 
-                // Liste des offres
-                FutureBuilder<List<Map<String, dynamic>>>(
-                  future: _getFilteredOffers(dataManager, widget.token['uuid'], selectedOfferType),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(
-                        child: Padding(
-                          padding: EdgeInsets.all(20.0),
-                          child: CupertinoActivityIndicator(),
-                        ),
-                      );
-                    } else if (snapshot.hasError) {
-                      return _buildErrorWidget(snapshot.error.toString(), isDarkMode);
-                    } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                      return _buildEmptyWidget(appState, isDarkMode);
-                    } else {
-                      final offers = _getSortedOffers(snapshot.data!);
-                      return ListView.builder(
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: offers.length,
-                        shrinkWrap: true,
-                        itemBuilder: (context, index) {
-                          final offer = offers[index];
-                          final bool isTokenWhitelisted = dataManager.whitelistTokens.any(
-                            (whitelisted) => whitelisted['token'].toLowerCase() == widget.token['uuid'].toLowerCase(),
-                          );
+                  // Liste des offres
+                  FutureBuilder<List<Map<String, dynamic>>>(
+                    future: _getFilteredOffers(dataManager, widget.token['uuid'], selectedOfferType),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(20.0),
+                            child: CupertinoActivityIndicator(),
+                          ),
+                        );
+                      } else if (snapshot.hasError) {
+                        return _buildErrorWidget(snapshot.error.toString(), isDarkMode);
+                      } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                        return _buildEmptyWidget(appState, isDarkMode);
+                      } else {
+                        final offers = _getSortedOffers(snapshot.data!);
+                        return ListView.builder(
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: offers.length,
+                          shrinkWrap: true,
+                          itemBuilder: (context, index) {
+                            final offer = offers[index];
+                            final bool isTokenWhitelisted = dataManager.whitelistTokens.any(
+                              (whitelisted) => whitelisted['token'].toLowerCase() == widget.token['uuid'].toLowerCase(),
+                            );
 
-                          // Render appropriate card based on offer type
-                          if (selectedOfferType == "vente") {
-                            return _buildIOSSaleOfferCard(context, appState, currencyUtils, offer, isTokenWhitelisted, isDarkMode);
-                          } else if (selectedOfferType == "achat") {
-                            return _buildIOSPurchaseOfferCard(context, appState, currencyUtils, offer, isTokenWhitelisted, isDarkMode);
-                          } else {
-                            if (offer['token_to_buy'] == null) {
-                              return _buildIOSSaleOfferCard(context, appState, currencyUtils, offer, isTokenWhitelisted, isDarkMode);
+                            // Render appropriate card based on offer type
+                            if (selectedOfferType == "vente") {
+                              return _buildIOSSaleOfferCard(
+                                  context, appState, currencyUtils, offer, isTokenWhitelisted, isDarkMode);
+                            } else if (selectedOfferType == "achat") {
+                              return _buildIOSPurchaseOfferCard(
+                                  context, appState, currencyUtils, offer, isTokenWhitelisted, isDarkMode);
                             } else {
-                              return _buildIOSPurchaseOfferCard(context, appState, currencyUtils, offer, isTokenWhitelisted, isDarkMode);
+                              if (offer['token_to_buy'] == null) {
+                                return _buildIOSSaleOfferCard(
+                                    context, appState, currencyUtils, offer, isTokenWhitelisted, isDarkMode);
+                              } else {
+                                return _buildIOSPurchaseOfferCard(
+                                    context, appState, currencyUtils, offer, isTokenWhitelisted, isDarkMode);
+                              }
                             }
-                          }
-                        },
-                      );
-                    }
-                  },
-                ),
+                          },
+                        );
+                      }
+                    },
+                  ),
 
-                // Espace en bas
-                const SizedBox(height: 20),
-              ],
+                  // Espace en bas
+                  const SizedBox(height: 20),
+                ],
               ),
             ),
           ),
@@ -540,7 +558,8 @@ class _MarketTabState extends State<MarketTab> {
   }
 
   // Widget pour créer un filtre chip style iOS
-  Widget _buildFilterChip(String type, IconData icon, bool isSelected, BuildContext context, {VoidCallback? onTap, Color? customColor}) {
+  Widget _buildFilterChip(String type, IconData icon, bool isSelected, BuildContext context,
+      {VoidCallback? onTap, Color? customColor}) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final color = customColor ??
         (isSelected
@@ -1070,7 +1089,8 @@ class _MarketTabState extends State<MarketTab> {
                               borderRadius: BorderRadius.circular(10),
                               onTap: isTokenWhitelisted
                                   ? () {
-                                      UrlUtils.launchURL('https://yambyofferid.netlify.app/?offerId=${offer['id_offer']}');
+                                      UrlUtils.launchURL(
+                                          'https://yambyofferid.netlify.app/?offerId=${offer['id_offer']}');
                                     }
                                   : null,
                               child: Container(
@@ -1102,7 +1122,8 @@ class _MarketTabState extends State<MarketTab> {
                   builder: (context) {
                     Widget icon = const SizedBox();
 
-                    if (offer['token_to_pay'] == '0x0ca4f5554dd9da6217d62d8df2816c82bba4157b' || offer['token_to_pay'] == '0xe91d153e0b41518a2ce8dd3d7944fa863463a97d') {
+                    if (offer['token_to_pay'] == '0x0ca4f5554dd9da6217d62d8df2816c82bba4157b' ||
+                        offer['token_to_pay'] == '0xe91d153e0b41518a2ce8dd3d7944fa863463a97d') {
                       icon = Container(
                         padding: const EdgeInsets.all(3),
                         decoration: BoxDecoration(
@@ -1122,7 +1143,8 @@ class _MarketTabState extends State<MarketTab> {
                           height: 18,
                         ),
                       );
-                    } else if (offer['token_to_pay'] == '0xddafbb505ad214d7b80b1f830fccc89b60fb7a83' || offer['token_to_pay'] == '0xed56f76e9cbc6a64b821e9c016eafbd3db5436d1') {
+                    } else if (offer['token_to_pay'] == '0xddafbb505ad214d7b80b1f830fccc89b60fb7a83' ||
+                        offer['token_to_pay'] == '0xed56f76e9cbc6a64b821e9c016eafbd3db5436d1') {
                       icon = Container(
                         padding: const EdgeInsets.all(3),
                         decoration: BoxDecoration(
@@ -1319,7 +1341,8 @@ class _MarketTabState extends State<MarketTab> {
                                   ),
                                 ),
                                 Text(
-                                  currencyUtils.formatCurrency(currencyUtils.convert(offer['token_value']), currencyUtils.currencySymbol),
+                                  currencyUtils.formatCurrency(
+                                      currencyUtils.convert(offer['token_value']), currencyUtils.currencySymbol),
                                   style: TextStyle(
                                     fontSize: 14 + appState.getTextSizeOffset(),
                                     fontWeight: FontWeight.bold,
@@ -1408,7 +1431,8 @@ class _MarketTabState extends State<MarketTab> {
                   builder: (context) {
                     Widget icon = const SizedBox();
 
-                    if (offer['token_to_pay'] == '0x0ca4f5554dd9da6217d62d8df2816c82bba4157b' || offer['token_to_pay'] == '0xe91d153e0b41518a2ce8dd3d7944fa863463a97d') {
+                    if (offer['token_to_pay'] == '0x0ca4f5554dd9da6217d62d8df2816c82bba4157b' ||
+                        offer['token_to_pay'] == '0xe91d153e0b41518a2ce8dd3d7944fa863463a97d') {
                       icon = Container(
                         padding: const EdgeInsets.all(3),
                         decoration: BoxDecoration(
@@ -1428,7 +1452,8 @@ class _MarketTabState extends State<MarketTab> {
                           height: 18,
                         ),
                       );
-                    } else if (offer['token_to_pay'] == '0xddafbb505ad214d7b80b1f830fccc89b60fb7a83' || offer['token_to_pay'] == '0xed56f76e9cbc6a64b821e9c016eafbd3db5436d1') {
+                    } else if (offer['token_to_pay'] == '0xddafbb505ad214d7b80b1f830fccc89b60fb7a83' ||
+                        offer['token_to_pay'] == '0xed56f76e9cbc6a64b821e9c016eafbd3db5436d1') {
                       icon = Container(
                         padding: const EdgeInsets.all(3),
                         decoration: BoxDecoration(
@@ -1512,7 +1537,8 @@ Future<List<Map<String, dynamic>>> _getFilteredOffers(
   String offerType,
 ) async {
   List<Map<String, dynamic>> filteredOffers = dataManager.yamMarket.where((offer) {
-    bool matchToken = offer['token_to_sell'] == tokenUuid.toLowerCase() || offer['token_to_buy'] == tokenUuid.toLowerCase();
+    bool matchToken =
+        offer['token_to_sell'] == tokenUuid.toLowerCase() || offer['token_to_buy'] == tokenUuid.toLowerCase();
     if (!matchToken) return false;
     if (offerType == "vente") {
       return offer['token_to_buy'] == null;

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
-import 'package:realtoken_asset_tracker/managers/data_manager.dart';
-import 'package:realtoken_asset_tracker/generated/l10n.dart';
-import 'package:realtoken_asset_tracker/pages/Statistics/portfolio/charts/token_distribution_chart.dart';
-import 'package:realtoken_asset_tracker/pages/Statistics/portfolio/charts/token_distribution_by_wallet_card.dart';
+import 'package:meprop_asset_tracker/managers/data_manager.dart';
+import 'package:meprop_asset_tracker/generated/l10n.dart';
+import 'package:meprop_asset_tracker/pages/Statistics/portfolio/charts/token_distribution_chart.dart';
+import 'package:meprop_asset_tracker/pages/Statistics/portfolio/charts/token_distribution_by_wallet_card.dart';
 import 'package:flutter/services.dart';
-import 'package:realtoken_asset_tracker/app_state.dart';
+import 'package:meprop_asset_tracker/app_state.dart';
 import 'package:fl_chart/fl_chart.dart'; // Nouvelle bibliothèque pour graphiques
 
 class PropertiesDetailsPage extends StatelessWidget {
@@ -19,9 +19,9 @@ class PropertiesDetailsPage extends StatelessWidget {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     // Filtrer uniquement les tokens de type real_estate_rental
-    final realEstateTokens = dataManager.portfolio.where((token) => 
-      (token['productType'] ?? '').toLowerCase() == 'real_estate_rental'
-    ).toList();
+    final realEstateTokens = dataManager.portfolio
+        .where((token) => (token['productType'] ?? '').toLowerCase() == 'real_estate_rental')
+        .toList();
 
     return Scaffold(
       backgroundColor: isDarkMode ? const Color(0xFF1C1C1E) : const Color(0xFFF2F2F7),
@@ -96,7 +96,8 @@ class PropertiesDetailsPage extends StatelessWidget {
                         child: _buildWalletCard(context, walletDetails[index], appState),
                       );
                     },
-                    childCount: _getSortedWalletDetails(dataManager).isEmpty ? 1 : _getSortedWalletDetails(dataManager).length,
+                    childCount:
+                        _getSortedWalletDetails(dataManager).isEmpty ? 1 : _getSortedWalletDetails(dataManager).length,
                   ),
                 ),
                 SliverToBoxAdapter(
@@ -158,9 +159,8 @@ class PropertiesDetailsPage extends StatelessWidget {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final cardColor = isDarkMode ? const Color(0xFF2C2C2E) : Colors.white;
 
-    final totalTokensSum = realEstateTokens.fold<double>(0.0, (sum, token) => 
-      sum + ((token['amount'] as num?)?.toDouble() ?? 0.0)
-    );
+    final totalTokensSum =
+        realEstateTokens.fold<double>(0.0, (sum, token) => sum + ((token['amount'] as num?)?.toDouble() ?? 0.0));
 
     return Row(
       children: [
@@ -245,14 +245,12 @@ class PropertiesDetailsPage extends StatelessWidget {
   Widget _buildOccupancyChart(BuildContext context, List<Map<String, dynamic>> realEstateTokens, AppState appState) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final cardColor = isDarkMode ? const Color(0xFF2C2C2E) : Colors.white;
-    
-    final totalUnits = realEstateTokens.fold<int>(0, (sum, token) => 
-      sum + ((token['totalUnits'] as num?)?.toInt() ?? 0)
-    );
-    final rentedUnits = realEstateTokens.fold<int>(0, (sum, token) => 
-      sum + ((token['rentedUnits'] as num?)?.toInt() ?? 0)
-    );
-    
+
+    final totalUnits =
+        realEstateTokens.fold<int>(0, (sum, token) => sum + ((token['totalUnits'] as num?)?.toInt() ?? 0));
+    final rentedUnits =
+        realEstateTokens.fold<int>(0, (sum, token) => sum + ((token['rentedUnits'] as num?)?.toInt() ?? 0));
+
     final double rentedPercentage = totalUnits > 0 ? (rentedUnits / totalUnits) * 100 : 0.0;
 
     // Déterminer la couleur en fonction du pourcentage

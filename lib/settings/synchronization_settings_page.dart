@@ -5,10 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:hive/hive.dart';
 import 'package:provider/provider.dart';
-import 'package:realtoken_asset_tracker/app_state.dart';
-import 'package:realtoken_asset_tracker/generated/l10n.dart';
-import 'package:realtoken_asset_tracker/services/google_drive_service.dart';
-import 'package:realtoken_asset_tracker/utils/data_fetch_utils.dart';
+import 'package:meprop_asset_tracker/app_state.dart';
+import 'package:meprop_asset_tracker/generated/l10n.dart';
+import 'package:meprop_asset_tracker/services/google_drive_service.dart';
+import 'package:meprop_asset_tracker/utils/data_fetch_utils.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:file_picker/file_picker.dart';
 import 'dart:io';
@@ -16,7 +16,7 @@ import 'package:archive/archive_io.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:realtoken_asset_tracker/models/balance_record.dart';
+import 'package:meprop_asset_tracker/models/balance_record.dart';
 
 class SynchronizationSettingsPage extends StatefulWidget {
   const SynchronizationSettingsPage({super.key});
@@ -438,12 +438,14 @@ class _SynchronizationSettingsPageState extends State<SynchronizationSettingsPag
 
       debugPrint("Fichiers JSON écrits:");
       debugPrint("balanceHistory: $balanceHistoryFilePath (taille: ${balanceHistoryFile.lengthSync()} octets)");
-      debugPrint("walletValueArchive: $walletValueArchiveFilePath (taille: ${walletValueArchiveFile.lengthSync()} octets)");
+      debugPrint(
+          "walletValueArchive: $walletValueArchiveFilePath (taille: ${walletValueArchiveFile.lengthSync()} octets)");
       debugPrint("customInitPrices: $customInitPricesFilePath (taille: ${customInitPricesFile.lengthSync()} octets)");
       debugPrint("customRoi: $customRoiFilePath (taille: ${customRoiFile.lengthSync()} octets)");
       debugPrint("customApy: $customApyFilePath (taille: ${customApyFile.lengthSync()} octets)");
       debugPrint("customYam: $customYamFilePath (taille: ${customYamFile.lengthSync()} octets)");
-      debugPrint("customHealthAndLtv: $customHealthAndLtvFilePath (taille: ${customHealthAndLtvFile.lengthSync()} octets)");
+      debugPrint(
+          "customHealthAndLtv: $customHealthAndLtvFilePath (taille: ${customHealthAndLtvFile.lengthSync()} octets)");
       debugPrint("preferences: $preferencesFilePath (taille: ${preferencesFile.lengthSync()} octets)");
 
       debugPrint("=== Étape 5: Construction de l'archive ZIP ===");
@@ -568,11 +570,13 @@ class _SynchronizationSettingsPageState extends State<SynchronizationSettingsPag
                 // Si les données sont une Map, chercher la clé balanceHistory_totalWalletValue
                 if (decodedData.containsKey('balanceHistory_totalWalletValue')) {
                   recordsToSave = decodedData['balanceHistory_totalWalletValue'];
-                  debugPrint("✅ Clé 'balanceHistory_totalWalletValue' trouvée avec ${recordsToSave.length} enregistrements");
+                  debugPrint(
+                      "✅ Clé 'balanceHistory_totalWalletValue' trouvée avec ${recordsToSave.length} enregistrements");
                 } else {
                   // Si la clé n'existe pas, utiliser toutes les valeurs de la Map
                   recordsToSave = decodedData.values.expand((v) => v is List ? v : [v]).toList();
-                  debugPrint("⚠️ Clé 'balanceHistory_totalWalletValue' non trouvée, utilisation de l'ensemble des valeurs: ${recordsToSave.length} enregistrements");
+                  debugPrint(
+                      "⚠️ Clé 'balanceHistory_totalWalletValue' non trouvée, utilisation de l'ensemble des valeurs: ${recordsToSave.length} enregistrements");
                 }
               } else if (decodedData is List) {
                 debugPrint("📋 Données reçues sous forme de Liste avec ${decodedData.length} éléments");
@@ -583,12 +587,15 @@ class _SynchronizationSettingsPageState extends State<SynchronizationSettingsPag
               }
 
               // Convertir les enregistrements en objets BalanceRecord
-              List<BalanceRecord> balanceRecords = recordsToSave.map((recordJson) => BalanceRecord.fromJson(Map<String, dynamic>.from(recordJson))).toList();
+              List<BalanceRecord> balanceRecords = recordsToSave
+                  .map((recordJson) => BalanceRecord.fromJson(Map<String, dynamic>.from(recordJson)))
+                  .toList();
 
               debugPrint("✅ Conversion effectuée: ${balanceRecords.length} objets BalanceRecord créés");
 
               // Convertir en JSON pour la sauvegarde
-              List<Map<String, dynamic>> balanceHistoryJsonToSave = balanceRecords.map((record) => record.toJson()).toList();
+              List<Map<String, dynamic>> balanceHistoryJsonToSave =
+                  balanceRecords.map((record) => record.toJson()).toList();
 
               // Sauvegarder dans les deux boîtes
               await walletValueArchiveBox.put('balanceHistory_totalWalletValue', balanceHistoryJsonToSave);

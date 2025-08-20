@@ -1,9 +1,8 @@
-import 'package:realtoken_asset_tracker/generated/l10n.dart';
+import 'package:meprop_asset_tracker/generated/l10n.dart';
 
 /// Utilitaires pour le parsing et la gestion des données de localisation
 /// Factorisation du parsing de fullName répétitif dans l'application
 class LocationUtils {
-  
   /// Extrait la ville depuis un fullName formaté
   static String extractCity(String fullName) {
     List<String> parts = fullName.split(',');

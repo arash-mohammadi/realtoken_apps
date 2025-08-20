@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:provider/provider.dart';
-import 'package:realtoken_asset_tracker/managers/data_manager.dart';
-import 'package:realtoken_asset_tracker/app_state.dart';
-import 'package:realtoken_asset_tracker/generated/l10n.dart';
-import 'package:realtoken_asset_tracker/utils/currency_utils.dart';
+import 'package:meprop_asset_tracker/managers/data_manager.dart';
+import 'package:meprop_asset_tracker/app_state.dart';
+import 'package:meprop_asset_tracker/generated/l10n.dart';
+import 'package:meprop_asset_tracker/utils/currency_utils.dart';
 
 class TransactionAnalysisChart extends StatefulWidget {
   final DataManager dataManager;
@@ -131,7 +131,7 @@ class _TransactionAnalysisChartState extends State<TransactionAnalysisChart> {
       'transfer': 0,
       'yam': 0,
     };
-    
+
     Map<String, double> transactionVolumes = {
       'purchase': 0.0,
       'transfer': 0.0,
@@ -161,10 +161,9 @@ class _TransactionAnalysisChartState extends State<TransactionAnalysisChart> {
 
   List<PieChartSectionData> _buildTransactionDonutChartData(int? selectedIndex) {
     final Map<String, dynamic> transactionData = _calculateTransactionData();
-    final Map<String, dynamic> dataToUse = _analysisType == 'count' 
-        ? transactionData['counts'] 
-        : transactionData['volumes'];
-    
+    final Map<String, dynamic> dataToUse =
+        _analysisType == 'count' ? transactionData['counts'] : transactionData['volumes'];
+
     final double total = dataToUse.values.fold(0.0, (sum, value) => sum + value);
 
     if (total <= 0) {
@@ -211,7 +210,9 @@ class _TransactionAnalysisChartState extends State<TransactionAnalysisChart> {
         color: color.withOpacity(opacity),
         radius: isSelected ? 52 : 45,
         titleStyle: TextStyle(
-          fontSize: isSelected ? 14 + Provider.of<AppState>(context).getTextSizeOffset() : 10 + Provider.of<AppState>(context).getTextSizeOffset(),
+          fontSize: isSelected
+              ? 14 + Provider.of<AppState>(context).getTextSizeOffset()
+              : 10 + Provider.of<AppState>(context).getTextSizeOffset(),
           color: Colors.white,
           fontWeight: FontWeight.w600,
           shadows: [
@@ -252,10 +253,9 @@ class _TransactionAnalysisChartState extends State<TransactionAnalysisChart> {
 
   Widget _buildCenterText(int? selectedIndex) {
     final Map<String, dynamic> transactionData = _calculateTransactionData();
-    final Map<String, dynamic> dataToUse = _analysisType == 'count' 
-        ? transactionData['counts'] 
-        : transactionData['volumes'];
-    
+    final Map<String, dynamic> dataToUse =
+        _analysisType == 'count' ? transactionData['counts'] : transactionData['volumes'];
+
     final double total = dataToUse.values.fold(0.0, (sum, value) => sum + value);
     final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
 
@@ -273,7 +273,7 @@ class _TransactionAnalysisChartState extends State<TransactionAnalysisChart> {
           ),
           const SizedBox(height: 4),
           Text(
-            _analysisType == 'count' 
+            _analysisType == 'count'
                 ? total.toStringAsFixed(0)
                 : currencyUtils.getFormattedAmount(currencyUtils.convert(total), currencyUtils.currencySymbol, true),
             style: TextStyle(
@@ -308,9 +308,10 @@ class _TransactionAnalysisChartState extends State<TransactionAnalysisChart> {
         ),
         const SizedBox(height: 4),
         Text(
-          _analysisType == 'count' 
+          _analysisType == 'count'
               ? selectedEntry.value.toStringAsFixed(0)
-              : currencyUtils.getFormattedAmount(currencyUtils.convert(selectedEntry.value), currencyUtils.currencySymbol, true),
+              : currencyUtils.getFormattedAmount(
+                  currencyUtils.convert(selectedEntry.value), currencyUtils.currencySymbol, true),
           style: TextStyle(
             fontSize: 14 + Provider.of<AppState>(context).getTextSizeOffset(),
             color: Colors.grey.shade600,
@@ -349,10 +350,9 @@ class _TransactionAnalysisChartState extends State<TransactionAnalysisChart> {
 
   Widget _buildTransactionLegend() {
     final Map<String, dynamic> transactionData = _calculateTransactionData();
-    final Map<String, dynamic> dataToUse = _analysisType == 'count' 
-        ? transactionData['counts'] 
-        : transactionData['volumes'];
-    
+    final Map<String, dynamic> dataToUse =
+        _analysisType == 'count' ? transactionData['counts'] : transactionData['volumes'];
+
     final appState = Provider.of<AppState>(context);
     final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
 
@@ -408,7 +408,8 @@ class _TransactionAnalysisChartState extends State<TransactionAnalysisChart> {
                   '$typeName: ${_analysisType == 'count' ? value.toStringAsFixed(0) : currencyUtils.getFormattedAmount(currencyUtils.convert(value), currencyUtils.currencySymbol, true)}',
                   style: TextStyle(
                     fontSize: 12 + appState.getTextSizeOffset(),
-                    color: _selectedIndexNotifier.value == index ? color : Theme.of(context).textTheme.bodyMedium?.color,
+                    color:
+                        _selectedIndexNotifier.value == index ? color : Theme.of(context).textTheme.bodyMedium?.color,
                     fontWeight: _selectedIndexNotifier.value == index ? FontWeight.w600 : FontWeight.normal,
                   ),
                 ),
@@ -419,4 +420,4 @@ class _TransactionAnalysisChartState extends State<TransactionAnalysisChart> {
       }).toList(),
     );
   }
-} 
+}

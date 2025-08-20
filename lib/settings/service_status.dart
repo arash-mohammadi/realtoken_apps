@@ -1,10 +1,10 @@
-import 'package:realtoken_asset_tracker/generated/l10n.dart';
+import 'package:meprop_asset_tracker/generated/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:hive/hive.dart';
 import 'package:provider/provider.dart';
-import 'package:realtoken_asset_tracker/app_state.dart';
-import 'package:realtoken_asset_tracker/utils/date_utils.dart'; // Import AppState
+import 'package:meprop_asset_tracker/app_state.dart';
+import 'package:meprop_asset_tracker/utils/date_utils.dart'; // Import AppState
 
 class ServiceStatusPage extends StatelessWidget {
   const ServiceStatusPage({super.key});
@@ -58,7 +58,7 @@ class ServiceStatusPage extends StatelessWidget {
               children: [
                 const SizedBox(height: 12),
 
-                _buildSectionHeader(context, "État des services", CupertinoIcons.gauge),
+                _buildSectionHeader(context, S.of(context).serviceStatus, CupertinoIcons.gauge),
 
                 // Afficher le texte en fonction de allAreUpToDate
                 Padding(
@@ -116,7 +116,7 @@ class ServiceStatusPage extends StatelessWidget {
                       return _buildServiceItem(
                         context: context,
                         title: displayKey,
-                        subtitle: 'Erreur de format de date',
+                        subtitle: 'Date format error',
                         isUpToDate: false,
                         isFirst: executionTimesMap.entries.first.key == key,
                         isLast: executionTimesMap.entries.last.key == key,
@@ -140,7 +140,7 @@ class ServiceStatusPage extends StatelessWidget {
             )
           : Center(
               child: Text(
-                'Aucune exécution trouvée',
+                'No executions found',
                 style: TextStyle(
                   fontSize: 15,
                   color: Colors.grey,

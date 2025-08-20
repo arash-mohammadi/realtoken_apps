@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:provider/provider.dart';
-import 'package:realtoken_asset_tracker/app_state.dart';
-import 'package:realtoken_asset_tracker/generated/l10n.dart';
-import 'package:realtoken_asset_tracker/utils/parameters.dart';
-import 'package:realtoken_asset_tracker/utils/location_utils.dart';
+import 'package:meprop_asset_tracker/app_state.dart';
+import 'package:meprop_asset_tracker/generated/l10n.dart';
+import 'package:meprop_asset_tracker/utils/parameters.dart';
+import 'package:meprop_asset_tracker/utils/location_utils.dart';
 
 /// Factory pour construire les graphiques de distribution standardisés
 /// Factorisation des patterns répétitifs dans les graphiques en secteurs
 class DistributionChartBuilders {
-  
   /// Construit les données pour un graphique de distribution par ville
   static List<PieChartSectionData> buildCityDistributionData({
     required BuildContext context,
@@ -121,10 +120,10 @@ class DistributionChartBuilders {
     required String othersKey,
   }) {
     final appState = Provider.of<AppState>(context);
-    
+
     // Calculer le total
     int totalCount = dataCount.values.fold(0, (sum, value) => sum + value);
-    
+
     if (totalCount == 0) {
       return [
         PieChartSectionData(
@@ -325,7 +324,7 @@ class DistributionChartBuilders {
     required String othersKey,
   }) {
     final appState = Provider.of<AppState>(context);
-    
+
     // Calculer le total
     int totalCount = dataCount.values.fold(0, (sum, value) => sum + value);
 
@@ -390,7 +389,9 @@ class DistributionChartBuilders {
                         key,
                         style: TextStyle(
                           fontSize: 12 + appState.getTextSizeOffset(),
-                          color: selectedIndexNotifier.value == indexCounter ? color : Theme.of(context).textTheme.bodyMedium?.color,
+                          color: selectedIndexNotifier.value == indexCounter
+                              ? color
+                              : Theme.of(context).textTheme.bodyMedium?.color,
                           fontWeight: selectedIndexNotifier.value == indexCounter ? FontWeight.w600 : FontWeight.normal,
                         ),
                       ),
@@ -450,7 +451,9 @@ class DistributionChartBuilders {
                       S.of(context).others,
                       style: TextStyle(
                         fontSize: 12 + appState.getTextSizeOffset(),
-                        color: selectedIndexNotifier.value == indexOthers ? Colors.grey.shade700 : Theme.of(context).textTheme.bodyMedium?.color,
+                        color: selectedIndexNotifier.value == indexOthers
+                            ? Colors.grey.shade700
+                            : Theme.of(context).textTheme.bodyMedium?.color,
                         fontWeight: selectedIndexNotifier.value == indexOthers ? FontWeight.w600 : FontWeight.normal,
                       ),
                     ),
@@ -501,4 +504,4 @@ class DistributionChartBuilders {
     final brightness = (0.8 + (index % 3) * 0.2).clamp(0.6, 0.9);
     return HSVColor.fromAHSV(1.0, hue.toDouble(), saturation, brightness).toColor();
   }
-} 
+}

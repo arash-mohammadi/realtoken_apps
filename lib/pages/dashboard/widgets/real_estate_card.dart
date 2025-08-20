@@ -2,13 +2,13 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:realtoken_asset_tracker/managers/data_manager.dart';
-import 'package:realtoken_asset_tracker/app_state.dart';
-import 'package:realtoken_asset_tracker/generated/l10n.dart';
-import 'package:realtoken_asset_tracker/utils/ui_utils.dart';
-import 'package:realtoken_asset_tracker/utils/shimmer_utils.dart';
-import 'package:realtoken_asset_tracker/utils/currency_utils.dart';
-import 'package:realtoken_asset_tracker/pages/dashboard/detailsPages/properties_details_page.dart';
+import 'package:meprop_asset_tracker/managers/data_manager.dart';
+import 'package:meprop_asset_tracker/app_state.dart';
+import 'package:meprop_asset_tracker/generated/l10n.dart';
+import 'package:meprop_asset_tracker/utils/ui_utils.dart';
+import 'package:meprop_asset_tracker/utils/shimmer_utils.dart';
+import 'package:meprop_asset_tracker/utils/currency_utils.dart';
+import 'package:meprop_asset_tracker/pages/dashboard/detailsPages/properties_details_page.dart';
 
 class RealEstateCard extends StatelessWidget {
   final bool showAmounts;
@@ -24,20 +24,17 @@ class RealEstateCard extends StatelessWidget {
     final theme = Theme.of(context);
 
     // Filtrer les tokens de type real_estate_rental
-    final realEstateTokens = dataManager.portfolio.where((token) => 
-      (token['productType'] ?? '').toLowerCase() == 'real_estate_rental'
-    ).toList();
+    final realEstateTokens = dataManager.portfolio
+        .where((token) => (token['productType'] ?? '').toLowerCase() == 'real_estate_rental')
+        .toList();
 
     final totalTokens = realEstateTokens.length;
-    final totalUnits = realEstateTokens.fold<int>(0, (sum, token) => 
-      sum + ((token['totalUnits'] as num?)?.toInt() ?? 0)
-    );
-    final rentedUnits = realEstateTokens.fold<int>(0, (sum, token) => 
-      sum + ((token['rentedUnits'] as num?)?.toInt() ?? 0)
-    );
-    final totalValue = realEstateTokens.fold<double>(0.0, (sum, token) => 
-      sum + ((token['totalValue'] as num?)?.toDouble() ?? 0.0)
-    );
+    final totalUnits =
+        realEstateTokens.fold<int>(0, (sum, token) => sum + ((token['totalUnits'] as num?)?.toInt() ?? 0));
+    final rentedUnits =
+        realEstateTokens.fold<int>(0, (sum, token) => sum + ((token['rentedUnits'] as num?)?.toInt() ?? 0));
+    final totalValue =
+        realEstateTokens.fold<double>(0.0, (sum, token) => sum + ((token['totalValue'] as num?)?.toDouble() ?? 0.0));
     // Filtrer selon rentStartDate pour ne prendre que les tokens qui génèrent déjà des revenus
     final today = DateTime.now();
     final monthlyIncome = realEstateTokens.fold<double>(0.0, (sum, token) {
@@ -64,15 +61,11 @@ class RealEstateCard extends StatelessWidget {
         'Estate',
         Icons.home_outlined,
         _buildValueWithIconSmall(
-          context, 
-          currencyUtils.getFormattedAmount(
-            currencyUtils.convert(monthlyIncome), 
-            currencyUtils.currencySymbol, 
-            showAmounts
-          ), 
-          Icons.attach_money_rounded,
-          isLoading
-        ),
+            context,
+            currencyUtils.getFormattedAmount(
+                currencyUtils.convert(monthlyIncome), currencyUtils.currencySymbol, showAmounts),
+            Icons.attach_money_rounded,
+            isLoading),
         [
           _buildTextWithShimmerSmall(
             '$totalTokens',
@@ -81,9 +74,11 @@ class RealEstateCard extends StatelessWidget {
             context,
           ),
           _buildTextWithShimmerSmall(
-            showAmounts 
-              ? _formatCurrencyWithoutDecimals(currencyUtils.convert(totalValue), currencyUtils.currencySymbol)
-              : '*' * _formatCurrencyWithoutDecimals(currencyUtils.convert(totalValue), currencyUtils.currencySymbol).length,
+            showAmounts
+                ? _formatCurrencyWithoutDecimals(currencyUtils.convert(totalValue), currencyUtils.currencySymbol)
+                : '*' *
+                    _formatCurrencyWithoutDecimals(currencyUtils.convert(totalValue), currencyUtils.currencySymbol)
+                        .length,
             'Total',
             isLoading,
             context,
@@ -234,7 +229,7 @@ class RealEstateCard extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
           Text(
-            text, 
+            text,
             style: TextStyle(
               fontSize: 12 + appState.getTextSizeOffset(), // Réduit de 14 à 12
               color: theme.brightness == Brightness.light ? Colors.black54 : Colors.white70,
@@ -246,7 +241,7 @@ class RealEstateCard extends StatelessWidget {
           isLoading
               ? ShimmerUtils.originalColorShimmer(
                   child: Text(
-                    value ?? '', 
+                    value ?? '',
                     style: TextStyle(
                       fontSize: 13 + appState.getTextSizeOffset(), // Réduit de 15 à 13
                       fontWeight: FontWeight.w600,
@@ -258,7 +253,7 @@ class RealEstateCard extends StatelessWidget {
                   color: theme.textTheme.bodyLarge?.color,
                 )
               : Text(
-                  value ?? '', 
+                  value ?? '',
                   style: TextStyle(
                     fontSize: 13 + appState.getTextSizeOffset(), // Réduit de 15 à 13
                     fontWeight: FontWeight.w600,
@@ -280,15 +275,26 @@ class RealEstateCard extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 2),
       child: Row(
         children: [
-        Icon(
-          icon,
-          size: 16 + appState.getTextSizeOffset(),
-          color: theme.primaryColor,
-        ),
-        const SizedBox(width: 4),
-        isLoading
-            ? ShimmerUtils.originalColorShimmer(
-                child: Text(
+          Icon(
+            icon,
+            size: 16 + appState.getTextSizeOffset(),
+            color: theme.primaryColor,
+          ),
+          const SizedBox(width: 4),
+          isLoading
+              ? ShimmerUtils.originalColorShimmer(
+                  child: Text(
+                    value ?? '',
+                    style: TextStyle(
+                      fontSize: 14 + appState.getTextSizeOffset(),
+                      fontWeight: FontWeight.bold,
+                      color: theme.textTheme.bodyLarge?.color,
+                      height: 1.1,
+                    ),
+                  ),
+                  color: theme.textTheme.bodyLarge?.color,
+                )
+              : Text(
                   value ?? '',
                   style: TextStyle(
                     fontSize: 14 + appState.getTextSizeOffset(),
@@ -297,19 +303,8 @@ class RealEstateCard extends StatelessWidget {
                     height: 1.1,
                   ),
                 ),
-                color: theme.textTheme.bodyLarge?.color,
-              )
-            : Text(
-                value ?? '',
-                style: TextStyle(
-                  fontSize: 14 + appState.getTextSizeOffset(),
-                  fontWeight: FontWeight.bold,
-                  color: theme.textTheme.bodyLarge?.color,
-                  height: 1.1,
-                ),
-              ),
         ],
       ),
     );
   }
-} 
+}

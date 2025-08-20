@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:realtoken_asset_tracker/app_state.dart';
-import 'package:realtoken_asset_tracker/generated/l10n.dart';
-import 'package:realtoken_asset_tracker/managers/data_manager.dart';
-import 'package:realtoken_asset_tracker/utils/widget_factory.dart';
-import 'package:realtoken_asset_tracker/pages/dashboard/detailsPages/rmm_details_page.dart';
-import 'package:realtoken_asset_tracker/utils/currency_utils.dart';
-import 'package:realtoken_asset_tracker/utils/ui_utils.dart';
+import 'package:meprop_asset_tracker/app_state.dart';
+import 'package:meprop_asset_tracker/generated/l10n.dart';
+import 'package:meprop_asset_tracker/managers/data_manager.dart';
+import 'package:meprop_asset_tracker/utils/widget_factory.dart';
+import 'package:meprop_asset_tracker/pages/dashboard/detailsPages/rmm_details_page.dart';
+import 'package:meprop_asset_tracker/utils/currency_utils.dart';
+import 'package:meprop_asset_tracker/utils/ui_utils.dart';
 import 'package:shimmer/shimmer.dart';
-import 'package:realtoken_asset_tracker/utils/shimmer_utils.dart';
+import 'package:meprop_asset_tracker/utils/shimmer_utils.dart';
 
 class RmmCard extends StatelessWidget {
   final bool showAmounts;
@@ -107,11 +107,12 @@ class RmmCard extends StatelessWidget {
         const SizedBox(height: 4),
 
         // Section Dépôts avec titre
-                  WidgetFactory.buildSectionHeader(context, S.of(context).depositBalance),
+        WidgetFactory.buildSectionHeader(context, S.of(context).depositBalance),
 
         _buildBalanceRowWithIcon(
           context,
-          currencyUtils.getFormattedAmount(currencyUtils.convert(totalXdaiDeposit), currencyUtils.currencySymbol, showAmounts),
+          currencyUtils.getFormattedAmount(
+              currencyUtils.convert(totalXdaiDeposit), currencyUtils.currencySymbol, showAmounts),
           S.of(context).depositBalance,
           'xdai', // Type pour l'icône
           xdaiDepositApy,
@@ -121,7 +122,8 @@ class RmmCard extends StatelessWidget {
 
         _buildBalanceRowWithIcon(
           context,
-          currencyUtils.getFormattedAmount(currencyUtils.convert(totalUsdcDeposit), currencyUtils.currencySymbol, showAmounts),
+          currencyUtils.getFormattedAmount(
+              currencyUtils.convert(totalUsdcDeposit), currencyUtils.currencySymbol, showAmounts),
           S.of(context).depositBalance,
           'usdc', // Type pour l'icône
           usdcDepositApy,
@@ -132,11 +134,12 @@ class RmmCard extends StatelessWidget {
         const SizedBox(height: 6),
 
         // Section Emprunts avec titre
-                  WidgetFactory.buildSectionHeader(context, S.of(context).borrowBalance),
+        WidgetFactory.buildSectionHeader(context, S.of(context).borrowBalance),
 
         _buildBalanceRowWithIcon(
           context,
-          currencyUtils.getFormattedAmount(currencyUtils.convert(totalUsdcBorrow), currencyUtils.currencySymbol, showAmounts),
+          currencyUtils.getFormattedAmount(
+              currencyUtils.convert(totalUsdcBorrow), currencyUtils.currencySymbol, showAmounts),
           S.of(context).borrowBalance,
           'usdc', // Type pour l'icône
           usdcBorrowApy,
@@ -146,7 +149,8 @@ class RmmCard extends StatelessWidget {
 
         _buildBalanceRowWithIcon(
           context,
-          currencyUtils.getFormattedAmount(currencyUtils.convert(totalXdaiBorrow), currencyUtils.currencySymbol, showAmounts),
+          currencyUtils.getFormattedAmount(
+              currencyUtils.convert(totalXdaiBorrow), currencyUtils.currencySymbol, showAmounts),
           S.of(context).borrowBalance,
           'xdai', // Type pour l'icône
           xdaiBorrowApy,
@@ -225,7 +229,9 @@ class RmmCard extends StatelessWidget {
             height: 22,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: tokenType.toLowerCase() == 'usdc' ? Color(0xFF2775CA).withOpacity(0.15) : Color(0xFFEDB047).withOpacity(0.15),
+              color: tokenType.toLowerCase() == 'usdc'
+                  ? Color(0xFF2775CA).withOpacity(0.15)
+                  : Color(0xFFEDB047).withOpacity(0.15),
             ),
             child: Center(
               child: Image.asset(
@@ -339,7 +345,9 @@ class RmmCard extends StatelessWidget {
     }
 
     // Adresse abrégée pour affichage (6 premiers et 4 derniers caractères)
-    String shortAddress = walletAddress.length > 10 ? "${walletAddress.substring(0, 6)}...${walletAddress.substring(walletAddress.length - 4)}" : walletAddress;
+    String shortAddress = walletAddress.length > 10
+        ? "${walletAddress.substring(0, 6)}...${walletAddress.substring(walletAddress.length - 4)}"
+        : walletAddress;
 
     double progressHF = (factor / 5).clamp(0.0, 1.0);
     double progressLTV = walletDeposit > 0 ? ((walletBorrow / walletDeposit * 100).clamp(0.0, 100.0)) / 100 : 0;
@@ -406,7 +414,9 @@ class RmmCard extends StatelessWidget {
                     width: 20,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
-                      color: theme.brightness == Brightness.light ? Colors.black.withOpacity(0.05) : Colors.white.withOpacity(0.1),
+                      color: theme.brightness == Brightness.light
+                          ? Colors.black.withOpacity(0.05)
+                          : Colors.white.withOpacity(0.1),
                     ),
                     child: Stack(
                       children: [
@@ -486,7 +496,9 @@ class RmmCard extends StatelessWidget {
                     width: 20,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
-                      color: theme.brightness == Brightness.light ? Colors.black.withOpacity(0.05) : Colors.white.withOpacity(0.1),
+                      color: theme.brightness == Brightness.light
+                          ? Colors.black.withOpacity(0.05)
+                          : Colors.white.withOpacity(0.1),
                     ),
                     child: Stack(
                       children: [
@@ -550,7 +562,9 @@ class RmmCard extends StatelessWidget {
             child: Container(
               padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
               decoration: BoxDecoration(
-                color: theme.brightness == Brightness.light ? Colors.black.withOpacity(0.05) : Colors.white.withOpacity(0.1),
+                color: theme.brightness == Brightness.light
+                    ? Colors.black.withOpacity(0.05)
+                    : Colors.white.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
@@ -663,8 +677,6 @@ class RmmCard extends StatelessWidget {
       ),
     );
   }
-
-
 
   // Déterminer le statut de temps avant liquidation
   String _calculateTimeBeforeLiquidationStatus(

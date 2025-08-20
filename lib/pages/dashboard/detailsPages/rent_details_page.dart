@@ -4,14 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
-import 'package:realtoken_asset_tracker/generated/l10n.dart';
-import 'package:realtoken_asset_tracker/managers/data_manager.dart';
-import 'package:realtoken_asset_tracker/pages/Statistics/wallet/charts/rent_graph.dart';
-import 'package:realtoken_asset_tracker/utils/currency_utils.dart';
-import 'package:realtoken_asset_tracker/utils/date_utils.dart';
+import 'package:meprop_asset_tracker/generated/l10n.dart';
+import 'package:meprop_asset_tracker/managers/data_manager.dart';
+import 'package:meprop_asset_tracker/pages/Statistics/wallet/charts/rent_graph.dart';
+import 'package:meprop_asset_tracker/utils/currency_utils.dart';
+import 'package:meprop_asset_tracker/utils/date_utils.dart';
 import 'package:share_plus/share_plus.dart';
 import 'dart:ui';
-import 'package:realtoken_asset_tracker/app_state.dart';
+import 'package:meprop_asset_tracker/app_state.dart';
 
 class DashboardRentsDetailsPage extends StatefulWidget {
   const DashboardRentsDetailsPage({super.key});
@@ -44,7 +44,8 @@ class _DashboardRentsDetailsPageState extends State<DashboardRentsDetailsPage> w
       duration: const Duration(milliseconds: 300),
     );
 
-    _animation = Tween<double>(begin: 1.0, end: 0.0).animate(CurvedAnimation(parent: _animationController, curve: Curves.easeInOut));
+    _animation = Tween<double>(begin: 1.0, end: 0.0)
+        .animate(CurvedAnimation(parent: _animationController, curve: Curves.easeInOut));
 
     // Initialiser la période par défaut
     _selectedRentPeriod = 'Mois'; // ou S.of(context).month si besoin de la traduction
@@ -82,7 +83,7 @@ class _DashboardRentsDetailsPageState extends State<DashboardRentsDetailsPage> w
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(
-          'Détails des loyers',
+          S.of(context).rentDetailsTitle,
           style: TextStyle(
             fontWeight: FontWeight.w600,
             fontSize: 18 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
@@ -125,7 +126,8 @@ class _DashboardRentsDetailsPageState extends State<DashboardRentsDetailsPage> w
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('Aucune donnée de loyer à partager.', style: TextStyle(color: theme.textTheme.bodyLarge?.color)),
+                    content: Text(S.of(context).rentNoDataToShare,
+                        style: TextStyle(color: theme.textTheme.bodyLarge?.color)),
                     behavior: SnackBarBehavior.floating,
                     backgroundColor: theme.cardColor,
                     shape: RoundedRectangleBorder(
@@ -143,7 +145,7 @@ class _DashboardRentsDetailsPageState extends State<DashboardRentsDetailsPage> w
       body: dataManager.rentData.isEmpty
           ? Center(
               child: Text(
-                'Aucune donnée de loyer disponible.',
+                S.of(context).rentNoDataAvailable,
                 style: theme.textTheme.bodyLarge,
               ),
             )
@@ -225,14 +227,14 @@ class _DashboardRentsDetailsPageState extends State<DashboardRentsDetailsPage> w
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          'Date',
+                          S.of(context).date,
                           style: theme.textTheme.bodyLarge?.copyWith(
                             fontWeight: FontWeight.w600,
                             color: Colors.white,
                           ),
                         ),
                         Text(
-                          'Montant',
+                          S.of(context).amount,
                           style: theme.textTheme.bodyLarge?.copyWith(
                             fontWeight: FontWeight.w600,
                             color: Colors.white,
@@ -252,7 +254,7 @@ class _DashboardRentsDetailsPageState extends State<DashboardRentsDetailsPage> w
                         // Trier les données par date décroissante
                         final sortedData = List<dynamic>.from(dataManager.rentData)
                           ..sort((a, b) => DateTime.parse(b['date']).compareTo(DateTime.parse(a['date'])));
-                        
+
                         final rentEntry = sortedData[index];
                         final rentDate = CustomDateUtils.formatDate(rentEntry['date']);
                         final rentAmount = currencyUtils.formatCurrency(
@@ -320,7 +322,8 @@ class _DashboardRentsDetailsPageState extends State<DashboardRentsDetailsPage> w
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: theme.brightness == Brightness.light ? Colors.black.withOpacity(0.03) : Colors.black.withOpacity(0.15),
+            color:
+                theme.brightness == Brightness.light ? Colors.black.withOpacity(0.03) : Colors.black.withOpacity(0.15),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:realtoken_asset_tracker/pages/Statistics/rmm/rmm_stats.dart';
-import 'package:realtoken_asset_tracker/pages/Statistics/wallet/wallet_stats.dart';
-import 'package:realtoken_asset_tracker/pages/Statistics/rents/rents_stats.dart';
+import 'package:meprop_asset_tracker/pages/Statistics/rmm/rmm_stats.dart';
+import 'package:meprop_asset_tracker/pages/Statistics/wallet/wallet_stats.dart';
+import 'package:meprop_asset_tracker/pages/Statistics/rents/rents_stats.dart';
 import 'package:provider/provider.dart';
-import 'package:realtoken_asset_tracker/app_state.dart';
-import 'package:realtoken_asset_tracker/utils/ui_utils.dart';
-import 'package:realtoken_asset_tracker/generated/l10n.dart';
+import 'package:meprop_asset_tracker/app_state.dart';
+import 'package:meprop_asset_tracker/utils/ui_utils.dart';
+import 'package:meprop_asset_tracker/generated/l10n.dart';
 
 class StatsSelectorPage extends StatefulWidget {
   const StatsSelectorPage({super.key});
@@ -28,7 +28,7 @@ class StatsSelectorPageState extends State<StatsSelectorPage> with TickerProvide
   // Contrôleurs d'animation pour chaque sélecteur
   final Map<String, AnimationController> _animationControllers = {};
   final Map<String, Animation<double>> _scaleAnimations = {};
-  
+
   // Contrôleurs pour l'animation du sélecteur
   late AnimationController _selectorAnimationController;
   late Animation<double> _selectorAnimation;
@@ -69,7 +69,7 @@ class StatsSelectorPageState extends State<StatsSelectorPage> with TickerProvide
       duration: const Duration(milliseconds: 300),
       value: 1.0,
     );
-    
+
     _selectorAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
@@ -106,7 +106,7 @@ class StatsSelectorPageState extends State<StatsSelectorPage> with TickerProvide
 
   void _handleScroll(double offset) {
     const double threshold = 50.0; // Seuil de déclenchement
-    
+
     if (offset > _lastScrollOffset + threshold && _isSelectorVisible) {
       // Scroll vers le bas - masquer le sélecteur
       setState(() {
@@ -120,7 +120,7 @@ class StatsSelectorPageState extends State<StatsSelectorPage> with TickerProvide
       });
       _selectorAnimationController.forward();
     }
-    
+
     _lastScrollOffset = offset;
   }
 
@@ -150,23 +150,25 @@ class StatsSelectorPageState extends State<StatsSelectorPage> with TickerProvide
                       expandedHeight: (UIUtils.getSliverAppBarHeight(context) + 10) * _selectorAnimation.value,
                       collapsedHeight: _selectorAnimation.value == 0 ? 0 : null,
                       toolbarHeight: _selectorAnimation.value == 0 ? 0 : kToolbarHeight,
-                      flexibleSpace: _selectorAnimation.value > 0 ? FlexibleSpaceBar(
-                        background: Container(
-                          color: Theme.of(context).scaffoldBackgroundColor,
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              Opacity(
-                                opacity: _selectorAnimation.value,
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-                                  child: _buildStatsSelector(),
+                      flexibleSpace: _selectorAnimation.value > 0
+                          ? FlexibleSpaceBar(
+                              background: Container(
+                                color: Theme.of(context).scaffoldBackgroundColor,
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    Opacity(
+                                      opacity: _selectorAnimation.value,
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                                        child: _buildStatsSelector(),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                            ],
-                          ),
-                        ),
-                      ) : null,
+                            )
+                          : null,
                     );
                   },
                 ),
@@ -215,7 +217,9 @@ class StatsSelectorPageState extends State<StatsSelectorPage> with TickerProvide
       fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
     );
 
-    double minWidth = isSelected ? _calculateTextWidth(context, label, textStyle) : 56; // Largeur minimale pour les icônes non sélectionnées
+    double minWidth = isSelected
+        ? _calculateTextWidth(context, label, textStyle)
+        : 56; // Largeur minimale pour les icônes non sélectionnées
 
     // Utiliser l'animation d'échelle si disponible
     Widget animatedContent = _scaleAnimations.containsKey(value)

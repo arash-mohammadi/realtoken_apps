@@ -3,16 +3,16 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:realtoken_asset_tracker/managers/data_manager.dart';
-import 'package:realtoken_asset_tracker/app_state.dart';
-import 'package:realtoken_asset_tracker/generated/l10n.dart';
-import 'package:realtoken_asset_tracker/pages/dashboard/detailsPages/properties_details_page.dart';
-import 'package:realtoken_asset_tracker/pages/dashboard/detailsPages/rent_details_page.dart';
-import 'package:realtoken_asset_tracker/pages/dashboard/detailsPages/rmm_details_page.dart';
-import 'package:realtoken_asset_tracker/pages/dashboard/detailsPages/portfolio_details_page.dart';
+import 'package:meprop_asset_tracker/managers/data_manager.dart';
+import 'package:meprop_asset_tracker/app_state.dart';
+import 'package:meprop_asset_tracker/generated/l10n.dart';
+import 'package:meprop_asset_tracker/pages/dashboard/detailsPages/properties_details_page.dart';
+import 'package:meprop_asset_tracker/pages/dashboard/detailsPages/rent_details_page.dart';
+import 'package:meprop_asset_tracker/pages/dashboard/detailsPages/rmm_details_page.dart';
+import 'package:meprop_asset_tracker/pages/dashboard/detailsPages/portfolio_details_page.dart';
 import 'package:shimmer/shimmer.dart';
-import 'package:realtoken_asset_tracker/utils/shimmer_utils.dart';
-import 'package:realtoken_asset_tracker/utils/widget_factory.dart';
+import 'package:meprop_asset_tracker/utils/shimmer_utils.dart';
+import 'package:meprop_asset_tracker/utils/widget_factory.dart';
 
 class UIUtils {
   static double getAppBarHeight(BuildContext context) {
@@ -42,10 +42,14 @@ class UIUtils {
         return orientation == Orientation.portrait ? kToolbarHeight : kToolbarHeight; // Exemple d'ajustement en paysage
       } else if (longestSide > 2000) {
         // Grands téléphones
-        return orientation == Orientation.portrait ? kToolbarHeight + 40 : kToolbarHeight; // Exemple d'ajustement en paysage
+        return orientation == Orientation.portrait
+            ? kToolbarHeight + 40
+            : kToolbarHeight; // Exemple d'ajustement en paysage
       } else {
         // Taille par défaut pour les téléphones standards
-        return orientation == Orientation.portrait ? kToolbarHeight : kToolbarHeight - 10; // Exemple d'ajustement en paysage
+        return orientation == Orientation.portrait
+            ? kToolbarHeight
+            : kToolbarHeight - 10; // Exemple d'ajustement en paysage
       }
     } else {
       // Par défaut pour desktop
@@ -79,13 +83,19 @@ class UIUtils {
 
       if (shortestSide >= 1500) {
         // Tablettes
-        return orientation == Orientation.portrait ? baseHeight + 25 : baseHeight + 25; // Ajustement en paysage pour les tablettes
+        return orientation == Orientation.portrait
+            ? baseHeight + 25
+            : baseHeight + 25; // Ajustement en paysage pour les tablettes
       } else if (longestSide > 2500) {
         // Grands téléphones
-        return orientation == Orientation.portrait ? baseHeight - 15 : baseHeight + 40; // Ajustement en paysage pour les grands téléphones
+        return orientation == Orientation.portrait
+            ? baseHeight - 15
+            : baseHeight + 40; // Ajustement en paysage pour les grands téléphones
       } else {
         // Taille par défaut pour téléphones standards
-        return orientation == Orientation.portrait ? baseHeight + 30 : baseHeight + 45; // Ajustement en paysage pour téléphones standards
+        return orientation == Orientation.portrait
+            ? baseHeight + 30
+            : baseHeight + 45; // Ajustement en paysage pour téléphones standards
       }
     } else {
       // Par défaut pour desktop
@@ -143,7 +153,9 @@ class UIUtils {
         borderRadius: BorderRadius.circular(16),
       ),
       elevation: 0.3,
-      shadowColor: Theme.of(context).brightness == Brightness.light ? Colors.black.withOpacity(0.1) : Colors.white.withOpacity(0.05),
+      shadowColor: Theme.of(context).brightness == Brightness.light
+          ? Colors.black.withOpacity(0.1)
+          : Colors.white.withOpacity(0.05),
       color: Theme.of(context).brightness == Brightness.light ? Colors.white : Color(0xFF1C1C1E),
       margin: EdgeInsets.symmetric(vertical: 6.0, horizontal: 2.0),
       child: Padding(
@@ -262,7 +274,8 @@ class UIUtils {
     }
   }
 
-  static Widget buildValueBeforeText(BuildContext context, String? value, String text, bool isLoading, {bool highlightPercentage = false}) {
+  static Widget buildValueBeforeText(BuildContext context, String? value, String text, bool isLoading,
+      {bool highlightPercentage = false}) {
     final appState = Provider.of<AppState>(context);
     final theme = Theme.of(context);
 

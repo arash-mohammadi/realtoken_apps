@@ -1,5 +1,5 @@
-name: realtoken_asset_tracker
-description: "A community app for RealT"
+name: meprop_asset_tracker
+description: "A community app for MeProp"
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -68,8 +68,9 @@ dev_dependencies:
   intl_utils: ^2.8.7
 
 flutter:
+  generate: true
   assets:
-    - env_config.txt
+    - assets/env_config.txt
     - assets/logo.png
     - assets/logo_community.png
     - assets/RealT_Logo.png

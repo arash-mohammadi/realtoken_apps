@@ -1,4 +1,4 @@
-package com.byackee.realtoken_asset_tracker
+package com.byackee.meprop_asset_tracker
 
 import io.flutter.embedding.android.FlutterActivity
 

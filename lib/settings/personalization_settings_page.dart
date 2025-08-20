@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
-import 'package:realtoken_asset_tracker/services/api_service.dart';
-import 'package:realtoken_asset_tracker/utils/currency_utils.dart';
+import 'package:meprop_asset_tracker/services/api_service.dart';
+import 'package:meprop_asset_tracker/utils/currency_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:realtoken_asset_tracker/app_state.dart';
-import 'package:realtoken_asset_tracker/generated/l10n.dart';
-import 'package:realtoken_asset_tracker/utils/parameters.dart';
-import 'package:realtoken_asset_tracker/managers/data_manager.dart';
+import 'package:meprop_asset_tracker/app_state.dart';
+import 'package:meprop_asset_tracker/generated/l10n.dart';
+import 'package:meprop_asset_tracker/utils/parameters.dart';
+import 'package:meprop_asset_tracker/managers/data_manager.dart';
 
 class PersonalizationSettingsPage extends StatefulWidget {
   const PersonalizationSettingsPage({super.key});
@@ -311,14 +311,14 @@ class _PersonalizationSettingsPageState extends State<PersonalizationSettingsPag
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "Ajustement investissement initial",
+                  "Initial investment adjustment",
                   style: TextStyle(
                     fontSize: 15.0 + appState.getTextSizeOffset(),
                     fontWeight: FontWeight.w500,
                   ),
                 ),
                 Text(
-                  "Ajuster le montant pour les calculs de rendement",
+                  "Adjust the amount for yield calculations",
                   style: TextStyle(
                     fontSize: 12.0 + appState.getTextSizeOffset(),
                     color: Colors.grey,
@@ -356,7 +356,7 @@ class _PersonalizationSettingsPageState extends State<PersonalizationSettingsPag
                         if (value != null) {
                           _saveInitialInvestmentAdjustment(value);
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text("Ajustement enregistré")),
+                            SnackBar(content: Text("Adjustment saved")),
                           );
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
@@ -544,12 +544,12 @@ class _PersonalizationSettingsPageState extends State<PersonalizationSettingsPag
                 children: [
                   CupertinoButton(
                     padding: EdgeInsets.zero,
-                    child: Text("Annuler", style: TextStyle(fontSize: 14)),
+                    child: Text(S.of(context).cancel, style: TextStyle(fontSize: 14)),
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                   CupertinoButton(
                     padding: EdgeInsets.zero,
-                    child: Text("OK", style: TextStyle(fontSize: 14)),
+                    child: Text(S.of(context).ok, style: TextStyle(fontSize: 14)),
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                 ],

@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
-import 'package:realtoken_asset_tracker/managers/data_manager.dart';
-import 'package:realtoken_asset_tracker/app_state.dart';
-import 'package:realtoken_asset_tracker/settings/manage_evm_addresses_page.dart';
-import 'package:realtoken_asset_tracker/utils/currency_utils.dart';
-import 'package:realtoken_asset_tracker/utils/data_fetch_utils.dart';
-import 'package:realtoken_asset_tracker/utils/ui_utils.dart';
-import 'package:realtoken_asset_tracker/utils/shimmer_utils.dart';
-import 'package:realtoken_asset_tracker/generated/l10n.dart';
+import 'package:meprop_asset_tracker/managers/data_manager.dart';
+import 'package:meprop_asset_tracker/app_state.dart';
+import 'package:meprop_asset_tracker/settings/manage_evm_addresses_page.dart';
+import 'package:meprop_asset_tracker/utils/currency_utils.dart';
+import 'package:meprop_asset_tracker/utils/data_fetch_utils.dart';
+import 'package:meprop_asset_tracker/utils/ui_utils.dart';
+import 'package:meprop_asset_tracker/utils/shimmer_utils.dart';
+import 'package:meprop_asset_tracker/generated/l10n.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:flutter/rendering.dart';
 import 'dart:ui'; // Pour ImageFilter
@@ -18,7 +18,7 @@ import 'package:hive/hive.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:realtoken_asset_tracker/models/balance_record.dart';
+import 'package:meprop_asset_tracker/models/balance_record.dart';
 
 import 'widgets/portfolio_card.dart';
 import 'widgets/rmm_card.dart';
@@ -46,7 +46,7 @@ class DashboardPageState extends State<DashboardPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       // Vérifier si les données sont déjà chargées
       final dataManager = Provider.of<DataManager>(context, listen: false);
-      
+
       // Si les données principales sont déjà chargées (depuis main.dart)
       if (!dataManager.isLoadingMain && dataManager.evmAddresses.isNotEmpty && dataManager.portfolio.isNotEmpty) {
         debugPrint("📊 Dashboard: données principales déjà chargées");
@@ -59,11 +59,11 @@ class DashboardPageState extends State<DashboardPage> {
         } else {
           debugPrint("📊 Dashboard: données de loyer manquantes, chargement nécessaire");
           await DataFetchUtils.loadDataWithCache(context);
-        setState(() {
-          _isPageLoading = false;
-        });
+          setState(() {
+            _isPageLoading = false;
+          });
         }
-      } 
+      }
       // Sinon, charger les données avec cache
       else {
         debugPrint("📊 Dashboard: chargement des données nécessaire");
@@ -129,15 +129,15 @@ class DashboardPageState extends State<DashboardPage> {
             await prefs.setBool('convertToSquareMeters', convertToSquareMeters);
           }
         }
-        
+
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(S.of(context).importSuccess)),
           );
-          
+
           // Rafraîchir les données après l'import
           await DataFetchUtils.refreshData(context);
-          
+
           // Recharger la page pour refléter les changements
           setState(() {
             _isPageLoading = false;
@@ -186,12 +186,12 @@ class DashboardPageState extends State<DashboardPage> {
                   ),
                 ],
               ),
-                             content: Text(
-                 S.of(context).noWalletMessage,
-                 style: TextStyle(
-                   fontSize: 16 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
-                 ),
-               ),
+              content: Text(
+                S.of(context).noWalletMessage,
+                style: TextStyle(
+                  fontSize: 16 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
+                ),
+              ),
               actions: [
                 Column(
                   mainAxisSize: MainAxisSize.min,
@@ -251,7 +251,7 @@ class DashboardPageState extends State<DashboardPage> {
                           Navigator.of(context).pop();
                         },
                         child: Text(
-                          'Plus tard',
+                          S.of(context).dashboardLater,
                           style: TextStyle(
                             color: Theme.of(context).textTheme.bodyMedium?.color,
                           ),
@@ -292,7 +292,9 @@ class DashboardPageState extends State<DashboardPage> {
 
     // Format plus lisible
     if (years > 0) {
-      return years == 1 ? "$years year ${months > 0 ? '$months month${months > 1 ? 's' : ''}' : ''}" : "$years years ${months > 0 ? '$months month${months > 1 ? 's' : ''}' : ''}";
+      return years == 1
+          ? "$years year ${months > 0 ? '$months month${months > 1 ? 's' : ''}' : ''}"
+          : "$years years ${months > 0 ? '$months month${months > 1 ? 's' : ''}' : ''}";
     } else if (months > 0) {
       return "$months month${months > 1 ? 's' : ''}";
     } else {
@@ -305,20 +307,21 @@ class DashboardPageState extends State<DashboardPage> {
     try {
       final prefs = await SharedPreferences.getInstance();
       final List<String> wallets = prefs.getStringList('evmAddresses') ?? [];
-      
+
       if (wallets.isEmpty) return true; // Pas de wallets = pas de problème
-      
+
       final box = Hive.box('realTokens');
       final DateTime now = DateTime.now();
-      
+
       // Calculer le début de la semaine actuelle (lundi)
       final DateTime startOfCurrentWeek = now.subtract(Duration(days: now.weekday - 1));
-      final DateTime startOfCurrentWeekMidnight = DateTime(startOfCurrentWeek.year, startOfCurrentWeek.month, startOfCurrentWeek.day);
-      
+      final DateTime startOfCurrentWeekMidnight =
+          DateTime(startOfCurrentWeek.year, startOfCurrentWeek.month, startOfCurrentWeek.day);
+
       debugPrint('🔍 DEBUG ALERTE - Début de semaine: $startOfCurrentWeekMidnight');
       debugPrint('🔍 DEBUG ALERTE - Maintenant: $now');
       debugPrint('🔍 DEBUG ALERTE - ${wallets.length} wallets à vérifier: ${wallets.join(", ")}');
-      
+
       // Vérifier le statut de chaque wallet pour les données basiques uniquement
       for (String wallet in wallets) {
         final lastSuccessTime = box.get('lastRentSuccess_$wallet');
@@ -335,7 +338,7 @@ class DashboardPageState extends State<DashboardPage> {
           return false; // Aucun timestamp de succès pour ce wallet
         }
       }
-      
+
       debugPrint('✅ DEBUG ALERTE - Tous les wallets OK, pas d\'alerte');
       return true; // Tous les wallets ont été traités avec succès
     } catch (e) {
@@ -352,13 +355,13 @@ class DashboardPageState extends State<DashboardPage> {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const SizedBox.shrink(); // Pas d'icône pendant le chargement
         }
-        
+
         final bool allWalletsOk = snapshot.data ?? true;
-        
+
         if (allWalletsOk) {
           return const SizedBox.shrink(); // Pas d'icône si tout va bien
         }
-        
+
         // Afficher l'icône d'alerte
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -383,7 +386,7 @@ class DashboardPageState extends State<DashboardPage> {
               ),
               const SizedBox(width: 4),
               Text(
-                'Problème sync',
+                S.of(context).dashboardSyncProblem,
                 style: TextStyle(
                   fontSize: 11 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                   fontWeight: FontWeight.w600,
@@ -407,7 +410,7 @@ class DashboardPageState extends State<DashboardPage> {
     final lastRentReceived = _getLastRentReceived(dataManager);
     final totalRentReceived = _getTotalRentReceived(dataManager, currencyUtils, appState);
     final timeElapsed = _getTimeElapsedSinceFirstRent(dataManager);
-    
+
     // Vérifier si des données sont en cours de mise à jour pour les shimmers
     final bool shouldShowShimmers = _isPageLoading || dataManager.isUpdatingData;
 
@@ -443,8 +446,12 @@ class DashboardPageState extends State<DashboardPage> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            S.of(context).hello,
-                            style: TextStyle(fontSize: 28 + appState.getTextSizeOffset(), fontWeight: FontWeight.bold, letterSpacing: -0.5, color: Theme.of(context).textTheme.bodyLarge?.color),
+                            '${S.of(context).hello} Russell',
+                            style: TextStyle(
+                                fontSize: 28 + appState.getTextSizeOffset(),
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: -0.5,
+                                color: Theme.of(context).textTheme.bodyLarge?.color),
                           ),
                           if (kIsWeb)
                             IconButton(
@@ -463,10 +470,10 @@ class DashboardPageState extends State<DashboardPage> {
                                 });
                               },
                             ),
-                                            ],
-                  ),
-                ),
-                const SizedBox(height: 8),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 8),
                     Container(
                       margin: EdgeInsets.only(bottom: 12.0),
                       decoration: BoxDecoration(
@@ -520,8 +527,18 @@ class DashboardPageState extends State<DashboardPage> {
                                           ),
                                           const SizedBox(height: 2),
                                           dataManager.isLoadingMain || shouldShowShimmers
-                                            ? ShimmerUtils.originalColorShimmer(
-                                                child: Text(
+                                              ? ShimmerUtils.originalColorShimmer(
+                                                  child: Text(
+                                                    lastRentReceived,
+                                                    style: TextStyle(
+                                                      fontSize: 20 + appState.getTextSizeOffset(),
+                                                      fontWeight: FontWeight.bold,
+                                                      color: Colors.white,
+                                                    ),
+                                                  ),
+                                                  color: Colors.white,
+                                                )
+                                              : Text(
                                                   lastRentReceived,
                                                   style: TextStyle(
                                                     fontSize: 20 + appState.getTextSizeOffset(),
@@ -529,23 +546,13 @@ class DashboardPageState extends State<DashboardPage> {
                                                     color: Colors.white,
                                                   ),
                                                 ),
-                                                color: Colors.white,
-                                              )
-                                            : Text(
-                                                lastRentReceived,
-                                                style: TextStyle(
-                                                  fontSize: 20 + appState.getTextSizeOffset(),
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Colors.white,
-                                                ),
-                                              ),
                                         ],
                                       ),
                                       Column(
                                         crossAxisAlignment: CrossAxisAlignment.end,
                                         children: [
                                           Text(
-                                            'Total des loyers',
+                                            S.of(context).dashboardTotalRent,
                                             style: TextStyle(
                                               fontSize: 13 + appState.getTextSizeOffset(),
                                               color: Colors.white70,
@@ -554,8 +561,18 @@ class DashboardPageState extends State<DashboardPage> {
                                           ),
                                           const SizedBox(height: 2),
                                           dataManager.isLoadingMain || shouldShowShimmers
-                                            ? ShimmerUtils.originalColorShimmer(
-                                                child: Text(
+                                              ? ShimmerUtils.originalColorShimmer(
+                                                  child: Text(
+                                                    totalRentReceived,
+                                                    style: TextStyle(
+                                                      fontSize: 20 + appState.getTextSizeOffset(),
+                                                      fontWeight: FontWeight.bold,
+                                                      color: Colors.white,
+                                                    ),
+                                                  ),
+                                                  color: Colors.white,
+                                                )
+                                              : Text(
                                                   totalRentReceived,
                                                   style: TextStyle(
                                                     fontSize: 20 + appState.getTextSizeOffset(),
@@ -563,23 +580,13 @@ class DashboardPageState extends State<DashboardPage> {
                                                     color: Colors.white,
                                                   ),
                                                 ),
-                                                color: Colors.white,
-                                              )
-                                            : Text(
-                                                totalRentReceived,
-                                                style: TextStyle(
-                                                  fontSize: 20 + appState.getTextSizeOffset(),
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Colors.white,
-                                                ),
-                                              ),
                                         ],
                                       ),
                                     ],
                                   ),
                                 ),
                                 const SizedBox(height: 8),
-                                   Row(
+                                Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
                                     // Icône d'alerte à gauche
@@ -639,15 +646,18 @@ class DashboardPageState extends State<DashboardPage> {
                                     Row(
                                       children: [
                                         Expanded(
-                                          child: RealEstateCard(showAmounts: appState.showAmounts, isLoading: shouldShowShimmers),
+                                          child: RealEstateCard(
+                                              showAmounts: appState.showAmounts, isLoading: shouldShowShimmers),
                                         ),
                                         const SizedBox(width: 4),
                                         Expanded(
-                                          child: LoanIncomeCard(showAmounts: appState.showAmounts, isLoading: shouldShowShimmers),
+                                          child: LoanIncomeCard(
+                                              showAmounts: appState.showAmounts, isLoading: shouldShowShimmers),
                                         ),
                                         const SizedBox(width: 4),
                                         Expanded(
-                                          child: FactoringCard(showAmounts: appState.showAmounts, isLoading: shouldShowShimmers),
+                                          child: FactoringCard(
+                                              showAmounts: appState.showAmounts, isLoading: shouldShowShimmers),
                                         ),
                                       ],
                                     ),
@@ -686,15 +696,18 @@ class DashboardPageState extends State<DashboardPage> {
                               Row(
                                 children: [
                                   Expanded(
-                                    child: RealEstateCard(showAmounts: appState.showAmounts, isLoading: shouldShowShimmers),
+                                    child: RealEstateCard(
+                                        showAmounts: appState.showAmounts, isLoading: shouldShowShimmers),
                                   ),
                                   const SizedBox(width: 4),
                                   Expanded(
-                                    child: LoanIncomeCard(showAmounts: appState.showAmounts, isLoading: shouldShowShimmers),
+                                    child: LoanIncomeCard(
+                                        showAmounts: appState.showAmounts, isLoading: shouldShowShimmers),
                                   ),
                                   const SizedBox(width: 4),
                                   Expanded(
-                                    child: FactoringCard(showAmounts: appState.showAmounts, isLoading: shouldShowShimmers),
+                                    child:
+                                        FactoringCard(showAmounts: appState.showAmounts, isLoading: shouldShowShimmers),
                                   ),
                                 ],
                               ),
@@ -785,7 +798,8 @@ class DashboardPageState extends State<DashboardPage> {
     final lastRent = rentData.first['rent'];
 
     // Utiliser _getFormattedAmount pour masquer ou afficher la valeur
-    return currencyUtils.getFormattedAmount(currencyUtils.convert(lastRent), currencyUtils.currencySymbol, appState.showAmounts);
+    return currencyUtils.getFormattedAmount(
+        currencyUtils.convert(lastRent), currencyUtils.currencySymbol, appState.showAmounts);
   }
 
   // Récupère le total des loyers reçus avec gestion du chargement
@@ -796,6 +810,7 @@ class DashboardPageState extends State<DashboardPage> {
     }
 
     final totalRent = dataManager.getTotalRentReceived();
-    return currencyUtils.getFormattedAmount(currencyUtils.convert(totalRent), currencyUtils.currencySymbol, appState.showAmounts);
+    return currencyUtils.getFormattedAmount(
+        currencyUtils.convert(totalRent), currencyUtils.currencySymbol, appState.showAmounts);
   }
 }

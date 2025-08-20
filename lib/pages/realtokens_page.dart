@@ -1,18 +1,18 @@
 import 'package:flutter/foundation.dart';
-import 'package:realtoken_asset_tracker/generated/l10n.dart';
+import 'package:meprop_asset_tracker/generated/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:realtoken_asset_tracker/managers/data_manager.dart';
-import 'package:realtoken_asset_tracker/modals/token_details/showTokenDetails.dart';
-import 'package:realtoken_asset_tracker/utils/currency_utils.dart';
-import 'package:realtoken_asset_tracker/utils/ui_utils.dart';
+import 'package:meprop_asset_tracker/managers/data_manager.dart';
+import 'package:meprop_asset_tracker/modals/token_details/showTokenDetails.dart';
+import 'package:meprop_asset_tracker/utils/currency_utils.dart';
+import 'package:meprop_asset_tracker/utils/ui_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:show_network_image/show_network_image.dart';
-import 'package:realtoken_asset_tracker/utils/parameters.dart';
-import 'package:realtoken_asset_tracker/utils/location_utils.dart';
-import 'package:realtoken_asset_tracker/components/filter_widgets.dart';
-import 'package:realtoken_asset_tracker/app_state.dart';
+import 'package:meprop_asset_tracker/utils/parameters.dart';
+import 'package:meprop_asset_tracker/utils/location_utils.dart';
+import 'package:meprop_asset_tracker/components/filter_widgets.dart';
+import 'package:meprop_asset_tracker/app_state.dart';
 
 class RealTokensPage extends StatefulWidget {
   const RealTokensPage({super.key});
@@ -60,7 +60,8 @@ class RealTokensPageState extends State<RealTokensPage> {
       _showNonWhitelisted = prefs.getBool('showNonWhitelisted') ?? true;
       _filterNotInWallet = prefs.getBool('filterNotInWallet') ?? false;
       _selectedRegion = prefs.getString('selectedRegion')?.isEmpty ?? true ? null : prefs.getString('selectedRegion');
-      _selectedCountry = prefs.getString('selectedCountry')?.isEmpty ?? true ? null : prefs.getString('selectedCountry');
+      _selectedCountry =
+          prefs.getString('selectedCountry')?.isEmpty ?? true ? null : prefs.getString('selectedCountry');
       // Charger les nouveaux filtres
       _rentalStatusFilter = prefs.getString('rentalStatusFilter') ?? rentalStatusAll;
       List<String>? savedProductTypes = prefs.getStringList('selectedProductTypes');
@@ -85,7 +86,8 @@ class RealTokensPageState extends State<RealTokensPage> {
     List<Map<String, dynamic>> filteredTokens = dataManager.allTokens.where((token) {
       final matchesSearchQuery = token['fullName'].toLowerCase().contains(_searchQuery.toLowerCase());
       final matchesCity = _selectedCity == null || token['fullName'].contains(_selectedCity!);
-      final matchesRegion = _selectedRegion == null || (token['regionCode'] != null && token['regionCode'] == _selectedRegion);
+      final matchesRegion =
+          _selectedRegion == null || (token['regionCode'] != null && token['regionCode'] == _selectedRegion);
       final matchesCountry = _selectedCountry == null || _matchesCountryFilter(token, _selectedCountry);
       final matchesRentalStatus = _rentalStatusFilter == rentalStatusAll || _filterByRentalStatus(token);
 
@@ -117,21 +119,32 @@ class RealTokensPageState extends State<RealTokensPage> {
     }
 
     if (_filterNotInWallet) {
-      filteredTokens = filteredTokens.where((token) => !dataManager.portfolio.any((p) => p['uuid'].toLowerCase() == token['uuid'].toLowerCase())).toList();
+      filteredTokens = filteredTokens
+          .where((token) => !dataManager.portfolio.any((p) => p['uuid'].toLowerCase() == token['uuid'].toLowerCase()))
+          .toList();
     }
 
     if (!_showNonWhitelisted) {
-      filteredTokens = filteredTokens.where((token) => dataManager.whitelistTokens.any((whitelisted) => whitelisted['token'].toLowerCase() == token['uuid'].toLowerCase())).toList();
+      filteredTokens = filteredTokens
+          .where((token) => dataManager.whitelistTokens
+              .any((whitelisted) => whitelisted['token'].toLowerCase() == token['uuid'].toLowerCase()))
+          .toList();
     }
 
     if (_sortOption == S.of(context).sortByName) {
-      filteredTokens.sort((a, b) => _isAscending ? a['shortName'].compareTo(b['shortName']) : b['shortName'].compareTo(a['shortName']));
+      filteredTokens.sort(
+          (a, b) => _isAscending ? a['shortName'].compareTo(b['shortName']) : b['shortName'].compareTo(a['shortName']));
     } else if (_sortOption == S.of(context).sortByValue) {
-      filteredTokens.sort((a, b) => _isAscending ? a['totalValue'].compareTo(b['totalValue']) : b['totalValue'].compareTo(a['totalValue']));
+      filteredTokens.sort((a, b) =>
+          _isAscending ? a['totalValue'].compareTo(b['totalValue']) : b['totalValue'].compareTo(a['totalValue']));
     } else if (_sortOption == S.of(context).sortByAPY) {
-      filteredTokens.sort((a, b) => _isAscending ? a['annualPercentageYield'].compareTo(b['annualPercentageYield']) : b['annualPercentageYield'].compareTo(a['annualPercentageYield']));
+      filteredTokens.sort((a, b) => _isAscending
+          ? a['annualPercentageYield'].compareTo(b['annualPercentageYield'])
+          : b['annualPercentageYield'].compareTo(a['annualPercentageYield']));
     } else if (_sortOption == S.of(context).sortByInitialLaunchDate) {
-      filteredTokens.sort((a, b) => _isAscending ? a['initialLaunchDate'].compareTo(b['initialLaunchDate']) : b['initialLaunchDate'].compareTo(a['initialLaunchDate']));
+      filteredTokens.sort((a, b) => _isAscending
+          ? a['initialLaunchDate'].compareTo(b['initialLaunchDate'])
+          : b['initialLaunchDate'].compareTo(a['initialLaunchDate']));
     }
 
     return filteredTokens;
@@ -141,19 +154,19 @@ class RealTokensPageState extends State<RealTokensPage> {
   List<String> _getUniqueCities(List<Map<String, dynamic>> tokens) => FilterWidgets.getUniqueCities(tokens);
   List<String> _getUniqueRegions(List<Map<String, dynamic>> tokens) => FilterWidgets.getUniqueRegions(tokens);
   List<String> _getUniqueCountries(List<Map<String, dynamic>> tokens) => FilterWidgets.getUniqueCountries(tokens);
-  
+
   // Méthode pour vérifier si un token correspond au filtre pays
   bool _matchesCountryFilter(Map<String, dynamic> token, String? selectedCountry) {
     if (selectedCountry == null) return true;
-    
+
     String tokenCountry = token['country'] ?? "Unknown Country";
-    
+
     // Si "Series XX" est sélectionné, filtrer tous les tokens factoring_profitshare avec des séries
     if (selectedCountry == "Series XX") {
-      return (token['productType']?.toString().toLowerCase() == 'factoring_profitshare') && 
-             tokenCountry.toLowerCase().startsWith('series ');
+      return (token['productType']?.toString().toLowerCase() == 'factoring_profitshare') &&
+          tokenCountry.toLowerCase().startsWith('series ');
     }
-    
+
     // Filtre normal
     return tokenCountry == selectedCountry;
   }
@@ -218,12 +231,13 @@ class RealTokensPageState extends State<RealTokensPage> {
     required IconData icon,
     required String label,
     required VoidCallback onTap,
-  }) => FilterWidgets.buildFilterButton(
-    context: context,
-    icon: icon,
-    label: label,
-    onTap: onTap,
-  );
+  }) =>
+      FilterWidgets.buildFilterButton(
+        context: context,
+        icon: icon,
+        label: label,
+        onTap: onTap,
+      );
 
   Widget _buildFilterPopupMenu({
     required BuildContext context,
@@ -245,13 +259,11 @@ class RealTokensPageState extends State<RealTokensPage> {
         margin: const EdgeInsets.only(right: 8),
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: isActive 
-            ? Theme.of(context).primaryColor.withOpacity(0.2)
-            : Theme.of(context).primaryColor.withOpacity(0.1),
+          color: isActive
+              ? Theme.of(context).primaryColor.withOpacity(0.2)
+              : Theme.of(context).primaryColor.withOpacity(0.1),
           borderRadius: BorderRadius.circular(12),
-          border: isActive 
-            ? Border.all(color: Theme.of(context).primaryColor, width: 2)
-            : null,
+          border: isActive ? Border.all(color: Theme.of(context).primaryColor, width: 2) : null,
         ),
         child: Icon(
           icon,
@@ -321,13 +333,11 @@ class RealTokensPageState extends State<RealTokensPage> {
         child: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: selectedWallets.isNotEmpty 
-              ? Theme.of(context).primaryColor.withOpacity(0.2)
-              : Theme.of(context).primaryColor.withOpacity(0.1),
+            color: selectedWallets.isNotEmpty
+                ? Theme.of(context).primaryColor.withOpacity(0.2)
+                : Theme.of(context).primaryColor.withOpacity(0.1),
             borderRadius: BorderRadius.circular(12),
-            border: selectedWallets.isNotEmpty 
-              ? Border.all(color: Theme.of(context).primaryColor, width: 2)
-              : null,
+            border: selectedWallets.isNotEmpty ? Border.all(color: Theme.of(context).primaryColor, width: 2) : null,
           ),
           child: Icon(
             icon,
@@ -383,34 +393,43 @@ class RealTokensPageState extends State<RealTokensPage> {
             height: 8,
             child: Divider(height: 1, thickness: 1),
           ),
-          ...Provider.of<DataManager>(context, listen: false).evmAddresses.toSet().toList().map((wallet) => PopupMenuItem(
-                value: wallet,
-                child: StatefulBuilder(
-                  builder: (context, setStateLocal) {
-                    return InkWell(
-                      onTap: () {
-                        setState(() {
-                          if (selectedWallets.contains(wallet)) {
-                            selectedWallets.remove(wallet);
-                          } else {
-                            selectedWallets.add(wallet);
-                          }
-                        });
-                        setStateLocal(() {});
+          ...Provider.of<DataManager>(context, listen: false)
+              .evmAddresses
+              .toSet()
+              .toList()
+              .map((wallet) => PopupMenuItem(
+                    value: wallet,
+                    child: StatefulBuilder(
+                      builder: (context, setStateLocal) {
+                        return InkWell(
+                          onTap: () {
+                            setState(() {
+                              if (selectedWallets.contains(wallet)) {
+                                selectedWallets.remove(wallet);
+                              } else {
+                                selectedWallets.add(wallet);
+                              }
+                            });
+                            setStateLocal(() {});
+                          },
+                          child: Row(
+                            children: [
+                              selectedWallets.contains(wallet)
+                                  ? const Icon(Icons.check, size: 20)
+                                  : const SizedBox(width: 20),
+                              const SizedBox(width: 8.0),
+                              const Icon(Icons.account_balance_wallet, size: 20),
+                              const SizedBox(width: 8.0),
+                              Flexible(
+                                  child: Text(wallet.length > 15
+                                      ? '${wallet.substring(0, 6)}...${wallet.substring(wallet.length - 4)}'
+                                      : wallet)),
+                            ],
+                          ),
+                        );
                       },
-                      child: Row(
-                        children: [
-                          selectedWallets.contains(wallet) ? const Icon(Icons.check, size: 20) : const SizedBox(width: 20),
-                          const SizedBox(width: 8.0),
-                          const Icon(Icons.account_balance_wallet, size: 20),
-                          const SizedBox(width: 8.0),
-                          Flexible(child: Text(wallet.length > 15 ? '${wallet.substring(0, 6)}...${wallet.substring(wallet.length - 4)}' : wallet)),
-                        ],
-                      ),
-                    );
-                  },
-                ),
-              )),
+                    ),
+                  )),
           // Bouton pour fermer/appliquer
           PopupMenuItem(
             value: "divider_wallet_3",
@@ -449,145 +468,143 @@ class RealTokensPageState extends State<RealTokensPage> {
     required Function(Set<String>) onProductTypesChanged,
   }) {
     return PopupMenuButton<String>(
-        tooltip: "",
-        onSelected: (String value) {
-          // La logique de sélection est gérée dans StatefulBuilder
-        },
-        offset: const Offset(0, 40),
-        elevation: 8,
-        color: Theme.of(context).cardColor.withOpacity(0.97),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: selectedProductTypes.isNotEmpty 
+      tooltip: "",
+      onSelected: (String value) {
+        // La logique de sélection est gérée dans StatefulBuilder
+      },
+      offset: const Offset(0, 40),
+      elevation: 8,
+      color: Theme.of(context).cardColor.withOpacity(0.97),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: selectedProductTypes.isNotEmpty
               ? Theme.of(context).primaryColor.withOpacity(0.2)
               : Theme.of(context).primaryColor.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(12),
-            border: selectedProductTypes.isNotEmpty 
-              ? Border.all(color: Theme.of(context).primaryColor, width: 2)
-              : null,
-          ),
-          child: Icon(
-            icon,
-            size: 20,
-            color: Theme.of(context).primaryColor,
-          ),
+          borderRadius: BorderRadius.circular(12),
+          border: selectedProductTypes.isNotEmpty ? Border.all(color: Theme.of(context).primaryColor, width: 2) : null,
         ),
-        itemBuilder: (context) {
-          final uniqueProductTypes = _getUniqueProductTypes(Provider.of<DataManager>(context, listen: false).allTokens);
-          
-          return [
-            PopupMenuItem(
-              value: "product_type_header",
-              enabled: false,
+        child: Icon(
+          icon,
+          size: 20,
+          color: Theme.of(context).primaryColor,
+        ),
+      ),
+      itemBuilder: (context) {
+        final uniqueProductTypes = _getUniqueProductTypes(Provider.of<DataManager>(context, listen: false).allTokens);
+
+        return [
+          PopupMenuItem(
+            value: "product_type_header",
+            enabled: false,
+            child: Row(
+              children: const [
+                Icon(Icons.category, size: 20),
+                SizedBox(width: 8.0),
+                Text(
+                  "Types de produit",
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+          ),
+          PopupMenuItem(
+            value: "divider_product_1",
+            enabled: false,
+            height: 8,
+            child: Divider(height: 1, thickness: 1),
+          ),
+          PopupMenuItem(
+            value: "all_product_types",
+            child: InkWell(
+              onTap: () {
+                setState(() {
+                  selectedProductTypes.clear();
+                });
+                onProductTypesChanged(selectedProductTypes);
+                Navigator.of(context).pop();
+              },
               child: Row(
-                children: const [
-                  Icon(Icons.category, size: 20),
+                children: [
+                  selectedProductTypes.isEmpty ? Icon(Icons.check, size: 20) : SizedBox(width: 20),
                   SizedBox(width: 8.0),
-                  Text(
-                    "Types de produit",
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
+                  Icon(Icons.all_inclusive, size: 20),
+                  SizedBox(width: 8.0),
+                  Text("Tous types"),
                 ],
               ),
             ),
-            PopupMenuItem(
-              value: "divider_product_1",
-              enabled: false,
-              height: 8,
-              child: Divider(height: 1, thickness: 1),
-            ),
-            PopupMenuItem(
-              value: "all_product_types",
-              child: InkWell(
-                onTap: () {
-                  setState(() {
-                    selectedProductTypes.clear();
-                  });
-                  onProductTypesChanged(selectedProductTypes);
+          ),
+          PopupMenuItem(
+            value: "divider_product_2",
+            enabled: false,
+            height: 8,
+            child: Divider(height: 1, thickness: 1),
+          ),
+          ...uniqueProductTypes.map((productType) => PopupMenuItem(
+                value: productType,
+                child: StatefulBuilder(
+                  builder: (context, setStateLocal) {
+                    return InkWell(
+                      onTap: () {
+                        setState(() {
+                          if (selectedProductTypes.contains(productType)) {
+                            selectedProductTypes.remove(productType);
+                          } else {
+                            selectedProductTypes.add(productType);
+                          }
+                        });
+                        setStateLocal(() {});
+                        onProductTypesChanged(selectedProductTypes);
+                      },
+                      child: Row(
+                        children: [
+                          selectedProductTypes.contains(productType)
+                              ? const Icon(Icons.check, size: 20)
+                              : const SizedBox(width: 20),
+                          const SizedBox(width: 8.0),
+                          Icon(_getProductTypeIcon(productType), size: 20),
+                          const SizedBox(width: 8.0),
+                          Flexible(
+                            child: Text(_getLocalizedProductTypeName(context, productType)),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              )),
+          // Bouton pour fermer/appliquer
+          PopupMenuItem(
+            value: "divider_product_3",
+            enabled: false,
+            height: 8,
+            child: Divider(height: 1, thickness: 1),
+          ),
+          PopupMenuItem(
+            value: "apply_product_types",
+            child: Center(
+              child: ElevatedButton(
+                onPressed: () {
                   Navigator.of(context).pop();
                 },
-                child: Row(
-                  children: [
-                    selectedProductTypes.isEmpty ? Icon(Icons.check, size: 20) : SizedBox(width: 20),
-                    SizedBox(width: 8.0),
-                    Icon(Icons.all_inclusive, size: 20),
-                    SizedBox(width: 8.0),
-                    Text("Tous types"),
-                  ],
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Theme.of(context).primaryColor,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
+                child: Text("Appliquer"),
               ),
             ),
-            PopupMenuItem(
-              value: "divider_product_2",
-              enabled: false,
-              height: 8,
-              child: Divider(height: 1, thickness: 1),
-            ),
-            ...uniqueProductTypes.map((productType) => PopupMenuItem(
-                  value: productType,
-                  child: StatefulBuilder(
-                    builder: (context, setStateLocal) {
-                      return InkWell(
-                        onTap: () {
-                          setState(() {
-                            if (selectedProductTypes.contains(productType)) {
-                              selectedProductTypes.remove(productType);
-                            } else {
-                              selectedProductTypes.add(productType);
-                            }
-                          });
-                          setStateLocal(() {});
-                          onProductTypesChanged(selectedProductTypes);
-                        },
-                        child: Row(
-                          children: [
-                            selectedProductTypes.contains(productType) 
-                              ? const Icon(Icons.check, size: 20) 
-                              : const SizedBox(width: 20),
-                            const SizedBox(width: 8.0),
-                            Icon(_getProductTypeIcon(productType), size: 20),
-                            const SizedBox(width: 8.0),
-                            Flexible(
-                              child: Text(_getLocalizedProductTypeName(context, productType)),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-                )),
-            // Bouton pour fermer/appliquer
-            PopupMenuItem(
-              value: "divider_product_3",
-              enabled: false,
-              height: 8,
-              child: Divider(height: 1, thickness: 1),
-            ),
-            PopupMenuItem(
-              value: "apply_product_types",
-              child: Center(
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).primaryColor,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: Text("Appliquer"),
-                ),
-              ),
-            ),
-          ];
-        },
-      );
+          ),
+        ];
+      },
+    );
   }
 
   // Filtre Region
@@ -617,13 +634,11 @@ class RealTokensPageState extends State<RealTokensPage> {
         child: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: selectedRegion != null 
-              ? Theme.of(context).primaryColor.withOpacity(0.2)
-              : Theme.of(context).primaryColor.withOpacity(0.1),
+            color: selectedRegion != null
+                ? Theme.of(context).primaryColor.withOpacity(0.2)
+                : Theme.of(context).primaryColor.withOpacity(0.1),
             borderRadius: BorderRadius.circular(12),
-            border: selectedRegion != null 
-              ? Border.all(color: Theme.of(context).primaryColor, width: 2)
-              : null,
+            border: selectedRegion != null ? Border.all(color: Theme.of(context).primaryColor, width: 2) : null,
           ),
           child: Icon(
             icon,
@@ -633,7 +648,7 @@ class RealTokensPageState extends State<RealTokensPage> {
         ),
         itemBuilder: (context) {
           final uniqueRegions = _getUniqueRegions(Provider.of<DataManager>(context, listen: false).allTokens);
-          
+
           return [
             PopupMenuItem(
               value: "region_header",
@@ -726,13 +741,11 @@ class RealTokensPageState extends State<RealTokensPage> {
         child: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: selectedCountry != null 
-              ? Theme.of(context).primaryColor.withOpacity(0.2)
-              : Theme.of(context).primaryColor.withOpacity(0.1),
+            color: selectedCountry != null
+                ? Theme.of(context).primaryColor.withOpacity(0.2)
+                : Theme.of(context).primaryColor.withOpacity(0.1),
             borderRadius: BorderRadius.circular(12),
-            border: selectedCountry != null 
-              ? Border.all(color: Theme.of(context).primaryColor, width: 2)
-              : null,
+            border: selectedCountry != null ? Border.all(color: Theme.of(context).primaryColor, width: 2) : null,
           ),
           child: Icon(
             icon,
@@ -742,7 +755,7 @@ class RealTokensPageState extends State<RealTokensPage> {
         ),
         itemBuilder: (context) {
           final uniqueCountries = _getUniqueCountries(Provider.of<DataManager>(context, listen: false).allTokens);
-          
+
           return [
             PopupMenuItem(
               value: "country_header",
@@ -831,13 +844,13 @@ class RealTokensPageState extends State<RealTokensPage> {
         child: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: selectedRentalStatus != rentalStatusAll 
-              ? Theme.of(context).primaryColor.withOpacity(0.2)
-              : Theme.of(context).primaryColor.withOpacity(0.1),
+            color: selectedRentalStatus != rentalStatusAll
+                ? Theme.of(context).primaryColor.withOpacity(0.2)
+                : Theme.of(context).primaryColor.withOpacity(0.1),
             borderRadius: BorderRadius.circular(12),
-            border: selectedRentalStatus != rentalStatusAll 
-              ? Border.all(color: Theme.of(context).primaryColor, width: 2)
-              : null,
+            border: selectedRentalStatus != rentalStatusAll
+                ? Border.all(color: Theme.of(context).primaryColor, width: 2)
+                : null,
           ),
           child: Icon(
             icon,
@@ -1255,8 +1268,10 @@ class RealTokensPageState extends State<RealTokensPage> {
                     itemCount: filteredAndSortedTokens.length,
                     itemBuilder: (context, index) {
                       final token = filteredAndSortedTokens[index];
-                      final bool isInPortfolio = dataManager.portfolio.any((portfolioItem) => portfolioItem['uuid'].toLowerCase() == token['uuid'].toLowerCase());
-                      final bool isWhitelisted = dataManager.whitelistTokens.any((whitelisted) => whitelisted['token'].toLowerCase() == token['uuid'].toLowerCase());
+                      final bool isInPortfolio = dataManager.portfolio
+                          .any((portfolioItem) => portfolioItem['uuid'].toLowerCase() == token['uuid'].toLowerCase());
+                      final bool isWhitelisted = dataManager.whitelistTokens
+                          .any((whitelisted) => whitelisted['token'].toLowerCase() == token['uuid'].toLowerCase());
 
                       return GestureDetector(
                         onTap: () => showTokenDetails(context, token),
@@ -1434,7 +1449,8 @@ class RealTokensPageState extends State<RealTokensPage> {
                                                   ),
                                                 ),
                                                 Text(
-                                                  currencyUtils.formatCurrency(token['totalInvestment'], currencyUtils.currencySymbol),
+                                                  currencyUtils.formatCurrency(
+                                                      token['totalInvestment'], currencyUtils.currencySymbol),
                                                   style: TextStyle(
                                                     fontSize: 12,
                                                     fontWeight: FontWeight.w500,
@@ -1454,7 +1470,8 @@ class RealTokensPageState extends State<RealTokensPage> {
                                                   ),
                                                 ),
                                                 Text(
-                                                  currencyUtils.formatCurrency(token['tokenPrice'], currencyUtils.currencySymbol),
+                                                  currencyUtils.formatCurrency(
+                                                      token['tokenPrice'], currencyUtils.currencySymbol),
                                                   style: TextStyle(
                                                     fontSize: 12,
                                                     fontWeight: FontWeight.w500,
@@ -1509,7 +1526,9 @@ class RealTokensPageState extends State<RealTokensPage> {
                                           ),
                                           const SizedBox(width: 4),
                                           Text(
-                                            isWhitelisted ? S.of(context).tokenWhitelisted : S.of(context).tokenNotWhitelisted,
+                                            isWhitelisted
+                                                ? S.of(context).tokenWhitelisted
+                                                : S.of(context).tokenNotWhitelisted,
                                             style: TextStyle(
                                               color: isWhitelisted ? Colors.green : Colors.red,
                                               fontWeight: FontWeight.w500,

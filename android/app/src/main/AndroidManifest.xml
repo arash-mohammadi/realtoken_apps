@@ -11,7 +11,7 @@
         android:icon="@mipmap/ic_launcher"
         android:enableOnBackInvokedCallback="true">
         <activity
-            android:name="com.byackee.realtoken_asset_tracker.MainActivity"
+            android:name="com.byackee.meprop_asset_tracker.MainActivity"
             android:exported="true"
             android:launchMode="singleTop"
             android:taskAffinity=""

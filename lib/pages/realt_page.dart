@@ -1,10 +1,10 @@
-import 'package:realtoken_asset_tracker/managers/data_manager.dart';
-import 'package:realtoken_asset_tracker/generated/l10n.dart';
-import 'package:realtoken_asset_tracker/utils/currency_utils.dart';
+import 'package:meprop_asset_tracker/managers/data_manager.dart';
+import 'package:meprop_asset_tracker/generated/l10n.dart';
+import 'package:meprop_asset_tracker/utils/currency_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
-import 'package:realtoken_asset_tracker/app_state.dart';
+import 'package:meprop_asset_tracker/app_state.dart';
 
 class RealtPage extends StatefulWidget {
   const RealtPage({super.key});
@@ -47,59 +47,65 @@ class RealtPageState extends State<RealtPage> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const SizedBox(height: 10),
-                
+
                 // Carte Investissement
                 _buildIOSStyleCard(
                   context,
                   S.of(context).investment,
                   CupertinoIcons.money_dollar_circle,
-                  currencyUtils.formatCurrency(currencyUtils.convert(dataManager.totalRealtInvestment), currencyUtils.currencySymbol),
+                  currencyUtils.formatCurrency(
+                      currencyUtils.convert(dataManager.totalRealtInvestment), currencyUtils.currencySymbol),
                   S.of(context).totalInvestment,
                   [
                     _buildIOSValueRow(
                       context,
-                      currencyUtils.formatCurrency(currencyUtils.convert(dataManager.netRealtRentYear), currencyUtils.currencySymbol),
+                      currencyUtils.formatCurrency(
+                          currencyUtils.convert(dataManager.netRealtRentYear), currencyUtils.currencySymbol),
                       S.of(context).netAnnualRent,
                     ),
                     _buildIOSValueRow(
                       context,
-                      currencyUtils.formatCurrency(currencyUtils.convert(dataManager.realtInitialPrice), currencyUtils.currencySymbol),
+                      currencyUtils.formatCurrency(
+                          currencyUtils.convert(dataManager.realtInitialPrice), currencyUtils.currencySymbol),
                       S.of(context).initialPrice,
                     ),
                   ],
                   CupertinoColors.systemGreen,
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Carte Performance/ROI
                 _buildIOSStyleCard(
                   context,
                   S.of(context).realTPerformance,
                   CupertinoIcons.chart_bar_fill,
-                  currencyUtils.formatCurrency(currencyUtils.convert(dataManager.realtActualPrice), currencyUtils.currencySymbol),
+                  currencyUtils.formatCurrency(
+                      currencyUtils.convert(dataManager.realtActualPrice), currencyUtils.currencySymbol),
                   S.of(context).realtActualPrice,
                   [
                     _buildIOSValueRow(
                       context,
                       '${dataManager.realtInitialPrice > 0 ? (((dataManager.realtActualPrice - dataManager.realtInitialPrice) / dataManager.realtInitialPrice * 100)).toStringAsFixed(2) : "0.00"}%',
                       S.of(context).priceEvolutionPercentage.replaceAll(':', ''),
-                      valueColor: (dataManager.realtActualPrice >= dataManager.realtInitialPrice) 
-                        ? CupertinoColors.systemGreen 
-                        : CupertinoColors.systemRed,
+                      valueColor: (dataManager.realtActualPrice >= dataManager.realtInitialPrice)
+                          ? CupertinoColors.systemGreen
+                          : CupertinoColors.systemRed,
                     ),
                     _buildIOSValueRow(
                       context,
-                      currencyUtils.formatCurrency(currencyUtils.convert(dataManager.realtActualPrice - dataManager.realtInitialPrice), currencyUtils.currencySymbol),
+                      currencyUtils.formatCurrency(
+                          currencyUtils.convert(dataManager.realtActualPrice - dataManager.realtInitialPrice),
+                          currencyUtils.currencySymbol),
                       'Gain/Perte',
-                      valueColor: (dataManager.realtActualPrice >= dataManager.realtInitialPrice) 
-                        ? CupertinoColors.systemGreen 
-                        : CupertinoColors.systemRed,
+                      valueColor: (dataManager.realtActualPrice >= dataManager.realtInitialPrice)
+                          ? CupertinoColors.systemGreen
+                          : CupertinoColors.systemRed,
                     ),
                   ],
                   CupertinoColors.systemIndigo,
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Carte Propriétés
                 _buildIOSStyleCard(
                   context,
@@ -128,30 +134,33 @@ class RealtPageState extends State<RealtPage> {
                   CupertinoColors.systemBlue,
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Carte Revenus
                 _buildIOSStyleCard(
                   context,
                   S.of(context).revenue,
                   CupertinoIcons.money_dollar,
-                  currencyUtils.formatCurrency(currencyUtils.convert(dataManager.netRealtRentYear / 365), currencyUtils.currencySymbol),
+                  currencyUtils.formatCurrency(
+                      currencyUtils.convert(dataManager.netRealtRentYear / 365), currencyUtils.currencySymbol),
                   S.of(context).daily,
                   [
                     _buildIOSValueRow(
                       context,
-                      currencyUtils.formatCurrency(currencyUtils.convert(dataManager.netRealtRentYear / 12), currencyUtils.currencySymbol),
+                      currencyUtils.formatCurrency(
+                          currencyUtils.convert(dataManager.netRealtRentYear / 12), currencyUtils.currencySymbol),
                       S.of(context).monthly,
                     ),
                     _buildIOSValueRow(
                       context,
-                      currencyUtils.formatCurrency(currencyUtils.convert(dataManager.netRealtRentYear), currencyUtils.currencySymbol),
+                      currencyUtils.formatCurrency(
+                          currencyUtils.convert(dataManager.netRealtRentYear), currencyUtils.currencySymbol),
                       S.of(context).annually,
                     ),
                   ],
                   CupertinoColors.systemOrange,
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Carte Rendement
                 _buildIOSStyleCard(
                   context,
@@ -169,7 +178,7 @@ class RealtPageState extends State<RealtPage> {
                   CupertinoColors.systemPurple,
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Carte Répartition par Type de Produit
                 _buildProductTypeDistributionCard(context, dataManager, currencyUtils),
               ],
@@ -180,14 +189,15 @@ class RealtPageState extends State<RealtPage> {
     );
   }
 
-  Widget _buildProductTypeDistributionCard(BuildContext context, DataManager dataManager, CurrencyProvider currencyUtils) {
+  Widget _buildProductTypeDistributionCard(
+      BuildContext context, DataManager dataManager, CurrencyProvider currencyUtils) {
     Map<String, Map<String, dynamic>> productTypeStats = {};
-    
+
     // Analyser les tokens pour calculer les statistiques par productType
     for (var token in dataManager.allTokens) {
       String productTypeKey = token['productType']?.toString() ?? 'other';
       String productType = _getLocalizedProductTypeName(context, productTypeKey);
-      
+
       if (!productTypeStats.containsKey(productType)) {
         productTypeStats[productType] = {
           'count': 0,
@@ -195,7 +205,7 @@ class RealtPageState extends State<RealtPage> {
           'totalRent': 0.0,
         };
       }
-      
+
       productTypeStats[productType]!['count'] += 1;
       productTypeStats[productType]!['totalValue'] += (token['totalValue'] ?? 0.0);
       productTypeStats[productType]!['totalRent'] += (token['yearlyIncome'] ?? 0.0);

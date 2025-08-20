@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:realtoken_asset_tracker/generated/l10n.dart';
+import 'package:meprop_asset_tracker/generated/l10n.dart';
 import 'package:provider/provider.dart';
-import 'package:realtoken_asset_tracker/app_state.dart';
+import 'package:meprop_asset_tracker/app_state.dart';
 
 class Parameters {
   // Référence statique à l'instance de AppState
@@ -18,7 +18,11 @@ class Parameters {
   static const String rentTrackerUrl = 'https://ehpst.duckdns.org/realt_rent_tracker/api';
   static const String coingeckoUrl = 'https://api.coingecko.com/api/v3/coins/xdai';
 
-  static const List<String> stables = ["0xe91d153e0b41518a2ce8dd3d7944fa863463a97d", "0xddafbb505ad214d7b80b1f830fccc89b60fb7a83", "0x7349c9eaa538e118725a6130e0f8341509b9f8a0"];
+  static const List<String> stables = [
+    "0xe91d153e0b41518a2ce8dd3d7944fa863463a97d",
+    "0xddafbb505ad214d7b80b1f830fccc89b60fb7a83",
+    "0x7349c9eaa538e118725a6130e0f8341509b9f8a0"
+  ];
   static String rwaTokenAddress = '0x0675e8f4a52ea6c845cb6427af03616a2af42170';
   // 📌 Autres paramètres inchangés
   static const Duration apiCacheDuration = Duration(minutes: 1);
@@ -135,7 +139,15 @@ class Parameters {
     'WY': 'Wyoming'
   };
 
-  static final Map<String, String> currencySymbols = {'usd': '\$', 'eur': '€', 'gbp': '£', 'jpy': '¥', 'inr': '₹', 'btc': '₿', 'eth': 'Ξ'};
+  static final Map<String, String> currencySymbols = {
+    'usd': '\$',
+    'eur': '€',
+    'gbp': '£',
+    'jpy': '¥',
+    'inr': '₹',
+    'btc': '₿',
+    'eth': 'Ξ'
+  };
 
   // Mapping des régions spéciales
   static String getRegionDisplayName(String region) {

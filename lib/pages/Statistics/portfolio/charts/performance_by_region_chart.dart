@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:provider/provider.dart';
-import 'package:realtoken_asset_tracker/managers/data_manager.dart';
-import 'package:realtoken_asset_tracker/app_state.dart';
-import 'package:realtoken_asset_tracker/generated/l10n.dart';
-import 'package:realtoken_asset_tracker/utils/parameters.dart';
+import 'package:meprop_asset_tracker/managers/data_manager.dart';
+import 'package:meprop_asset_tracker/app_state.dart';
+import 'package:meprop_asset_tracker/generated/l10n.dart';
+import 'package:meprop_asset_tracker/utils/parameters.dart';
 
 class PerformanceByRegionChart extends StatefulWidget {
   final DataManager dataManager;
@@ -130,7 +130,7 @@ class _PerformanceByRegionChartState extends State<PerformanceByRegionChart> {
       final int tokenCount = data['tokenCount'];
       final double totalInitialValue = data['totalInitialValue'];
       final double totalRentReceived = data['totalRentReceived'];
-      
+
       data['averageRoi'] = totalInitialValue > 0 ? (totalRentReceived / totalInitialValue) * 100 : 0.0;
     });
 
@@ -139,7 +139,7 @@ class _PerformanceByRegionChartState extends State<PerformanceByRegionChart> {
 
   Widget _buildRegionPerformanceChart(int? selectedIndex) {
     final Map<String, Map<String, dynamic>> regionData = _calculateRegionPerformance();
-    
+
     if (regionData.isEmpty) {
       return Center(
         child: Text(
@@ -161,13 +161,14 @@ class _PerformanceByRegionChartState extends State<PerformanceByRegionChart> {
     }
 
     // Limiter à 8 régions pour la lisibilité
-    final List<MapEntry<String, Map<String, dynamic>>> displayEntries = 
-        sortedEntries.take(8).toList();
+    final List<MapEntry<String, Map<String, dynamic>>> displayEntries = sortedEntries.take(8).toList();
 
     return BarChart(
       BarChartData(
         alignment: BarChartAlignment.spaceAround,
-        maxY: displayEntries.isEmpty ? 10 : displayEntries.map((e) => e.value['averageRoi'] as double).reduce((a, b) => a > b ? a : b) * 1.2,
+        maxY: displayEntries.isEmpty
+            ? 10
+            : displayEntries.map((e) => e.value['averageRoi'] as double).reduce((a, b) => a > b ? a : b) * 1.2,
         barTouchData: BarTouchData(
           touchTooltipData: BarTouchTooltipData(
             getTooltipItem: (group, groupIndex, rod, rodIndex) {
@@ -175,7 +176,7 @@ class _PerformanceByRegionChartState extends State<PerformanceByRegionChart> {
               final regionName = entry.key;
               final data = entry.value;
               return BarTooltipItem(
-                                 '$regionName\n${S.of(context).averageROI}: ${data['averageRoi'].toStringAsFixed(1)}%\nTokens: ${data['tokenCount']}',
+                '$regionName\n${S.of(context).averageROI}: ${data['averageRoi'].toStringAsFixed(1)}%\nTokens: ${data['tokenCount']}',
                 TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
@@ -352,7 +353,8 @@ class _PerformanceByRegionChartState extends State<PerformanceByRegionChart> {
                   '$regionName: ${roi.toStringAsFixed(1)}% ($tokenCount)',
                   style: TextStyle(
                     fontSize: 12 + appState.getTextSizeOffset(),
-                    color: _selectedIndexNotifier.value == index ? color : Theme.of(context).textTheme.bodyMedium?.color,
+                    color:
+                        _selectedIndexNotifier.value == index ? color : Theme.of(context).textTheme.bodyMedium?.color,
                     fontWeight: _selectedIndexNotifier.value == index ? FontWeight.w600 : FontWeight.normal,
                   ),
                 ),
@@ -363,4 +365,4 @@ class _PerformanceByRegionChartState extends State<PerformanceByRegionChart> {
       }).toList(),
     );
   }
-} 
+}

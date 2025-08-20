@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:provider/provider.dart';
-import 'package:realtoken_asset_tracker/managers/data_manager.dart';
-import 'package:realtoken_asset_tracker/app_state.dart';
-import 'package:realtoken_asset_tracker/generated/l10n.dart';
+import 'package:meprop_asset_tracker/managers/data_manager.dart';
+import 'package:meprop_asset_tracker/app_state.dart';
+import 'package:meprop_asset_tracker/generated/l10n.dart';
 
 class RentalStatusDistributionChart extends StatefulWidget {
   final DataManager dataManager;
@@ -176,7 +176,9 @@ class _RentalStatusDistributionChartState extends State<RentalStatusDistribution
         color: color.withOpacity(opacity),
         radius: isSelected ? 52 : 45,
         titleStyle: TextStyle(
-          fontSize: isSelected ? 14 + Provider.of<AppState>(context).getTextSizeOffset() : 10 + Provider.of<AppState>(context).getTextSizeOffset(),
+          fontSize: isSelected
+              ? 14 + Provider.of<AppState>(context).getTextSizeOffset()
+              : 10 + Provider.of<AppState>(context).getTextSizeOffset(),
           color: Colors.white,
           fontWeight: FontWeight.w600,
           shadows: [
@@ -360,7 +362,8 @@ class _RentalStatusDistributionChartState extends State<RentalStatusDistribution
                   '$statusName: $count',
                   style: TextStyle(
                     fontSize: 12 + appState.getTextSizeOffset(),
-                    color: _selectedIndexNotifier.value == index ? color : Theme.of(context).textTheme.bodyMedium?.color,
+                    color:
+                        _selectedIndexNotifier.value == index ? color : Theme.of(context).textTheme.bodyMedium?.color,
                     fontWeight: _selectedIndexNotifier.value == index ? FontWeight.w600 : FontWeight.normal,
                   ),
                 ),
@@ -371,4 +374,4 @@ class _RentalStatusDistributionChartState extends State<RentalStatusDistribution
       }).toList(),
     );
   }
-} 
+}

@@ -18,17 +18,15 @@ class S {
   static S? _current;
 
   static S get current {
-    assert(_current != null,
-        'No instance of S was loaded. Try to initialize the S delegate before accessing S.current.');
+    assert(
+        _current != null, 'No instance of S was loaded. Try to initialize the S delegate before accessing S.current.');
     return _current!;
   }
 
   static const AppLocalizationDelegate delegate = AppLocalizationDelegate();
 
   static Future<S> load(Locale locale) {
-    final name = (locale.countryCode?.isEmpty ?? false)
-        ? locale.languageCode
-        : locale.toString();
+    final name = (locale.countryCode?.isEmpty ?? false) ? locale.languageCode : locale.toString();
     final localeName = Intl.canonicalizedLocale(name);
     return initializeMessages(localeName).then((_) {
       Intl.defaultLocale = localeName;
@@ -700,10 +698,10 @@ class S {
     );
   }
 
-  /// `View on RealT`
+  /// `View on MeProp`
   String get viewOnRealT {
     return Intl.message(
-      'View on RealT',
+      'View on MeProp',
       name: 'viewOnRealT',
       desc: '',
       args: [],
@@ -890,10 +888,10 @@ class S {
     );
   }
 
-  /// `RealToken Asset Tracker`
+  /// `MeProp Asset Tracker`
   String get appName {
     return Intl.message(
-      'RealToken Asset Tracker',
+      'MeProp Asset Tracker',
       name: 'appName',
       desc: '',
       args: [],
@@ -910,10 +908,10 @@ class S {
     );
   }
 
-  /// `RealTokens list`
+  /// `MeProps list`
   String get realTokensList {
     return Intl.message(
-      'RealTokens list',
+      'MeProps list',
       name: 'realTokensList',
       desc: '',
       args: [],
@@ -1450,6 +1448,136 @@ class S {
     );
   }
 
+  /// `Rent details`
+  String get rentDetailsTitle {
+    return Intl.message(
+      'Rent details',
+      name: 'rentDetailsTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No rent data to share.`
+  String get rentNoDataToShare {
+    return Intl.message(
+      'No rent data to share.',
+      name: 'rentNoDataToShare',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No rent data available.`
+  String get rentNoDataAvailable {
+    return Intl.message(
+      'No rent data available.',
+      name: 'rentNoDataAvailable',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Wallets`
+  String get walletHeader {
+    return Intl.message(
+      'Wallets',
+      name: 'walletHeader',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `All wallets`
+  String get allWallets {
+    return Intl.message(
+      'All wallets',
+      name: 'allWallets',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Apply`
+  String get applyWallets {
+    return Intl.message(
+      'Apply',
+      name: 'applyWallets',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Product types`
+  String get productTypeHeader {
+    return Intl.message(
+      'Product types',
+      name: 'productTypeHeader',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `All types`
+  String get allProductTypes {
+    return Intl.message(
+      'All types',
+      name: 'allProductTypes',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Apply`
+  String get applyProductTypes {
+    return Intl.message(
+      'Apply',
+      name: 'applyProductTypes',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Region`
+  String get regionHeader {
+    return Intl.message(
+      'Region',
+      name: 'regionHeader',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Later`
+  String get dashboardLater {
+    return Intl.message(
+      'Later',
+      name: 'dashboardLater',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Sync problem`
+  String get dashboardSyncProblem {
+    return Intl.message(
+      'Sync problem',
+      name: 'dashboardSyncProblem',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Total rent`
+  String get dashboardTotalRent {
+    return Intl.message(
+      'Total rent',
+      name: 'dashboardTotalRent',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Statistics`
   String get statistics {
     return Intl.message(
@@ -1950,10 +2078,10 @@ class S {
     );
   }
 
-  /// `RealT`
+  /// `MeProp`
   String get realTTitle {
     return Intl.message(
-      'RealT',
+      'MeProp',
       name: 'realTTitle',
       desc: '',
       args: [],
@@ -1970,10 +2098,10 @@ class S {
     );
   }
 
-  /// `RealT Performance`
+  /// `MeProp Performance`
   String get realTPerformance {
     return Intl.message(
-      'RealT Performance',
+      'MeProp Performance',
       name: 'realTPerformance',
       desc: '',
       args: [],
@@ -2460,10 +2588,10 @@ class S {
     );
   }
 
-  /// `Realt Listing Fee`
+  /// `MeProp Listing Fee`
   String get realtListingFee {
     return Intl.message(
-      'Realt Listing Fee',
+      'MeProp Listing Fee',
       name: 'realtListingFee',
       desc: '',
       args: [],
@@ -2480,32 +2608,32 @@ class S {
     );
   }
 
-  /// `Property Maintenance (Monthly)`
+  /// `Property maintenance (monthly)`
   String get propertyMaintenanceMonthly {
     return Intl.message(
-      'Property Maintenance (Monthly)',
+      'Property maintenance (monthly)',
       name: 'propertyMaintenanceMonthly',
       desc: 'Monthly maintenance expenses for the property',
       args: [],
     );
   }
 
-  /// `Property Management`
+  /// `Property management`
   String get propertyManagement {
     return Intl.message(
-      'Property Management',
+      'Property management',
       name: 'propertyManagement',
       desc: 'Fees for property management services',
       args: [],
     );
   }
 
-  /// `RealT Platform`
+  /// `MeProp Platform`
   String get realtPlatform {
     return Intl.message(
-      'RealT Platform',
+      'MeProp Platform',
       name: 'realtPlatform',
-      desc: 'Fees for using the RealT platform',
+      desc: 'Fees for using the MeProp platform',
       args: [],
     );
   }
@@ -2800,10 +2928,10 @@ class S {
     );
   }
 
-  /// `RealT`
+  /// `MeProp`
   String get realt {
     return Intl.message(
-      'RealT',
+      'MeProp',
       name: 'realt',
       desc: '',
       args: [],
@@ -3000,6 +3128,46 @@ class S {
     );
   }
 
+  /// `Accounts`
+  String get drawerAccounts {
+    return Intl.message(
+      'Accounts',
+      name: 'drawerAccounts',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Features`
+  String get drawerFeatures {
+    return Intl.message(
+      'Features',
+      name: 'drawerFeatures',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Support & Settings`
+  String get drawerSupportAndSettings {
+    return Intl.message(
+      'Support & Settings',
+      name: 'drawerSupportAndSettings',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `MeProp stats`
+  String get realtStats {
+    return Intl.message(
+      'MeProp stats',
+      name: 'realtStats',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Platform for lending and borrowing using real estate tokens.`
   String get rmm_description {
     return Intl.message(
@@ -3010,20 +3178,20 @@ class S {
     );
   }
 
-  /// `Management tool for the RealT investors' community.`
+  /// `Management tool for the MeProp investors' community.`
   String get yam_description {
     return Intl.message(
-      'Management tool for the RealT investors\' community.',
+      'Management tool for the MeProp investors\' community.',
       name: 'yam_description',
       desc: '',
       args: [],
     );
   }
 
-  /// `Resources and tutorials for the RealT community.`
+  /// `Resources and tutorials for the MeProp community.`
   String get wiki_community_description {
     return Intl.message(
-      'Resources and tutorials for the RealT community.',
+      'Resources and tutorials for the MeProp community.',
       name: 'wiki_community_description',
       desc: '',
       args: [],
@@ -3060,6 +3228,416 @@ class S {
     );
   }
 
+  /// `Theme`
+  String get themeHeader {
+    return Intl.message(
+      'Theme',
+      name: 'themeHeader',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Primary color`
+  String get primaryColorHeader {
+    return Intl.message(
+      'Primary color',
+      name: 'primaryColorHeader',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Display`
+  String get displayHeader {
+    return Intl.message(
+      'Display',
+      name: 'displayHeader',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Text size updated: {size}`
+  String textSizeUpdated(String size) {
+    return Intl.message(
+      'Text size updated: $size',
+      name: 'textSizeUpdated',
+      desc: 'Snackbar message when the text size is updated',
+      args: [size],
+    );
+  }
+
+  /// `Verifying biometric capabilities...`
+  String get biometricChecking {
+    return Intl.message(
+      'Verifying biometric capabilities...',
+      name: 'biometricChecking',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `This device supports {biometricType}`
+  String deviceSupportsBiometric(String biometricType) {
+    return Intl.message(
+      'This device supports $biometricType',
+      name: 'deviceSupportsBiometric',
+      desc: '',
+      args: [biometricType],
+    );
+  }
+
+  /// `This device does not support biometric authentication`
+  String get deviceDoesNotSupportBiometric {
+    return Intl.message(
+      'This device does not support biometric authentication',
+      name: 'deviceDoesNotSupportBiometric',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Error: Unable to verify biometrics`
+  String get biometricCheckError {
+    return Intl.message(
+      'Error: Unable to verify biometrics',
+      name: 'biometricCheckError',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Authentication test...`
+  String get biometricTestInProgress {
+    return Intl.message(
+      'Authentication test...',
+      name: 'biometricTestInProgress',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `This is a biometric authentication test`
+  String get biometricTestReason {
+    return Intl.message(
+      'This is a biometric authentication test',
+      name: 'biometricTestReason',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Test successful! Biometric authentication is working correctly.`
+  String get biometricTestSuccess {
+    return Intl.message(
+      'Test successful! Biometric authentication is working correctly.',
+      name: 'biometricTestSuccess',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Test failed. Please try again.`
+  String get biometricTestFailed {
+    return Intl.message(
+      'Test failed. Please try again.',
+      name: 'biometricTestFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Error during test: {error}`
+  String biometricTestError(String error) {
+    return Intl.message(
+      'Error during test: $error',
+      name: 'biometricTestError',
+      desc: '',
+      args: [error],
+    );
+  }
+
+  /// `Biometric authentication`
+  String get biometricTitle {
+    return Intl.message(
+      'Biometric authentication',
+      name: 'biometricTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Refresh`
+  String get refresh {
+    return Intl.message(
+      'Refresh',
+      name: 'refresh',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Security`
+  String get securityHeader {
+    return Intl.message(
+      'Security',
+      name: 'securityHeader',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Biometrics not available`
+  String get biometricNotAvailable {
+    return Intl.message(
+      'Biometrics not available',
+      name: 'biometricNotAvailable',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Your device does not support biometric authentication or no biometric data is enrolled on the device.`
+  String get biometricNotSupportedDetails {
+    return Intl.message(
+      'Your device does not support biometric authentication or no biometric data is enrolled on the device.',
+      name: 'biometricNotSupportedDetails',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Unable to open settings. Please configure them manually.`
+  String get cannotOpenSettings {
+    return Intl.message(
+      'Unable to open settings. Please configure them manually.',
+      name: 'cannotOpenSettings',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Configure in system settings`
+  String get configureInSystemSettings {
+    return Intl.message(
+      'Configure in system settings',
+      name: 'configureInSystemSettings',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Enable biometric authentication`
+  String get enableBiometric {
+    return Intl.message(
+      'Enable biometric authentication',
+      name: 'enableBiometric',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Biometric authentication disabled`
+  String get biometricDisabled {
+    return Intl.message(
+      'Biometric authentication disabled',
+      name: 'biometricDisabled',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Test authentication`
+  String get testAuthenticationHeader {
+    return Intl.message(
+      'Test authentication',
+      name: 'testAuthenticationHeader',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `You can test biometric authentication to verify it works correctly.`
+  String get testAuthenticationDescription {
+    return Intl.message(
+      'You can test biometric authentication to verify it works correctly.',
+      name: 'testAuthenticationDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Test now`
+  String get testNow {
+    return Intl.message(
+      'Test now',
+      name: 'testNow',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Authenticating...`
+  String get authenticating {
+    return Intl.message(
+      'Authenticating...',
+      name: 'authenticating',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Authenticate to enable biometrics`
+  String get authenticateReason {
+    return Intl.message(
+      'Authenticate to enable biometrics',
+      name: 'authenticateReason',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Biometric authentication enabled successfully`
+  String get biometricEnabledSuccess {
+    return Intl.message(
+      'Biometric authentication enabled successfully',
+      name: 'biometricEnabledSuccess',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Biometric authentication enabled`
+  String get biometricEnabledSnackbar {
+    return Intl.message(
+      'Biometric authentication enabled',
+      name: 'biometricEnabledSnackbar',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Unlinked addresses`
+  String get unlinkedAddressesHeader {
+    return Intl.message(
+      'Unlinked addresses',
+      name: 'unlinkedAddressesHeader',
+      desc: 'Header for the list of addresses not linked to any user',
+      args: [],
+    );
+  }
+
+  /// `Linked addresses`
+  String get linkedAddressesHeader {
+    return Intl.message(
+      'Linked addresses',
+      name: 'linkedAddressesHeader',
+      desc: 'Header for the list of addresses linked to users',
+      args: [],
+    );
+  }
+
+  /// `Authentication failed. Please try again.`
+  String get authFailureMessage {
+    return Intl.message(
+      'Authentication failed. Please try again.',
+      name: 'authFailureMessage',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Cache and data cleared`
+  String get cacheDataCleared {
+    return Intl.message(
+      'Cache and data cleared',
+      name: 'cacheDataCleared',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `YAM History`
+  String get yamHistoryHeader {
+    return Intl.message(
+      'YAM History',
+      name: 'yamHistoryHeader',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `APY Reactivity`
+  String get apyReactivityHeader {
+    return Intl.message(
+      'APY Reactivity',
+      name: 'apyReactivityHeader',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Smooth`
+  String get smooth {
+    return Intl.message(
+      'Smooth',
+      name: 'smooth',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Reactive`
+  String get reactive {
+    return Intl.message(
+      'Reactive',
+      name: 'reactive',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Data management`
+  String get dataManagement {
+    return Intl.message(
+      'Data management',
+      name: 'dataManagement',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Clear cache and data`
+  String get clearCacheAndData {
+    return Intl.message(
+      'Clear cache and data',
+      name: 'clearCacheAndData',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Confirm deletion`
+  String get confirmDeletionTitle {
+    return Intl.message(
+      'Confirm deletion',
+      name: 'confirmDeletionTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Are you sure you want to clear all data and cache? This action is irreversible.`
+  String get confirmDeletionMessage {
+    return Intl.message(
+      'Are you sure you want to clear all data and cache? This action is irreversible.',
+      name: 'confirmDeletionMessage',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Personalization`
   String get personalization {
     return Intl.message(
@@ -3090,6 +3668,56 @@ class S {
     );
   }
 
+  /// `Enable notifications`
+  String get enableNotifications {
+    return Intl.message(
+      'Enable notifications',
+      name: 'enableNotifications',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `You have refused notifications at startup`
+  String get refusedNotificationsStartup {
+    return Intl.message(
+      'You have refused notifications at startup',
+      name: 'refusedNotificationsStartup',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Re-request permission`
+  String get reRequestPermission {
+    return Intl.message(
+      'Re-request permission',
+      name: 'reRequestPermission',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Notifications disabled`
+  String get notificationsDisabledTitle {
+    return Intl.message(
+      'Notifications disabled',
+      name: 'notificationsDisabledTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `You refused notifications at first launch. Use the button above to re-request permission if you change your mind.`
+  String get refusedNotificationsStartupLong {
+    return Intl.message(
+      'You refused notifications at first launch. Use the button above to re-request permission if you change your mind.',
+      name: 'refusedNotificationsStartupLong',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Appearance`
   String get appearance {
     return Intl.message(
@@ -3101,10 +3729,10 @@ class S {
   }
 
   /// `Google Drive Connection`
-  String get GDrive_connexion {
+  String get gDriveConnection {
     return Intl.message(
       'Google Drive Connection',
-      name: 'GDrive_connexion',
+      name: 'gDriveConnection',
       desc: '',
       args: [],
     );
@@ -3170,10 +3798,10 @@ class S {
     );
   }
 
-  /// `Forum for proposals and discussion of realTokens DAO`
+  /// `Forum for proposals and discussion of MeProp DAO`
   String get dao_description {
     return Intl.message(
-      'Forum for proposals and discussion of realTokens DAO',
+      'Forum for proposals and discussion of MeProp DAO',
       name: 'dao_description',
       desc: '',
       args: [],
@@ -3330,10 +3958,10 @@ class S {
     );
   }
 
-  /// `RealToken Asset Tracker`
+  /// `MeProp Asset Tracker`
   String get appTitle {
     return Intl.message(
-      'RealToken Asset Tracker',
+      'MeProp Asset Tracker',
       name: 'appTitle',
       desc: '',
       args: [],
@@ -3456,6 +4084,26 @@ class S {
       'OK',
       name: 'ok',
       desc: '',
+      args: [],
+    );
+  }
+
+  /// `Delete`
+  String get delete {
+    return Intl.message(
+      'Delete',
+      name: 'delete',
+      desc: 'Label for delete actions (e.g., delete item, confirm deletion)',
+      args: [],
+    );
+  }
+
+  /// `History (days)`
+  String get historyDays {
+    return Intl.message(
+      'History (days)',
+      name: 'historyDays',
+      desc: 'Label for history period in days',
       args: [],
     );
   }
@@ -3840,26 +4488,6 @@ class S {
     );
   }
 
-  /// `This device supports {biometricType}`
-  String deviceSupportsBiometric(String biometricType) {
-    return Intl.message(
-      'This device supports $biometricType',
-      name: 'deviceSupportsBiometric',
-      desc: '',
-      args: [biometricType],
-    );
-  }
-
-  /// `This device does not support biometric authentication`
-  String get deviceDoesNotSupportBiometric {
-    return Intl.message(
-      'This device does not support biometric authentication',
-      name: 'deviceDoesNotSupportBiometric',
-      desc: '',
-      args: [],
-    );
-  }
-
   /// `Biometric error`
   String get biometricError {
     return Intl.message(
@@ -3920,16 +4548,6 @@ class S {
     );
   }
 
-  /// `Refresh`
-  String get refresh {
-    return Intl.message(
-      'Refresh',
-      name: 'refresh',
-      desc: '',
-      args: [],
-    );
-  }
-
   /// `Biometrics not available`
   String get biometricsNotAvailable {
     return Intl.message(
@@ -3945,16 +4563,6 @@ class S {
     return Intl.message(
       'Your device does not support biometric authentication or no biometric data is registered in the device settings.',
       name: 'deviceDoesNotSupport',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Configure in system settings`
-  String get configureInSystemSettings {
-    return Intl.message(
-      'Configure in system settings',
-      name: 'configureInSystemSettings',
       desc: '',
       args: [],
     );
@@ -4825,6 +5433,76 @@ class S {
     return Intl.message(
       'All tokens',
       name: 'allTokens',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Buy this property`
+  String get propertiesBuyThisProperty {
+    return Intl.message(
+      'Buy this property',
+      name: 'propertiesBuyThisProperty',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Yield`
+  String get propertiesYield {
+    return Intl.message(
+      'Yield',
+      name: 'propertiesYield',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Price`
+  String get propertiesPrice {
+    return Intl.message(
+      'Price',
+      name: 'propertiesPrice',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Stock`
+  String get propertiesStock {
+    return Intl.message(
+      'Stock',
+      name: 'propertiesStock',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Factoring`
+  String get propertiesFactoring {
+    return Intl.message(
+      'Factoring',
+      name: 'propertiesFactoring',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Property`
+  String get propertiesProperty {
+    return Intl.message(
+      'Property',
+      name: 'propertiesProperty',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Trading is not available for this property.`
+  String get propertiesNoMarketplaceAvailable {
+    return Intl.message(
+      'Trading is not available for this property.',
+      name: 'propertiesNoMarketplaceAvailable',
       desc: '',
       args: [],
     );

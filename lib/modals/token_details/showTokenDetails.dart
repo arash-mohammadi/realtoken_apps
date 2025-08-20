@@ -1,20 +1,20 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:realtoken_asset_tracker/modals/token_details/tabs/others_tab.dart';
-import 'package:realtoken_asset_tracker/utils/currency_utils.dart';
-import 'package:realtoken_asset_tracker/utils/url_utils.dart';
-import 'package:realtoken_asset_tracker/utils/parameters.dart';
+import 'package:meprop_asset_tracker/modals/token_details/tabs/others_tab.dart';
+import 'package:meprop_asset_tracker/utils/currency_utils.dart';
+import 'package:meprop_asset_tracker/utils/url_utils.dart';
+import 'package:meprop_asset_tracker/utils/parameters.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
-import 'package:realtoken_asset_tracker/managers/data_manager.dart';
-import 'package:realtoken_asset_tracker/generated/l10n.dart';
+import 'package:meprop_asset_tracker/managers/data_manager.dart';
+import 'package:meprop_asset_tracker/generated/l10n.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:show_network_image/show_network_image.dart';
 import '../../pages/portfolio/FullScreenCarousel.dart';
-import 'package:realtoken_asset_tracker/app_state.dart';
+import 'package:meprop_asset_tracker/app_state.dart';
 import 'package:autoscale_tabbarview/autoscale_tabbarview.dart';
 
 import 'tabs/property_tab.dart';
@@ -86,7 +86,8 @@ void _openMapModal(BuildContext context, dynamic lat, dynamic lng) {
                 right: 20,
                 child: FloatingActionButton(
                   onPressed: () {
-                    final googleStreetViewUrl = 'https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=$latitude,$longitude';
+                    final googleStreetViewUrl =
+                        'https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=$latitude,$longitude';
                     UrlUtils.launchURL(googleStreetViewUrl);
                   },
                   backgroundColor: Theme.of(context).primaryColor,
@@ -193,7 +194,9 @@ class _TokenDetailsWidgetState extends State<TokenDetailsWidget> with SingleTick
                           children: [
                             GestureDetector(
                               onTap: () {
-                                final List<String> imageLinks = widget.token['imageLink'] is String ? [widget.token['imageLink']] : List<String>.from(widget.token['imageLink']);
+                                final List<String> imageLinks = widget.token['imageLink'] is String
+                                    ? [widget.token['imageLink']]
+                                    : List<String>.from(widget.token['imageLink']);
                                 Navigator.of(context).push(
                                   MaterialPageRoute(
                                     builder: (_) => FullScreenCarousel(
@@ -203,7 +206,9 @@ class _TokenDetailsWidgetState extends State<TokenDetailsWidget> with SingleTick
                                 );
                               },
                               child: StatefulBuilder(builder: (context, setState) {
-                                final List<String> imageLinks = widget.token['imageLink'] is String ? [widget.token['imageLink']] : List<String>.from(widget.token['imageLink']);
+                                final List<String> imageLinks = widget.token['imageLink'] is String
+                                    ? [widget.token['imageLink']]
+                                    : List<String>.from(widget.token['imageLink']);
                                 return Column(
                                   children: [
                                     ClipRRect(
@@ -238,7 +243,10 @@ class _TokenDetailsWidgetState extends State<TokenDetailsWidget> with SingleTick
                                                 ClipRRect(
                                                   borderRadius: BorderRadius.circular(15),
                                                   child: kIsWeb
-                                                      ? ShowNetworkImage(imageSrc: imageUrl, mobileBoxFit: BoxFit.cover, mobileWidth: double.infinity)
+                                                      ? ShowNetworkImage(
+                                                          imageSrc: imageUrl,
+                                                          mobileBoxFit: BoxFit.cover,
+                                                          mobileWidth: double.infinity)
                                                       : CachedNetworkImage(
                                                           imageUrl: imageUrl,
                                                           width: double.infinity,
@@ -279,7 +287,9 @@ class _TokenDetailsWidgetState extends State<TokenDetailsWidget> with SingleTick
                                               margin: const EdgeInsets.symmetric(horizontal: 4.0),
                                               decoration: BoxDecoration(
                                                 shape: BoxShape.circle,
-                                                color: _currentCarouselIndex == entry.key ? Theme.of(context).primaryColor : Colors.grey.withOpacity(0.4),
+                                                color: _currentCarouselIndex == entry.key
+                                                    ? Theme.of(context).primaryColor
+                                                    : Colors.grey.withOpacity(0.4),
                                               ),
                                             );
                                           }).toList(),
@@ -346,7 +356,8 @@ class _TokenDetailsWidgetState extends State<TokenDetailsWidget> with SingleTick
                                       color: Colors.grey[600],
                                     ),
                                     // Drapeau de l'état américain si disponible
-                                    if (widget.token['regionCode'] != null && widget.token['country']?.toLowerCase() == 'usa')
+                                    if (widget.token['regionCode'] != null &&
+                                        widget.token['country']?.toLowerCase() == 'usa')
                                       Container(
                                         margin: const EdgeInsets.only(left: 4.0, right: 2.0),
                                         child: Image.asset(
@@ -366,7 +377,9 @@ class _TokenDetailsWidgetState extends State<TokenDetailsWidget> with SingleTick
                                     Text(
                                       [
                                         widget.token['city'],
-                                        widget.token['regionCode'] != null ? Parameters.getRegionDisplayName(widget.token['regionCode']) : null
+                                        widget.token['regionCode'] != null
+                                            ? Parameters.getRegionDisplayName(widget.token['regionCode'])
+                                            : null
                                       ].where((e) => e != null).join(', '),
                                       style: TextStyle(
                                         fontSize: 12 + appState.getTextSizeOffset(),
@@ -459,7 +472,9 @@ class _TokenDetailsWidgetState extends State<TokenDetailsWidget> with SingleTick
                                             ),
                                           ),
                                           Text(
-                                            currencyUtils.formatCurrency(currencyUtils.convert(widget.token['totalValue']), currencyUtils.currencySymbol),
+                                            currencyUtils.formatCurrency(
+                                                currencyUtils.convert(widget.token['totalValue']),
+                                                currencyUtils.currencySymbol),
                                             style: TextStyle(
                                               fontSize: 14 + appState.getTextSizeOffset(),
                                               fontWeight: FontWeight.bold,
@@ -559,7 +574,9 @@ class _TabBarDelegate extends SliverPersistentHeaderDelegate {
       height: 35,
       margin: const EdgeInsets.symmetric(horizontal: 8.0),
       decoration: BoxDecoration(
-        color: Theme.of(context).brightness == Brightness.dark ? Colors.black.withOpacity(0.8) : Theme.of(context).cardColor.withOpacity(0.95),
+        color: Theme.of(context).brightness == Brightness.dark
+            ? Colors.black.withOpacity(0.8)
+            : Theme.of(context).cardColor.withOpacity(0.95),
         borderRadius: BorderRadius.circular(15),
         boxShadow: [
           BoxShadow(
@@ -604,13 +621,11 @@ Future<void> showTokenDetails(BuildContext context, Map<String, dynamic> token) 
             ),
             child: Stack(
               children: [
-                
-                 // hauteur de la barre d'action
-                  TokenDetailsWidget(
-                    token: token,
-                    convertToSquareMeters: convertToSquareMeters,
-                    scrollController: scrollController,
-                  
+                // hauteur de la barre d'action
+                TokenDetailsWidget(
+                  token: token,
+                  convertToSquareMeters: convertToSquareMeters,
+                  scrollController: scrollController,
                 ),
                 Positioned(
                   left: 0,
@@ -655,7 +670,8 @@ Future<void> showTokenDetails(BuildContext context, Map<String, dynamic> token) 
                               foregroundColor: Colors.white,
                               backgroundColor: Colors.green,
                               padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
-                              textStyle: TextStyle(fontSize: 13 + Provider.of<AppState>(context, listen: false).getTextSizeOffset()),
+                              textStyle: TextStyle(
+                                  fontSize: 13 + Provider.of<AppState>(context, listen: false).getTextSizeOffset()),
                             ),
                             child: Text(S.of(context).viewOnMap),
                           ),

@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:provider/provider.dart';
-import 'package:realtoken_asset_tracker/app_state.dart';
-import 'package:realtoken_asset_tracker/generated/l10n.dart';
-import 'package:realtoken_asset_tracker/utils/preference_keys.dart';
+import 'package:meprop_asset_tracker/app_state.dart';
+import 'package:meprop_asset_tracker/generated/l10n.dart';
+import 'package:meprop_asset_tracker/utils/preference_keys.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class NotificationsSettingsPage extends StatefulWidget {
@@ -28,7 +28,7 @@ class _NotificationsSettingsPageState extends State<NotificationsSettingsPage> {
     final prefs = await SharedPreferences.getInstance();
     bool isSubscribed = OneSignal.User.pushSubscription.optedIn ?? false;
     bool hasRefused = prefs.getBool(PreferenceKeys.hasRefusedNotifications) ?? false;
-    
+
     setState(() {
       _notificationsEnabled = isSubscribed;
       _hasRefusedNotifications = hasRefused;
@@ -57,7 +57,7 @@ class _NotificationsSettingsPageState extends State<NotificationsSettingsPage> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(PreferenceKeys.hasRefusedNotifications, false);
     await prefs.setBool(PreferenceKeys.hasAskedNotifications, false);
-    
+
     setState(() {
       _hasRefusedNotifications = false;
     });
@@ -65,7 +65,7 @@ class _NotificationsSettingsPageState extends State<NotificationsSettingsPage> {
     // Redemander la permission
     final hasPermission = await OneSignal.Notifications.requestPermission(true);
     await prefs.setBool(PreferenceKeys.hasAskedNotifications, true);
-    
+
     if (hasPermission) {
       setState(() {
         _notificationsEnabled = true;
@@ -99,13 +99,13 @@ class _NotificationsSettingsPageState extends State<NotificationsSettingsPage> {
         padding: EdgeInsets.zero,
         children: [
           const SizedBox(height: 12),
-          _buildSectionHeader(context, "Notifications", CupertinoIcons.bell),
+          _buildSectionHeader(context, S.of(context).notifications, CupertinoIcons.bell),
           _buildSettingsSection(
             context,
             children: [
               _buildSwitchItem(
                 context,
-                title: 'Activer les notifications',
+                title: S.of(context).enableNotifications,
                 value: _notificationsEnabled,
                 onChanged: _toggleNotificationStatus,
                 isFirst: true,
@@ -114,8 +114,8 @@ class _NotificationsSettingsPageState extends State<NotificationsSettingsPage> {
               if (_hasRefusedNotifications)
                 _buildActionItem(
                   context,
-                  title: 'Redemander l\'autorisation',
-                  subtitle: 'Vous avez refusé les notifications au démarrage',
+                  title: S.of(context).reRequestPermission,
+                  subtitle: S.of(context).refusedNotificationsStartup,
                   icon: CupertinoIcons.refresh,
                   onTap: _resetNotificationChoice,
                   isLast: true,
@@ -257,7 +257,7 @@ class _NotificationsSettingsPageState extends State<NotificationsSettingsPage> {
               Icon(CupertinoIcons.info_circle, color: Colors.orange, size: 20),
               const SizedBox(width: 8),
               Text(
-                'Notifications désactivées',
+                S.of(context).notificationsDisabledTitle,
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -268,7 +268,7 @@ class _NotificationsSettingsPageState extends State<NotificationsSettingsPage> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Vous avez refusé les notifications lors du premier démarrage. Utilisez le bouton ci-dessus pour redemander l\'autorisation si vous changez d\'avis.',
+            S.of(context).refusedNotificationsStartupLong,
             style: TextStyle(
               fontSize: 14,
               color: Colors.grey.shade700,

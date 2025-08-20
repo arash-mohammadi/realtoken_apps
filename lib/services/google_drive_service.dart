@@ -8,7 +8,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 import 'package:hive/hive.dart';
-import 'package:realtoken_asset_tracker/utils/data_fetch_utils.dart';
+import 'package:meprop_asset_tracker/utils/data_fetch_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
@@ -108,7 +108,7 @@ class GoogleDriveService {
     // Si les données locales sont vides, on ne fait que l'importation sans upload
     if (localData.isEmpty && driveData != null) {
       debugPrint("📥 Importation des données de Google Drive dans l'application...");
-      await _restoreLocalBackup("${(await getApplicationDocumentsDirectory()).path}/realToken_Backup.zip");
+      await _restoreLocalBackup("${(await getApplicationDocumentsDirectory()).path}/MeProp_Backup.zip");
       return;
     }
 
@@ -169,7 +169,10 @@ class GoogleDriveService {
                   String newTimestamp = newItem['timestamp'];
 
                   // Vérifier si un élément avec le même timestamp existe déjà
-                  bool exists = updatedList.any((existingItem) => existingItem is Map && existingItem.containsKey('timestamp') && existingItem['timestamp'] == newTimestamp);
+                  bool exists = updatedList.any((existingItem) =>
+                      existingItem is Map &&
+                      existingItem.containsKey('timestamp') &&
+                      existingItem['timestamp'] == newTimestamp);
 
                   if (!exists) {
                     debugPrint("➕ Ajouté (nouveau timestamp) dans '$key' : $newItem");
@@ -182,7 +185,8 @@ class GoogleDriveService {
             } else if (value is Map) {
               // Gérer les objets Map individuellement
               value.forEach((subKey, subValue) {
-                if (!existingValue.containsKey(subKey) || (existingValue[subKey]['timestamp'] ?? '') < (subValue['timestamp'] ?? '')) {
+                if (!existingValue.containsKey(subKey) ||
+                    (existingValue[subKey]['timestamp'] ?? '') < (subValue['timestamp'] ?? '')) {
                   debugPrint("🔄 Mise à jour (timestamp plus récent) dans '$key' : $subKey -> $subValue");
                   existingValue[subKey] = subValue;
                 }
@@ -222,7 +226,7 @@ class GoogleDriveService {
     try {
       debugPrint("🔽 Recherche du fichier sur Google Drive...");
       final drive.FileList fileList = await _driveApi!.files.list(
-        q: "name = 'realToken_Backup.zip' and 'appDataFolder' in parents",
+        q: "name = 'MeProp_Backup.zip' and 'appDataFolder' in parents",
         spaces: 'appDataFolder',
       );
 
@@ -240,7 +244,7 @@ class GoogleDriveService {
       ) as drive.Media;
 
       final Directory directory = await getApplicationDocumentsDirectory();
-      final File localFile = File("${directory.path}/realToken_Backup.zip");
+      final File localFile = File("${directory.path}/MeProp_Backup.zip");
 
       final List<int> dataStore = [];
       await for (var data in fileData.stream) {
@@ -538,7 +542,10 @@ class GoogleDriveService {
 
         List<dynamic> localList = List<dynamic>.from(mergedData[boxKey][key]);
 
-        Set<String> existingTimestamps = localList.where((e) => e is Map && e.containsKey('timestamp')).map((e) => e['timestamp'].toString()).toSet();
+        Set<String> existingTimestamps = localList
+            .where((e) => e is Map && e.containsKey('timestamp'))
+            .map((e) => e['timestamp'].toString())
+            .toSet();
 
         if (driveList is List) {
           for (var entry in driveList) {
@@ -575,7 +582,8 @@ class GoogleDriveService {
         'ethAddresses': mergedEthAddresses.toList(),
         'userIdToAddresses': localPreferences['userIdToAddresses'] ?? drivePreferences['userIdToAddresses'],
         'selectedCurrency': localPreferences['selectedCurrency'] ?? drivePreferences['selectedCurrency'],
-        'convertToSquareMeters': localPreferences['convertToSquareMeters'] ?? drivePreferences['convertToSquareMeters'] ?? false,
+        'convertToSquareMeters':
+            localPreferences['convertToSquareMeters'] ?? drivePreferences['convertToSquareMeters'] ?? false,
       };
 
       mergedData['preferences'] = mergedPreferences;
@@ -637,13 +645,13 @@ class GoogleDriveService {
 
       // Sauvegarder le fichier ZIP
       final directory = await getApplicationDocumentsDirectory();
-      final zipFilePath = path.join(directory.path, 'realToken_Backup.zip');
+      final zipFilePath = path.join(directory.path, 'MeProp_Backup.zip');
       final zipFile = File(zipFilePath);
       await zipFile.writeAsBytes(ZipEncoder().encode(archive));
 
       // Envoyer le fichier ZIP sur Google Drive
       final drive.File fileToUpload = drive.File();
-      fileToUpload.name = 'realToken_Backup.zip';
+      fileToUpload.name = 'MeProp_Backup.zip';
       fileToUpload.parents = ['appDataFolder'];
 
       final media = drive.Media(zipFile.openRead(), await zipFile.length());
@@ -673,9 +681,10 @@ class GoogleDriveService {
       final String fileId = fileList.files!.first.id!;
       debugPrint("📂 Fichier trouvé: ID = $fileId, téléchargement en cours...");
 
-      final drive.Media fileData = await _driveApi!.files.get(fileId, downloadOptions: drive.DownloadOptions.fullMedia) as drive.Media;
+      final drive.Media fileData =
+          await _driveApi!.files.get(fileId, downloadOptions: drive.DownloadOptions.fullMedia) as drive.Media;
       final directory = await getApplicationDocumentsDirectory();
-      final File localFile = File("${directory.path}/realToken_Backup.zip");
+      final File localFile = File("${directory.path}/MeProp_Backup.zip");
 
       final List<int> dataStore = [];
       await for (var data in fileData.stream) {

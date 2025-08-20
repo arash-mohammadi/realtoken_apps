@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:realtoken_asset_tracker/managers/data_manager.dart';
-import 'package:realtoken_asset_tracker/generated/l10n.dart';
+import 'package:meprop_asset_tracker/managers/data_manager.dart';
+import 'package:meprop_asset_tracker/generated/l10n.dart';
 import 'package:provider/provider.dart';
-import 'package:realtoken_asset_tracker/app_state.dart';
-import 'package:realtoken_asset_tracker/pages/Statistics/portfolio/common_functions.dart';
+import 'package:meprop_asset_tracker/app_state.dart';
+import 'package:meprop_asset_tracker/pages/Statistics/portfolio/common_functions.dart';
 
 class TokenDistributionByProductTypeChart extends StatefulWidget {
   final DataManager dataManager;
@@ -112,12 +112,11 @@ class _TokenDistributionByProductTypeChartState extends State<TokenDistributionB
   List<PieChartSectionData> _buildDonutChartData(int? selectedIndex) {
     final appState = Provider.of<AppState>(context);
     final tokensByType = _calculateTokensByProductType();
-    
+
     if (tokensByType.isEmpty) return [];
 
     final int total = tokensByType.values.fold(0, (sum, value) => sum + value);
-    final sortedTypes = tokensByType.keys.toList()
-      ..sort((a, b) => tokensByType[b]!.compareTo(tokensByType[a]!));
+    final sortedTypes = tokensByType.keys.toList()..sort((a, b) => tokensByType[b]!.compareTo(tokensByType[a]!));
 
     return sortedTypes.asMap().entries.map((entry) {
       final index = entry.key;
@@ -204,8 +203,7 @@ class _TokenDistributionByProductTypeChartState extends State<TokenDistributionB
       );
     }
 
-    final sortedTypes = tokensByType.keys.toList()
-      ..sort((a, b) => tokensByType[b]!.compareTo(tokensByType[a]!));
+    final sortedTypes = tokensByType.keys.toList()..sort((a, b) => tokensByType[b]!.compareTo(tokensByType[a]!));
 
     if (selectedIndex >= sortedTypes.length) return Container();
 
@@ -239,12 +237,11 @@ class _TokenDistributionByProductTypeChartState extends State<TokenDistributionB
   Widget _buildLegend() {
     final appState = Provider.of<AppState>(context);
     final tokensByType = _calculateTokensByProductType();
-    
+
     if (tokensByType.isEmpty) return Container();
 
     final int total = tokensByType.values.fold(0, (sum, value) => sum + value);
-    final sortedTypes = tokensByType.keys.toList()
-      ..sort((a, b) => tokensByType[b]!.compareTo(tokensByType[a]!));
+    final sortedTypes = tokensByType.keys.toList()..sort((a, b) => tokensByType[b]!.compareTo(tokensByType[a]!));
 
     return Wrap(
       spacing: 12.0,
@@ -296,7 +293,8 @@ class _TokenDistributionByProductTypeChartState extends State<TokenDistributionB
                     '${_getLocalizedProductTypeName(context, productType)} (${percentage.toStringAsFixed(1)}%)',
                     style: TextStyle(
                       fontSize: 12 + appState.getTextSizeOffset(),
-                      color: _selectedIndexNotifier.value == index ? color : Theme.of(context).textTheme.bodyMedium?.color,
+                      color:
+                          _selectedIndexNotifier.value == index ? color : Theme.of(context).textTheme.bodyMedium?.color,
                       fontWeight: _selectedIndexNotifier.value == index ? FontWeight.w600 : FontWeight.normal,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -312,12 +310,12 @@ class _TokenDistributionByProductTypeChartState extends State<TokenDistributionB
 
   Map<String, int> _calculateTokensByProductType() {
     Map<String, int> tokensByProductType = {};
-    
+
     for (var token in widget.dataManager.portfolio) {
       final String productType = token['productType'] ?? 'other';
       tokensByProductType[productType] = (tokensByProductType[productType] ?? 0) + 1;
     }
-    
+
     return tokensByProductType;
   }
 
@@ -333,4 +331,4 @@ class _TokenDistributionByProductTypeChartState extends State<TokenDistributionB
         return S.of(context).productTypeOther;
     }
   }
-} 
+}

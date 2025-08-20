@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:provider/provider.dart';
-import 'package:realtoken_asset_tracker/managers/data_manager.dart';
-import 'package:realtoken_asset_tracker/app_state.dart';
-import 'package:realtoken_asset_tracker/generated/l10n.dart';
-import 'package:realtoken_asset_tracker/utils/parameters.dart';
-import 'package:realtoken_asset_tracker/utils/location_utils.dart';
-import 'package:realtoken_asset_tracker/modals/modal_others_pie.dart'; // Assurez-vous que ce fichier existe
-import 'package:realtoken_asset_tracker/pages/Statistics/portfolio/common_functions.dart';
+import 'package:meprop_asset_tracker/managers/data_manager.dart';
+import 'package:meprop_asset_tracker/app_state.dart';
+import 'package:meprop_asset_tracker/generated/l10n.dart';
+import 'package:meprop_asset_tracker/utils/parameters.dart';
+import 'package:meprop_asset_tracker/utils/location_utils.dart';
+import 'package:meprop_asset_tracker/modals/modal_others_pie.dart'; // Assurez-vous que ce fichier existe
+import 'package:meprop_asset_tracker/pages/Statistics/portfolio/common_functions.dart';
 
 class TokenDistributionByRegionCard extends StatefulWidget {
   final DataManager dataManager;
@@ -118,7 +118,8 @@ class _TokenDistributionByRegionCardState extends State<TokenDistributionByRegio
     );
   }
 
-  List<PieChartSectionData> _buildDonutChartDataByRegion(DataManager dataManager, List<Map<String, dynamic>> othersDetails, int? selectedIndex) {
+  List<PieChartSectionData> _buildDonutChartDataByRegion(
+      DataManager dataManager, List<Map<String, dynamic>> othersDetails, int? selectedIndex) {
     Map<String, int> regionCount = {};
     final appState = Provider.of<AppState>(context);
 
@@ -229,7 +230,8 @@ class _TokenDistributionByRegionCardState extends State<TokenDistributionByRegio
     );
   }
 
-  Widget _buildCenterTextByRegion(DataManager dataManager, int? selectedIndex, List<Map<String, dynamic>> othersDetails) {
+  Widget _buildCenterTextByRegion(
+      DataManager dataManager, int? selectedIndex, List<Map<String, dynamic>> othersDetails) {
     Map<String, int> regionCount = {};
 
     // Remplir le dictionnaire avec les counts par région (utilise LocationUtils)
@@ -372,7 +374,8 @@ class _TokenDistributionByRegionCardState extends State<TokenDistributionByRegio
         legendItems.add(
           InkWell(
             onTap: () {
-              _selectedIndexNotifierRegion.value = (_selectedIndexNotifierRegion.value == indexCounter) ? null : indexCounter;
+              _selectedIndexNotifierRegion.value =
+                  (_selectedIndexNotifierRegion.value == indexCounter) ? null : indexCounter;
             },
             borderRadius: BorderRadius.circular(8),
             child: Container(
@@ -408,8 +411,11 @@ class _TokenDistributionByRegionCardState extends State<TokenDistributionByRegio
                     region,
                     style: TextStyle(
                       fontSize: 12 + appState.getTextSizeOffset(),
-                      color: _selectedIndexNotifierRegion.value == indexCounter ? color : Theme.of(context).textTheme.bodyMedium?.color,
-                      fontWeight: _selectedIndexNotifierRegion.value == indexCounter ? FontWeight.w600 : FontWeight.normal,
+                      color: _selectedIndexNotifierRegion.value == indexCounter
+                          ? color
+                          : Theme.of(context).textTheme.bodyMedium?.color,
+                      fontWeight:
+                          _selectedIndexNotifierRegion.value == indexCounter ? FontWeight.w600 : FontWeight.normal,
                     ),
                   ),
                 ],
@@ -427,7 +433,8 @@ class _TokenDistributionByRegionCardState extends State<TokenDistributionByRegio
       legendItems.add(
         InkWell(
           onTap: () {
-            _selectedIndexNotifierRegion.value = (_selectedIndexNotifierRegion.value == indexOthers) ? null : indexOthers;
+            _selectedIndexNotifierRegion.value =
+                (_selectedIndexNotifierRegion.value == indexOthers) ? null : indexOthers;
             if (_selectedIndexNotifierRegion.value == indexOthers) {
               // Ouvrir le modal lorsqu'on clique sur "Autres" dans la légende
               showOtherDetailsModal(context, widget.dataManager, othersDetails, 'region');
@@ -437,7 +444,8 @@ class _TokenDistributionByRegionCardState extends State<TokenDistributionByRegio
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 6.0, vertical: 2.0),
             decoration: BoxDecoration(
-              color: _selectedIndexNotifierRegion.value == indexOthers ? Colors.grey.withOpacity(0.1) : Colors.transparent,
+              color:
+                  _selectedIndexNotifierRegion.value == indexOthers ? Colors.grey.withOpacity(0.1) : Colors.transparent,
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
                 color: _selectedIndexNotifierRegion.value == indexOthers ? Colors.grey : Colors.transparent,
@@ -467,7 +475,9 @@ class _TokenDistributionByRegionCardState extends State<TokenDistributionByRegio
                   S.of(context).others,
                   style: TextStyle(
                     fontSize: 12 + appState.getTextSizeOffset(),
-                    color: _selectedIndexNotifierRegion.value == indexOthers ? Colors.grey.shade700 : Theme.of(context).textTheme.bodyMedium?.color,
+                    color: _selectedIndexNotifierRegion.value == indexOthers
+                        ? Colors.grey.shade700
+                        : Theme.of(context).textTheme.bodyMedium?.color,
                     fontWeight: _selectedIndexNotifierRegion.value == indexOthers ? FontWeight.w600 : FontWeight.normal,
                   ),
                 ),

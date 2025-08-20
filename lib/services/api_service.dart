@@ -2,67 +2,67 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:realtoken_asset_tracker/utils/parameters.dart';
-import 'package:realtoken_asset_tracker/utils/contracts_constants.dart';
-import 'package:realtoken_asset_tracker/utils/performance_utils.dart';
-import 'package:realtoken_asset_tracker/utils/cache_constants.dart';
-import 'package:realtoken_asset_tracker/services/api_service_helpers.dart';
+import 'package:meprop_asset_tracker/utils/parameters.dart';
+import 'package:meprop_asset_tracker/utils/contracts_constants.dart';
+import 'package:meprop_asset_tracker/utils/performance_utils.dart';
+import 'package:meprop_asset_tracker/utils/cache_constants.dart';
+import 'package:meprop_asset_tracker/services/api_service_helpers.dart';
 import 'package:http/http.dart' as http;
 import 'package:hive/hive.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiService {
   // Constantes pour les timeouts améliorés
-  static const Duration _shortTimeout = Duration(seconds: 15);  // Augmenté de 10 à 15 secondes
+  static const Duration _shortTimeout = Duration(seconds: 15); // Augmenté de 10 à 15 secondes
   static const Duration _mediumTimeout = Duration(seconds: 30); // Augmenté de 20 à 30 secondes
-  static const Duration _longTimeout = Duration(seconds: 45);   // Augmenté de 30 à 45 secondes
+  static const Duration _longTimeout = Duration(seconds: 45); // Augmenté de 30 à 45 secondes
   static const Duration _veryLongTimeout = Duration(minutes: 2);
-  
+
   // Nouvelles constantes pour la stratégie de retry
   static const int _maxRetries = 2;
   static const Duration _retryDelay = Duration(seconds: 2);
-  
+
   // Pool de clients HTTP réutilisables
   static final http.Client _httpClient = http.Client();
 
   /// Méthode pour effectuer une requête HTTP avec retry automatique
-  static Future<http.Response> _httpGetWithRetry(String url, {
+  static Future<http.Response> _httpGetWithRetry(
+    String url, {
     Duration timeout = const Duration(seconds: 15),
     int maxRetries = _maxRetries,
     Duration retryDelay = _retryDelay,
     String? debugContext,
   }) async {
     int attempt = 0;
-    
+
     while (attempt <= maxRetries) {
       try {
         if (attempt > 0) {
           debugPrint("🔄 Tentative ${attempt + 1}/${maxRetries + 1} pour ${debugContext ?? 'requête'}");
           await Future.delayed(retryDelay * attempt); // Délai progressif
         }
-        
-        final response = await _httpClient.get(Uri.parse(url))
-            .timeout(timeout, onTimeout: () {
+
+        final response = await _httpClient.get(Uri.parse(url)).timeout(timeout, onTimeout: () {
           throw TimeoutException('Timeout après ${timeout.inSeconds}s pour ${debugContext ?? url}');
         });
-        
+
         return response;
       } catch (e) {
         attempt++;
-        
+
         // Si c'est la dernière tentative ou si l'erreur n'est pas récupérable, relancer
         if (attempt > maxRetries || !_isRetryableError(e)) {
           debugPrint("❌ Échec définitif ${debugContext ?? 'requête'} après $attempt tentatives: $e");
           rethrow;
         }
-        
+
         debugPrint("⚠️ Tentative $attempt échouée pour ${debugContext ?? 'requête'}: $e");
       }
     }
-    
+
     throw Exception('Nombre maximum de tentatives atteint');
   }
-  
+
   /// Détermine si une erreur est récupérable avec un retry
   static bool _isRetryableError(dynamic error) {
     if (error is TimeoutException) return true;
@@ -88,12 +88,13 @@ class ApiService {
     int successCount = 0;
     int errorCount = 0;
 
-    debugPrint("🚀 Traitement parallèle $debugName pour ${wallets.length} wallets (max $maxConcurrentRequests simultanés)");
+    debugPrint(
+        "🚀 Traitement parallèle $debugName pour ${wallets.length} wallets (max $maxConcurrentRequests simultanés)");
 
     // Traiter les wallets par chunks pour éviter de surcharger le serveur
     for (int i = 0; i < wallets.length; i += maxConcurrentRequests) {
       final chunk = wallets.skip(i).take(maxConcurrentRequests).toList();
-      
+
       // Traitement parallèle du chunk actuel
       final futures = chunk.map((wallet) async {
         try {
@@ -115,10 +116,10 @@ class ApiService {
 
       // Attendre que tous les wallets du chunk soient traités
       final chunkResults = await Future.wait(futures);
-      
+
       // Ajouter les résultats non-null à la liste finale
       results.addAll(chunkResults.where((result) => result != null).cast<T>());
-      
+
       processedCount += chunk.length;
       debugPrint("📊 Progression $debugName: ${processedCount}/${wallets.length} wallets traités");
 
@@ -158,7 +159,7 @@ class ApiService {
       if (cachedData == null && alternativeCacheKey != null) {
         cachedData = box.get(alternativeCacheKey);
       }
-      
+
       if (cachedData != null) {
         cachedResult = fromJson(cachedData is String ? jsonDecode(cachedData) : cachedData);
         debugPrint("🔵 Cache $debugName disponible");
@@ -195,7 +196,7 @@ class ApiService {
     try {
       debugPrint("🔄 Mise à jour $debugName depuis l'API...");
       final apiResult = await apiCall();
-      
+
       if (apiResult != null && apiResult != emptyValue) {
         // Sauvegarder le nouveau cache
         final jsonData = toJson(apiResult);
@@ -346,7 +347,7 @@ class ApiService {
     debugPrint("🚀 apiService: fetchRealTokens -> Lancement de la requête");
 
     final box = Hive.box('realTokens');
-    
+
     return _fetchWithCacheList(
       cacheKey: 'cachedRealTokens',
       debugName: "RealTokens",
@@ -354,21 +355,21 @@ class ApiService {
       shouldUpdate: () async {
         // Logique spécifique : vérifier les timestamps serveur
         if (forceFetch) return true;
-        
+
         try {
           final lastUpdateTime = box.get('lastUpdateTime_RealTokens');
           if (lastUpdateTime == null) return true;
 
           // Vérification de la dernière mise à jour sur le serveur
-          final lastUpdateResponse = await http.get(
-            Uri.parse('${Parameters.realTokensUrl}/last_get_realTokens_mobileapps')
-          ).timeout(Duration(seconds: 10));
+          final lastUpdateResponse = await http
+              .get(Uri.parse('${Parameters.realTokensUrl}/last_get_realTokens_mobileapps'))
+              .timeout(Duration(seconds: 10));
 
           if (lastUpdateResponse.statusCode == 200) {
             final String lastUpdateDateString = json.decode(lastUpdateResponse.body);
             final DateTime lastUpdateDate = DateTime.parse(lastUpdateDateString);
             final DateTime lastExecutionDate = DateTime.parse(lastUpdateTime);
-            
+
             bool needsUpdate = !lastExecutionDate.isAtSameMomentAs(lastUpdateDate);
             if (!needsUpdate) {
               debugPrint("✅ Données RealTokens déjà à jour selon le serveur");
@@ -382,19 +383,19 @@ class ApiService {
       },
       apiCall: () async {
         // Récupérer les nouvelles données
-        final response = await http.get(
-          Uri.parse('${Parameters.realTokensUrl}/realTokens_mobileapps')
-        ).timeout(Duration(seconds: 30));
+        final response = await http
+            .get(Uri.parse('${Parameters.realTokensUrl}/realTokens_mobileapps'))
+            .timeout(Duration(seconds: 30));
 
         if (response.statusCode == 200) {
           final data = json.decode(response.body);
-          
+
           // Sauvegarder le timestamp serveur spécifique à RealTokens
           try {
-            final lastUpdateResponse = await http.get(
-              Uri.parse('${Parameters.realTokensUrl}/last_get_realTokens_mobileapps')
-            ).timeout(Duration(seconds: 5));
-            
+            final lastUpdateResponse = await http
+                .get(Uri.parse('${Parameters.realTokensUrl}/last_get_realTokens_mobileapps'))
+                .timeout(Duration(seconds: 5));
+
             if (lastUpdateResponse.statusCode == 200) {
               final String lastUpdateDateString = json.decode(lastUpdateResponse.body);
               await box.put('lastUpdateTime_RealTokens', lastUpdateDateString);
@@ -402,7 +403,7 @@ class ApiService {
           } catch (e) {
             debugPrint("⚠️ Erreur sauvegarde timestamp RealTokens: $e");
           }
-          
+
           debugPrint("💾 RealTokens mis à jour: ${data.length} tokens");
           return data;
         } else {
@@ -415,7 +416,7 @@ class ApiService {
   // Récupérer la liste complète des offres YAM depuis l'API avec cache optimisé
   static Future<List<dynamic>> fetchYamMarket({bool forceFetch = false}) async {
     final box = Hive.box('realTokens');
-    
+
     return _fetchWithCacheList(
       cacheKey: 'cachedYamMarket',
       debugName: "YAM Market",
@@ -423,21 +424,21 @@ class ApiService {
       shouldUpdate: () async {
         // Logique spécifique : vérifier les timestamps serveur YAM
         if (forceFetch) return true;
-        
+
         try {
           final lastUpdateTime = box.get('lastUpdateTime_YamMarket');
           if (lastUpdateTime == null) return true;
 
           // Vérification de la dernière mise à jour sur le serveur
-          final lastUpdateResponse = await http.get(
-            Uri.parse('${Parameters.realTokensUrl}/last_update_yam_offers_mobileapps')
-          ).timeout(Duration(seconds: 10));
+          final lastUpdateResponse = await http
+              .get(Uri.parse('${Parameters.realTokensUrl}/last_update_yam_offers_mobileapps'))
+              .timeout(Duration(seconds: 10));
 
           if (lastUpdateResponse.statusCode == 200) {
             final String lastUpdateDateString = json.decode(lastUpdateResponse.body);
             final DateTime lastUpdateDate = DateTime.parse(lastUpdateDateString);
             final DateTime lastExecutionDate = DateTime.parse(lastUpdateTime);
-            
+
             bool needsUpdate = !lastExecutionDate.isAtSameMomentAs(lastUpdateDate);
             if (!needsUpdate) {
               debugPrint("✅ Données YAM Market déjà à jour selon le serveur");
@@ -451,19 +452,19 @@ class ApiService {
       },
       apiCall: () async {
         // Récupérer les nouvelles données YAM
-        final response = await http.get(
-          Uri.parse('${Parameters.realTokensUrl}/get_yam_offers_mobileapps')
-        ).timeout(Duration(seconds: 30));
+        final response = await http
+            .get(Uri.parse('${Parameters.realTokensUrl}/get_yam_offers_mobileapps'))
+            .timeout(Duration(seconds: 30));
 
         if (response.statusCode == 200) {
           final data = json.decode(response.body);
-          
+
           // Sauvegarder le timestamp serveur spécifique à YAM Market
           try {
-            final lastUpdateResponse = await http.get(
-              Uri.parse('${Parameters.realTokensUrl}/last_update_yam_offers_mobileapps')
-            ).timeout(Duration(seconds: 5));
-            
+            final lastUpdateResponse = await http
+                .get(Uri.parse('${Parameters.realTokensUrl}/last_update_yam_offers_mobileapps'))
+                .timeout(Duration(seconds: 5));
+
             if (lastUpdateResponse.statusCode == 200) {
               final String lastUpdateDateString = json.decode(lastUpdateResponse.body);
               await box.put('lastUpdateTime_YamMarket', lastUpdateDateString);
@@ -471,7 +472,7 @@ class ApiService {
           } catch (e) {
             debugPrint("⚠️ Erreur sauvegarde timestamp YAM Market: $e");
           }
-          
+
           debugPrint("💾 YAM Market mis à jour: ${data.length} offres");
           return data;
         } else {
@@ -492,18 +493,19 @@ class ApiService {
 
     final box = Hive.box('realTokens');
     final DateTime now = DateTime.now();
-    
+
     // Calculer le début de la semaine actuelle (lundi)
     final DateTime startOfCurrentWeek = now.subtract(Duration(days: now.weekday - 1));
-    final DateTime startOfCurrentWeekMidnight = DateTime(startOfCurrentWeek.year, startOfCurrentWeek.month, startOfCurrentWeek.day);
-    
+    final DateTime startOfCurrentWeekMidnight =
+        DateTime(startOfCurrentWeek.year, startOfCurrentWeek.month, startOfCurrentWeek.day);
+
     // TOUJOURS commencer par charger les données existantes de tous les wallets
     debugPrint("📦 Chargement des données existantes pour tous les wallets");
     List<Map<String, dynamic>> mergedRentData = [];
     await _loadRentDataFromCache(box, wallets).then((cachedData) {
       mergedRentData.addAll(cachedData);
       debugPrint("📦 ${mergedRentData.length} entrées chargées depuis le cache");
-      
+
       // Diagnostic anti-doublons : vérifier les totaux
       double totalRentFromCache = 0;
       for (var entry in mergedRentData) {
@@ -511,7 +513,7 @@ class ApiService {
       }
       debugPrint("📊 Total rent depuis cache: \$${totalRentFromCache.toStringAsFixed(2)}");
     });
-    
+
     // Vérifier si une réponse 429 a été reçue récemment
     final last429Time = box.get('lastRent429Time');
     if (last429Time != null && !forceFetch) {
@@ -529,7 +531,7 @@ class ApiService {
       final lastSuccessTime = box.get(lastSuccessKey);
       final cacheKey = 'cachedRentData_$wallet';
       final cachedData = box.get(cacheKey);
-      
+
       if (lastSuccessTime == null || cachedData == null) {
         debugPrint("❌ Wallet $wallet: pas de succès récent ou cache manquant");
         allWalletsProcessed = false;
@@ -541,7 +543,7 @@ class ApiService {
           allWalletsProcessed = false;
           break;
         }
-        
+
         // Vérifier que le cache n'est pas vide ou corrompu
         try {
           final List<dynamic> cacheContent = json.decode(cachedData);
@@ -557,7 +559,7 @@ class ApiService {
         }
       }
     }
-    
+
     // Vérifier si la dernière mise à jour réussie est trop ancienne (plus de 7 jours)
     final lastSuccessfulFetch = box.get('lastSuccessfulRentFetch');
     bool isDataTooOld = false;
@@ -567,18 +569,18 @@ class ApiService {
     } else {
       isDataTooOld = true; // Pas de fetch réussi enregistré
     }
-    
+
     // Si tous les wallets sont traités ET qu'on n'est pas mardi ET pas de forceFetch ET que les données ne sont pas trop anciennes, utiliser le cache
     final bool isTuesday = now.weekday == DateTime.tuesday;
     if (allWalletsProcessed && !isTuesday && !forceFetch && !isDataTooOld) {
       debugPrint("🛑 Tous les wallets traités cette semaine, utilisation des données existantes");
       return mergedRentData;
     }
-    
+
     if (isDataTooOld) {
       debugPrint("⏰ Données trop anciennes (>7 jours), forçage de la mise à jour");
     }
-    
+
     debugPrint("🔄 Certains wallets non traités ou c'est mardi, traitement nécessaire");
 
     // Sauvegarder les données existantes comme backup
@@ -596,7 +598,7 @@ class ApiService {
       final lastSuccessTime = box.get(lastSuccessKey);
       final cacheKey = 'cachedRentData_$wallet';
       final cachedData = box.get(cacheKey);
-      
+
       if (lastSuccessTime != null && cachedData != null && !forceFetch) {
         final DateTime lastSuccess = DateTime.parse(lastSuccessTime);
         if (lastSuccess.isAfter(startOfCurrentWeekMidnight)) {
@@ -623,7 +625,7 @@ class ApiService {
     // Traiter les wallets restants un par un
     for (String wallet in walletsToProcess) {
       final url = '${Parameters.rentTrackerUrl}/rent_holder/$wallet';
-      
+
       try {
         debugPrint("🔄 Traitement du wallet: $wallet");
         final response = await _httpGetWithRetry(
@@ -641,10 +643,8 @@ class ApiService {
         if (response.statusCode == 200) {
           debugPrint("✅ RentTracker, requête réussie pour $wallet");
 
-          List<Map<String, dynamic>> rentData = List<Map<String, dynamic>>.from(
-            json.decode(response.body)
-          );
-          
+          List<Map<String, dynamic>> rentData = List<Map<String, dynamic>>.from(json.decode(response.body));
+
           // Retirer TOUTES les anciennes données de ce wallet du merge global
           // (on ne peut pas se baser sur les montants car ils peuvent avoir changé)
           Set<String> walletDates = Set<String>();
@@ -653,29 +653,30 @@ class ApiService {
               walletDates.add(existing['date']);
             }
           }
-          
+
           // Supprimer toutes les entrées correspondant aux dates de ce wallet
           mergedRentData.removeWhere((entry) => walletDates.contains(entry['date']));
-          
+
           // Traiter et ajouter les nouvelles données
           List<Map<String, dynamic>> processedData = [];
           Map<String, double> walletDateRentMap = {}; // Éviter les doublons pour ce wallet
-          
+
           for (var rentEntry in rentData) {
             DateTime rentDate = DateTime.parse(rentEntry['date']);
             rentDate = rentDate.add(Duration(days: 1));
-            String updatedDate = "${rentDate.year}-${rentDate.month.toString().padLeft(2, '0')}-${rentDate.day.toString().padLeft(2, '0')}";
+            String updatedDate =
+                "${rentDate.year}-${rentDate.month.toString().padLeft(2, '0')}-${rentDate.day.toString().padLeft(2, '0')}";
 
             // Cumuler les rents pour la même date dans ce wallet
             double rentAmount = (rentEntry['rent'] ?? 0).toDouble();
             walletDateRentMap[updatedDate] = (walletDateRentMap[updatedDate] ?? 0) + rentAmount;
           }
-          
+
           // Ajouter les nouvelles données consolidées au merge global
           for (var entry in walletDateRentMap.entries) {
             String date = entry.key;
             double walletRentForDate = entry.value;
-            
+
             // Vérifier s'il existe déjà une entrée pour cette date (autres wallets)
             final existingEntry = mergedRentData.firstWhere(
               (entry) => entry['date'] == date,
@@ -692,7 +693,7 @@ class ApiService {
                 'rent': walletRentForDate,
               });
             }
-            
+
             // Sauvegarder les données brutes pour le cache par wallet
             processedData.add({
               'date': date,
@@ -715,9 +716,9 @@ class ApiService {
             }
           }
           successfulWallets.add(wallet);
-          
         } else {
-          debugPrint('❌ Erreur HTTP ${response.statusCode} pour le wallet: $wallet - conservation des données existantes');
+          debugPrint(
+              '❌ Erreur HTTP ${response.statusCode} pour le wallet: $wallet - conservation des données existantes');
           // Les données existantes sont déjà dans mergedRentData, ne rien faire
         }
       } catch (e) {
@@ -732,13 +733,15 @@ class ApiService {
     // Sauvegarder le cache global TOUJOURS (même en cas d'erreur partielle)
     await box.put('cachedRentData', json.encode(mergedRentData));
     await box.put('lastRentFetchTime', now.toIso8601String());
-    
+
     // Marquer comme succès complet seulement si tous les wallets ont été traités
     if (successfulWallets.length == wallets.length) {
       await box.put('lastSuccessfulRentFetch', now.toIso8601String());
-      debugPrint("✅ Succès complet: ${mergedRentData.length} entrées (${successfulWallets.length}/${wallets.length} wallets)");
+      debugPrint(
+          "✅ Succès complet: ${mergedRentData.length} entrées (${successfulWallets.length}/${wallets.length} wallets)");
     } else {
-      debugPrint("⚠️ Succès partiel: ${mergedRentData.length} entrées (${successfulWallets.length}/${wallets.length} wallets)");
+      debugPrint(
+          "⚠️ Succès partiel: ${mergedRentData.length} entrées (${successfulWallets.length}/${wallets.length} wallets)");
     }
 
     // Diagnostic final anti-doublons
@@ -778,9 +781,8 @@ class ApiService {
       dateRentMap[date] = (dateRentMap[date] ?? 0) + rent;
     }
 
-    List<Map<String, dynamic>> result = dateRentMap.entries
-        .map((entry) => {'date': entry.key, 'rent': entry.value})
-        .toList();
+    List<Map<String, dynamic>> result =
+        dateRentMap.entries.map((entry) => {'date': entry.key, 'rent': entry.value}).toList();
     result.sort((a, b) => a['date'].compareTo(b['date']));
 
     return result;
@@ -816,10 +818,9 @@ class ApiService {
         // Parcourir chaque wallet pour récupérer ses tokens whitelistés
         for (String wallet in wallets) {
           final url = '${Parameters.rentTrackerUrl}/whitelist2/$wallet';
-          
+
           try {
-            final response = await http.get(Uri.parse(url))
-                .timeout(Duration(seconds: 15));
+            final response = await http.get(Uri.parse(url)).timeout(Duration(seconds: 15));
 
             // En cas de code 429, sauvegarder l'heure et interrompre la boucle
             if (response.statusCode == 429) {
@@ -830,9 +831,7 @@ class ApiService {
 
             if (response.statusCode == 200) {
               debugPrint("✅ Requête réussie pour wallet: $wallet");
-              List<Map<String, dynamic>> whitelistData = List<Map<String, dynamic>>.from(
-                json.decode(response.body)
-              );
+              List<Map<String, dynamic>> whitelistData = List<Map<String, dynamic>>.from(json.decode(response.body));
               mergedWhitelistTokens.addAll(whitelistData);
             } else {
               debugPrint('❌ Erreur HTTP ${response.statusCode} pour wallet: $wallet');
@@ -864,14 +863,13 @@ class ApiService {
       emptyValue: <String, dynamic>{},
       apiCall: () async {
         debugPrint("🔄 Récupération des devises depuis CoinGecko");
-        
-        final response = await http.get(Uri.parse(Parameters.coingeckoUrl))
-            .timeout(Duration(seconds: 15));
+
+        final response = await http.get(Uri.parse(Parameters.coingeckoUrl)).timeout(Duration(seconds: 15));
 
         if (response.statusCode == 200) {
           final data = json.decode(response.body);
           final currencies = data['market_data']['current_price'] as Map<String, dynamic>;
-          
+
           debugPrint("✅ ${currencies.length} devises récupérées");
           return currencies;
         } else {
@@ -939,10 +937,12 @@ class ApiService {
             ] = futures;
 
             // Vérification que toutes les requêtes ont retourné une valeur
-            if (usdcDepositResponse != null && usdcBorrowResponse != null && 
-                xdaiDepositResponse != null && xdaiBorrowResponse != null && 
-                gnosisUsdcResponse != null && gnosisXdaiResponse != null) {
-              
+            if (usdcDepositResponse != null &&
+                usdcBorrowResponse != null &&
+                xdaiDepositResponse != null &&
+                xdaiBorrowResponse != null &&
+                gnosisUsdcResponse != null &&
+                gnosisXdaiResponse != null) {
               final timestamp = DateTime.now().toIso8601String();
 
               // Conversion optimisée des balances en double
@@ -1039,10 +1039,11 @@ class ApiService {
 
         return balance;
       } else {
-         debugPrint("apiService: RPC gnosis -> Invalid response for contract $contract: $result");
+        debugPrint("apiService: RPC gnosis -> Invalid response for contract $contract: $result");
       }
     } else {
-       debugPrint('apiService: RPC gnosis -> Failed to fetch balance for contract $contract. Status code: ${response.statusCode}');
+      debugPrint(
+          'apiService: RPC gnosis -> Failed to fetch balance for contract $contract. Status code: ${response.statusCode}');
     }
 
     return null;
@@ -1093,69 +1094,69 @@ class ApiService {
     return null;
   }
 
-static Future<BigInt?> _fetchVaultBalance(String contract, String address, {bool forceFetch = false}) async {
-  final String cacheKey = 'cachedVaultBalance_${contract}_$address';
-  final box = await Hive.openBox('balanceCache');
-  final now = DateTime.now();
+  static Future<BigInt?> _fetchVaultBalance(String contract, String address, {bool forceFetch = false}) async {
+    final String cacheKey = 'cachedVaultBalance_${contract}_$address';
+    final box = await Hive.openBox('balanceCache');
+    final now = DateTime.now();
 
-  final String? lastFetchTime = box.get('lastFetchTime_$cacheKey');
+    final String? lastFetchTime = box.get('lastFetchTime_$cacheKey');
 
-  if (!forceFetch && lastFetchTime != null) {
-    final DateTime lastFetch = DateTime.parse(lastFetchTime);
-    if (now.difference(lastFetch) < Parameters.apiCacheDuration) {
-      final cachedData = box.get(cacheKey);
-      if (cachedData != null) {
-        debugPrint("🛑 apiService: fetchVaultBalance -> Requête annulée, cache valide");
-        return BigInt.tryParse(cachedData);
+    if (!forceFetch && lastFetchTime != null) {
+      final DateTime lastFetch = DateTime.parse(lastFetchTime);
+      if (now.difference(lastFetch) < Parameters.apiCacheDuration) {
+        final cachedData = box.get(cacheKey);
+        if (cachedData != null) {
+          debugPrint("🛑 apiService: fetchVaultBalance -> Requête annulée, cache valide");
+          return BigInt.tryParse(cachedData);
+        }
       }
     }
-  }
 
-  // Construire la data : 0xf262a083 + adresse paddée (sans '0x', alignée sur 32 bytes)
-  final String functionSelector = 'f262a083';
-  final String paddedAddress = address.toLowerCase().replaceFirst('0x', '').padLeft(64, '0');
-  final String data = '0x$functionSelector$paddedAddress';
+    // Construire la data : 0xf262a083 + adresse paddée (sans '0x', alignée sur 32 bytes)
+    final String functionSelector = 'f262a083';
+    final String paddedAddress = address.toLowerCase().replaceFirst('0x', '').padLeft(64, '0');
+    final String data = '0x$functionSelector$paddedAddress';
 
-  final response = await http.post(
-    Uri.parse('https://rpc.gnosischain.com'),
-    headers: {'Content-Type': 'application/json'},
-    body: json.encode({
-      "jsonrpc": "2.0",
-      "method": "eth_call",
-      "params": [
-        {"to": contract, "data": data},
-        "latest"
-      ],
-      "id": 1
-    }),
-  );
+    final response = await http.post(
+      Uri.parse('https://rpc.gnosischain.com'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        "jsonrpc": "2.0",
+        "method": "eth_call",
+        "params": [
+          {"to": contract, "data": data},
+          "latest"
+        ],
+        "id": 1
+      }),
+    );
 
-  if (response.statusCode == 200) {
-    final responseBody = json.decode(response.body);
-    final result = responseBody['result'];
+    if (response.statusCode == 200) {
+      final responseBody = json.decode(response.body);
+      final result = responseBody['result'];
 
-    debugPrint("🚀 apiService: fetchVaultBalance -> Requête lancée");
+      debugPrint("🚀 apiService: fetchVaultBalance -> Requête lancée");
 
-    if (result != null && result != "0x" && result.length >= 66) {
-      // On suppose que le solde est dans le 1er mot (64 caractères hex après le "0x")
-      final String balanceHex = result.substring(2, 66);
-      final balance = BigInt.parse(balanceHex, radix: 16);
+      if (result != null && result != "0x" && result.length >= 66) {
+        // On suppose que le solde est dans le 1er mot (64 caractères hex après le "0x")
+        final String balanceHex = result.substring(2, 66);
+        final balance = BigInt.parse(balanceHex, radix: 16);
 
-      debugPrint("✅ apiService: fetchVaultBalance -> Balance récupérée: $balance");
-      await box.put(cacheKey, balance.toString());
-      await box.put('lastFetchTime_$cacheKey', now.toIso8601String());
-      box.put('lastExecutionTime_Balances', now.toIso8601String());
+        debugPrint("✅ apiService: fetchVaultBalance -> Balance récupérée: $balance");
+        await box.put(cacheKey, balance.toString());
+        await box.put('lastFetchTime_$cacheKey', now.toIso8601String());
+        box.put('lastExecutionTime_Balances', now.toIso8601String());
 
-      return balance;
+        return balance;
+      } else {
+        debugPrint("⚠️ apiService: fetchVaultBalance -> Résultat invalide pour $contract: $result");
+      }
     } else {
-      debugPrint("⚠️ apiService: fetchVaultBalance -> Résultat invalide pour $contract: $result");
+      debugPrint('❌ apiService: fetchVaultBalance -> Échec HTTP. Code: ${response.statusCode}');
     }
-  } else {
-    debugPrint('❌ apiService: fetchVaultBalance -> Échec HTTP. Code: ${response.statusCode}');
-  }
 
-  return null;
-}
+    return null;
+  }
 
   // Nouvelle méthode pour récupérer les détails des loyers
   static Future<List<Map<String, dynamic>>> fetchDetailedRentDataForAllWallets({bool forceFetch = false}) async {
@@ -1171,11 +1172,12 @@ static Future<BigInt?> _fetchVaultBalance(String contract, String address, {bool
 
     final box = await Hive.openBox('detailedRentData');
     final DateTime now = DateTime.now();
-    
+
     // Calculer le début de la semaine actuelle (lundi)
     final DateTime startOfCurrentWeek = now.subtract(Duration(days: now.weekday - 1));
-    final DateTime startOfCurrentWeekMidnight = DateTime(startOfCurrentWeek.year, startOfCurrentWeek.month, startOfCurrentWeek.day);
-    
+    final DateTime startOfCurrentWeekMidnight =
+        DateTime(startOfCurrentWeek.year, startOfCurrentWeek.month, startOfCurrentWeek.day);
+
     // TOUJOURS commencer par charger les données existantes de tous les wallets
     debugPrint("📦 Chargement des données détaillées existantes pour tous les wallets");
     List<Map<String, dynamic>> allRentData = [];
@@ -1183,7 +1185,7 @@ static Future<BigInt?> _fetchVaultBalance(String contract, String address, {bool
       allRentData.addAll(cachedData);
       debugPrint("📦 ${allRentData.length} entrées détaillées chargées depuis le cache");
     });
-    
+
     // Vérifier si une réponse 429 a été reçue récemment
     final last429Time = box.get('lastDetailedRent429Time');
     if (last429Time != null && !forceFetch) {
@@ -1201,7 +1203,7 @@ static Future<BigInt?> _fetchVaultBalance(String contract, String address, {bool
       final lastSuccessTime = box.get(lastSuccessKey);
       final cacheKey = 'cachedDetailedRentData_$walletAddress';
       final cachedData = box.get(cacheKey);
-      
+
       if (lastSuccessTime == null || cachedData == null) {
         debugPrint("❌ Wallet $walletAddress: pas de succès récent ou cache détaillé manquant");
         allWalletsProcessedDetailed = false;
@@ -1213,7 +1215,7 @@ static Future<BigInt?> _fetchVaultBalance(String contract, String address, {bool
           allWalletsProcessedDetailed = false;
           break;
         }
-        
+
         // Vérifier que le cache n'est pas vide ou corrompu
         try {
           final List<dynamic> cacheContent = json.decode(cachedData);
@@ -1229,7 +1231,7 @@ static Future<BigInt?> _fetchVaultBalance(String contract, String address, {bool
         }
       }
     }
-    
+
     // Vérifier si la dernière mise à jour réussie des données détaillées est trop ancienne (plus de 7 jours)
     final lastSuccessfulDetailedFetch = box.get('lastSuccessfulDetailedRentFetch');
     bool isDetailedDataTooOld = false;
@@ -1239,18 +1241,19 @@ static Future<BigInt?> _fetchVaultBalance(String contract, String address, {bool
     } else {
       isDetailedDataTooOld = true; // Pas de fetch réussi enregistré
     }
-    
+
     // Si tous les wallets sont traités ET qu'on n'est pas mardi ET pas de forceFetch ET que les données ne sont pas trop anciennes, utiliser le cache
     final bool isTuesday = now.weekday == DateTime.tuesday;
     if (allWalletsProcessedDetailed && !isTuesday && !forceFetch && !isDetailedDataTooOld) {
-      debugPrint("🛑 Tous les wallets traités cette semaine pour les données détaillées, utilisation des données existantes");
+      debugPrint(
+          "🛑 Tous les wallets traités cette semaine pour les données détaillées, utilisation des données existantes");
       return allRentData;
     }
-    
+
     if (isDetailedDataTooOld) {
       debugPrint("⏰ Données détaillées trop anciennes (>7 jours), forçage de la mise à jour");
     }
-    
+
     debugPrint("🔄 Certains wallets non traités pour les données détaillées ou c'est mardi, traitement nécessaire");
 
     // Sauvegarder les données existantes comme backup
@@ -1279,7 +1282,7 @@ static Future<BigInt?> _fetchVaultBalance(String contract, String address, {bool
       final lastSuccessTime = box.get(lastSuccessKey);
       final cacheKey = 'cachedDetailedRentData_$walletAddress';
       final cachedData = box.get(cacheKey);
-      
+
       if (lastSuccessTime != null && cachedData != null && !forceFetch) {
         final DateTime lastSuccess = DateTime.parse(lastSuccessTime);
         if (lastSuccess.isAfter(startOfCurrentWeekMidnight)) {
@@ -1301,18 +1304,18 @@ static Future<BigInt?> _fetchVaultBalance(String contract, String address, {bool
       walletsToProcess.add(walletAddress);
     }
 
-    debugPrint("🚀 ${walletsToProcess.length} wallets à traiter pour les données détaillées, ${successfulWallets.length} déjà traités");
+    debugPrint(
+        "🚀 ${walletsToProcess.length} wallets à traiter pour les données détaillées, ${successfulWallets.length} déjà traités");
 
     // Traiter les wallets restants un par un
     for (var walletAddress in walletsToProcess) {
       debugPrint("🔄 Traitement détaillé du wallet: $walletAddress");
-      
+
       try {
         final url = '${Parameters.rentTrackerUrl}/detailed_rent_holder/$walletAddress';
         debugPrint("🌐 Tentative de requête API détaillée pour $walletAddress");
 
-        final response = await http.get(Uri.parse(url))
-            .timeout(Duration(minutes: 2), onTimeout: () {
+        final response = await http.get(Uri.parse(url)).timeout(Duration(minutes: 2), onTimeout: () {
           throw TimeoutException('Timeout après 2 minutes pour le wallet $walletAddress');
         });
 
@@ -1325,9 +1328,7 @@ static Future<BigInt?> _fetchVaultBalance(String contract, String address, {bool
 
         // Si la requête réussit
         if (response.statusCode == 200) {
-          final List<Map<String, dynamic>> rentData = List<Map<String, dynamic>>.from(
-            json.decode(response.body)
-          );
+          final List<Map<String, dynamic>> rentData = List<Map<String, dynamic>>.from(json.decode(response.body));
 
           // Retirer les anciennes données de ce wallet du merge
           allRentData.removeWhere((entry) => entry['wallet'] == walletAddress);
@@ -1351,12 +1352,13 @@ static Future<BigInt?> _fetchVaultBalance(String contract, String address, {bool
               debugPrint('❌ Échec total sauvegarde pour $walletAddress: $e');
             }
           }
-          
+
           debugPrint("✅ Requête détaillée réussie pour $walletAddress, ${rentData.length} entrées obtenues");
           allRentData.addAll(rentData);
           successfulWallets.add(walletAddress);
         } else {
-          debugPrint('❌ Échec requête détaillée pour $walletAddress: ${response.statusCode} - conservation des données existantes');
+          debugPrint(
+              '❌ Échec requête détaillée pour $walletAddress: ${response.statusCode} - conservation des données existantes');
           // Les données existantes sont déjà dans allRentData, ne rien faire
         }
       } catch (e) {
@@ -1381,13 +1383,15 @@ static Future<BigInt?> _fetchVaultBalance(String contract, String address, {bool
 
     // Sauvegarder le cache global TOUJOURS (même en cas d'erreur partielle)
     await box.put('cachedDetailedRentDataAll', json.encode(allRentData));
-    
+
     // Marquer comme succès complet seulement si tous les wallets ont été traités
     if (successfulWallets.length == evmAddresses.length) {
       await box.put('lastSuccessfulDetailedRentFetch', now.toIso8601String());
-      debugPrint('✅ Succès complet détaillé: ${allRentData.length} entrées (${successfulWallets.length}/${evmAddresses.length} wallets)');
+      debugPrint(
+          '✅ Succès complet détaillé: ${allRentData.length} entrées (${successfulWallets.length}/${evmAddresses.length} wallets)');
     } else {
-      debugPrint('⚠️ Succès partiel détaillé: ${allRentData.length} entrées (${successfulWallets.length}/${evmAddresses.length} wallets)');
+      debugPrint(
+          '⚠️ Succès partiel détaillé: ${allRentData.length} entrées (${successfulWallets.length}/${evmAddresses.length} wallets)');
     }
 
     // Comptage des entrées par wallet
@@ -1428,7 +1432,8 @@ static Future<BigInt?> _fetchVaultBalance(String contract, String address, {bool
   }
 
   // Méthode utilitaire pour charger les données du cache (version optimisée async)
-  static Future<void> _loadFromCacheOptimized(Box box, String walletAddress, List<Map<String, dynamic>> allRentData) async {
+  static Future<void> _loadFromCacheOptimized(
+      Box box, String walletAddress, List<Map<String, dynamic>> allRentData) async {
     debugPrint('🔄 Tentative de chargement du cache pour $walletAddress');
     final cachedData = box.get('cachedDetailedRentData_$walletAddress');
     if (cachedData != null) {
@@ -1457,7 +1462,7 @@ static Future<BigInt?> _fetchVaultBalance(String contract, String address, {bool
     try {
       final String jsonData = json.encode(data);
       await box.put(key, jsonData);
-      
+
       // Vérifier que les données ont été sauvegardées correctement
       final savedData = box.get(key);
       if (savedData == jsonData) {
@@ -1476,28 +1481,25 @@ static Future<BigInt?> _fetchVaultBalance(String contract, String address, {bool
   /// Méthode sécurisée pour charger des données depuis le cache avec vérification
   static Future<List<Map<String, dynamic>>> _safeLoadWalletCache(Box box, String walletAddress) async {
     try {
-      final cachedData = box.get('cachedDetailedRentData_$walletAddress') ?? 
-                        box.get('cachedRentData_$walletAddress');
-      
+      final cachedData = box.get('cachedDetailedRentData_$walletAddress') ?? box.get('cachedRentData_$walletAddress');
+
       if (cachedData != null) {
-        final List<Map<String, dynamic>> data = List<Map<String, dynamic>>.from(
-          json.decode(cachedData)
-        );
-        
+        final List<Map<String, dynamic>> data = List<Map<String, dynamic>>.from(json.decode(cachedData));
+
         // Vérifier l'intégrité des données
         for (var entry in data) {
           if (!entry.containsKey('wallet') || entry['wallet'] == null) {
             entry['wallet'] = walletAddress;
           }
         }
-        
+
         debugPrint("✅ Cache chargé avec succès pour $walletAddress (${data.length} entrées)");
         return data;
       }
     } catch (e) {
       debugPrint('❌ Erreur chargement cache pour $walletAddress: $e');
     }
-    
+
     debugPrint('⚠️ Pas de cache valide pour le wallet $walletAddress');
     return [];
   }
@@ -1506,13 +1508,13 @@ static Future<BigInt?> _fetchVaultBalance(String contract, String address, {bool
   static Future<Map<String, dynamic>> diagnoseCacheStatus(List<String> walletAddresses) async {
     final rentBox = Hive.box('realTokens');
     final detailedBox = await Hive.openBox('detailedRentData');
-    
+
     Map<String, dynamic> diagnostics = {
       'timestamp': DateTime.now().toIso8601String(),
       'walletDiagnostics': <String, dynamic>{},
       'globalCacheStatus': <String, dynamic>{},
     };
-    
+
     // Vérifier le cache global
     diagnostics['globalCacheStatus'] = {
       'cachedRentData': rentBox.get('cachedRentData') != null,
@@ -1523,16 +1525,16 @@ static Future<BigInt?> _fetchVaultBalance(String contract, String address, {bool
       'lastRent429Time': rentBox.get('lastRent429Time'),
       'lastDetailedRent429Time': detailedBox.get('lastDetailedRent429Time'),
     };
-    
+
     // Vérifier chaque wallet individuellement
     for (String walletAddress in walletAddresses) {
       try {
         final rentCacheExists = rentBox.get('cachedRentData_$walletAddress') != null;
         final detailedCacheExists = detailedBox.get('cachedDetailedRentData_$walletAddress') != null;
-        
+
         int rentCacheEntries = 0;
         int detailedCacheEntries = 0;
-        
+
         if (rentCacheExists) {
           try {
             final rentData = await _safeLoadWalletCache(rentBox, walletAddress);
@@ -1541,7 +1543,7 @@ static Future<BigInt?> _fetchVaultBalance(String contract, String address, {bool
             debugPrint('❌ Erreur lecture cache rent pour diagnostic $walletAddress: $e');
           }
         }
-        
+
         if (detailedCacheExists) {
           try {
             final detailedData = await _safeLoadWalletCache(detailedBox, walletAddress);
@@ -1550,7 +1552,7 @@ static Future<BigInt?> _fetchVaultBalance(String contract, String address, {bool
             debugPrint('❌ Erreur lecture cache detailed pour diagnostic $walletAddress: $e');
           }
         }
-        
+
         diagnostics['walletDiagnostics'][walletAddress] = {
           'rentCacheExists': rentCacheExists,
           'detailedCacheExists': detailedCacheExists,
@@ -1565,7 +1567,7 @@ static Future<BigInt?> _fetchVaultBalance(String contract, String address, {bool
         };
       }
     }
-    
+
     debugPrint('📊 Diagnostic cache terminé pour ${walletAddresses.length} wallets');
     return diagnostics;
   }
@@ -1582,19 +1584,18 @@ static Future<BigInt?> _fetchVaultBalance(String contract, String address, {bool
       emptyValue: <Map<String, dynamic>>[],
       apiCall: () async {
         const url = 'https://realt.co/wp-json/realt/v1/products/for_sale';
-        
+
         debugPrint("🔄 Récupération des propriétés en vente");
 
-        final response = await http.get(Uri.parse(url))
-            .timeout(Duration(seconds: 30));
+        final response = await http.get(Uri.parse(url)).timeout(Duration(seconds: 30));
 
         if (response.statusCode == 200) {
           // Décoder la réponse JSON
           final data = json.decode(response.body);
-          
+
           // Extraire la liste de produits
           final List<Map<String, dynamic>> properties = List<Map<String, dynamic>>.from(data['products']);
-          
+
           debugPrint("✅ ${properties.length} propriétés en vente récupérées");
           return properties;
         } else {
@@ -1613,9 +1614,8 @@ static Future<BigInt?> _fetchVaultBalance(String contract, String address, {bool
       apiCall: () async {
         final apiUrl = '${Parameters.mainApiUrl}/tokens_volume/';
         debugPrint("🔄 Récupération des volumes de tokens");
-        
-        final response = await http.get(Uri.parse(apiUrl))
-            .timeout(Duration(seconds: 30));
+
+        final response = await http.get(Uri.parse(apiUrl)).timeout(Duration(seconds: 30));
 
         if (response.statusCode == 200) {
           final data = json.decode(response.body);
@@ -1649,7 +1649,7 @@ static Future<BigInt?> _fetchVaultBalance(String contract, String address, {bool
           maxConcurrentRequests: 3, // Plus de concurrence pour l'historique
           processWallet: (wallet) async {
             final apiUrl = '${Parameters.mainApiUrl}/transactions_history/$wallet';
-            
+
             final response = await _httpGetWithRetry(
               apiUrl,
               timeout: _mediumTimeout,
@@ -1700,7 +1700,7 @@ static Future<BigInt?> _fetchVaultBalance(String contract, String address, {bool
           maxConcurrentRequests: 3,
           processWallet: (wallet) async {
             final apiUrl = '${Parameters.mainApiUrl}/YAM_transactions_history/$wallet';
-            
+
             final response = await _httpGetWithRetry(
               apiUrl,
               timeout: _mediumTimeout,
@@ -1730,7 +1730,8 @@ static Future<BigInt?> _fetchVaultBalance(String contract, String address, {bool
     );
   }
 
-  static Future<List<Map<String, dynamic>>> fetchRmmBalancesForAddress(String address, {bool forceFetch = false}) async {
+  static Future<List<Map<String, dynamic>>> fetchRmmBalancesForAddress(String address,
+      {bool forceFetch = false}) async {
     return _fetchWithCache<List<Map<String, dynamic>>>(
       cacheKey: 'cachedRmmBalancesForAddress_$address',
       debugName: "RMM Balances for $address",
@@ -1774,10 +1775,12 @@ static Future<BigInt?> _fetchVaultBalance(String contract, String address, {bool
           gnosisXdaiResponse,
         ] = futures;
 
-        if (usdcDepositResponse != null && usdcBorrowResponse != null && 
-            xdaiDepositResponse != null && xdaiBorrowResponse != null && 
-            gnosisUsdcResponse != null && gnosisXdaiResponse != null) {
-          
+        if (usdcDepositResponse != null &&
+            usdcBorrowResponse != null &&
+            xdaiDepositResponse != null &&
+            xdaiBorrowResponse != null &&
+            gnosisUsdcResponse != null &&
+            gnosisXdaiResponse != null) {
           final timestamp = DateTime.now().toIso8601String();
           double usdcDepositBalance = PerformanceUtils.bigIntToDouble(usdcDepositResponse, 6);
           double usdcBorrowBalance = PerformanceUtils.bigIntToDouble(usdcBorrowResponse, 6);
@@ -1787,9 +1790,9 @@ static Future<BigInt?> _fetchVaultBalance(String contract, String address, {bool
           double gnosisRegBalance = PerformanceUtils.bigIntToDouble(gnosisRegResponse ?? BigInt.zero, 18);
           double gnosisVaultRegBalance = PerformanceUtils.bigIntToDouble(gnosisVaultRegResponse ?? BigInt.zero, 18);
           double gnosisXdaiBalance = PerformanceUtils.bigIntToDouble(gnosisXdaiResponse, 18);
-          
+
           debugPrint("✅ Balances RMM récupérées pour l'adresse: $address");
-          
+
           return [
             {
               'address': address,
@@ -1821,7 +1824,7 @@ static Future<BigInt?> _fetchVaultBalance(String contract, String address, {bool
       apiCall: () async {
         const apiUrl = 'https://api.vfhome.fr/token_history/?limit=10000';
         debugPrint("🔄 Récupération de l'historique des tokens");
-        
+
         final response = await _httpGetWithRetry(
           apiUrl,
           timeout: _longTimeout,

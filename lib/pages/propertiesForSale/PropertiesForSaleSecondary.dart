@@ -5,14 +5,14 @@ import 'dart:ui';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:hive/hive.dart';
 import 'package:provider/provider.dart';
-import 'package:realtoken_asset_tracker/app_state.dart';
-import 'package:realtoken_asset_tracker/managers/data_manager.dart';
-import 'package:realtoken_asset_tracker/generated/l10n.dart';
-import 'package:realtoken_asset_tracker/utils/currency_utils.dart';
-import 'package:realtoken_asset_tracker/utils/data_fetch_utils.dart';
-import 'package:realtoken_asset_tracker/utils/date_utils.dart';
-import 'package:realtoken_asset_tracker/utils/parameters.dart';
-import 'package:realtoken_asset_tracker/utils/url_utils.dart';
+import 'package:meprop_asset_tracker/app_state.dart';
+import 'package:meprop_asset_tracker/managers/data_manager.dart';
+import 'package:meprop_asset_tracker/generated/l10n.dart';
+import 'package:meprop_asset_tracker/utils/currency_utils.dart';
+import 'package:meprop_asset_tracker/utils/data_fetch_utils.dart';
+import 'package:meprop_asset_tracker/utils/date_utils.dart';
+import 'package:meprop_asset_tracker/utils/parameters.dart';
+import 'package:meprop_asset_tracker/utils/url_utils.dart';
 import 'package:show_network_image/show_network_image.dart';
 
 class PropertiesForSaleSecondary extends StatefulWidget {
@@ -81,7 +81,8 @@ class _PropertiesForSaleSecondaryState extends State<PropertiesForSaleSecondary>
       // Si on veut cacher les offres non whitelistées, on vérifie
       if (hideNonWhitelisted) {
         final String? tokenIdentifier = offer['token_to_sell'] ?? offer['token_to_buy'];
-        final bool isOfferWhitelisted = dataManager.whitelistTokens.any((whitelisted) => whitelisted['token'].toLowerCase() == tokenIdentifier?.toLowerCase());
+        final bool isOfferWhitelisted = dataManager.whitelistTokens
+            .any((whitelisted) => whitelisted['token'].toLowerCase() == tokenIdentifier?.toLowerCase());
         if (!isOfferWhitelisted) continue;
       }
 
@@ -217,7 +218,8 @@ class _PropertiesForSaleSecondaryState extends State<PropertiesForSaleSecondary>
                                 hideNonWhitelisted = !hideNonWhitelisted;
                               });
                             },
-                            customColor: hideNonWhitelisted ? Colors.red.withOpacity(0.2) : Colors.green.withOpacity(0.2),
+                            customColor:
+                                hideNonWhitelisted ? Colors.red.withOpacity(0.2) : Colors.green.withOpacity(0.2),
                           ),
                         ],
                       ),
@@ -276,7 +278,8 @@ class _PropertiesForSaleSecondaryState extends State<PropertiesForSaleSecondary>
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.arrow_upward, size: 14, color: ascending ? Theme.of(context).primaryColor : Colors.grey),
+                              Icon(Icons.arrow_upward,
+                                  size: 14, color: ascending ? Theme.of(context).primaryColor : Colors.grey),
                               SizedBox(width: 3),
                               Text(
                                 "Ascendant",
@@ -293,7 +296,8 @@ class _PropertiesForSaleSecondaryState extends State<PropertiesForSaleSecondary>
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.arrow_downward, size: 14, color: !ascending ? Theme.of(context).primaryColor : Colors.grey),
+                              Icon(Icons.arrow_downward,
+                                  size: 14, color: !ascending ? Theme.of(context).primaryColor : Colors.grey),
                               SizedBox(width: 3),
                               Text(
                                 "Descendant",
@@ -348,17 +352,24 @@ class _PropertiesForSaleSecondaryState extends State<PropertiesForSaleSecondary>
                           itemBuilder: (context, index) {
                             String tokenKey = groupedOffers.keys.elementAt(index);
                             List<Map<String, dynamic>> offers = groupedOffers[tokenKey]!;
-                            final imageUrl = (offers.first['imageLink'] != null && offers.first['imageLink'] is List && offers.first['imageLink'].isNotEmpty) ? offers.first['imageLink'][0] : '';
+                            final imageUrl = (offers.first['imageLink'] != null &&
+                                    offers.first['imageLink'] is List &&
+                                    offers.first['imageLink'].isNotEmpty)
+                                ? offers.first['imageLink'][0]
+                                : '';
                             final shortName = offers.first['shortName'] ?? 'N/A';
                             final country = offers.first['country'] ?? 'USA';
-                            final String? tokenIdentifier = offers.first['token_to_sell'] ?? offers.first['token_to_buy'];
-                            final bool isWhitelisted = dataManager.whitelistTokens.any((whitelisted) => whitelisted['token'].toLowerCase() == tokenIdentifier?.toLowerCase());
+                            final String? tokenIdentifier =
+                                offers.first['token_to_sell'] ?? offers.first['token_to_buy'];
+                            final bool isWhitelisted = dataManager.whitelistTokens.any(
+                                (whitelisted) => whitelisted['token'].toLowerCase() == tokenIdentifier?.toLowerCase());
 
                             // Card style iOS
                             return Container(
                               margin: const EdgeInsets.symmetric(vertical: 3),
                               decoration: BoxDecoration(
-                                color: Theme.of(context).brightness == Brightness.light ? Colors.white : Color(0xFF1C1C1E),
+                                color:
+                                    Theme.of(context).brightness == Brightness.light ? Colors.white : Color(0xFF1C1C1E),
                                 borderRadius: BorderRadius.circular(14),
                                 boxShadow: [
                                   BoxShadow(
@@ -397,7 +408,9 @@ class _PropertiesForSaleSecondaryState extends State<PropertiesForSaleSecondary>
                                             child: Container(
                                               padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                               decoration: BoxDecoration(
-                                                color: isWhitelisted ? Colors.green.withOpacity(0.8) : Colors.red.withOpacity(0.8),
+                                                color: isWhitelisted
+                                                    ? Colors.green.withOpacity(0.8)
+                                                    : Colors.red.withOpacity(0.8),
                                                 borderRadius: BorderRadius.circular(10),
                                               ),
                                               child: Row(
@@ -410,10 +423,14 @@ class _PropertiesForSaleSecondaryState extends State<PropertiesForSaleSecondary>
                                                   ),
                                                   SizedBox(width: 2),
                                                   Text(
-                                                    isWhitelisted ? S.of(context).tokenWhitelisted : S.of(context).tokenNotWhitelisted,
+                                                    isWhitelisted
+                                                        ? S.of(context).tokenWhitelisted
+                                                        : S.of(context).tokenNotWhitelisted,
                                                     style: TextStyle(
                                                       color: Colors.white,
-                                                      fontSize: 9 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
+                                                      fontSize: 9 +
+                                                          Provider.of<AppState>(context, listen: false)
+                                                              .getTextSizeOffset(),
                                                       fontWeight: FontWeight.bold,
                                                     ),
                                                   ),
@@ -458,14 +475,18 @@ class _PropertiesForSaleSecondaryState extends State<PropertiesForSaleSecondary>
                                           ...offers.map((offer) {
                                             bool isTokenWhitelisted = true;
                                             if (selectedOfferType == "vente") {
-                                              return _buildSaleOfferCard(context, appState, currencyUtils, offer, isTokenWhitelisted);
+                                              return _buildSaleOfferCard(
+                                                  context, appState, currencyUtils, offer, isTokenWhitelisted);
                                             } else if (selectedOfferType == "achat") {
-                                              return _buildPurchaseOfferCard(context, appState, currencyUtils, offer, isTokenWhitelisted);
+                                              return _buildPurchaseOfferCard(
+                                                  context, appState, currencyUtils, offer, isTokenWhitelisted);
                                             } else {
                                               if (offer['token_to_buy'] == null) {
-                                                return _buildSaleOfferCard(context, appState, currencyUtils, offer, isTokenWhitelisted);
+                                                return _buildSaleOfferCard(
+                                                    context, appState, currencyUtils, offer, isTokenWhitelisted);
                                               } else {
-                                                return _buildPurchaseOfferCard(context, appState, currencyUtils, offer, isTokenWhitelisted);
+                                                return _buildPurchaseOfferCard(
+                                                    context, appState, currencyUtils, offer, isTokenWhitelisted);
                                               }
                                             }
                                           }),
@@ -488,7 +509,8 @@ class _PropertiesForSaleSecondaryState extends State<PropertiesForSaleSecondary>
   }
 
   // Widget pour créer un filtre chip style iOS
-  Widget _buildFilterChip(String type, IconData icon, bool isSelected, BuildContext context, {VoidCallback? onTap, Color? customColor}) {
+  Widget _buildFilterChip(String type, IconData icon, bool isSelected, BuildContext context,
+      {VoidCallback? onTap, Color? customColor}) {
     final color = customColor ??
         (isSelected
             ? Theme.of(context).primaryColor.withOpacity(0.2)
@@ -562,7 +584,8 @@ class _PropertiesForSaleSecondaryState extends State<PropertiesForSaleSecondary>
     final dataManager = Provider.of<DataManager>(context, listen: false);
     // Vérification du statut du token
     final String? tokenIdentifier = offer['token_to_sell'] ?? offer['token_to_buy'];
-    final bool isTokenWhitelisted = dataManager.whitelistTokens.any((whitelisted) => whitelisted['token'].toLowerCase() == tokenIdentifier?.toLowerCase());
+    final bool isTokenWhitelisted = dataManager.whitelistTokens
+        .any((whitelisted) => whitelisted['token'].toLowerCase() == tokenIdentifier?.toLowerCase());
     final baseYield = double.tryParse(offer['annualPercentageYield']?.toString() ?? '0') ?? 0;
     final initialPrice = double.tryParse(offer['token_price']?.toString() ?? '0') ?? 0;
     final offerPrice = double.tryParse(offer['token_value']?.toString() ?? '0') ?? 0;
@@ -657,7 +680,9 @@ class _PropertiesForSaleSecondaryState extends State<PropertiesForSaleSecondary>
                           child: Container(
                             padding: EdgeInsets.symmetric(vertical: 6, horizontal: 8),
                             decoration: BoxDecoration(
-                              color: Theme.of(context).brightness == Brightness.light ? Colors.grey[100] : Color(0xFF3A3A3C),
+                              color: Theme.of(context).brightness == Brightness.light
+                                  ? Colors.grey[100]
+                                  : Color(0xFF3A3A3C),
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: Column(
@@ -903,7 +928,8 @@ class _PropertiesForSaleSecondaryState extends State<PropertiesForSaleSecondary>
                               borderRadius: BorderRadius.circular(10),
                               onTap: isTokenWhitelisted
                                   ? () {
-                                      UrlUtils.launchURL('https://yambyofferid.netlify.app/?offerId=${offer['id_offer']}');
+                                      UrlUtils.launchURL(
+                                          'https://yambyofferid.netlify.app/?offerId=${offer['id_offer']}');
                                     }
                                   : null,
                               child: Container(
@@ -933,7 +959,8 @@ class _PropertiesForSaleSecondaryState extends State<PropertiesForSaleSecondary>
                 right: 10,
                 child: Builder(
                   builder: (context) {
-                    if (offer['token_to_pay'] == '0x0ca4f5554dd9da6217d62d8df2816c82bba4157b' || offer['token_to_pay'] == '0xe91d153e0b41518a2ce8dd3d7944fa863463a97d') {
+                    if (offer['token_to_pay'] == '0x0ca4f5554dd9da6217d62d8df2816c82bba4157b' ||
+                        offer['token_to_pay'] == '0xe91d153e0b41518a2ce8dd3d7944fa863463a97d') {
                       return Container(
                         padding: EdgeInsets.all(3),
                         decoration: BoxDecoration(
@@ -953,7 +980,8 @@ class _PropertiesForSaleSecondaryState extends State<PropertiesForSaleSecondary>
                           height: 18,
                         ),
                       );
-                    } else if (offer['token_to_pay'] == '0xddafbb505ad214d7b80b1f830fccc89b60fb7a83' || offer['token_to_pay'] == '0xed56f76e9cbc6a64b821e9c016eafbd3db5436d1') {
+                    } else if (offer['token_to_pay'] == '0xddafbb505ad214d7b80b1f830fccc89b60fb7a83' ||
+                        offer['token_to_pay'] == '0xed56f76e9cbc6a64b821e9c016eafbd3db5436d1') {
                       return Container(
                         padding: EdgeInsets.all(3),
                         decoration: BoxDecoration(
@@ -995,7 +1023,8 @@ class _PropertiesForSaleSecondaryState extends State<PropertiesForSaleSecondary>
   ) {
     final dataManager = Provider.of<DataManager>(context, listen: false);
     final String? tokenIdentifier = offer['token_to_sell'] ?? offer['token_to_buy'];
-    final bool isTokenWhitelisted = dataManager.whitelistTokens.any((whitelisted) => whitelisted['token'].toLowerCase() == tokenIdentifier?.toLowerCase());
+    final bool isTokenWhitelisted = dataManager.whitelistTokens
+        .any((whitelisted) => whitelisted['token'].toLowerCase() == tokenIdentifier?.toLowerCase());
 
     final double deltaValue = ((offer['token_value'] / offer['token_price'] - 1) * 100);
 
@@ -1076,7 +1105,9 @@ class _PropertiesForSaleSecondaryState extends State<PropertiesForSaleSecondary>
                           child: Container(
                             padding: EdgeInsets.symmetric(vertical: 6, horizontal: 8),
                             decoration: BoxDecoration(
-                              color: Theme.of(context).brightness == Brightness.light ? Colors.grey[100] : Color(0xFF3A3A3C),
+                              color: Theme.of(context).brightness == Brightness.light
+                                  ? Colors.grey[100]
+                                  : Color(0xFF3A3A3C),
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: Column(
@@ -1108,7 +1139,9 @@ class _PropertiesForSaleSecondaryState extends State<PropertiesForSaleSecondary>
                           child: Container(
                             padding: EdgeInsets.symmetric(vertical: 6, horizontal: 8),
                             decoration: BoxDecoration(
-                              color: Theme.of(context).brightness == Brightness.light ? Colors.grey[100] : Color(0xFF3A3A3C),
+                              color: Theme.of(context).brightness == Brightness.light
+                                  ? Colors.grey[100]
+                                  : Color(0xFF3A3A3C),
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: Column(
@@ -1122,7 +1155,8 @@ class _PropertiesForSaleSecondaryState extends State<PropertiesForSaleSecondary>
                                   ),
                                 ),
                                 Text(
-                                  currencyUtils.formatCurrency(currencyUtils.convert(offer['token_value']), currencyUtils.currencySymbol),
+                                  currencyUtils.formatCurrency(
+                                      currencyUtils.convert(offer['token_value']), currencyUtils.currencySymbol),
                                   style: TextStyle(
                                     fontSize: 14 + appState.getTextSizeOffset(),
                                     fontWeight: FontWeight.bold,
@@ -1208,7 +1242,8 @@ class _PropertiesForSaleSecondaryState extends State<PropertiesForSaleSecondary>
                 right: 10,
                 child: Builder(
                   builder: (context) {
-                    if (offer['token_to_pay'] == '0x0ca4f5554dd9da6217d62d8df2816c82bba4157b' || offer['token_to_pay'] == '0xe91d153e0b41518a2ce8dd3d7944fa863463a97d') {
+                    if (offer['token_to_pay'] == '0x0ca4f5554dd9da6217d62d8df2816c82bba4157b' ||
+                        offer['token_to_pay'] == '0xe91d153e0b41518a2ce8dd3d7944fa863463a97d') {
                       return Container(
                         padding: EdgeInsets.all(3),
                         decoration: BoxDecoration(
@@ -1228,7 +1263,8 @@ class _PropertiesForSaleSecondaryState extends State<PropertiesForSaleSecondary>
                           height: 18,
                         ),
                       );
-                    } else if (offer['token_to_pay'] == '0xddafbb505ad214d7b80b1f830fccc89b60fb7a83' || offer['token_to_pay'] == '0xed56f76e9cbc6a64b821e9c016eafbd3db5436d1') {
+                    } else if (offer['token_to_pay'] == '0xddafbb505ad214d7b80b1f830fccc89b60fb7a83' ||
+                        offer['token_to_pay'] == '0xed56f76e9cbc6a64b821e9c016eafbd3db5436d1') {
                       return Container(
                         padding: EdgeInsets.all(3),
                         decoration: BoxDecoration(

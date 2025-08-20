@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:realtoken_asset_tracker/app_state.dart';
-import 'package:realtoken_asset_tracker/managers/data_manager.dart';
-import 'package:realtoken_asset_tracker/utils/currency_utils.dart';
-import 'package:realtoken_asset_tracker/utils/text_utils.dart';
-import 'package:realtoken_asset_tracker/utils/ui_utils.dart';
-import 'package:realtoken_asset_tracker/generated/l10n.dart';
+import 'package:meprop_asset_tracker/app_state.dart';
+import 'package:meprop_asset_tracker/managers/data_manager.dart';
+import 'package:meprop_asset_tracker/utils/currency_utils.dart';
+import 'package:meprop_asset_tracker/utils/text_utils.dart';
+import 'package:meprop_asset_tracker/utils/ui_utils.dart';
+import 'package:meprop_asset_tracker/generated/l10n.dart';
 import 'dart:ui';
 
 class RmmWalletDetailsPage extends StatelessWidget {
@@ -83,7 +83,9 @@ class RmmWalletDetailsPage extends StatelessWidget {
                     delegate: SliverChildBuilderDelegate(
                       (context, index) => Padding(
                         padding: const EdgeInsets.only(bottom: 16.0),
-                        child: index < walletsWithUsage.length ? _WalletDetailCard(wallet: walletsWithUsage[index], currencyUtils: currencyUtils) : _NoUsageWalletsCard(noUsageWallets: walletsNoUsage),
+                        child: index < walletsWithUsage.length
+                            ? _WalletDetailCard(wallet: walletsWithUsage[index], currencyUtils: currencyUtils)
+                            : _NoUsageWalletsCard(noUsageWallets: walletsNoUsage),
                       ),
                       childCount: walletsWithUsage.length + (walletsNoUsage.isNotEmpty ? 1 : 0),
                     ),
@@ -176,7 +178,6 @@ class _WalletDetailCard extends StatelessWidget {
                     ),
                   ],
                 ),
-                
               ],
             ),
             const SizedBox(height: 20),
@@ -213,10 +214,8 @@ class _WalletDetailCard extends StatelessWidget {
                             context,
                             appState,
                             valueColor: Colors.green.shade700,
-                            ),
+                          ),
                           const SizedBox(height: 8),
-                    
-                            
                         ],
                         context,
                         appState,
@@ -304,7 +303,8 @@ class _WalletDetailCard extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoItem(String label, String value, BuildContext context, AppState appState, {bool isBold = false, Color? valueColor, double textSize = 14}) {
+  Widget _buildInfoItem(String label, String value, BuildContext context, AppState appState,
+      {bool isBold = false, Color? valueColor, double textSize = 14}) {
     return Row(
       children: [
         Text(
@@ -399,8 +399,8 @@ class _WalletDetailCard extends StatelessWidget {
                     width: 20,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
-                      color: theme.brightness == Brightness.light 
-                          ? Colors.black.withOpacity(0.05) 
+                      color: theme.brightness == Brightness.light
+                          ? Colors.black.withOpacity(0.05)
                           : Colors.white.withOpacity(0.1),
                     ),
                   ),
@@ -475,8 +475,8 @@ class _WalletDetailCard extends StatelessWidget {
                     width: 20,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
-                      color: theme.brightness == Brightness.light 
-                          ? Colors.black.withOpacity(0.05) 
+                      color: theme.brightness == Brightness.light
+                          ? Colors.black.withOpacity(0.05)
                           : Colors.white.withOpacity(0.1),
                     ),
                   ),
@@ -543,7 +543,9 @@ class _NoUsageWalletsCard extends StatelessWidget {
     final appState = Provider.of<AppState>(context);
 
     // Récupérer les adresses complètes sans tronquage, chaque adresse sur une nouvelle ligne
-    final List<String> addresses = noUsageWallets.map((wallet) => TextUtils.truncateWallet(wallet['address']) as String? ?? S.of(context).unknown).toList();
+    final List<String> addresses = noUsageWallets
+        .map((wallet) => TextUtils.truncateWallet(wallet['address']) as String? ?? S.of(context).unknown)
+        .toList();
 
     return Container(
       decoration: BoxDecoration(

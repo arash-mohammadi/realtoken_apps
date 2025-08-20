@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:provider/provider.dart';
-import 'package:realtoken_asset_tracker/managers/data_manager.dart';
-import 'package:realtoken_asset_tracker/app_state.dart';
-import 'package:realtoken_asset_tracker/utils/ui_utils.dart';
-import 'package:realtoken_asset_tracker/generated/l10n.dart';
-import 'package:realtoken_asset_tracker/pages/Statistics/portfolio/common_functions.dart';
+import 'package:meprop_asset_tracker/managers/data_manager.dart';
+import 'package:meprop_asset_tracker/app_state.dart';
+import 'package:meprop_asset_tracker/utils/ui_utils.dart';
+import 'package:meprop_asset_tracker/generated/l10n.dart';
+import 'package:meprop_asset_tracker/pages/Statistics/portfolio/common_functions.dart';
 
 class TokenDistributionByCountryCard extends StatefulWidget {
   final DataManager dataManager;
@@ -312,7 +312,9 @@ class _TokenDistributionByCountryCardState extends State<TokenDistributionByCoun
                   country,
                   style: TextStyle(
                     fontSize: 12 + appState.getTextSizeOffset(),
-                    color: _selectedIndexNotifierCountry.value == index ? color : Theme.of(context).textTheme.bodyMedium?.color,
+                    color: _selectedIndexNotifierCountry.value == index
+                        ? color
+                        : Theme.of(context).textTheme.bodyMedium?.color,
                     fontWeight: _selectedIndexNotifierCountry.value == index ? FontWeight.w600 : FontWeight.normal,
                   ),
                 ),

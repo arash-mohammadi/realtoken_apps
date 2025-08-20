@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-import 'package:realtoken_asset_tracker/managers/data_manager.dart';
-import 'package:realtoken_asset_tracker/app_state.dart';
-import 'package:realtoken_asset_tracker/generated/l10n.dart';
+import 'package:meprop_asset_tracker/managers/data_manager.dart';
+import 'package:meprop_asset_tracker/app_state.dart';
+import 'package:meprop_asset_tracker/generated/l10n.dart';
 
 class TokenCountEvolutionChart extends StatefulWidget {
   final DataManager dataManager;
@@ -358,7 +358,7 @@ class _TokenCountEvolutionChartState extends State<TokenCountEvolutionChart> {
   List<FlSpot> _calculateTokenCountEvolution() {
     // Collecter toutes les transactions avec leurs dates
     List<Map<String, dynamic>> allTransactions = [];
-    
+
     for (var tokenTransactions in widget.dataManager.transactionsByToken.values) {
       for (var transaction in tokenTransactions) {
         final timestamp = transaction['timestamp'];
@@ -375,7 +375,7 @@ class _TokenCountEvolutionChartState extends State<TokenCountEvolutionChart> {
           } else {
             continue;
           }
-          
+
           allTransactions.add({
             'date': date,
             'type': transaction['transactionType'] ?? 'unknown',
@@ -400,7 +400,7 @@ class _TokenCountEvolutionChartState extends State<TokenCountEvolutionChart> {
       final DateTime date = transaction['date'];
       final String tokenId = transaction['tokenId'];
       final String type = transaction['type'];
-      
+
       String periodKey;
       if (_selectedPeriod == 'week') {
         final weekStart = date.subtract(Duration(days: date.weekday - 1));
@@ -434,7 +434,7 @@ class _TokenCountEvolutionChartState extends State<TokenCountEvolutionChart> {
 
   List<String> _buildDateLabels() {
     List<Map<String, dynamic>> allTransactions = [];
-    
+
     for (var tokenTransactions in widget.dataManager.transactionsByToken.values) {
       for (var transaction in tokenTransactions) {
         final timestamp = transaction['timestamp'];
@@ -451,7 +451,7 @@ class _TokenCountEvolutionChartState extends State<TokenCountEvolutionChart> {
           } else {
             continue;
           }
-          
+
           allTransactions.add({
             'date': date,
             'type': transaction['transactionType'] ?? 'unknown',
@@ -474,7 +474,7 @@ class _TokenCountEvolutionChartState extends State<TokenCountEvolutionChart> {
       final DateTime date = transaction['date'];
       final String tokenId = transaction['tokenId'];
       final String type = transaction['type'];
-      
+
       String periodKey;
       if (_selectedPeriod == 'week') {
         final weekStart = date.subtract(Duration(days: date.weekday - 1));
@@ -494,4 +494,4 @@ class _TokenCountEvolutionChartState extends State<TokenCountEvolutionChart> {
 
     return tokensByPeriod.keys.toList()..sort();
   }
-} 
+}

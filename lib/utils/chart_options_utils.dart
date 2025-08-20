@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
-import 'package:realtoken_asset_tracker/app_state.dart';
-import 'package:realtoken_asset_tracker/generated/l10n.dart';
+import 'package:meprop_asset_tracker/app_state.dart';
+import 'package:meprop_asset_tracker/generated/l10n.dart';
 
 class ChartOptionsUtils {
   /// Construit le sélecteur de type de graphique (barre ou ligne)
@@ -14,7 +14,7 @@ class ChartOptionsUtils {
   }) {
     final appState = Provider.of<AppState>(context, listen: false);
     final primaryColor = Theme.of(context).primaryColor;
-    
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -98,7 +98,7 @@ class ChartOptionsUtils {
       ],
     );
   }
-  
+
   /// Construit le sélecteur de plage temporelle
   static Widget buildTimeRangeSelector({
     required BuildContext context,
@@ -109,7 +109,7 @@ class ChartOptionsUtils {
     final appState = Provider.of<AppState>(context, listen: false);
     final primaryColor = Theme.of(context).primaryColor;
     final textColor = Theme.of(context).textTheme.bodyLarge?.color;
-    
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -262,7 +262,7 @@ class ChartOptionsUtils {
       ],
     );
   }
-  
+
   /// Construit le sélecteur de période d'affichage
   static Widget buildPeriodSelector({
     required BuildContext context,
@@ -273,7 +273,7 @@ class ChartOptionsUtils {
     final appState = Provider.of<AppState>(context, listen: false);
     final primaryColor = Theme.of(context).primaryColor;
     final textColor = Theme.of(context).textTheme.bodyLarge?.color;
-    
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -439,7 +439,7 @@ class ChartOptionsUtils {
     VoidCallback? onEditPressed,
   }) {
     final appState = Provider.of<AppState>(context, listen: false);
-    
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -478,7 +478,7 @@ class ChartOptionsUtils {
                     ),
                   ),
                 ),
-                
+
                 Padding(
                   padding: const EdgeInsets.symmetric(
                     vertical: 24.0,
@@ -495,12 +495,12 @@ class ChartOptionsUtils {
                         onChartTypeChanged: onChartTypeChanged,
                         onClose: () => Navigator.of(context).pop(),
                       ),
-                      
+
                       const Padding(
                         padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                         child: Divider(height: 1, thickness: 0.5),
                       ),
-                      
+
                       // Sélecteur de plage de temps
                       buildTimeRangeSelector(
                         context: context,
@@ -508,12 +508,12 @@ class ChartOptionsUtils {
                         onTimeRangeChanged: onTimeRangeChanged,
                         onClose: () => Navigator.of(context).pop(),
                       ),
-                      
+
                       const Padding(
                         padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                         child: Divider(height: 1, thickness: 0.5),
                       ),
-                      
+
                       // Sélecteur de période
                       buildPeriodSelector(
                         context: context,
@@ -521,7 +521,7 @@ class ChartOptionsUtils {
                         onPeriodChanged: onPeriodChanged,
                         onClose: () => Navigator.of(context).pop(),
                       ),
-                      
+
                       if (onEditPressed != null) ...[
                         const Padding(
                           padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -563,4 +563,4 @@ class ChartOptionsUtils {
       },
     );
   }
-} 
+}

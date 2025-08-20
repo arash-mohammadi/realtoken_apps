@@ -1,8 +1,8 @@
 import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:realtoken_asset_tracker/models/balance_record.dart';
-import 'package:realtoken_asset_tracker/models/apy_record.dart';
+import 'package:meprop_asset_tracker/models/balance_record.dart';
+import 'package:meprop_asset_tracker/models/apy_record.dart';
 
 /// Gestionnaire dédié aux calculs et au suivi de l'APY
 /// Centralise toutes les méthodes de calcul d'APY, ROI et autres métriques financières
@@ -36,7 +36,6 @@ class ApyManager extends ChangeNotifier {
 
     // Vérifier les valeurs invalides
     if (initialBalance <= 0 || finalBalance <= 0) {
-     
       return 0;
     }
 
@@ -45,13 +44,11 @@ class ApyManager extends ChangeNotifier {
 
     // Ignorer si la différence est trop faible ou nulle (seuil réduit à 0.00001%)
     if (percentageChange.abs() < 0.00001) {
-     
       return 0; // Ne pas prendre en compte cette paire
     }
 
     // Ignorer si la différence est supérieure à 25% ou inférieure à 0% (dépôt ou retrait)
     if (percentageChange > 25 || percentageChange < 0) {
-    
       return 0; // Ne pas prendre en compte cette paire
     }
 
@@ -60,7 +57,6 @@ class ApyManager extends ChangeNotifier {
 
     // Si la durée est trop courte (moins d'une minute), ignorer la paire
     if (timePeriodInSeconds < 60) {
-     
       return 0;
     }
 
@@ -69,7 +65,6 @@ class ApyManager extends ChangeNotifier {
 
     // Si la période est trop courte, cela peut causer des NaN dans le calcul
     if (timePeriodInYears <= 0) {
-    
       return 0;
     }
 
@@ -78,19 +73,16 @@ class ApyManager extends ChangeNotifier {
     try {
       apy = (math.pow((1 + percentageChange / 100), (1 / timePeriodInYears)) - 1) * 100;
     } catch (e) {
-    
       return 0;
     }
 
     // Vérifier si le résultat est NaN
     if (apy.isNaN) {
-     
       return 0;
     }
 
     // Vérifier que l'APY calculé est dans les limites acceptables
     if (apy <= 0 || apy > 25) {
-     
       return 0;
     }
 
@@ -125,7 +117,7 @@ class ApyManager extends ChangeNotifier {
             totalAPY += apy;
             count++;
             validPairsFound++;
-       
+
             break; // Passer à la prochaine paire de base
           }
         }
@@ -139,7 +131,6 @@ class ApyManager extends ChangeNotifier {
 
     // Vérification finale pour NaN
     if (result.isNaN) {
-    
       return 0;
     }
 
@@ -213,7 +204,6 @@ class ApyManager extends ChangeNotifier {
 
     // Vérification finale pour NaN
     if (ema.isNaN) {
-      
       return 0;
     }
 
@@ -255,7 +245,8 @@ class ApyManager extends ChangeNotifier {
         final double recencyWeight = math.exp(0.1 * (i - recentHistory.length + 1));
 
         // La durée entre les mesures (en jours) - inversement proportionnelle au poids
-        final double durationInDays = recentHistory[i].timestamp.difference(recentHistory[i - 1].timestamp).inHours / 24;
+        final double durationInDays =
+            recentHistory[i].timestamp.difference(recentHistory[i - 1].timestamp).inHours / 24;
 
         // Plus la durée est courte, plus le poids est élevé
         final double frequencyWeight = 1.0 / math.max(1.0, durationInDays);
@@ -275,7 +266,6 @@ class ApyManager extends ChangeNotifier {
 
     // Vérification finale pour NaN
     if (result.isNaN) {
-     
       return 0;
     }
 
@@ -306,7 +296,6 @@ class ApyManager extends ChangeNotifier {
 
     // Vérifier si le résultat est NaN et le remplacer par 0 le cas échéant
     if (result.isNaN) {
-     
       return 0.0;
     }
 
@@ -498,5 +487,4 @@ class ApyManager extends ChangeNotifier {
       return Colors.green;
     }
   }
-
 }

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:provider/provider.dart';
-import 'package:realtoken_asset_tracker/managers/data_manager.dart';
-import 'package:realtoken_asset_tracker/app_state.dart';
-import 'package:realtoken_asset_tracker/generated/l10n.dart';
-import 'package:realtoken_asset_tracker/utils/currency_utils.dart';
+import 'package:meprop_asset_tracker/managers/data_manager.dart';
+import 'package:meprop_asset_tracker/app_state.dart';
+import 'package:meprop_asset_tracker/generated/l10n.dart';
+import 'package:meprop_asset_tracker/utils/currency_utils.dart';
 
 class RoiByTokenChart extends StatefulWidget {
   final DataManager dataManager;
@@ -192,7 +192,7 @@ class _RoiByTokenChartState extends State<RoiByTokenChart> {
 
   Widget _buildRoiChart(BuildContext context) {
     final List<Map<String, dynamic>> roiData = _calculateRoiData();
-    
+
     if (roiData.isEmpty) {
       return Center(
         child: Text(
@@ -285,7 +285,7 @@ class _RoiByTokenChartState extends State<RoiByTokenChart> {
               final index = entry.key;
               final data = entry.value;
               final roi = data['roi'];
-              
+
               Color barColor;
               if (roi >= 10) {
                 barColor = const Color(0xFF34C759); // Vert pour ROI élevé
@@ -331,11 +331,11 @@ class _RoiByTokenChartState extends State<RoiByTokenChart> {
     for (var token in widget.dataManager.portfolio) {
       final double totalRentReceived = (token['totalRentReceived'] ?? 0.0).toDouble();
       final double initialTotalValue = (token['initialTotalValue'] ?? 0.0).toDouble();
-      
+
       // Calculer le ROI seulement si on a un investissement initial
       if (initialTotalValue > 0.001) {
         final double roi = (totalRentReceived / initialTotalValue) * 100;
-        
+
         roiData.add({
           'shortName': token['shortName'] ?? 'Unknown',
           'fullName': token['fullName'] ?? 'Unknown',
@@ -360,4 +360,4 @@ class _RoiByTokenChartState extends State<RoiByTokenChart> {
 
     return roiData;
   }
-} 
+}

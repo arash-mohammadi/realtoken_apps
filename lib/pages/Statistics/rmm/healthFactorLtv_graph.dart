@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-import 'package:realtoken_asset_tracker/managers/data_manager.dart';
-import 'package:realtoken_asset_tracker/generated/l10n.dart';
-import 'package:realtoken_asset_tracker/app_state.dart';
-import 'package:realtoken_asset_tracker/utils/chart_utils.dart';
-import 'package:realtoken_asset_tracker/utils/date_utils.dart';
+import 'package:meprop_asset_tracker/managers/data_manager.dart';
+import 'package:meprop_asset_tracker/generated/l10n.dart';
+import 'package:meprop_asset_tracker/app_state.dart';
+import 'package:meprop_asset_tracker/utils/chart_utils.dart';
+import 'package:meprop_asset_tracker/utils/date_utils.dart';
 
 class HealthAndLtvHistoryGraph extends StatefulWidget {
   final DataManager dataManager;
@@ -109,7 +109,9 @@ class _HealthAndLtvHistoryGraphState extends State<HealthAndLtvHistoryGraph> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
                       decoration: BoxDecoration(
-                        color: Theme.of(context).brightness == Brightness.dark ? Colors.black12 : Colors.black.withOpacity(0.05),
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Colors.black12
+                            : Colors.black.withOpacity(0.05),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Row(
@@ -135,7 +137,9 @@ class _HealthAndLtvHistoryGraphState extends State<HealthAndLtvHistoryGraph> {
                               },
                               activeColor: const Color(0xFF007AFF), // Bleu iOS
                               trackColor: MaterialStateProperty.resolveWith(
-                                (states) => states.contains(MaterialState.selected) ? Theme.of(context).primaryColor : Colors.grey.withOpacity(0.3),
+                                (states) => states.contains(MaterialState.selected)
+                                    ? Theme.of(context).primaryColor
+                                    : Colors.grey.withOpacity(0.3),
                               ),
                             ),
                           ),
@@ -154,7 +158,9 @@ class _HealthAndLtvHistoryGraphState extends State<HealthAndLtvHistoryGraph> {
                     // Bouton pour changer de type de graphique
                     Container(
                       decoration: BoxDecoration(
-                        color: Theme.of(context).brightness == Brightness.dark ? Colors.black12 : Colors.black.withOpacity(0.05),
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Colors.black12
+                            : Colors.black.withOpacity(0.05),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: IconButton(
@@ -190,7 +196,8 @@ class _HealthAndLtvHistoryGraphState extends State<HealthAndLtvHistoryGraph> {
                 // Affichage du graphique (barres ou lignes)
                 Expanded(
                   child: widget.healthAndLtvIsBarChart
-                      ? _buildBarChart(context, appState, groupedData, _buildDateLabelsForHealthAndLtv(context, widget.dataManager, widget.selectedPeriod))
+                      ? _buildBarChart(context, appState, groupedData,
+                          _buildDateLabelsForHealthAndLtv(context, widget.dataManager, widget.selectedPeriod))
                       : _buildLineChart(context, appState, groupedData, spots, maxY),
                 ),
                 // Indicateur de la métrique actuelle
@@ -529,7 +536,10 @@ class _HealthAndLtvHistoryGraphState extends State<HealthAndLtvHistoryGraph> {
               },
               checkToShowDot: (spot, barData) {
                 // Afficher les points aux extrémités et quelques points intermédiaires
-                return spot.x == 0 || spot.x == barData.spots.length - 1 || spot.x % (barData.spots.length > 8 ? 4 : 2) == 0 || _selectedSpotIndex == spot.x.toInt();
+                return spot.x == 0 ||
+                    spot.x == barData.spots.length - 1 ||
+                    spot.x % (barData.spots.length > 8 ? 4 : 2) == 0 ||
+                    _selectedSpotIndex == spot.x.toInt();
               },
             ),
             belowBarData: BarAreaData(

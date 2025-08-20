@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
-import 'package:realtoken_asset_tracker/app_state.dart';
+import 'package:meprop_asset_tracker/app_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:realtoken_asset_tracker/generated/l10n.dart';
+import 'package:meprop_asset_tracker/generated/l10n.dart';
 
 class AdvancedSettingsPage extends StatefulWidget {
   const AdvancedSettingsPage({super.key});
@@ -26,7 +26,7 @@ class _AdvancedSettingsPageState extends State<AdvancedSettingsPage> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Cache et données supprimés')),
+      SnackBar(content: Text(S.of(context).cacheDataCleared)),
     );
   }
 
@@ -49,7 +49,7 @@ class _AdvancedSettingsPageState extends State<AdvancedSettingsPage> {
         padding: EdgeInsets.zero,
         children: [
           const SizedBox(height: 12),
-          _buildSectionHeader(context, "Historique YAM", CupertinoIcons.chart_bar_alt_fill),
+          _buildSectionHeader(context, S.of(context).yamHistoryHeader, CupertinoIcons.chart_bar_alt_fill),
           _buildSettingsSection(
             context,
             children: [
@@ -65,7 +65,7 @@ class _AdvancedSettingsPageState extends State<AdvancedSettingsPage> {
             ],
           ),
           const SizedBox(height: 12),
-          _buildSectionHeader(context, "Réactivité APY", CupertinoIcons.waveform_path),
+          _buildSectionHeader(context, S.of(context).apyReactivityHeader, CupertinoIcons.waveform_path),
           _buildSettingsSection(
             context,
             footnote: 'Ajustez la sensibilité du calcul d\'APY aux variations récentes',
@@ -74,7 +74,9 @@ class _AdvancedSettingsPageState extends State<AdvancedSettingsPage> {
                 padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
                 child: Row(
                   children: [
-                    Text('Lisse', style: TextStyle(fontSize: 13 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
+                    Text(S.of(context).smooth,
+                        style: TextStyle(
+                            fontSize: 13 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
                     Expanded(
                       child: Slider.adaptive(
                         value: _apyReactivity,
@@ -92,7 +94,7 @@ class _AdvancedSettingsPageState extends State<AdvancedSettingsPage> {
                         },
                       ),
                     ),
-                    Text('Réactif', style: TextStyle(fontSize: 13)),
+                    Text(S.of(context).reactive, style: TextStyle(fontSize: 13)),
                   ],
                 ),
               ),
@@ -109,13 +111,13 @@ class _AdvancedSettingsPageState extends State<AdvancedSettingsPage> {
             ],
           ),
           const SizedBox(height: 12),
-          _buildSectionHeader(context, "Gestion des données", CupertinoIcons.delete),
+          _buildSectionHeader(context, S.of(context).dataManagement, CupertinoIcons.delete),
           _buildSettingsSection(
             context,
             children: [
               _buildSettingsItem(
                 context,
-                title: 'Effacer le cache et les données',
+                title: S.of(context).clearCacheAndData,
                 trailing: const Icon(CupertinoIcons.delete, color: Colors.red, size: 14),
                 onTap: () => _showDeleteConfirmation(context),
                 isFirst: true,
@@ -263,17 +265,17 @@ class _AdvancedSettingsPageState extends State<AdvancedSettingsPage> {
     showCupertinoDialog(
       context: context,
       builder: (context) => CupertinoAlertDialog(
-        title: const Text('Confirmer la suppression'),
-        content: const Text('Êtes-vous sûr de vouloir effacer toutes les données et le cache? Cette action est irréversible.'),
+        title: Text(S.of(context).confirmDeletionTitle),
+        content: Text(S.of(context).confirmDeletionMessage),
         actions: [
           CupertinoDialogAction(
             isDefaultAction: true,
-            child: const Text('Annuler'),
+            child: Text(S.of(context).cancel),
             onPressed: () => Navigator.pop(context),
           ),
           CupertinoDialogAction(
             isDestructiveAction: true,
-            child: const Text('Supprimer'),
+            child: Text(S.of(context).delete),
             onPressed: () {
               Navigator.pop(context);
               _clearCacheAndData(context);
@@ -287,15 +289,15 @@ class _AdvancedSettingsPageState extends State<AdvancedSettingsPage> {
   // Fonction pour obtenir un libellé descriptif en fonction de la valeur de réactivité
   String _getApyReactivityLabel() {
     if (_apyReactivity < 0.2) {
-      return 'Très lisse';
+      return '${S.of(context).smooth} (very)';
     } else if (_apyReactivity < 0.4) {
-      return 'Lisse';
+      return S.of(context).smooth;
     } else if (_apyReactivity < 0.6) {
-      return 'Équilibré';
+      return 'Balanced';
     } else if (_apyReactivity < 0.8) {
-      return 'Réactif';
+      return S.of(context).reactive;
     } else {
-      return 'Très réactif';
+      return '${S.of(context).reactive} (very)';
     }
   }
 
@@ -325,10 +327,10 @@ class _AdvancedSettingsPageState extends State<AdvancedSettingsPage> {
                     CupertinoButton(
                       padding: EdgeInsets.zero,
                       onPressed: () => Navigator.pop(context),
-                      child: Text("Annuler", style: TextStyle(color: CupertinoColors.destructiveRed)),
+                      child: Text(S.of(context).cancel, style: TextStyle(color: CupertinoColors.destructiveRed)),
                     ),
                     Text(
-                      "Jours d'historique",
+                      S.of(context).historyDays,
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
@@ -343,7 +345,7 @@ class _AdvancedSettingsPageState extends State<AdvancedSettingsPage> {
                         _saveDaysLimit(_daysLimit);
                         Navigator.pop(context);
                       },
-                      child: Text("OK"),
+                      child: Text(S.of(context).ok),
                     ),
                   ],
                 ),

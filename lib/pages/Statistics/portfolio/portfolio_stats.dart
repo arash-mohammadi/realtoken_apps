@@ -1,21 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:provider/provider.dart';
-import 'package:realtoken_asset_tracker/managers/data_manager.dart';
-import 'package:realtoken_asset_tracker/pages/Statistics/portfolio/charts/rent_distribution_chart.dart';
-import 'package:realtoken_asset_tracker/pages/Statistics/portfolio/charts/rent_distribution_by_product_type_chart.dart';
-import 'package:realtoken_asset_tracker/pages/Statistics/portfolio/charts/rented_graph.dart';
-import 'package:realtoken_asset_tracker/pages/Statistics/portfolio/charts/token_distribution_by_city_card.dart';
-import 'package:realtoken_asset_tracker/pages/Statistics/portfolio/charts/token_distribution_by_country_card.dart';
-import 'package:realtoken_asset_tracker/pages/Statistics/portfolio/charts/token_distribution_by_region_card.dart';
-import 'package:realtoken_asset_tracker/pages/Statistics/portfolio/charts/token_distribution_by_wallet_card.dart';
-import 'package:realtoken_asset_tracker/pages/Statistics/portfolio/charts/token_distribution_chart.dart';
-import 'package:realtoken_asset_tracker/pages/Statistics/portfolio/charts/roi_by_token_chart.dart';
-import 'package:realtoken_asset_tracker/pages/Statistics/portfolio/charts/token_count_evolution_chart.dart';
-import 'package:realtoken_asset_tracker/pages/Statistics/portfolio/charts/performance_by_region_chart.dart';
-import 'package:realtoken_asset_tracker/pages/Statistics/portfolio/charts/rental_status_distribution_chart.dart';
-import 'package:realtoken_asset_tracker/utils/data_fetch_utils.dart';
-import 'package:realtoken_asset_tracker/generated/l10n.dart';
+import 'package:meprop_asset_tracker/managers/data_manager.dart';
+import 'package:meprop_asset_tracker/pages/Statistics/portfolio/charts/rent_distribution_chart.dart';
+import 'package:meprop_asset_tracker/pages/Statistics/portfolio/charts/rent_distribution_by_product_type_chart.dart';
+import 'package:meprop_asset_tracker/pages/Statistics/portfolio/charts/rented_graph.dart';
+import 'package:meprop_asset_tracker/pages/Statistics/portfolio/charts/token_distribution_by_city_card.dart';
+import 'package:meprop_asset_tracker/pages/Statistics/portfolio/charts/token_distribution_by_country_card.dart';
+import 'package:meprop_asset_tracker/pages/Statistics/portfolio/charts/token_distribution_by_region_card.dart';
+import 'package:meprop_asset_tracker/pages/Statistics/portfolio/charts/token_distribution_by_wallet_card.dart';
+import 'package:meprop_asset_tracker/pages/Statistics/portfolio/charts/token_distribution_chart.dart';
+import 'package:meprop_asset_tracker/pages/Statistics/portfolio/charts/roi_by_token_chart.dart';
+import 'package:meprop_asset_tracker/pages/Statistics/portfolio/charts/token_count_evolution_chart.dart';
+import 'package:meprop_asset_tracker/pages/Statistics/portfolio/charts/performance_by_region_chart.dart';
+import 'package:meprop_asset_tracker/pages/Statistics/portfolio/charts/rental_status_distribution_chart.dart';
+import 'package:meprop_asset_tracker/utils/data_fetch_utils.dart';
+import 'package:meprop_asset_tracker/generated/l10n.dart';
 
 class PortfolioStats extends StatefulWidget {
   const PortfolioStats({super.key});
@@ -37,9 +37,11 @@ class _PortfolioStats extends State<PortfolioStats> {
       try {
         // Vérifier si les données sont déjà disponibles
         final dataManager = Provider.of<DataManager>(context, listen: false);
-        
-        if (!dataManager.isLoadingMain && dataManager.evmAddresses.isNotEmpty && 
-            dataManager.portfolio.isNotEmpty && dataManager.rentHistory.isNotEmpty) {
+
+        if (!dataManager.isLoadingMain &&
+            dataManager.evmAddresses.isNotEmpty &&
+            dataManager.portfolio.isNotEmpty &&
+            dataManager.rentHistory.isNotEmpty) {
           debugPrint("📊 Stats: données déjà chargées, skip chargement");
         } else {
           debugPrint("📊 Stats: chargement des données nécessaire");
@@ -99,7 +101,7 @@ class _PortfolioStats extends State<PortfolioStats> {
                     (BuildContext context, int index) {
                       // Vérification de sécurité pour éviter les erreurs de renderObject
                       if (!mounted) return const SizedBox.shrink();
-                      
+
                       return _buildChartWidget(context, index, dataManager);
                     },
                     childCount: 12,

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:realtoken_asset_tracker/managers/data_manager.dart';
-import 'package:realtoken_asset_tracker/utils/preference_keys.dart';
+import 'package:meprop_asset_tracker/managers/data_manager.dart';
+import 'package:meprop_asset_tracker/utils/preference_keys.dart';
 
 // Fonction pour récupérer la couleur enregistrée
 Future<Color> getSavedPrimaryColor() async {
@@ -20,7 +20,9 @@ Future<void> savePrimaryColor(String colorName) async {
 Color _getColorFromName(String colorName) {
   switch (colorName) {
     case 'blue':
-      return Colors.blue;
+      return Color(0xff4276fe);
+    case 'cyan':
+      return Color(0xff0f7581);
     case 'orange':
       return Color.fromRGBO(237, 137, 32, 1);
     case 'pink':
@@ -47,10 +49,8 @@ Color _getColorFromName(String colorName) {
       return Colors.lime;
     case 'brown':
       return Colors.brown;
-    case 'cyan':
-      return Colors.cyan;
     default:
-      return Colors.blue;
+      return Color(0xff4276fe); // Default to blue if unknown
   }
 }
 
@@ -60,7 +60,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   String selectedTextSize = 'normal'; // Default text size
   String selectedLanguage = 'en'; // Default language
   List<String>? evmAddresses; // Variable for storing EVM addresses
-  Color _primaryColor = Colors.blue; // Default primary color
+  Color _primaryColor = Color(0xff4276fe);
   bool _showAmounts = true; // Par défaut, les montants sont visibles
   DataManager? dataManager; // Référence au DataManager
 
@@ -82,10 +82,10 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   /// Retourne true si la popup dons doit être affichée (après 10 ouvertures ET au moins 1h depuis la dernière)
   bool get shouldShowDonationPopup {
     if (_appOpenCount < 10) return false;
-    
+
     final currentTimestamp = DateTime.now().millisecondsSinceEpoch;
     final oneHourInMillis = 60 * 60 * 1000; // 1 heure en millisecondes
-    
+
     // Vérifier si au moins 1 heure s'est écoulée depuis la dernière popup
     return (currentTimestamp - _lastDonationPopupTimestamp) >= oneHourInMillis;
   }
@@ -117,7 +117,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   // Load settings from SharedPreferences
   Future<void> _loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
-    
+
     // Regrouper toutes les mises à jour pour éviter les notifications multiples
     batchUpdate(() {
       isDarkTheme = prefs.getBool('isDarkTheme') ?? false;
@@ -133,10 +133,10 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       _manualAdjustment = prefs.getDouble('manualAdjustment') ?? 0.0;
       _showYamProjection = prefs.getBool('showYamProjection') ?? true;
       _initialInvestmentAdjustment = prefs.getDouble('initialInvestmentAdjustment') ?? 0.0;
-      
+
       _applyTheme(); // Apply the theme based on the loaded themeMode
     });
-    
+
     // Charger la couleur primaire séparément car elle est asynchrone
     _primaryColor = await getSavedPrimaryColor(); // Load primary color
     _notifyListenersIfNeeded();

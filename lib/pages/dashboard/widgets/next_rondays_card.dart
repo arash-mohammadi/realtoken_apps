@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:realtoken_asset_tracker/managers/data_manager.dart';
-import 'package:realtoken_asset_tracker/app_state.dart';
-import 'package:realtoken_asset_tracker/generated/l10n.dart';
-import 'package:realtoken_asset_tracker/utils/currency_utils.dart';
-import 'package:realtoken_asset_tracker/utils/ui_utils.dart';
+import 'package:meprop_asset_tracker/managers/data_manager.dart';
+import 'package:meprop_asset_tracker/app_state.dart';
+import 'package:meprop_asset_tracker/generated/l10n.dart';
+import 'package:meprop_asset_tracker/utils/currency_utils.dart';
+import 'package:meprop_asset_tracker/utils/ui_utils.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:shimmer/shimmer.dart';
 
@@ -308,7 +308,9 @@ class NextRondaysCard extends StatelessWidget {
 
       displayedDates.add(rentStartDate);
 
-      String displayDate = rentStartDate == DateTime(3000, 1, 1) ? S.of(context).dateNotCommunicated : DateFormat('dd MMM yyyy').format(rentStartDate);
+      String displayDate = rentStartDate == DateTime(3000, 1, 1)
+          ? S.of(context).dateNotCommunicated
+          : DateFormat('dd MMM yyyy').format(rentStartDate);
 
       // Calculer le nombre de jours restants
       int daysRemaining = rentStartDate.difference(today).inDays;
@@ -356,7 +358,8 @@ class NextRondaysCard extends StatelessWidget {
                 ],
               ),
               Text(
-                currencyUtils.getFormattedAmount(currencyUtils.convert(entry['cumulativeRent']), currencyUtils.currencySymbol, showAmounts),
+                currencyUtils.getFormattedAmount(
+                    currencyUtils.convert(entry['cumulativeRent']), currencyUtils.currencySymbol, showAmounts),
                 style: TextStyle(
                   fontSize: 13 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
                   fontWeight: FontWeight.w600,

@@ -20,30 +20,28 @@ typedef String MessageIfAbsent(String messageStr, List<dynamic> args);
 class MessageLookup extends MessageLookupByLibrary {
   String get localeName => 'zh';
 
-  static String m2(days) => "+${days}天";
+  static String m3(days) => "+${days}天";
 
-  static String m3(biometricType) => "您的设备支持${biometricType}";
+  static String m4(biometricType) => "您的设备支持${biometricType}";
 
-  static String m4(error) => "测试期间出错：${error}";
+  static String m5(error) => "测试期间出错：${error}";
 
-  static String m5(error) => "错误：${error}";
+  static String m6(error) => "错误：${error}";
 
-  static String m6(language) => "语言已更新为 ${language}";
+  static String m7(language) => "语言已更新为 ${language}";
 
-  static String m7(days) => "${days}天后的下一个RONday";
+  static String m8(days) => "${days}天后的下一个RONday";
 
-  static String m8(rented, total) => "已租出单元";
+  static String m9(rented, total) => "已租出单元";
 
-  static String m9(weeks) => "投资回报期：${weeks} 周";
+  static String m10(weeks) => "投资回报期：${weeks} 周";
 
-  static String m10(theme) => "主题已更新为 ${theme}";
+  static String m12(theme) => "主题已更新为 ${theme}";
 
-  static String m12(address) => "钱包已保存: ${address}";
+  static String m14(address) => "钱包已保存: ${address}";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
-        "GDrive_connexion":
-            MessageLookupByLibrary.simpleMessage("Google Drive 连接"),
         "about": MessageLookupByLibrary.simpleMessage("关于"),
         "aboutImportExport": MessageLookupByLibrary.simpleMessage(
             "此功能允许您将钱包和RMM的余额历史保存并重新导入到ZIP文件中。"),
@@ -53,10 +51,11 @@ class MessageLookup extends MessageLookupByLibrary {
         "addressCopied": MessageLookupByLibrary.simpleMessage("地址已复制到剪贴板"),
         "adjustments": MessageLookupByLibrary.simpleMessage("调整"),
         "advanced": MessageLookupByLibrary.simpleMessage("高级"),
-        "all": MessageLookupByLibrary.simpleMessage("全部"),
         "allCities": MessageLookupByLibrary.simpleMessage("所有城市"),
         "allCountries": MessageLookupByLibrary.simpleMessage("所有国家"),
+        "allProductTypes": MessageLookupByLibrary.simpleMessage("所有类型"),
         "allRegions": MessageLookupByLibrary.simpleMessage("所有地区"),
+        "allWallets": MessageLookupByLibrary.simpleMessage("所有钱包"),
         "allWorkCorrectly": MessageLookupByLibrary.simpleMessage("一切正常"),
         "amount": MessageLookupByLibrary.simpleMessage("金额"),
         "analytics": MessageLookupByLibrary.simpleMessage("分析"),
@@ -64,12 +63,12 @@ class MessageLookup extends MessageLookupByLibrary {
         "annualYield": MessageLookupByLibrary.simpleMessage("净收益率"),
         "annually": MessageLookupByLibrary.simpleMessage("每年"),
         "appDescription": MessageLookupByLibrary.simpleMessage("社区移动应用"),
-        "appName":
-            MessageLookupByLibrary.simpleMessage("RealToken Asset Tracker"),
-        "appTitle":
-            MessageLookupByLibrary.simpleMessage("RealToken Asset Tracker"),
+        "appName": MessageLookupByLibrary.simpleMessage("MeProp Asset Tracker"),
+        "appTitle": MessageLookupByLibrary.simpleMessage(" Asset Tracker"),
         "appearance": MessageLookupByLibrary.simpleMessage("Aparência"),
         "application": MessageLookupByLibrary.simpleMessage("应用"),
+        "applyProductTypes": MessageLookupByLibrary.simpleMessage("应用"),
+        "applyWallets": MessageLookupByLibrary.simpleMessage("应用"),
         "apy": MessageLookupByLibrary.simpleMessage("年收益率"),
         "apyHistory": MessageLookupByLibrary.simpleMessage("APY 历史"),
         "areYouSureClearData":
@@ -139,7 +138,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "current_yield": MessageLookupByLibrary.simpleMessage("当前收益率："),
         "daily": MessageLookupByLibrary.simpleMessage("每日"),
         "dao_description":
-            MessageLookupByLibrary.simpleMessage("realTokens DAO 的提案和讨论论坛"),
+            MessageLookupByLibrary.simpleMessage("MeProp DAO 的提案和讨论论坛"),
         "dark": MessageLookupByLibrary.simpleMessage("深色"),
         "darkTheme": MessageLookupByLibrary.simpleMessage("深色主题"),
         "dashboard": MessageLookupByLibrary.simpleMessage("仪表板"),
@@ -149,7 +148,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "day": MessageLookupByLibrary.simpleMessage("天"),
         "days": MessageLookupByLibrary.simpleMessage("天"),
         "daysLimit": MessageLookupByLibrary.simpleMessage("天数限制"),
-        "daysShort": m2,
+        "daysShort": m3,
+        "delete": MessageLookupByLibrary.simpleMessage("删除"),
         "delta_price": MessageLookupByLibrary.simpleMessage("价格差异"),
         "depositBalance": MessageLookupByLibrary.simpleMessage("存款"),
         "deposits": MessageLookupByLibrary.simpleMessage("存款"),
@@ -159,11 +159,15 @@ class MessageLookup extends MessageLookupByLibrary {
             "您的设备不支持生物认证，或者设备设置中没有注册生物识别数据。"),
         "deviceDoesNotSupportBiometric":
             MessageLookupByLibrary.simpleMessage("您的设备不支持生物认证"),
-        "deviceSupportsBiometric": m3,
+        "deviceSupportsBiometric": m4,
         "donate": MessageLookupByLibrary.simpleMessage("捐赠"),
         "donationMessage":
             MessageLookupByLibrary.simpleMessage("如果您喜欢此应用并希望支持其开发，您可以捐款。"),
         "donationTotal": MessageLookupByLibrary.simpleMessage("捐赠总额"),
+        "drawerAccounts": MessageLookupByLibrary.simpleMessage("账户"),
+        "drawerFeatures": MessageLookupByLibrary.simpleMessage("功能"),
+        "drawerSupportAndSettings":
+            MessageLookupByLibrary.simpleMessage("支持与设置"),
         "duplex": MessageLookupByLibrary.simpleMessage("复式住宅"),
         "duplicate": MessageLookupByLibrary.simpleMessage("存在于多个钱包/RMM中的物业"),
         "duplicate_title": MessageLookupByLibrary.simpleMessage("重复的物业"),
@@ -173,9 +177,9 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("启用生物认证"),
         "english": MessageLookupByLibrary.simpleMessage("English"),
         "enterValidNumber": MessageLookupByLibrary.simpleMessage("请输入有效的数字"),
-        "errorDuringTest": m4,
+        "errorDuringTest": m5,
         "errorLoadingData": MessageLookupByLibrary.simpleMessage("加载数据时出错"),
-        "error_occurred": m5,
+        "error_occurred": m6,
         "ethereumContract": MessageLookupByLibrary.simpleMessage("以太坊合约"),
         "everyContributionCounts":
             MessageLookupByLibrary.simpleMessage("每一份贡献都很重要 🙏"),
@@ -202,6 +206,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "french": MessageLookupByLibrary.simpleMessage("Francais"),
         "fullyRented": MessageLookupByLibrary.simpleMessage("完全出租"),
         "futureRents": MessageLookupByLibrary.simpleMessage("未来租金"),
+        "gDriveConnection":
+            MessageLookupByLibrary.simpleMessage("Google Drive 连接"),
         "gnosisContract": MessageLookupByLibrary.simpleMessage("Gnosis 合约"),
         "googleDriveConnection":
             MessageLookupByLibrary.simpleMessage("Google Drive连接"),
@@ -214,6 +220,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("健康因子: 更高 = 更安全"),
         "hello": MessageLookupByLibrary.simpleMessage("你好"),
         "hf": MessageLookupByLibrary.simpleMessage("HF"),
+        "historyDays": MessageLookupByLibrary.simpleMessage("历史（天）"),
         "hours": MessageLookupByLibrary.simpleMessage("小时"),
         "importButton": MessageLookupByLibrary.simpleMessage("导入"),
         "importData": MessageLookupByLibrary.simpleMessage("导入数据"),
@@ -243,7 +250,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "investment": MessageLookupByLibrary.simpleMessage("投资"),
         "italian": MessageLookupByLibrary.simpleMessage("Italiano"),
         "language": MessageLookupByLibrary.simpleMessage("语言"),
-        "languageUpdated": m6,
+        "languageUpdated": m7,
         "lastExecution": MessageLookupByLibrary.simpleMessage("最后更新"),
         "lastRentReceived": MessageLookupByLibrary.simpleMessage("您收到的最后一笔租金"),
         "last_update": MessageLookupByLibrary.simpleMessage("最后更新："),
@@ -277,7 +284,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "network": MessageLookupByLibrary.simpleMessage("网络"),
         "newVersionAvailable": MessageLookupByLibrary.simpleMessage("新版本可用"),
         "new_yield": MessageLookupByLibrary.simpleMessage("新收益率："),
-        "nextRondayInDays": m7,
+        "nextRondayInDays": m8,
         "nextRondays": MessageLookupByLibrary.simpleMessage("下一个 Rondays"),
         "noCommunicatedDate": MessageLookupByLibrary.simpleMessage("未提供日期"),
         "noDataAvailable": MessageLookupByLibrary.simpleMessage("无数据，请添加新钱包"),
@@ -335,13 +342,23 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("价格演变："),
         "productTypeFactoringProfitshare":
             MessageLookupByLibrary.simpleMessage("保理利润分享"),
+        "productTypeHeader": MessageLookupByLibrary.simpleMessage("产品类型"),
         "productTypeLoanIncome": MessageLookupByLibrary.simpleMessage("贷款收入"),
         "productTypeOther": MessageLookupByLibrary.simpleMessage("其他"),
         "productTypeRealEstateRental":
             MessageLookupByLibrary.simpleMessage("房地产租赁"),
         "projection": MessageLookupByLibrary.simpleMessage("预测"),
         "properties": MessageLookupByLibrary.simpleMessage("物业"),
+        "propertiesBuyThisProperty":
+            MessageLookupByLibrary.simpleMessage("购买此房产"),
+        "propertiesFactoring": MessageLookupByLibrary.simpleMessage("保理"),
         "propertiesForSale": MessageLookupByLibrary.simpleMessage("待售房产"),
+        "propertiesNoMarketplaceAvailable":
+            MessageLookupByLibrary.simpleMessage("目前无法对该房产进行交易。"),
+        "propertiesPrice": MessageLookupByLibrary.simpleMessage("价格"),
+        "propertiesProperty": MessageLookupByLibrary.simpleMessage("房产"),
+        "propertiesStock": MessageLookupByLibrary.simpleMessage("库存"),
+        "propertiesYield": MessageLookupByLibrary.simpleMessage("收益率"),
         "properties_for_sale": MessageLookupByLibrary.simpleMessage("待售物业"),
         "propertyMaintenanceMonthly":
             MessageLookupByLibrary.simpleMessage("物业维护（每月）"),
@@ -352,25 +369,32 @@ class MessageLookup extends MessageLookupByLibrary {
         "purchase": MessageLookupByLibrary.simpleMessage("购买"),
         "quantity": MessageLookupByLibrary.simpleMessage("数量"),
         "rateApp": MessageLookupByLibrary.simpleMessage("评价应用"),
-        "realTPerformance": MessageLookupByLibrary.simpleMessage("RealT 业绩"),
-        "realTTitle": MessageLookupByLibrary.simpleMessage("RealT"),
-        "realTokensList": MessageLookupByLibrary.simpleMessage("RealTokens 列表"),
-        "realt": MessageLookupByLibrary.simpleMessage("RealT"),
+        "realTPerformance": MessageLookupByLibrary.simpleMessage("MeProp 业绩"),
+        "realTTitle": MessageLookupByLibrary.simpleMessage("MeProp"),
+        "realTokensList": MessageLookupByLibrary.simpleMessage("MeProps 列表"),
+        "realt": MessageLookupByLibrary.simpleMessage("MeProp"),
         "realtActualPrice": MessageLookupByLibrary.simpleMessage("实际价格"),
-        "realtListingFee": MessageLookupByLibrary.simpleMessage("Realt上市费"),
-        "realtPlatform": MessageLookupByLibrary.simpleMessage("RealT 平台"),
+        "realtListingFee": MessageLookupByLibrary.simpleMessage("MeProp上市费"),
+        "realtPlatform": MessageLookupByLibrary.simpleMessage("MeProp 平台"),
+        "realtStats": MessageLookupByLibrary.simpleMessage("MeProp 统计"),
         "recentChanges": MessageLookupByLibrary.simpleMessage("最近更改"),
         "recentUpdatesTitle": MessageLookupByLibrary.simpleMessage("最近30天"),
         "refresh": MessageLookupByLibrary.simpleMessage("刷新"),
         "region": MessageLookupByLibrary.simpleMessage("地区"),
         "regionFilterLabel": MessageLookupByLibrary.simpleMessage("地区"),
+        "regionHeader": MessageLookupByLibrary.simpleMessage("地区"),
         "renovationReserve": MessageLookupByLibrary.simpleMessage("装修储备金"),
+        "rentDetailsTitle": MessageLookupByLibrary.simpleMessage("租金详情"),
         "rentDistribution": MessageLookupByLibrary.simpleMessage("租金分配"),
         "rentDistributionByProductType":
             MessageLookupByLibrary.simpleMessage("按产品类型分配租金"),
         "rentDistributionByWallet":
             MessageLookupByLibrary.simpleMessage("按钱包的租金分配"),
         "rentGraph": MessageLookupByLibrary.simpleMessage("租金收取图表"),
+        "rentNoDataAvailable":
+            MessageLookupByLibrary.simpleMessage("没有可用的租金数据。"),
+        "rentNoDataToShare":
+            MessageLookupByLibrary.simpleMessage("没有可分享的租金数据。"),
         "rentStartDate": MessageLookupByLibrary.simpleMessage("首次租金"),
         "rentStartFuture": MessageLookupByLibrary.simpleMessage("租赁尚未开始"),
         "rentalStatus": MessageLookupByLibrary.simpleMessage("租赁状态"),
@@ -384,7 +408,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "rentalStatusTitle": MessageLookupByLibrary.simpleMessage("租赁状态"),
         "rentalType": MessageLookupByLibrary.simpleMessage("租赁类型"),
         "rented": MessageLookupByLibrary.simpleMessage("已租出"),
-        "rentedUnits": m8,
+        "rentedUnits": m9,
         "rents": MessageLookupByLibrary.simpleMessage("租金"),
         "resortBungalow": MessageLookupByLibrary.simpleMessage("度假村平房"),
         "revenue": MessageLookupByLibrary.simpleMessage("收入"),
@@ -399,7 +423,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "roiByToken": MessageLookupByLibrary.simpleMessage("按代币ROI"),
         "roiHistory": MessageLookupByLibrary.simpleMessage("ROI 历史"),
         "roiPerProperties": MessageLookupByLibrary.simpleMessage("每个物业的 ROI"),
-        "roi_label": m9,
+        "roi_label": m10,
         "russian": MessageLookupByLibrary.simpleMessage("俄语"),
         "rwaHoldings": MessageLookupByLibrary.simpleMessage("RWA Holdings SA"),
         "save": MessageLookupByLibrary.simpleMessage("保存"),
@@ -470,7 +494,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "thanks": MessageLookupByLibrary.simpleMessage("感谢"),
         "thanksDonators":
             MessageLookupByLibrary.simpleMessage("也感谢所有支持该应用程序开发的捐助者！"),
-        "themeUpdated": m10,
+        "themeUpdated": m12,
         "timeBeforeLiquidation": MessageLookupByLibrary.simpleMessage("清算前的时间"),
         "tokenAddress": MessageLookupByLibrary.simpleMessage("代币地址"),
         "tokenCountEvolution": MessageLookupByLibrary.simpleMessage("代币数量演变"),
@@ -520,12 +544,13 @@ class MessageLookup extends MessageLookupByLibrary {
         "usdcDepositBalance": MessageLookupByLibrary.simpleMessage("USDC 存款余额"),
         "version": MessageLookupByLibrary.simpleMessage("版本"),
         "viewOnMap": MessageLookupByLibrary.simpleMessage("在地图上查看"),
-        "viewOnRealT": MessageLookupByLibrary.simpleMessage("在RealT上查看"),
+        "viewOnRealT": MessageLookupByLibrary.simpleMessage("在MeProp上查看"),
         "wallet": MessageLookupByLibrary.simpleMessage("钱包"),
         "walletAddress": MessageLookupByLibrary.simpleMessage("钱包地址"),
         "walletBalanceHistory": MessageLookupByLibrary.simpleMessage("钱包余额历史"),
         "walletDetails": MessageLookupByLibrary.simpleMessage("钱包详情"),
-        "walletSaved": m12,
+        "walletHeader": MessageLookupByLibrary.simpleMessage("钱包"),
+        "walletSaved": m14,
         "walletsContainingToken":
             MessageLookupByLibrary.simpleMessage("包含此代币的钱包"),
         "walletsWithoutRmmUsage":
@@ -537,7 +562,7 @@ class MessageLookup extends MessageLookupByLibrary {
             "如果您的代币已白名单，您可以在二级市场购买。\n\n如果您的代币未白名单，则无法在二级市场购买。\n\n您可以在 relationnel.co 的个人空间申请白名单。"),
         "whitelistInfoTitle": MessageLookupByLibrary.simpleMessage("白名单信息"),
         "wiki_community_description":
-            MessageLookupByLibrary.simpleMessage("RealT 社区的资源和教程。"),
+            MessageLookupByLibrary.simpleMessage("MeProp 社区的资源和教程。"),
         "xdaiBorrowBalance": MessageLookupByLibrary.simpleMessage("XDAI 借款余额"),
         "xdaiDepositBalance": MessageLookupByLibrary.simpleMessage("XDAI 存款余额"),
         "yam": MessageLookupByLibrary.simpleMessage("YAM"),
@@ -545,7 +570,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "yamProjectionDescription":
             MessageLookupByLibrary.simpleMessage("YAM的投资组合预测"),
         "yam_description":
-            MessageLookupByLibrary.simpleMessage("RealT 投资者社区的管理工具。"),
+            MessageLookupByLibrary.simpleMessage("MeProp 投资者社区的管理工具。"),
         "year": MessageLookupByLibrary.simpleMessage("年"),
         "yieldEvolution": MessageLookupByLibrary.simpleMessage("收益演变"),
         "yieldEvolutionPercentage":

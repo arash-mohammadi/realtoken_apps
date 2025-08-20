@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:realtoken_asset_tracker/generated/l10n.dart';
-import 'package:realtoken_asset_tracker/app_state.dart';
-import 'package:realtoken_asset_tracker/utils/date_utils.dart';
-import 'package:realtoken_asset_tracker/utils/location_utils.dart';
-import 'package:realtoken_asset_tracker/utils/parameters.dart';
-import 'package:realtoken_asset_tracker/utils/ui_utils.dart';
+import 'package:meprop_asset_tracker/generated/l10n.dart';
+import 'package:meprop_asset_tracker/app_state.dart';
+import 'package:meprop_asset_tracker/utils/date_utils.dart';
+import 'package:meprop_asset_tracker/utils/location_utils.dart';
+import 'package:meprop_asset_tracker/utils/parameters.dart';
+import 'package:meprop_asset_tracker/utils/ui_utils.dart';
 
 Widget buildPropertiesTab(BuildContext context, Map<String, dynamic> token, bool convertToSquareMeters) {
   final appState = Provider.of<AppState>(context, listen: false);
@@ -226,7 +226,7 @@ Widget _buildRentalStatusRow(BuildContext context, {required Map<String, dynamic
                 ),
                 const SizedBox(width: 10),
                 Text(
-          S.of(context).rented,
+                  S.of(context).rented,
                   style: TextStyle(
                     fontSize: 14 + appState.getTextSizeOffset(),
                     fontWeight: FontWeight.w500,

@@ -1,10 +1,10 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:realtoken_asset_tracker/managers/data_manager.dart';
-import 'package:realtoken_asset_tracker/generated/l10n.dart';
-import 'package:realtoken_asset_tracker/utils/ui_utils.dart';
-import 'package:realtoken_asset_tracker/app_state.dart';
+import 'package:meprop_asset_tracker/managers/data_manager.dart';
+import 'package:meprop_asset_tracker/generated/l10n.dart';
+import 'package:meprop_asset_tracker/utils/ui_utils.dart';
+import 'package:meprop_asset_tracker/app_state.dart';
 
 class TokensCard extends StatelessWidget {
   final bool showAmounts;
@@ -17,15 +17,15 @@ class TokensCard extends StatelessWidget {
     final dataManager = Provider.of<DataManager>(context);
 
     // Calculer la répartition par productType (somme des quantités)
-    final realEstateCount = dataManager.portfolio.where((token) => 
-      (token['productType'] ?? '').toLowerCase() == 'real_estate_rental'
-    ).fold<double>(0.0, (sum, token) => sum + ((token['amount'] as num?)?.toDouble() ?? 0.0));
-    final loanCount = dataManager.portfolio.where((token) => 
-      (token['productType'] ?? '').toLowerCase() == 'loan_income'
-    ).fold<double>(0.0, (sum, token) => sum + ((token['amount'] as num?)?.toDouble() ?? 0.0));
-    final factoringCount = dataManager.portfolio.where((token) => 
-      (token['productType'] ?? '').toLowerCase() == 'factoring_profitshare'
-    ).fold<double>(0.0, (sum, token) => sum + ((token['amount'] as num?)?.toDouble() ?? 0.0));
+    final realEstateCount = dataManager.portfolio
+        .where((token) => (token['productType'] ?? '').toLowerCase() == 'real_estate_rental')
+        .fold<double>(0.0, (sum, token) => sum + ((token['amount'] as num?)?.toDouble() ?? 0.0));
+    final loanCount = dataManager.portfolio
+        .where((token) => (token['productType'] ?? '').toLowerCase() == 'loan_income')
+        .fold<double>(0.0, (sum, token) => sum + ((token['amount'] as num?)?.toDouble() ?? 0.0));
+    final factoringCount = dataManager.portfolio
+        .where((token) => (token['productType'] ?? '').toLowerCase() == 'factoring_profitshare')
+        .fold<double>(0.0, (sum, token) => sum + ((token['amount'] as num?)?.toDouble() ?? 0.0));
     final totalCount = realEstateCount + loanCount + factoringCount;
 
     return Stack(
@@ -33,7 +33,8 @@ class TokensCard extends StatelessWidget {
         UIUtils.buildCard(
           S.of(context).tokens,
           Icons.token_outlined,
-          UIUtils.buildValueBeforeText(context, dataManager.totalTokens.toStringAsFixed(2) as String?, S.of(context).totalTokens, isLoading || dataManager.isLoadingMain),
+          UIUtils.buildValueBeforeText(context, dataManager.totalTokens.toStringAsFixed(2) as String?,
+              S.of(context).totalTokens, isLoading || dataManager.isLoadingMain),
           [
             _buildTokensTable(context, dataManager),
           ],
@@ -50,7 +51,8 @@ class TokensCard extends StatelessWidget {
     );
   }
 
-  Widget _buildPieChart(double realEstateCount, double loanCount, double factoringCount, double totalCount, BuildContext context) {
+  Widget _buildPieChart(
+      double realEstateCount, double loanCount, double factoringCount, double totalCount, BuildContext context) {
     // Si pas de tokens, afficher un graphique vide
     if (totalCount == 0) {
       return SizedBox(
@@ -67,7 +69,7 @@ class TokensCard extends StatelessWidget {
     }
 
     List<PieChartSectionData> sections = [];
-    
+
     // Real Estate (bleu-vert)
     if (realEstateCount > 0) {
       sections.add(PieChartSectionData(
@@ -82,7 +84,7 @@ class TokensCard extends StatelessWidget {
         ),
       ));
     }
-    
+
     // Loan Income (indigo)
     if (loanCount > 0) {
       sections.add(PieChartSectionData(
@@ -97,7 +99,7 @@ class TokensCard extends StatelessWidget {
         ),
       ));
     }
-    
+
     // Factoring (violet)
     if (factoringCount > 0) {
       sections.add(PieChartSectionData(
@@ -132,35 +134,33 @@ class TokensCard extends StatelessWidget {
 
   Widget _buildTokensTable(BuildContext context, DataManager dataManager) {
     // Calculer la somme des quantités par productType et source
-    final walletRealEstate = dataManager.portfolio.where((token) => 
-      (token['productType'] ?? '').toLowerCase() == 'real_estate_rental' && 
-      token['source'] == 'wallet'
-    ).fold<double>(0.0, (sum, token) => sum + ((token['amount'] as num?)?.toDouble() ?? 0.0));
-    
-    final walletLoan = dataManager.portfolio.where((token) => 
-      (token['productType'] ?? '').toLowerCase() == 'loan_income' && 
-      token['source'] == 'wallet'
-    ).fold<double>(0.0, (sum, token) => sum + ((token['amount'] as num?)?.toDouble() ?? 0.0));
-    
-    final walletFactoring = dataManager.portfolio.where((token) => 
-      (token['productType'] ?? '').toLowerCase() == 'factoring_profitshare' && 
-      token['source'] == 'wallet'
-    ).fold<double>(0.0, (sum, token) => sum + ((token['amount'] as num?)?.toDouble() ?? 0.0));
-    
-    final rmmRealEstate = dataManager.portfolio.where((token) => 
-      (token['productType'] ?? '').toLowerCase() == 'real_estate_rental' && 
-      token['source'] != 'wallet'
-    ).fold<double>(0.0, (sum, token) => sum + ((token['amount'] as num?)?.toDouble() ?? 0.0));
-    
-    final rmmLoan = dataManager.portfolio.where((token) => 
-      (token['productType'] ?? '').toLowerCase() == 'loan_income' && 
-      token['source'] != 'wallet'
-    ).fold<double>(0.0, (sum, token) => sum + ((token['amount'] as num?)?.toDouble() ?? 0.0));
-    
-    final rmmFactoring = dataManager.portfolio.where((token) => 
-      (token['productType'] ?? '').toLowerCase() == 'factoring_profitshare' && 
-      token['source'] != 'wallet'
-    ).fold<double>(0.0, (sum, token) => sum + ((token['amount'] as num?)?.toDouble() ?? 0.0));
+    final walletRealEstate = dataManager.portfolio
+        .where((token) =>
+            (token['productType'] ?? '').toLowerCase() == 'real_estate_rental' && token['source'] == 'wallet')
+        .fold<double>(0.0, (sum, token) => sum + ((token['amount'] as num?)?.toDouble() ?? 0.0));
+
+    final walletLoan = dataManager.portfolio
+        .where((token) => (token['productType'] ?? '').toLowerCase() == 'loan_income' && token['source'] == 'wallet')
+        .fold<double>(0.0, (sum, token) => sum + ((token['amount'] as num?)?.toDouble() ?? 0.0));
+
+    final walletFactoring = dataManager.portfolio
+        .where((token) =>
+            (token['productType'] ?? '').toLowerCase() == 'factoring_profitshare' && token['source'] == 'wallet')
+        .fold<double>(0.0, (sum, token) => sum + ((token['amount'] as num?)?.toDouble() ?? 0.0));
+
+    final rmmRealEstate = dataManager.portfolio
+        .where((token) =>
+            (token['productType'] ?? '').toLowerCase() == 'real_estate_rental' && token['source'] != 'wallet')
+        .fold<double>(0.0, (sum, token) => sum + ((token['amount'] as num?)?.toDouble() ?? 0.0));
+
+    final rmmLoan = dataManager.portfolio
+        .where((token) => (token['productType'] ?? '').toLowerCase() == 'loan_income' && token['source'] != 'wallet')
+        .fold<double>(0.0, (sum, token) => sum + ((token['amount'] as num?)?.toDouble() ?? 0.0));
+
+    final rmmFactoring = dataManager.portfolio
+        .where((token) =>
+            (token['productType'] ?? '').toLowerCase() == 'factoring_profitshare' && token['source'] != 'wallet')
+        .fold<double>(0.0, (sum, token) => sum + ((token['amount'] as num?)?.toDouble() ?? 0.0));
 
     return Container(
       width: double.infinity,
@@ -168,8 +168,8 @@ class TokensCard extends StatelessWidget {
       child: Table(
         columnWidths: const {
           0: FixedColumnWidth(30), // Colonne icône
-          1: FlexColumnWidth(1),   // Colonne Wallet
-          2: FlexColumnWidth(1),   // Colonne RMM
+          1: FlexColumnWidth(1), // Colonne Wallet
+          2: FlexColumnWidth(1), // Colonne RMM
         },
         children: [
           // Ligne d'en-tête
@@ -219,9 +219,7 @@ class TokensCard extends StatelessWidget {
             label,
             style: TextStyle(
               fontSize: 11 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
-              color: Theme.of(context).brightness == Brightness.light 
-                ? Colors.black54 
-                : Colors.white70,
+              color: Theme.of(context).brightness == Brightness.light ? Colors.black54 : Colors.white70,
               fontWeight: FontWeight.w500,
             ),
             textAlign: TextAlign.center,
@@ -248,9 +246,7 @@ class TokensCard extends StatelessWidget {
         label,
         style: TextStyle(
           fontSize: 14 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
-          color: Theme.of(context).brightness == Brightness.light 
-            ? Colors.black87 
-            : Colors.white,
+          color: Theme.of(context).brightness == Brightness.light ? Colors.black87 : Colors.white,
           fontWeight: FontWeight.bold,
         ),
         textAlign: TextAlign.center,

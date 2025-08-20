@@ -20,33 +20,31 @@ typedef String MessageIfAbsent(String messageStr, List<dynamic> args);
 class MessageLookup extends MessageLookupByLibrary {
   String get localeName => 'it';
 
-  static String m1(days) => "${days} giorni fa";
+  static String m2(days) => "${days} giorni fa";
 
-  static String m2(days) => "+${days} g";
+  static String m3(days) => "+${days} g";
 
-  static String m3(biometricType) =>
+  static String m4(biometricType) =>
       "Il tuo dispositivo supporta ${biometricType}";
 
-  static String m4(error) => "Errore durante il test: ${error}";
+  static String m5(error) => "Errore durante il test: ${error}";
 
-  static String m5(error) => "Errore: ${error}";
+  static String m6(error) => "Errore: ${error}";
 
-  static String m6(language) => "Lingua aggiornata a ${language}";
+  static String m7(language) => "Lingua aggiornata a ${language}";
 
-  static String m7(days) => "Prossimo RONday tra ${days} giorni";
+  static String m8(days) => "Prossimo RONday tra ${days} giorni";
 
-  static String m8(rented, total) => "Unità affittate";
+  static String m9(rented, total) => "Unità affittate";
 
-  static String m9(weeks) => "ROI: ${weeks} settimane";
+  static String m10(weeks) => "ROI: ${weeks} settimane";
 
-  static String m10(theme) => "Tema aggiornato a ${theme}";
+  static String m12(theme) => "Tema aggiornato a ${theme}";
 
-  static String m12(address) => "Portafoglio salvato: ${address}";
+  static String m14(address) => "Portafoglio salvato: ${address}";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
-        "GDrive_connexion":
-            MessageLookupByLibrary.simpleMessage("Connessione a Google Drive"),
         "about": MessageLookupByLibrary.simpleMessage("Informazioni"),
         "aboutImportExport": MessageLookupByLibrary.simpleMessage(
             "Questa funzione consente di salvare e reimportare i dati storici dei saldi (portafoglio e RMM) in un file ZIP."),
@@ -63,7 +61,9 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Tutti i\ncambiamenti"),
         "allCities": MessageLookupByLibrary.simpleMessage("Tutte le città"),
         "allCountries": MessageLookupByLibrary.simpleMessage("Tutti i paesi"),
+        "allProductTypes": MessageLookupByLibrary.simpleMessage("Tutti tipi"),
         "allRegions": MessageLookupByLibrary.simpleMessage("Tutte le regioni"),
+        "allWallets": MessageLookupByLibrary.simpleMessage("Tutti wallets"),
         "allWorkCorrectly": MessageLookupByLibrary.simpleMessage(
             "Tutto funziona correttamente"),
         "amount": MessageLookupByLibrary.simpleMessage("Importo"),
@@ -74,12 +74,13 @@ class MessageLookup extends MessageLookupByLibrary {
         "annually": MessageLookupByLibrary.simpleMessage("Annuale"),
         "appDescription":
             MessageLookupByLibrary.simpleMessage("app mobile per la comunità"),
-        "appName":
-            MessageLookupByLibrary.simpleMessage("RealToken Asset Tracker"),
+        "appName": MessageLookupByLibrary.simpleMessage("MeProp Asset Tracker"),
         "appTitle":
-            MessageLookupByLibrary.simpleMessage("RealToken Asset Tracker"),
+            MessageLookupByLibrary.simpleMessage("MeProp Asset Tracker"),
         "appearance": MessageLookupByLibrary.simpleMessage("Aspetto"),
         "application": MessageLookupByLibrary.simpleMessage("Applicazione"),
+        "applyProductTypes": MessageLookupByLibrary.simpleMessage("Applicare"),
+        "applyWallets": MessageLookupByLibrary.simpleMessage("Applicare"),
         "apy": MessageLookupByLibrary.simpleMessage("Rendimento annuo"),
         "apyHistory": MessageLookupByLibrary.simpleMessage("Storico APY"),
         "areYouSureClearData": MessageLookupByLibrary.simpleMessage(
@@ -167,7 +168,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Rendimento Attuale:"),
         "daily": MessageLookupByLibrary.simpleMessage("Giornaliero"),
         "dao_description": MessageLookupByLibrary.simpleMessage(
-            "Forum per proposte e discussioni di realTokens DAO"),
+            "Forum per proposte e discussioni di MeProp DAO"),
         "dark": MessageLookupByLibrary.simpleMessage("Scuro"),
         "darkTheme": MessageLookupByLibrary.simpleMessage("Tema scuro"),
         "dashboard": MessageLookupByLibrary.simpleMessage("Cruscotto"),
@@ -177,9 +178,10 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Data non comunicata"),
         "day": MessageLookupByLibrary.simpleMessage("Giorno"),
         "days": MessageLookupByLibrary.simpleMessage("Giorni"),
-        "daysAgo": m1,
+        "daysAgo": m2,
         "daysLimit": MessageLookupByLibrary.simpleMessage("Limite di giorni"),
-        "daysShort": m2,
+        "daysShort": m3,
+        "delete": MessageLookupByLibrary.simpleMessage("Elimina"),
         "delta_price":
             MessageLookupByLibrary.simpleMessage("Differenza di prezzo"),
         "depositBalance": MessageLookupByLibrary.simpleMessage("Depositi"),
@@ -191,12 +193,16 @@ class MessageLookup extends MessageLookupByLibrary {
             "Il tuo dispositivo non supporta l\'autenticazione biometrica o nessun dato biometrico è registrato nelle impostazioni del dispositivo."),
         "deviceDoesNotSupportBiometric": MessageLookupByLibrary.simpleMessage(
             "Il tuo dispositivo non supporta l\'autenticazione biometrica"),
-        "deviceSupportsBiometric": m3,
+        "deviceSupportsBiometric": m4,
         "donate": MessageLookupByLibrary.simpleMessage("Donare"),
         "donationMessage": MessageLookupByLibrary.simpleMessage(
             "Se ti piace questa app e vuoi supportare il suo sviluppo, puoi donare."),
         "donationTotal":
             MessageLookupByLibrary.simpleMessage("Totale delle donazioni"),
+        "drawerAccounts": MessageLookupByLibrary.simpleMessage("Conti"),
+        "drawerFeatures": MessageLookupByLibrary.simpleMessage("Funzionalità"),
+        "drawerSupportAndSettings":
+            MessageLookupByLibrary.simpleMessage("Supporto e Impostazioni"),
         "duplex": MessageLookupByLibrary.simpleMessage("Duplex"),
         "duplicate": MessageLookupByLibrary.simpleMessage(
             "Proprietà presenti in più portafogli/RMM"),
@@ -210,10 +216,10 @@ class MessageLookup extends MessageLookupByLibrary {
         "english": MessageLookupByLibrary.simpleMessage("English"),
         "enterValidNumber": MessageLookupByLibrary.simpleMessage(
             "Per favore, inserisci un numero valido"),
-        "errorDuringTest": m4,
+        "errorDuringTest": m5,
         "errorLoadingData": MessageLookupByLibrary.simpleMessage(
             "Errore nel caricamento dei dati"),
-        "error_occurred": m5,
+        "error_occurred": m6,
         "ethereumContract":
             MessageLookupByLibrary.simpleMessage("Contratto Ethereum"),
         "everyContributionCounts":
@@ -248,6 +254,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "fullyRented":
             MessageLookupByLibrary.simpleMessage("Completamente Affittato"),
         "futureRents": MessageLookupByLibrary.simpleMessage("Affitti futuri"),
+        "gDriveConnection":
+            MessageLookupByLibrary.simpleMessage("Connessione a Google Drive"),
         "gnosisContract":
             MessageLookupByLibrary.simpleMessage("Contratto Gnosis"),
         "googleDriveConnection":
@@ -262,6 +270,8 @@ class MessageLookup extends MessageLookupByLibrary {
             "Health Factor: Più alto = Più sicuro"),
         "hello": MessageLookupByLibrary.simpleMessage("Ciao"),
         "hf": MessageLookupByLibrary.simpleMessage("HF"),
+        "historyDays":
+            MessageLookupByLibrary.simpleMessage("Cronologia (giorni)"),
         "hours": MessageLookupByLibrary.simpleMessage("Ore"),
         "importButton": MessageLookupByLibrary.simpleMessage("Importare"),
         "importData": MessageLookupByLibrary.simpleMessage("Importa dati"),
@@ -298,7 +308,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "investment": MessageLookupByLibrary.simpleMessage("Investimento"),
         "italian": MessageLookupByLibrary.simpleMessage("Italiano"),
         "language": MessageLookupByLibrary.simpleMessage("Lingua"),
-        "languageUpdated": m6,
+        "languageUpdated": m7,
         "lastExecution":
             MessageLookupByLibrary.simpleMessage("Ultimo aggiornamento"),
         "lastRentReceived": MessageLookupByLibrary.simpleMessage(
@@ -347,7 +357,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "newVersionAvailable":
             MessageLookupByLibrary.simpleMessage("Nuova versione disponibile"),
         "new_yield": MessageLookupByLibrary.simpleMessage("Nuovo Rendimento:"),
-        "nextRondayInDays": m7,
+        "nextRondayInDays": m8,
         "nextRondays": MessageLookupByLibrary.simpleMessage("Prossimi Rondays"),
         "noChangesFoundInCompleteHistory": MessageLookupByLibrary.simpleMessage(
             "Nessun cambiamento trovato nella cronologia completa"),
@@ -430,6 +440,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Evoluzione del prezzo:"),
         "productTypeFactoringProfitshare": MessageLookupByLibrary.simpleMessage(
             "Condivisione Profitti Factoring"),
+        "productTypeHeader":
+            MessageLookupByLibrary.simpleMessage("Tipi di prodotto"),
         "productTypeLoanIncome":
             MessageLookupByLibrary.simpleMessage("Reddito da Prestito"),
         "productTypeOther": MessageLookupByLibrary.simpleMessage("Altro"),
@@ -437,8 +449,19 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Affitto Immobiliare"),
         "projection": MessageLookupByLibrary.simpleMessage("proiezione"),
         "properties": MessageLookupByLibrary.simpleMessage("Proprietà"),
+        "propertiesBuyThisProperty":
+            MessageLookupByLibrary.simpleMessage("Acquista questa proprietà"),
+        "propertiesFactoring":
+            MessageLookupByLibrary.simpleMessage("Factoring"),
         "propertiesForSale":
             MessageLookupByLibrary.simpleMessage("Proprietà in vendita"),
+        "propertiesNoMarketplaceAvailable":
+            MessageLookupByLibrary.simpleMessage(
+                "La negoziazione non è disponibile per questa proprietà."),
+        "propertiesPrice": MessageLookupByLibrary.simpleMessage("Prezzo"),
+        "propertiesProperty": MessageLookupByLibrary.simpleMessage("Proprietà"),
+        "propertiesStock": MessageLookupByLibrary.simpleMessage("Stock"),
+        "propertiesYield": MessageLookupByLibrary.simpleMessage("Rendimento"),
         "properties_for_sale":
             MessageLookupByLibrary.simpleMessage("Proprietà in vendita"),
         "propertyMaintenanceMonthly": MessageLookupByLibrary.simpleMessage(
@@ -456,17 +479,19 @@ class MessageLookup extends MessageLookupByLibrary {
         "rateApp":
             MessageLookupByLibrary.simpleMessage("Valuta l\'applicazione"),
         "realTPerformance":
-            MessageLookupByLibrary.simpleMessage("Performance di RealT"),
-        "realTTitle": MessageLookupByLibrary.simpleMessage("RealT"),
+            MessageLookupByLibrary.simpleMessage("Performance di MeProp"),
+        "realTTitle": MessageLookupByLibrary.simpleMessage("MeProp"),
         "realTokensList":
-            MessageLookupByLibrary.simpleMessage("Elenco RealTokens"),
-        "realt": MessageLookupByLibrary.simpleMessage("RealT"),
+            MessageLookupByLibrary.simpleMessage("Elenco MeProps"),
+        "realt": MessageLookupByLibrary.simpleMessage("MeProp"),
         "realtActualPrice":
             MessageLookupByLibrary.simpleMessage("Prezzo attuale"),
         "realtListingFee":
-            MessageLookupByLibrary.simpleMessage("Tassa di Annuncio Realt"),
+            MessageLookupByLibrary.simpleMessage("Tassa di Annuncio MeProp"),
         "realtPlatform":
-            MessageLookupByLibrary.simpleMessage("Piattaforma RealT"),
+            MessageLookupByLibrary.simpleMessage("Piattaforma MeProp"),
+        "realtStats":
+            MessageLookupByLibrary.simpleMessage("Statistiche MeProp"),
         "recentChanges":
             MessageLookupByLibrary.simpleMessage("Cambiamenti recenti"),
         "recentUpdatesTitle":
@@ -474,8 +499,11 @@ class MessageLookup extends MessageLookupByLibrary {
         "refresh": MessageLookupByLibrary.simpleMessage("Aggiorna"),
         "region": MessageLookupByLibrary.simpleMessage("Regione"),
         "regionFilterLabel": MessageLookupByLibrary.simpleMessage("Regione"),
+        "regionHeader": MessageLookupByLibrary.simpleMessage("Regione"),
         "renovationReserve":
             MessageLookupByLibrary.simpleMessage("Fondo di Ristrutturazione"),
+        "rentDetailsTitle":
+            MessageLookupByLibrary.simpleMessage("Dettagli degli affitti"),
         "rentDistribution":
             MessageLookupByLibrary.simpleMessage("Distribuzione degli affitti"),
         "rentDistributionByProductType": MessageLookupByLibrary.simpleMessage(
@@ -484,6 +512,10 @@ class MessageLookup extends MessageLookupByLibrary {
             "Distribuzione degli affitti per portafoglio"),
         "rentGraph": MessageLookupByLibrary.simpleMessage(
             "Grafico degli affitti ricevuti"),
+        "rentNoDataAvailable": MessageLookupByLibrary.simpleMessage(
+            "Nessun dato sugli affitti disponibile."),
+        "rentNoDataToShare": MessageLookupByLibrary.simpleMessage(
+            "Nessun dato sugli affitti da condividere."),
         "rentStartDate": MessageLookupByLibrary.simpleMessage("Primo affitto"),
         "rentStartFuture":
             MessageLookupByLibrary.simpleMessage("Affitto non ancora iniziato"),
@@ -501,7 +533,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Stato di locazione"),
         "rentalType": MessageLookupByLibrary.simpleMessage("Tipo di affitto"),
         "rented": MessageLookupByLibrary.simpleMessage("Affittato"),
-        "rentedUnits": m8,
+        "rentedUnits": m9,
         "rents": MessageLookupByLibrary.simpleMessage("Affitti"),
         "resortBungalow":
             MessageLookupByLibrary.simpleMessage("Bungalow di villeggiatura"),
@@ -518,7 +550,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "roiHistory": MessageLookupByLibrary.simpleMessage("Storico ROI"),
         "roiPerProperties":
             MessageLookupByLibrary.simpleMessage("ROI per proprietà"),
-        "roi_label": m9,
+        "roi_label": m10,
         "russian": MessageLookupByLibrary.simpleMessage("Russo"),
         "rwaHoldings": MessageLookupByLibrary.simpleMessage("RWA Holdings SA"),
         "save": MessageLookupByLibrary.simpleMessage("Salva"),
@@ -606,7 +638,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "thanks": MessageLookupByLibrary.simpleMessage("Grazie"),
         "thanksDonators": MessageLookupByLibrary.simpleMessage(
             "Grazie anche a tutti i donatori che supportano lo sviluppo di questa applicazione!"),
-        "themeUpdated": m10,
+        "themeUpdated": m12,
         "timeBeforeLiquidation":
             MessageLookupByLibrary.simpleMessage("prima della liquidazione"),
         "timestamp": MessageLookupByLibrary.simpleMessage("Data e ora"),
@@ -689,7 +721,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Saldo depositi USDC"),
         "version": MessageLookupByLibrary.simpleMessage("Versione"),
         "viewOnMap": MessageLookupByLibrary.simpleMessage("Vedi sulla mappa"),
-        "viewOnRealT": MessageLookupByLibrary.simpleMessage("Vedi su RealT"),
+        "viewOnRealT": MessageLookupByLibrary.simpleMessage("Vedi su MeProp"),
         "wallet": MessageLookupByLibrary.simpleMessage("Portafoglio"),
         "walletAddress":
             MessageLookupByLibrary.simpleMessage("Indirizzo del portafoglio"),
@@ -697,7 +729,8 @@ class MessageLookup extends MessageLookupByLibrary {
             "Storico del Saldo del Wallet"),
         "walletDetails":
             MessageLookupByLibrary.simpleMessage("Dettagli del Portafoglio"),
-        "walletSaved": m12,
+        "walletHeader": MessageLookupByLibrary.simpleMessage("Wallets"),
+        "walletSaved": m14,
         "walletsContainingToken": MessageLookupByLibrary.simpleMessage(
             "Portafogli contenenti questo token"),
         "walletsWithoutRmmUsage":
@@ -710,7 +743,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "whitelistInfoTitle": MessageLookupByLibrary.simpleMessage(
             "Informazioni sulla whitelist"),
         "wiki_community_description": MessageLookupByLibrary.simpleMessage(
-            "Risorse e tutorial per la comunità RealT."),
+            "Risorse e tutorial per la comunità MeProp."),
         "xdaiBorrowBalance":
             MessageLookupByLibrary.simpleMessage("Saldo prestiti XDAI"),
         "xdaiDepositBalance":
@@ -720,7 +753,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "yamProjectionDescription": MessageLookupByLibrary.simpleMessage(
             "Proiezione del portafoglio da YAM"),
         "yam_description": MessageLookupByLibrary.simpleMessage(
-            "Strumento di gestione per la comunità di investitori di RealT."),
+            "Strumento di gestione per la comunità di investitori di MeProp."),
         "year": MessageLookupByLibrary.simpleMessage("Anno"),
         "yesterday": MessageLookupByLibrary.simpleMessage("Ieri"),
         "yieldEvolution":

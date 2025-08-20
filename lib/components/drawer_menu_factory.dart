@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:realtoken_asset_tracker/app_state.dart';
-import 'package:realtoken_asset_tracker/utils/style_constants.dart';
+import 'package:meprop_asset_tracker/app_state.dart';
+import 'package:meprop_asset_tracker/utils/style_constants.dart';
 
 class DrawerMenuFactory {
   /// Crée une section de menu complète avec titre et éléments
@@ -187,7 +187,7 @@ class DrawerMenuFactory {
           backgroundColor: Colors.transparent,
           builder: (BuildContext context) {
             return Container(
-              height: modalHeight != null 
+              height: modalHeight != null
                   ? MediaQuery.of(context).size.height * modalHeight
                   : MediaQuery.of(context).size.height * 0.8,
               decoration: const BoxDecoration(
@@ -216,4 +216,4 @@ class DrawerMenuItem {
     required this.onTap,
     this.iconColor,
   });
-} 
+}

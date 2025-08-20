@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:provider/provider.dart';
-import 'package:realtoken_asset_tracker/managers/data_manager.dart';
-import 'package:realtoken_asset_tracker/app_state.dart';
-import 'package:realtoken_asset_tracker/generated/l10n.dart';
-import 'package:realtoken_asset_tracker/utils/currency_utils.dart';
+import 'package:meprop_asset_tracker/managers/data_manager.dart';
+import 'package:meprop_asset_tracker/app_state.dart';
+import 'package:meprop_asset_tracker/generated/l10n.dart';
+import 'package:meprop_asset_tracker/utils/currency_utils.dart';
 
 class RentDistributionByWalletChart extends StatefulWidget {
   final DataManager dataManager;
@@ -156,40 +156,47 @@ class _RentDistributionByWalletChartState extends State<RentDistributionByWallet
     final sortedEntries = walletRentTotals.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
 
     // Créer les sections du donut chart avec des vérifications de sécurité
-    return sortedEntries.asMap().entries.map((entry) {
-      final index = entry.key;
-      final data = entry.value;
-      
-      // Vérifier si la valeur est valide
-      if (data.value <= 0) {
-        return null;
-      }
+    return sortedEntries
+        .asMap()
+        .entries
+        .map((entry) {
+          final index = entry.key;
+          final data = entry.value;
 
-      final percentage = (data.value / totalRent) * 100;
-      final bool isSelected = selectedIndex == index;
-      final double opacity = selectedIndex != null && !isSelected ? 0.5 : 1.0;
+          // Vérifier si la valeur est valide
+          if (data.value <= 0) {
+            return null;
+          }
 
-      return PieChartSectionData(
-        value: data.value,
-        title: '${percentage.toInt()}%',
-        color: _generateColor(index).withOpacity(opacity),
-        radius: isSelected ? 52 : 45,
-        titleStyle: TextStyle(
-          fontSize: isSelected ? 14 + Provider.of<AppState>(context).getTextSizeOffset() : 10 + Provider.of<AppState>(context).getTextSizeOffset(),
-          color: Colors.white,
-          fontWeight: FontWeight.w600,
-          shadows: [
-            Shadow(
-              color: Colors.black.withOpacity(0.3),
-              blurRadius: 3,
-              offset: const Offset(1, 1),
+          final percentage = (data.value / totalRent) * 100;
+          final bool isSelected = selectedIndex == index;
+          final double opacity = selectedIndex != null && !isSelected ? 0.5 : 1.0;
+
+          return PieChartSectionData(
+            value: data.value,
+            title: '${percentage.toInt()}%',
+            color: _generateColor(index).withOpacity(opacity),
+            radius: isSelected ? 52 : 45,
+            titleStyle: TextStyle(
+              fontSize: isSelected
+                  ? 14 + Provider.of<AppState>(context).getTextSizeOffset()
+                  : 10 + Provider.of<AppState>(context).getTextSizeOffset(),
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
+              shadows: [
+                Shadow(
+                  color: Colors.black.withOpacity(0.3),
+                  blurRadius: 3,
+                  offset: const Offset(1, 1),
+                ),
+              ],
             ),
-          ],
-        ),
-        badgeWidget: isSelected ? _buildSelectedIndicator() : null,
-        badgePositionPercentageOffset: 1.1,
-      );
-    }).whereType<PieChartSectionData>().toList();
+            badgeWidget: isSelected ? _buildSelectedIndicator() : null,
+            badgePositionPercentageOffset: 1.1,
+          );
+        })
+        .whereType<PieChartSectionData>()
+        .toList();
   }
 
   Widget _buildSelectedIndicator() {
@@ -335,7 +342,8 @@ class _RentDistributionByWalletChartState extends State<RentDistributionByWallet
                   displayWallet,
                   style: TextStyle(
                     fontSize: 12 + appState.getTextSizeOffset(),
-                    color: _selectedIndexNotifier.value == index ? color : Theme.of(context).textTheme.bodyMedium?.color,
+                    color:
+                        _selectedIndexNotifier.value == index ? color : Theme.of(context).textTheme.bodyMedium?.color,
                     fontWeight: _selectedIndexNotifier.value == index ? FontWeight.w600 : FontWeight.normal,
                   ),
                 ),

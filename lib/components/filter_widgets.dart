@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:realtoken_asset_tracker/app_state.dart';
-import 'package:realtoken_asset_tracker/generated/l10n.dart';
+import 'package:meprop_asset_tracker/app_state.dart';
+import 'package:meprop_asset_tracker/generated/l10n.dart';
 
 /// Factory pour construire les widgets de filtres de manière standardisée
 /// Réduit la duplication entre portfolio_page.dart et realtokens_page.dart
 class FilterWidgets {
-  
   /// Construit un bouton de filtre simple standardisé
   static Widget buildFilterButton({
     required BuildContext context,
@@ -98,7 +97,7 @@ class FilterWidgets {
         .map((item) {
           String country = item['country'] ?? "Unknown Country";
           // Regrouper les tokens factoring_profitshare avec des séries sous "Series XX"
-          if ((item['productType']?.toString().toLowerCase() == 'factoring_profitshare') && 
+          if ((item['productType']?.toString().toLowerCase() == 'factoring_profitshare') &&
               country.toLowerCase().startsWith('series ')) {
             return "Series XX";
           }
@@ -113,53 +112,44 @@ class FilterWidgets {
   }
 
   /// Construit un PopupMenuItem pour les villes avec l'option "Toutes les villes"
-  static List<PopupMenuEntry<String>> buildCityMenuItems(
-    BuildContext context, 
-    List<String> cities
-  ) {
+  static List<PopupMenuEntry<String>> buildCityMenuItems(BuildContext context, List<String> cities) {
     return [
       PopupMenuItem(
         value: S.of(context).allCities,
         child: Text(S.of(context).allCities),
       ),
       ...cities.map((city) => PopupMenuItem(
-        value: city,
-        child: Text(city),
-      )),
+            value: city,
+            child: Text(city),
+          )),
     ];
   }
 
   /// Construit un PopupMenuItem pour les régions avec l'option "Toutes les régions"
-  static List<PopupMenuEntry<String>> buildRegionMenuItems(
-    BuildContext context, 
-    List<String> regions
-  ) {
+  static List<PopupMenuEntry<String>> buildRegionMenuItems(BuildContext context, List<String> regions) {
     return [
       PopupMenuItem(
         value: S.of(context).allRegions,
         child: Text(S.of(context).allRegions),
       ),
       ...regions.map((region) => PopupMenuItem(
-        value: region,
-        child: Text(region),
-      )),
+            value: region,
+            child: Text(region),
+          )),
     ];
   }
 
   /// Construit un PopupMenuItem pour les pays avec l'option "Tous les pays"
-  static List<PopupMenuEntry<String>> buildCountryMenuItems(
-    BuildContext context, 
-    List<String> countries
-  ) {
+  static List<PopupMenuEntry<String>> buildCountryMenuItems(BuildContext context, List<String> countries) {
     return [
       PopupMenuItem(
         value: S.of(context).allCountries,
         child: Text(S.of(context).allCountries),
       ),
       ...countries.map((country) => PopupMenuItem(
-        value: country,
-        child: Text(country),
-      )),
+            value: country,
+            child: Text(country),
+          )),
     ];
   }
 
@@ -216,4 +206,4 @@ class FilterWidgets {
       },
     );
   }
-} 
+}

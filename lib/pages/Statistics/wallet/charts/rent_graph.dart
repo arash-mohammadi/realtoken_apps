@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-import 'package:realtoken_asset_tracker/managers/data_manager.dart';
-import 'package:realtoken_asset_tracker/generated/l10n.dart';
-import 'package:realtoken_asset_tracker/components/charts/generic_chart_widget.dart';
-import 'package:realtoken_asset_tracker/models/rent_record.dart';
-import 'package:realtoken_asset_tracker/utils/currency_utils.dart';
+import 'package:meprop_asset_tracker/managers/data_manager.dart';
+import 'package:meprop_asset_tracker/generated/l10n.dart';
+import 'package:meprop_asset_tracker/components/charts/generic_chart_widget.dart';
+import 'package:meprop_asset_tracker/models/rent_record.dart';
+import 'package:meprop_asset_tracker/utils/currency_utils.dart';
 
 class RentGraph extends StatefulWidget {
   final List<Map<String, dynamic>> groupedData;
@@ -69,16 +69,16 @@ class _RentGraphState extends State<RentGraph> {
       final dataManager = widget.dataManager;
       if (dataManager.rentData.isNotEmpty) {
         double cumulativeRent = 0;
-        
+
         // Trier les données par date
         List<Map<String, dynamic>> sortedData = List.from(dataManager.rentData)
           ..sort((a, b) => DateTime.parse(a['date']).compareTo(DateTime.parse(b['date'])));
-        
+
         for (var entry in sortedData) {
           double rent = entry['rent']?.toDouble() ?? 0.0;
           DateTime date = DateTime.parse(entry['date']);
           cumulativeRent += rent;
-          
+
           rentRecords.add(RentRecord(
             timestamp: date,
             rent: currencyUtils.convert(rent),
@@ -88,7 +88,7 @@ class _RentGraphState extends State<RentGraph> {
       }
     } else {
       double cumulativeRent = 0;
-      
+
       // Trier les données par date
       List<Map<String, dynamic>> sortedData = List.from(groupedData)
         ..sort((a, b) {
@@ -97,12 +97,12 @@ class _RentGraphState extends State<RentGraph> {
           DateTime dateB = _parseDate(b['date']);
           return dateA.compareTo(dateB);
         });
-      
+
       for (var entry in sortedData) {
         double rent = entry['rent']?.toDouble() ?? 0.0;
         DateTime date = _parseDate(entry['date']);
         cumulativeRent += rent;
-        
+
         rentRecords.add(RentRecord(
           timestamp: date,
           rent: currencyUtils.convert(rent),
@@ -110,11 +110,11 @@ class _RentGraphState extends State<RentGraph> {
         ));
       }
     }
-    
+
     debugPrint("🔄 Conversion des données de loyer: ${rentRecords.length} enregistrements");
     return rentRecords;
   }
-  
+
   // Helper pour analyser différents formats de date
   DateTime _parseDate(String dateStr) {
     try {
@@ -130,12 +130,12 @@ class _RentGraphState extends State<RentGraph> {
           return DateTime(int.parse(parts[1]), int.parse(parts[0]), 1);
         }
       }
-      
+
       // Format année seule
       if (dateStr.length == 4 && RegExp(r'^\d{4}$').hasMatch(dateStr)) {
         return DateTime(int.parse(dateStr), 1, 1);
       }
-      
+
       // Format ISO
       return DateTime.parse(dateStr);
     } catch (e) {
@@ -147,10 +147,10 @@ class _RentGraphState extends State<RentGraph> {
   @override
   Widget build(BuildContext context) {
     final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
-    
+
     // Convertir les données au format requis par GenericChartWidget
     List<RentRecord> rentRecords = _convertRentData();
-    
+
     // Utiliser GenericChartWidget avec le switch intégré
     return GenericChartWidget<RentRecord>(
       title: "Loyer", // Titre de base (peut être remplacé par les labels cumulatifs)
