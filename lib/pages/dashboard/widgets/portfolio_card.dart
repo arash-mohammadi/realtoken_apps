@@ -32,7 +32,8 @@ class PortfolioCard extends StatelessWidget {
     final theme = Theme.of(context);
 
     // Calcul des totaux en tenant compte des paramètres
-    double totalPortfolioValue = Parameters.showNetTotal
+    double totalPortfolioValue =  
+    Parameters.showNetTotal
         ? dataManager.walletValue +
             dataManager.rmmValue +
             dataManager.rwaHoldingsValue +
@@ -492,13 +493,16 @@ class PortfolioCard extends StatelessWidget {
     else
       gaugeHeight = 160.0;
 
-    double containerHeight = gaugeHeight + 50; // Ajouter de l'espace pour le texte et les marges
+    // Add a small safety buffer to avoid 1- or 2-pixel overflows on different fonts/DPIs
+    double containerHeight = gaugeHeight + 56; // space for text and margins + buffer
 
     return Container(
       width: 90,
       height: containerHeight,
       child: Column(
-        mainAxisSize: MainAxisSize.min,
+        mainAxisSize: MainAxisSize.max,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.center,

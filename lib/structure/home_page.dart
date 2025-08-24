@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:meprop_asset_tracker/managers/data_manager.dart';
 import 'package:meprop_asset_tracker/modals/agenda.dart';
+import 'package:meprop_asset_tracker/pages/maps_page.dart';
 import 'package:meprop_asset_tracker/utils/currency_utils.dart';
 import 'package:meprop_asset_tracker/utils/ui_utils.dart';
 import 'package:meprop_asset_tracker/utils/performance_utils.dart';
@@ -13,7 +14,7 @@ import 'drawer.dart';
 import 'package:meprop_asset_tracker/pages/dashboard/dashboard_page.dart';
 import 'package:meprop_asset_tracker/pages/portfolio/portfolio_page.dart';
 import 'package:meprop_asset_tracker/pages/Statistics/stats_selector_page.dart';
-import 'package:meprop_asset_tracker/pages/maps_page.dart';
+import 'package:meprop_asset_tracker/pages/maps_page_google.dart';
 import 'dart:ui';
 import 'package:provider/provider.dart';
 import 'package:meprop_asset_tracker/app_state.dart';
@@ -44,9 +45,9 @@ class _MyHomePageState extends State<MyHomePage> {
 
     // Ajout de la condition de probabilité
     // if (random.nextInt(3) == 0) {
-      // Génère 0, 1, ou 2. La condition est vraie pour 0 (1/3 des cas)
-      // final delaySeconds = 5 + random.nextInt(26); // 5 à 30 inclus
-      // Future.delayed(Duration(seconds: delaySeconds), _showDonationPopupIfNeeded);
+    // Génère 0, 1, ou 2. La condition est vraie pour 0 (1/3 des cas)
+    // final delaySeconds = 5 + random.nextInt(26); // 5 à 30 inclus
+    // Future.delayed(Duration(seconds: delaySeconds), _showDonationPopupIfNeeded);
     // }
   }
 
