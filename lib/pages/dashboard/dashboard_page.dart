@@ -136,7 +136,7 @@ class DashboardPageState extends State<DashboardPage> {
           );
 
           // Rafraîchir les données après l'import
-          await DataFetchUtils.refreshData(context);
+          // await DataFetchUtils.refreshData(context);
 
           // Recharger la page pour refléter les changements
           setState(() {
@@ -425,7 +425,7 @@ class DashboardPageState extends State<DashboardPage> {
               setState(() {
                 _isPageLoading = true;
               });
-              await DataFetchUtils.refreshData(context);
+              // await DataFetchUtils.refreshData(context);
               setState(() {
                 _isPageLoading = false;
               });
@@ -476,7 +476,7 @@ class DashboardPageState extends State<DashboardPage> {
                                 setState(() {
                                   _isPageLoading = true;
                                 });
-                                await DataFetchUtils.refreshData(context);
+                                // await DataFetchUtils.refreshData(context);
                                 setState(() {
                                   _isPageLoading = false;
                                 });
@@ -623,7 +623,7 @@ class DashboardPageState extends State<DashboardPage> {
                                           ),
                                           const SizedBox(width: 4),
                                           Text(
-                                            'Depuis $timeElapsed',
+                                            'Since $timeElapsed',
                                             style: TextStyle(
                                               fontSize: 12 + appState.getTextSizeOffset(),
                                               fontWeight: FontWeight.w500,

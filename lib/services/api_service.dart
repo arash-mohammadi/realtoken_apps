@@ -247,6 +247,7 @@ class ApiService {
     );
   }
 
+/*
   /// Récupère toutes les adresses associées à une adresse Ethereum via FastAPI
   static Future<Map<String, dynamic>?> fetchUserAndAddresses(String address) async {
     final apiUrl = "${Parameters.mainApiUrl}/wallet_userId/$address";
@@ -283,7 +284,9 @@ class ApiService {
       return null;
     }
   }
+*/
 
+/*
   // Méthode factorisée pour fetch les tokens depuis The Graph avec cache optimisé
   static Future<List<dynamic>> fetchWalletTokens({bool forceFetch = false}) async {
     final prefs = await SharedPreferences.getInstance();
@@ -341,6 +344,7 @@ class ApiService {
       },
     );
   }
+*/
 
   // Récupérer la liste complète des RealTokens depuis l'API pitswap avec cache optimisé
   static Future<List<dynamic>> fetchRealTokens({bool forceFetch = false}) async {
@@ -482,7 +486,7 @@ class ApiService {
     );
   }
   // Récupérer les données de loyer pour chaque wallet et les fusionner avec cache
-
+/*
   static Future<List<Map<String, dynamic>>> fetchRentData({bool forceFetch = false}) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     List<String> wallets = prefs.getStringList('evmAddresses') ?? [];
@@ -753,7 +757,7 @@ class ApiService {
 
     return mergedRentData;
   }
-
+*/
   /// Charge les données de loyer depuis le cache pour tous les wallets
   static Future<List<Map<String, dynamic>>> _loadRentDataFromCache(Box box, List<String> wallets) async {
     // Essayer le cache global d'abord

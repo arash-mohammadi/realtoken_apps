@@ -38,87 +38,335 @@ class DataManager extends ChangeNotifier {
     }
 
     // اگر داده‌ای موجود نیست، داده‌های تستی تنظیم کنیم
-    // داده تستی غنی‌تر برای Russell
+    // داده تستی غنی‌تر برای Russell با انواع مختلف productType
     _portfolio = [
       {
         'uuid': '0xMOCKTOKEN1',
-        'shortName': 'name',
-        'fullName': 'Full Name',
+        'shortName': 'Detroit House A',
+        'fullName': 'Detroit Residential Property A',
         'country': 'USA',
-        'regionCode': 'CA',
-        'city': 'Los Angeles',
+        'regionCode': 'MI',
+        'city': 'Detroit',
         'imageLink': '',
-        'lat': 34.0522,
-        'lng': -118.2437,
+        'lat': 42.3314,
+        'lng': -83.0458,
         'totalTokens': 100,
-        'tokenPrice': 50.0,
-        'totalValue': 5000.0,
+        'tokenPrice': 55.0,
+        'totalValue': 5500.0,
         'amount': 100.0,
-        'annualPercentageYield': 0.08,
-        'dailyIncome': 1.1,
-        'monthlyIncome': 33.0,
-        'yearlyIncome': 400.0,
+        'annualPercentageYield': 0.085,
+        'dailyIncome': 1.28,
+        'monthlyIncome': 38.5,
+        'yearlyIncome': 467.5,
         'initialLaunchDate': '2022-01-01',
-        'totalInvestment': 5000.0,
-        'underlyingAssetPrice': 5000.0,
-        'initialMaintenanceReserve': 100.0,
+        'totalInvestment': 5500.0,
+        'underlyingAssetPrice': 5500.0,
+        'initialMaintenanceReserve': 120.0,
         'rentalType': 'residential',
         'rentStartDate': '2022-01-01',
         'rentedUnits': 1,
         'totalUnits': 1,
-        'grossRentMonth': 40.0,
-        'netRentMonth': 33.0,
-        'constructionYear': 2010,
+        'grossRentMonth': 42.0,
+        'netRentMonth': 38.5,
+        'constructionYear': 2008,
         'propertyStories': 2,
-        'lotSize': 2000,
-        'squareFeet': 1200,
+        'lotSize': 2200,
+        'squareFeet': 1350,
         'marketplaceLink': '',
-        'propertyType': 'apartment',
+        'propertyType': 'single_family',
         'productType': 'real_estate_rental',
-        'totalRentReceived': 450.0,
+        'totalRentReceived': 462.0,
         'historic': {},
         'ethereumContract': '0xMOCKTOKEN1',
-        'transactions': []
+        'transactions': [],
+        'source': 'wallet'
       },
       {
         'uuid': '0xMOCKTOKEN2',
-        'shortName': 'name',
-        'fullName': 'Full Name',
-        'country': 'France',
-        'regionCode': 'IDF',
-        'city': 'Paris',
+        'shortName': 'Detroit Duplex B',
+        'fullName': 'Detroit Duplex Property B',
+        'country': 'USA',
+        'regionCode': 'MI',
+        'city': 'Detroit',
         'imageLink': '',
-        'lat': 48.8566,
-        'lng': 2.3522,
-        'totalTokens': 50,
-        'tokenPrice': 120.0,
-        'totalValue': 6000.0,
-        'amount': 50.0,
-        'annualPercentageYield': 0.06,
-        'dailyIncome': 0.8,
-        'monthlyIncome': 24.0,
-        'yearlyIncome': 290.0,
-        'initialLaunchDate': '2023-03-01',
-        'totalInvestment': 6000.0,
-        'underlyingAssetPrice': 6000.0,
-        'initialMaintenanceReserve': 80.0,
-        'rentalType': 'commercial',
-        'rentStartDate': '2023-03-01',
+        'lat': 42.3314,
+        'lng': -83.0458,
+        'totalTokens': 75,
+        'tokenPrice': 73.33,
+        'totalValue': 5500.0,
+        'amount': 75.0,
+        'annualPercentageYield': 0.077,
+        'dailyIncome': 1.16,
+        'monthlyIncome': 35.3,
+        'yearlyIncome': 423.5,
+        'initialLaunchDate': '2022-06-01',
+        'totalInvestment': 5500.0,
+        'underlyingAssetPrice': 5500.0,
+        'initialMaintenanceReserve': 110.0,
+        'rentalType': 'residential',
+        'rentStartDate': '2022-06-01',
+        'rentedUnits': 2,
+        'totalUnits': 2,
+        'grossRentMonth': 38.0,
+        'netRentMonth': 35.3,
+        'constructionYear': 2010,
+        'propertyStories': 2,
+        'lotSize': 1800,
+        'squareFeet': 2200,
+        'marketplaceLink': '',
+        'propertyType': 'duplex',
+        'productType': 'real_estate_rental',
+        'totalRentReceived': 423.6,
+        'historic': {},
+        'ethereumContract': '0xMOCKTOKEN2',
+        'transactions': [],
+        'source': 'wallet'
+      },
+      {
+        'uuid': '0xMOCKTOKEN3',
+        'shortName': 'Miami Condo',
+        'fullName': 'Miami Waterfront Condominium',
+        'country': 'USA',
+        'regionCode': 'FL',
+        'city': 'Miami',
+        'imageLink': '',
+        'lat': 25.7617,
+        'lng': -80.1918,
+        'totalTokens': 80,
+        'tokenPrice': 137.5,
+        'totalValue': 0.0,
+        'amount': 80.0,
+        'annualPercentageYield': 0.065,
+        'dailyIncome': 1.95,
+        'monthlyIncome': 59.6,
+        'yearlyIncome': 715.0,
+        'initialLaunchDate': '2023-01-15',
+        'totalInvestment': 0.0,
+        'underlyingAssetPrice': 0.0,
+        'initialMaintenanceReserve': 200.0,
+        'rentalType': 'residential',
+        'rentStartDate': '2023-01-15',
         'rentedUnits': 1,
         'totalUnits': 1,
-        'grossRentMonth': 30.0,
-        'netRentMonth': 24.0,
-        'constructionYear': 2015,
+        'grossRentMonth': 65.0,
+        'netRentMonth': 59.6,
+        'constructionYear': 2018,
         'propertyStories': 1,
-        'lotSize': 1000,
-        'squareFeet': 800,
+        'lotSize': 0,
+        'squareFeet': 850,
+        'marketplaceLink': '',
+        'propertyType': 'condo',
+        'productType': 'real_estate_rental',
+        'totalRentReceived': 715.0,
+        'historic': {},
+        'ethereumContract': '0xMOCKTOKEN3',
+        'transactions': [],
+        'source': 'wallet'
+      },
+      {
+        'uuid': '0xMOCKTOKEN4',
+        'shortName': 'Dallas Office',
+        'fullName': 'Dallas Commercial Office Complex',
+        'country': 'USA',
+        'regionCode': 'TX',
+        'city': 'Dallas',
+        'imageLink': '',
+        'lat': 32.7767,
+        'lng': -96.7970,
+        'totalTokens': 60,
+        'tokenPrice': 125.0,
+        'totalValue': 7500.0,
+        'amount': 60.0,
+        'annualPercentageYield': 0.092,
+        'dailyIncome': 1.89,
+        'monthlyIncome': 57.5,
+        'yearlyIncome': 690.0,
+        'initialLaunchDate': '2023-08-01',
+        'totalInvestment': 7500.0,
+        'underlyingAssetPrice': 7500.0,
+        'initialMaintenanceReserve': 150.0,
+        'rentalType': 'commercial',
+        'rentStartDate': '2023-08-01',
+        'rentedUnits': 1,
+        'totalUnits': 1,
+        'grossRentMonth': 62.0,
+        'netRentMonth': 57.5,
+        'constructionYear': 2015,
+        'propertyStories': 3,
+        'lotSize': 5000,
+        'squareFeet': 3200,
         'marketplaceLink': '',
         'propertyType': 'office',
         'productType': 'loan_income',
-        'totalRentReceived': 390.0,
+        'totalRentReceived': 460.0,
         'historic': {},
-        'ethereumContract': '0xMOCKTOKEN2',
-        'transactions': []
+        'ethereumContract': '0xMOCKTOKEN4',
+        'transactions': [],
+        'source': 'wallet'
+      },
+      {
+        'uuid': '0xMOCKTOKEN5',
+        'shortName': 'Austin Retail',
+        'fullName': 'Austin Retail Shopping Center',
+        'country': 'USA',
+        'regionCode': 'TX',
+        'city': 'Austin',
+        'imageLink': '',
+        'lat': 30.2672,
+        'lng': -97.7431,
+        'totalTokens': 45,
+        'tokenPrice': 111.11,
+        'totalValue': 5000.0,
+        'amount': 45.0,
+        'annualPercentageYield': 0.088,
+        'dailyIncome': 1.21,
+        'monthlyIncome': 36.7,
+        'yearlyIncome': 440.0,
+        'initialLaunchDate': '2024-02-01',
+        'totalInvestment': 5000.0,
+        'underlyingAssetPrice': 5000.0,
+        'initialMaintenanceReserve': 100.0,
+        'rentalType': 'commercial',
+        'rentStartDate': '2024-02-01',
+        'rentedUnits': 1,
+        'totalUnits': 1,
+        'grossRentMonth': 40.0,
+        'netRentMonth': 36.7,
+        'constructionYear': 2012,
+        'propertyStories': 1,
+        'lotSize': 8000,
+        'squareFeet': 4500,
+        'marketplaceLink': '',
+        'propertyType': 'retail',
+        'productType': 'factoring_profitshare',
+        'totalRentReceived': 220.2,
+        'historic': {},
+        'ethereumContract': '0xMOCKTOKEN5',
+        'transactions': [],
+        'source': 'RMM'
+      },
+      {
+        'uuid': '0xMOCKTOKEN6',
+        'shortName': 'Chicago Loft',
+        'fullName': 'Chicago Industrial Loft',
+        'country': 'USA',
+        'regionCode': 'IL',
+        'city': 'Chicago',
+        'imageLink': '',
+        'lat': 41.8781,
+        'lng': -87.6298,
+        'totalTokens': 35,
+        'tokenPrice': 171.43,
+        'totalValue': 6000.0,
+        'amount': 35.0,
+        'annualPercentageYield': 0.072,
+        'dailyIncome': 1.18,
+        'monthlyIncome': 36.0,
+        'yearlyIncome': 432.0,
+        'initialLaunchDate': '2024-05-01',
+        'totalInvestment': 6000.0,
+        'underlyingAssetPrice': 6000.0,
+        'initialMaintenanceReserve': 120.0,
+        'rentalType': 'residential',
+        'rentStartDate': '2024-05-01',
+        'rentedUnits': 1,
+        'totalUnits': 1,
+        'grossRentMonth': 39.0,
+        'netRentMonth': 36.0,
+        'constructionYear': 1995,
+        'propertyStories': 1,
+        'lotSize': 0,
+        'squareFeet': 1800,
+        'marketplaceLink': '',
+        'propertyType': 'loft',
+        'productType': 'real_estate_rental',
+        'totalRentReceived': 144.0,
+        'historic': {},
+        'ethereumContract': '0xMOCKTOKEN6',
+        'transactions': [],
+        'source': 'wallet'
+      },
+      {
+        'uuid': '0xMOCKTOKEN7',
+        'shortName': 'NYC Studio',
+        'fullName': 'New York Studio Apartment',
+        'country': 'USA',
+        'regionCode': 'NY',
+        'city': 'New York',
+        'imageLink': '',
+        'lat': 40.7128,
+        'lng': -74.0060,
+        'totalTokens': 25,
+        'tokenPrice': 200.0,
+        'totalValue': 5000.0,
+        'amount': 25.0,
+        'annualPercentageYield': 0.058,
+        'dailyIncome': 0.79,
+        'monthlyIncome': 24.2,
+        'yearlyIncome': 290.0,
+        'initialLaunchDate': '2024-07-01',
+        'totalInvestment': 5000.0,
+        'underlyingAssetPrice': 5000.0,
+        'initialMaintenanceReserve': 100.0,
+        'rentalType': 'residential',
+        'rentStartDate': '2024-07-01',
+        'rentedUnits': 1,
+        'totalUnits': 1,
+        'grossRentMonth': 26.5,
+        'netRentMonth': 24.2,
+        'constructionYear': 2005,
+        'propertyStories': 1,
+        'lotSize': 0,
+        'squareFeet': 450,
+        'marketplaceLink': '',
+        'propertyType': 'studio',
+        'productType': 'real_estate_rental',
+        'totalRentReceived': 48.4,
+        'historic': {},
+        'ethereumContract': '0xMOCKTOKEN7',
+        'transactions': [],
+        'source': 'wallet'
+      },
+      {
+        'uuid': '0xMOCKTOKEN8',
+        'shortName': 'Phoenix Warehouse',
+        'fullName': 'Phoenix Industrial Warehouse',
+        'country': 'USA',
+        'regionCode': 'AZ',
+        'city': 'Phoenix',
+        'imageLink': '',
+        'lat': 33.4484,
+        'lng': -112.0740,
+        'totalTokens': 50,
+        'tokenPrice': 100.0,
+        'totalValue': 5000.0,
+        'amount': 50.0,
+        'annualPercentageYield': 0.095,
+        'dailyIncome': 1.30,
+        'monthlyIncome': 39.6,
+        'yearlyIncome': 475.0,
+        'initialLaunchDate': '2024-09-01',
+        'totalInvestment': 5000.0,
+        'underlyingAssetPrice': 5000.0,
+        'initialMaintenanceReserve': 100.0,
+        'rentalType': 'industrial',
+        'rentStartDate': '2024-09-01',
+        'rentedUnits': 1,
+        'totalUnits': 1,
+        'grossRentMonth': 42.5,
+        'netRentMonth': 39.6,
+        'constructionYear': 2020,
+        'propertyStories': 1,
+        'lotSize': 15000,
+        'squareFeet': 12000,
+        'marketplaceLink': '',
+        'propertyType': 'warehouse',
+        'productType': 'loan_income',
+        'totalRentReceived': 39.6,
+        'historic': {},
+        'ethereumContract': '0xMOCKTOKEN8',
+        'transactions': [],
+        'source': 'wallet'
       }
     ];
     rentHistory = [
@@ -126,116 +374,243 @@ class DataManager extends ChangeNotifier {
         'date': '2025-08-01',
         'wallet': '0xd7a6A4b95E29CE5f8f45404d1251178DAFE75AF3',
         'rents': [
-          {'token': '0xMOCKTOKEN1', 'rent': 33.0},
-          {'token': '0xMOCKTOKEN2', 'rent': 24.0}
+          {'token': '0xMOCKTOKEN1', 'rent': 38.5},
+          {'token': '0xMOCKTOKEN2', 'rent': 35.3},
+          {'token': '0xMOCKTOKEN3', 'rent': 59.6}
+        ]
+      },
+      {
+        'date': '2025-08-01',
+        'wallet': '0xOTHERWALLET000000000000000000000001',
+        'rents': [
+          {'token': '0xMOCKTOKEN4', 'rent': 57.5},
+          {'token': '0xMOCKTOKEN5', 'rent': 36.7}
+        ]
+      },
+      {
+        'date': '2025-08-01',
+        'wallet': '0xOTHERWALLET000000000000000000000002',
+        'rents': [
+          {'token': '0xMOCKTOKEN6', 'rent': 36.0},
+          {'token': '0xMOCKTOKEN7', 'rent': 24.2},
+          {'token': '0xMOCKTOKEN8', 'rent': 39.6}
         ]
       },
       {
         'date': '2025-07-01',
         'wallet': '0xd7a6A4b95E29CE5f8f45404d1251178DAFE75AF3',
         'rents': [
-          {'token': '0xMOCKTOKEN1', 'rent': 32.0},
-          {'token': '0xMOCKTOKEN2', 'rent': 23.0}
+          {'token': '0xMOCKTOKEN1', 'rent': 37.8},
+          {'token': '0xMOCKTOKEN2', 'rent': 34.9},
+          {'token': '0xMOCKTOKEN3', 'rent': 58.2}
+        ]
+      },
+      {
+        'date': '2025-07-01',
+        'wallet': '0xOTHERWALLET000000000000000000000001',
+        'rents': [
+          {'token': '0xMOCKTOKEN4', 'rent': 56.8},
+          {'token': '0xMOCKTOKEN5', 'rent': 36.1}
+        ]
+      },
+      {
+        'date': '2025-07-01',
+        'wallet': '0xOTHERWALLET000000000000000000000002',
+        'rents': [
+          {'token': '0xMOCKTOKEN6', 'rent': 35.5},
+          {'token': '0xMOCKTOKEN7', 'rent': 23.8},
+          {'token': '0xMOCKTOKEN8', 'rent': 39.0}
         ]
       },
       {
         'date': '2025-06-01',
         'wallet': '0xd7a6A4b95E29CE5f8f45404d1251178DAFE75AF3',
         'rents': [
-          {'token': '0xMOCKTOKEN1', 'rent': 31.0},
-          {'token': '0xMOCKTOKEN2', 'rent': 22.0}
+          {'token': '0xMOCKTOKEN1', 'rent': 37.2},
+          {'token': '0xMOCKTOKEN2', 'rent': 34.5},
+          {'token': '0xMOCKTOKEN3', 'rent': 57.8}
+        ]
+      },
+      {
+        'date': '2025-06-01',
+        'wallet': '0xOTHERWALLET000000000000000000000001',
+        'rents': [
+          {'token': '0xMOCKTOKEN4', 'rent': 56.2},
+          {'token': '0xMOCKTOKEN5', 'rent': 35.8}
+        ]
+      },
+      {
+        'date': '2025-06-01',
+        'wallet': '0xOTHERWALLET000000000000000000000002',
+        'rents': [
+          {'token': '0xMOCKTOKEN6', 'rent': 35.1},
+          {'token': '0xMOCKTOKEN7', 'rent': 23.5},
+          {'token': '0xMOCKTOKEN8', 'rent': 38.5}
         ]
       }
     ];
     // سایر فیلدهای تحلیلی را هم مقداردهی می‌کنیم
-    walletValue = 11000.0;
-    roiGlobalValue = 0.12;
-    netGlobalApy = 0.07;
-    totalWalletValue = 11000.0;
-    totalRealtTokens = 2;
-    totalRealtInvestment = 11000.0;
-    netRealtRentYear = 690.0;
-    realtInitialPrice = 11000.0;
-    realtActualPrice = 11000.0;
-    totalRealtUnits = 2;
-    rentedRealtUnits = 2;
-    averageRealtAnnualYield = 0.07;
-    usdcDepositApy = 0.03;
-    usdcBorrowApy = 0.05;
-    xdaiDepositApy = 0.025;
-    xdaiBorrowApy = 0.045;
-    apyAverage = 0.07;
-    healthFactor = 1.5;
-    ltv = 0.4;
-    walletTokenCount = 2;
-    rmmTokenCount = 0;
-    totalTokenCount = 2;
+    walletValue = 22000.0; // Wallet 1: 16500, Wallet 2: 12500, Wallet 3: 16000
+    roiGlobalValue = 0.078;
+    netGlobalApy = 0.078;
+    totalWalletValue = 45000.0; // مجموع کل پورتفولیو
+    totalRealtTokens = 8;
+    totalRealtInvestment = 45000.0;
+    netRealtRentYear = 3517.1;
+    realtInitialPrice = 45000.0;
+    realtActualPrice = 45000.0;
+    totalRealtUnits = 8;
+    rentedRealtUnits = 8;
+    averageRealtAnnualYield = 0.078;
+    usdcDepositApy = 0.035;
+    usdcBorrowApy = 0.055;
+    xdaiDepositApy = 0.028;
+    xdaiBorrowApy = 0.048;
+    apyAverage = 0.078;
+    healthFactor = 1.8;
+    ltv = 0.35;
+    walletTokenCount = 8;
+    rmmTokenCount = 1; // TOKEN5 از RMM
+    totalTokenCount = 8;
     duplicateTokenCount = 0;
     // تکمیل سایر فیلدهای آماری و تحلیلی
-    rmmValue = 0.0;
-    perWalletRmmValues = {'0xd7a6A4b95E29CE5f8f45404d1251178DAFE75AF3': 0.0};
-    rwaHoldingsValue = 0.0;
-    rentedUnits = 2;
-    totalUnits = 2;
-    initialTotalValue = 11000.0;
-    yamTotalValue = 0.0;
-    totalTokens = 2.0;
-    walletTokensSums = 2.0;
-    rmmTokensSums = 0.0;
-    averageAnnualYield = 0.07;
-    dailyRent = 2.0;
-    weeklyRent = 14.0;
-    monthlyRent = 57.0;
-    yearlyRent = 690.0;
-    userIdToAddresses = {
-      'russell': ['0xd7a6A4b95E29CE5f8f45404d1251178DAFE75AF3']
+    rmmValue = 5000.0; // فقط TOKEN5
+    perWalletRmmValues = {
+      '0xd7a6A4b95E29CE5f8f45404d1251178DAFE75AF3': 0.0,
+      '0xOTHERWALLET000000000000000000000001': 5000.0, // TOKEN5
+      '0xOTHERWALLET000000000000000000000002': 0.0
     };
-    totalUsdcDepositBalance = 0.0;
-    totalUsdcBorrowBalance = 0.0;
-    totalXdaiDepositBalance = 0.0;
-    totalXdaiBorrowBalance = 0.0;
-    gnosisUsdcBalance = 2000.0; // کیف پول فیک Russell: $2000
-    gnosisXdaiBalance = 0.0;
-    gnosisRegBalance = 0.0;
-    gnosisVaultRegBalance = 0.0;
+    rwaHoldingsValue = 0.0;
+    rentedUnits = 8;
+    totalUnits = 8;
+    initialTotalValue = 45000.0;
+    yamTotalValue = 0.0;
+    totalTokens = 370.0; // مجموع همه amounts
+    walletTokensSums = 370.0;
+    rmmTokensSums = 45.0; // فقط TOKEN5
+    averageAnnualYield = 0.078;
+    dailyRent = 9.64; // مجموع daily income
+    weeklyRent = 67.48;
+    monthlyRent = 291.9; // مجموع monthly income
+    yearlyRent = 3517.1; // مجموع yearly income
+    userIdToAddresses = {
+      'russell': [
+        '0xd7a6A4b95E29CE5f8f45404d1251178DAFE75AF3',
+        '0xOTHERWALLET000000000000000000000001',
+        '0xOTHERWALLET000000000000000000000002'
+      ]
+    };
+    totalUsdcDepositBalance = 2500.0;
+    totalUsdcBorrowBalance = 800.0;
+    totalXdaiDepositBalance = 1500.0;
+    totalXdaiBorrowBalance = 500.0;
+    gnosisUsdcBalance = 3200.0; // کیف پول فیک Russell: $3200
+    gnosisXdaiBalance = 850.0;
+    gnosisRegBalance = 120.0;
+    gnosisVaultRegBalance = 85.0;
     walletStats = [
       {
         'wallet': '0xd7a6A4b95E29CE5f8f45404d1251178DAFE75AF3',
-        'value': 11000.0,
+        'value': 22000.0, // TOKEN1 + TOKEN2 + TOKEN3
+        'tokens': 3,
+        'apy': 0.0757, // متوسط APY سه توکن
+        'roi': 0.085,
+        'ltv': 0.32,
+        'healthFactor': 2.1
+      },
+      {
+        'wallet': '0xOTHERWALLET000000000000000000000001',
+        'value': 12500.0, // TOKEN4 + TOKEN5
         'tokens': 2,
-        'apy': 0.07,
-        'roi': 0.12,
-        'ltv': 0.4,
-        'healthFactor': 1.5
+        'apy': 0.090, // متوسط APY دو توکن
+        'roi': 0.078,
+        'ltv': 0.38,
+        'healthFactor': 1.9
+      },
+      {
+        'wallet': '0xOTHERWALLET000000000000000000000002',
+        'value': 16000.0, // TOKEN6 + TOKEN7 + TOKEN8
+        'tokens': 3,
+        'apy': 0.075, // متوسط APY سه توکن
+        'roi': 0.071,
+        'ltv': 0.35,
+        'healthFactor': 1.7
       }
     ];
-    evmAddresses = ['0xd7a6A4b95E29CE5f8f45404d1251178DAFE75AF3'];
+    evmAddresses = [
+      '0xd7a6A4b95E29CE5f8f45404d1251178DAFE75AF3',
+      '0xOTHERWALLET000000000000000000000001',
+      '0xOTHERWALLET000000000000000000000002'
+    ];
     propertyData = [];
     perWalletBalances = [
-      {'wallet': '0xd7a6A4b95E29CE5f8f45404d1251178DAFE75AF3', 'balance': 11000.0}
+      {'wallet': '0xd7a6A4b95E29CE5f8f45404d1251178DAFE75AF3', 'balance': 22000.0},
+      {'wallet': '0xOTHERWALLET000000000000000000000001', 'balance': 12500.0},
+      {'wallet': '0xOTHERWALLET000000000000000000000002', 'balance': 16000.0}
     ];
-    cumulativeRentsByToken = {'0xMOCKTOKEN1': 96.0, '0xMOCKTOKEN2': 69.0};
-    cumulativeRentsByWallet = {
-      '0xd7a6A4b95E29CE5f8f45404d1251178DAFE75AF3': {'0xMOCKTOKEN1': 96.0, '0xMOCKTOKEN2': 69.0}
+    cumulativeRentsByToken = {
+      '0xMOCKTOKEN1': 462.0,
+      '0xMOCKTOKEN2': 423.6,
+      '0xMOCKTOKEN3': 715.0,
+      '0xMOCKTOKEN4': 460.0,
+      '0xMOCKTOKEN5': 220.2,
+      '0xMOCKTOKEN6': 144.0,
+      '0xMOCKTOKEN7': 48.4,
+      '0xMOCKTOKEN8': 39.6
     };
-    tokensWalletCount = {'0xMOCKTOKEN1': 1, '0xMOCKTOKEN2': 1};
+    cumulativeRentsByWallet = {
+      '0xd7a6A4b95E29CE5f8f45404d1251178DAFE75AF3': {
+        '0xMOCKTOKEN1': 462.0,
+        '0xMOCKTOKEN2': 423.6,
+        '0xMOCKTOKEN3': 715.0
+      },
+      '0xOTHERWALLET000000000000000000000001': {'0xMOCKTOKEN4': 460.0, '0xMOCKTOKEN5': 220.2},
+      '0xOTHERWALLET000000000000000000000002': {'0xMOCKTOKEN6': 144.0, '0xMOCKTOKEN7': 48.4, '0xMOCKTOKEN8': 39.6}
+    };
+    tokensWalletCount = {
+      '0xMOCKTOKEN1': 1,
+      '0xMOCKTOKEN2': 1,
+      '0xMOCKTOKEN3': 1,
+      '0xMOCKTOKEN4': 1,
+      '0xMOCKTOKEN5': 1,
+      '0xMOCKTOKEN6': 1,
+      '0xMOCKTOKEN7': 1,
+      '0xMOCKTOKEN8': 1
+    };
     rentData = [
-      {'token': '0xMOCKTOKEN1', 'rent': 33.0, 'date': '2025-08-01'},
-      {'token': '0xMOCKTOKEN2', 'rent': 24.0, 'date': '2025-08-01'}
+      {'token': '0xMOCKTOKEN1', 'rent': 38.5, 'date': '2025-08-01'},
+      {'token': '0xMOCKTOKEN2', 'rent': 35.3, 'date': '2025-08-01'},
+      {'token': '0xMOCKTOKEN3', 'rent': 59.6, 'date': '2025-08-01'},
+      {'token': '0xMOCKTOKEN4', 'rent': 57.5, 'date': '2025-08-01'},
+      {'token': '0xMOCKTOKEN5', 'rent': 36.7, 'date': '2025-08-01'},
+      {'token': '0xMOCKTOKEN6', 'rent': 36.0, 'date': '2025-08-01'},
+      {'token': '0xMOCKTOKEN7', 'rent': 24.2, 'date': '2025-08-01'},
+      {'token': '0xMOCKTOKEN8', 'rent': 39.6, 'date': '2025-08-01'}
     ];
     detailedRentData = [
       {
         'date': '2025-08-01',
         'wallet': '0xd7a6A4b95E29CE5f8f45404d1251178DAFE75AF3',
         'token': '0xMOCKTOKEN1',
-        'rent': 33.0
+        'rent': 38.5
       },
       {
         'date': '2025-08-01',
         'wallet': '0xd7a6A4b95E29CE5f8f45404d1251178DAFE75AF3',
         'token': '0xMOCKTOKEN2',
-        'rent': 24.0
-      }
+        'rent': 35.3
+      },
+      {
+        'date': '2025-08-01',
+        'wallet': '0xd7a6A4b95E29CE5f8f45404d1251178DAFE75AF3',
+        'token': '0xMOCKTOKEN3',
+        'rent': 59.6
+      },
+      {'date': '2025-08-01', 'wallet': '0xOTHERWALLET000000000000000000000001', 'token': '0xMOCKTOKEN4', 'rent': 57.5},
+      {'date': '2025-08-01', 'wallet': '0xOTHERWALLET000000000000000000000001', 'token': '0xMOCKTOKEN5', 'rent': 36.7},
+      {'date': '2025-08-01', 'wallet': '0xOTHERWALLET000000000000000000000002', 'token': '0xMOCKTOKEN6', 'rent': 36.0},
+      {'date': '2025-08-01', 'wallet': '0xOTHERWALLET000000000000000000000002', 'token': '0xMOCKTOKEN7', 'rent': 24.2},
+      {'date': '2025-08-01', 'wallet': '0xOTHERWALLET000000000000000000000002', 'token': '0xMOCKTOKEN8', 'rent': 39.6}
     ];
     notifyListeners();
 
@@ -304,6 +679,11 @@ class DataManager extends ChangeNotifier {
 
         // Portfolio data
         _portfolio = List<Map<String, dynamic>>.from(russellData['portfolio'] ?? []);
+
+        // Add mock data if portfolio is empty
+        if (_portfolio.isEmpty) {
+          _generateMockPortfolioData();
+        }
         initialTotalValue = (russellData['initialTotalValue'] as num?)?.toDouble() ?? 0.0;
         totalTokenCount = russellData['totalTokenCount'] as int? ?? 0;
 
@@ -482,84 +862,121 @@ class DataManager extends ChangeNotifier {
 
     // Enhanced wallet tokens data for distribution charts
     walletTokens = [
-      // Russell's main wallet
+      // Russell's main wallet (Wallet 1)
       {
         'wallet': '0xd7a6A4b95E29CE5f8f45404d1251178DAFE75AF3',
         'token': '0xMOCKTOKEN1',
-        'shortName': 'Detroit House 1',
+        'shortName': 'Detroit House A',
         'amount': 100.0,
-        'value': 5500.0
+        'value': 5500.0,
+        'productType': 'real_estate_rental',
+        'propertyType': 'single_family',
+        'country': 'USA',
+        'city': 'Detroit'
       },
       {
         'wallet': '0xd7a6A4b95E29CE5f8f45404d1251178DAFE75AF3',
         'token': '0xMOCKTOKEN2',
-        'shortName': 'Detroit Duplex',
-        'amount': 50.0,
-        'value': 5500.0
+        'shortName': 'Detroit Duplex B',
+        'amount': 75.0,
+        'value': 5500.0,
+        'productType': 'real_estate_rental',
+        'propertyType': 'duplex',
+        'country': 'USA',
+        'city': 'Detroit'
       },
-
-      // Second wallet for distribution
       {
-        'wallet': '0xOTHERWALLET000000000000000000000001',
+        'wallet': '0xd7a6A4b95E29CE5f8f45404d1251178DAFE75AF3',
         'token': '0xMOCKTOKEN3',
         'shortName': 'Miami Condo',
-        'amount': 75.0,
-        'value': 8250.0
+        'amount': 80.0,
+        'value': 0.0,
+        'productType': 'real_estate_rental',
+        'propertyType': 'condo',
+        'country': 'USA',
+        'city': 'Miami'
       },
+
+      // Second wallet for distribution (Wallet 2)
       {
         'wallet': '0xOTHERWALLET000000000000000000000001',
         'token': '0xMOCKTOKEN4',
         'shortName': 'Dallas Office',
-        'amount': 25.0,
-        'value': 3750.0
+        'amount': 60.0,
+        'value': 7500.0,
+        'productType': 'loan_income',
+        'propertyType': 'office',
+        'country': 'USA',
+        'city': 'Dallas'
       },
       {
         'wallet': '0xOTHERWALLET000000000000000000000001',
         'token': '0xMOCKTOKEN5',
         'shortName': 'Austin Retail',
-        'amount': 60.0,
-        'value': 4200.0
+        'amount': 45.0,
+        'value': 5000.0,
+        'productType': 'factoring_profitshare',
+        'propertyType': 'retail',
+        'country': 'USA',
+        'city': 'Austin'
       },
 
-      // Third wallet
+      // Third wallet (Wallet 3)
       {
         'wallet': '0xOTHERWALLET000000000000000000000002',
         'token': '0xMOCKTOKEN6',
         'shortName': 'Chicago Loft',
-        'amount': 40.0,
-        'value': 6800.0
+        'amount': 35.0,
+        'value': 6000.0,
+        'productType': 'real_estate_rental',
+        'propertyType': 'loft',
+        'country': 'USA',
+        'city': 'Chicago'
       },
       {
         'wallet': '0xOTHERWALLET000000000000000000000002',
         'token': '0xMOCKTOKEN7',
         'shortName': 'NYC Studio',
-        'amount': 20.0,
-        'value': 4500.0
+        'amount': 25.0,
+        'value': 5000.0,
+        'productType': 'real_estate_rental',
+        'propertyType': 'studio',
+        'country': 'USA',
+        'city': 'New York'
       },
+      {
+        'wallet': '0xOTHERWALLET000000000000000000000002',
+        'token': '0xMOCKTOKEN8',
+        'shortName': 'Phoenix Warehouse',
+        'amount': 50.0,
+        'value': 5000.0,
+        'productType': 'loan_income',
+        'propertyType': 'warehouse',
+        'country': 'USA',
+        'city': 'Phoenix'
+      }
     ];
 
     // Enhanced cumulative rents
     cumulativeRentsByToken = {
-      '0xMOCKTOKEN1': 450.0,
-      '0xMOCKTOKEN2': 420.0,
-      '0xMOCKTOKEN3': 510.0,
-      '0xMOCKTOKEN4': 290.0,
-      '0xMOCKTOKEN5': 180.0,
-      '0xMOCKTOKEN6': 340.0,
-      '0xMOCKTOKEN7': 225.0,
+      '0xMOCKTOKEN1': 462.0,
+      '0xMOCKTOKEN2': 423.6,
+      '0xMOCKTOKEN3': 715.0,
+      '0xMOCKTOKEN4': 460.0,
+      '0xMOCKTOKEN5': 220.2,
+      '0xMOCKTOKEN6': 144.0,
+      '0xMOCKTOKEN7': 48.4,
+      '0xMOCKTOKEN8': 39.6
     };
 
     cumulativeRentsByWallet = {
-      '0xd7a6A4b95E29CE5f8f45404d1251178DAFE75AF3': {'0xMOCKTOKEN1': 450.0, '0xMOCKTOKEN2': 420.0},
-      '0xOTHERWALLET000000000000000000000001': {
-        '0xMOCKTOKEN3': 510.0,
-        '0xMOCKTOKEN4': 290.0,
-        '0xMOCKTOKEN5': 180.0,
+      '0xd7a6A4b95E29CE5f8f45404d1251178DAFE75AF3': {
+        '0xMOCKTOKEN1': 462.0,
+        '0xMOCKTOKEN2': 423.6,
+        '0xMOCKTOKEN3': 715.0
       },
-      '0xOTHERWALLET000000000000000000000002': {
-        '0xMOCKTOKEN6': 340.0,
-        '0xMOCKTOKEN7': 225.0,
-      }
+      '0xOTHERWALLET000000000000000000000001': {'0xMOCKTOKEN4': 460.0, '0xMOCKTOKEN5': 220.2},
+      '0xOTHERWALLET000000000000000000000002': {'0xMOCKTOKEN6': 144.0, '0xMOCKTOKEN7': 48.4, '0xMOCKTOKEN8': 39.6}
     };
 
     // Enhanced monthly/yearly rent calculations
@@ -713,13 +1130,13 @@ class DataManager extends ChangeNotifier {
       {
         'wallet': '0xd7a6A4b95E29CE5f8f45404d1251178DAFE75AF3',
         'address': '0xd7a6A4b95E29CE5f8f45404d1251178DAFE75AF3',
-        'value': 11000.0,
+        'value': 0.0,
         'tokens': 2,
         'apy': 0.075,
         'roi': 0.12,
         'ltv': 0.35,
         'healthFactor': 1.8,
-        'walletValueSum': 11000.0,
+        'walletValueSum': 0.0,
         'rmmValue': 0.0,
         'tokenCount': 2,
         'walletTokensSum': 150.0,
@@ -1147,30 +1564,30 @@ class DataManager extends ChangeNotifier {
 
       // Exécution des mises à jour en parallèle
       await Future.wait([
-        fetchData(
-            apiCall: () => ApiService.fetchWalletTokens(forceFetch: forceFetch),
-            cacheKey: 'cachedTokenData_tokens',
-            updateVariable: (data) => walletTokens = data,
-            debugName: "Tokens"),
+        // fetchData(
+        //     apiCall: () => ApiService.fetchWalletTokens(forceFetch: forceFetch),
+        //     cacheKey: 'cachedTokenData_tokens',
+        //     updateVariable: (data) => walletTokens = data,
+        //     debugName: "Tokens"),
 
         fetchData(
             apiCall: () => ApiService.fetchRealTokens(forceFetch: forceFetch),
             cacheKey: 'cachedRealTokens',
             updateVariable: (data) => realTokens = data,
             debugName: "RealTokens"),
-        fetchData(
-            apiCall: () => ApiService.fetchRmmBalances(forceFetch: forceFetch),
-            cacheKey: 'rmmBalances',
-            updateVariable: (data) {
-              rmmBalances = data;
-              fetchRmmBalances();
-            },
-            debugName: "RMM Balances"),
-        fetchData(
-            apiCall: () => ApiService.fetchRentData(forceFetch: forceFetch),
-            cacheKey: 'tempRentData',
-            updateVariable: (data) => tempRentData = data,
-            debugName: "Loyer temporaire"),
+        // fetchData(
+        //     apiCall: () => ApiService.fetchRmmBalances(forceFetch: forceFetch),
+        //     cacheKey: 'rmmBalances',
+        //     updateVariable: (data) {
+        //       rmmBalances = data;
+        //       fetchRmmBalances();
+        //     },
+        //     debugName: "RMM Balances"),
+        // fetchData(
+        //     apiCall: () => ApiService.fetchRentData(forceFetch: forceFetch),
+        //     cacheKey: 'tempRentData',
+        //     updateVariable: (data) => tempRentData = data,
+        //     debugName: "Loyer temporaire"),
         fetchData(
             apiCall: () => ApiService.fetchPropertiesForSale(),
             cacheKey: 'cachedPropertiesForSaleData',
@@ -1183,11 +1600,11 @@ class DataManager extends ChangeNotifier {
             updateVariable: (data) => whitelistTokens = data,
             debugName: "Whitelist"),
         // Ajout de l'appel pour récupérer l'historique des tokens
-        fetchData(
-            apiCall: () => ApiService.fetchTokenHistory(forceFetch: forceFetch),
-            cacheKey: 'cachedTokenHistoryData',
-            updateVariable: (data) => tokenHistoryData = data,
-            debugName: "Token History")
+        // fetchData(
+        //     apiCall: () => ApiService.fetchTokenHistory(forceFetch: forceFetch),
+        //     cacheKey: 'cachedTokenHistoryData',
+        //     updateVariable: (data) => tokenHistoryData = data,
+        //     debugName: "Token History")
       ]);
 
       // Charger les historiques
@@ -1269,41 +1686,41 @@ class DataManager extends ChangeNotifier {
 
       // Exécution des mises à jour en parallèle
       await Future.wait([
-        fetchData(
-            apiCall: () => ApiService.fetchYamWalletsTransactions(forceFetch: forceFetch),
-            cacheKey: 'cachedWalletsTransactions',
-            updateVariable: (data) => yamWalletsTransactionsFetched = data,
-            debugName: "YAM Wallets Transactions"),
+        // fetchData(
+        //     apiCall: () => ApiService.fetchYamWalletsTransactions(forceFetch: forceFetch),
+        //     cacheKey: 'cachedWalletsTransactions',
+        //     updateVariable: (data) => yamWalletsTransactionsFetched = data,
+        //     debugName: "YAM Wallets Transactions"),
         fetchData(
             apiCall: () => ApiService.fetchYamMarket(forceFetch: forceFetch),
             cacheKey: 'cachedYamMarket',
             updateVariable: (data) => yamMarketFetched = data,
             debugName: "YAM Market"),
-        fetchData(
-            apiCall: () => ApiService.fetchTokenVolumes(forceFetch: forceFetch),
-            cacheKey: 'yamHistory',
-            updateVariable: (data) {
-              rmmBalances = data;
-              fetchYamHistory();
-            },
-            debugName: "YAM Volumes History"),
-        fetchData(
-            apiCall: () => ApiService.fetchTransactionsHistory(forceFetch: forceFetch),
-            cacheKey: 'transactionsHistory',
-            updateVariable: (data) async {
-              transactionsHistory = data;
-              await processTransactionsHistory(context, transactionsHistory, yamWalletsTransactionsFetched);
-            },
-            debugName: "Transactions History"),
-        fetchData(
-            apiCall: () => ApiService.fetchDetailedRentDataForAllWallets(forceFetch: forceFetch),
-            cacheKey: 'detailedRentData',
-            updateVariable: (data) {
-              detailedRentData = data;
-              // Traiter les données détaillées de loyer immédiatement après les avoir récupérées
-              processDetailedRentData();
-            },
-            debugName: "Detailed rents"),
+        // fetchData(
+        //     apiCall: () => ApiService.fetchTokenVolumes(forceFetch: forceFetch),
+        //     cacheKey: 'yamHistory',
+        //     updateVariable: (data) {
+        //       rmmBalances = data;
+        //       fetchYamHistory();
+        //     },
+        //     debugName: "YAM Volumes History"),
+        // fetchData(
+        //     apiCall: () => ApiService.fetchTransactionsHistory(forceFetch: forceFetch),
+        //     cacheKey: 'transactionsHistory',
+        //     updateVariable: (data) async {
+        //       transactionsHistory = data;
+        //       await processTransactionsHistory(context, transactionsHistory, yamWalletsTransactionsFetched);
+        //     },
+        //     debugName: "Transactions History"),
+        // fetchData(
+        //     apiCall: () => ApiService.fetchDetailedRentDataForAllWallets(forceFetch: forceFetch),
+        //     cacheKey: 'detailedRentData',
+        //     updateVariable: (data) {
+        //       detailedRentData = data;
+        //       // Traiter les données détaillées de loyer immédiatement après les avoir récupérées
+        //       processDetailedRentData();
+        //     },
+        //     debugName: "Detailed rents"),
       ]);
 
       isLoadingSecondary = false;
@@ -1708,10 +2125,9 @@ class DataManager extends ChangeNotifier {
               .toList()
           : [];
 
-      // Si l'historique est vide, on ajoute la valeur actuelle
+      // Si l'historique est vide, on ajoute des données mock limitées
       if (walletBalanceHistory.isEmpty) {
-        walletBalanceHistory
-            .add(BalanceRecord(balance: totalWalletValue, timestamp: DateTime.now(), tokenType: 'totalWalletValue'));
+        _generateMockWalletData();
         saveWalletBalanceHistory();
       }
 
@@ -1739,6 +2155,157 @@ class DataManager extends ChangeNotifier {
     } catch (e) {
       debugPrint("$_logError Erreur lors du chargement de l'historique de balance: $e");
     }
+  }
+
+  /// Generate limited mock wallet balance data for demonstration
+  void _generateMockWalletData() {
+    final now = DateTime.now();
+    final baseValue = 50000.0; // Base wallet value in USD
+
+    // Generate 30 days of mock data with some variation
+    for (int i = 29; i >= 0; i--) {
+      final date = now.subtract(Duration(days: i));
+
+      // Add some realistic variation (±5% from base)
+      final variation = (i % 7) * 0.01 - 0.02; // Weekly pattern
+      final randomVariation = (i.hashCode % 200 - 100) * 0.0001; // Small random variation
+      final balance = baseValue * (1 + variation + randomVariation);
+
+      walletBalanceHistory.add(BalanceRecord(balance: balance, timestamp: date, tokenType: 'totalWalletValue'));
+    }
+
+    // Add some mock portfolio data points
+    final portfolioBase = 45000.0;
+    for (int i = 29; i >= 0; i--) {
+      final date = now.subtract(Duration(days: i));
+      final variation = (i % 5) * 0.008 - 0.015;
+      final balance = portfolioBase * (1 + variation);
+
+      walletBalanceHistory.add(BalanceRecord(balance: balance, timestamp: date, tokenType: 'portfolioValue'));
+    }
+
+    debugPrint("$_logSuccess Generated ${walletBalanceHistory.length} mock wallet balance records");
+  }
+
+  /// Generate limited mock portfolio data for demonstration
+  void _generateMockPortfolioData() {
+    final now = DateTime.now();
+
+    // Add 3-4 mock properties with realistic data
+    _portfolio = [
+      {
+        'uuid': '0x18f5dce3bbf97fb2896e2c47d7b3da3de68b48a5',
+        'shortName': 'S-Dexter-24',
+        'fullName': '24 Dexter Street, Detroit, MI',
+        'tokenPrice': 52.85,
+        'amount': 15.0,
+        'totalValue': 792.75,
+        'initialTotalValue': 750.0,
+        'country': 'USA',
+        'city': 'Detroit',
+        'state': 'MI',
+        'annualPercentageYield': 0.098,
+        'totalRentReceived': 89.25,
+        'propertyType': 'single-family',
+        'dailyIncome': 0.21,
+        'monthlyIncome': 6.45,
+        'yearlyIncome': 77.4,
+        'rentedUnits': 1,
+        'totalUnits': 1,
+        'source': 'wallet',
+        'imageLink': ['https://realt.co/wp-content/uploads/2021/04/24-Dexter-Street-Detroit-MI-48238.jpg'],
+        'lastUpdate': now.millisecondsSinceEpoch,
+      },
+      {
+        'uuid': '0x219b06037c382cf3b619fd609755b6d5f0e5bd71',
+        'shortName': 'S-Riopelle-14319',
+        'fullName': '14319 Riopelle Street, Detroit, MI',
+        'tokenPrice': 63.12,
+        'amount': 10.0,
+        'totalValue': 631.20,
+        'initialTotalValue': 620.0,
+        'country': 'USA',
+        'city': 'Detroit',
+        'state': 'MI',
+        'annualPercentageYield': 0.085,
+        'totalRentReceived': 67.80,
+        'propertyType': 'duplex',
+        'dailyIncome': 0.18,
+        'monthlyIncome': 5.37,
+        'yearlyIncome': 64.4,
+        'rentedUnits': 2,
+        'totalUnits': 2,
+        'source': 'wallet',
+        'imageLink': ['https://realt.co/wp-content/uploads/2021/04/14319-Riopelle-Street-Detroit-MI-48212.jpg'],
+        'lastUpdate': now.millisecondsSinceEpoch,
+      },
+      {
+        'uuid': '0x3f463ee4962e5b6ca21b0d40fa8e7b6c19dda67c',
+        'shortName': 'S-Warwick-10612',
+        'fullName': '10612 Warwick Street, Detroit, MI',
+        'tokenPrice': 45.75,
+        'amount': 20.0,
+        'totalValue': 915.0,
+        'initialTotalValue': 900.0,
+        'country': 'USA',
+        'city': 'Detroit',
+        'state': 'MI',
+        'annualPercentageYield': 0.112,
+        'totalRentReceived': 125.40,
+        'propertyType': 'single-family',
+        'dailyIncome': 0.28,
+        'monthlyIncome': 8.55,
+        'yearlyIncome': 102.6,
+        'rentedUnits': 1,
+        'totalUnits': 1,
+        'source': 'wallet',
+        'imageLink': ['https://realt.co/wp-content/uploads/2021/04/10612-Warwick-Street-Detroit-MI-48224.jpg'],
+        'lastUpdate': now.millisecondsSinceEpoch,
+      }
+    ];
+
+    // Update related values
+    totalTokenCount = _portfolio.length;
+    initialTotalValue = _portfolio.fold(0.0, (sum, item) => sum + (item['initialTotalValue'] as double));
+    monthlyRent = _portfolio.fold(0.0, (sum, item) => sum + (item['monthlyIncome'] as double));
+    yearlyRent = monthlyRent * 12;
+    dailyRent = yearlyRent / 365;
+    weeklyRent = yearlyRent / 52;
+
+    // Add mock EVM address if needed
+    if (evmAddresses.isEmpty) {
+      evmAddresses = ['0xd7a6A4b95E29CE5f8f45404d1251178DAFE75AF3'];
+    }
+
+    // Generate mock rent history for last 30 days
+    _generateMockRentData();
+
+    debugPrint("$_logSuccess Generated ${_portfolio.length} mock portfolio items");
+  }
+
+  /// Generate mock rent history data
+  void _generateMockRentData() {
+    final now = DateTime.now();
+    rentData = [];
+
+    // Generate 30 days of rent payments with some variation
+    for (int i = 29; i >= 0; i--) {
+      final date = now.subtract(Duration(days: i));
+      final dailyAmount = dailyRent + (i % 3) * 0.1 - 0.05; // Small variation
+
+      if (i % 7 == 0 && dailyAmount > 0) {
+        // Weekly rent payments
+        rentData.add({
+          'date': date.toIso8601String().split('T')[0],
+          'rent': dailyAmount * 7, // Weekly amount
+          'currency': 'USD',
+          'wallet': '0xd7a6A4b95E29CE5f8f45404d1251178DAFE75AF3',
+          'token': _portfolio.isNotEmpty ? _portfolio[i % _portfolio.length]['uuid'] : 'mock-token'
+        });
+      }
+    }
+
+    debugPrint("$_logSuccess Generated ${rentData.length} mock rent records");
   }
 
   Future<void> loadRentedHistory() async {

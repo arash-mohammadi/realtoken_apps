@@ -122,26 +122,39 @@ class MapsPageState extends State<MapsPage> {
     // Cancel previous timer if it exists
     _dashboardTimer?.cancel();
 
-    // Close Statistics and Filters panels if they are open
+    // Prepare new state values without mutating immediately to avoid
+    // updating mouse tracking during a device update.
     bool shouldUpdate = false;
-    if (_showMiniDashboard) {
-      _showMiniDashboard = false;
+    bool newShowMiniDashboard = _showMiniDashboard;
+    bool newShowFiltersPanel = _showFiltersPanel;
+    double newDashboardOpacity = _dashboardOpacity;
+
+    if (newShowMiniDashboard) {
+      newShowMiniDashboard = false;
       shouldUpdate = true;
     }
-    if (_showFiltersPanel) {
-      _showFiltersPanel = false;
+    if (newShowFiltersPanel) {
+      newShowFiltersPanel = false;
       shouldUpdate = true;
     }
 
     // Immediately dim the main control panel
-    if (_dashboardOpacity == 1.0) {
-      _dashboardOpacity = 0.3;
+    if (newDashboardOpacity == 1.0) {
+      newDashboardOpacity = 0.3;
       shouldUpdate = true;
     }
 
-    // Apply changes if necessary
+    // Defer the actual setState to the next frame to avoid the
+    // mouse_tracker assertion when pointer/device updates are processed.
     if (shouldUpdate) {
-      setState(() {});
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        setState(() {
+          _showMiniDashboard = newShowMiniDashboard;
+          _showFiltersPanel = newShowFiltersPanel;
+          _dashboardOpacity = newDashboardOpacity;
+        });
+      });
     }
 
     // Schedule return to normal opacity after 2.5 seconds
@@ -351,8 +364,11 @@ class MapsPageState extends State<MapsPage> {
             child: GestureDetector(
               behavior: HitTestBehavior.translucent,
               onTap: () {
-                print("✅ Click detected on the pointer !");
-                _showMarkerPopup(context, matchingToken);
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (!mounted) return;
+                  print("✅ Click detected on the pointer !");
+                  _showMarkerPopup(context, matchingToken);
+                });
               },
               child: _buildMapPointer(
                 matchingToken: matchingToken,
@@ -452,8 +468,14 @@ class MapsPageState extends State<MapsPage> {
                 initialCenter: LatLng(42.367476, -83.130921),
                 initialZoom: 8.0,
                 onTap: (_, __) => _popupController.hideAllPopups(),
-                onPointerDown: (_, __) => _onMapInteraction(),
-                onPointerHover: (_, __) => _onMapInteraction(),
+                onPointerDown: (_, __) => WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (!mounted) return;
+                  _onMapInteraction();
+                }),
+                onPointerHover: (_, __) => WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (!mounted) return;
+                  _onMapInteraction();
+                }),
                 interactionOptions: const InteractionOptions(
                     flags: InteractiveFlag.pinchZoom | InteractiveFlag.drag | InteractiveFlag.scrollWheelZoom),
               ),

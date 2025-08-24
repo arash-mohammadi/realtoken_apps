@@ -72,22 +72,22 @@ class ManageEvmAddressesPageState extends State<ManageEvmAddressesPage> {
       final dataManager = Provider.of<DataManager>(context, listen: false);
 
       // Utilisation de la nouvelle API pour récupérer le userId et les adresses associées
-      final result = await ApiService.fetchUserAndAddresses(address.toLowerCase());
+      // final result = await ApiService.fetchUserAndAddresses(address.toLowerCase());
 
-      if (result != null) {
-        final String userId = result['userId'];
-        final List<String> associatedAddresses = result['addresses'];
+      // if (result != null) {
+      //   final String userId = result['userId'];
+      //   final List<String> associatedAddresses = result['addresses'];
 
-        dataManager.addAddressesForUserId(userId, associatedAddresses);
+      //   dataManager.addAddressesForUserId(userId, associatedAddresses);
 
-        setState(() {
-          evmAddresses.addAll(
-            associatedAddresses.where((addr) => !evmAddresses.contains(addr)),
-          );
-        });
+      //   setState(() {
+      //     evmAddresses.addAll(
+      //       associatedAddresses.where((addr) => !evmAddresses.contains(addr)),
+      //     );
+      //   });
 
-        await prefs.setStringList('evmAddresses', evmAddresses);
-      }
+      //   await prefs.setStringList('evmAddresses', evmAddresses);
+      // }
 
       // Forcer la mise à jour des données après l'ajout
       debugPrint("🔑 ManageEvmAddresses: forçage de la mise à jour après ajout d'adresse");

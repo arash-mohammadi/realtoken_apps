@@ -109,16 +109,22 @@ class StatsSelectorPageState extends State<StatsSelectorPage> with TickerProvide
 
     if (offset > _lastScrollOffset + threshold && _isSelectorVisible) {
       // Scroll vers le bas - masquer le sélecteur
-      setState(() {
-        _isSelectorVisible = false;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        setState(() {
+          _isSelectorVisible = false;
+        });
+        _selectorAnimationController.reverse();
       });
-      _selectorAnimationController.reverse();
     } else if (offset < _lastScrollOffset - threshold && !_isSelectorVisible) {
       // Scroll vers le haut - afficher le sélecteur
-      setState(() {
-        _isSelectorVisible = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        setState(() {
+          _isSelectorVisible = true;
+        });
+        _selectorAnimationController.forward();
       });
-      _selectorAnimationController.forward();
     }
 
     _lastScrollOffset = offset;
@@ -244,11 +250,12 @@ class StatsSelectorPageState extends State<StatsSelectorPage> with TickerProvide
               color: Colors.transparent,
               child: InkWell(
                 onTap: () {
-                  if (mounted) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (!mounted) return;
                     setState(() {
                       _updateAnimations(value);
                     });
-                  }
+                  });
                 },
                 borderRadius: BorderRadius.circular(17),
                 child: Container(
@@ -270,11 +277,12 @@ class StatsSelectorPageState extends State<StatsSelectorPage> with TickerProvide
               color: Colors.transparent,
               child: InkWell(
                 onTap: () {
-                  if (mounted) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (!mounted) return;
                     setState(() {
                       _updateAnimations(value);
                     });
-                  }
+                  });
                 },
                 borderRadius: BorderRadius.circular(20),
                 child: Container(

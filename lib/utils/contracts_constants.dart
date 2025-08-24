@@ -11,7 +11,7 @@ class ContractsConstants {
   static const String gnosisVaultRegContract = '0xe1877d33471e37fe0f62d20e60c469eff83fb4a0';
   
   // === RPC ENDPOINTS ===
-  static const String gnosisRpcUrl = 'https://rpc.gnosischain.com';
+  // static const String gnosisRpcUrl = 'https://rpc.gnosischain.com';
   
   // === SELECTEURS DE FONCTION ===
   static const String balanceOfSelector = '0x70a08231';

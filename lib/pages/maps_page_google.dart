@@ -64,9 +64,17 @@ class _MapsPageGoogleState extends State<MapsPageGoogle> {
   }
 
   void _onMapInteraction() {
-    setState(() => _dashboardOpacity = 1.0);
+    // Avoid updating widget tree during pointer device update by deferring
+    // the state changes to the next frame.
     _fadeTimer?.cancel();
-    _fadeTimer = Timer(const Duration(seconds: 3), () => setState(() => _dashboardOpacity = 0.0));
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      setState(() => _dashboardOpacity = 1.0);
+      _fadeTimer = Timer(const Duration(seconds: 3), () {
+        if (!mounted) return;
+        setState(() => _dashboardOpacity = 0.0);
+      });
+    });
   }
 
   Color _apyColor(double apy) {
