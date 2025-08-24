@@ -19,11 +19,9 @@ import 'app_state.dart';
 import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart'; // 👈 Importation de dotenv
-import 'managers/archive_manager.dart';
-import 'managers/apy_manager.dart';
-import 'screens/lock_screen.dart';
 import 'utils/data_fetch_utils.dart';
 import 'utils/preference_keys.dart';
+import 'screens/login_screen.dart';
 
 void main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
@@ -66,8 +64,6 @@ void main() async {
     Hive.openBox('YamHistory'),
   ]);
 
-  final archiveManager = ArchiveManager();
-  final apyManager = ApyManager();
   final dataManager = DataManager();
   final currencyProvider = CurrencyProvider();
   final appState = AppState();
@@ -282,7 +278,7 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
   void _reloadData() async {
     debugPrint("🔄 Mise à jour des données après reprise de l'application...");
-    final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
+    // final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
 
     try {
       // Utiliser refreshData pour une mise à jour légère mais complète
@@ -329,8 +325,7 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
       builder: (context, appState, child) {
         // Initialiser Parameters avec AppState
         Parameters.initAppState(context);
-
-        return MaterialApp(
+        final material = MaterialApp(
           title: 'MeProp mobile app',
           locale: Locale(appState.selectedLanguage),
           supportedLocales: S.delegate.supportedLocales,
@@ -343,12 +338,20 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
           theme: getLightTheme(appState.primaryColor),
           darkTheme: getDarkTheme(appState.primaryColor),
           themeMode: appState.isDarkTheme ? ThemeMode.dark : ThemeMode.light,
-          home: _isAuthenticated
-              ? const MyHomePage()
-              : LockScreen(
-                  onAuthenticated: () => setAuthenticated(true),
-                ),
+          home: !appState.isUserRestored
+              ? const Scaffold(
+                  body: Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                )
+              : appState.currentUser != null
+                  ? const MyHomePage()
+                  : LoginScreen(onLoggedIn: () {
+                      // این callback وقتی فراخوانی می‌شود که کاربر با موفقیت لاگین کرده
+                      // AppState خودش notifyListeners را صدا می‌زند و UI rebuild می‌شود
+                    }),
         );
+        return material;
       },
     );
   }

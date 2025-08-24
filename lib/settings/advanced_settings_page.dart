@@ -68,7 +68,7 @@ class _AdvancedSettingsPageState extends State<AdvancedSettingsPage> {
           _buildSectionHeader(context, S.of(context).apyReactivityHeader, CupertinoIcons.waveform_path),
           _buildSettingsSection(
             context,
-            footnote: 'Ajustez la sensibilité du calcul d\'APY aux variations récentes',
+            footnote: "Adjust APY calculation sensitivity to recent variations",
             children: [
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
@@ -360,7 +360,7 @@ class _AdvancedSettingsPageState extends State<AdvancedSettingsPage> {
                   children: List.generate(365, (index) {
                     return Center(
                       child: Text(
-                        "${index + 1} jours",
+                        "${index + 1} ${S.of(context).days}",
                         style: TextStyle(
                           fontSize: 15,
                         ),

@@ -30,19 +30,22 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m6(error) => "Ошибка: ${error}";
 
-  static String m7(language) => "Язык изменен на ${language}";
+  static String m8(language) => "Язык изменен на ${language}";
 
-  static String m8(days) => "Следующий RONday через ${days} дней";
+  static String m9(days) => "Следующий RONday через ${days} дней";
 
-  static String m9(rented, total) => "Арендовано: ${rented}/${total}";
+  static String m10(count, name, price) =>
+      "Вы успешно приобрели ${count} токенов ${name} за ${price}.";
 
-  static String m10(weeks) => "ROI: ${weeks} недель";
+  static String m11(rented, total) => "Арендовано: ${rented}/${total}";
 
-  static String m12(theme) => "Тема обновлена на ${theme}";
+  static String m12(weeks) => "ROI: ${weeks} недель";
 
-  static String m13(rented, total) => "Арендовано: ${rented}/${total}";
+  static String m15(theme) => "Тема обновлена на ${theme}";
 
-  static String m14(address) => "Кошелек сохранен: ${address}";
+  static String m16(rented, total) => "Арендовано: ${rented}/${total}";
+
+  static String m17(address) => "Кошелек сохранен: ${address}";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -68,6 +71,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "allWallets": MessageLookupByLibrary.simpleMessage("Все кошельки"),
         "allWorkCorrectly":
             MessageLookupByLibrary.simpleMessage("Все работает корректно"),
+        "all_data": MessageLookupByLibrary.simpleMessage("Все данные"),
         "amount": MessageLookupByLibrary.simpleMessage("Количество"),
         "analytics": MessageLookupByLibrary.simpleMessage("Аналитика"),
         "annualPercentageYield":
@@ -93,6 +97,9 @@ class MessageLookup extends MessageLookupByLibrary {
         "authenticateWithBiometric": m0,
         "author": MessageLookupByLibrary.simpleMessage("Автор"),
         "autoSync": MessageLookupByLibrary.simpleMessage("Автосинхронизация"),
+        "auto_mode": MessageLookupByLibrary.simpleMessage("Авто"),
+        "availableTokens":
+            MessageLookupByLibrary.simpleMessage("Доступные токены"),
         "averageApy": MessageLookupByLibrary.simpleMessage("средний APY"),
         "averageROI": MessageLookupByLibrary.simpleMessage("Средний ROI"),
         "balance": MessageLookupByLibrary.simpleMessage("Баланс"),
@@ -117,6 +124,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "buy_token": MessageLookupByLibrary.simpleMessage("Купить"),
         "calendar": MessageLookupByLibrary.simpleMessage("Календарь"),
         "cancel": MessageLookupByLibrary.simpleMessage("Отмена"),
+        "cannotSellProperty": MessageLookupByLibrary.simpleMessage(
+            "Невозможно продать недвижимость"),
         "changelog": MessageLookupByLibrary.simpleMessage("История изменений"),
         "characteristics":
             MessageLookupByLibrary.simpleMessage("Характеристики"),
@@ -138,6 +147,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "confirm": MessageLookupByLibrary.simpleMessage("Подтвердить"),
         "confirmAction":
             MessageLookupByLibrary.simpleMessage("Подтвердите действие"),
+        "confirmPurchase":
+            MessageLookupByLibrary.simpleMessage("Подтвердить покупку"),
         "connectBeforeSync": MessageLookupByLibrary.simpleMessage(
             "Сначала подключите Google Drive"),
         "connectBeforeSyncMessage": MessageLookupByLibrary.simpleMessage(
@@ -187,11 +198,14 @@ class MessageLookup extends MessageLookupByLibrary {
         "depositsAndLoans":
             MessageLookupByLibrary.simpleMessage("Депозиты и займы"),
         "descending": MessageLookupByLibrary.simpleMessage("По убыванию"),
+        "details": MessageLookupByLibrary.simpleMessage("Детали"),
         "deviceDoesNotSupport": MessageLookupByLibrary.simpleMessage(
             "Устройство не поддерживает биометрию"),
         "deviceDoesNotSupportBiometric":
             MessageLookupByLibrary.simpleMessage("Биометрия не поддерживается"),
         "deviceSupportsBiometric": m4,
+        "display_period":
+            MessageLookupByLibrary.simpleMessage("Период отображения"),
         "donate": MessageLookupByLibrary.simpleMessage("Пожертвовать"),
         "donationMessage": MessageLookupByLibrary.simpleMessage(
             "Если вам нравится это приложение, вы можете поддержать его развитие."),
@@ -212,6 +226,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "enableBiometricAuthentication":
             MessageLookupByLibrary.simpleMessage("Включить биометрию"),
         "english": MessageLookupByLibrary.simpleMessage("Английский"),
+        "enterAmount": MessageLookupByLibrary.simpleMessage("Введите сумму"),
         "enterValidNumber":
             MessageLookupByLibrary.simpleMessage("Введите корректное число"),
         "errorDuringTest": m5,
@@ -246,6 +261,9 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Нет в кошельке"),
         "filterOptions":
             MessageLookupByLibrary.simpleMessage("Параметры фильтра"),
+        "filter_all": MessageLookupByLibrary.simpleMessage("Все"),
+        "filter_buy": MessageLookupByLibrary.simpleMessage("Покупка"),
+        "filter_sell": MessageLookupByLibrary.simpleMessage("Продажа"),
         "finances": MessageLookupByLibrary.simpleMessage("Финансы"),
         "french": MessageLookupByLibrary.simpleMessage("Французский"),
         "fullyRented": MessageLookupByLibrary.simpleMessage("Полностью сдано"),
@@ -306,7 +324,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "investment": MessageLookupByLibrary.simpleMessage("Инвестиция"),
         "italian": MessageLookupByLibrary.simpleMessage("Итальянский"),
         "language": MessageLookupByLibrary.simpleMessage("Язык"),
-        "languageUpdated": m7,
+        "languageUpdated": m8,
         "lastExecution":
             MessageLookupByLibrary.simpleMessage("Последнее обновление"),
         "lastRentReceived":
@@ -315,6 +333,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Последнее обновление:"),
         "legend": MessageLookupByLibrary.simpleMessage("Легенда"),
         "light": MessageLookupByLibrary.simpleMessage("Светлая"),
+        "light_mode": MessageLookupByLibrary.simpleMessage("Светлый"),
         "lineChart": MessageLookupByLibrary.simpleMessage("Линейный график"),
         "links": MessageLookupByLibrary.simpleMessage("Ссылки"),
         "listView": MessageLookupByLibrary.simpleMessage("Список"),
@@ -343,6 +362,9 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Смешанное использование"),
         "month": MessageLookupByLibrary.simpleMessage("Месяц"),
         "monthly": MessageLookupByLibrary.simpleMessage("Ежемесячно"),
+        "months12": MessageLookupByLibrary.simpleMessage("12 месяцев"),
+        "months3": MessageLookupByLibrary.simpleMessage("3 месяца"),
+        "months6": MessageLookupByLibrary.simpleMessage("6 месяцев"),
         "multiFamily":
             MessageLookupByLibrary.simpleMessage("Многоквартирный дом"),
         "nameUnavailable":
@@ -359,7 +381,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "newVersionAvailable":
             MessageLookupByLibrary.simpleMessage("Доступна новая версия"),
         "new_yield": MessageLookupByLibrary.simpleMessage("Новая доходность:"),
-        "nextRondayInDays": m8,
+        "nextRondayInDays": m9,
         "nextRondays": MessageLookupByLibrary.simpleMessage("Следующие Ronday"),
         "noCommunicatedDate":
             MessageLookupByLibrary.simpleMessage("Дата не указана"),
@@ -390,6 +412,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Нет доступных токенов"),
         "noTokensFound":
             MessageLookupByLibrary.simpleMessage("Токены не найдены"),
+        "noTokensOwned": MessageLookupByLibrary.simpleMessage(
+            "У вас нет токенов этой недвижимости."),
         "noTokensWithValidCoordinates":
             MessageLookupByLibrary.simpleMessage("Нет токенов с координатами"),
         "noTransactionOrRentToExport": MessageLookupByLibrary.simpleMessage(
@@ -410,6 +434,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "not_whitelisted_warning":
             MessageLookupByLibrary.simpleMessage("Токен не в белом списке"),
         "notifications": MessageLookupByLibrary.simpleMessage("Уведомления"),
+        "numberOfTokens":
+            MessageLookupByLibrary.simpleMessage("Количество токенов"),
         "occupancyRate":
             MessageLookupByLibrary.simpleMessage("Уровень заполненности"),
         "occupancyStatusHigh": MessageLookupByLibrary.simpleMessage("Высокий"),
@@ -428,6 +454,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "othersTitle":
             MessageLookupByLibrary.simpleMessage("Детали раздела «Другое»"),
         "overview": MessageLookupByLibrary.simpleMessage("Обзор"),
+        "ownedTokens":
+            MessageLookupByLibrary.simpleMessage("Собственные токены"),
         "partiallyRented":
             MessageLookupByLibrary.simpleMessage("Частично сдано"),
         "paypal": MessageLookupByLibrary.simpleMessage("PayPal"),
@@ -479,6 +507,8 @@ class MessageLookup extends MessageLookupByLibrary {
             "Обслуживание объекта (ежемесячно)"),
         "propertyManagement":
             MessageLookupByLibrary.simpleMessage("Управление недвижимостью"),
+        "propertyPrice":
+            MessageLookupByLibrary.simpleMessage("Цена недвижимости"),
         "propertyStories":
             MessageLookupByLibrary.simpleMessage("Количество этажей"),
         "propertyTaxes":
@@ -486,6 +516,11 @@ class MessageLookup extends MessageLookupByLibrary {
         "propertyType":
             MessageLookupByLibrary.simpleMessage("Тип недвижимости"),
         "purchase": MessageLookupByLibrary.simpleMessage("Покупка"),
+        "purchaseConfirmation": m10,
+        "purchaseDetails":
+            MessageLookupByLibrary.simpleMessage("Детали покупки"),
+        "purchaseSuccessful":
+            MessageLookupByLibrary.simpleMessage("Покупка прошла успешно"),
         "quantity": MessageLookupByLibrary.simpleMessage("Количество"),
         "rateApp": MessageLookupByLibrary.simpleMessage("Оценить приложение"),
         "realTPerformance":
@@ -542,7 +577,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Статус аренды"),
         "rentalType": MessageLookupByLibrary.simpleMessage("Тип аренды"),
         "rented": MessageLookupByLibrary.simpleMessage("Арендовано"),
-        "rentedUnits": m9,
+        "rentedUnits": m11,
         "rentedUnitsSimple":
             MessageLookupByLibrary.simpleMessage("Арендованные единицы"),
         "rents": MessageLookupByLibrary.simpleMessage("Арендные платежи"),
@@ -562,7 +597,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "roiByToken": MessageLookupByLibrary.simpleMessage("ROI по токенам"),
         "roiHistory": MessageLookupByLibrary.simpleMessage("История ROI"),
         "roiPerProperties": MessageLookupByLibrary.simpleMessage("ROI объекта"),
-        "roi_label": m10,
+        "roi_label": m12,
         "russian": MessageLookupByLibrary.simpleMessage("Русский"),
         "rwaHoldings": MessageLookupByLibrary.simpleMessage("RWA Holdings SA"),
         "save": MessageLookupByLibrary.simpleMessage("Сохранить"),
@@ -578,6 +613,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "security": MessageLookupByLibrary.simpleMessage("Безопасность"),
         "selectCurrency":
             MessageLookupByLibrary.simpleMessage("Выберите валюту"),
+        "sellThisProperty":
+            MessageLookupByLibrary.simpleMessage("Продать недвижимость"),
         "sell_token": MessageLookupByLibrary.simpleMessage("Продать"),
         "sendDonations": MessageLookupByLibrary.simpleMessage(
             "Отправьте пожертвования на адрес:"),
@@ -614,8 +651,11 @@ class MessageLookup extends MessageLookupByLibrary {
         "sortByROI": MessageLookupByLibrary.simpleMessage("Сортировать по ROI"),
         "sortByValue":
             MessageLookupByLibrary.simpleMessage("Сортировать по стоимости"),
+        "sort_ascending":
+            MessageLookupByLibrary.simpleMessage("По возрастанию"),
         "sort_date": MessageLookupByLibrary.simpleMessage("Дата"),
         "sort_delta": MessageLookupByLibrary.simpleMessage("Дельта"),
+        "sort_descending": MessageLookupByLibrary.simpleMessage("По убыванию"),
         "sort_label": MessageLookupByLibrary.simpleMessage("Сортировка:"),
         "spanish": MessageLookupByLibrary.simpleMessage("Испанский"),
         "specialThanks": MessageLookupByLibrary.simpleMessage(
@@ -625,6 +665,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "squareFeet":
             MessageLookupByLibrary.simpleMessage("Внутренняя площадь"),
         "statistics": MessageLookupByLibrary.simpleMessage("Статистика"),
+        "street_view": MessageLookupByLibrary.simpleMessage("Уличный вид"),
         "support": MessageLookupByLibrary.simpleMessage("Поддержка"),
         "supportProject":
             MessageLookupByLibrary.simpleMessage("Поддержать проект"),
@@ -654,9 +695,11 @@ class MessageLookup extends MessageLookupByLibrary {
         "thanks": MessageLookupByLibrary.simpleMessage("Благодарности"),
         "thanksDonators": MessageLookupByLibrary.simpleMessage(
             "Спасибо также всем жертвователям, которые поддерживают разработку этого приложения!"),
-        "themeUpdated": m12,
+        "themeUpdated": m15,
         "timeBeforeLiquidation":
             MessageLookupByLibrary.simpleMessage("до ликвидации"),
+        "time_range":
+            MessageLookupByLibrary.simpleMessage("Временной диапазон"),
         "timestamp": MessageLookupByLibrary.simpleMessage("Время"),
         "tokenAddress": MessageLookupByLibrary.simpleMessage("Адрес токена"),
         "tokenCountEvolution":
@@ -689,6 +732,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "toolsTitle": MessageLookupByLibrary.simpleMessage("Инструменты"),
         "total": MessageLookupByLibrary.simpleMessage("Итого"),
         "totalBalance": MessageLookupByLibrary.simpleMessage("Общий баланс"),
+        "totalCost": MessageLookupByLibrary.simpleMessage("Общая стоимость"),
         "totalExpenses": MessageLookupByLibrary.simpleMessage("Всего расходов"),
         "totalInvestment":
             MessageLookupByLibrary.simpleMessage("Общие инвестиции"),
@@ -715,9 +759,10 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Тип транзакции"),
         "transactionVolume":
             MessageLookupByLibrary.simpleMessage("Объем транзакций"),
+        "unavailable": MessageLookupByLibrary.simpleMessage("Недоступно"),
         "underlyingAssetPrice":
             MessageLookupByLibrary.simpleMessage("Цена актива"),
-        "unitesLouees": m13,
+        "unitesLouees": m16,
         "units": MessageLookupByLibrary.simpleMessage("ед."),
         "unknown": MessageLookupByLibrary.simpleMessage("Неизвестно"),
         "unknownCity":
@@ -749,7 +794,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "walletDetails":
             MessageLookupByLibrary.simpleMessage("Детали кошелька"),
         "walletHeader": MessageLookupByLibrary.simpleMessage("Кошельки"),
-        "walletSaved": m14,
+        "walletSaved": m17,
         "wallets": MessageLookupByLibrary.simpleMessage("Кошельки"),
         "walletsContainingToken":
             MessageLookupByLibrary.simpleMessage("Кошельки с этим токеном"),
@@ -762,6 +807,7 @@ class MessageLookup extends MessageLookupByLibrary {
             "Токены из белого списка доступны для покупки."),
         "whitelistInfoTitle":
             MessageLookupByLibrary.simpleMessage("Информация о белом списке"),
+        "whitelisted": MessageLookupByLibrary.simpleMessage("В белом списке"),
         "wiki_community_description": MessageLookupByLibrary.simpleMessage(
             "Ресурсы для сообщества MeProp."),
         "xdaiBorrowBalance":
@@ -780,6 +826,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "yieldEvolution":
             MessageLookupByLibrary.simpleMessage("Динамика доходности"),
         "yieldEvolutionPercentage":
-            MessageLookupByLibrary.simpleMessage("Изменение доходности:")
+            MessageLookupByLibrary.simpleMessage("Изменение доходности:"),
+        "yourAvailableTokens":
+            MessageLookupByLibrary.simpleMessage("Ваши доступные токены")
       };
 }

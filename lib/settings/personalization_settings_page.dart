@@ -192,7 +192,7 @@ class _PersonalizationSettingsPageState extends State<PersonalizationSettingsPag
           const SizedBox(height: 12),
 
           // Adjustments
-          _buildSectionHeader(context, "Ajustements", CupertinoIcons.slider_horizontal_3),
+          _buildSectionHeader(context, "Adjustments", CupertinoIcons.slider_horizontal_3),
           _buildCompactAdjustments(context),
         ],
       ),
@@ -311,7 +311,7 @@ class _PersonalizationSettingsPageState extends State<PersonalizationSettingsPag
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "Initial investment adjustment",
+                  "Initial Investment Adjustment",
                   style: TextStyle(
                     fontSize: 15.0 + appState.getTextSizeOffset(),
                     fontWeight: FontWeight.w500,

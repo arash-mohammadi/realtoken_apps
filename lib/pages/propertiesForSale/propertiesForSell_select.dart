@@ -3,8 +3,10 @@ import 'package:provider/provider.dart';
 import 'package:meprop_asset_tracker/app_state.dart';
 import 'package:meprop_asset_tracker/pages/propertiesForSale/PropertiesForSaleRealt.dart';
 import 'package:meprop_asset_tracker/pages/propertiesForSale/PropertiesForSaleSecondary.dart';
+import 'package:meprop_asset_tracker/pages/my_purchases_page.dart';
 import 'package:meprop_asset_tracker/generated/l10n.dart';
 import 'package:meprop_asset_tracker/utils/ui_utils.dart';
+import 'package:flutter/cupertino.dart';
 
 class PropertiesForSalePage extends StatefulWidget {
   const PropertiesForSalePage({super.key});
@@ -14,11 +16,11 @@ class PropertiesForSalePage extends StatefulWidget {
 }
 
 class _PropertiesForSalePageState extends State<PropertiesForSalePage> {
-  String _selectedPage = 'RealT'; // Valeur par défaut
+  String _selectedPage = 'MeProp'; // Valeur par défaut
 
   // Couleurs spécifiques pour chaque sélecteur
   final Map<String, Color> _pageColors = {
-    'RealT': Colors.blue,
+    'MeProp': Colors.blue,
     'Secondary': Colors.green,
   };
 
@@ -28,6 +30,19 @@ class _PropertiesForSalePageState extends State<PropertiesForSalePage> {
       appBar: AppBar(
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         title: Text(S.of(context).properties_for_sale),
+        actions: [
+          IconButton(
+            icon: const Icon(CupertinoIcons.shopping_cart),
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const MyPurchasesPage(),
+                ),
+              );
+            },
+            tooltip: 'My Purchases',
+          ),
+        ],
       ),
       body: NestedScrollView(
         headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
@@ -70,8 +85,8 @@ class _PropertiesForSalePageState extends State<PropertiesForSalePage> {
               ),
             );
           },
-          child: _selectedPage == 'RealT'
-              ? const PropertiesForSaleRealt(key: ValueKey('RealT'))
+          child: _selectedPage == 'MeProp'
+              ? const PropertiesForSaleRealt(key: ValueKey('MeProp'))
               : const PropertiesForSaleSecondary(key: ValueKey('Secondary')),
         ),
       ),
@@ -81,7 +96,7 @@ class _PropertiesForSalePageState extends State<PropertiesForSalePage> {
   Widget _buildPageSelector() {
     return Row(
       children: [
-        _buildPageChip('RealT', S.of(context).realt, Icons.home),
+        _buildPageChip('MeProp', S.of(context).realt, Icons.home),
         _buildPageChip('Secondary', S.of(context).secondary, Icons.swap_horiz),
       ],
     );

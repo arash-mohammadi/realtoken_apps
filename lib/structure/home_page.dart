@@ -127,7 +127,8 @@ class _MyHomePageState extends State<MyHomePage> {
     final dataManager = Provider.of<DataManager>(context);
     final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
 
-    final double walletTotal = dataManager.gnosisUsdcBalance + dataManager.gnosisXdaiBalance;
+    final double walletTotal = 2000.0;
+    //  dataManager.gnosisUsdcBalance + dataManager.gnosisXdaiBalance;
 
     return Scaffold(
       body: Stack(

@@ -76,8 +76,7 @@ class _BiometricSettingsPageState extends State<BiometricSettingsPage> {
     });
 
     try {
-      final authenticated =
-          await _biometricService.authenticate(reason: 'Ceci est un test d\'authentification biométrique');
+      final authenticated = await _biometricService.authenticate(reason: "This is a biometric authentication test");
 
       setState(() {
         _statusMessage = authenticated ? S.of(context).biometricTestSuccess : S.of(context).biometricTestFailed;
@@ -272,7 +271,7 @@ class _BiometricSettingsPageState extends State<BiometricSettingsPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Tester l\'authentification',
+            "Test Authentication",
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
@@ -280,7 +279,7 @@ class _BiometricSettingsPageState extends State<BiometricSettingsPage> {
           ),
           SizedBox(height: 12),
           Text(
-            'Vous pouvez tester l\'authentification biométrique pour vérifier qu\'elle fonctionne correctement.',
+            "You can test biometric authentication to verify it works correctly.",
             style: TextStyle(
               fontSize: 14,
               color: Colors.grey[600],
@@ -293,7 +292,7 @@ class _BiometricSettingsPageState extends State<BiometricSettingsPage> {
                 : ElevatedButton.icon(
                     onPressed: _testBiometricAuth,
                     icon: Icon(_getBiometricIcon()),
-                    label: Text('Tester maintenant'),
+                    label: Text("Test Now"),
                     style: ElevatedButton.styleFrom(
                       padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                     ),
@@ -306,22 +305,22 @@ class _BiometricSettingsPageState extends State<BiometricSettingsPage> {
 
   Future<void> _authenticateWithBiometrics() async {
     setState(() {
-      _statusMessage = 'Authentification en cours...';
+      _statusMessage = "Authentication in progress...";
     });
 
-    final authenticated = await _biometricService.authenticate(reason: 'Authentifiez-vous pour activer la biométrie');
+    final authenticated = await _biometricService.authenticate(reason: "Authenticate to enable biometrics");
 
     if (authenticated) {
       await _saveSetting(true);
       setState(() {
-        _statusMessage = 'Authentification biométrique activée avec succès';
+        _statusMessage = "Biometric authentication enabled successfully";
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Authentication biométrique activée')),
+        SnackBar(content: Text("Biometric authentication enabled")),
       );
     } else {
       setState(() {
-        _statusMessage = 'Échec de l\'authentification. Veuillez réessayer.';
+        _statusMessage = "Authentication failed. Please try again.";
       });
     }
   }

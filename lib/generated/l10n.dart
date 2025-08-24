@@ -18,15 +18,17 @@ class S {
   static S? _current;
 
   static S get current {
-    assert(
-        _current != null, 'No instance of S was loaded. Try to initialize the S delegate before accessing S.current.');
+    assert(_current != null,
+        'No instance of S was loaded. Try to initialize the S delegate before accessing S.current.');
     return _current!;
   }
 
   static const AppLocalizationDelegate delegate = AppLocalizationDelegate();
 
   static Future<S> load(Locale locale) {
-    final name = (locale.countryCode?.isEmpty ?? false) ? locale.languageCode : locale.toString();
+    final name = (locale.countryCode?.isEmpty ?? false)
+        ? locale.languageCode
+        : locale.toString();
     final localeName = Intl.canonicalizedLocale(name);
     return initializeMessages(localeName).then((_) {
       Intl.defaultLocale = localeName;
@@ -5503,6 +5505,406 @@ class S {
     return Intl.message(
       'Trading is not available for this property.',
       name: 'propertiesNoMarketplaceAvailable',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Time Range`
+  String get time_range {
+    return Intl.message(
+      'Time Range',
+      name: 'time_range',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `All Data`
+  String get all_data {
+    return Intl.message(
+      'All Data',
+      name: 'all_data',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `3 Months`
+  String get months3 {
+    return Intl.message(
+      '3 Months',
+      name: 'months3',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `6 Months`
+  String get months6 {
+    return Intl.message(
+      '6 Months',
+      name: 'months6',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `12 Months`
+  String get months12 {
+    return Intl.message(
+      '12 Months',
+      name: 'months12',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Display Period`
+  String get display_period {
+    return Intl.message(
+      'Display Period',
+      name: 'display_period',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Light Mode`
+  String get light_mode {
+    return Intl.message(
+      'Light Mode',
+      name: 'light_mode',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Auto Mode`
+  String get auto_mode {
+    return Intl.message(
+      'Auto Mode',
+      name: 'auto_mode',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Street View`
+  String get street_view {
+    return Intl.message(
+      'Street View',
+      name: 'street_view',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Cannot Sell Property`
+  String get cannotSellProperty {
+    return Intl.message(
+      'Cannot Sell Property',
+      name: 'cannotSellProperty',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `You don't own any tokens of this property.`
+  String get noTokensOwned {
+    return Intl.message(
+      'You don\'t own any tokens of this property.',
+      name: 'noTokensOwned',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Sell Property`
+  String get sellThisProperty {
+    return Intl.message(
+      'Sell Property',
+      name: 'sellThisProperty',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Owned Tokens`
+  String get ownedTokens {
+    return Intl.message(
+      'Owned Tokens',
+      name: 'ownedTokens',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `All`
+  String get filter_all {
+    return Intl.message(
+      'All',
+      name: 'filter_all',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Sell`
+  String get filter_sell {
+    return Intl.message(
+      'Sell',
+      name: 'filter_sell',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Buy`
+  String get filter_buy {
+    return Intl.message(
+      'Buy',
+      name: 'filter_buy',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Ascending`
+  String get sort_ascending {
+    return Intl.message(
+      'Ascending',
+      name: 'sort_ascending',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Descending`
+  String get sort_descending {
+    return Intl.message(
+      'Descending',
+      name: 'sort_descending',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Whitelisted`
+  String get whitelisted {
+    return Intl.message(
+      'Whitelisted',
+      name: 'whitelisted',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Details`
+  String get details {
+    return Intl.message(
+      'Details',
+      name: 'details',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Unavailable`
+  String get unavailable {
+    return Intl.message(
+      'Unavailable',
+      name: 'unavailable',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Purchase Successful`
+  String get purchaseSuccessful {
+    return Intl.message(
+      'Purchase Successful',
+      name: 'purchaseSuccessful',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `You have successfully purchased {count} tokens of {name} for {price}.`
+  String purchaseConfirmation(String count, String name, String price) {
+    return Intl.message(
+      'You have successfully purchased $count tokens of $name for $price.',
+      name: 'purchaseConfirmation',
+      desc: '',
+      args: [count, name, price],
+    );
+  }
+
+  /// `Purchase Details`
+  String get purchaseDetails {
+    return Intl.message(
+      'Purchase Details',
+      name: 'purchaseDetails',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Enter Amount`
+  String get enterAmount {
+    return Intl.message(
+      'Enter Amount',
+      name: 'enterAmount',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Number of Tokens`
+  String get numberOfTokens {
+    return Intl.message(
+      'Number of Tokens',
+      name: 'numberOfTokens',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Confirm Purchase`
+  String get confirmPurchase {
+    return Intl.message(
+      'Confirm Purchase',
+      name: 'confirmPurchase',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Property Price`
+  String get propertyPrice {
+    return Intl.message(
+      'Property Price',
+      name: 'propertyPrice',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Available Tokens`
+  String get availableTokens {
+    return Intl.message(
+      'Available Tokens',
+      name: 'availableTokens',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Your Available Tokens`
+  String get yourAvailableTokens {
+    return Intl.message(
+      'Your Available Tokens',
+      name: 'yourAvailableTokens',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Total Cost`
+  String get totalCost {
+    return Intl.message(
+      'Total Cost',
+      name: 'totalCost',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Sale Successful`
+  String get sellSuccessful {
+    return Intl.message(
+      'Sale Successful',
+      name: 'sellSuccessful',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `You have successfully sold {count} tokens of {name} for {price}.`
+  String sellConfirmation(String count, String name, String price) {
+    return Intl.message(
+      'You have successfully sold $count tokens of $name for $price.',
+      name: 'sellConfirmation',
+      desc: '',
+      args: [count, name, price],
+    );
+  }
+
+  /// `Sale Details`
+  String get sellDetails {
+    return Intl.message(
+      'Sale Details',
+      name: 'sellDetails',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Sale Amount`
+  String get sellAmount {
+    return Intl.message(
+      'Sale Amount',
+      name: 'sellAmount',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Confirm Sale`
+  String get confirmSell {
+    return Intl.message(
+      'Confirm Sale',
+      name: 'confirmSell',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Total Revenue`
+  String get totalRevenue {
+    return Intl.message(
+      'Total Revenue',
+      name: 'totalRevenue',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `You own {count} tokens of this property.`
+  String insufficientTokens(String count) {
+    return Intl.message(
+      'You own $count tokens of this property.',
+      name: 'insufficientTokens',
+      desc: '',
+      args: [count],
+    );
+  }
+
+  /// `Invalid amount entered.`
+  String get invalidAmount {
+    return Intl.message(
+      'Invalid amount entered.',
+      name: 'invalidAmount',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Error`
+  String get error {
+    return Intl.message(
+      'Error',
+      name: 'error',
       desc: '',
       args: [],
     );

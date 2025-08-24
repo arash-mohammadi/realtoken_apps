@@ -117,7 +117,7 @@ class ChartOptionsUtils {
         Padding(
           padding: const EdgeInsets.only(bottom: 12.0, left: 16.0),
           child: Text(
-            "Plage de temps",
+            "Time Range",
             style: TextStyle(
               fontWeight: FontWeight.w600,
               fontSize: 17 + appState.getTextSizeOffset(),
@@ -140,7 +140,7 @@ class ChartOptionsUtils {
                   size: 22,
                 ),
                 title: Text(
-                  "Toutes les données",
+                  "All Data",
                   style: TextStyle(
                     fontWeight: FontWeight.w500,
                     fontSize: 15 + appState.getTextSizeOffset(),
@@ -172,7 +172,7 @@ class ChartOptionsUtils {
                   size: 22,
                 ),
                 title: Text(
-                  "3 mois",
+                  "3 Months",
                   style: TextStyle(
                     fontWeight: FontWeight.w500,
                     fontSize: 15 + appState.getTextSizeOffset(),
@@ -204,7 +204,7 @@ class ChartOptionsUtils {
                   size: 22,
                 ),
                 title: Text(
-                  "6 mois",
+                  "6 Months",
                   style: TextStyle(
                     fontWeight: FontWeight.w500,
                     fontSize: 15 + appState.getTextSizeOffset(),
@@ -236,7 +236,7 @@ class ChartOptionsUtils {
                   size: 22,
                 ),
                 title: Text(
-                  "12 mois",
+                  "12 Months",
                   style: TextStyle(
                     fontWeight: FontWeight.w500,
                     fontSize: 15 + appState.getTextSizeOffset(),
@@ -281,7 +281,7 @@ class ChartOptionsUtils {
         Padding(
           padding: const EdgeInsets.only(bottom: 12.0, left: 16.0),
           child: Text(
-            "Période d'affichage",
+            "Display Period",
             style: TextStyle(
               fontWeight: FontWeight.w600,
               fontSize: 17 + appState.getTextSizeOffset(),

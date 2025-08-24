@@ -2,6 +2,7 @@ import 'package:meprop_asset_tracker/pages/changelog_page.dart';
 import 'package:meprop_asset_tracker/pages/links_page.dart';
 import 'package:meprop_asset_tracker/pages/propertiesForSale/propertiesForSell_select.dart';
 import 'package:meprop_asset_tracker/pages/support_page.dart';
+import 'package:meprop_asset_tracker/pages/my_purchases_page.dart';
 import 'package:meprop_asset_tracker/settings/service_status.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
@@ -197,25 +198,13 @@ class _CustomDrawerState extends State<CustomDrawer> {
                               ),
                               const SizedBox(width: 14),
                               Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'MeProp',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 18 + appState.getTextSizeOffset(),
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                    Text(
-                                      S.of(context).appDescription,
-                                      style: TextStyle(
-                                        color: Colors.white.withOpacity(0.9),
-                                        fontSize: 14 + appState.getTextSizeOffset(),
-                                      ),
-                                    ),
-                                  ],
+                                child: Text(
+                                  'MeProp',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 18 + appState.getTextSizeOffset(),
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
                               ),
                             ],
@@ -277,18 +266,25 @@ class _CustomDrawerState extends State<CustomDrawer> {
                                 ),
                                 DrawerMenuFactory.createPageNavItem(
                                   context: context,
+                                  icon: CupertinoIcons.shopping_cart,
+                                  title: 'My Purchases',
+                                  page: const MyPurchasesPage(),
+                                  iconColor: Colors.green,
+                                ),
+                                DrawerMenuFactory.createPageNavItem(
+                                  context: context,
                                   icon: CupertinoIcons.list_bullet,
                                   title: S.of(context).realTokensList,
                                   page: const RealTokensPage(),
                                   iconColor: Colors.blue,
                                 ),
-                                DrawerMenuFactory.createPageNavItem(
-                                  context: context,
-                                  icon: CupertinoIcons.arrow_clockwise_circle_fill,
-                                  title: S.of(context).recentChanges,
-                                  page: const UpdatesPage(),
-                                  iconColor: Colors.orange,
-                                ),
+                                // DrawerMenuFactory.createPageNavItem(
+                                //   context: context,
+                                //   icon: CupertinoIcons.arrow_clockwise_circle_fill,
+                                //   title: S.of(context).recentChanges,
+                                //   page: const UpdatesPage(),
+                                //   iconColor: Colors.orange,
+                                // ),
                                 DrawerMenuFactory.createPageNavItem(
                                   context: context,
                                   icon: CupertinoIcons.graph_square_fill,
@@ -323,33 +319,20 @@ class _CustomDrawerState extends State<CustomDrawer> {
                               items: [
                                 DrawerMenuFactory.createPageNavItem(
                                   context: context,
-                                  icon: CupertinoIcons.gauge,
-                                  title: S.of(context).serviceStatus,
-                                  page: const ServiceStatusPage(),
-                                  iconColor: Colors.red,
-                                ),
-                                // DrawerMenuFactory.createPageNavItem(
-                                //   context: context,
-                                //   icon: CupertinoIcons.chat_bubble_text_fill,
-                                //   title: S.of(context).support,
-                                //   page: const SupportPage(),
-                                //   iconColor: Colors.green,
-                                // ),
-                                // DrawerMenuFactory.createMenuItem(
-                                //   icon: CupertinoIcons.star_fill,
-                                //   title: S.of(context).rateApp,
-                                //   iconColor: CupertinoColors.systemYellow,
-                                //   onTap: () async {
-                                //     Navigator.pop(context);
-                                //     await _requestReview(context);
-                                //   },
-                                // ),
-                                DrawerMenuFactory.createPageNavItem(
-                                  context: context,
                                   icon: CupertinoIcons.settings,
                                   title: S.of(context).settings,
                                   page: const SettingsPage(),
                                   iconColor: Colors.grey,
+                                ),
+                                
+                                DrawerMenuFactory.createMenuItem(
+                                  icon: CupertinoIcons.square_arrow_right,
+                                  title: 'Logout',
+                                  iconColor: Colors.redAccent,
+                                  onTap: () {
+                                    Navigator.pop(context);
+                                    Provider.of<AppState>(context, listen: false).logout();
+                                  },
                                 ),
                               ],
                             ),

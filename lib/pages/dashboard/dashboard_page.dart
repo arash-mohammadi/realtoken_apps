@@ -277,7 +277,7 @@ class DashboardPageState extends State<DashboardPage> {
     }
 
     // Trier les données par date (la plus ancienne en premier)
-    rentData.sort((a, b) => DateTime.parse(a['date']).compareTo(DateTime.parse(b['date'])));
+    // rentData.sort((a, b) => DateTime.parse(a['date']).compareTo(DateTime.parse(b['date'])));
 
     // Date du premier loyer
     final firstRentDate = DateTime.parse(rentData.first['date']);
@@ -445,13 +445,25 @@ class DashboardPageState extends State<DashboardPage> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            '${S.of(context).hello} Russell',
-                            style: TextStyle(
-                                fontSize: 28 + appState.getTextSizeOffset(),
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: -0.5,
-                                color: Theme.of(context).textTheme.bodyLarge?.color),
+                          Builder(
+                            builder: (context) {
+                              final user = Provider.of<AppState>(context, listen: false).currentUser;
+                              String greet;
+                              if (user == null) {
+                                greet = S.of(context).hello;
+                              } else {
+                                greet = '${S.of(context).hello} ${user.username}';
+                              }
+                              return Text(
+                                greet,
+                                style: TextStyle(
+                                  fontSize: 28 + appState.getTextSizeOffset(),
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: -0.5,
+                                  color: Theme.of(context).textTheme.bodyLarge?.color,
+                                ),
+                              );
+                            },
                           ),
                           if (kIsWeb)
                             IconButton(
@@ -529,7 +541,8 @@ class DashboardPageState extends State<DashboardPage> {
                                           dataManager.isLoadingMain || shouldShowShimmers
                                               ? ShimmerUtils.originalColorShimmer(
                                                   child: Text(
-                                                    lastRentReceived,
+                                                    // lastRentReceived,
+                                                    "20 \$",
                                                     style: TextStyle(
                                                       fontSize: 20 + appState.getTextSizeOffset(),
                                                       fontWeight: FontWeight.bold,
@@ -539,7 +552,8 @@ class DashboardPageState extends State<DashboardPage> {
                                                   color: Colors.white,
                                                 )
                                               : Text(
-                                                  lastRentReceived,
+                                                  // lastRentReceived,
+                                                  "20 \$",
                                                   style: TextStyle(
                                                     fontSize: 20 + appState.getTextSizeOffset(),
                                                     fontWeight: FontWeight.bold,
@@ -563,7 +577,8 @@ class DashboardPageState extends State<DashboardPage> {
                                           dataManager.isLoadingMain || shouldShowShimmers
                                               ? ShimmerUtils.originalColorShimmer(
                                                   child: Text(
-                                                    totalRentReceived,
+                                                    // totalRentReceived,
+                                                    "33 \$",
                                                     style: TextStyle(
                                                       fontSize: 20 + appState.getTextSizeOffset(),
                                                       fontWeight: FontWeight.bold,
@@ -573,7 +588,8 @@ class DashboardPageState extends State<DashboardPage> {
                                                   color: Colors.white,
                                                 )
                                               : Text(
-                                                  totalRentReceived,
+                                                  // totalRentReceived,
+                                                  "33 \$",
                                                   style: TextStyle(
                                                     fontSize: 20 + appState.getTextSizeOffset(),
                                                     fontWeight: FontWeight.bold,
@@ -590,7 +606,7 @@ class DashboardPageState extends State<DashboardPage> {
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
                                     // Icône d'alerte à gauche
-                                    _buildWalletAlertIcon(),
+                                    // _buildWalletAlertIcon(),
                                     // Informations calendrier à droite
                                     Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -794,7 +810,7 @@ class DashboardPageState extends State<DashboardPage> {
       return S.of(context).noRentReceived;
     }
 
-    rentData.sort((a, b) => DateTime.parse(b['date']).compareTo(DateTime.parse(a['date'])));
+    // rentData.sort((a, b) => DateTime.parse(b['date']).compareTo(DateTime.parse(a['date'])));
     final lastRent = rentData.first['rent'];
 
     // Utiliser _getFormattedAmount pour masquer ou afficher la valeur

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:meprop_asset_tracker/managers/data_manager.dart';
@@ -6,7 +7,7 @@ import 'package:meprop_asset_tracker/utils/preference_keys.dart';
 // Fonction pour récupérer la couleur enregistrée
 Future<Color> getSavedPrimaryColor() async {
   final prefs = await SharedPreferences.getInstance();
-  String colorName = prefs.getString(PreferenceKeys.primaryColor) ?? 'blue';
+  String colorName = prefs.getString(PreferenceKeys.primaryColor) ?? 'cyan';
   return _getColorFromName(colorName);
 }
 
@@ -60,9 +61,14 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   String selectedTextSize = 'normal'; // Default text size
   String selectedLanguage = 'en'; // Default language
   List<String>? evmAddresses; // Variable for storing EVM addresses
-  Color _primaryColor = Color(0xff4276fe);
+  Color _primaryColor = Color(0xff0f7581);
   bool _showAmounts = true; // Par défaut, les montants sont visibles
   DataManager? dataManager; // Référence au DataManager
+  // -------- Demo Auth --------
+  DemoUser? _currentUser; // Utilisateur connecté (mock)
+  bool _isUserRestored = false; // Track if user restoration is complete
+  DemoUser? get currentUser => _isUserRestored ? _currentUser : null;
+  bool get isUserRestored => _isUserRestored;
 
   // Variables de paramètres du portfolio
   bool _showTotalInvested = false;
@@ -91,11 +97,42 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   AppState() {
+    DataManager.appStateRef = this; // تنظیم reference در DataManager
     _loadSettings();
+    _restoreUser();
     loadAppOpenCount(); // Charger le compteur d'ouvertures
     loadLastDonationPopupTimestamp(); // Charger le timestamp de la dernière popup
     incrementAppOpenCount(); // Incrémenter à chaque lancement
     WidgetsBinding.instance.addObserver(this); // Add observer to listen to system changes
+  }
+
+  static const String _userPrefsKey = 'currentUser';
+
+  Future<void> _restoreUser() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userJson = prefs.getString(_userPrefsKey);
+    if (userJson != null) {
+      try {
+        final map = jsonDecode(userJson) as Map<String, dynamic>;
+        _currentUser = DemoUser.fromJson(map);
+      } catch (_) {
+        _currentUser = null;
+      }
+    } else {
+      _currentUser = null;
+    }
+
+    _isUserRestored = true;
+    _notifyListenersIfNeeded();
+  }
+
+  Future<void> _persistUser() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (_currentUser == null) {
+      await prefs.remove(_userPrefsKey);
+    } else {
+      await prefs.setString(_userPrefsKey, jsonEncode(_currentUser!.toJson()));
+    }
   }
 
   @override
@@ -313,5 +350,142 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     if (!_batchUpdateInProgress) {
       notifyListeners();
     }
+  }
+
+  // ================= Demo Login (Mock) =================
+  Future<bool> login(String username, String password) async {
+    // Normaliser pour comparaison
+    final u = username.trim();
+    if (u.toLowerCase() == 'russell' && password == '1234') {
+      // Add wallet if not present
+      const russellWallet = '0xd7a6A4b95E29CE5f8f45404d1251178DAFE75AF3';
+      final addresses = <String>{
+        ...(evmAddresses ?? ['0xDEMO1234...'])
+      };
+      addresses.add(russellWallet);
+      // Sync to SharedPreferences and userIdToAddresses
+      await DataManager().saveWalletForUserId(userId: 'Russell', address: russellWallet);
+      // پر کردن داده‌های analytic با دیتای ماک برای راسل (فقط اگر داده‌ای موجود نباشد)
+      DataManager().setMockAnalyticsDataForRussell();
+
+      // تنظیم مستقیم موجودی کیف پول Russell
+      final dataManager = DataManager();
+      dataManager.gnosisUsdcBalance = 2000.0;
+      dataManager.gnosisXdaiBalance = 0.0;
+      dataManager.gnosisRegBalance = 0.0;
+      dataManager.gnosisVaultRegBalance = 0.0;
+      _currentUser = DemoUser(
+        username: 'Russell',
+        fullName: 'Russell Anderson',
+        email: 'russell@example.com',
+        preferredFiat: 'USD',
+        avatarAssetPath: 'assets/logo_community.png',
+        lastLogin: DateTime.now(),
+        addresses: addresses.toList(),
+        // Valeurs mock cohérentes pour le dashboard
+        totalPortfolioValue: 127_540.62,
+        netProfit: 8_245.12,
+        investedCapital: 119_295.50,
+      );
+      await _persistUser();
+      _notifyListenersIfNeeded();
+      return true;
+    }
+    return false;
+  }
+
+  void logout() async {
+    // برای Russell، داده‌ها را حفظ می‌کنیم و فقط وضعیت لاگین را تغییر می‌دهیم
+    if (_currentUser?.username == 'Russell') {
+      // داده‌های Russell را حفظ می‌کنیم، فقط addresses را پاک می‌کنیم
+      _currentUser = _currentUser!.copyWith(addresses: []);
+    }
+    _currentUser = null;
+    await _persistUser();
+    _notifyListenersIfNeeded();
+  }
+}
+
+// ================= DemoUser Model =================
+class DemoUser {
+  final String username;
+  final String fullName;
+  final String email;
+  final double totalPortfolioValue;
+  final double netProfit;
+  final double investedCapital;
+  final String avatarAssetPath;
+  final String preferredFiat;
+  final List<String> addresses;
+  final DateTime lastLogin;
+
+  DemoUser({
+    required this.username,
+    required this.fullName,
+    required this.email,
+    required this.totalPortfolioValue,
+    required this.netProfit,
+    required this.investedCapital,
+    required this.avatarAssetPath,
+    required this.preferredFiat,
+    required this.addresses,
+    required this.lastLogin,
+  });
+
+  factory DemoUser.fromJson(Map<String, dynamic> json) {
+    return DemoUser(
+      username: json['username'] ?? '',
+      fullName: json['fullName'] ?? '',
+      email: json['email'] ?? '',
+      totalPortfolioValue: (json['totalPortfolioValue'] ?? 0).toDouble(),
+      netProfit: (json['netProfit'] ?? 0).toDouble(),
+      investedCapital: (json['investedCapital'] ?? 0).toDouble(),
+      avatarAssetPath: json['avatarAssetPath'] ?? '',
+      preferredFiat: json['preferredFiat'] ?? 'USD',
+      addresses: (json['addresses'] as List<dynamic>? ?? []).map((e) => e.toString()).toList(),
+      lastLogin: DateTime.tryParse(json['lastLogin'] ?? '') ?? DateTime.now(),
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'username': username,
+        'fullName': fullName,
+        'email': email,
+        'totalPortfolioValue': totalPortfolioValue,
+        'netProfit': netProfit,
+        'investedCapital': investedCapital,
+        'avatarAssetPath': avatarAssetPath,
+        'preferredFiat': preferredFiat,
+        'addresses': addresses,
+        'lastLogin': lastLogin.toIso8601String(),
+      };
+}
+
+extension DemoUserCopyWith on DemoUser {
+  DemoUser copyWith({
+    String? username,
+    String? fullName,
+    String? email,
+    double? totalPortfolioValue,
+    double? netProfit,
+    double? investedCapital,
+    String? avatarAssetPath,
+    String? preferredFiat,
+    List<String>? addresses,
+    DateTime? lastLogin,
+    bool? isGuest,
+  }) {
+    return DemoUser(
+      username: username ?? this.username,
+      fullName: fullName ?? this.fullName,
+      email: email ?? this.email,
+      totalPortfolioValue: totalPortfolioValue ?? this.totalPortfolioValue,
+      netProfit: netProfit ?? this.netProfit,
+      investedCapital: investedCapital ?? this.investedCapital,
+      avatarAssetPath: avatarAssetPath ?? this.avatarAssetPath,
+      preferredFiat: preferredFiat ?? this.preferredFiat,
+      addresses: addresses ?? this.addresses,
+      lastLogin: lastLogin ?? this.lastLogin,
+    );
   }
 }

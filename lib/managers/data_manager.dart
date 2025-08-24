@@ -1,10 +1,14 @@
+import '../app_state.dart';
+// Reference to AppState for user context (should be set by the app at startup)
+// Reference to AppState for user context (should be set by the app at startup)
 import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
-import 'package:meprop_asset_tracker/generated/l10n.dart';
+// import 'package:meprop_asset_tracker/generated/l10n.dart';
 import 'package:meprop_asset_tracker/models/healthandltv_record.dart';
 import 'package:meprop_asset_tracker/models/rented_record.dart';
+import 'package:meprop_asset_tracker/services/local_portfolio_service.dart';
 import 'package:meprop_asset_tracker/utils/parameters.dart';
 import 'package:meprop_asset_tracker/utils/location_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -18,6 +22,746 @@ import 'package:meprop_asset_tracker/managers/apy_manager.dart';
 import 'package:flutter/foundation.dart';
 
 class DataManager extends ChangeNotifier {
+  static AppState? appStateRef;
+
+  /// Sets mock analytics data for Russell (portfolio, rentHistory, etc.)
+  /// Only sets data if Russell doesn't have saved data already
+  void setMockAnalyticsDataForRussell() async {
+    // بررسی کنیم که آیا داده‌های Russell قبلاً ذخیره شده است یا نه
+    final prefs = await SharedPreferences.getInstance();
+    final russellDataExists = prefs.containsKey('russell_portfolio_data');
+
+    if (russellDataExists) {
+      // اگر داده‌های Russell موجود است، آن‌ها را بارگذاری کنیم
+      await _loadRussellDataFromPrefs();
+      return;
+    }
+
+    // اگر داده‌ای موجود نیست، داده‌های تستی تنظیم کنیم
+    // داده تستی غنی‌تر برای Russell
+    _portfolio = [
+      {
+        'uuid': '0xMOCKTOKEN1',
+        'shortName': 'name',
+        'fullName': 'Full Name',
+        'country': 'USA',
+        'regionCode': 'CA',
+        'city': 'Los Angeles',
+        'imageLink': '',
+        'lat': 34.0522,
+        'lng': -118.2437,
+        'totalTokens': 100,
+        'tokenPrice': 50.0,
+        'totalValue': 5000.0,
+        'amount': 100.0,
+        'annualPercentageYield': 0.08,
+        'dailyIncome': 1.1,
+        'monthlyIncome': 33.0,
+        'yearlyIncome': 400.0,
+        'initialLaunchDate': '2022-01-01',
+        'totalInvestment': 5000.0,
+        'underlyingAssetPrice': 5000.0,
+        'initialMaintenanceReserve': 100.0,
+        'rentalType': 'residential',
+        'rentStartDate': '2022-01-01',
+        'rentedUnits': 1,
+        'totalUnits': 1,
+        'grossRentMonth': 40.0,
+        'netRentMonth': 33.0,
+        'constructionYear': 2010,
+        'propertyStories': 2,
+        'lotSize': 2000,
+        'squareFeet': 1200,
+        'marketplaceLink': '',
+        'propertyType': 'apartment',
+        'productType': 'real_estate_rental',
+        'totalRentReceived': 450.0,
+        'historic': {},
+        'ethereumContract': '0xMOCKTOKEN1',
+        'transactions': []
+      },
+      {
+        'uuid': '0xMOCKTOKEN2',
+        'shortName': 'name',
+        'fullName': 'Full Name',
+        'country': 'France',
+        'regionCode': 'IDF',
+        'city': 'Paris',
+        'imageLink': '',
+        'lat': 48.8566,
+        'lng': 2.3522,
+        'totalTokens': 50,
+        'tokenPrice': 120.0,
+        'totalValue': 6000.0,
+        'amount': 50.0,
+        'annualPercentageYield': 0.06,
+        'dailyIncome': 0.8,
+        'monthlyIncome': 24.0,
+        'yearlyIncome': 290.0,
+        'initialLaunchDate': '2023-03-01',
+        'totalInvestment': 6000.0,
+        'underlyingAssetPrice': 6000.0,
+        'initialMaintenanceReserve': 80.0,
+        'rentalType': 'commercial',
+        'rentStartDate': '2023-03-01',
+        'rentedUnits': 1,
+        'totalUnits': 1,
+        'grossRentMonth': 30.0,
+        'netRentMonth': 24.0,
+        'constructionYear': 2015,
+        'propertyStories': 1,
+        'lotSize': 1000,
+        'squareFeet': 800,
+        'marketplaceLink': '',
+        'propertyType': 'office',
+        'productType': 'loan_income',
+        'totalRentReceived': 390.0,
+        'historic': {},
+        'ethereumContract': '0xMOCKTOKEN2',
+        'transactions': []
+      }
+    ];
+    rentHistory = [
+      {
+        'date': '2025-08-01',
+        'wallet': '0xd7a6A4b95E29CE5f8f45404d1251178DAFE75AF3',
+        'rents': [
+          {'token': '0xMOCKTOKEN1', 'rent': 33.0},
+          {'token': '0xMOCKTOKEN2', 'rent': 24.0}
+        ]
+      },
+      {
+        'date': '2025-07-01',
+        'wallet': '0xd7a6A4b95E29CE5f8f45404d1251178DAFE75AF3',
+        'rents': [
+          {'token': '0xMOCKTOKEN1', 'rent': 32.0},
+          {'token': '0xMOCKTOKEN2', 'rent': 23.0}
+        ]
+      },
+      {
+        'date': '2025-06-01',
+        'wallet': '0xd7a6A4b95E29CE5f8f45404d1251178DAFE75AF3',
+        'rents': [
+          {'token': '0xMOCKTOKEN1', 'rent': 31.0},
+          {'token': '0xMOCKTOKEN2', 'rent': 22.0}
+        ]
+      }
+    ];
+    // سایر فیلدهای تحلیلی را هم مقداردهی می‌کنیم
+    walletValue = 11000.0;
+    roiGlobalValue = 0.12;
+    netGlobalApy = 0.07;
+    totalWalletValue = 11000.0;
+    totalRealtTokens = 2;
+    totalRealtInvestment = 11000.0;
+    netRealtRentYear = 690.0;
+    realtInitialPrice = 11000.0;
+    realtActualPrice = 11000.0;
+    totalRealtUnits = 2;
+    rentedRealtUnits = 2;
+    averageRealtAnnualYield = 0.07;
+    usdcDepositApy = 0.03;
+    usdcBorrowApy = 0.05;
+    xdaiDepositApy = 0.025;
+    xdaiBorrowApy = 0.045;
+    apyAverage = 0.07;
+    healthFactor = 1.5;
+    ltv = 0.4;
+    walletTokenCount = 2;
+    rmmTokenCount = 0;
+    totalTokenCount = 2;
+    duplicateTokenCount = 0;
+    // تکمیل سایر فیلدهای آماری و تحلیلی
+    rmmValue = 0.0;
+    perWalletRmmValues = {'0xd7a6A4b95E29CE5f8f45404d1251178DAFE75AF3': 0.0};
+    rwaHoldingsValue = 0.0;
+    rentedUnits = 2;
+    totalUnits = 2;
+    initialTotalValue = 11000.0;
+    yamTotalValue = 0.0;
+    totalTokens = 2.0;
+    walletTokensSums = 2.0;
+    rmmTokensSums = 0.0;
+    averageAnnualYield = 0.07;
+    dailyRent = 2.0;
+    weeklyRent = 14.0;
+    monthlyRent = 57.0;
+    yearlyRent = 690.0;
+    userIdToAddresses = {
+      'russell': ['0xd7a6A4b95E29CE5f8f45404d1251178DAFE75AF3']
+    };
+    totalUsdcDepositBalance = 0.0;
+    totalUsdcBorrowBalance = 0.0;
+    totalXdaiDepositBalance = 0.0;
+    totalXdaiBorrowBalance = 0.0;
+    gnosisUsdcBalance = 2000.0; // کیف پول فیک Russell: $2000
+    gnosisXdaiBalance = 0.0;
+    gnosisRegBalance = 0.0;
+    gnosisVaultRegBalance = 0.0;
+    walletStats = [
+      {
+        'wallet': '0xd7a6A4b95E29CE5f8f45404d1251178DAFE75AF3',
+        'value': 11000.0,
+        'tokens': 2,
+        'apy': 0.07,
+        'roi': 0.12,
+        'ltv': 0.4,
+        'healthFactor': 1.5
+      }
+    ];
+    evmAddresses = ['0xd7a6A4b95E29CE5f8f45404d1251178DAFE75AF3'];
+    propertyData = [];
+    perWalletBalances = [
+      {'wallet': '0xd7a6A4b95E29CE5f8f45404d1251178DAFE75AF3', 'balance': 11000.0}
+    ];
+    cumulativeRentsByToken = {'0xMOCKTOKEN1': 96.0, '0xMOCKTOKEN2': 69.0};
+    cumulativeRentsByWallet = {
+      '0xd7a6A4b95E29CE5f8f45404d1251178DAFE75AF3': {'0xMOCKTOKEN1': 96.0, '0xMOCKTOKEN2': 69.0}
+    };
+    tokensWalletCount = {'0xMOCKTOKEN1': 1, '0xMOCKTOKEN2': 1};
+    rentData = [
+      {'token': '0xMOCKTOKEN1', 'rent': 33.0, 'date': '2025-08-01'},
+      {'token': '0xMOCKTOKEN2', 'rent': 24.0, 'date': '2025-08-01'}
+    ];
+    detailedRentData = [
+      {
+        'date': '2025-08-01',
+        'wallet': '0xd7a6A4b95E29CE5f8f45404d1251178DAFE75AF3',
+        'token': '0xMOCKTOKEN1',
+        'rent': 33.0
+      },
+      {
+        'date': '2025-08-01',
+        'wallet': '0xd7a6A4b95E29CE5f8f45404d1251178DAFE75AF3',
+        'token': '0xMOCKTOKEN2',
+        'rent': 24.0
+      }
+    ];
+    notifyListeners();
+
+    // ذخیره داده‌های Russell در SharedPreferences
+    await _saveRussellDataToPrefs();
+  }
+
+  /// ذخیره داده‌های Russell در SharedPreferences
+  Future<void> _saveRussellDataToPrefs() async {
+    final prefs = await SharedPreferences.getInstance();
+    final russellData = {
+      // Portfolio data
+      'portfolio': _portfolio,
+      'initialTotalValue': initialTotalValue,
+      'totalTokenCount': totalTokenCount,
+
+      // Rent data
+      'monthlyRent': monthlyRent,
+      'yearlyRent': yearlyRent,
+      'dailyRent': dailyRent,
+      'weeklyRent': weeklyRent,
+      'rentData': rentData,
+      'detailedRentData': detailedRentData,
+      'cumulativeRentsByToken': cumulativeRentsByToken,
+      'cumulativeRentsByWallet': cumulativeRentsByWallet,
+
+      // Wallet & Balance data
+      'evmAddresses': evmAddresses,
+      'perWalletBalances': perWalletBalances,
+      'walletStats': walletStats,
+      'gnosisUsdcBalance': gnosisUsdcBalance,
+      'gnosisXdaiBalance': gnosisXdaiBalance,
+      'gnosisRegBalance': gnosisRegBalance,
+      'gnosisVaultRegBalance': gnosisVaultRegBalance,
+
+      // Statistics
+      'averageAnnualYield': averageAnnualYield,
+      'rmmValue': rmmValue,
+      'perWalletRmmValues': perWalletRmmValues,
+      'rwaHoldingsValue': rwaHoldingsValue,
+      'rentedUnits': rentedUnits,
+      'totalUnits': totalUnits,
+      'yamTotalValue': yamTotalValue,
+      'totalTokens': totalTokens,
+      'walletTokensSums': walletTokensSums,
+      'rmmTokensSums': rmmTokensSums,
+      'tokensWalletCount': tokensWalletCount,
+
+      // User mapping
+      'userIdToAddresses': userIdToAddresses,
+
+      'lastUpdated': DateTime.now().toIso8601String(),
+    };
+    await prefs.setString('russell_portfolio_data', jsonEncode(russellData));
+    debugPrint('✅ Russell data saved successfully');
+  }
+
+  /// بارگذاری داده‌های Russell از SharedPreferences
+  Future<void> _loadRussellDataFromPrefs() async {
+    final prefs = await SharedPreferences.getInstance();
+    final russellDataJson = prefs.getString('russell_portfolio_data');
+
+    if (russellDataJson != null) {
+      try {
+        final russellData = jsonDecode(russellDataJson) as Map<String, dynamic>;
+
+        // Portfolio data
+        _portfolio = List<Map<String, dynamic>>.from(russellData['portfolio'] ?? []);
+        initialTotalValue = (russellData['initialTotalValue'] as num?)?.toDouble() ?? 0.0;
+        totalTokenCount = russellData['totalTokenCount'] as int? ?? 0;
+
+        // Rent data
+        monthlyRent = (russellData['monthlyRent'] as num?)?.toDouble() ?? 0.0;
+        yearlyRent = (russellData['yearlyRent'] as num?)?.toDouble() ?? 0.0;
+        dailyRent = (russellData['dailyRent'] as num?)?.toDouble() ?? 0.0;
+        weeklyRent = (russellData['weeklyRent'] as num?)?.toDouble() ?? 0.0;
+        rentData = List<Map<String, dynamic>>.from(russellData['rentData'] ?? []);
+        detailedRentData = List<Map<String, dynamic>>.from(russellData['detailedRentData'] ?? []);
+        cumulativeRentsByToken = Map<String, double>.from(russellData['cumulativeRentsByToken'] ?? {});
+        cumulativeRentsByWallet = Map<String, Map<String, double>>.from((russellData['cumulativeRentsByWallet'] ?? {})
+            .map((k, v) => MapEntry(k, Map<String, double>.from(v ?? {}))));
+
+        // Wallet & Balance data
+        evmAddresses = List<String>.from(russellData['evmAddresses'] ?? []);
+        perWalletBalances = List<Map<String, dynamic>>.from(russellData['perWalletBalances'] ?? []);
+        walletStats = List<Map<String, dynamic>>.from(russellData['walletStats'] ?? []);
+        gnosisUsdcBalance = (russellData['gnosisUsdcBalance'] as num?)?.toDouble() ?? 0.0;
+        gnosisXdaiBalance = (russellData['gnosisXdaiBalance'] as num?)?.toDouble() ?? 0.0;
+        gnosisRegBalance = (russellData['gnosisRegBalance'] as num?)?.toDouble() ?? 0.0;
+        gnosisVaultRegBalance = (russellData['gnosisVaultRegBalance'] as num?)?.toDouble() ?? 0.0;
+
+        // Statistics
+        averageAnnualYield = (russellData['averageAnnualYield'] as num?)?.toDouble() ?? 0.0;
+        rmmValue = (russellData['rmmValue'] as num?)?.toDouble() ?? 0.0;
+        perWalletRmmValues = Map<String, double>.from(russellData['perWalletRmmValues'] ?? {});
+        rwaHoldingsValue = (russellData['rwaHoldingsValue'] as num?)?.toDouble() ?? 0.0;
+        rentedUnits = russellData['rentedUnits'] as int? ?? 0;
+        totalUnits = russellData['totalUnits'] as int? ?? 0;
+        yamTotalValue = (russellData['yamTotalValue'] as num?)?.toDouble() ?? 0.0;
+        totalTokens = (russellData['totalTokens'] as num?)?.toDouble() ?? 0.0;
+        walletTokensSums = (russellData['walletTokensSums'] as num?)?.toDouble() ?? 0.0;
+        rmmTokensSums = (russellData['rmmTokensSums'] as num?)?.toDouble() ?? 0.0;
+        tokensWalletCount = Map<String, int>.from(russellData['tokensWalletCount'] ?? {});
+
+        // User mapping
+        userIdToAddresses = Map<String, List<String>>.from(
+            (russellData['userIdToAddresses'] ?? {}).map((k, v) => MapEntry(k, List<String>.from(v ?? []))));
+
+        debugPrint('✅ Russell data loaded successfully from SharedPreferences');
+        notifyListeners();
+      } catch (e) {
+        debugPrint('❌ Error loading Russell data: $e');
+      }
+    }
+  }
+
+  /// به‌روزرسانی و ذخیره داده‌های Russell در زمان تغییرات
+  Future<void> updateRussellDataIfNeeded() async {
+    // اگر کاربر فعلی Russell است، داده‌ها را ذخیره کنیم
+    if (DataManager.appStateRef?.currentUser?.username.toLowerCase() == 'russell') {
+      await _saveRussellDataToPrefs();
+    }
+  }
+
+  @override
+  void notifyListeners() {
+    super.notifyListeners();
+    // ذخیره خودکار داده‌های Russell هر بار که تغییری ایجاد می‌شود
+    _autoSaveRussellData();
+  }
+
+  void _autoSaveRussellData() async {
+    try {
+      if (DataManager.appStateRef?.currentUser?.username.toLowerCase() == 'russell') {
+        await _saveRussellDataToPrefs();
+      }
+    } catch (e) {
+      debugPrint('Error auto-saving Russell data: $e');
+    }
+  }
+
+  /// پاک کردن داده‌های ذخیره‌شده Russell (برای تست یا reset)
+  Future<void> clearRussellData() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('russell_portfolio_data');
+    debugPrint('🗑️ Russell data cleared from SharedPreferences');
+  }
+
+  /// Sets enhanced mock data specifically for analytics/statistics charts
+  void setEnhancedAnalyticsDataForRussell() async {
+    final now = DateTime.now();
+
+    // Enhanced wallet balance history for more detailed charts
+    final balanceHistory = <BalanceRecord>[];
+    for (int i = 365; i >= 0; i -= 3) {
+      // Every 3 days for detailed history
+      final timestamp = now.subtract(Duration(days: i));
+      final baseValue = 8500.0;
+      final seasonalVariation = 1000 * (0.5 + 0.5 * sin((i / 365) * 2 * pi));
+      final growth = (365 - i) * 7.5; // Steady growth
+      final noise = (Random().nextDouble() - 0.5) * 200; // Random variation
+      final balance = baseValue + seasonalVariation + growth + noise;
+
+      balanceHistory.add(BalanceRecord(
+          tokenType: 'totalWalletValue',
+          balance: balance.clamp(8000.0, 30000.0), // Reasonable bounds
+          timestamp: timestamp));
+    }
+    walletBalanceHistory = balanceHistory;
+
+    // Enhanced ROI history for ROI charts
+    final roiHistoryData = <ROIRecord>[];
+    for (int i = 365; i >= 0; i -= 7) {
+      // Weekly ROI data
+      final timestamp = now.subtract(Duration(days: i));
+      final baseRoi = 8.5;
+      final growth = (365 - i) * 0.01; // ROI improvement over time
+      final variation = 2.0 * sin((i / 30) * 2 * pi); // Monthly cycles
+      final roi = baseRoi + growth + variation;
+
+      roiHistoryData.add(ROIRecord(roi: roi.clamp(5.0, 15.0), timestamp: timestamp));
+    }
+    roiHistory = roiHistoryData;
+
+    // Enhanced APY history for APY charts
+    final apyHistoryData = <APYRecord>[];
+    for (int i = 365; i >= 0; i -= 7) {
+      // Weekly APY data
+      final timestamp = now.subtract(Duration(days: i));
+      final baseApy = 7.2;
+      final seasonalFactor = 1.5 * sin((i / 90) * 2 * pi); // Quarterly cycles
+      final apy = baseApy + seasonalFactor;
+
+      apyHistoryData.add(APYRecord(apy: apy.clamp(5.0, 10.0), timestamp: timestamp));
+    }
+    apyHistory = apyHistoryData;
+
+    // Enhanced rent data with historical depth
+    final enhancedRentData = <Map<String, dynamic>>[];
+    final enhancedDetailedRentData = <Map<String, dynamic>>[];
+
+    for (int i = 24; i >= 0; i--) {
+      // 24 months of rent history
+      final date = DateTime(now.year, now.month - i, 1);
+      final dateStr = '${date.year}-${date.month.toString().padLeft(2, '0')}-01';
+
+      final baseRent1 = 37.8;
+      final baseRent2 = 35.1;
+      final baseRent3 = 42.5;
+
+      // Add seasonal variation and growth
+      final seasonalMultiplier = 1 + 0.1 * sin((i / 12) * 2 * pi);
+      final growthFactor = 1 + (24 - i) * 0.005; // 0.5% monthly growth
+
+      final rent1 = baseRent1 * seasonalMultiplier * growthFactor;
+      final rent2 = baseRent2 * seasonalMultiplier * growthFactor;
+      final rent3 = baseRent3 * seasonalMultiplier * growthFactor;
+
+      enhancedRentData.addAll([
+        {'token': '0xMOCKTOKEN1', 'rent': rent1, 'date': dateStr},
+        {'token': '0xMOCKTOKEN2', 'rent': rent2, 'date': dateStr},
+        {'token': '0xMOCKTOKEN3', 'rent': rent3, 'date': dateStr},
+      ]);
+
+      enhancedDetailedRentData.addAll([
+        {
+          'date': dateStr,
+          'wallet': '0xd7a6A4b95E29CE5f8f45404d1251178DAFE75AF3',
+          'token': '0xMOCKTOKEN1',
+          'rent': rent1
+        },
+        {
+          'date': dateStr,
+          'wallet': '0xd7a6A4b95E29CE5f8f45404d1251178DAFE75AF3',
+          'token': '0xMOCKTOKEN2',
+          'rent': rent2
+        },
+        {'date': dateStr, 'wallet': '0xOTHERWALLET000000000000000000000001', 'token': '0xMOCKTOKEN3', 'rent': rent3},
+      ]);
+    }
+
+    rentData = enhancedRentData;
+    detailedRentData = enhancedDetailedRentData;
+
+    // Enhanced wallet tokens data for distribution charts
+    walletTokens = [
+      // Russell's main wallet
+      {
+        'wallet': '0xd7a6A4b95E29CE5f8f45404d1251178DAFE75AF3',
+        'token': '0xMOCKTOKEN1',
+        'shortName': 'Detroit House 1',
+        'amount': 100.0,
+        'value': 5500.0
+      },
+      {
+        'wallet': '0xd7a6A4b95E29CE5f8f45404d1251178DAFE75AF3',
+        'token': '0xMOCKTOKEN2',
+        'shortName': 'Detroit Duplex',
+        'amount': 50.0,
+        'value': 5500.0
+      },
+
+      // Second wallet for distribution
+      {
+        'wallet': '0xOTHERWALLET000000000000000000000001',
+        'token': '0xMOCKTOKEN3',
+        'shortName': 'Miami Condo',
+        'amount': 75.0,
+        'value': 8250.0
+      },
+      {
+        'wallet': '0xOTHERWALLET000000000000000000000001',
+        'token': '0xMOCKTOKEN4',
+        'shortName': 'Dallas Office',
+        'amount': 25.0,
+        'value': 3750.0
+      },
+      {
+        'wallet': '0xOTHERWALLET000000000000000000000001',
+        'token': '0xMOCKTOKEN5',
+        'shortName': 'Austin Retail',
+        'amount': 60.0,
+        'value': 4200.0
+      },
+
+      // Third wallet
+      {
+        'wallet': '0xOTHERWALLET000000000000000000000002',
+        'token': '0xMOCKTOKEN6',
+        'shortName': 'Chicago Loft',
+        'amount': 40.0,
+        'value': 6800.0
+      },
+      {
+        'wallet': '0xOTHERWALLET000000000000000000000002',
+        'token': '0xMOCKTOKEN7',
+        'shortName': 'NYC Studio',
+        'amount': 20.0,
+        'value': 4500.0
+      },
+    ];
+
+    // Enhanced cumulative rents
+    cumulativeRentsByToken = {
+      '0xMOCKTOKEN1': 450.0,
+      '0xMOCKTOKEN2': 420.0,
+      '0xMOCKTOKEN3': 510.0,
+      '0xMOCKTOKEN4': 290.0,
+      '0xMOCKTOKEN5': 180.0,
+      '0xMOCKTOKEN6': 340.0,
+      '0xMOCKTOKEN7': 225.0,
+    };
+
+    cumulativeRentsByWallet = {
+      '0xd7a6A4b95E29CE5f8f45404d1251178DAFE75AF3': {'0xMOCKTOKEN1': 450.0, '0xMOCKTOKEN2': 420.0},
+      '0xOTHERWALLET000000000000000000000001': {
+        '0xMOCKTOKEN3': 510.0,
+        '0xMOCKTOKEN4': 290.0,
+        '0xMOCKTOKEN5': 180.0,
+      },
+      '0xOTHERWALLET000000000000000000000002': {
+        '0xMOCKTOKEN6': 340.0,
+        '0xMOCKTOKEN7': 225.0,
+      }
+    };
+
+    // Enhanced monthly/yearly rent calculations
+    monthlyRent = 115.4; // Sum of recent monthly rents
+    yearlyRent = 1384.8; // Projected yearly
+    dailyRent = 3.85; // Daily average
+    weeklyRent = 26.95; // Weekly average
+
+    // Enhanced portfolio with diverse product types
+    final enhancedPortfolioItems = [
+      {
+        'uuid': '0xMOCKTOKEN3',
+        'shortName': 'Miami Waterfront',
+        'country': 'USA',
+        'regionCode': 'FL',
+        'city': 'Miami',
+        'productType': 'real_estate_rental',
+        'totalValue': 6500.0,
+        'amount': 50.0,
+        'annualPercentageYield': 0.072,
+        'totalRentReceived': 520.0,
+        'propertyType': 'condo',
+        'dailyIncome': 1.42,
+        'monthlyIncome': 43.3,
+        'yearlyIncome': 468.0,
+        'rentedUnits': 1,
+        'totalUnits': 1,
+        'source': 'wallet'
+      },
+      {
+        'uuid': '0xMOCKTOKEN4',
+        'shortName': 'Dallas Office Complex',
+        'country': 'USA',
+        'regionCode': 'TX',
+        'city': 'Dallas',
+        'productType': 'loan_income',
+        'totalValue': 3750.0,
+        'amount': 25.0,
+        'annualPercentageYield': 0.087,
+        'totalRentReceived': 290.0,
+        'propertyType': 'office',
+        'dailyIncome': 0.96,
+        'monthlyIncome': 29.2,
+        'yearlyIncome': 326.0,
+        'rentedUnits': 1,
+        'totalUnits': 1,
+        'source': 'wallet'
+      },
+      {
+        'uuid': '0xMOCKTOKEN5',
+        'shortName': 'Austin Retail Space',
+        'country': 'USA',
+        'regionCode': 'TX',
+        'city': 'Austin',
+        'productType': 'factoring_profitshare',
+        'totalValue': 4200.0,
+        'amount': 60.0,
+        'annualPercentageYield': 0.078,
+        'totalRentReceived': 180.0,
+        'propertyType': 'retail',
+        'dailyIncome': 0.49,
+        'monthlyIncome': 15.0,
+        'yearlyIncome': 180.0,
+        'rentedUnits': 1,
+        'totalUnits': 1,
+        'source': 'RMM'
+      },
+      {
+        'uuid': '0xMOCKTOKEN6',
+        'shortName': 'Chicago Loft',
+        'country': 'USA',
+        'regionCode': 'IL',
+        'city': 'Chicago',
+        'productType': 'real_estate_rental',
+        'totalValue': 6800.0,
+        'amount': 40.0,
+        'annualPercentageYield': 0.065,
+        'totalRentReceived': 340.0,
+        'propertyType': 'loft',
+        'dailyIncome': 1.21,
+        'monthlyIncome': 36.8,
+        'yearlyIncome': 442.0,
+        'rentedUnits': 1,
+        'totalUnits': 1,
+        'source': 'wallet'
+      },
+      {
+        'uuid': '0xMOCKTOKEN7',
+        'shortName': 'NYC Studio',
+        'country': 'USA',
+        'regionCode': 'NY',
+        'city': 'New York',
+        'productType': 'real_estate_rental',
+        'totalValue': 4500.0,
+        'amount': 20.0,
+        'annualPercentageYield': 0.058,
+        'totalRentReceived': 225.0,
+        'propertyType': 'studio',
+        'dailyIncome': 0.71,
+        'monthlyIncome': 21.7,
+        'yearlyIncome': 261.0,
+        'rentedUnits': 1,
+        'totalUnits': 1,
+        'source': 'wallet'
+      }
+    ];
+
+    // Add to existing portfolio
+    for (final item in enhancedPortfolioItems) {
+      _portfolio.add(item);
+    }
+
+    // Enhanced transaction data for transaction analysis
+    transactionsHistory = [
+      {
+        'hash': '0xabc123',
+        'timestamp': now.subtract(Duration(days: 30)).millisecondsSinceEpoch,
+        'amount': 100.0,
+        'type': 'buy',
+        'token': '0xMOCKTOKEN1',
+        'price': 55.0,
+        'wallet': '0xd7a6A4b95E29CE5f8f45404d1251178DAFE75AF3'
+      },
+      {
+        'hash': '0xdef456',
+        'timestamp': now.subtract(Duration(days: 60)).millisecondsSinceEpoch,
+        'amount': 50.0,
+        'type': 'buy',
+        'token': '0xMOCKTOKEN2',
+        'price': 110.0,
+        'wallet': '0xd7a6A4b95E29CE5f8f45404d1251178DAFE75AF3'
+      },
+      {
+        'hash': '0xghi789',
+        'timestamp': now.subtract(Duration(days: 90)).millisecondsSinceEpoch,
+        'amount': 25.0,
+        'type': 'sell',
+        'token': '0xMOCKTOKEN1',
+        'price': 58.0,
+        'wallet': '0xd7a6A4b95E29CE5f8f45404d1251178DAFE75AF3'
+      },
+    ];
+
+    // Update total values to reflect enhanced data
+    totalWalletValue = 27200.0;
+    walletValue = 23000.0;
+    rmmValue = 4200.0;
+
+    // Update wallet stats for multi-wallet distribution
+    walletStats = [
+      {
+        'wallet': '0xd7a6A4b95E29CE5f8f45404d1251178DAFE75AF3',
+        'address': '0xd7a6A4b95E29CE5f8f45404d1251178DAFE75AF3',
+        'value': 11000.0,
+        'tokens': 2,
+        'apy': 0.075,
+        'roi': 0.12,
+        'ltv': 0.35,
+        'healthFactor': 1.8,
+        'walletValueSum': 11000.0,
+        'rmmValue': 0.0,
+        'tokenCount': 2,
+        'walletTokensSum': 150.0,
+        'rmmTokensSum': 0.0
+      },
+      {
+        'wallet': '0xOTHERWALLET000000000000000000000001',
+        'address': '0xOTHERWALLET000000000000000000000001',
+        'value': 16200.0,
+        'tokens': 3,
+        'apy': 0.082,
+        'roi': 0.095,
+        'ltv': 0.28,
+        'healthFactor': 2.1,
+        'walletValueSum': 16200.0,
+        'rmmValue': 2100.0,
+        'tokenCount': 3,
+        'walletTokensSum': 160.0,
+        'rmmTokensSum': 30.0
+      },
+      {
+        'wallet': '0xOTHERWALLET000000000000000000000002',
+        'address': '0xOTHERWALLET000000000000000000000002',
+        'value': 11300.0,
+        'tokens': 2,
+        'apy': 0.062,
+        'roi': 0.088,
+        'ltv': 0.42,
+        'healthFactor': 1.6,
+        'walletValueSum': 11300.0,
+        'rmmValue': 0.0,
+        'tokenCount': 2,
+        'walletTokensSum': 60.0,
+        'rmmTokensSum': 0.0
+      }
+    ];
+
+    // Save the enhanced data
+    await saveWalletBalanceHistory();
+    notifyListeners();
+  }
+
   // Constantes pour les types de transaction
   static const String transactionTypeTransfer = 'transfer';
   static const String transactionTypePurchase = 'purchase';
@@ -72,6 +816,71 @@ class DataManager extends ChangeNotifier {
     } catch (e) {
       debugPrint("❌ Erreur initialisation CacheService: $e");
     }
+  }
+
+  // --- Top-level wallet sync helpers for Russell login/logout ---
+  Future<void> saveWalletForUserId({
+    required String userId,
+    required String address,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    // Update userIdToAddresses
+    String? savedData = prefs.getString('userIdToAddresses');
+    Map<String, dynamic> userIdToAddresses = {};
+    if (savedData != null) {
+      final decodedMap = Map<String, dynamic>.from(jsonDecode(savedData));
+      userIdToAddresses = decodedMap.map((userId, encodedAddresses) {
+        final addresses = List<String>.from(jsonDecode(encodedAddresses));
+        return MapEntry(userId, addresses);
+      });
+    }
+    List<String> addresses = userIdToAddresses[userId]?.cast<String>() ?? [];
+    if (!addresses.contains(address.toLowerCase())) {
+      addresses.add(address.toLowerCase());
+      userIdToAddresses[userId] = addresses;
+      final userIdToAddressesJson = userIdToAddresses.map((userId, addresses) {
+        return MapEntry(userId, jsonEncode(addresses));
+      });
+      await prefs.setString('userIdToAddresses', jsonEncode(userIdToAddressesJson));
+    }
+    // Update evmAddresses
+    List<String> evmAddresses = prefs.getStringList('evmAddresses') ?? [];
+    if (!evmAddresses.contains(address.toLowerCase())) {
+      evmAddresses.add(address.toLowerCase());
+      await prefs.setStringList('evmAddresses', evmAddresses);
+    }
+  }
+
+  Future<void> removeWalletForUserId({
+    required String userId,
+    required String address,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    // Update userIdToAddresses
+    String? savedData = prefs.getString('userIdToAddresses');
+    Map<String, dynamic> userIdToAddresses = {};
+    if (savedData != null) {
+      final decodedMap = Map<String, dynamic>.from(jsonDecode(savedData));
+      userIdToAddresses = decodedMap.map((userId, encodedAddresses) {
+        final addresses = List<String>.from(jsonDecode(encodedAddresses));
+        return MapEntry(userId, addresses);
+      });
+    }
+    List<String> addresses = userIdToAddresses[userId]?.cast<String>() ?? [];
+    addresses.remove(address.toLowerCase());
+    if (addresses.isEmpty) {
+      userIdToAddresses.remove(userId);
+    } else {
+      userIdToAddresses[userId] = addresses;
+    }
+    final userIdToAddressesJson = userIdToAddresses.map((userId, addresses) {
+      return MapEntry(userId, jsonEncode(addresses));
+    });
+    await prefs.setString('userIdToAddresses', jsonEncode(userIdToAddressesJson));
+    // Update evmAddresses
+    List<String> evmAddresses = prefs.getStringList('evmAddresses') ?? [];
+    evmAddresses.remove(address.toLowerCase());
+    await prefs.setStringList('evmAddresses', evmAddresses);
   }
 
   /// Charge la préférence de réactivité APY depuis SharedPreferences
@@ -174,6 +983,58 @@ class DataManager extends ChangeNotifier {
   List<Map<String, dynamic>> get allTokens => _allTokens;
   List<Map<String, dynamic>> _portfolio = [];
   List<Map<String, dynamic>> get portfolio => _portfolio;
+
+  // متد جدید برای دریافت پورتفولیوی ترکیبی شامل خریدهای محلی
+  Future<List<Map<String, dynamic>>> getCombinedPortfolio() async {
+    final List<Map<String, dynamic>> combinedPortfolio = List.from(_portfolio);
+
+    try {
+      final localPurchases = await LocalPortfolioService.getPortfolio();
+
+      for (final purchase in localPurchases) {
+        // تبدیل خرید محلی به فرمت پورتفولیو
+        final portfolioItem = {
+          'uuid': purchase['propertyId'],
+          'propertyId': purchase['propertyId'], // اضافه کردن propertyId برای استفاده در sell
+          'shortName': purchase['shortName'],
+          'title': purchase['title'],
+          'amount': purchase['tokenAmount'],
+          'tokenPrice': purchase['tokenPrice'],
+          'value': purchase['totalValue'],
+          'totalValue': purchase['totalValue'], // اضافه کردن totalValue
+          'imageLink': purchase['imageUrl'] != null && purchase['imageUrl'].isNotEmpty
+              ? [purchase['imageUrl']]
+              : ['assets/logo.png'], // fallback image
+          'fullName': purchase['title'], // اضافه کردن fullName برای فیلترها
+          'country': purchase['country'] ?? 'Unknown',
+          'city': purchase['city'] ?? 'Unknown',
+          'annualPercentageYield': purchase['annualYield'] ?? 0.0,
+          'isLocalPurchase': true, // برچسب برای تشخیص خریدهای محلی
+          'purchaseDate': purchase['purchaseDate'],
+          'lastPurchaseDate': purchase['lastPurchaseDate'],
+          // اضافه کردن فیلدهای پیش‌فرض برای سازگاری
+          'dailyIncome': 0.0,
+          'monthlyIncome': 0.0,
+          'yearlyIncome': 0.0,
+          'rentedUnits': 0,
+          'totalUnits': 1,
+          'rentStartDate': purchase['purchaseDate'],
+          'source': 'local',
+          'inWallet': false,
+          'inRMM': false,
+          'initialTotalValue': purchase['totalValue'] ?? 0.0, // اضافه کردن این فیلد
+          'totalRentReceived': 0.0, // اضافه کردن این فیلد
+        };
+
+        combinedPortfolio.add(portfolioItem);
+      }
+    } catch (e) {
+      print('Error loading local portfolio: $e');
+    }
+
+    return combinedPortfolio;
+  }
+
   List<Map<String, dynamic>> _recentUpdates = [];
   List<Map<String, dynamic>> get recentUpdates => _recentUpdates;
   List<Map<String, dynamic>> walletTokens = [];
@@ -2054,8 +2915,7 @@ class DataManager extends ChangeNotifier {
                   // Utiliser le prix de l'entrée trouvée dans token['history']
                   if (bestEntry != null && bestEntry['token_price'] != null) {
                     price = (bestEntry['token_price'] as num?)?.toDouble() ?? 0.0;
-                    String dateUsed =
-                        closestPreviousDate != null ? closestPreviousDate.toString().split(' ')[0] : 'inconnue';
+                    // حذف متغیر استفاده‌نشده dateUsed
                     // debugPrint("💰 PRIX_DEBUG: Transaction $tokenId ${dateTime.toString().split(' ')[0]}: Prix historique token['history'] utilisé ${price.toStringAsFixed(2)} (date historique: $dateUsed)");
                   } else {
                     // debugPrint("🔍 PRIX_DEBUG: Aucune entrée avec prix valide trouvée pour $tokenId avant ${dateTime.toString().split(' ')[0]}");
@@ -2165,7 +3025,7 @@ class DataManager extends ChangeNotifier {
       return;
     }
 
-    int tokenProcessed = 0;
+    // حذف متغیر استفاده‌نشده tokenProcessed
     // Parcourir chaque token du portefeuille
     for (var token in walletTokens) {
       if (token['token'] == null) continue;
@@ -2180,7 +3040,7 @@ class DataManager extends ChangeNotifier {
 
       if (matchingRealToken.isNotEmpty && matchingRealToken['propertyType'] != null) {
         final int propertyType = matchingRealToken['propertyType'];
-        tokenProcessed++;
+        // حذف افزایش متغیر استفاده‌نشده tokenProcessed
 
         // Vérifiez si le type de propriété existe déjà dans propertyData
         final existingIndex = tempPropertyData.indexWhere((data) => data['propertyType'] == propertyType);
@@ -2323,7 +3183,13 @@ class DataManager extends ChangeNotifier {
       totalUsdcBorrowBalance = totalUsdcBorrowSum;
       totalXdaiDepositBalance = totalXdaiDepositSum;
       totalXdaiBorrowBalance = totalXdaiBorrowSum;
-      gnosisUsdcBalance = totalGnosisUsdcSum;
+      // اگر کاربر راسل است مقدار gnosisUsdcBalance را همیشه ۲۰۰۰ نگه دار
+      final currentUser = DataManager.appStateRef?.currentUser;
+      if (currentUser != null && currentUser.username.toLowerCase() == 'russell') {
+        gnosisUsdcBalance = 2000.0; // کیف پول فیک Russell: $2000
+      } else {
+        gnosisUsdcBalance = totalGnosisUsdcSum;
+      }
       gnosisRegBalance = totalGnosisRegSum;
       gnosisXdaiBalance = totalGnosisXdaiSum;
       gnosisVaultRegBalance = totalGnosisVaultRegSum;
@@ -2351,10 +3217,6 @@ class DataManager extends ChangeNotifier {
           _archiveManager.archiveBalance('xdaiBorrow', totalXdaiBorrowSum, timestamp);
           lastArchiveTime = DateTime.now();
         }
-      } else {
-        final timeUntilNextArchive = Duration(minutes: 5) - DateTime.now().difference(lastArchiveTime!);
-        final minutesRemaining = timeUntilNextArchive.inMinutes;
-        final secondsRemaining = timeUntilNextArchive.inSeconds % 60;
       }
     } catch (e) {
       debugPrint('Erreur lors de la récupération des balances RMM: $e');
@@ -2540,7 +3402,7 @@ class DataManager extends ChangeNotifier {
 
     // Récupération des données en cache, si disponibles
     final cachedData = box.get('cachedYamMarket');
-    List<Map<String, dynamic>> yamMarketData = [];
+    // حذف متغیر استفاده‌نشده yamMarketData
 
     if (cachedData != null) {
       yamMarketFetched = List<Map<String, dynamic>>.from(json.decode(cachedData));
@@ -2548,9 +3410,7 @@ class DataManager extends ChangeNotifier {
       debugPrint("⚠️ Aucune donnée YamMarket en cache.");
     }
 
-    double totalTokenValue = 0.0;
-    int totalOffers = 0;
-    double totalTokenAmount = 0.0;
+    // حذف متغیرهای استفاده‌نشده totalTokenValue، totalOffers و totalTokenAmount
 
     List<Map<String, dynamic>> allOffersList = [];
 
@@ -2570,11 +3430,8 @@ class DataManager extends ChangeNotifier {
         }
 
         // Récupérer et convertir les valeurs nécessaires
-        double tokenAmount = (offer['token_amount'] ?? 0.0).toDouble();
-        double tokenValue = (offer['token_value'] ?? 0.0).toDouble();
-        totalTokenValue += tokenValue;
-        totalTokenAmount += tokenAmount;
-        totalOffers += 1;
+        // ...existing code...
+        // ...existing code...
 
         // Ajouter l'offre traitée à la liste
         allOffersList.add({

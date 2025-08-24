@@ -113,7 +113,16 @@
     "addressCopiedMessage",
     "noWalletsAvailable",
     "unitesLouees",
-    "allTokens"
+    "allTokens",
+    "sellSuccessful",
+    "sellConfirmation",
+    "sellDetails",
+    "sellAmount",
+    "confirmSell",
+    "totalRevenue",
+    "insufficientTokens",
+    "invalidAmount",
+    "error"
   ],
 
   "fr": [
@@ -200,7 +209,16 @@
     "addressCopiedMessage",
     "noWalletsAvailable",
     "unitesLouees",
-    "allTokens"
+    "allTokens",
+    "sellSuccessful",
+    "sellConfirmation",
+    "sellDetails",
+    "sellAmount",
+    "confirmSell",
+    "totalRevenue",
+    "insufficientTokens",
+    "invalidAmount",
+    "error"
   ],
 
   "pt": [
@@ -295,7 +313,16 @@
     "addressCopiedMessage",
     "noWalletsAvailable",
     "unitesLouees",
-    "allTokens"
+    "allTokens",
+    "sellSuccessful",
+    "sellConfirmation",
+    "sellDetails",
+    "sellAmount",
+    "confirmSell",
+    "totalRevenue",
+    "insufficientTokens",
+    "invalidAmount",
+    "error"
   ],
 
   "ru": [
@@ -360,7 +387,16 @@
     "refusedNotificationsStartupLong",
     "buy",
     "sell",
-    "allTokens"
+    "allTokens",
+    "sellSuccessful",
+    "sellConfirmation",
+    "sellDetails",
+    "sellAmount",
+    "confirmSell",
+    "totalRevenue",
+    "insufficientTokens",
+    "invalidAmount",
+    "error"
   ],
 
   "zh": [
@@ -460,6 +496,15 @@
     "addressCopiedMessage",
     "noWalletsAvailable",
     "unitesLouees",
-    "allTokens"
+    "allTokens",
+    "sellSuccessful",
+    "sellConfirmation",
+    "sellDetails",
+    "sellAmount",
+    "confirmSell",
+    "totalRevenue",
+    "insufficientTokens",
+    "invalidAmount",
+    "error"
   ]
 }

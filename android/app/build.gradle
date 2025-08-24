@@ -16,7 +16,7 @@ plugins {
 
 android {
     namespace = "com.byackee.meprop_asset_tracker"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 34  // مقدار مشخص به جای flutter.compileSdkVersion
     // ndkVersion = "26.1.10909125"
     // NOTE: Commented out to avoid failing the build when that exact NDK
     // is not installed on the developer machine. If your project requires
@@ -38,9 +38,9 @@ android {
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdkVersion 23  // OneSignal Flutter nécessite au moins 21
-        targetSdk = flutter.targetSdkVersion
-        versionCode = flutter.versionCode
-        versionName = flutter.versionName
+        targetSdkVersion 34  // مقدار مشخص به جای flutter.targetSdkVersion
+        versionCode 1
+        versionName "1.0.0"
 
         // Désactiver Impeller pour résoudre les problèmes OpenGL
         ndk {
@@ -58,11 +58,13 @@ android {
     // }
 
     buildTypes {
+        debug {
+            signingConfig signingConfigs.debug
+            minifyEnabled false
+            shrinkResources false
+        }
         release {
-            // Intentionally do not set a signingConfig here so the release build
-            // will not be signed automatically. For local debug/testing of
-            // unsigned APKs, build with `flutter build apk --debug` or
-            // configure signing manually when producing a final release.
+            signingConfig signingConfigs.debug  // استفاده از debug signing برای تست
             minifyEnabled false
             shrinkResources false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'

@@ -20,14 +20,14 @@ import 'dart:ui' as ui;
 import 'dart:async';
 import 'package:meprop_asset_tracker/generated/l10n.dart';
 
-// Mode de coloration des markers et clusters
+// Marker and cluster coloration mode
 enum ColorationMode { rental, apy }
 
 class MapsPage extends StatefulWidget {
   const MapsPage({super.key});
 
   @override
-  MapsPageState createState() => MapsPageState(); // Remplacer _MapsPageState par MapsPageState
+  MapsPageState createState() => MapsPageState(); // Replace _MapsPageState with MapsPageState
 }
 
 class MapsPageState extends State<MapsPage> {
@@ -39,44 +39,44 @@ class MapsPageState extends State<MapsPage> {
   final bool _isAscending = true;
   bool _forceLightMode = false;
 
-  // Nouveaux filtres avancés
+  // Advanced filters
   bool _showHeatmapRent = false;
   bool _showHeatmapPerformance = false;
   bool _showYamOffers = false;
   bool _showRecentTransactions = false;
   bool _showMiniDashboard = false;
 
-  // Filtres de rentabilité
+  // Profitability filters
   double _minApy = 0.0;
   double _maxApy = 50.0;
   bool _onlyWithRent = false;
   bool _onlyFullyRented = false;
 
-  // Filtres par région
+  // Region filters
   String? _selectedCountry;
   List<String> _availableCountries = [];
 
-  // Filtres par performance
-  double _minRoi = -100.0; // Permettre les ROI négatifs
+  // Performance filters
+  double _minRoi = -100.0; // Allow negative ROI
   double _maxRoi = 100.0;
 
-  // Contrôleur pour le panneau de filtres
+  // Filter panel controller
   bool _showFiltersPanel = false;
 
   final MapController _mapController = MapController();
 
-  // Variables pour l'atténuation du mini-dashboard pendant les interactions
+  // Variables for mini-dashboard dimming during interactions
   double _dashboardOpacity = 1.0;
   Timer? _dashboardTimer;
 
-  // Mode de coloration des markers et clusters
+  // Marker and cluster coloration mode
   ColorationMode _colorationMode = ColorationMode.apy;
 
   @override
   void initState() {
     super.initState();
-    _loadThemePreference(); // Charger la préférence du thème à l'initialisation
-    _loadColorationModePreference(); // Charger la préférence du mode de coloration
+    _loadThemePreference(); // Load theme preference on init
+    _loadColorationModePreference(); // Load coloration mode preference
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<DataManager>(context, listen: false).fetchAndStoreAllTokens();
     });
@@ -88,21 +88,21 @@ class MapsPageState extends State<MapsPage> {
     super.dispose();
   }
 
-  // Charger la préférence du thème à partir de SharedPreferences
+  // Load theme preference from SharedPreferences
   Future<void> _loadThemePreference() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
-      _forceLightMode = prefs.getBool('forceLightMode') ?? false; // Charger le mode forcé
+      _forceLightMode = prefs.getBool('forceLightMode') ?? false; // Load forced mode
     });
   }
 
-  // Sauvegarder la préférence du mode dans SharedPreferences
+  // Save mode preference in SharedPreferences
   Future<void> _saveThemePreference() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('forceLightMode', _forceLightMode); // Sauvegarder le mode forcé
+    await prefs.setBool('forceLightMode', _forceLightMode); // Save forced mode
   }
 
-  // Charger la préférence du mode de coloration à partir de SharedPreferences
+  // Load coloration mode preference from SharedPreferences
   Future<void> _loadColorationModePreference() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     final colorationModeString = prefs.getString('colorationMode') ?? 'apy';
@@ -111,18 +111,18 @@ class MapsPageState extends State<MapsPage> {
     });
   }
 
-  // Sauvegarder la préférence du mode de coloration dans SharedPreferences
+  // Save coloration mode preference in SharedPreferences
   Future<void> _saveColorationModePreference() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setString('colorationMode', _colorationMode == ColorationMode.rental ? 'rental' : 'apy');
   }
 
-  // Gérer l'atténuation du panneau de contrôle et fermer les panneaux ouverts
+  // Handle control panel dimming and close open panels
   void _onMapInteraction() {
-    // Annuler le timer précédent s'il existe
+    // Cancel previous timer if it exists
     _dashboardTimer?.cancel();
 
-    // Fermer les panneaux Statistics et Filtres s'ils sont ouverts
+    // Close Statistics and Filters panels if they are open
     bool shouldUpdate = false;
     if (_showMiniDashboard) {
       _showMiniDashboard = false;
@@ -133,18 +133,18 @@ class MapsPageState extends State<MapsPage> {
       shouldUpdate = true;
     }
 
-    // Atténuer immédiatement le panneau de contrôle principal
+    // Immediately dim the main control panel
     if (_dashboardOpacity == 1.0) {
       _dashboardOpacity = 0.3;
       shouldUpdate = true;
     }
 
-    // Appliquer les changements si nécessaire
+    // Apply changes if necessary
     if (shouldUpdate) {
       setState(() {});
     }
 
-    // Programmer le retour à l'opacité normale après 2.5 secondes
+    // Schedule return to normal opacity after 2.5 seconds
     _dashboardTimer = Timer(const Duration(milliseconds: 2500), () {
       if (mounted) {
         setState(() {
@@ -154,27 +154,27 @@ class MapsPageState extends State<MapsPage> {
     });
   }
 
-  // Optimise pour éviter les calculs de loyers sur les tokens non possédés
+  // Optimized to avoid rent calculations on non-owned tokens
   double _getTokenRentSafely(String tokenUuid, DataManager dataManager) {
-    // Vérifier d'abord si c'est dans le portefeuille
+    // First check if it's in the portfolio
     final portfolioToken = dataManager.portfolio.firstWhere(
         (portfolioToken) => portfolioToken['uuid'].toLowerCase() == tokenUuid.toLowerCase(),
         orElse: () => <String, dynamic>{});
 
-    // Si pas dans le portefeuille, pas de loyers
+    // If not in portfolio, no rent
     if (portfolioToken.isEmpty) {
       return 0.0;
     }
 
-    // Utiliser les données précalculées pour tous les tokens possédés (Wallet ET RMM)
+    // Use precalculated data for all owned tokens (Wallet AND RMM)
     return dataManager.cumulativeRentsByToken[tokenUuid.toLowerCase()] ?? 0.0;
   }
 
-  // Méthode pour zoomer sur un cluster
+  // Method to zoom on a cluster
   void _zoomToCluster(List<Marker> clusterMarkers) {
     if (clusterMarkers.isEmpty) return;
 
-    // Calculer les limites géographiques du cluster
+    // Calculate geographical bounds of the cluster
     double minLat = double.infinity;
     double maxLat = -double.infinity;
     double minLng = double.infinity;
@@ -190,45 +190,45 @@ class MapsPageState extends State<MapsPage> {
       maxLng = max(maxLng, lng);
     }
 
-    // Calculer le centre et les limites avec une marge
+    // Calculate center and bounds with margin
     final centerLat = (minLat + maxLat) / 2;
     final centerLng = (minLng + maxLng) / 2;
     final latDiff = maxLat - minLat;
     final lngDiff = maxLng - minLng;
 
-    // Ajouter une marge de 20% autour des limites
+    // Add 20% margin around bounds
     final margin = 0.2;
     final boundsSouthWest = LatLng(minLat - latDiff * margin, minLng - lngDiff * margin);
     final boundsNorthEast = LatLng(maxLat + latDiff * margin, maxLng + lngDiff * margin);
 
-    // Zoomer sur la zone calculée
+    // Zoom on calculated area
     _mapController.fitCamera(CameraFit.bounds(
       bounds: LatLngBounds(boundsSouthWest, boundsNorthEast),
       padding: const EdgeInsets.all(50.0),
     ));
   }
 
-  // Méthode pour filtrer et trier les tokens avec critères avancés
+  // Method to filter and sort tokens with advanced criteria
   List<Map<String, dynamic>> _filterAndSortTokens(List<Map<String, dynamic>> tokens, DataManager dataManager) {
     List<Map<String, dynamic>> filteredTokens = tokens.where((token) {
-      // Exclure les tokens factoring_profitshare (pas des propriétés réelles)
+      // Exclude factoring_profitshare tokens (not real properties)
       final productType = token['productType']?.toString().toLowerCase() ?? '';
       if (productType == 'factoring_profitshare') {
         return false;
       }
 
-      // Filtre de recherche textuelle
+      // Text search filter
       if (!token['fullName'].toLowerCase().contains(_searchQuery.toLowerCase())) {
         return false;
       }
 
-      // Filtre APY
+      // APY filter
       final apy = token['annualPercentageYield'] ?? 0.0;
       if (apy < _minApy || apy > _maxApy) {
         return false;
       }
 
-      // Filtre uniquement avec loyers
+      // Only with rent filter
       if (_onlyWithRent) {
         final totalRent = _getTokenRentSafely(token['uuid'], dataManager);
         if (totalRent <= 0) {
@@ -236,7 +236,7 @@ class MapsPageState extends State<MapsPage> {
         }
       }
 
-      // Filtre uniquement entièrement loués
+      // Only fully rented filter
       if (_onlyFullyRented) {
         final rentedUnits = token['rentedUnits'] ?? 0;
         final totalUnits = token['totalUnits'] ?? 1;
@@ -245,14 +245,14 @@ class MapsPageState extends State<MapsPage> {
         }
       }
 
-      // Filtre par pays
+      // Country filter
       if (_selectedCountry != null && _selectedCountry!.isNotEmpty) {
         if (!_matchesCountryFilter(token, _selectedCountry)) {
           return false;
         }
       }
 
-      // Filtre ROI (si applicable)
+      // ROI filter (if applicable)
       final initialValue = token['initialTotalValue'] ?? token['tokenPrice'];
       final currentValue = token['tokenPrice'] ?? 0.0;
       final roi = initialValue > 0 ? ((currentValue - initialValue) / initialValue * 100) : 0.0;
@@ -263,7 +263,7 @@ class MapsPageState extends State<MapsPage> {
       return true;
     }).toList();
 
-    // Tri
+    // Sorting
     if (_sortOption == 'Name') {
       filteredTokens.sort(
           (a, b) => _isAscending ? a['shortName'].compareTo(b['shortName']) : b['shortName'].compareTo(a['shortName']));
@@ -297,19 +297,19 @@ class MapsPageState extends State<MapsPage> {
     return initialValue > 0 ? ((currentValue - initialValue) / initialValue * 100) : 0.0;
   }
 
-  // Méthode pour vérifier si un token correspond au filtre pays
+  // Method to check if a token matches the country filter
   bool _matchesCountryFilter(Map<String, dynamic> token, String? selectedCountry) {
     if (selectedCountry == null) return true;
 
     String tokenCountry = token['country'] ?? "Unknown Country";
 
-    // Si "Series XX" est sélectionné, filtrer tous les tokens factoring_profitshare avec des séries
+    // If "Series XX" is selected, filter all factoring_profitshare tokens with series
     if (selectedCountry == "Series XX") {
       return (token['productType']?.toString().toLowerCase() == 'factoring_profitshare') &&
           tokenCountry.toLowerCase().startsWith('series ');
     }
 
-    // Filtre normal
+    // Normal filter
     return tokenCountry == selectedCountry;
   }
 
@@ -344,14 +344,14 @@ class MapsPageState extends State<MapsPage> {
       if (latValue != null && lngValue != null) {
         return Marker(
           width: 50.0,
-          height: 60.0, // Plus haut pour accommoder le pointeur
+          height: 60.0, // Higher to accommodate the pointer
           point: LatLng(latValue, lngValue),
           child: MouseRegion(
             cursor: SystemMouseCursors.click,
             child: GestureDetector(
               behavior: HitTestBehavior.translucent,
               onTap: () {
-                print("✅ Clic détecté sur le pointeur !");
+                print("✅ Click detected on the pointer !");
                 _showMarkerPopup(context, matchingToken);
               },
               child: _buildMapPointer(
@@ -372,36 +372,36 @@ class MapsPageState extends State<MapsPage> {
       }
     }
 
-    // Grouper les tokens par propriété unique (même coordonnées)
+    // Group tokens by unique property (same coordinates)
     Map<String, Map<String, dynamic>> uniqueProperties = {};
 
     for (var token in displayedTokens) {
-      // Vérification comme dans showTokenDetails.dart
+      // Verification like in showTokenDetails.dart
       final double? lat = double.tryParse(token['lat']?.toString() ?? '');
       final double? lng = double.tryParse(token['lng']?.toString() ?? '');
 
       if (lat != null && lng != null) {
-        // Créer une clé unique basée sur les coordonnées
+        // Create unique key based on coordinates
         final String propertyKey = '${lat.toStringAsFixed(6)}_${lng.toStringAsFixed(6)}';
 
         if (!uniqueProperties.containsKey(propertyKey)) {
-          // Première fois qu'on voit cette propriété
+          // First time seeing this property
           uniqueProperties[propertyKey] = {
             ...token,
-            'tokens': [token], // Liste des tokens pour cette propriété
+            'tokens': [token], // List of tokens for this property
             'totalAmount': token['amount'] ?? 0.0,
             'totalValue': token['totalValue'] ?? 0.0,
             'hasWallet': token['source'] == 'wallet',
             'hasRMM': token['source'] != 'wallet',
           };
         } else {
-          // Propriété déjà existante, on ajoute le token
+          // Property already exists, add the token
           final existingProperty = uniqueProperties[propertyKey]!;
           (existingProperty['tokens'] as List).add(token);
           existingProperty['totalAmount'] = (existingProperty['totalAmount'] as double) + (token['amount'] ?? 0.0);
           existingProperty['totalValue'] = (existingProperty['totalValue'] as double) + (token['totalValue'] ?? 0.0);
 
-          // Marquer si on a des tokens wallet ou RMM
+          // Mark if we have wallet or RMM tokens
           if (token['source'] == 'wallet') {
             existingProperty['hasWallet'] = true;
           } else {
@@ -411,22 +411,22 @@ class MapsPageState extends State<MapsPage> {
       }
     }
 
-    // Créer les markers pour chaque propriété unique
+    // Create markers for each unique property
     for (var property in uniqueProperties.values) {
       final lat = double.tryParse(property['lat'].toString())!;
       final lng = double.tryParse(property['lng'].toString())!;
 
-      // Déterminer la couleur basée sur le type de tokens possédés
+      // Determine color based on type of owned tokens
       Color markerColor;
       final hasWallet = property['hasWallet'] as bool;
       final hasRMM = property['hasRMM'] as bool;
 
       if (hasWallet && hasRMM) {
-        markerColor = Colors.purple; // Mixte wallet + RMM
+        markerColor = Colors.purple; // Mixed wallet + RMM
       } else if (hasWallet) {
-        markerColor = Colors.green; // Seulement wallet
+        markerColor = Colors.green; // Only wallet
       } else {
-        markerColor = Colors.blue; // Seulement RMM
+        markerColor = Colors.blue; // Only RMM
       }
 
       markers.add(
@@ -438,14 +438,14 @@ class MapsPageState extends State<MapsPage> {
       );
     }
 
-    // Pas de vérification markers.isEmpty ici - on affiche toujours la carte
+    // No markers.isEmpty check here - we always display the map
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Stack(
         children: [
           Container(
-            color: Theme.of(context).scaffoldBackgroundColor, // Définit la couleur de fond pour la carte
+            color: Theme.of(context).scaffoldBackgroundColor, // Sets background color for the map
             child: FlutterMap(
               mapController: _mapController,
               options: MapOptions(
@@ -459,7 +459,7 @@ class MapsPageState extends State<MapsPage> {
               ),
               children: [
                 TileLayer(
-                  // Si _forceLightMode est activé, on utilise le mode clair
+                  // If _forceLightMode is activated, we use light mode
                   urlTemplate: _forceLightMode
                       ? 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
                       : Theme.of(context).brightness == Brightness.dark
@@ -467,8 +467,8 @@ class MapsPageState extends State<MapsPage> {
                           : 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                   subdomains: ['a', 'b', 'c'],
                   tileProvider: kIsWeb
-                      ? NetworkTileProvider() // Utilisé uniquement pour le web
-                      : FMTCStore('mapStore').getTileProvider(), // Utilisé pour iOS, Android, etc.
+                      ? NetworkTileProvider() // Used only for web
+                      : FMTCStore('mapStore').getTileProvider(), // Used for iOS, Android, etc.
                   userAgentPackageName: 'com.byackee.meprop_asset_tracker',
                   retinaMode: true,
                 ),
@@ -534,44 +534,44 @@ class MapsPageState extends State<MapsPage> {
               ],
             ),
           ),
-          // Switch pour basculer entre le mode sombre/clair et forcer le mode clair pour la carte
+          // Switch to toggle between dark/light mode and force light mode for the map
           Positioned(
             top: UIUtils.getAppBarHeight(context),
             right: 16,
             child: Column(
               children: [
                 Transform.scale(
-                  scale: 0.8, // Réduire la taille du switch à 80%
+                  scale: 0.8, // Reduce switch size to 80%
                   child: CupertinoSwitch(
                     value: _forceLightMode,
                     onChanged: (value) {
                       setState(() {
-                        _forceLightMode = value; // Mettre à jour le switch pour forcer le mode clair
+                        _forceLightMode = value; // Update the switch to force light mode
                       });
-                      _saveThemePreference(); // Sauvegarder la préférence
+                      _saveThemePreference(); // Save the preference
                     },
                     activeColor: Theme.of(context).primaryColor,
                     trackColor: Colors.grey.shade300,
                   ),
                 ),
-                Text(_forceLightMode ? 'Light' : 'Auto'),
+                Text(_forceLightMode ? S.of(context).light_mode : S.of(context).auto_mode),
               ],
             ),
           ),
-          // Panneau de contrôles avancés en haut à gauche
+          // Advanced control panel at top left
           Positioned(
             top: UIUtils.getAppBarHeight(context) + 8,
             left: 8,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Contrôles principaux avec animation d'opacité
+                // Main controls with opacity animation
                 AnimatedOpacity(
                   opacity: _dashboardOpacity,
                   duration: const Duration(milliseconds: 300),
                   child: Container(
-                    width: 280, // Largeur fixe pour le panneau
-                    padding: const EdgeInsets.fromLTRB(8, 4, 4, 4), // Padding réduit haut/bas et à droite
+                    width: 280, // Fixed width for the panel
+                    padding: const EdgeInsets.fromLTRB(8, 4, 4, 4), // Reduced top/bottom and right padding
                     decoration: BoxDecoration(
                       color: Theme.of(context).cardColor.withOpacity(0.9),
                       borderRadius: BorderRadius.circular(12),
@@ -588,7 +588,7 @@ class MapsPageState extends State<MapsPage> {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // Switch pour Portfolio / All Tokens avec indicateurs
+                            // Switch for Portfolio / All Tokens with indicators
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
@@ -635,7 +635,7 @@ class MapsPageState extends State<MapsPage> {
                                     ),
                                   ],
                                 ),
-                                // Bouton d'aide aligné à droite
+                                // Help button aligned to the right
                                 IconButton(
                                   icon: Icon(Icons.help_outline, size: 14),
                                   onPressed: () => _showHelpDialog(context),
@@ -649,7 +649,7 @@ class MapsPageState extends State<MapsPage> {
                               ],
                             ),
 
-                            // Switch pour whitelist avec indicateurs
+                            // Switch for whitelist with indicators
                             Row(
                               children: [
                                 Transform.scale(
@@ -694,7 +694,7 @@ class MapsPageState extends State<MapsPage> {
                             ),
                           ],
                         ),
-                        // Boutons de contrôle avancés
+                        // Advanced control buttons
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -752,7 +752,7 @@ class MapsPageState extends State<MapsPage> {
                                 minimumSize: Size(22, 22),
                                 padding: EdgeInsets.all(2),
                               ),
-                              tooltip: 'Paramètres de la carte',
+                              tooltip: "Map Settings",
                             ),
                           ],
                         ),
@@ -761,13 +761,13 @@ class MapsPageState extends State<MapsPage> {
                   ),
                 ),
 
-                // Panneau de filtres avancés
+                // Advanced filters panel
                 if (_showFiltersPanel) ...[
                   const SizedBox(height: 8),
                   _buildFiltersPanel(context, dataManager),
                 ],
 
-                // Mini-dashboard (sans atténuation)
+                // Mini-dashboard (without dimming)
                 if (_showMiniDashboard) ...[
                   const SizedBox(height: 8),
                   _buildMiniDashboard(context, dataManager, displayedTokens),
@@ -780,7 +780,7 @@ class MapsPageState extends State<MapsPage> {
     );
   }
 
-  // Fonction améliorée pour déterminer la couleur et les stats du cluster
+  // Enhanced function to determine cluster color and stats
   Map<String, dynamic> _getClusterStats(List<Marker> markers, DataManager dataManager) {
     int fullyRented = 0;
     int notRented = 0;
@@ -798,7 +798,7 @@ class MapsPageState extends State<MapsPage> {
         final tokenPrice = token['tokenPrice'] ?? 0.0;
         final apy = token['annualPercentageYield'] ?? 0.0;
 
-        // Calculs pour les statistiques
+        // Calculations for statistics
         totalValue += tokenPrice;
         totalRent += _getTokenRentSafely(token['uuid'], dataManager);
 
@@ -807,7 +807,7 @@ class MapsPageState extends State<MapsPage> {
           apyCount++;
         }
 
-        // Classification par statut de location
+        // Classification by rental status
         if (rentedUnits == 0) {
           notRented++;
         } else if (rentedUnits == totalUnits) {
@@ -818,11 +818,11 @@ class MapsPageState extends State<MapsPage> {
 
     Color clusterColor;
     if (_colorationMode == ColorationMode.apy) {
-      // Mode APY : utiliser la couleur basée sur l'APY moyen
+      // APY mode: use color based on average APY
       final averageApy = apyCount > 0 ? totalApy / apyCount : 0.0;
       clusterColor = _getApyBasedColor(averageApy);
     } else {
-      // Mode location par défaut
+      // Default rental mode
       if (fullyRented == markers.length) {
         clusterColor = Colors.green;
       } else if (notRented == markers.length) {
@@ -900,7 +900,7 @@ class MapsPageState extends State<MapsPage> {
   }
 
   void _showMarkerPopup(BuildContext context, dynamic matchingToken) {
-    // Récupérer le DataManager pour accéder au portefeuille et à la whitelist
+    // Retrieve DataManager to access portfolio and whitelist
     final dataManager = Provider.of<DataManager>(context, listen: false);
     final bool isInWallet = dataManager.portfolio.any(
       (portfolioItem) => portfolioItem['uuid'].toLowerCase() == matchingToken['uuid'].toLowerCase(),
@@ -909,7 +909,7 @@ class MapsPageState extends State<MapsPage> {
       (whitelisted) => whitelisted['token'].toLowerCase() == matchingToken['uuid'].toLowerCase(),
     );
 
-    // Données financières enrichies
+    // Enhanced financial data
     final String tokenId = matchingToken['uuid'].toLowerCase();
     final double totalRentReceived = _getTokenRentSafely(matchingToken['uuid'], dataManager);
     final int walletCount = dataManager.getWalletCountForToken(tokenId);
@@ -962,7 +962,7 @@ class MapsPageState extends State<MapsPage> {
                   ),
                 ),
 
-                // Informations de base
+                // Basic information
                 Card(
                   margin: const EdgeInsets.symmetric(vertical: 4),
                   child: Padding(
@@ -989,7 +989,7 @@ class MapsPageState extends State<MapsPage> {
                   ),
                 ),
 
-                // Données financières avancées
+                // Advanced financial data
                 Card(
                   margin: const EdgeInsets.symmetric(vertical: 4),
                   child: Padding(
@@ -1024,7 +1024,7 @@ class MapsPageState extends State<MapsPage> {
                   ),
                 ),
 
-                // Données YAM si disponibles
+                // YAM data if available
                 if (yamTotalVolume > 0) ...[
                   Card(
                     margin: const EdgeInsets.symmetric(vertical: 4),
@@ -1057,7 +1057,7 @@ class MapsPageState extends State<MapsPage> {
                   ),
                 ],
 
-                // Statut dans portefeuille
+                // Portfolio status
                 Card(
                   margin: const EdgeInsets.symmetric(vertical: 4),
                   child: Padding(
@@ -1105,7 +1105,7 @@ class MapsPageState extends State<MapsPage> {
                   children: [
                     ElevatedButton.icon(
                       icon: const Icon(Icons.info, size: 16),
-                      label: const Text('Détails'),
+                      label: Text(S.of(context).details),
                       onPressed: () {
                         Navigator.of(context).pop();
                         showTokenDetails(context, matchingToken);
@@ -1117,7 +1117,7 @@ class MapsPageState extends State<MapsPage> {
                     ),
                     ElevatedButton.icon(
                       icon: const Icon(Icons.streetview, size: 16),
-                      label: const Text('Street View'),
+                      label: Text(S.of(context).street_view),
                       onPressed: () {
                         final googleStreetViewUrl =
                             'https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=$lat,$lng';
@@ -1181,7 +1181,7 @@ class MapsPageState extends State<MapsPage> {
                   fontSize: 14 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
           const SizedBox(height: 12),
 
-          // Filtre APY
+          // APY filter
           Text('APY ($_minApy% - $_maxApy%)',
               style: TextStyle(fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
           RangeSlider(
@@ -1197,7 +1197,7 @@ class MapsPageState extends State<MapsPage> {
             },
           ),
 
-          // Filtres booléens
+          // Boolean filters
           CheckboxListTile(
             title: Text(S.of(context).rents,
                 style: TextStyle(fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
@@ -1222,7 +1222,7 @@ class MapsPageState extends State<MapsPage> {
             dense: true,
           ),
 
-          // Filtre par pays
+          // Country filter
           Text(S.of(context).country,
               style: TextStyle(
                   fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
@@ -1256,7 +1256,7 @@ class MapsPageState extends State<MapsPage> {
             },
           ),
 
-          // Filtre ROI
+          // ROI filter
           const SizedBox(height: 8),
           Text('ROI ($_minRoi% - $_maxRoi%)',
               style: TextStyle(fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
@@ -1273,7 +1273,7 @@ class MapsPageState extends State<MapsPage> {
             },
           ),
 
-          // Bouton de reset
+          // Reset button
           Center(
             child: ElevatedButton(
               onPressed: () {
@@ -1306,7 +1306,7 @@ class MapsPageState extends State<MapsPage> {
     final currencyUtils = Provider.of<CurrencyProvider>(context, listen: false);
     final appState = Provider.of<AppState>(context, listen: false);
 
-    // Calculer les propriétés uniques
+    // Calculate unique properties
     Set<String> uniquePropertiesSet = {};
     for (var token in displayedTokens) {
       if (token['lat'] != null && token['lng'] != null) {
@@ -1318,7 +1318,7 @@ class MapsPageState extends State<MapsPage> {
       }
     }
 
-    // Calculer les statistiques
+    // Calculate statistics
     final int totalTokens = displayedTokens.length;
     final int uniqueProperties = uniquePropertiesSet.length;
     final double totalValue = displayedTokens.fold(0.0, (sum, token) => sum + (token['tokenPrice'] ?? 0.0));
@@ -1335,10 +1335,10 @@ class MapsPageState extends State<MapsPage> {
         .length;
     final int notRented = displayedTokens.where((token) => (token['rentedUnits'] ?? 0) == 0).length;
 
-    // Répartition par pays
+    // Country distribution
     final Map<String, int> countryDistribution = {};
     for (var token in displayedTokens) {
-      final country = token['country'] ?? 'Inconnu';
+      final country = token['country'] ?? 'Unknown';
       countryDistribution[country] = (countryDistribution[country] ?? 0) + 1;
     }
 
@@ -1363,7 +1363,7 @@ class MapsPageState extends State<MapsPage> {
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16 + appState.getTextSizeOffset())),
           const SizedBox(height: 8),
 
-          // Métriques principales
+          // Main metrics
           _buildStatRow(S.of(context).tokensInMap, '$totalTokens', Icons.location_on,
               totalTokens == 0 ? Colors.orange : Colors.blue),
           _buildStatRow(S.of(context).totalProperties, '$uniqueProperties', Icons.map, Colors.indigo),
@@ -1382,7 +1382,7 @@ class MapsPageState extends State<MapsPage> {
 
           const Divider(height: 12),
 
-          // Statut de location
+          // Rental status
           Text(S.of(context).rentalStatus,
               style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14 + appState.getTextSizeOffset())),
           const SizedBox(height: 6),
@@ -1392,7 +1392,7 @@ class MapsPageState extends State<MapsPage> {
 
           const Divider(height: 12),
 
-          // Répartition par pays (top 3)
+          // Country distribution (top 3)
           Text(S.of(context).country,
               style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14 + appState.getTextSizeOffset())),
           const SizedBox(height: 6),
@@ -1432,86 +1432,86 @@ class MapsPageState extends State<MapsPage> {
           .where((token) =>
               dataManager.whitelistTokens.any((w) => w['token'].toLowerCase() == token['uuid'].toLowerCase()))
           .length;
-      return '$whitelistedCount ${S.of(context).properties.toLowerCase()} whitelistées';
+      return '$whitelistedCount whitelisted ${S.of(context).properties.toLowerCase()}';
     } else {
       final baseCount = _showAllTokens ? dataManager.allTokens.length : dataManager.portfolio.length;
-      return '$baseCount ${S.of(context).properties.toLowerCase()} disponibles';
+      return '$baseCount available ${S.of(context).properties.toLowerCase()}';
     }
   }
 
   String _getCurrentModeDescription() {
     if (_showAllTokens && _showWhitelistedTokens) {
-      return '🌍 ${S.of(context).properties} whitelistées (${S.of(context).portfolioGlobal})';
+      return '🌍 Whitelisted ${S.of(context).properties} (${S.of(context).portfolioGlobal})';
     } else if (_showAllTokens && !_showWhitelistedTokens) {
-      return '🌍 Toutes les ${S.of(context).properties.toLowerCase()}';
+      return '🌍 All ${S.of(context).properties.toLowerCase()}';
     } else if (!_showAllTokens && _showWhitelistedTokens) {
-      return '💼 Mes ${S.of(context).properties.toLowerCase()} whitelistées';
+      return '💼 My whitelisted ${S.of(context).properties.toLowerCase()}';
     } else {
       return '💼 ${S.of(context).portfolio}';
     }
   }
 
-  // Obtenir la couleur basée sur l'APY - progression rouge à vert de 0 à 12%
+  // Get APY-based color - red to green progression from 0 to 12%
   Color _getApyBasedColor(double apy) {
     if (apy <= 0) return Colors.red.shade700;
 
-    // Répartir rouge-vert de 0 à 12% avec granularité fine sur 9-12%
+    // Distribute red-green from 0 to 12% with fine granularity on 9-12%
     if (apy < 3) {
-      // Rouge intense à rouge-orange (0-3%)
+      // Intense red to red-orange (0-3%)
       final ratio = (apy / 3.0).clamp(0.0, 1.0);
       return Color.lerp(Colors.red.shade700, Colors.deepOrange.shade600, ratio)!;
     } else if (apy < 6) {
-      // Rouge-orange à orange (3-6%)
+      // Red-orange to orange (3-6%)
       final ratio = ((apy - 3) / 3.0).clamp(0.0, 1.0);
       return Color.lerp(Colors.deepOrange.shade600, Colors.orange.shade500, ratio)!;
     } else if (apy < 9.0) {
-      // Orange à jaune (6-9%)
+      // Orange to yellow (6-9%)
       final ratio = ((apy - 6) / 3.0).clamp(0.0, 1.0);
       return Color.lerp(Colors.orange.shade500, Colors.amber.shade600, ratio)!;
     } else if (apy < 9.5) {
-      // Jaune à jaune-vert (9.0-9.5%) - début granularité fine
+      // Yellow to yellow-green (9.0-9.5%) - start fine granularity
       final ratio = ((apy - 9.0) / 0.5).clamp(0.0, 1.0);
       return Color.lerp(Colors.amber.shade600, Colors.lime.shade500, ratio)!;
     } else if (apy < 10.0) {
-      // Jaune-vert à vert clair (9.5-10.0%)
+      // Yellow-green to light green (9.5-10.0%)
       final ratio = ((apy - 9.5) / 0.5).clamp(0.0, 1.0);
       return Color.lerp(Colors.lime.shade500, Colors.lightGreen.shade500, ratio)!;
     } else if (apy < 10.5) {
-      // Vert clair à vert (10.0-10.5%)
+      // Light green to green (10.0-10.5%)
       final ratio = ((apy - 10.0) / 0.5).clamp(0.0, 1.0);
       return Color.lerp(Colors.lightGreen.shade500, Colors.green.shade500, ratio)!;
     } else if (apy < 11.0) {
-      // Vert à vert moyen (10.5-11.0%)
+      // Green to medium green (10.5-11.0%)
       final ratio = ((apy - 10.5) / 0.5).clamp(0.0, 1.0);
       return Color.lerp(Colors.green.shade500, Colors.green.shade600, ratio)!;
     } else if (apy < 11.5) {
-      // Vert moyen à vert foncé (11.0-11.5%)
+      // Medium green to dark green (11.0-11.5%)
       final ratio = ((apy - 11.0) / 0.5).clamp(0.0, 1.0);
       return Color.lerp(Colors.green.shade600, Colors.green.shade700, ratio)!;
     } else if (apy < 12.0) {
-      // Vert foncé à vert très foncé (11.5-12.0%)
+      // Dark green to very dark green (11.5-12.0%)
       final ratio = ((apy - 11.5) / 0.5).clamp(0.0, 1.0);
       return Color.lerp(Colors.green.shade700, Colors.green.shade800, ratio)!;
     } else {
-      // Vert excellence pour 12%+
+      // Excellence green for 12%+
       return Colors.green.shade900;
     }
   }
 
-  // Obtenir la couleur d'un marker selon le mode de coloration
+  // Get marker color according to coloration mode
   Color _getMarkerColor(Map<String, dynamic> token) {
     if (_colorationMode == ColorationMode.apy) {
       final apy = token['annualPercentageYield'] ?? 0.0;
       return _getApyBasedColor(apy);
     } else {
-      // Mode location par défaut
+      // Default rental mode
       final rentedUnits = token['rentedUnits'] ?? 0;
       final totalUnits = token['totalUnits'] ?? 1;
       return UIUtils.getRentalStatusColor(rentedUnits, totalUnits);
     }
   }
 
-  // Dialog des paramètres de la carte
+  // Map settings dialog
   void _showMapSettingsDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -1522,7 +1522,7 @@ class MapsPageState extends State<MapsPage> {
             children: [
               Icon(Icons.settings, color: Theme.of(context).primaryColor),
               const SizedBox(width: 8),
-              Text('Paramètres de la carte'),
+              Text("Map Settings"),
             ],
           ),
           content: StatefulBuilder(
@@ -1532,7 +1532,7 @@ class MapsPageState extends State<MapsPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Mode de coloration',
+                    "Coloration Mode",
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
@@ -1540,10 +1540,10 @@ class MapsPageState extends State<MapsPage> {
                   ),
                   const SizedBox(height: 12),
 
-                  // Option location
+                  // Rental option
                   RadioListTile<ColorationMode>(
-                    title: Text('État de location'),
-                    subtitle: Text('Couleurs basées sur le taux de location'),
+                    title: Text("Rental Status"),
+                    subtitle: Text("Colors based on rental rate"),
                     value: ColorationMode.rental,
                     groupValue: _colorationMode,
                     onChanged: (value) {
@@ -1551,7 +1551,7 @@ class MapsPageState extends State<MapsPage> {
                         _colorationMode = value!;
                       });
                       setState(() {});
-                      _saveColorationModePreference(); // Sauvegarder le choix
+                      _saveColorationModePreference(); // Save the choice
                     },
                     secondary: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -1574,10 +1574,10 @@ class MapsPageState extends State<MapsPage> {
                     ),
                   ),
 
-                  // Option APY
+                  // APY option
                   RadioListTile<ColorationMode>(
-                    title: Text('Rendement APY'),
-                    subtitle: Text('Rouge→Vert (0-12%), granularité 0,5% sur 9-12%'),
+                    title: Text("APY Yield"),
+                    subtitle: Text("Red→Green (0-12%), granularity 0.5% on 9-12%"),
                     value: ColorationMode.apy,
                     groupValue: _colorationMode,
                     onChanged: (value) {
@@ -1585,7 +1585,7 @@ class MapsPageState extends State<MapsPage> {
                         _colorationMode = value!;
                       });
                       setState(() {});
-                      _saveColorationModePreference(); // Sauvegarder le choix
+                      _saveColorationModePreference(); // Save the choice
                     },
                     secondary: Container(
                       width: 60,
@@ -1616,7 +1616,7 @@ class MapsPageState extends State<MapsPage> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: Text('Fermer'),
+              child: Text('Close'),
             ),
           ],
         );
@@ -1633,7 +1633,7 @@ class MapsPageState extends State<MapsPage> {
             children: [
               Icon(Icons.help_outline, color: Theme.of(context).primaryColor),
               const SizedBox(width: 8),
-              Text('Guide des modes d\'affichage'),
+              Text('Display Modes Guide'),
             ],
           ),
           content: SingleChildScrollView(
@@ -1641,19 +1641,19 @@ class MapsPageState extends State<MapsPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text('Les 4 modes disponibles :', style: TextStyle(fontWeight: FontWeight.bold)),
+                Text('The 4 available modes:', style: TextStyle(fontWeight: FontWeight.bold)),
                 const SizedBox(height: 12),
                 _buildHelpRow('💼 ${S.of(context).portfolio}',
-                    'Affiche uniquement vos ${S.of(context).properties.toLowerCase()}', 'OFF + OFF'),
+                    'Shows only your ${S.of(context).properties.toLowerCase()}', 'OFF + OFF'),
                 const Divider(),
-                _buildHelpRow('💼 Mes ${S.of(context).properties.toLowerCase()} whitelistées',
-                    'Vos ${S.of(context).properties.toLowerCase()} dans la whitelist', 'OFF + ON'),
+                _buildHelpRow('💼 My whitelisted ${S.of(context).properties.toLowerCase()}',
+                    'Your ${S.of(context).properties.toLowerCase()} in the whitelist', 'OFF + ON'),
                 const Divider(),
-                _buildHelpRow('🌍 Toutes les ${S.of(context).properties.toLowerCase()}',
-                    'Toutes les ${S.of(context).properties.toLowerCase()} du marché', 'ON + OFF'),
+                _buildHelpRow('🌍 All ${S.of(context).properties.toLowerCase()}',
+                    'All ${S.of(context).properties.toLowerCase()} on the market', 'ON + OFF'),
                 const Divider(),
-                _buildHelpRow('🌍 ${S.of(context).properties} whitelistées globales',
-                    'Toutes les ${S.of(context).properties.toLowerCase()} whitelistées', 'ON + ON'),
+                _buildHelpRow('🌍 Global whitelisted ${S.of(context).properties}',
+                    'All whitelisted ${S.of(context).properties.toLowerCase()}', 'ON + ON'),
                 const SizedBox(height: 16),
                 Container(
                   padding: const EdgeInsets.all(8),
@@ -1664,15 +1664,15 @@ class MapsPageState extends State<MapsPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('💡 Conseils :', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue)),
+                      Text('💡 Tips:', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue)),
                       const SizedBox(height: 4),
-                      Text('• Utilisez les filtres pour affiner l\'analyse',
+                      Text('• Use filters to refine analysis',
                           style: TextStyle(
                               fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
-                      Text('• Cliquez sur Stats pour voir les métriques',
+                      Text('• Click Stats to see metrics',
                           style: TextStyle(
                               fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
-                      Text('• Les clusters montrent nombre + APY moyen',
+                      Text('• Clusters show count + average APY',
                           style: TextStyle(
                               fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset())),
                     ],
@@ -1725,7 +1725,7 @@ class MapsPageState extends State<MapsPage> {
     required int rentedUnits,
     required int totalUnits,
   }) {
-    // Utiliser la couleur calculée selon le mode de coloration choisi
+    // Use the calculated color according to the chosen coloration mode
     final markerColor = color;
 
     // Validation et nettoyage de l'URL d'image
@@ -1847,7 +1847,7 @@ class MapsPageState extends State<MapsPage> {
                                   ),
                                 );
                               },
-                              // Ajouter des headers pour contourner les problèmes CORS potentiels
+                              // Add headers to bypass potential CORS issues
                               httpHeaders: {
                                 'User-Agent': 'Mozilla/5.0 (compatible; RealTokenApp/1.0)',
                               },

@@ -42,7 +42,7 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
   Future<void> _loadPrimaryColor() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      _selectedColor = prefs.getString('primaryColor') ?? 'blue';
+      _selectedColor = prefs.getString('primaryColor') ?? 'cyan';
     });
   }
 
@@ -162,29 +162,29 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
                 isFirst: true,
                 isLast: false,
               ),
-              _buildSettingsItem(
-                context,
-                title: S.of(context).language,
-                trailing: CupertinoButton(
-                  padding: EdgeInsets.zero,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        _getLanguageName(appState.selectedLanguage, context),
-                        style: TextStyle(
-                          fontSize: 13.0 + appState.getTextSizeOffset(),
-                          color: Colors.grey,
-                        ),
-                      ),
-                      const Icon(CupertinoIcons.chevron_right, size: 14, color: Colors.grey),
-                    ],
-                  ),
-                  onPressed: () => _showLanguagePicker(context, appState),
-                ),
-                isFirst: false,
-                isLast: true,
-              ),
+              // _buildSettingsItem(
+              //   context,
+              //   title: S.of(context).language,
+              //   trailing: CupertinoButton(
+              //     padding: EdgeInsets.zero,
+              //     child: Row(
+              //       mainAxisSize: MainAxisSize.min,
+              //       children: [
+              //         Text(
+              //           _getLanguageName(appState.selectedLanguage, context),
+              //           style: TextStyle(
+              //             fontSize: 13.0 + appState.getTextSizeOffset(),
+              //             color: Colors.grey,
+              //           ),
+              //         ),
+              //         const Icon(CupertinoIcons.chevron_right, size: 14, color: Colors.grey),
+              //       ],
+              //     ),
+              //     onPressed: () => _showLanguagePicker(context, appState),
+              //   ),
+              //   isFirst: false,
+              //   isLast: true,
+              // ),
             ],
           ),
         ],

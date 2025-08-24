@@ -55,16 +55,6 @@ class _PropertiesForSaleSecondaryState extends State<PropertiesForSaleSecondary>
     });
   }
 
-  Future<void> _refreshData() async {
-    final dataManager = Provider.of<DataManager>(context, listen: false);
-    await DataFetchUtils.refreshData(context);
-    await dataManager.fetchAndStorePropertiesForSale();
-    final box = Hive.box('realTokens');
-    setState(() {
-      lastUpdateTime = box.get('lastUpdateTime_YamMarket') as String?;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
@@ -201,15 +191,32 @@ class _PropertiesForSaleSecondaryState extends State<PropertiesForSaleSecondary>
                       scrollDirection: Axis.horizontal,
                       child: Row(
                         children: [
-                          _buildFilterChip("tout", Icons.all_inclusive, selectedOfferType == "tout", context),
+                          _buildFilterChip(
+                              S.of(context).filter_all, Icons.all_inclusive, selectedOfferType == "tout", context,
+                              onTap: () {
+                            setState(() {
+                              selectedOfferType = "tout";
+                            });
+                          }),
                           const SizedBox(width: 8),
-                          _buildFilterChip("vente", Icons.add_shopping_cart, selectedOfferType == "vente", context),
+                          _buildFilterChip(
+                              S.of(context).filter_sell, Icons.add_shopping_cart, selectedOfferType == "vente", context,
+                              onTap: () {
+                            setState(() {
+                              selectedOfferType = "vente";
+                            });
+                          }),
                           const SizedBox(width: 8),
-                          _buildFilterChip("achat", Icons.sell, selectedOfferType == "achat", context),
+                          _buildFilterChip(S.of(context).filter_buy, Icons.sell, selectedOfferType == "achat", context,
+                              onTap: () {
+                            setState(() {
+                              selectedOfferType = "achat";
+                            });
+                          }),
                           const SizedBox(width: 8),
                           // Contrôle de visibilité
                           _buildFilterChip(
-                            hideNonWhitelisted ? "whitelisted" : "all",
+                            hideNonWhitelisted ? S.of(context).whitelisted : S.of(context).all,
                             hideNonWhitelisted ? Icons.visibility_off : Icons.visibility,
                             false,
                             context,
@@ -282,7 +289,7 @@ class _PropertiesForSaleSecondaryState extends State<PropertiesForSaleSecondary>
                                   size: 14, color: ascending ? Theme.of(context).primaryColor : Colors.grey),
                               SizedBox(width: 3),
                               Text(
-                                "Ascendant",
+                                S.of(context).sort_ascending,
                                 style: TextStyle(
                                   fontSize: 13 + appState.getTextSizeOffset(),
                                   color: ascending ? Theme.of(context).primaryColor : Colors.grey,
@@ -300,7 +307,7 @@ class _PropertiesForSaleSecondaryState extends State<PropertiesForSaleSecondary>
                                   size: 14, color: !ascending ? Theme.of(context).primaryColor : Colors.grey),
                               SizedBox(width: 3),
                               Text(
-                                "Descendant",
+                                S.of(context).sort_descending,
                                 style: TextStyle(
                                   fontSize: 13 + appState.getTextSizeOffset(),
                                   color: !ascending ? Theme.of(context).primaryColor : Colors.grey,
@@ -550,23 +557,15 @@ class _PropertiesForSaleSecondaryState extends State<PropertiesForSaleSecondary>
               size: 16,
               color: isSelected ? Theme.of(context).primaryColor : Colors.grey[600],
             ),
-            if (type == "whitelisted" || type == "all") SizedBox(width: 4),
-            if (type == "whitelisted")
-              Text(
-                "Whitelisted",
-                style: TextStyle(
-                  fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
-                  color: Colors.grey[600],
-                ),
+            SizedBox(width: 4),
+            Text(
+              type,
+              style: TextStyle(
+                fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
+                color: isSelected ? Theme.of(context).primaryColor : Colors.grey[600],
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
               ),
-            if (type == "all")
-              Text(
-                "Tous",
-                style: TextStyle(
-                  fontSize: 12 + Provider.of<AppState>(context, listen: false).getTextSizeOffset(),
-                  color: Colors.grey[600],
-                ),
-              ),
+            ),
           ],
         ),
       ),

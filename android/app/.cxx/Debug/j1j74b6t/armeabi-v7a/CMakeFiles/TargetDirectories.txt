@@ -1,0 +1,2 @@
+/Users/arash/Documents/GitHub/realtoken_apps/android/app/.cxx/Debug/j1j74b6t/armeabi-v7a/CMakeFiles/edit_cache.dir
+/Users/arash/Documents/GitHub/realtoken_apps/android/app/.cxx/Debug/j1j74b6t/armeabi-v7a/CMakeFiles/rebuild_cache.dir

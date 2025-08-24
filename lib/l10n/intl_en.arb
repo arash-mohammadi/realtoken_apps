@@ -635,5 +635,78 @@
   "propertiesStock": "Stock",
   "propertiesFactoring": "Factoring",
   "propertiesProperty": "Property",
-  "propertiesNoMarketplaceAvailable": "Trading is not available for this property."
+  "propertiesNoMarketplaceAvailable": "Trading is not available for this property.",
+  "time_range": "Time Range",
+  "all_data": "All Data",
+  "months3": "3 Months",
+  "months6": "6 Months",
+  "months12": "12 Months",
+  "display_period": "Display Period",
+  "light_mode": "Light Mode",
+  "auto_mode": "Auto Mode",
+  "street_view": "Street View",
+  "cannotSellProperty": "Cannot Sell Property",
+  "noTokensOwned": "You don't own any tokens of this property.",
+  "sellThisProperty": "Sell Property",
+  "ownedTokens": "Owned Tokens",
+  "filter_all": "All",
+  "filter_sell": "Sell", 
+  "filter_buy": "Buy",
+  "sort_ascending": "Ascending",
+  "sort_descending": "Descending",
+  "whitelisted": "Whitelisted",
+  "details": "Details",
+  "unavailable": "Unavailable",
+  "purchaseSuccessful": "Purchase Successful",
+  "purchaseConfirmation": "You have successfully purchased {count} tokens of {name} for {price}.",
+  "@purchaseConfirmation": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      },
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "purchaseDetails": "Purchase Details",
+  "enterAmount": "Enter Amount",
+  "numberOfTokens": "Number of Tokens",
+  "confirmPurchase": "Confirm Purchase",
+  "propertyPrice": "Property Price",
+  "availableTokens": "Available Tokens",
+  "yourAvailableTokens": "Your Available Tokens",
+  "totalCost": "Total Cost",
+  "sellSuccessful": "Sale Successful",
+  "sellConfirmation": "You have successfully sold {count} tokens of {name} for {price}.",
+  "@sellConfirmation": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      },
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "sellDetails": "Sale Details",
+  "sellAmount": "Sale Amount",
+  "confirmSell": "Confirm Sale",
+  "totalRevenue": "Total Revenue",
+  "insufficientTokens": "You own {count} tokens of this property.",
+  "@insufficientTokens": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "invalidAmount": "Invalid amount entered.",
+  "error": "Error"
 }

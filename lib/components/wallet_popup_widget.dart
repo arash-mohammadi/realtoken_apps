@@ -15,7 +15,7 @@ class WalletPopupWidget extends StatelessWidget {
     final appState = Provider.of<AppState>(context, listen: false);
     final dataManager = Provider.of<DataManager>(context, listen: false);
 
-    final List<Map<String, dynamic>> walletDetails = dataManager.perWalletBalances ?? [];
+    final List<Map<String, dynamic>> walletDetails = dataManager.perWalletBalances;
     final bool hasStaking = walletDetails.any((wallet) => (wallet['gnosisVaultReg'] ?? 0) > 0);
 
     return BackdropFilter(
@@ -243,11 +243,6 @@ class WalletPopupWidget extends StatelessWidget {
       ),
     );
   }
-
-  String _truncateAddress(String address) {
-    if (address.length <= 12) return address;
-    return address.substring(0, 6) + "..." + address.substring(address.length - 4);
-  }
 }
 
 class WalletItemWidget extends StatelessWidget {
@@ -264,9 +259,8 @@ class WalletItemWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final String truncated = _truncateAddress(walletInfo['address']);
-    final double gnosisReg = walletInfo['gnosisReg'];
-    final double gnosisVaultReg = walletInfo['gnosisVaultReg'];
+    final String address = walletInfo['address']?.toString() ?? '';
+    final String truncated = _truncateAddress(address);
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
@@ -380,8 +374,8 @@ class WalletItemWidget extends StatelessWidget {
   }
 
   Widget _buildRegInfo(BuildContext context) {
-    final double gnosisReg = walletInfo['gnosisReg'];
-    final double gnosisVaultReg = walletInfo['gnosisVaultReg'];
+    final double gnosisReg = (walletInfo['gnosisReg'] as num?)?.toDouble() ?? 0.0;
+    final double gnosisVaultReg = (walletInfo['gnosisVaultReg'] as num?)?.toDouble() ?? 0.0;
     final String gnosisRegTotal = (gnosisReg + gnosisVaultReg).toStringAsFixed(2);
 
     return Row(
@@ -427,8 +421,11 @@ class WalletItemWidget extends StatelessWidget {
   }
 
   String _getFormattedAmount(String key) {
+    final value = walletInfo[key];
+    if (value == null) return '0.00';
+
     return currencyUtils.getFormattedAmount(
-      currencyUtils.convert(walletInfo[key]),
+      currencyUtils.convert(value),
       currencyUtils.currencySymbol,
       appState.showAmounts,
     );

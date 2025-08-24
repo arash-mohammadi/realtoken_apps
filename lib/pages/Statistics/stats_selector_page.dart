@@ -47,7 +47,7 @@ class StatsSelectorPageState extends State<StatsSelectorPage> with TickerProvide
     for (String key in ['WalletStats', 'RentsStats', 'RMMStats']) {
       _animationControllers[key] = AnimationController(
         vsync: this,
-        duration: const Duration(milliseconds: 400),
+        duration: const Duration(milliseconds: 200), // Reduced from 400ms for faster transitions
         value: key == _selectedStats ? 1.0 : 0.0,
       );
 
@@ -66,7 +66,7 @@ class StatsSelectorPageState extends State<StatsSelectorPage> with TickerProvide
   void _initSelectorAnimation() {
     _selectorAnimationController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 200), // Reduced for faster response
       value: 1.0,
     );
 
@@ -175,17 +175,12 @@ class StatsSelectorPageState extends State<StatsSelectorPage> with TickerProvide
               ];
             },
             body: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 300),
+              duration: const Duration(milliseconds: 150), // Reduced animation time
               transitionBuilder: (Widget child, Animation<double> animation) {
+                // Simplified transition - just fade for better performance
                 return FadeTransition(
                   opacity: animation,
-                  child: SlideTransition(
-                    position: Tween<Offset>(
-                      begin: const Offset(0.2, 0),
-                      end: Offset.zero,
-                    ).animate(animation),
-                    child: child,
-                  ),
+                  child: child,
                 );
               },
               child: _getSelectedStatsPageWithScrollListener(),
@@ -221,102 +216,77 @@ class StatsSelectorPageState extends State<StatsSelectorPage> with TickerProvide
         ? _calculateTextWidth(context, label, textStyle)
         : 56; // Largeur minimale pour les icônes non sélectionnées
 
-    // Utiliser l'animation d'échelle si disponible
-    Widget animatedContent = _scaleAnimations.containsKey(value)
-        ? AnimatedBuilder(
-            animation: _scaleAnimations[value]!,
-            builder: (context, child) {
-              return Transform.scale(
-                scale: isSelected ? _scaleAnimations[value]!.value : 1.0,
-                child: child,
-              );
-            },
-            child: isSelected
-                ? Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(icon, color: Colors.white, size: 20),
-                      const SizedBox(width: 8),
-                      AnimatedDefaultTextStyle(
-                        duration: const Duration(milliseconds: 500),
-                        curve: Curves.easeInOut,
-                        style: textStyle.copyWith(color: Colors.white),
-                        child: Text(label),
-                      ),
-                    ],
-                  )
-                : Center(
-                    child: Icon(
-                      icon,
-                      color: Colors.grey, // Icônes inactives en gris
-                      size: 20,
-                    ),
-                  ),
+    // Use simpler animation for better performance
+    Widget animatedContent = isSelected
+        ? Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, color: Colors.white, size: 20),
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: textStyle.copyWith(color: Colors.white),
+              ),
+            ],
           )
-        : isSelected
-            ? Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(icon, color: Colors.white, size: 20),
-                  const SizedBox(width: 8),
-                  AnimatedDefaultTextStyle(
-                    duration: const Duration(milliseconds: 500),
-                    curve: Curves.easeInOut,
-                    style: textStyle.copyWith(color: Colors.white),
-                    child: Text(label),
-                  ),
-                ],
-              )
-            : Center(
-                child: Icon(
-                  icon,
-                  color: Colors.grey, // Icônes inactives en gris
-                  size: 20,
-                ),
-              );
+        : Center(
+            child: Icon(
+              icon,
+              color: Colors.grey,
+              size: 20,
+            ),
+          );
 
     return isSelected
         ? Expanded(
             // La chip sélectionnée prend toute la place restante
-            child: GestureDetector(
-              onTap: () {
-                setState(() {
-                  _updateAnimations(value);
-                });
-              },
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 500),
-                curve: Curves.easeInOut,
-                height: 40,
-                margin: const EdgeInsets.symmetric(horizontal: 4),
-                decoration: BoxDecoration(
-                  color: chipColor,
-                  borderRadius: BorderRadius.circular(17),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () {
+                  if (mounted) {
+                    setState(() {
+                      _updateAnimations(value);
+                    });
+                  }
+                },
+                borderRadius: BorderRadius.circular(17),
+                child: Container(
+                  height: 40,
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  decoration: BoxDecoration(
+                    color: chipColor,
+                    borderRadius: BorderRadius.circular(17),
+                  ),
+                  child: animatedContent,
                 ),
-                child: animatedContent,
               ),
             ),
           )
         : ConstrainedBox(
             // Les chips non sélectionnées ont une largeur minimale
             constraints: BoxConstraints(minWidth: minWidth),
-            child: GestureDetector(
-              onTap: () {
-                setState(() {
-                  _updateAnimations(value);
-                });
-              },
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 500),
-                curve: Curves.easeInOut,
-                height: 40,
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                margin: const EdgeInsets.symmetric(horizontal: 4),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).cardColor,
-                  borderRadius: BorderRadius.circular(20),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () {
+                  if (mounted) {
+                    setState(() {
+                      _updateAnimations(value);
+                    });
+                  }
+                },
+                borderRadius: BorderRadius.circular(20),
+                child: Container(
+                  height: 40,
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).cardColor,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: animatedContent,
                 ),
-                child: animatedContent,
               ),
             ),
           );
