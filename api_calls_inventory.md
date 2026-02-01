@@ -1,291 +1,3317 @@
-# مستند فراخوانی‌های API در پروژه `realtoken_apps`
+## 1) Get Coin Information
 
-## خلاصه سریع
-- **تعداد کل فراخوانی‌های مجزا:** 20 اندپوینت HTTP/JSON-RPC که در کد صدا زده می‌شوند (جزئیات در جدول بعدی).
-- **تعداد ریموت‌ریپو / دامنه‌ی خارجی:** 8 سرویس متمایز.
-- **پوشش:** تمام `http.*`‌ها، کلاینت تکرار‌شونده `_httpGetWithRetry` و فراخوانی‌های JSON-RPC در `lib/services/api_service.dart` به‌همراه دو مصرف‌کننده دیگر (`lib/structure/drawer.dart` و `lib/pages/changelog_page.dart`).
+**Method:** `GET`  
+**URL:** `https://api.coingecko.com/api/v3/coins/xdai`  
 
-### ریموت‌ریپوها و نقش آن‌ها
-| دامنه | نقش | اندپوینت‌های استفاده‌شده |
-| --- | --- | --- |
-| `api.vfhome.fr` | بک‌اند FastAPI اختصاصی (والت‌ها، تراکنش‌ها، آمار) | `/wallet_userId`, `/wallet_tokens`, `/tokens_volume/`, `/transactions_history`, `/YAM_transactions_history`, `/token_history` |
-| `api.pitsbi.io` | سرویس RealTokens/YAM (لیست توکن‌ها و آفرها) | `/realTokens_mobileapps`, `/last_get_realTokens_mobileapps`, `/get_yam_offers_mobileapps`, `/last_update_yam_offers_mobileapps` |
-| `ehpst.duckdns.org` | Rent Tracker (loy­er, whitelist, detailed rent) | `/rent_holder`, `/whitelist2`, `/detailed_rent_holder` |
-| `api.coingecko.com` | نرخ بازار رمز‌ارزها | `/api/v3/coins/xdai` |
-| `rpc.gnosischain.com` | نود JSON-RPC گنوسیس برای خواندن موجودی قراردادها و xDAI | متدهای `eth_call`, `eth_getBalance` با بدنه‌های سفارشی |
-| `realt.co` | وردپرس مارکت‌پلیس جهت دریافت محصولات در حال فروش | `/wp-json/realt/v1/products/for_sale` |
-| `api.github.com` | بررسی آخرین نسخه اپلیکیشن | `/repos/RealToken-Community/realtoken_apps/releases/latest` |
-| `raw.githubusercontent.com` | دریافت فایل CHANGELOG.md | `/RealToken-Community/realtoken_apps/refs/heads/main/CHANGELOG.md` |
 
-## جدول کامل فراخوانی‌ها
-| # | اندپوینت / دامنه | متد | درخواست (Headers/Body/Timeout) | پاسخ و داده‌ی مصرفی | مرجع در کد |
-| --- | --- | --- | --- | --- | --- |
-| 1 | `https://api.vfhome.fr/wallet_userId/{address}` | GET | `Content-Type: application/json`; پارامتر مسیری `address`; timeout پیش‌فرض `http.get`. | JSON شمای `{"status": "...", "userId": "...", "addresses": []}`؛ خروجی به `Map<String,dynamic>` تبدیل می‌شود. | `fetchUserAndAddresses` – `lib/services/api_service.dart:242-290` |
-| 2 | `https://api.vfhome.fr/wallet_tokens/{wallet}` | GET | بدون بدنه؛ از `_httpGetWithRetry` با تاخیر و `timeout=15s` و retry استفاده می‌شود. | لیست توکن‌های والت (List<dynamic>) جهت ساخت پورتفو. | `fetchWalletTokens` – `lib/services/api_service.dart:293-356` |
-| 3 | `https://api.pitsbi.io/api/last_get_realTokens_mobileapps` | GET | Timeout 10s؛ برای تشخیص به‌روزرسانی. | متن ISO8601 آخرین آپدیت؛ در Hive ذخیره می‌شود. | `fetchRealTokens.shouldUpdate` – `lib/services/api_service.dart:358-377` |
-| 4 | `https://api.pitsbi.io/api/realTokens_mobileapps` | GET | Timeout 30s. | لیست کامل RealTokens (List<dynamic>)؛ بعد از موفقیت timestamp ردیابی می‌شود. | `fetchRealTokens` – `lib/services/api_service.dart:380-407` |
-| 5 | `https://api.pitsbi.io/api/last_update_yam_offers_mobileapps` | GET | Timeout 10s (چک) و 5s (پس از ذخیره). | تاریخ آخرین آپدیت آفرهای YAM برای مقایسه با کش. | `fetchYamMarket.shouldUpdate` و بخش ذخیره – `lib/services/api_service.dart:427-468` |
-| 6 | `https://api.pitsbi.io/api/get_yam_offers_mobileapps` | GET | Timeout 30s. | لیست آفرهای YAM (List<dynamic>) جهت نمایش بازار ثانویه. | `fetchYamMarket` – `lib/services/api_service.dart:449-468` |
-| 7 | `https://ehpst.duckdns.org/realt_rent_tracker/api/rent_holder/{wallet}` | GET | از `_httpGetWithRetry` با `timeout=30s`; در صورت HTTP 429 کش فعلی حفظ می‌شود. | آرایه‌ای از رکوردهای اجاره `{date, rent, ...}`؛ برای ساخت نمودار درآمد. | `fetchRentData` – `lib/services/api_service.dart:485-720` |
-| 8 | `https://ehpst.duckdns.org/realt_rent_tracker/api/whitelist2/{wallet}` | GET | Timeout 15s؛ در صورت 429 شکست را لاگ می‌کند. | لیست توکن‌های whitelist شده‌ی والت؛ در کش Hive ذخیره می‌شود. | `fetchWhitelistTokens` – `lib/services/api_service.dart:760-844` |
-| 9 | `https://ehpst.duckdns.org/realt_rent_tracker/api/detailed_rent_holder/{wallet}` | GET | Timeout 2 دقیقه؛ هنگام 429 پردازش متوقف می‌شود. | آرایه‌ای از جزئیات لاین‌به‌لاین اجاره همراه با الحاق `wallet`. | `fetchDetailedRentDataForAllWallets` – `lib/services/api_service.dart:1190-1375` |
-|10 | `https://api.coingecko.com/api/v3/coins/xdai` | GET | Timeout 15s. | شیء `market_data.current_price`؛ به Map تبدیل و برای نقدینگی/واحد نمایش نگه داشته می‌شود. | `fetchCurrencies` – `lib/services/api_service.dart:845-874` |
-|11 | `https://rpc.gnosischain.com` (`eth_call` با `balanceOf`) | POST | بدنه JSON-RPC: `{"jsonrpc":"2.0","method":"eth_call","params":[{"to": contract,"data":"0x70a08231...{address}"},"latest"],"id":1}`؛ هدر `Content-Type: application/json`. | مقدار هگزادسیمال موجودی ERC20 → `BigInt` → تبدیل به double. کش در Hive (`balanceCache`). | `_fetchBalance` – `lib/services/api_service.dart:990-1050` |
-|12 | `https://rpc.gnosischain.com` (`eth_getBalance`) | POST | JSON-RPC: `{"method":"eth_getBalance","params":[address,"latest"]}`. | موجودی native xDAI (`BigInt`)؛ برای نمایش نقدینگی و RMM به‌کار می‌رود. | `_fetchNativeBalance` – `lib/services/api_service.dart:1052-1096` |
-|13 | `https://rpc.gnosischain.com` (`eth_call` با selector `0xf262a083`) | POST | JSON-RPC با بدنه حاوی `{"to": contract,"data": "0xf262a083...address"}`؛ timeout پیش‌فرض. | سهم Vault REG برای هر والت؛ نتیجه در کش ذخیره می‌شود. | `_fetchVaultBalance` – `lib/services/api_service.dart:1098-1147` |
-|14 | `https://realt.co/wp-json/realt/v1/products/for_sale` | GET | Timeout 30s؛ کش 6ساعته. | `data["products"]` (List<Map<String,dynamic>>) جهت صفحه Properties For Sale. | `fetchPropertiesForSale` – `lib/services/api_service.dart:1538-1605` |
-|15 | `https://api.vfhome.fr/tokens_volume/` | GET | Timeout 30s؛ کش 4ساعته. | داده‌ی حجمی معاملات (List<dynamic>). | `fetchTokenVolumes` – `lib/services/api_service.dart:1607-1634` |
-|16 | `https://api.vfhome.fr/transactions_history/{wallet}` | GET | از `_httpGetWithRetry` با `timeout=30s`; درخواست‌ها به‌صورت موازی و حداکثر 3 همزمان. | لیست تراکنش‌های هر والت؛ سپس مرج می‌شود. | `fetchTransactionsHistory` – `lib/services/api_service.dart:1636-1680` |
-|17 | `https://api.vfhome.fr/YAM_transactions_history/{wallet}` | GET | همان الگو با `_httpGetWithRetry`; cache 3ساعته. | تاریخچه تراکنش‌های مرتبط با YAM برای هر والت. | `fetchYamWalletsTransactions` – `lib/services/api_service.dart:1682-1732` |
-|18 | `https://api.vfhome.fr/token_history/?limit=10000` | GET | `_httpGetWithRetry` با `timeout=45s`. | لیست حداکثر 10000 رکورد تاریخچه توکن؛ برای چارت‌های هولدینگ. | `fetchTokenHistory` – `lib/services/api_service.dart:1820-1852` |
-|19 | `https://api.github.com/repos/RealToken-Community/realtoken_apps/releases/latest` | GET | Timeout 10s؛ Header `Accept: application/vnd.github.v3+json`. | JSON اطلاعات آخرین release (tag_name). نتیجه در کش `PerformanceUtils`. | `_loadVersions` در Drawer – `lib/structure/drawer.dart:74-109` |
-|20 | `https://raw.githubusercontent.com/RealToken-Community/realtoken_apps/refs/heads/main/CHANGELOG.md` | GET | بدون header اضافی؛ در صورت خطا پیام فارسی نمایش داده می‌شود. | بدنه متنی markdown برای نمایش changelog. | `_fetchMarkdown` – `lib/pages/changelog_page.dart:24-44` |
-
-> **نکته درباره شمارش:** ردیف‌های 7، 8، 9، 16، 17 و 18 برای هر والت چند بار اجرا می‌شوند، اما از نظر این مستند یک اندپوینت منحصربه‌فرد محسوب شده و در عدد نهایی 20 لحاظ گردیده‌اند. همچنین سه فراخوانی JSON-RPC (ردیف‌های 11 تا 13) با وجود اشتراک در دامنه، به‌دلیل تفاوت متد و بدنه به‌صورت جدا حساب شده‌اند.
-
-## مدل‌های داده و ساختار پاسخ‌ها
-در ادامه، برای هر اندپوینت تعریف‌شده در جدول بالا، ورودی/خروجی و فیلدهای کلیدی (بر اساس کدی که مصرفشان می‌کند) آورده شده‌است. برای سیستم بک‌اند پیشنهادی می‌توانید همین مدل‌ها را مستقیماً به DTO/Schema تبدیل کنید.
-
-### 1. GET `/wallet_userId/{address}`
-- **Request**: پارامتر مسیر `address` (رشته 0x…).
-- **Response**:
-```ts
-type WalletUserResponse =
-  | { status: "success"; userId: string; addresses: string[] }
-  | { status: "error"; message: string };
-```
-  - ارجاع: `lib/services/api_service.dart:251-289`.
-
-### 2. GET `/wallet_tokens/{wallet}`
-- **Request**: پارامتر مسیر `wallet`؛ از `_httpGetWithRetry` با timeout 15s و retry استفاده می‌شود.
-- **Response**: آرایه‌ای از `WalletTokenDto`.
-```ts
-interface WalletTokenDto {
-  wallet: string;          // آدرس دارنده (lib/managers/data_manager.dart:1623-1650)
-  token: string;           // قرارداد RealToken (line 1497)
-  amount: number;          // تعداد توکن (1508, 1519)
-  type: "wallet" | "rmm";  // منبع موجودی (1517-1525)
-  // فیلدهای دیگری هم ممکن است از API بازگردند اما در اپ مصرف نمی‌شود.
+### Response
+**Status:** 200 OK
+**Body**
+```json
+{
+    "id": "xdai",
+    "symbol": "xdai",
+    "name": "XDAI",
+    "web_slug": "xdai",
+    "asset_platform_id": "xdai",
+    "platforms": {
+        "xdai": "0xe91d153e0b41518a2ce8dd3d7944fa863463a97d"
+    },
+    "detail_platforms": {
+        "xdai": {
+            "decimal_place": 18,
+            "contract_address": "0xe91d153e0b41518a2ce8dd3d7944fa863463a97d",
+            "geckoterminal_url": "https://www.geckoterminal.com/xdai/tokens/0xe91d153e0b41518a2ce8dd3d7944fa863463a97d"
+        }
+    },
+    "block_time_in_minutes": 0,
+    "hashing_algorithm": null,
+    "categories": [
+        "Smart Contract Platform",
+        "Stablecoins",
+        "Decentralized Finance (DeFi)",
+        "USD Stablecoin",
+        "Gnosis Chain Ecosystem",
+        "Layer 2 (L2)",
+        "Fiat-backed Stablecoin"
+    ],
+    "preview_listing": false,
+    "public_notice": "For information on xDAI Chain STAKE Token, go to https://www.coingecko.com/en/coins/stake",
+    "additional_notices": [],
+    "localization": {
+        "en": "XDAI",
+        "zh": "",
+        "zh-tw": "",
+        "de": "",
+        "fr": "",
+        "es": "",
+        "ja": "",
+        "id": "",
+        "ru": "",
+        "ko": "",
+        "ar": "",
+        "th": "",
+        "vi": "",
+        "it": "",
+        "pl": "",
+        "tr": "",
+        "hu": "",
+        "nl": "",
+        "ro": "",
+        "sv": "",
+        "cs": "",
+        "da": "",
+        "el": "",
+        "hi": "",
+        "no": "",
+        "sk": "",
+        "uk": "",
+        "he": "",
+        "fi": "",
+        "bg": "",
+        "hr": "",
+        "lt": "",
+        "sl": "",
+        "pt": ""
+    },
+    "description": {
+        "en": "xDai is the ideal cryptocurrency for everyday payments and transactions. Fees are extremely low, payments are instantaneous, and the value remains stable at ~ $1 US Dollar per xDai. User-friendly tools make xDai easily adoptable for a broad audience (crypto and non-crypto users alike!)",
+        "zh": "",
+        "zh-tw": "",
+        "de": "",
+        "fr": "",
+        "es": "",
+        "ja": "",
+        "id": "",
+        "ru": "",
+        "ko": "",
+        "ar": "",
+        "th": "",
+        "vi": "",
+        "it": "",
+        "pl": "",
+        "tr": "",
+        "hu": "",
+        "nl": "",
+        "ro": "",
+        "sv": "",
+        "cs": "",
+        "da": "",
+        "el": "",
+        "hi": "",
+        "no": "",
+        "sk": "",
+        "uk": "",
+        "he": "",
+        "fi": "",
+        "bg": "",
+        "hr": "",
+        "lt": "",
+        "sl": "",
+        "pt": ""
+    },
+    "links": {
+        "homepage": [
+            "https://www.gnosischain.com"
+        ],
+        "whitepaper": "",
+        "blockchain_site": [
+            "https://gnosisscan.io",
+            "https://blockscout.com/xdai/mainnet",
+            "https://gnosisscan.io/token/0xe91d153e0b41518a2ce8dd3d7944fa863463a97d"
+        ],
+        "official_forum_url": [],
+        "chat_url": [
+            "https://discord.gg/VQb3WzsywU"
+        ],
+        "announcement_url": [
+            "https://forum.poa.network/c/xdai-chain/17"
+        ],
+        "snapshot_url": "https://snapshot.org/#/xdaistake.eth",
+        "twitter_screen_name": "gnosischain",
+        "facebook_username": "",
+        "bitcointalk_thread_identifier": null,
+        "telegram_channel_identifier": "gnosischain",
+        "subreddit_url": null,
+        "repos_url": {
+            "github": [
+                "https://github.com/xdaichain"
+            ],
+            "bitbucket": []
+        }
+    },
+    "image": {
+        "thumb": "https://coin-images.coingecko.com/coins/images/11062/thumb/Identity-Primary-DarkBG.png?1696511004",
+        "small": "https://coin-images.coingecko.com/coins/images/11062/small/Identity-Primary-DarkBG.png?1696511004",
+        "large": "https://coin-images.coingecko.com/coins/images/11062/large/Identity-Primary-DarkBG.png?1696511004"
+    },
+    "country_origin": "",
+    "genesis_date": null,
+    "contract_address": "0xe91d153e0b41518a2ce8dd3d7944fa863463a97d",
+    "sentiment_votes_up_percentage": null,
+    "sentiment_votes_down_percentage": null,
+    "watchlist_portfolio_users": 2429,
+    "market_cap_rank": null,
+    "market_data": {
+        "current_price": {
+            "aed": 3.67,
+            "ars": 1474.42,
+            "aud": 1.49,
+            "bch": 0.00156615,
+            "bdt": 122.18,
+            "bhd": 0.377563,
+            "bmd": 0.999776,
+            "bnb": 0.00114073,
+            "brl": 5.42,
+            "btc": 1.11e-05,
+            "cad": 1.37,
+            "chf": 0.791759,
+            "clp": 906.36,
+            "cny": 6.99,
+            "czk": 20.6,
+            "dkk": 6.37,
+            "dot": 0.46786166,
+            "eos": 5.821148,
+            "eth": 0.00032131,
+            "eur": 0.852509,
+            "gbp": 0.74239,
+            "gel": 2.7,
+            "hkd": 7.79,
+            "huf": 326.9,
+            "idr": 16698.76,
+            "ils": 3.19,
+            "inr": 89.99,
+            "jpy": 156.76,
+            "krw": 1442.25,
+            "kwd": 0.307251,
+            "lkr": 309.52,
+            "ltc": 0.01215486,
+            "mmk": 2099.23,
+            "mxn": 17.9,
+            "myr": 4.05,
+            "ngn": 1437.81,
+            "nok": 10.06,
+            "nzd": 1.73,
+            "php": 58.81,
+            "pkr": 279.84,
+            "pln": 3.59,
+            "rub": 80.42,
+            "sar": 3.75,
+            "sek": 9.22,
+            "sgd": 1.29,
+            "sol": 0.00759174,
+            "thb": 31.53,
+            "try": 43.03,
+            "twd": 31.37,
+            "uah": 42.3,
+            "usd": 0.999776,
+            "vef": 0.100108,
+            "vnd": 26293,
+            "xag": 0.0137287,
+            "xau": 0.00023077,
+            "xdr": 0.695296,
+            "xlm": 4.542393,
+            "xrp": 0.49845212,
+            "yfi": 0.00026759,
+            "zar": 16.49,
+            "bits": 11.1,
+            "link": 0.07587666,
+            "sats": 1109.75
+        },
+        "total_value_locked": {
+            "btc": 3852,
+            "usd": 346923866
+        },
+        "mcap_to_tvl_ratio": 0.0,
+        "fdv_to_tvl_ratio": 0.3,
+        "roi": null,
+        "ath": {
+            "aed": 36.43,
+            "ars": 4181.55,
+            "aud": 13.87,
+            "bch": 0.07445725,
+            "bdt": 1051.81,
+            "bhd": 3.74,
+            "bmd": 9.92,
+            "bnb": 0.03108751,
+            "brl": 50.67,
+            "btc": 0.00042134,
+            "cad": 13.23,
+            "chf": 9.15,
+            "clp": 7964.48,
+            "cny": 67.28,
+            "czk": 217.31,
+            "dkk": 67.87,
+            "dot": 1.599832,
+            "eos": 9.747945,
+            "eth": 0.00614971,
+            "eur": 9.12,
+            "gbp": 8.01,
+            "gel": 13.23,
+            "hkd": 77.66,
+            "huf": 3563.58,
+            "idr": 148498,
+            "ils": 34.13,
+            "inr": 808.46,
+            "jpy": 1288.18,
+            "krw": 12199.45,
+            "kwd": 3.03,
+            "lkr": 3611.88,
+            "ltc": 0.10400116,
+            "mmk": 20838,
+            "mxn": 186.24,
+            "myr": 42.09,
+            "ngn": 7334.12,
+            "nok": 98.09,
+            "nzd": 15.28,
+            "php": 540.42,
+            "pkr": 2485.64,
+            "pln": 42.92,
+            "rub": 701.44,
+            "sar": 37.21,
+            "sek": 102.23,
+            "sgd": 13.02,
+            "sol": 0.00849887,
+            "thb": 325.01,
+            "try": 186.56,
+            "twd": 300.08,
+            "uah": 364.61,
+            "usd": 9.92,
+            "vef": 0.993074,
+            "vnd": 232673,
+            "xag": 0.420239,
+            "xau": 0.00514419,
+            "xdr": 7.34,
+            "xlm": 105.383,
+            "xrp": 23.978853,
+            "yfi": 0.00130053,
+            "zar": 170.56,
+            "bits": 421.34,
+            "link": 1.352193,
+            "sats": 42134
+        },
+        "ath_change_percentage": {
+            "aed": -89.92021,
+            "ars": -64.73879,
+            "aud": -89.22767,
+            "bch": -97.89282,
+            "bdt": -88.38389,
+            "bhd": -89.89857,
+            "bmd": -89.91911,
+            "bnb": -96.33074,
+            "brl": -89.29847,
+            "btc": -97.36552,
+            "cad": -89.61682,
+            "chf": -91.34477,
+            "clp": -88.61965,
+            "cny": -89.60636,
+            "czk": -90.52153,
+            "dkk": -90.61116,
+            "dot": -70.75607,
+            "eos": -40.46028,
+            "eth": -94.7711,
+            "eur": -90.65403,
+            "gbp": -90.73204,
+            "gel": -79.557,
+            "hkd": -89.96861,
+            "huf": -90.82645,
+            "idr": -88.75454,
+            "ils": -90.66718,
+            "inr": -88.86806,
+            "jpy": -87.83052,
+            "krw": -88.1774,
+            "kwd": -89.84696,
+            "lkr": -91.43031,
+            "ltc": -88.32019,
+            "mmk": -89.92551,
+            "mxn": -90.38793,
+            "myr": -90.36686,
+            "ngn": -80.39502,
+            "nok": -89.74084,
+            "nzd": -88.65233,
+            "php": -89.11823,
+            "pkr": -88.74138,
+            "pln": -91.6337,
+            "rub": -88.5345,
+            "sar": -89.92321,
+            "sek": -90.98155,
+            "sgd": -90.12796,
+            "sol": -10.64892,
+            "thb": -90.29999,
+            "try": -76.93603,
+            "twd": -89.54688,
+            "uah": -88.39887,
+            "usd": -89.91911,
+            "vef": -89.91911,
+            "vnd": -88.69939,
+            "xag": -96.73302,
+            "xau": -95.51386,
+            "xdr": -90.52198,
+            "xlm": -95.69295,
+            "xrp": -97.92044,
+            "yfi": -79.34047,
+            "zar": -90.33373,
+            "bits": -97.36552,
+            "link": -94.3885,
+            "sats": -97.36552
+        },
+        "ath_date": {
+            "aed": "2023-01-29T16:11:18.116Z",
+            "ars": "2024-02-25T14:32:58.759Z",
+            "aud": "2023-01-29T16:11:18.116Z",
+            "bch": "2023-05-19T17:32:31.859Z",
+            "bdt": "2023-01-29T16:11:18.116Z",
+            "bhd": "2023-01-29T16:11:18.116Z",
+            "bmd": "2023-01-29T16:11:18.116Z",
+            "bnb": "2023-01-29T16:11:18.116Z",
+            "brl": "2023-01-29T16:11:18.116Z",
+            "btc": "2023-01-29T16:11:18.116Z",
+            "cad": "2023-01-29T16:11:18.116Z",
+            "chf": "2023-01-29T16:11:18.116Z",
+            "clp": "2023-01-29T16:11:18.116Z",
+            "cny": "2023-01-29T16:11:18.116Z",
+            "czk": "2023-01-29T16:11:18.116Z",
+            "dkk": "2023-01-29T16:11:18.116Z",
+            "dot": "2023-05-19T17:32:31.859Z",
+            "eos": "2023-05-19T17:32:31.859Z",
+            "eth": "2023-01-29T16:11:18.116Z",
+            "eur": "2023-01-29T16:11:18.116Z",
+            "gbp": "2023-01-29T16:11:18.116Z",
+            "gel": "2024-02-25T14:32:58.759Z",
+            "hkd": "2023-01-29T16:11:18.116Z",
+            "huf": "2023-01-29T16:11:18.116Z",
+            "idr": "2023-01-29T16:11:18.116Z",
+            "ils": "2023-01-29T16:11:18.116Z",
+            "inr": "2023-01-29T16:11:18.116Z",
+            "jpy": "2023-01-29T16:11:18.116Z",
+            "krw": "2023-01-29T16:11:18.116Z",
+            "kwd": "2023-01-29T16:11:18.116Z",
+            "lkr": "2023-01-29T16:11:18.116Z",
+            "ltc": "2023-01-29T16:11:18.116Z",
+            "mmk": "2023-01-29T16:11:18.116Z",
+            "mxn": "2023-01-29T16:11:18.116Z",
+            "myr": "2023-01-29T16:11:18.116Z",
+            "ngn": "2024-02-25T14:32:58.759Z",
+            "nok": "2023-01-29T16:11:18.116Z",
+            "nzd": "2023-01-29T16:11:18.116Z",
+            "php": "2023-01-29T16:11:18.116Z",
+            "pkr": "2023-01-29T16:11:18.116Z",
+            "pln": "2023-01-29T16:11:18.116Z",
+            "rub": "2023-01-29T16:11:18.116Z",
+            "sar": "2023-01-29T16:11:18.116Z",
+            "sek": "2023-01-29T16:11:18.116Z",
+            "sgd": "2023-01-29T16:11:18.116Z",
+            "sol": "2025-12-18T20:41:21.262Z",
+            "thb": "2023-01-29T16:11:18.116Z",
+            "try": "2023-01-29T16:11:18.116Z",
+            "twd": "2023-01-29T16:11:18.116Z",
+            "uah": "2023-01-29T16:11:18.116Z",
+            "usd": "2023-01-29T16:11:18.116Z",
+            "vef": "2023-01-29T16:11:18.116Z",
+            "vnd": "2023-01-29T16:11:18.116Z",
+            "xag": "2023-01-29T16:11:18.116Z",
+            "xau": "2023-01-29T16:11:18.116Z",
+            "xdr": "2023-01-29T16:11:18.116Z",
+            "xlm": "2023-01-29T16:11:18.116Z",
+            "xrp": "2023-01-29T16:11:18.116Z",
+            "yfi": "2023-01-29T16:11:18.116Z",
+            "zar": "2023-01-29T16:11:18.116Z",
+            "bits": "2023-01-29T16:11:18.116Z",
+            "link": "2023-01-29T16:16:05.040Z",
+            "sats": "2023-01-29T16:11:18.116Z"
+        },
+        "atl": {
+            "aed": 0.655453,
+            "ars": 25.19,
+            "aud": 0.261095,
+            "bch": 0.00061742,
+            "bdt": 16.9,
+            "bhd": 0.06727,
+            "bmd": 0.17845,
+            "bnb": 0.00061501,
+            "brl": 0.930596,
+            "btc": 7.93e-06,
+            "cad": 0.232463,
+            "chf": 0.172081,
+            "clp": 157.44,
+            "cny": 1.24,
+            "czk": 4.35,
+            "dkk": 1.32,
+            "dot": 0.01822177,
+            "eos": 0.0681896,
+            "eth": 0.00010413,
+            "eur": 0.177355,
+            "gbp": 0.153862,
+            "gel": 2.55,
+            "hkd": 1.4,
+            "huf": 70.29,
+            "idr": 2649.3,
+            "ils": 0.610179,
+            "inr": 14.21,
+            "jpy": 25.48,
+            "krw": 245.81,
+            "kwd": 0.055023,
+            "lkr": 64.03,
+            "ltc": 0.00243916,
+            "mmk": 373.41,
+            "mxn": 3.55,
+            "myr": 0.802487,
+            "ngn": 75.5,
+            "nok": 1.78,
+            "nzd": 0.292293,
+            "php": 10.15,
+            "pkr": 39.94,
+            "pln": 0.834254,
+            "rub": 10.84,
+            "sar": 0.67064,
+            "sek": 1.9,
+            "sgd": 0.249675,
+            "sol": 0.00395381,
+            "thb": 6.49,
+            "try": 3.25,
+            "twd": 5.5,
+            "uah": 6.57,
+            "usd": 0.17845,
+            "vef": 0.01786815,
+            "vnd": 4199.8,
+            "xag": 0.0086685,
+            "xau": 0.00010362,
+            "xdr": 0.132379,
+            "xlm": 1.266222,
+            "xrp": 0.27269085,
+            "yfi": 1.103e-05,
+            "zar": 3.11,
+            "bits": 7.93,
+            "link": 0.01896899,
+            "sats": 793.1
+        },
+        "atl_change_percentage": {
+            "aed": 460.19179,
+            "ars": 5754.35075,
+            "aud": 472.21964,
+            "bch": 154.11219,
+            "bdt": 622.92886,
+            "bhd": 461.2841,
+            "bmd": 460.27492,
+            "bnb": 85.47493,
+            "brl": 482.71321,
+            "btc": 39.959,
+            "cad": 490.92637,
+            "chf": 360.12179,
+            "clp": 475.71305,
+            "cny": 465.25761,
+            "czk": 373.66782,
+            "dkk": 383.1522,
+            "dot": 2467.55467,
+            "eos": 8411.41324,
+            "eth": 208.81067,
+            "eur": 380.69404,
+            "gbp": 382.51777,
+            "gel": 6.18882,
+            "hkd": 456.23264,
+            "huf": 365.09234,
+            "idr": 530.3291,
+            "ils": 422.10082,
+            "inr": 533.37113,
+            "jpy": 515.15078,
+            "krw": 486.75008,
+            "kwd": 458.42332,
+            "lkr": 383.42692,
+            "ltc": 398.00461,
+            "mmk": 462.19072,
+            "mxn": 404.07401,
+            "myr": 405.26906,
+            "ngn": 1804.48418,
+            "nok": 466.57118,
+            "nzd": 493.28131,
+            "php": 479.31317,
+            "pkr": 600.63936,
+            "pln": 330.45311,
+            "rub": 642.16579,
+            "sar": 459.16649,
+            "sek": 386.10828,
+            "sgd": 414.85058,
+            "sol": 92.0637,
+            "thb": 385.61775,
+            "try": 1222.05517,
+            "twd": 469.81366,
+            "uah": 544.09989,
+            "usd": 460.27492,
+            "vef": 460.27492,
+            "vnd": 526.06382,
+            "xag": 58.37961,
+            "xau": 122.7205,
+            "xdr": 425.24957,
+            "xlm": 258.45997,
+            "xrp": 82.86464,
+            "yfi": 2336.72168,
+            "zar": 430.55514,
+            "bits": 39.959,
+            "link": 300.01196,
+            "sats": 39.959
+        },
+        "atl_date": {
+            "aed": "2022-09-09T06:52:09.705Z",
+            "ars": "2022-09-09T06:52:09.705Z",
+            "aud": "2022-09-09T06:52:09.705Z",
+            "bch": "2021-05-12T00:23:28.115Z",
+            "bdt": "2022-09-09T06:52:09.705Z",
+            "bhd": "2022-09-09T06:52:09.705Z",
+            "bmd": "2022-09-09T06:52:09.705Z",
+            "bnb": "2022-09-09T06:52:09.705Z",
+            "brl": "2022-09-09T06:52:09.705Z",
+            "btc": "2025-10-06T18:58:13.851Z",
+            "cad": "2022-09-09T06:52:09.705Z",
+            "chf": "2022-09-09T06:52:09.705Z",
+            "clp": "2022-09-09T06:52:09.705Z",
+            "cny": "2022-09-09T06:52:09.705Z",
+            "czk": "2022-09-09T06:52:09.705Z",
+            "dkk": "2022-09-09T06:52:09.705Z",
+            "dot": "2021-11-04T14:07:28.722Z",
+            "eos": "2021-05-12T00:17:36.449Z",
+            "eth": "2022-09-09T06:52:09.705Z",
+            "eur": "2022-09-09T06:52:09.705Z",
+            "gbp": "2022-09-09T06:52:09.705Z",
+            "gel": "2024-03-02T02:31:24.987Z",
+            "hkd": "2022-09-09T06:52:09.705Z",
+            "huf": "2022-09-09T07:08:37.946Z",
+            "idr": "2022-09-09T06:52:09.705Z",
+            "ils": "2022-09-09T06:52:09.705Z",
+            "inr": "2022-09-09T06:52:09.705Z",
+            "jpy": "2022-09-09T06:52:09.705Z",
+            "krw": "2022-09-09T06:52:09.705Z",
+            "kwd": "2022-09-09T06:52:09.705Z",
+            "lkr": "2022-09-09T06:52:09.705Z",
+            "ltc": "2021-05-10T02:58:52.330Z",
+            "mmk": "2022-09-09T06:52:09.705Z",
+            "mxn": "2022-09-09T06:52:09.705Z",
+            "myr": "2022-09-09T06:52:09.705Z",
+            "ngn": "2022-09-09T06:52:09.705Z",
+            "nok": "2022-09-09T07:08:37.946Z",
+            "nzd": "2022-09-09T06:52:09.705Z",
+            "php": "2022-09-09T06:52:09.705Z",
+            "pkr": "2022-09-09T06:52:09.705Z",
+            "pln": "2022-09-09T06:52:09.705Z",
+            "rub": "2022-09-09T06:52:09.705Z",
+            "sar": "2022-09-09T06:52:09.705Z",
+            "sek": "2022-09-09T06:52:09.705Z",
+            "sgd": "2022-09-09T06:52:09.705Z",
+            "sol": "2025-09-18T17:20:41.802Z",
+            "thb": "2022-09-09T06:52:09.705Z",
+            "try": "2022-09-09T06:52:09.705Z",
+            "twd": "2022-09-09T06:52:09.705Z",
+            "uah": "2022-09-09T06:52:09.705Z",
+            "usd": "2022-09-09T06:52:09.705Z",
+            "vef": "2022-09-09T06:52:09.705Z",
+            "vnd": "2022-09-09T06:52:09.705Z",
+            "xag": "2022-12-17T09:29:03.853Z",
+            "xau": "2022-09-09T06:52:09.705Z",
+            "xdr": "2022-09-09T06:52:09.705Z",
+            "xlm": "2021-05-16T09:54:27.375Z",
+            "xrp": "2025-07-18T05:35:20.994Z",
+            "yfi": "2021-05-12T00:29:51.497Z",
+            "zar": "2022-09-09T06:52:09.705Z",
+            "bits": "2025-10-06T18:58:13.851Z",
+            "link": "2021-05-10T00:17:13.092Z",
+            "sats": "2025-10-06T18:58:13.851Z"
+        },
+        "market_cap": {
+            "aed": 0.0,
+            "ars": 0.0,
+            "aud": 0.0,
+            "bch": 0.0,
+            "bdt": 0.0,
+            "bhd": 0.0,
+            "bmd": 0.0,
+            "bnb": 0.0,
+            "brl": 0.0,
+            "btc": 0.0,
+            "cad": 0.0,
+            "chf": 0.0,
+            "clp": 0.0,
+            "cny": 0.0,
+            "czk": 0.0,
+            "dkk": 0.0,
+            "dot": 0.0,
+            "eos": 0.0,
+            "eth": 0.0,
+            "eur": 0.0,
+            "gbp": 0.0,
+            "gel": 0.0,
+            "hkd": 0.0,
+            "huf": 0.0,
+            "idr": 0.0,
+            "ils": 0.0,
+            "inr": 0.0,
+            "jpy": 0.0,
+            "krw": 0.0,
+            "kwd": 0.0,
+            "lkr": 0.0,
+            "ltc": 0.0,
+            "mmk": 0.0,
+            "mxn": 0.0,
+            "myr": 0.0,
+            "ngn": 0.0,
+            "nok": 0.0,
+            "nzd": 0.0,
+            "php": 0.0,
+            "pkr": 0.0,
+            "pln": 0.0,
+            "rub": 0.0,
+            "sar": 0.0,
+            "sek": 0.0,
+            "sgd": 0.0,
+            "sol": 0.0,
+            "thb": 0.0,
+            "try": 0.0,
+            "twd": 0.0,
+            "uah": 0.0,
+            "usd": 0.0,
+            "vef": 0.0,
+            "vnd": 0.0,
+            "xag": 0.0,
+            "xau": 0.0,
+            "xdr": 0.0,
+            "xlm": 0.0,
+            "xrp": 0.0,
+            "yfi": 0.0,
+            "zar": 0.0,
+            "bits": 0.0,
+            "link": 0.0,
+            "sats": 0.0
+        },
+        "market_cap_rank": null,
+        "fully_diluted_valuation": {
+            "aed": 382725639,
+            "ars": 153689485777,
+            "aud": 155729161,
+            "bch": 163262,
+            "bdt": 12735232903,
+            "bhd": 39356180,
+            "bmd": 104213925,
+            "bnb": 118896,
+            "brl": 565230275,
+            "btc": 1157,
+            "cad": 143184722,
+            "chf": 82530759,
+            "clp": 94476175776,
+            "cny": 728856559,
+            "czk": 2147025703,
+            "dkk": 664217872,
+            "dot": 48762181,
+            "eos": 606814253,
+            "eth": 33499,
+            "eur": 88863214,
+            "gbp": 77384675,
+            "gel": 281898667,
+            "hkd": 812014060,
+            "huf": 34074827031,
+            "idr": 1740633080993,
+            "ils": 332063082,
+            "inr": 9380759134,
+            "jpy": 16340220819,
+            "krw": 150335881673,
+            "kwd": 32027023,
+            "lkr": 32263179768,
+            "ltc": 1266766,
+            "mmk": 218817978157,
+            "mxn": 1865960747,
+            "myr": 422639573,
+            "ngn": 149873167261,
+            "nok": 1048923576,
+            "nzd": 180754363,
+            "php": 6129758225,
+            "pkr": 29169785016,
+            "pln": 374311720,
+            "rub": 8382875058,
+            "sar": 390876731,
+            "sek": 960956602,
+            "sgd": 133987843,
+            "sol": 791134,
+            "thb": 3286107871,
+            "try": 4485106794,
+            "twd": 3269576416,
+            "uah": 4408984983,
+            "usd": 104213925,
+            "vef": 10434940,
+            "vnd": 2740668684398,
+            "xag": 1431042,
+            "xau": 24055,
+            "xdr": 72475783,
+            "xlm": 473367497,
+            "xrp": 51942998,
+            "yfi": 27970,
+            "zar": 1718466883,
+            "bits": 1156831486,
+            "link": 7908175,
+            "sats": 115683148587
+        },
+        "market_cap_fdv_ratio": null,
+        "total_volume": {
+            "aed": 2688624,
+            "ars": 1079659031,
+            "aud": 1093988,
+            "bch": 1147,
+            "bdt": 89464215,
+            "bhd": 276475,
+            "bmd": 732096,
+            "bnb": 835.313,
+            "brl": 3970707,
+            "btc": 8.126229,
+            "cad": 1005864,
+            "chf": 579773,
+            "clp": 663689230,
+            "cny": 5120172,
+            "czk": 15082721,
+            "dkk": 4666089,
+            "dot": 342596,
+            "eos": 4262595,
+            "eth": 235.279,
+            "eur": 624259,
+            "gbp": 543623,
+            "gel": 1980321,
+            "hkd": 5704348,
+            "huf": 239373530,
+            "idr": 12227838595,
+            "ils": 2332722,
+            "inr": 65899247,
+            "jpy": 114789030,
+            "krw": 1056100172,
+            "kwd": 224988,
+            "lkr": 226646821,
+            "ltc": 8901,
+            "mmk": 1537182619,
+            "mxn": 13108258,
+            "myr": 2969017,
+            "ngn": 1052849632,
+            "nok": 7368623,
+            "nzd": 1269788,
+            "php": 43061168,
+            "pkr": 204915916,
+            "pln": 2629516,
+            "rub": 58889173,
+            "sar": 2745885,
+            "sek": 6750660,
+            "sgd": 941256,
+            "sol": 5559,
+            "thb": 23084702,
+            "try": 31507595,
+            "twd": 22968570,
+            "uah": 30972844,
+            "usd": 732096,
+            "vef": 73305,
+            "vnd": 19253026202,
+            "xag": 10052.98,
+            "xau": 168.98,
+            "xdr": 509138,
+            "xlm": 3326213,
+            "xrp": 364997,
+            "yfi": 195.946,
+            "zar": 12072122,
+            "bits": 8126229,
+            "link": 55561,
+            "sats": 812622915
+        },
+        "high_24h": {
+            "aed": 3.67,
+            "ars": 1477.11,
+            "aud": 1.5,
+            "bch": 0.00165363,
+            "bdt": 122.25,
+            "bhd": 0.37785,
+            "bmd": 0.999954,
+            "bnb": 0.00114974,
+            "brl": 5.43,
+            "btc": 1.118e-05,
+            "cad": 1.37,
+            "chf": 0.792489,
+            "clp": 906.52,
+            "cny": 6.99,
+            "czk": 20.62,
+            "dkk": 6.37,
+            "dot": 0.47943738,
+            "eos": 6.023049,
+            "eth": 0.00032435,
+            "eur": 0.853346,
+            "gbp": 0.743309,
+            "gel": 2.7,
+            "hkd": 7.79,
+            "huf": 326.99,
+            "idr": 16707.96,
+            "ils": 3.19,
+            "inr": 90.08,
+            "jpy": 156.9,
+            "krw": 1445.48,
+            "kwd": 0.307972,
+            "lkr": 309.7,
+            "ltc": 0.01233681,
+            "mmk": 2099.6,
+            "mxn": 17.92,
+            "myr": 4.06,
+            "ngn": 1438.06,
+            "nok": 10.07,
+            "nzd": 1.73,
+            "php": 58.83,
+            "pkr": 280.03,
+            "pln": 3.59,
+            "rub": 80.45,
+            "sar": 3.75,
+            "sek": 9.22,
+            "sgd": 1.29,
+            "sol": 0.00769183,
+            "thb": 31.53,
+            "try": 43.04,
+            "twd": 31.41,
+            "uah": 42.32,
+            "usd": 0.999954,
+            "vef": 0.100125,
+            "vnd": 26297,
+            "xag": 0.01388184,
+            "xau": 0.00023153,
+            "xdr": 0.69542,
+            "xlm": 4.645697,
+            "xrp": 0.50444122,
+            "yfi": 0.00028618,
+            "zar": 16.5,
+            "bits": 11.18,
+            "link": 0.07686726,
+            "sats": 1118.02
+        },
+        "low_24h": {
+            "aed": 3.67,
+            "ars": 1473.98,
+            "aud": 1.49,
+            "bch": 0.00156112,
+            "bdt": 122.14,
+            "bhd": 0.376832,
+            "bmd": 0.99948,
+            "bnb": 0.00113008,
+            "brl": 5.42,
+            "btc": 1.106e-05,
+            "cad": 1.37,
+            "chf": 0.791524,
+            "clp": 905.81,
+            "cny": 6.99,
+            "czk": 20.58,
+            "dkk": 6.37,
+            "dot": 0.45194742,
+            "eos": 5.738473,
+            "eth": 0.00031863,
+            "eur": 0.852256,
+            "gbp": 0.74217,
+            "gel": 2.7,
+            "hkd": 7.79,
+            "huf": 326.7,
+            "idr": 16693.81,
+            "ils": 3.18,
+            "inr": 89.97,
+            "jpy": 156.71,
+            "krw": 1441.73,
+            "kwd": 0.30716,
+            "lkr": 309.42,
+            "ltc": 0.01208364,
+            "mmk": 2098.61,
+            "mxn": 17.89,
+            "myr": 4.05,
+            "ngn": 1433.6,
+            "nok": 10.06,
+            "nzd": 1.73,
+            "php": 58.79,
+            "pkr": 279.76,
+            "pln": 3.59,
+            "rub": 79.99,
+            "sar": 3.75,
+            "sek": 9.21,
+            "sgd": 1.29,
+            "sol": 0.00752102,
+            "thb": 31.43,
+            "try": 43.01,
+            "twd": 31.36,
+            "uah": 42.29,
+            "usd": 0.99948,
+            "vef": 0.100078,
+            "vnd": 26285,
+            "xag": 0.01372462,
+            "xau": 0.0002307,
+            "xdr": 0.693378,
+            "xlm": 4.398246,
+            "xrp": 0.48692337,
+            "yfi": 0.00026601,
+            "zar": 16.48,
+            "bits": 11.06,
+            "link": 0.07460468,
+            "sats": 1106.17
+        },
+        "price_change_24h": -1.92242721133e-05,
+        "price_change_percentage_24h": -0.00192,
+        "price_change_percentage_7d": -0.00156,
+        "price_change_percentage_14d": -0.00744,
+        "price_change_percentage_30d": -0.00538,
+        "price_change_percentage_60d": 0.00609,
+        "price_change_percentage_200d": -0.45135,
+        "price_change_percentage_1y": 0.12488,
+        "market_cap_change_24h": 0.0,
+        "market_cap_change_percentage_24h": 0.0,
+        "price_change_24h_in_currency": {
+            "aed": -0.000470519322941065,
+            "ars": -0.03474968623731911,
+            "aud": -0.001334460122220715,
+            "bch": -6.1397988753802e-05,
+            "bdt": -0.05602527859200279,
+            "bhd": 0.0006866,
+            "bmd": -1.9224272113316e-05,
+            "bnb": 7.73e-06,
+            "brl": 0.00194531,
+            "btc": -1.1163995723e-08,
+            "cad": 2.158e-05,
+            "chf": -0.000521120895419558,
+            "clp": 0.542458,
+            "cny": -0.000134451675520175,
+            "czk": -0.023141407068980158,
+            "dkk": -0.001686207918635496,
+            "dot": -0.009018134599889371,
+            "eos": -0.0791912132725141,
+            "eth": 1.52e-06,
+            "eur": -0.0008372246086783,
+            "gbp": -0.000897094488909289,
+            "gel": -5.2001656066114e-05,
+            "hkd": 0.00096898,
+            "huf": -0.08965770378415527,
+            "idr": -7.3615800422521716,
+            "ils": -6.1255451691444e-05,
+            "inr": -0.07552536511047947,
+            "jpy": -0.1355019347598727,
+            "krw": -3.236243951823326,
+            "kwd": -4.5899821666417e-05,
+            "lkr": -0.14198373706278744,
+            "ltc": -0.000145423934253925,
+            "mmk": -0.04036520415684208,
+            "mxn": -0.022427694613234905,
+            "myr": -7.7964035556377e-05,
+            "ngn": 1.002,
+            "nok": -0.00050143122262547,
+            "nzd": -0.00017331499914941,
+            "php": -0.012630399715625629,
+            "pkr": -0.1281578124335283,
+            "pln": -0.000734912804979615,
+            "rub": 0.137508,
+            "sar": 0.00016285,
+            "sek": -0.004563369691831909,
+            "sgd": -0.000857546264011244,
+            "sol": -3.148066627651e-06,
+            "thb": 0.086206,
+            "try": 0.00147017,
+            "twd": -0.03489412119913737,
+            "uah": -0.01938952210061018,
+            "usd": -1.9224272113316e-05,
+            "vef": -1.924926366706e-06,
+            "vnd": -2.0169680888611765,
+            "xag": -6.0011759913528e-05,
+            "xau": -4.54345303044e-07,
+            "xdr": 0.00178726,
+            "xlm": -0.09533688895267911,
+            "xrp": -0.003105549278101416,
+            "yfi": -1.8054029603742e-05,
+            "zar": -0.008661297322408501,
+            "bits": -0.011163995723297404,
+            "link": 0.0006575,
+            "sats": -1.116399572329783
+        },
+        "price_change_percentage_1h_in_currency": {
+            "aed": -0.00152,
+            "ars": -0.00152,
+            "aud": -0.00152,
+            "bch": 0.06253,
+            "bdt": -0.00152,
+            "bhd": -0.00152,
+            "bmd": -0.00152,
+            "bnb": -0.00374,
+            "brl": -0.00152,
+            "btc": 0.01602,
+            "cad": -0.00152,
+            "chf": -0.00152,
+            "clp": -0.00152,
+            "cny": -0.00152,
+            "czk": -0.00152,
+            "dkk": -0.00152,
+            "dot": 0.07803,
+            "eos": -0.11825,
+            "eth": 3.0e-05,
+            "eur": -0.00152,
+            "gbp": -0.00152,
+            "gel": -0.00152,
+            "hkd": -0.00152,
+            "huf": -0.00152,
+            "idr": -0.00152,
+            "ils": -0.00152,
+            "inr": -0.00152,
+            "jpy": -0.00152,
+            "krw": -0.00152,
+            "kwd": -0.00152,
+            "lkr": -0.00152,
+            "ltc": 0.2462,
+            "mmk": -0.00152,
+            "mxn": -0.00152,
+            "myr": -0.00152,
+            "ngn": -0.00152,
+            "nok": -0.00152,
+            "nzd": -0.00152,
+            "php": -0.00152,
+            "pkr": -0.00152,
+            "pln": -0.00152,
+            "rub": -0.00152,
+            "sar": -0.00152,
+            "sek": -0.00152,
+            "sgd": -0.00152,
+            "sol": 0.18692,
+            "thb": -0.00152,
+            "try": -0.00152,
+            "twd": -0.00152,
+            "uah": -0.00152,
+            "usd": -0.00152,
+            "vef": -0.00152,
+            "vnd": -0.00152,
+            "xag": -0.00152,
+            "xau": -0.00152,
+            "xdr": -0.00152,
+            "xlm": 0.21039,
+            "xrp": 0.12989,
+            "yfi": 0.00125,
+            "zar": -0.00152,
+            "bits": 0.01602,
+            "link": 0.09594,
+            "sats": 0.01602
+        },
+        "price_change_percentage_24h_in_currency": {
+            "aed": -0.01281,
+            "ars": -0.00236,
+            "aud": -0.08924,
+            "bch": -3.77242,
+            "bdt": -0.04584,
+            "bhd": 0.18218,
+            "bmd": -0.00192,
+            "bnb": 0.68222,
+            "brl": 0.03589,
+            "btc": -0.1005,
+            "cad": 0.00157,
+            "chf": -0.06577,
+            "clp": 0.05989,
+            "cny": -0.00192,
+            "czk": -0.11222,
+            "dkk": -0.02646,
+            "dot": -1.89107,
+            "eos": -1.34215,
+            "eth": 0.4757,
+            "eur": -0.09811,
+            "gbp": -0.12069,
+            "gel": -0.00192,
+            "hkd": 0.01244,
+            "huf": -0.02742,
+            "idr": -0.04407,
+            "ils": -0.00192,
+            "inr": -0.08385,
+            "jpy": -0.08636,
+            "krw": -0.22389,
+            "kwd": -0.01494,
+            "lkr": -0.04585,
+            "ltc": -1.18228,
+            "mmk": -0.00192,
+            "mxn": -0.12513,
+            "myr": -0.00192,
+            "ngn": 0.06974,
+            "nok": -0.00498,
+            "nzd": -0.00999,
+            "php": -0.02147,
+            "pkr": -0.04578,
+            "pln": -0.02046,
+            "rub": 0.17128,
+            "sar": 0.00434,
+            "sek": -0.04948,
+            "sgd": -0.06667,
+            "sol": -0.04145,
+            "thb": 0.2742,
+            "try": 0.00342,
+            "twd": -0.11112,
+            "uah": -0.04582,
+            "usd": -0.00192,
+            "vef": -0.00192,
+            "vnd": -0.00767,
+            "xag": -0.43522,
+            "xau": -0.1965,
+            "xdr": 0.25771,
+            "xlm": -2.05568,
+            "xrp": -0.61918,
+            "yfi": -6.32046,
+            "zar": -0.05251,
+            "bits": -0.1005,
+            "link": 0.87412,
+            "sats": -0.1005
+        },
+        "price_change_percentage_7d_in_currency": {
+            "aed": -0.00156,
+            "ars": 1.63138,
+            "aud": 0.37203,
+            "bch": -2.69572,
+            "bdt": -0.01294,
+            "bhd": 0.08828,
+            "bmd": -0.00156,
+            "bnb": -4.17743,
+            "brl": -2.17583,
+            "btc": -2.86208,
+            "cad": 0.42603,
+            "chf": 0.46223,
+            "clp": 0.07129,
+            "cny": -0.18495,
+            "czk": 0.05915,
+            "dkk": 0.44285,
+            "dot": -14.99791,
+            "eos": -8.55607,
+            "eth": -5.97082,
+            "eur": 0.39959,
+            "gbp": 0.24346,
+            "gel": 0.57482,
+            "hkd": 0.25642,
+            "huf": -0.4976,
+            "idr": -0.41772,
+            "ils": -0.19451,
+            "inr": 0.22106,
+            "jpy": 0.14533,
+            "krw": 0.01508,
+            "kwd": 0.00755,
+            "lkr": -0.00605,
+            "ltc": -4.05401,
+            "mmk": -0.00156,
+            "mxn": -0.03339,
+            "myr": 0.17134,
+            "ngn": -0.89467,
+            "nok": 0.55491,
+            "nzd": 1.25587,
+            "php": 0.18665,
+            "pkr": -0.09371,
+            "pln": 0.35389,
+            "rub": 1.8105,
+            "sar": -0.02976,
+            "sek": 0.68745,
+            "sgd": 0.17765,
+            "sol": -6.39228,
+            "thb": 1.45727,
+            "try": 0.49934,
+            "twd": -0.06941,
+            "uah": 0.27127,
+            "usd": -0.00156,
+            "vef": -0.00156,
+            "vnd": 0.02474,
+            "xag": 8.86974,
+            "xau": 4.65016,
+            "xdr": 0.3821,
+            "xlm": -1.9925,
+            "xrp": -7.90773,
+            "yfi": -10.94306,
+            "zar": -1.03087,
+            "bits": -2.86208,
+            "link": -6.70345,
+            "sats": -2.86208
+        },
+        "price_change_percentage_14d_in_currency": {
+            "aed": -0.00744,
+            "ars": 1.63916,
+            "aud": -1.11342,
+            "bch": -6.98242,
+            "bdt": -0.09428,
+            "bhd": -0.0876,
+            "bmd": -0.00744,
+            "bnb": -2.70687,
+            "brl": -2.16217,
+            "btc": -2.12321,
+            "cad": -0.3989,
+            "chf": -0.46293,
+            "clp": -0.45544,
+            "cny": -0.67845,
+            "czk": -0.86301,
+            "dkk": -0.10931,
+            "dot": -14.2958,
+            "eos": -6.28005,
+            "eth": -4.41687,
+            "eur": -0.14351,
+            "gbp": -0.66826,
+            "gel": 0.55014,
+            "hkd": 0.12428,
+            "huf": -1.01606,
+            "idr": 0.0255,
+            "ils": -0.64478,
+            "inr": 0.48049,
+            "jpy": -0.61058,
+            "krw": -2.25628,
+            "kwd": -0.21913,
+            "lkr": -0.02373,
+            "ltc": -6.19115,
+            "mmk": -0.00744,
+            "mxn": -0.72214,
+            "myr": -0.53475,
+            "ngn": -1.46902,
+            "nok": -0.73331,
+            "nzd": -0.17222,
+            "php": 0.39795,
+            "pkr": -0.11201,
+            "pln": 0.0005,
+            "rub": -0.32572,
+            "sar": -0.00573,
+            "sek": -0.51774,
+            "sgd": -0.59504,
+            "sol": -4.4662,
+            "thb": 0.09539,
+            "try": 0.67515,
+            "twd": -0.46808,
+            "uah": 0.04382,
+            "usd": -0.00744,
+            "vef": -0.00744,
+            "vnd": -0.07318,
+            "xag": -7.80785,
+            "xau": 0.17049,
+            "xdr": -0.05558,
+            "xlm": -0.83132,
+            "xrp": -4.259,
+            "yfi": -9.30015,
+            "zar": -1.73094,
+            "bits": -2.12321,
+            "link": -4.60774,
+            "sats": -2.12321
+        },
+        "price_change_percentage_30d_in_currency": {
+            "aed": -0.019,
+            "ars": 1.981,
+            "aud": -1.14246,
+            "bch": -10.23394,
+            "bdt": -0.14816,
+            "bhd": 0.17925,
+            "bmd": -0.00538,
+            "bnb": 2.63599,
+            "brl": 2.08478,
+            "btc": 2.23068,
+            "cad": -1.49378,
+            "chf": -1.34579,
+            "clp": -1.26979,
+            "cny": -1.10619,
+            "czk": -0.82756,
+            "dkk": -0.53358,
+            "dot": 7.32513,
+            "eos": 11.39091,
+            "eth": 0.8874,
+            "eur": -0.6072,
+            "gbp": -0.88977,
+            "gel": 0.17979,
+            "hkd": 0.1199,
+            "huf": -0.53651,
+            "idr": 0.31704,
+            "ils": -1.72197,
+            "inr": 0.24359,
+            "jpy": 1.18378,
+            "krw": -2.0965,
+            "kwd": 0.14615,
+            "lkr": 0.26875,
+            "ltc": 1.536,
+            "mmk": -0.00538,
+            "mxn": -1.83429,
+            "myr": -1.53594,
+            "ngn": -0.69384,
+            "nok": -0.33502,
+            "nzd": 0.11341,
+            "php": -0.53384,
+            "pkr": -0.21822,
+            "pln": -1.13623,
+            "rub": 5.83206,
+            "sar": -0.06605,
+            "sek": -2.0371,
+            "sgd": -0.78823,
+            "sol": 6.82826,
+            "thb": -1.49756,
+            "try": 1.38975,
+            "twd": 0.04787,
+            "uah": 0.31287,
+            "usd": -0.00538,
+            "vef": -0.00538,
+            "vnd": -0.29465,
+            "xag": -21.63445,
+            "xau": -2.81377,
+            "xdr": -0.80117,
+            "xlm": 14.31067,
+            "xrp": 4.93545,
+            "yfi": 1.63487,
+            "zar": -3.01141,
+            "bits": 2.23068,
+            "link": 8.3439,
+            "sats": 2.23068
+        },
+        "price_change_percentage_60d_in_currency": {
+            "aed": 0.00609,
+            "ars": 1.26786,
+            "aud": -2.97387,
+            "bch": -23.59933,
+            "bdt": 0.24492,
+            "bhd": 0.17958,
+            "bmd": 0.00609,
+            "bnb": 5.79262,
+            "brl": 0.55207,
+            "btc": 12.22503,
+            "cad": -2.50877,
+            "chf": -2.16765,
+            "clp": -3.82169,
+            "cny": -1.90081,
+            "czk": -2.98271,
+            "dkk": -1.92918,
+            "dot": 18.39824,
+            "eos": 45.27342,
+            "eth": 8.39022,
+            "eur": -2.05886,
+            "gbp": -3.24805,
+            "gel": -0.54542,
+            "hkd": 0.23163,
+            "huf": -3.25955,
+            "idr": -0.0932,
+            "ils": -2.51907,
+            "inr": 1.47712,
+            "jpy": 2.07665,
+            "krw": 0.00543,
+            "kwd": 0.02855,
+            "lkr": 1.59211,
+            "ltc": 4.05424,
+            "mmk": 0.00609,
+            "mxn": -3.88227,
+            "myr": -3.37708,
+            "ngn": -0.04813,
+            "nok": -1.4588,
+            "nzd": -1.87849,
+            "php": 0.32589,
+            "pkr": -0.9961,
+            "pln": -3.14845,
+            "rub": -0.62592,
+            "sar": 0.01036,
+            "sek": -3.7324,
+            "sgd": -1.65868,
+            "sol": 18.79424,
+            "thb": -3.15629,
+            "try": 2.27631,
+            "twd": 1.46475,
+            "uah": 0.52667,
+            "usd": 0.00609,
+            "vef": 0.00609,
+            "vnd": -0.05966,
+            "xag": -34.70318,
+            "xau": -8.66377,
+            "xdr": -1.87029,
+            "xlm": 23.54953,
+            "xrp": 11.31929,
+            "yfi": 18.52971,
+            "zar": -5.7667,
+            "bits": 12.22503,
+            "link": 10.28677,
+            "sats": 12.22503
+        },
+        "price_change_percentage_200d_in_currency": {
+            "aed": -0.45,
+            "ars": 24.54532,
+            "aud": -3.69592,
+            "bch": -27.56837,
+            "bdt": -0.49112,
+            "bhd": -0.29638,
+            "bmd": -0.45135,
+            "bnb": -26.9858,
+            "brl": -1.8743,
+            "btc": 14.79534,
+            "cad": 0.32653,
+            "chf": -3.34063,
+            "clp": -4.10292,
+            "cny": -3.10245,
+            "czk": -5.14061,
+            "dkk": -2.32695,
+            "dot": 72.10456,
+            "eos": 189.55889,
+            "eth": -20.96235,
+            "eur": -2.53059,
+            "gbp": -0.67073,
+            "gel": -1.09124,
+            "hkd": -1.18671,
+            "huf": -7.42994,
+            "idr": 1.81008,
+            "ils": -9.67348,
+            "inr": 3.63879,
+            "jpy": 7.44661,
+            "krw": 4.1566,
+            "kwd": -0.12213,
+            "lkr": 2.51274,
+            "ltc": 0.77258,
+            "mmk": -0.37069,
+            "mxn": -6.35989,
+            "myr": -4.79435,
+            "ngn": -7.29709,
+            "nok": 0.80192,
+            "nzd": 3.90061,
+            "php": 2.7561,
+            "pkr": -1.57556,
+            "pln": -3.96205,
+            "rub": 2.00815,
+            "sar": -0.48067,
+            "sek": -3.82816,
+            "sgd": -0.51697,
+            "sol": 10.70988,
+            "thb": -3.70982,
+            "try": 8.58818,
+            "twd": 5.15927,
+            "uah": 1.40038,
+            "usd": -0.45135,
+            "vef": -0.45135,
+            "vnd": 0.45967,
+            "xag": -49.37221,
+            "xau": -22.13548,
+            "xdr": -2.11336,
+            "xlm": 13.95059,
+            "xrp": 7.00393,
+            "yfi": 33.60769,
+            "zar": -9.0009,
+            "bits": 14.79534,
+            "link": -2.5894,
+            "sats": 14.79534
+        },
+        "price_change_percentage_1y_in_currency": {
+            "aed": 0.11097,
+            "ars": 43.0451,
+            "aud": -7.07149,
+            "bch": -25.7983,
+            "bdt": 0.38743,
+            "bhd": 0.31853,
+            "bmd": 0.12488,
+            "bnb": -18.81772,
+            "brl": -12.22404,
+            "btc": 8.86179,
+            "cad": -4.84682,
+            "chf": -12.79611,
+            "clp": -10.17752,
+            "cny": -4.34413,
+            "czk": -15.49762,
+            "dkk": -11.88114,
+            "dot": 264.28435,
+            "eos": 443.6656,
+            "eth": 14.97571,
+            "eur": -12.077,
+            "gbp": -7.67039,
+            "gel": -3.78764,
+            "hkd": 0.28415,
+            "huf": -18.86535,
+            "idr": 3.24127,
+            "ils": -12.58315,
+            "inr": 5.06561,
+            "jpy": -0.1145,
+            "krw": -1.76824,
+            "kwd": -0.25389,
+            "lkr": 5.49871,
+            "ltc": 34.01825,
+            "mmk": 0.20601,
+            "mxn": -13.34116,
+            "myr": -9.76524,
+            "ngn": -6.85819,
+            "nok": -11.33897,
+            "nzd": -2.63395,
+            "php": 1.17542,
+            "pkr": 0.60672,
+            "pln": -13.26337,
+            "rub": -27.11178,
+            "sar": -0.00198,
+            "sek": -16.94104,
+            "sgd": -6.05084,
+            "sol": 61.70056,
+            "thb": -8.61628,
+            "try": 21.82235,
+            "twd": -4.65055,
+            "uah": 0.49404,
+            "usd": 0.12488,
+            "vef": 0.12488,
+            "vnd": 3.50843,
+            "xag": -59.34926,
+            "xau": -38.94425,
+            "xdr": -9.21021,
+            "xlm": 101.42146,
+            "xrp": 22.02131,
+            "yfi": 142.03472,
+            "zar": -12.01294,
+            "bits": 8.86179,
+            "link": 79.34875,
+            "sats": 8.86179
+        },
+        "market_cap_change_24h_in_currency": {
+            "aed": 0.0,
+            "ars": 0.0,
+            "aud": 0.0,
+            "bch": 0.0,
+            "bdt": 0.0,
+            "bhd": 0.0,
+            "bmd": 0.0,
+            "bnb": 0.0,
+            "brl": 0.0,
+            "btc": 0.0,
+            "cad": 0.0,
+            "chf": 0.0,
+            "clp": 0.0,
+            "cny": 0.0,
+            "czk": 0.0,
+            "dkk": 0.0,
+            "dot": 0.0,
+            "eos": 0.0,
+            "eth": 0.0,
+            "eur": 0.0,
+            "gbp": 0.0,
+            "gel": 0.0,
+            "hkd": 0.0,
+            "huf": 0.0,
+            "idr": 0.0,
+            "ils": 0.0,
+            "inr": 0.0,
+            "jpy": 0.0,
+            "krw": 0.0,
+            "kwd": 0.0,
+            "lkr": 0.0,
+            "ltc": 0.0,
+            "mmk": 0.0,
+            "mxn": 0.0,
+            "myr": 0.0,
+            "ngn": 0.0,
+            "nok": 0.0,
+            "nzd": 0.0,
+            "php": 0.0,
+            "pkr": 0.0,
+            "pln": 0.0,
+            "rub": 0.0,
+            "sar": 0.0,
+            "sek": 0.0,
+            "sgd": 0.0,
+            "sol": 0.0,
+            "thb": 0.0,
+            "try": 0.0,
+            "twd": 0.0,
+            "uah": 0.0,
+            "usd": 0.0,
+            "vef": 0.0,
+            "vnd": 0.0,
+            "xag": 0.0,
+            "xau": 0.0,
+            "xdr": 0.0,
+            "xlm": 0.0,
+            "xrp": 0.0,
+            "yfi": 0.0,
+            "zar": 0.0,
+            "bits": 0.0,
+            "link": 0.0,
+            "sats": 0.0
+        },
+        "market_cap_change_percentage_24h_in_currency": {
+            "aed": 0.0,
+            "ars": 0.0,
+            "aud": 0.0,
+            "bch": 0.0,
+            "bdt": 0.0,
+            "bhd": 0.0,
+            "bmd": 0.0,
+            "bnb": 0.0,
+            "brl": 0.0,
+            "btc": 0.0,
+            "cad": 0.0,
+            "chf": 0.0,
+            "clp": 0.0,
+            "cny": 0.0,
+            "czk": 0.0,
+            "dkk": 0.0,
+            "dot": 0.0,
+            "eos": 0.0,
+            "eth": 0.0,
+            "eur": 0.0,
+            "gbp": 0.0,
+            "gel": 0.0,
+            "hkd": 0.0,
+            "huf": 0.0,
+            "idr": 0.0,
+            "ils": 0.0,
+            "inr": 0.0,
+            "jpy": 0.0,
+            "krw": 0.0,
+            "kwd": 0.0,
+            "lkr": 0.0,
+            "ltc": 0.0,
+            "mmk": 0.0,
+            "mxn": 0.0,
+            "myr": 0.0,
+            "ngn": 0.0,
+            "nok": 0.0,
+            "nzd": 0.0,
+            "php": 0.0,
+            "pkr": 0.0,
+            "pln": 0.0,
+            "rub": 0.0,
+            "sar": 0.0,
+            "sek": 0.0,
+            "sgd": 0.0,
+            "sol": 0.0,
+            "thb": 0.0,
+            "try": 0.0,
+            "twd": 0.0,
+            "uah": 0.0,
+            "usd": 0.0,
+            "vef": 0.0,
+            "vnd": 0.0,
+            "xag": 0.0,
+            "xau": 0.0,
+            "xdr": 0.0,
+            "xlm": 0.0,
+            "xrp": 0.0,
+            "yfi": 0.0,
+            "zar": 0.0,
+            "bits": 0.0,
+            "link": 0.0,
+            "sats": 0.0
+        },
+        "total_supply": 104227540.2282205,
+        "max_supply": null,
+        "max_supply_infinite": false,
+        "circulating_supply": 0.0,
+        "last_updated": "2026-01-03T19:41:08.384Z"
+    },
+    "community_data": {
+        "facebook_likes": null,
+        "reddit_average_posts_48h": 0.0,
+        "reddit_average_comments_48h": 0.0,
+        "reddit_subscribers": 0,
+        "reddit_accounts_active_48h": 0,
+        "telegram_channel_user_count": 4400
+    },
+    "developer_data": {
+        "forks": 13,
+        "stars": 17,
+        "subscribers": 7,
+        "total_issues": 3,
+        "closed_issues": 3,
+        "pull_requests_merged": 6,
+        "pull_request_contributors": 6,
+        "code_additions_deletions_4_weeks": {
+            "additions": 2575,
+            "deletions": -767
+        },
+        "commit_count_4_weeks": 70,
+        "last_4_weeks_commit_activity_series": []
+    },
+    "status_updates": [],
+    "last_updated": "2026-01-03T19:41:08.384Z",
+    "tickers": [
+        {
+            "base": "0XDDAFBB505AD214D7B80B1F830FCCC89B60FB7A83",
+            "target": "0XE91D153E0B41518A2CE8DD3D7944FA863463A97D",
+            "market": {
+                "name": "Curve (Gnosis)",
+                "identifier": "curve-gnosis",
+                "has_trading_incentive": false
+            },
+            "last": 0.9999258068,
+            "volume": 358797.084846,
+            "converted_last": {
+                "btc": 1.11e-05,
+                "eth": 0.00032142,
+                "usd": 0.999785
+            },
+            "converted_volume": {
+                "btc": 5.831721,
+                "eth": 168.899,
+                "usd": 525371
+            },
+            "trust_score": "green",
+            "bid_ask_spread_percentage": 0.603197,
+            "timestamp": "2026-01-03T19:37:10+00:00",
+            "last_traded_at": "2026-01-03T19:37:10+00:00",
+            "last_fetch_at": "2026-01-03T19:39:16+00:00",
+            "is_anomaly": false,
+            "is_stale": false,
+            "trade_url": "https://www.curve.finance/dex/xdai/pools/",
+            "token_info_url": null,
+            "coin_id": "gnosis-xdai-bridged-usdc-gnosis",
+            "target_coin_id": "xdai",
+            "coin_mcap_usd": 18378682.177054286
+        },
+        {
+            "base": "0X2A22F9C3B484C3629090FEED35F17FF8F88F76F0",
+            "target": "0XE91D153E0B41518A2CE8DD3D7944FA863463A97D",
+            "market": {
+                "name": "Oku Trade (Gnosis)",
+                "identifier": "oku-trade-gnosis",
+                "has_trading_incentive": false
+            },
+            "last": 1.0000898886,
+            "volume": 136223.68609,
+            "converted_last": {
+                "btc": 1.11e-05,
+                "eth": 0.00032142,
+                "usd": 0.999785
+            },
+            "converted_volume": {
+                "btc": 1.511815,
+                "eth": 43.785422,
+                "usd": 136197
+            },
+            "trust_score": "green",
+            "bid_ask_spread_percentage": 0.603123,
+            "timestamp": "2026-01-03T19:39:16+00:00",
+            "last_traded_at": "2026-01-03T19:39:16+00:00",
+            "last_fetch_at": "2026-01-03T19:39:16+00:00",
+            "is_anomaly": false,
+            "is_stale": false,
+            "trade_url": "https://oku.trade/?inputCurrency=0x2a22f9c3b484c3629090feed35f17ff8f88f76f0\u0026outputCurrency=0xe91d153e0b41518a2ce8dd3d7944fa863463a97d",
+            "token_info_url": null,
+            "coin_id": "bridged-usdc-gnosis",
+            "target_coin_id": "xdai",
+            "coin_mcap_usd": 10982942.97378777
+        },
+        {
+            "base": "0XDDAFBB505AD214D7B80B1F830FCCC89B60FB7A83",
+            "target": "0XE91D153E0B41518A2CE8DD3D7944FA863463A97D",
+            "market": {
+                "name": "Sushiswap V3 (Gnosis)",
+                "identifier": "sushiswap-v3-gnosis",
+                "has_trading_incentive": false
+            },
+            "last": 0.9999586974,
+            "volume": 39367.320094,
+            "converted_last": {
+                "btc": 1.11e-05,
+                "eth": 0.00032138,
+                "usd": 0.999622
+            },
+            "converted_volume": {
+                "btc": 0.43685055,
+                "eth": 12.650959,
+                "usd": 39349
+            },
+            "trust_score": "green",
+            "bid_ask_spread_percentage": 0.684932,
+            "timestamp": "2026-01-03T19:30:01+00:00",
+            "last_traded_at": "2026-01-03T19:30:01+00:00",
+            "last_fetch_at": "2026-01-03T19:30:01+00:00",
+            "is_anomaly": false,
+            "is_stale": false,
+            "trade_url": "https://www.sushi.com/gnosis/swap?token0=0xddafbb505ad214d7b80b1f830fccc89b60fb7a83\u0026token1=0xe91d153e0b41518a2ce8dd3d7944fa863463a97d",
+            "token_info_url": null,
+            "coin_id": "gnosis-xdai-bridged-usdc-gnosis",
+            "target_coin_id": "xdai",
+            "coin_mcap_usd": 18378682.177054286
+        },
+        {
+            "base": "0XAF204776C7245BF4147C2612BF6E5972EE483701",
+            "target": "0XE91D153E0B41518A2CE8DD3D7944FA863463A97D",
+            "market": {
+                "name": "Sushiswap V3 (Gnosis)",
+                "identifier": "sushiswap-v3-gnosis",
+                "has_trading_incentive": false
+            },
+            "last": 1.2187513414,
+            "volume": 4678.3117773164,
+            "converted_last": {
+                "btc": 1.11e-05,
+                "eth": 0.00032133,
+                "usd": 0.999823
+            },
+            "converted_volume": {
+                "btc": 0.06334555,
+                "eth": 1.834224,
+                "usd": 5707.27
+            },
+            "trust_score": "green",
+            "bid_ask_spread_percentage": 0.695571,
+            "timestamp": "2026-01-03T19:30:01+00:00",
+            "last_traded_at": "2026-01-03T19:30:01+00:00",
+            "last_fetch_at": "2026-01-03T19:30:01+00:00",
+            "is_anomaly": false,
+            "is_stale": false,
+            "trade_url": "https://www.sushi.com/gnosis/swap?token0=0xaf204776c7245bf4147c2612bf6e5972ee483701\u0026token1=0xe91d153e0b41518a2ce8dd3d7944fa863463a97d",
+            "token_info_url": null,
+            "coin_id": "savings-xdai",
+            "target_coin_id": "xdai",
+            "coin_mcap_usd": 95001597.74455836
+        },
+        {
+            "base": "0X6A023CCD1FF6F2045C3309768EAD9E68F978F6E1",
+            "target": "0XE91D153E0B41518A2CE8DD3D7944FA863463A97D",
+            "market": {
+                "name": "Sushiswap (xDai)",
+                "identifier": "sushiswap_xdai",
+                "has_trading_incentive": false
+            },
+            "last": 3116.9373042828,
+            "volume": 0.9023244,
+            "converted_last": {
+                "btc": 1.11e-05,
+                "eth": 0.00032136,
+                "usd": 0.999774
+            },
+            "converted_volume": {
+                "btc": 0.03020888,
+                "eth": 0.87473752,
+                "usd": 2721.39
+            },
+            "trust_score": "green",
+            "bid_ask_spread_percentage": 0.617085,
+            "timestamp": "2026-01-03T19:28:03+00:00",
+            "last_traded_at": "2026-01-03T19:28:03+00:00",
+            "last_fetch_at": "2026-01-03T19:37:37+00:00",
+            "is_anomaly": false,
+            "is_stale": false,
+            "trade_url": "https://app.sushi.com/swap?inputCurrency=0x6a023ccd1ff6f2045c3309768ead9e68f978f6e1\u0026outputCurrency=0xe91d153e0b41518a2ce8dd3d7944fa863463a97d",
+            "token_info_url": null,
+            "coin_id": "gnosis-xdai-bridged-weth-gnosis-chain",
+            "target_coin_id": "xdai",
+            "coin_mcap_usd": 23574072.22162351
+        },
+        {
+            "base": "0X6A023CCD1FF6F2045C3309768EAD9E68F978F6E1",
+            "target": "0XE91D153E0B41518A2CE8DD3D7944FA863463A97D",
+            "market": {
+                "name": "Honeyswap",
+                "identifier": "honeyswap",
+                "has_trading_incentive": false
+            },
+            "last": 3097.9283672266,
+            "volume": 0.6862109892,
+            "converted_last": {
+                "btc": 1.11e-05,
+                "eth": 0.00032136,
+                "usd": 0.999774
+            },
+            "converted_volume": {
+                "btc": 0.02294316,
+                "eth": 0.66434914,
+                "usd": 2066.85
+            },
+            "trust_score": "green",
+            "bid_ask_spread_percentage": 0.616756,
+            "timestamp": "2026-01-03T19:34:28+00:00",
+            "last_traded_at": "2026-01-03T19:34:28+00:00",
+            "last_fetch_at": "2026-01-03T19:37:37+00:00",
+            "is_anomaly": false,
+            "is_stale": false,
+            "trade_url": "https://app.honeyswap.org/#/swap?inputCurrency=0x6a023ccd1ff6f2045c3309768ead9e68f978f6e1\u0026outputCurrency=0xe91d153e0b41518a2ce8dd3d7944fa863463a97d",
+            "token_info_url": null,
+            "coin_id": "gnosis-xdai-bridged-weth-gnosis-chain",
+            "target_coin_id": "xdai",
+            "coin_mcap_usd": 23574072.22162351
+        },
+        {
+            "base": "0X6A023CCD1FF6F2045C3309768EAD9E68F978F6E1",
+            "target": "0XE91D153E0B41518A2CE8DD3D7944FA863463A97D",
+            "market": {
+                "name": "Swapr (Xdai)",
+                "identifier": "swapr_xdai",
+                "has_trading_incentive": false
+            },
+            "last": 3100.2962044345,
+            "volume": 0.4563025775,
+            "converted_last": {
+                "btc": 1.11e-05,
+                "eth": 0.00032136,
+                "usd": 0.999774
+            },
+            "converted_volume": {
+                "btc": 0.01529419,
+                "eth": 0.44286339,
+                "usd": 1377.79
+            },
+            "trust_score": "green",
+            "bid_ask_spread_percentage": 0.627862,
+            "timestamp": "2026-01-03T19:37:37+00:00",
+            "last_traded_at": "2026-01-03T19:37:37+00:00",
+            "last_fetch_at": "2026-01-03T19:37:37+00:00",
+            "is_anomaly": false,
+            "is_stale": false,
+            "trade_url": "https://swapr.eth.limo/#/swap?outputCurrency=0xe91d153e0b41518a2ce8dd3d7944fa863463a97d\u0026inputCurrency=0x6a023ccd1ff6f2045c3309768ead9e68f978f6e1",
+            "token_info_url": null,
+            "coin_id": "gnosis-xdai-bridged-weth-gnosis-chain",
+            "target_coin_id": "xdai",
+            "coin_mcap_usd": 23574072.22162351
+        },
+        {
+            "base": "0XDDAFBB505AD214D7B80B1F830FCCC89B60FB7A83",
+            "target": "0XE91D153E0B41518A2CE8DD3D7944FA863463A97D",
+            "market": {
+                "name": "Balancer V2 (Gnosis)",
+                "identifier": "balancer-gnosis",
+                "has_trading_incentive": false
+            },
+            "last": 0.9998839078,
+            "volume": 848.422623,
+            "converted_last": {
+                "btc": 1.11e-05,
+                "eth": 0.00032133,
+                "usd": 0.999823
+            },
+            "converted_volume": {
+                "btc": 0.00941503,
+                "eth": 0.27262018,
+                "usd": 848.27
+            },
+            "trust_score": "green",
+            "bid_ask_spread_percentage": 0.665653,
+            "timestamp": "2026-01-03T19:30:26+00:00",
+            "last_traded_at": "2026-01-03T19:30:26+00:00",
+            "last_fetch_at": "2026-01-03T19:30:26+00:00",
+            "is_anomaly": false,
+            "is_stale": false,
+            "trade_url": "https://app.balancer.fi/#/gnosis-chain/swap?inputCurrency=0xddafbb505ad214d7b80b1f830fccc89b60fb7a83\u0026outputCurrency=0xe91d153e0b41518a2ce8dd3d7944fa863463a97d",
+            "token_info_url": null,
+            "coin_id": "gnosis-xdai-bridged-usdc-gnosis",
+            "target_coin_id": "xdai",
+            "coin_mcap_usd": 18378682.177054286
+        },
+        {
+            "base": "0X9C58BACC331C9AA871AFD802DB6379A98E80CEDB",
+            "target": "0XE91D153E0B41518A2CE8DD3D7944FA863463A97D",
+            "market": {
+                "name": "Sushiswap V3 (Gnosis)",
+                "identifier": "sushiswap-v3-gnosis",
+                "has_trading_incentive": false
+            },
+            "last": 136.6034643911,
+            "volume": 7.2833256034,
+            "converted_last": {
+                "btc": 1.11e-05,
+                "eth": 0.00032144,
+                "usd": 0.99982
+            },
+            "converted_volume": {
+                "btc": 0.01098065,
+                "eth": 0.31799392,
+                "usd": 989.09
+            },
+            "trust_score": "green",
+            "bid_ask_spread_percentage": 0.867665,
+            "timestamp": "2026-01-03T19:30:01+00:00",
+            "last_traded_at": "2026-01-03T19:30:01+00:00",
+            "last_fetch_at": "2026-01-03T19:30:01+00:00",
+            "is_anomaly": false,
+            "is_stale": false,
+            "trade_url": "https://www.sushi.com/gnosis/swap?token0=0x9c58bacc331c9aa871afd802db6379a98e80cedb\u0026token1=0xe91d153e0b41518a2ce8dd3d7944fa863463a97d",
+            "token_info_url": null,
+            "coin_id": "gnosis",
+            "target_coin_id": "xdai",
+            "coin_mcap_usd": 362271847.1045309
+        },
+        {
+            "base": "0X9C58BACC331C9AA871AFD802DB6379A98E80CEDB",
+            "target": "0XE91D153E0B41518A2CE8DD3D7944FA863463A97D",
+            "market": {
+                "name": "Balancer V2 (Gnosis)",
+                "identifier": "balancer-gnosis",
+                "has_trading_incentive": false
+            },
+            "last": 136.5462815125,
+            "volume": 3.9419077479,
+            "converted_last": {
+                "btc": 1.11e-05,
+                "eth": 0.00032142,
+                "usd": 0.999822
+            },
+            "converted_volume": {
+                "btc": 0.00594869,
+                "eth": 0.17231451,
+                "usd": 536.01
+            },
+            "trust_score": "green",
+            "bid_ask_spread_percentage": 0.695795,
+            "timestamp": "2026-01-03T19:31:19+00:00",
+            "last_traded_at": "2026-01-03T19:31:19+00:00",
+            "last_fetch_at": "2026-01-03T19:31:19+00:00",
+            "is_anomaly": false,
+            "is_stale": false,
+            "trade_url": "https://app.balancer.fi/#/gnosis-chain/swap?inputCurrency=0x9c58bacc331c9aa871afd802db6379a98e80cedb\u0026outputCurrency=0xe91d153e0b41518a2ce8dd3d7944fa863463a97d",
+            "token_info_url": null,
+            "coin_id": "gnosis",
+            "target_coin_id": "xdai",
+            "coin_mcap_usd": 362271847.1045309
+        },
+        {
+            "base": "0X6A023CCD1FF6F2045C3309768EAD9E68F978F6E1",
+            "target": "0XE91D153E0B41518A2CE8DD3D7944FA863463A97D",
+            "market": {
+                "name": "Levinswap (xDai)",
+                "identifier": "levinswap_xdai",
+                "has_trading_incentive": false
+            },
+            "last": 3114.7551803266,
+            "volume": 0.03725622911,
+            "converted_last": {
+                "btc": 1.108e-05,
+                "eth": 0.00032094,
+                "usd": 0.998329
+            },
+            "converted_volume": {
+                "btc": 0.00123985,
+                "eth": 0.03591458,
+                "usd": 111.72
+            },
+            "trust_score": "green",
+            "bid_ask_spread_percentage": 0.899949,
+            "timestamp": "2026-01-03T19:31:12+00:00",
+            "last_traded_at": "2026-01-03T19:31:12+00:00",
+            "last_fetch_at": "2026-01-03T19:31:12+00:00",
+            "is_anomaly": false,
+            "is_stale": false,
+            "trade_url": "https://app.levinswap.org/#/swap?inputCurrency=0x6a023ccd1ff6f2045c3309768ead9e68f978f6e1\u0026outputCurrency=0xe91d153e0b41518a2ce8dd3d7944fa863463a97d",
+            "token_info_url": null,
+            "coin_id": "gnosis-xdai-bridged-weth-gnosis-chain",
+            "target_coin_id": "xdai",
+            "coin_mcap_usd": 23574072.22162351
+        },
+        {
+            "base": "0XCE11E14225575945B8E6DC0D4F2DD4C570F79D9F",
+            "target": "0XE91D153E0B41518A2CE8DD3D7944FA863463A97D",
+            "market": {
+                "name": "Balancer V2 (Gnosis)",
+                "identifier": "balancer-gnosis",
+                "has_trading_incentive": false
+            },
+            "last": 0.09451596688,
+            "volume": 26028.3471206353,
+            "converted_last": {
+                "btc": 1.11e-05,
+                "eth": 0.00032143,
+                "usd": 0.999785
+            },
+            "converted_volume": {
+                "btc": 0.02725649,
+                "eth": 0.78944357,
+                "usd": 2455.54
+            },
+            "trust_score": "yellow",
+            "bid_ask_spread_percentage": 0.60347,
+            "timestamp": "2026-01-03T17:10:57+00:00",
+            "last_traded_at": "2026-01-03T17:10:57+00:00",
+            "last_fetch_at": "2026-01-03T19:39:54+00:00",
+            "is_anomaly": false,
+            "is_stale": false,
+            "trade_url": "https://app.balancer.fi/#/gnosis-chain/swap?inputCurrency=0xce11e14225575945b8e6dc0d4f2dd4c570f79d9f\u0026outputCurrency=0xe91d153e0b41518a2ce8dd3d7944fa863463a97d",
+            "token_info_url": null,
+            "coin_id": "autonolas",
+            "target_coin_id": "xdai",
+            "coin_mcap_usd": 21733489.669925448
+        },
+        {
+            "base": "0X8E5BBBB09ED1EBDE8674CDA39A0C169401DB4252",
+            "target": "0XE91D153E0B41518A2CE8DD3D7944FA863463A97D",
+            "market": {
+                "name": "Honeyswap",
+                "identifier": "honeyswap",
+                "has_trading_incentive": false
+            },
+            "last": 90189.010778385,
+            "volume": 0.02339072,
+            "converted_last": {
+                "btc": 1.11e-05,
+                "eth": 0.00032136,
+                "usd": 0.999774
+            },
+            "converted_volume": {
+                "btc": 0.02274024,
+                "eth": 0.6584734,
+                "usd": 2048.57
+            },
+            "trust_score": "yellow",
+            "bid_ask_spread_percentage": 0.612714,
+            "timestamp": "2026-01-03T19:03:21+00:00",
+            "last_traded_at": "2026-01-03T19:03:21+00:00",
+            "last_fetch_at": "2026-01-03T19:37:37+00:00",
+            "is_anomaly": false,
+            "is_stale": false,
+            "trade_url": "https://app.honeyswap.org/#/swap?inputCurrency=0x8e5bbbb09ed1ebde8674cda39a0c169401db4252\u0026outputCurrency=0xe91d153e0b41518a2ce8dd3d7944fa863463a97d",
+            "token_info_url": null,
+            "coin_id": "gnosis-xdai-bridged-wbtc-gnosis-chain",
+            "target_coin_id": "xdai",
+            "coin_mcap_usd": 3469948.7755919145
+        },
+        {
+            "base": "0X9C58BACC331C9AA871AFD802DB6379A98E80CEDB",
+            "target": "0XE91D153E0B41518A2CE8DD3D7944FA863463A97D",
+            "market": {
+                "name": "Sushiswap (xDai)",
+                "identifier": "sushiswap_xdai",
+                "has_trading_incentive": false
+            },
+            "last": 136.8947871483,
+            "volume": 4.2223162201,
+            "converted_last": {
+                "btc": 1.11e-05,
+                "eth": 0.00032136,
+                "usd": 0.999774
+            },
+            "converted_volume": {
+                "btc": 0.0063657,
+                "eth": 0.18432729,
+                "usd": 573.46
+            },
+            "trust_score": "yellow",
+            "bid_ask_spread_percentage": 0.618167,
+            "timestamp": "2026-01-03T19:34:28+00:00",
+            "last_traded_at": "2026-01-03T19:34:28+00:00",
+            "last_fetch_at": "2026-01-03T19:37:37+00:00",
+            "is_anomaly": false,
+            "is_stale": false,
+            "trade_url": "https://app.sushi.com/swap?inputCurrency=0x9c58bacc331c9aa871afd802db6379a98e80cedb\u0026outputCurrency=0xe91d153e0b41518a2ce8dd3d7944fa863463a97d",
+            "token_info_url": null,
+            "coin_id": "gnosis",
+            "target_coin_id": "xdai",
+            "coin_mcap_usd": 362271847.1045309
+        },
+        {
+            "base": "0XA555D5344F6FB6C65DA19E403CB4C1EC4A1A5EE3",
+            "target": "0XE91D153E0B41518A2CE8DD3D7944FA863463A97D",
+            "market": {
+                "name": "Curve (Gnosis)",
+                "identifier": "curve-gnosis",
+                "has_trading_incentive": false
+            },
+            "last": 0.9999752517,
+            "volume": 552.6766884946,
+            "converted_last": {
+                "btc": 1.11e-05,
+                "eth": 0.00032143,
+                "usd": 0.999785
+            },
+            "converted_volume": {
+                "btc": 0.00613055,
+                "eth": 0.17756218,
+                "usd": 552.3
+            },
+            "trust_score": "yellow",
+            "bid_ask_spread_percentage": 0.616025,
+            "timestamp": "2026-01-03T16:36:42+00:00",
+            "last_traded_at": "2026-01-03T16:36:42+00:00",
+            "last_fetch_at": "2026-01-03T19:39:58+00:00",
+            "is_anomaly": false,
+            "is_stale": false,
+            "trade_url": "https://www.curve.finance/dex/xdai/pools/",
+            "token_info_url": null,
+            "coin_id": "bread-3",
+            "target_coin_id": "xdai",
+            "coin_mcap_usd": 459768.07148218976
+        },
+        {
+            "base": "0XFA57AA7BEED63D03AAF85FFD1753F5F6242588FB",
+            "target": "0XE91D153E0B41518A2CE8DD3D7944FA863463A97D",
+            "market": {
+                "name": "Sushiswap (xDai)",
+                "identifier": "sushiswap_xdai",
+                "has_trading_incentive": false
+            },
+            "last": 5.6286528341,
+            "volume": 32.0,
+            "converted_last": {
+                "btc": 1.11e-05,
+                "eth": 0.00032136,
+                "usd": 0.999774
+            },
+            "converted_volume": {
+                "btc": 0.00199329,
+                "eth": 0.05771831,
+                "usd": 179.57
+            },
+            "trust_score": "yellow",
+            "bid_ask_spread_percentage": 0.609599,
+            "timestamp": "2026-01-03T18:38:54+00:00",
+            "last_traded_at": "2026-01-03T18:38:54+00:00",
+            "last_fetch_at": "2026-01-03T19:37:37+00:00",
+            "is_anomaly": false,
+            "is_stale": false,
+            "trade_url": "https://app.sushi.com/swap?inputCurrency=0xfa57aa7beed63d03aaf85ffd1753f5f6242588fb\u0026outputCurrency=0xe91d153e0b41518a2ce8dd3d7944fa863463a97d",
+            "token_info_url": null,
+            "coin_id": "mt-pelerin-shares",
+            "target_coin_id": "xdai",
+            "coin_mcap_usd": 2652636.350368248
+        },
+        {
+            "base": "0XD057604A14982FE8D88C5FC25AAC3267EA142A08",
+            "target": "0XE91D153E0B41518A2CE8DD3D7944FA863463A97D",
+            "market": {
+                "name": "Swapr (Xdai)",
+                "identifier": "swapr_xdai",
+                "has_trading_incentive": false
+            },
+            "last": 0.02558949093,
+            "volume": 11889.48571527,
+            "converted_last": {
+                "btc": 1.11e-05,
+                "eth": 0.00032136,
+                "usd": 0.999774
+            },
+            "converted_volume": {
+                "btc": 0.00335013,
+                "eth": 0.09700727,
+                "usd": 301.8
+            },
+            "trust_score": "yellow",
+            "bid_ask_spread_percentage": 0.612312,
+            "timestamp": "2026-01-03T18:03:39+00:00",
+            "last_traded_at": "2026-01-03T18:03:39+00:00",
+            "last_fetch_at": "2026-01-03T19:37:37+00:00",
+            "is_anomaly": false,
+            "is_stale": false,
+            "trade_url": "https://swapr.eth.limo/#/swap?outputCurrency=0xe91d153e0b41518a2ce8dd3d7944fa863463a97d\u0026inputCurrency=0xd057604a14982fe8d88c5fc25aac3267ea142a08",
+            "token_info_url": null,
+            "coin_id": "hopr-2",
+            "target_coin_id": "xdai",
+            "coin_mcap_usd": 0.0
+        },
+        {
+            "base": "0X21A42669643F45BC0E086B8FC2ED70C23D67509D",
+            "target": "0XE91D153E0B41518A2CE8DD3D7944FA863463A97D",
+            "market": {
+                "name": "Honeyswap",
+                "identifier": "honeyswap",
+                "has_trading_incentive": false
+            },
+            "last": 0.01148056607,
+            "volume": 25813.8927748285,
+            "converted_last": {
+                "btc": 1.11e-05,
+                "eth": 0.00032136,
+                "usd": 0.999774
+            },
+            "converted_volume": {
+                "btc": 0.0032704,
+                "eth": 0.09469882,
+                "usd": 294.62
+            },
+            "trust_score": "yellow",
+            "bid_ask_spread_percentage": 0.61271,
+            "timestamp": "2026-01-03T19:06:59+00:00",
+            "last_traded_at": "2026-01-03T19:06:59+00:00",
+            "last_fetch_at": "2026-01-03T19:37:37+00:00",
+            "is_anomaly": false,
+            "is_stale": false,
+            "trade_url": "https://app.honeyswap.org/#/swap?inputCurrency=0x21a42669643f45bc0e086b8fc2ed70c23d67509d\u0026outputCurrency=0xe91d153e0b41518a2ce8dd3d7944fa863463a97d",
+            "token_info_url": null,
+            "coin_id": "shapeshift-fox-token",
+            "target_coin_id": "xdai",
+            "coin_mcap_usd": 7121461.538120321
+        },
+        {
+            "base": "0XDDAFBB505AD214D7B80B1F830FCCC89B60FB7A83",
+            "target": "0XE91D153E0B41518A2CE8DD3D7944FA863463A97D",
+            "market": {
+                "name": "Honeyswap",
+                "identifier": "honeyswap",
+                "has_trading_incentive": false
+            },
+            "last": 0.9996885862,
+            "volume": 130.915188,
+            "converted_last": {
+                "btc": 1.11e-05,
+                "eth": 0.00032136,
+                "usd": 0.999774
+            },
+            "converted_volume": {
+                "btc": 0.00145926,
+                "eth": 0.04225484,
+                "usd": 131.46
+            },
+            "trust_score": "yellow",
+            "bid_ask_spread_percentage": 0.615786,
+            "timestamp": "2026-01-03T19:34:28+00:00",
+            "last_traded_at": "2026-01-03T19:34:28+00:00",
+            "last_fetch_at": "2026-01-03T19:37:37+00:00",
+            "is_anomaly": false,
+            "is_stale": false,
+            "trade_url": "https://app.honeyswap.org/#/swap?inputCurrency=0xddafbb505ad214d7b80b1f830fccc89b60fb7a83\u0026outputCurrency=0xe91d153e0b41518a2ce8dd3d7944fa863463a97d",
+            "token_info_url": null,
+            "coin_id": "gnosis-xdai-bridged-usdc-gnosis",
+            "target_coin_id": "xdai",
+            "coin_mcap_usd": 18378682.177054286
+        },
+        {
+            "base": "0XEC3F3E6D7907ACDA3A7431ABD230196CDA3FBB19",
+            "target": "0XE91D153E0B41518A2CE8DD3D7944FA863463A97D",
+            "market": {
+                "name": "Sushiswap (xDai)",
+                "identifier": "sushiswap_xdai",
+                "has_trading_incentive": false
+            },
+            "last": 0.2644085896,
+            "volume": 950.1960247301,
+            "converted_last": {
+                "btc": 1.11e-05,
+                "eth": 0.0003214,
+                "usd": 0.999756
+            },
+            "converted_volume": {
+                "btc": 0.0027436,
+                "eth": 0.07947318,
+                "usd": 247.21
+            },
+            "trust_score": "yellow",
+            "bid_ask_spread_percentage": 0.633824,
+            "timestamp": "2026-01-03T19:31:12+00:00",
+            "last_traded_at": "2026-01-03T19:31:12+00:00",
+            "last_fetch_at": "2026-01-03T19:31:12+00:00",
+            "is_anomaly": false,
+            "is_stale": false,
+            "trade_url": "https://app.sushi.com/swap?inputCurrency=0xec3f3e6d7907acda3a7431abd230196cda3fbb19\u0026outputCurrency=0xe91d153e0b41518a2ce8dd3d7944fa863463a97d",
+            "token_info_url": null,
+            "coin_id": "ethichub",
+            "target_coin_id": "xdai",
+            "coin_mcap_usd": 18645743.41229131
+        },
+        {
+            "base": "0X0AA1E96D2A46EC6BEB2923DE1E61ADDF5F5F1DCE",
+            "target": "0XE91D153E0B41518A2CE8DD3D7944FA863463A97D",
+            "market": {
+                "name": "Honeyswap",
+                "identifier": "honeyswap",
+                "has_trading_incentive": false
+            },
+            "last": 0.1002186583,
+            "volume": 3593.9987850699,
+            "converted_last": {
+                "btc": 1.11e-05,
+                "eth": 0.00032142,
+                "usd": 0.999822
+            },
+            "converted_volume": {
+                "btc": 0.00415266,
+                "eth": 0.12028924,
+                "usd": 374.18
+            },
+            "trust_score": "yellow",
+            "bid_ask_spread_percentage": 0.808149,
+            "timestamp": "2026-01-03T18:07:15+00:00",
+            "last_traded_at": "2026-01-03T18:07:15+00:00",
+            "last_fetch_at": "2026-01-03T19:31:13+00:00",
+            "is_anomaly": false,
+            "is_stale": false,
+            "trade_url": "https://app.honeyswap.org/#/swap?inputCurrency=0x0aa1e96d2a46ec6beb2923de1e61addf5f5f1dce\u0026outputCurrency=0xe91d153e0b41518a2ce8dd3d7944fa863463a97d",
+            "token_info_url": null,
+            "coin_id": "realtoken-ecosystem-governance",
+            "target_coin_id": "xdai",
+            "coin_mcap_usd": 7235753.308413929
+        },
+        {
+            "base": "0XE2E73A1C69ECF83F464EFCE6A5BE353A37CA09B2",
+            "target": "0XE91D153E0B41518A2CE8DD3D7944FA863463A97D",
+            "market": {
+                "name": "Honeyswap",
+                "identifier": "honeyswap",
+                "has_trading_incentive": false
+            },
+            "last": 13.1146804366,
+            "volume": 11.2287003878,
+            "converted_last": {
+                "btc": 1.11e-05,
+                "eth": 0.00032136,
+                "usd": 0.999774
+            },
+            "converted_volume": {
+                "btc": 0.00162469,
+                "eth": 0.04704505,
+                "usd": 146.36
+            },
+            "trust_score": "yellow",
+            "bid_ask_spread_percentage": 0.629146,
+            "timestamp": "2026-01-03T17:29:08+00:00",
+            "last_traded_at": "2026-01-03T17:29:08+00:00",
+            "last_fetch_at": "2026-01-03T19:37:37+00:00",
+            "is_anomaly": false,
+            "is_stale": false,
+            "trade_url": "https://app.honeyswap.org/#/swap?inputCurrency=0xe2e73a1c69ecf83f464efce6a5be353a37ca09b2\u0026outputCurrency=0xe91d153e0b41518a2ce8dd3d7944fa863463a97d",
+            "token_info_url": null,
+            "coin_id": "chainlink",
+            "target_coin_id": "xdai",
+            "coin_mcap_usd": 9331344151.851404
+        },
+        {
+            "base": "0XE2E73A1C69ECF83F464EFCE6A5BE353A37CA09B2",
+            "target": "0XE91D153E0B41518A2CE8DD3D7944FA863463A97D",
+            "market": {
+                "name": "Sushiswap (xDai)",
+                "identifier": "sushiswap_xdai",
+                "has_trading_incentive": false
+            },
+            "last": 13.1148859662,
+            "volume": 10.4365069905,
+            "converted_last": {
+                "btc": 1.11e-05,
+                "eth": 0.00032136,
+                "usd": 0.999774
+            },
+            "converted_volume": {
+                "btc": 0.00151034,
+                "eth": 0.04373383,
+                "usd": 136.06
+            },
+            "trust_score": "yellow",
+            "bid_ask_spread_percentage": 0.631745,
+            "timestamp": "2026-01-03T17:47:06+00:00",
+            "last_traded_at": "2026-01-03T17:47:06+00:00",
+            "last_fetch_at": "2026-01-03T19:37:37+00:00",
+            "is_anomaly": false,
+            "is_stale": false,
+            "trade_url": "https://app.sushi.com/swap?inputCurrency=0xe2e73a1c69ecf83f464efce6a5be353a37ca09b2\u0026outputCurrency=0xe91d153e0b41518a2ce8dd3d7944fa863463a97d",
+            "token_info_url": null,
+            "coin_id": "chainlink",
+            "target_coin_id": "xdai",
+            "coin_mcap_usd": 9331344151.851404
+        },
+        {
+            "base": "0X84E2C67CBEFAE6B5148FCA7D02B341B12FF4B5BB",
+            "target": "0XE91D153E0B41518A2CE8DD3D7944FA863463A97D",
+            "market": {
+                "name": "Honeyswap",
+                "identifier": "honeyswap",
+                "has_trading_incentive": false
+            },
+            "last": 0.001852228441,
+            "volume": 10310.9482591628,
+            "converted_last": {
+                "btc": 1.11e-05,
+                "eth": 0.00032136,
+                "usd": 0.999774
+            },
+            "converted_volume": {
+                "btc": 0.00021286,
+                "eth": 0.0061637,
+                "usd": 19.18
+            },
+            "trust_score": "yellow",
+            "bid_ask_spread_percentage": 0.620832,
+            "timestamp": "2026-01-03T19:28:03+00:00",
+            "last_traded_at": "2026-01-03T19:28:03+00:00",
+            "last_fetch_at": "2026-01-03T19:37:37+00:00",
+            "is_anomaly": false,
+            "is_stale": false,
+            "trade_url": "https://app.honeyswap.org/#/swap?inputCurrency=0x84e2c67cbefae6b5148fca7d02b341b12ff4b5bb\u0026outputCurrency=0xe91d153e0b41518a2ce8dd3d7944fa863463a97d",
+            "token_info_url": null,
+            "coin_id": "swash",
+            "target_coin_id": "xdai",
+            "coin_mcap_usd": 1832626.9673633713
+        },
+        {
+            "base": "0X0AA1E96D2A46EC6BEB2923DE1E61ADDF5F5F1DCE",
+            "target": "0XE91D153E0B41518A2CE8DD3D7944FA863463A97D",
+            "market": {
+                "name": "Sushiswap V3 (Gnosis)",
+                "identifier": "sushiswap-v3-gnosis",
+                "has_trading_incentive": false
+            },
+            "last": 0.09777091993,
+            "volume": 886.545270011,
+            "converted_last": {
+                "btc": 1.11e-05,
+                "eth": 0.00032133,
+                "usd": 0.99982
+            },
+            "converted_volume": {
+                "btc": 0.00110347,
+                "eth": 0.03195192,
+                "usd": 99.42
+            },
+            "trust_score": "yellow",
+            "bid_ask_spread_percentage": 0.631431,
+            "timestamp": "2026-01-03T16:58:11+00:00",
+            "last_traded_at": "2026-01-03T16:58:11+00:00",
+            "last_fetch_at": "2026-01-03T19:30:01+00:00",
+            "is_anomaly": false,
+            "is_stale": false,
+            "trade_url": "https://www.sushi.com/gnosis/swap?token0=0x0aa1e96d2a46ec6beb2923de1e61addf5f5f1dce\u0026token1=0xe91d153e0b41518a2ce8dd3d7944fa863463a97d",
+            "token_info_url": null,
+            "coin_id": "realtoken-ecosystem-governance",
+            "target_coin_id": "xdai",
+            "coin_mcap_usd": 7235753.308413929
+        },
+        {
+            "base": "0X9C58BACC331C9AA871AFD802DB6379A98E80CEDB",
+            "target": "0XE91D153E0B41518A2CE8DD3D7944FA863463A97D",
+            "market": {
+                "name": "Honeyswap",
+                "identifier": "honeyswap",
+                "has_trading_incentive": false
+            },
+            "last": 136.8432587177,
+            "volume": 0.8364938886,
+            "converted_last": {
+                "btc": 1.109e-05,
+                "eth": 0.00032113,
+                "usd": 0.99892
+            },
+            "converted_volume": {
+                "btc": 0.00126031,
+                "eth": 0.03650712,
+                "usd": 113.56
+            },
+            "trust_score": "yellow",
+            "bid_ask_spread_percentage": 0.680434,
+            "timestamp": "2026-01-03T19:31:13+00:00",
+            "last_traded_at": "2026-01-03T19:31:13+00:00",
+            "last_fetch_at": "2026-01-03T19:31:13+00:00",
+            "is_anomaly": false,
+            "is_stale": false,
+            "trade_url": "https://app.honeyswap.org/#/swap?inputCurrency=0x9c58bacc331c9aa871afd802db6379a98e80cedb\u0026outputCurrency=0xe91d153e0b41518a2ce8dd3d7944fa863463a97d",
+            "token_info_url": null,
+            "coin_id": "gnosis",
+            "target_coin_id": "xdai",
+            "coin_mcap_usd": 362271847.1045309
+        },
+        {
+            "base": "0X3A97704A1B25F08AA230AE53B352E2E72EF52843",
+            "target": "0XE91D153E0B41518A2CE8DD3D7944FA863463A97D",
+            "market": {
+                "name": "Honeyswap",
+                "identifier": "honeyswap",
+                "has_trading_incentive": false
+            },
+            "last": 44.7147108726,
+            "volume": 0.4853440184,
+            "converted_last": {
+                "btc": 1.11e-05,
+                "eth": 0.00032142,
+                "usd": 0.999822
+            },
+            "converted_volume": {
+                "btc": 0.00023999,
+                "eth": 0.00695169,
+                "usd": 21.62
+            },
+            "trust_score": "yellow",
+            "bid_ask_spread_percentage": 0.64763,
+            "timestamp": "2026-01-03T19:31:13+00:00",
+            "last_traded_at": "2026-01-03T19:31:13+00:00",
+            "last_fetch_at": "2026-01-03T19:31:13+00:00",
+            "is_anomaly": false,
+            "is_stale": false,
+            "trade_url": "https://app.honeyswap.org/#/swap?inputCurrency=0x3a97704a1b25f08aa230ae53b352e2e72ef52843\u0026outputCurrency=0xe91d153e0b41518a2ce8dd3d7944fa863463a97d",
+            "token_info_url": null,
+            "coin_id": "agave-token",
+            "target_coin_id": "xdai",
+            "coin_mcap_usd": 4469901.862024098
+        },
+        {
+            "base": "0X9C58BACC331C9AA871AFD802DB6379A98E80CEDB",
+            "target": "0XE91D153E0B41518A2CE8DD3D7944FA863463A97D",
+            "market": {
+                "name": "Swapr (Xdai)",
+                "identifier": "swapr_xdai",
+                "has_trading_incentive": false
+            },
+            "last": 136.7475415507,
+            "volume": 0.4065521431,
+            "converted_last": {
+                "btc": 1.11e-05,
+                "eth": 0.00032145,
+                "usd": 0.99982
+            },
+            "converted_volume": {
+                "btc": 0.0006125,
+                "eth": 0.01773776,
+                "usd": 55.17
+            },
+            "trust_score": "yellow",
+            "bid_ask_spread_percentage": 0.753496,
+            "timestamp": "2026-01-03T19:29:19+00:00",
+            "last_traded_at": "2026-01-03T19:29:19+00:00",
+            "last_fetch_at": "2026-01-03T19:29:19+00:00",
+            "is_anomaly": false,
+            "is_stale": false,
+            "trade_url": "https://swapr.eth.limo/#/swap?outputCurrency=0xe91d153e0b41518a2ce8dd3d7944fa863463a97d\u0026inputCurrency=0x9c58bacc331c9aa871afd802db6379a98e80cedb",
+            "token_info_url": null,
+            "coin_id": "gnosis",
+            "target_coin_id": "xdai",
+            "coin_mcap_usd": 362271847.1045309
+        },
+        {
+            "base": "0X2BF2BA13735160624A0FEAE98F6AC8F70885EA61",
+            "target": "0XE91D153E0B41518A2CE8DD3D7944FA863463A97D",
+            "market": {
+                "name": "Honeyswap",
+                "identifier": "honeyswap",
+                "has_trading_incentive": false
+            },
+            "last": 14299.8741516367,
+            "volume": 7.961918542e-05,
+            "converted_last": {
+                "btc": 1.11e-05,
+                "eth": 0.00032182,
+                "usd": 0.999864
+            },
+            "converted_volume": {
+                "btc": 1.263e-05,
+                "eth": 0.00036626,
+                "usd": 1.14
+            },
+            "trust_score": "yellow",
+            "bid_ask_spread_percentage": 0.672961,
+            "timestamp": "2026-01-03T16:38:09+00:00",
+            "last_traded_at": "2026-01-03T16:38:09+00:00",
+            "last_fetch_at": "2026-01-03T17:04:34+00:00",
+            "is_anomaly": false,
+            "is_stale": false,
+            "trade_url": "https://app.honeyswap.org/#/swap?inputCurrency=0x2bf2ba13735160624a0feae98f6ac8f70885ea61\u0026outputCurrency=0xe91d153e0b41518a2ce8dd3d7944fa863463a97d",
+            "token_info_url": null,
+            "coin_id": "fraction",
+            "target_coin_id": "xdai",
+            "coin_mcap_usd": 0.0
+        },
+        {
+            "base": "0XB0C5F3100A4D9D9532A4CFD68C55F1AE8DA987EB",
+            "target": "0XE91D153E0B41518A2CE8DD3D7944FA863463A97D",
+            "market": {
+                "name": "Honeyswap",
+                "identifier": "honeyswap",
+                "has_trading_incentive": false
+            },
+            "last": 0.2452380571,
+            "volume": 5.1188457876,
+            "converted_last": {
+                "btc": 1.11e-05,
+                "eth": 0.00032182,
+                "usd": 0.999864
+            },
+            "converted_volume": {
+                "btc": 1.393e-05,
+                "eth": 0.00040381,
+                "usd": 1.25
+            },
+            "trust_score": "yellow",
+            "bid_ask_spread_percentage": 0.676203,
+            "timestamp": "2026-01-03T16:38:57+00:00",
+            "last_traded_at": "2026-01-03T16:38:57+00:00",
+            "last_fetch_at": "2026-01-03T17:04:34+00:00",
+            "is_anomaly": false,
+            "is_stale": false,
+            "trade_url": "https://app.honeyswap.org/#/swap?inputCurrency=0xb0c5f3100a4d9d9532a4cfd68c55f1ae8da987eb\u0026outputCurrency=0xe91d153e0b41518a2ce8dd3d7944fa863463a97d",
+            "token_info_url": null,
+            "coin_id": "daohaus",
+            "target_coin_id": "xdai",
+            "coin_mcap_usd": 245204.7232371048
+        },
+        {
+            "base": "0X63E62989D9EB2D37DFDB1F93A22F063635B07D51",
+            "target": "0XE91D153E0B41518A2CE8DD3D7944FA863463A97D",
+            "market": {
+                "name": "Honeyswap",
+                "identifier": "honeyswap",
+                "has_trading_incentive": false
+            },
+            "last": 0.001796169833,
+            "volume": 611.6033872169,
+            "converted_last": {
+                "btc": 1.111e-05,
+                "eth": 0.00032238,
+                "usd": 0.999641
+            },
+            "converted_volume": {
+                "btc": 1.22e-05,
+                "eth": 0.00035397,
+                "usd": 1.098
+            },
+            "trust_score": "yellow",
+            "bid_ask_spread_percentage": 0.698599,
+            "timestamp": "2026-01-03T16:10:52+00:00",
+            "last_traded_at": "2026-01-03T16:10:52+00:00",
+            "last_fetch_at": "2026-01-03T16:24:20+00:00",
+            "is_anomaly": false,
+            "is_stale": false,
+            "trade_url": "https://app.honeyswap.org/#/swap?inputCurrency=0x63e62989d9eb2d37dfdb1f93a22f063635b07d51\u0026outputCurrency=0xe91d153e0b41518a2ce8dd3d7944fa863463a97d",
+            "token_info_url": null,
+            "coin_id": "minerva-wallet",
+            "target_coin_id": "xdai",
+            "coin_mcap_usd": 24754.332413378594
+        },
+        {
+            "base": "0XB7D311E2EB55F2F68A9440DA38E7989210B9A05E",
+            "target": "0XE91D153E0B41518A2CE8DD3D7944FA863463A97D",
+            "market": {
+                "name": "Sushiswap (xDai)",
+                "identifier": "sushiswap_xdai",
+                "has_trading_incentive": false
+            },
+            "last": 0.05577313474,
+            "volume": 35.3376630592,
+            "converted_last": {
+                "btc": 1.11e-05,
+                "eth": 0.00032206,
+                "usd": 0.999594
+            },
+            "converted_volume": {
+                "btc": 2.182e-05,
+                "eth": 0.00063326,
+                "usd": 1.97
+            },
+            "trust_score": "yellow",
+            "bid_ask_spread_percentage": 0.844299,
+            "timestamp": "2026-01-03T14:10:24+00:00",
+            "last_traded_at": "2026-01-03T14:10:24+00:00",
+            "last_fetch_at": "2026-01-03T14:49:42+00:00",
+            "is_anomaly": false,
+            "is_stale": false,
+            "trade_url": "https://app.sushi.com/swap?inputCurrency=0xb7d311e2eb55f2f68a9440da38e7989210b9a05e\u0026outputCurrency=0xe91d153e0b41518a2ce8dd3d7944fa863463a97d",
+            "token_info_url": null,
+            "coin_id": "xdai-stake",
+            "target_coin_id": "xdai",
+            "coin_mcap_usd": 103037.5900578173
+        },
+        {
+            "base": "0XB7D311E2EB55F2F68A9440DA38E7989210B9A05E",
+            "target": "0XE91D153E0B41518A2CE8DD3D7944FA863463A97D",
+            "market": {
+                "name": "Honeyswap",
+                "identifier": "honeyswap",
+                "has_trading_incentive": false
+            },
+            "last": 0.05577132424,
+            "volume": 20.4054523416,
+            "converted_last": {
+                "btc": 1.111e-05,
+                "eth": 0.00032238,
+                "usd": 0.999641
+            },
+            "converted_volume": {
+                "btc": 1.263e-05,
+                "eth": 0.00036636,
+                "usd": 1.14
+            },
+            "trust_score": "yellow",
+            "bid_ask_spread_percentage": 0.854568,
+            "timestamp": "2026-01-03T16:10:52+00:00",
+            "last_traded_at": "2026-01-03T16:10:52+00:00",
+            "last_fetch_at": "2026-01-03T16:24:20+00:00",
+            "is_anomaly": false,
+            "is_stale": false,
+            "trade_url": "https://app.honeyswap.org/#/swap?inputCurrency=0xb7d311e2eb55f2f68a9440da38e7989210b9a05e\u0026outputCurrency=0xe91d153e0b41518a2ce8dd3d7944fa863463a97d",
+            "token_info_url": null,
+            "coin_id": "xdai-stake",
+            "target_coin_id": "xdai",
+            "coin_mcap_usd": 103037.5900578173
+        },
+        {
+            "base": "0X2086F52651837600180DE173B09470F54EF74910",
+            "target": "0XE91D153E0B41518A2CE8DD3D7944FA863463A97D",
+            "market": {
+                "name": "Balancer V2 (Gnosis)",
+                "identifier": "balancer-gnosis",
+                "has_trading_incentive": false
+            },
+            "last": 1.0288660116,
+            "volume": 84.4721171369,
+            "converted_last": {
+                "btc": 1.11e-05,
+                "eth": 0.00032142,
+                "usd": 0.999822
+            },
+            "converted_volume": {
+                "btc": 0.0009643,
+                "eth": 0.0279328,
+                "usd": 86.89
+            },
+            "trust_score": null,
+            "bid_ask_spread_percentage": 0.016568,
+            "timestamp": "2026-01-03T19:31:17+00:00",
+            "last_traded_at": "2026-01-03T19:31:17+00:00",
+            "last_fetch_at": "2026-01-03T19:31:17+00:00",
+            "is_anomaly": false,
+            "is_stale": false,
+            "trade_url": "https://app.balancer.fi/#/gnosis-chain/swap?inputCurrency=0x2086f52651837600180de173b09470f54ef74910\u0026outputCurrency=0xe91d153e0b41518a2ce8dd3d7944fa863463a97d",
+            "token_info_url": null,
+            "coin_id": "balancer-stable-usd",
+            "target_coin_id": "xdai",
+            "coin_mcap_usd": 0.0
+        },
+        {
+            "base": "0XCB444E90D8198415266C6A2724B7900FB12FC56E",
+            "target": "0XE91D153E0B41518A2CE8DD3D7944FA863463A97D",
+            "market": {
+                "name": "Sushiswap V3 (Gnosis)",
+                "identifier": "sushiswap-v3-gnosis",
+                "has_trading_incentive": false
+            },
+            "last": 1.1717385525,
+            "volume": 1582.5147630594,
+            "converted_last": {
+                "btc": 1.111e-05,
+                "eth": 0.00032175,
+                "usd": 1.001
+            },
+            "converted_volume": {
+                "btc": 0.02062889,
+                "eth": 0.59741801,
+                "usd": 1858.47
+            },
+            "trust_score": null,
+            "bid_ask_spread_percentage": 0.738828,
+            "timestamp": "2026-01-03T19:33:43+00:00",
+            "last_traded_at": "2026-01-03T19:33:43+00:00",
+            "last_fetch_at": "2026-01-03T19:33:43+00:00",
+            "is_anomaly": false,
+            "is_stale": false,
+            "trade_url": "https://www.sushi.com/gnosis/swap?token0=0xcb444e90d8198415266c6a2724b7900fb12fc56e\u0026token1=0xe91d153e0b41518a2ce8dd3d7944fa863463a97d",
+            "token_info_url": null,
+            "coin_id": "monerium-eur-money",
+            "target_coin_id": "xdai",
+            "coin_mcap_usd": 0.0
+        },
+        {
+            "base": "0X4ECABA5870353805A9F068101A40E0F32ED605C6",
+            "target": "0XE91D153E0B41518A2CE8DD3D7944FA863463A97D",
+            "market": {
+                "name": "Balancer V2 (Gnosis)",
+                "identifier": "balancer-gnosis",
+                "has_trading_incentive": false
+            },
+            "last": 1.0,
+            "volume": 1186.9529,
+            "converted_last": {
+                "btc": 1.109e-05,
+                "eth": 0.00032133,
+                "usd": 0.99954
+            },
+            "converted_volume": {
+                "btc": 0.01316005,
+                "eth": 0.38120426,
+                "usd": 1185.79
+            },
+            "trust_score": null,
+            "bid_ask_spread_percentage": 0.644466,
+            "timestamp": "2026-01-03T19:31:17+00:00",
+            "last_traded_at": "2026-01-03T19:31:17+00:00",
+            "last_fetch_at": "2026-01-03T19:31:17+00:00",
+            "is_anomaly": false,
+            "is_stale": false,
+            "trade_url": "https://app.balancer.fi/#/gnosis-chain/swap?inputCurrency=0x4ecaba5870353805a9f068101a40e0f32ed605c6\u0026outputCurrency=0xe91d153e0b41518a2ce8dd3d7944fa863463a97d",
+            "token_info_url": null,
+            "coin_id": "gnosis-xdai-bridged-usdt-gnosis",
+            "target_coin_id": "xdai",
+            "coin_mcap_usd": 2695376.9022254944
+        },
+        {
+            "base": "0X3A3E9715018D80916740E8AC300713FDF6614D19",
+            "target": "0XE91D153E0B41518A2CE8DD3D7944FA863463A97D",
+            "market": {
+                "name": "Honeyswap",
+                "identifier": "honeyswap",
+                "has_trading_incentive": false
+            },
+            "last": 0.006477120381,
+            "volume": 997.8782219745,
+            "converted_last": {
+                "btc": 1.11e-05,
+                "eth": 0.00032142,
+                "usd": 0.999822
+            },
+            "converted_volume": {
+                "btc": 7.164e-05,
+                "eth": 0.00207507,
+                "usd": 6.45
+            },
+            "trust_score": null,
+            "bid_ask_spread_percentage": 0.638298,
+            "timestamp": "2026-01-03T17:43:39+00:00",
+            "last_traded_at": "2026-01-03T17:43:39+00:00",
+            "last_fetch_at": "2026-01-03T19:31:13+00:00",
+            "is_anomaly": false,
+            "is_stale": false,
+            "trade_url": "https://app.honeyswap.org/#/swap?inputCurrency=0x3a3e9715018d80916740e8ac300713fdf6614d19\u0026outputCurrency=0xe91d153e0b41518a2ce8dd3d7944fa863463a97d",
+            "token_info_url": null,
+            "coin_id": "hivewater",
+            "target_coin_id": "xdai",
+            "coin_mcap_usd": 0.0
+        },
+        {
+            "base": "0XE91D153E0B41518A2CE8DD3D7944FA863463A97D",
+            "target": "0X71850B7E9EE3F13AB46D67167341E4BDC905EEF9",
+            "market": {
+                "name": "Honeyswap",
+                "identifier": "honeyswap",
+                "has_trading_incentive": false
+            },
+            "last": 0.7591743797,
+            "volume": 39.4525835043,
+            "converted_last": {
+                "btc": 1.11e-05,
+                "eth": 0.00032142,
+                "usd": 0.999822
+            },
+            "converted_volume": {
+                "btc": 0.00043847,
+                "eth": 0.01270101,
+                "usd": 39.51
+            },
+            "trust_score": null,
+            "bid_ask_spread_percentage": 0.657143,
+            "timestamp": "2026-01-03T18:54:06+00:00",
+            "last_traded_at": "2026-01-03T18:54:06+00:00",
+            "last_fetch_at": "2026-01-03T19:31:13+00:00",
+            "is_anomaly": false,
+            "is_stale": false,
+            "trade_url": "https://app.honeyswap.org/#/swap?inputCurrency=0xe91d153e0b41518a2ce8dd3d7944fa863463a97d\u0026outputCurrency=0x71850b7e9ee3f13ab46d67167341e4bdc905eef9",
+            "token_info_url": null,
+            "coin_id": "xdai",
+            "target_coin_id": "honey",
+            "coin_mcap_usd": 0.0
+        },
+        {
+            "base": "0X48B1B0D077B4919B65B4E4114806DD803901E1D9",
+            "target": "0XE91D153E0B41518A2CE8DD3D7944FA863463A97D",
+            "market": {
+                "name": "Honeyswap",
+                "identifier": "honeyswap",
+                "has_trading_incentive": false
+            },
+            "last": 0.003249058229,
+            "volume": 19008.0805457974,
+            "converted_last": {
+                "btc": 1.11e-05,
+                "eth": 0.00032203,
+                "usd": 0.999749
+            },
+            "converted_volume": {
+                "btc": 0.00071143,
+                "eth": 0.02063323,
+                "usd": 64.06
+            },
+            "trust_score": null,
+            "bid_ask_spread_percentage": 0.739163,
+            "timestamp": "2026-01-03T14:10:25+00:00",
+            "last_traded_at": "2026-01-03T14:10:25+00:00",
+            "last_fetch_at": "2026-01-03T14:23:03+00:00",
+            "is_anomaly": false,
+            "is_stale": false,
+            "trade_url": "https://app.honeyswap.org/#/swap?inputCurrency=0x48b1b0d077b4919b65b4e4114806dd803901e1d9\u0026outputCurrency=0xe91d153e0b41518a2ce8dd3d7944fa863463a97d",
+            "token_info_url": null,
+            "coin_id": "etherisc",
+            "target_coin_id": "xdai",
+            "coin_mcap_usd": 1277463.3029985891
+        },
+        {
+            "base": "0X63E62989D9EB2D37DFDB1F93A22F063635B07D51",
+            "target": "0XE91D153E0B41518A2CE8DD3D7944FA863463A97D",
+            "market": {
+                "name": "Balancer V2 (Gnosis)",
+                "identifier": "balancer-gnosis",
+                "has_trading_incentive": false
+            },
+            "last": 0.001795563525,
+            "volume": 64.9423347638,
+            "converted_last": {
+                "btc": 1.11e-05,
+                "eth": 0.00032142,
+                "usd": 0.999822
+            },
+            "converted_volume": {
+                "btc": 1.29e-06,
+                "eth": 3.728e-05,
+                "usd": 0.115972
+            },
+            "trust_score": null,
+            "bid_ask_spread_percentage": 0.635143,
+            "timestamp": "2026-01-03T19:18:26+00:00",
+            "last_traded_at": "2026-01-03T19:18:26+00:00",
+            "last_fetch_at": "2026-01-03T19:31:19+00:00",
+            "is_anomaly": false,
+            "is_stale": false,
+            "trade_url": "https://app.balancer.fi/#/gnosis-chain/swap?inputCurrency=0x63e62989d9eb2d37dfdb1f93a22f063635b07d51\u0026outputCurrency=0xe91d153e0b41518a2ce8dd3d7944fa863463a97d",
+            "token_info_url": null,
+            "coin_id": "minerva-wallet",
+            "target_coin_id": "xdai",
+            "coin_mcap_usd": 24754.332413378594
+        },
+        {
+            "base": "XDAI",
+            "target": "USDT",
+            "market": {
+                "name": "AscendEX (BitMax)",
+                "identifier": "bitmax",
+                "has_trading_incentive": false
+            },
+            "last": 0.9937,
+            "volume": 204362.5,
+            "converted_last": {
+                "btc": 1.103e-05,
+                "eth": 0.00031937,
+                "usd": 0.993402
+            },
+            "converted_volume": {
+                "btc": 2.25346,
+                "eth": 65.268,
+                "usd": 203014
+            },
+            "trust_score": null,
+            "bid_ask_spread_percentage": 1.99,
+            "timestamp": "2026-01-03T19:39:55+00:00",
+            "last_traded_at": "2026-01-03T19:39:55+00:00",
+            "last_fetch_at": "2026-01-03T19:39:55+00:00",
+            "is_anomaly": true,
+            "is_stale": false,
+            "trade_url": "https://ascendex.com/en/cashtrade-spottrading/usdt/xdai",
+            "token_info_url": null,
+            "coin_id": "xdai",
+            "target_coin_id": "tether",
+            "coin_mcap_usd": 0.0
+        },
+        {
+            "base": "0XDDAFBB505AD214D7B80B1F830FCCC89B60FB7A83",
+            "target": "0XE91D153E0B41518A2CE8DD3D7944FA863463A97D",
+            "market": {
+                "name": "Sushiswap (xDai)",
+                "identifier": "sushiswap_xdai",
+                "has_trading_incentive": false
+            },
+            "last": 0.9955695767,
+            "volume": 9156.633784,
+            "converted_last": {
+                "btc": 1.11e-05,
+                "eth": 0.00032143,
+                "usd": 0.999785
+            },
+            "converted_volume": {
+                "btc": 0.10063086,
+                "eth": 2.914623,
+                "usd": 9065.83
+            },
+            "trust_score": null,
+            "bid_ask_spread_percentage": 0.604122,
+            "timestamp": "2026-01-03T19:32:26+00:00",
+            "last_traded_at": "2026-01-03T19:32:26+00:00",
+            "last_fetch_at": "2026-01-03T19:39:49+00:00",
+            "is_anomaly": true,
+            "is_stale": false,
+            "trade_url": "https://app.sushi.com/swap?inputCurrency=0xddafbb505ad214d7b80b1f830fccc89b60fb7a83\u0026outputCurrency=0xe91d153e0b41518a2ce8dd3d7944fa863463a97d",
+            "token_info_url": null,
+            "coin_id": "gnosis-xdai-bridged-usdc-gnosis",
+            "target_coin_id": "xdai",
+            "coin_mcap_usd": 18378682.177054286
+        },
+        {
+            "base": "0XDBF3EA6F5BEE45C02255B2C26A16F300502F68DA",
+            "target": "0XE91D153E0B41518A2CE8DD3D7944FA863463A97D",
+            "market": {
+                "name": "Sushiswap V3 (Gnosis)",
+                "identifier": "sushiswap-v3-gnosis",
+                "has_trading_incentive": false
+            },
+            "last": 0.1670873116,
+            "volume": 289.3239008014,
+            "converted_last": {
+                "btc": 1.11e-05,
+                "eth": 0.00032144,
+                "usd": 0.99982
+            },
+            "converted_volume": {
+                "btc": 0.00053971,
+                "eth": 0.01562968,
+                "usd": 48.61
+            },
+            "trust_score": null,
+            "bid_ask_spread_percentage": 0.663997,
+            "timestamp": "2026-01-03T18:27:02+00:00",
+            "last_traded_at": "2026-01-03T18:27:02+00:00",
+            "last_fetch_at": "2026-01-03T19:30:01+00:00",
+            "is_anomaly": true,
+            "is_stale": false,
+            "trade_url": "https://www.sushi.com/gnosis/swap?token0=0xdbf3ea6f5bee45c02255b2c26a16f300502f68da\u0026token1=0xe91d153e0b41518a2ce8dd3d7944fa863463a97d",
+            "token_info_url": null,
+            "coin_id": "swarm-bzz",
+            "target_coin_id": "xdai",
+            "coin_mcap_usd": 10939251.246461725
+        },
+        {
+            "base": "0X44FA8E6F47987339850636F88629646662444217",
+            "target": "0XE91D153E0B41518A2CE8DD3D7944FA863463A97D",
+            "market": {
+                "name": "Honeyswap",
+                "identifier": "honeyswap",
+                "has_trading_incentive": false
+            },
+            "last": 1.0237076497,
+            "volume": 1.1188558578,
+            "converted_last": {
+                "btc": 1.113e-05,
+                "eth": 0.00032256,
+                "usd": 0.999733
+            },
+            "converted_volume": {
+                "btc": 1.268e-05,
+                "eth": 0.00036749,
+                "usd": 1.14
+            },
+            "trust_score": "yellow",
+            "bid_ask_spread_percentage": 0.608083,
+            "timestamp": "2026-01-03T08:39:45+00:00",
+            "last_traded_at": "2026-01-03T08:39:45+00:00",
+            "last_fetch_at": "2026-01-03T09:32:39+00:00",
+            "is_anomaly": false,
+            "is_stale": true,
+            "trade_url": "https://app.honeyswap.org/#/swap?inputCurrency=0x44fa8e6f47987339850636f88629646662444217\u0026outputCurrency=0xe91d153e0b41518a2ce8dd3d7944fa863463a97d",
+            "token_info_url": null,
+            "coin_id": "omnibridge-bridged-dai-gnosis-chain",
+            "target_coin_id": "xdai",
+            "coin_mcap_usd": 65695.87915188677
+        },
+        {
+            "base": "0X524B969793A64A602342D89BC2789D43A016B13A",
+            "target": "0XE91D153E0B41518A2CE8DD3D7944FA863463A97D",
+            "market": {
+                "name": "Honeyswap",
+                "identifier": "honeyswap",
+                "has_trading_incentive": false
+            },
+            "last": 0.002290160057,
+            "volume": 25421.0895638136,
+            "converted_last": {
+                "btc": 1.133e-05,
+                "eth": 0.00033693,
+                "usd": 0.999829
+            },
+            "converted_volume": {
+                "btc": 0.00068059,
+                "eth": 0.02023256,
+                "usd": 60.04
+            },
+            "trust_score": "yellow",
+            "bid_ask_spread_percentage": 0.707441,
+            "timestamp": "2025-12-30T17:18:20+00:00",
+            "last_traded_at": "2025-12-30T17:18:20+00:00",
+            "last_fetch_at": "2025-12-30T19:01:37+00:00",
+            "is_anomaly": false,
+            "is_stale": true,
+            "trade_url": "https://app.honeyswap.org/#/swap?inputCurrency=0x524b969793a64a602342d89bc2789d43a016b13a\u0026outputCurrency=0xe91d153e0b41518a2ce8dd3d7944fa863463a97d",
+            "token_info_url": null,
+            "coin_id": "donut",
+            "target_coin_id": "xdai",
+            "coin_mcap_usd": 446045.7536351825
+        },
+        {
+            "base": "0X1698CD22278EF6E7C0DF45A8DEA72EDBEA9E42AA",
+            "target": "0XE91D153E0B41518A2CE8DD3D7944FA863463A97D",
+            "market": {
+                "name": "Levinswap (xDai)",
+                "identifier": "levinswap_xdai",
+                "has_trading_incentive": false
+            },
+            "last": 0.00071134169,
+            "volume": 2480.3100006525,
+            "converted_last": {
+                "btc": 1.116e-05,
+                "eth": 0.00032425,
+                "usd": 0.999703
+            },
+            "converted_volume": {
+                "btc": 1.962e-05,
+                "eth": 0.0005702,
+                "usd": 1.76
+            },
+            "trust_score": "yellow",
+            "bid_ask_spread_percentage": 1.006356,
+            "timestamp": "2026-01-03T05:40:13+00:00",
+            "last_traded_at": "2026-01-03T05:40:13+00:00",
+            "last_fetch_at": "2026-01-03T07:22:11+00:00",
+            "is_anomaly": false,
+            "is_stale": true,
+            "trade_url": "https://app.levinswap.org/#/swap?inputCurrency=0x1698cd22278ef6e7c0df45a8dea72edbea9e42aa\u0026outputCurrency=0xe91d153e0b41518a2ce8dd3d7944fa863463a97d",
+            "token_info_url": null,
+            "coin_id": "levin",
+            "target_coin_id": "xdai",
+            "coin_mcap_usd": 278.3293500761455
+        }
+    ]
 }
 ```
+---
 
-### 3. GET `/last_get_realTokens_mobileapps`
-- **Response**: بدنه متنی شامل `YYYY-MM-DDTHH:mm:ssZ`.
-- **مصرف**: تنها برای مقایسه زمان کش (`lib/services/api_service.dart:358-377`).
+## 2) Get Latest Release of RealToken Apps
 
-### 4. GET `/realTokens_mobileapps`
-- **Response**: آرایه‌ای از `RealTokenDto` با متادیتای کامل دارایی‌ها. مهم‌ترین فیلدهای مصرفی:
-```ts
-interface RealTokenDto {
-  uuid: string;
-  id: string;
-  shortName: string;
-  fullName: string;
-  tokenPrice: number;
-  totalTokens: number;
-  totalUnits: number;
-  rentStartDate?: { date: string };
-  initialLaunchDate?: { date: string };
-  netRentDayPerToken: number;
-  netRentMonthPerToken: number;
-  netRentYearPerToken: number;
-  annualPercentageYield: number;
-  grossRentMonth: number;
-  netRentMonth: number;
-  propertyType: int;
-  productType: string;
-  rentalType: string;
-  rentedUnits: number;
-  coordinate: { lat: double; lng: double };
-  imageLink: List<string>;
-  marketplaceLink: string;
-  totalInvestment: number;
-  underlyingAssetPrice?: number;
-  realtListingFee?: number;
-  initialMaintenanceReserve?: number;
-  renovationReserve?: number;
-  miscellaneousCosts?: number;
-  propertyMaintenanceMonthly?: number;
-  propertyManagement?: number;
-  insurance?: number;
-  propertyTaxes?: number;
-  section8paid?: number;
-  lotSize?: number;
-  squareFeet?: number;
-  bedroomBath?: string;
-  propertyStories?: number;
-  constructionYear?: number;
-  historic?: Map;
-  ethereumContract?: string;
-  gnosisContract?: string;
+**Method:** `GET`
+**Endpoint:** `https://api.github.com/repos/RealToken-Community/realtoken_apps/releases/latest`
+
+### Response 
+```json
+{
+  "url": "https://api.github.com/repos/RealToken-Community/realtoken_apps/releases/221015140",
+  "assets_url": "https://api.github.com/repos/RealToken-Community/realtoken_apps/releases/221015140/assets",
+  "upload_url": "https://uploads.github.com/repos/RealToken-Community/realtoken_apps/releases/221015140/assets{?name,label}",
+  "html_url": "https://github.com/RealToken-Community/realtoken_apps/releases/tag/1.10.1",
+  "id": 221015140,
+  "author": {
+    "login": "byackee",
+    "id": 4707496,
+    "node_id": "MDQ6VXNlcjQ3MDc0OTY=",
+    "avatar_url": "https://avatars.githubusercontent.com/u/4707496?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/byackee",
+    "html_url": "https://github.com/byackee",
+    "followers_url": "https://api.github.com/users/byackee/followers",
+    "following_url": "https://api.github.com/users/byackee/following{/other_user}",
+    "gists_url": "https://api.github.com/users/byackee/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/byackee/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/byackee/subscriptions",
+    "organizations_url": "https://api.github.com/users/byackee/orgs",
+    "repos_url": "https://api.github.com/users/byackee/repos",
+    "events_url": "https://api.github.com/users/byackee/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/byackee/received_events",
+    "type": "User",
+    "user_view_type": "public",
+    "site_admin": false
+  },
+  "node_id": "RE_kwDOM40uy84NLGxk",
+  "tag_name": "1.10.1",
+  "target_commitish": "main",
+  "name": "Release V1.10.1",
+  "draft": false,
+  "immutable": false,
+  "prerelease": false,
+  "created_at": "2025-05-25T05:58:20Z",
+  "updated_at": "2025-05-26T13:46:00Z",
+  "published_at": "2025-05-26T13:46:00Z",
+  "assets": [
+    {
+      "url": "https://api.github.com/repos/RealToken-Community/realtoken_apps/releases/assets/258240625",
+      "id": 258240625,
+      "node_id": "RA_kwDOM40uy84PZHBx",
+      "name": "app-release.apk",
+      "label": null,
+      "uploader": {
+        "login": "byackee",
+        "id": 4707496,
+        "node_id": "MDQ6VXNlcjQ3MDc0OTY=",
+        "avatar_url": "https://avatars.githubusercontent.com/u/4707496?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/byackee",
+        "html_url": "https://github.com/byackee",
+        "followers_url": "https://api.github.com/users/byackee/followers",
+        "following_url": "https://api.github.com/users/byackee/following{/other_user}",
+        "gists_url": "https://api.github.com/users/byackee/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/byackee/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/byackee/subscriptions",
+        "organizations_url": "https://api.github.com/users/byackee/orgs",
+        "repos_url": "https://api.github.com/users/byackee/repos",
+        "events_url": "https://api.github.com/users/byackee/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/byackee/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "content_type": "application/vnd.android.package-archive",
+      "state": "uploaded",
+      "size": 97871735,
+      "digest": null,
+      "download_count": 58,
+      "created_at": "2025-05-26T13:45:46Z",
+      "updated_at": "2025-05-26T13:45:52Z",
+      "browser_download_url": "https://github.com/RealToken-Community/realtoken_apps/releases/download/1.10.1/app-release.apk"
+    }
+  ],
+  "tarball_url": "https://api.github.com/repos/RealToken-Community/realtoken_apps/tarball/1.10.1",
+  "zipball_url": "https://api.github.com/repos/RealToken-Community/realtoken_apps/zipball/1.10.1",
+  "body": "- fix secondary market on properties tab\r\n- minors improvments"
 }
+
 ```
-  - مصرف: `lib/managers/data_manager.dart:1507-1695` و `1968-2174`.
+---
 
-### 5. GET `/last_update_yam_offers_mobileapps`
-- **Response**: رشته زمان ISO برای اعتبارسنجی کش (`lib/services/api_service.dart:427-468`).
+## 3)
 
-### 6. GET `/get_yam_offers_mobileapps`
-- **Response**: آرایه‌ای از `YamOffer`.
-```ts
-interface YamOffer {
-  id: string;
-  id_offer: string;
-  shortName: string;
-  token_amount: number;
-  token_price: number;
-  token_value?: number;
-  token_to_buy?: number;
-  token_to_sell?: number;
-  token_to_pay?: number;
-  token_to_pay_digit?: number;
-  token_digit?: number;
-  annualPercentageYield?: number;
-  creationDate?: string;
-  creation_date?: string;
-  timsync?: string;
-  holder_address?: string;
-  buy_holder_address?: string;
-  offer_token_address?: string;
-  block_number?: number;
-  supp?: number;
-}
-```
-- مصرف‌کنندگان: `lib/modals/token_details/tabs/market_tab.dart` و `lib/pages/propertiesForSale/PropertiesForSaleSecondary.dart`.
-
-### 7. GET `/rent_holder/{wallet}`
-- **Response**: لیست `RentEntry`.
-```ts
-interface RentEntry {
-  date: string;
-  rent: number | string;
-  token: string;
-}
-```
-- ارجاعات: `lib/services/api_service.dart:665-670` و `lib/managers/data_manager.dart:519-568`.
-
-### 8. GET `/whitelist2/{wallet}`
-- **Response**: آرایه‌ای از آبجکت‌هایی که حداقل حاوی `token: string` هستند؛ اپ فقط همین فیلد را بررسی می‌کند (`lib/pages/realtokens_page.dart:124-1260`).
-
-### 9. GET `/detailed_rent_holder/{wallet}`
-- **Response**: آرایه `DetailedRentSlice`.
-```ts
-interface DetailedRentSlice {
-  date: string;
-  token_uuid?: string;
-  token?: string;
-  rentStartDate?: string;
-  rents: { token: string; rent: number }[];
-  dailyIncome?: number;
-  wallet?: string;  // اپ هنگام ذخیره اضافه می‌کند، api خام فقط اطلاعات اجاره را برمی‌گرداند.
-}
-```
-- ارجاع: `lib/services/api_service.dart:1311-1357` و `lib/managers/data_manager.dart:560-569`.
-
-### 10. GET `https://api.coingecko.com/api/v3/coins/xdai`
-- **Response**: آبجکت کامل CoinGecko؛ اپ فقط `market_data.current_price` را به `Map<String,double>` می‌خواند (`lib/services/api_service.dart:863-874`).
-
-### 11. POST `https://rpc.gnosischain.com` (eth_call → مانده ERC20)
-- **Request**: JSON-RPC با `method: "eth_call"`, پارامتر `{"to": contract,"data":"0x70a08231...address"}`.
-- **Response**: `{"result":"0xHEX"}` → `BigInt` (`lib/services/api_service.dart:990-1043`).
-
-### 12. POST `https://rpc.gnosischain.com` (eth_getBalance)
-- **Request**: `{"method":"eth_getBalance","params":[address,"latest"]}`.
-- **Response**: `result` هگز برای xDAI (`lib/services/api_service.dart:1045-1089`).
-
-### 13. POST `https://rpc.gnosischain.com` (Vault selector `0xf262a083`)
-- **Request**: `eth_call` با داده‌ی `0xf262a083 + paddedAddress`.
-- **Response**: هگز 32بایتی → `BigInt` (`lib/services/api_service.dart:1098-1147`).
-
-### 14. GET `https://realt.co/wp-json/realt/v1/products/for_sale`
-- **Response**:
-```ts
-interface RealtyProduct {
-  shortName: string;
-  title: string;
-  city: string;
-  country: string;
-  tokenPrice: number;
-  totalTokens: number;
-  stock: number;
-  status: string;
-  annualPercentageYield: number;
-  imageLink: string[];
-  marketplaceLink: string;
-}
-```
-- مصرف در `lib/pages/propertiesForSale/...`.
-
-### 15. GET `/tokens_volume/`
-- **Response**: لیستی از نقاط حجم. اپ انتظار دارد هر عنصر حداقل شامل شناسه توکن و مقدار حجم باشد؛ توصیه می‌شود ساختار زیر را ثابت نگه دارید:
-```ts
-interface TokenVolumePoint {
-  token_uuid: string;
-  date: string;
-  volume: number;
-}
-```
-- ارجاع: `lib/services/api_service.dart:1607-1634`.
-
-### 16. GET `/transactions_history/{wallet}`
-- **Response**:
-```ts
-interface TransactionHistoryEntry {
-  "Token ID": string;
-  timestamp: string;
-  amount: number;
-  sender: string;
-  "Transaction ID": string;
-}
-```
-- پردازش در `lib/managers/data_manager.dart:2008-2075`.
-
-### 17. GET `/YAM_transactions_history/{wallet}`
-- **Response**:
-```ts
-interface YamTransactionEntry {
-  transaction_id: string;
-  price: number;
-  quantity: number;
-  offer_token_address: string;
-  timestamp: string;
-}
-```
-- ارجاع: `lib/managers/data_manager.dart:2058-2075`.
-
-### 18. GET `/token_history/?limit=10000`
-- **Response**:
-```ts
-interface TokenHistoryEntry {
-  token_uuid: string;
-  date: string;
-  token_price: number;
-}
-```
-- استفاده در `lib/managers/data_manager.dart:2083-2135`.
-
-### 19. GET `https://api.github.com/.../releases/latest`
-- **Response**:
-```ts
-interface GithubRelease {
-  tag_name: string;
-  name: string;
-  body: string;
-  html_url: string;
-  published_at: string;
-}
-```
-- مصرف: `lib/structure/drawer.dart:74-109`.
-
-### 20. GET `https://raw.githubusercontent.com/.../CHANGELOG.md`
-- **Response**: متن Markdown خالص که مستقیماً نمایش داده می‌شود (`lib/pages/changelog_page.dart:24-44`).
-
-### نکات طراحی بک‌اند
-- اندپوینت‌های وابسته به والت (Rent، تاریخچه تراکنش، YAM) انتظار دارند خروجی به‌صورت قابل ادغام بین چند والت باشد؛ بنابراین وجود کلیدهای `date/timestamp`, `token`, `wallet` برای تشخیص رکوردها حیاتی است.
-- گسترش اسکیمای پاسخ آزاد است تا زمانی که فیلدهای فعلی حفظ شوند. برای فیلدهای استفاده‌نشده (مثل داده‌های اضافه در whitelist) از `additionalProperties` استفاده کنید تا ناسازگاری ایجاد نشود.
-
-## مشاهده‌ها و نکات تکمیلی
-- تمام فراخوانی‌ها از طریق `ApiService` از الگوی کش Hive و کنترل فاصله‌ی بین درخواست‌ها استفاده می‌کنند؛ در صورت خطا یا نرخ‌محدودیت، داده از کش خوانده می‌شود.
-- متد `_httpGetWithRetry` (بالای فایل `api_service.dart`) روی اکثر GETهای حساس اعمال شده و حداکثر 3 تلاش با delay افزایشی انجام می‌دهد؛ این رفتار در مستند بالا برای اندپوینت‌های مربوطه ذکر شد.
-- درخواست‌های JSON-RPC به نود گنوسیس تنها خواندنی هستند (`eth_call`/`eth_getBalance`) و هیچ state تغییری ندارند، اما از آن‌جا که محدودیت نرخ نود رعایت شود، کش 1 دقیقه‌ای برای هر والت/کانترکت تعریف شده است.
-- برای اضافه کردن API جدید کافی‌ست آن را به `ApiService` بیافزایید و این فایل را با اندپوینت، متد، ساختار درخواست/پاسخ و مکان مصرف به‌روزرسانی کنید تا شمارش کلی دقیق بماند.
+**Method:** `GET`
